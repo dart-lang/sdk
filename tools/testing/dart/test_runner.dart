@@ -150,7 +150,7 @@ class BrowserTestCase extends TestCase {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
-  List<String> get _lastArguments() => command.last().arguments;
+  List<String> get _lastArguments() => commands.last().arguments;
 
   List<String> get batchRunnerArguments() => [_lastArguments[0], '--batch'];
 
