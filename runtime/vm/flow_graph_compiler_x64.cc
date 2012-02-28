@@ -19,7 +19,6 @@ namespace dart {
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
-DECLARE_FLAG(bool, disassemble);
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
@@ -241,17 +240,6 @@ void FlowGraphCompiler::CompileGraph() {
                                       0,
                                       -1);
   __ jmp(&StubCode::FixCallersTargetLabel());
-
-  if (FLAG_disassemble) {
-    const char* function_fullname = function.ToFullyQualifiedCString();
-    OS::Print(";;; Function %s\n", function_fullname);
-    const Code& code = Code::Handle(Code::FinalizeCode("GRAPH", assembler_));
-    const Instructions& instructions =
-        Instructions::Handle(code.instructions());
-    uword start = instructions.EntryPoint();
-    Disassembler::Disassemble(start, start + assembler_->CodeSize());
-    OS::Print("\n");
-  }
 }
 
 
@@ -273,6 +261,30 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                       node_id,
                                       token_index,
                                       CatchClauseNode::kInvalidTryIndex);
+}
+
+
+void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
+  ASSERT(pc_descriptors_list_ != NULL);
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
+  CodeGenerator::VerifyPcDescriptors(
+      descriptors, parsed_function_.function().is_optimizable());
+  code.set_pc_descriptors(descriptors);
+}
+
+
+void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
+  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
+  code.set_var_descriptors(var_descs);
+}
+
+
+void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
+  // We don't compile exception handlers yet.
+  code.set_exception_handlers(
+      ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
 }
 
 

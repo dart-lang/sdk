@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -107,6 +107,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   // Add pc descriptors to code.
   void FinalizePcDescriptors(const Code& code);
+  // Verify assumptions about pc descriptors in debug mode.
+  static void VerifyPcDescriptors(const PcDescriptors& descriptors,
+                                  bool check_ids);
 
   // Add local variable descriptors to code.
   void FinalizeVarDescriptors(const Code& code);

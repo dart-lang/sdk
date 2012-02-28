@@ -32,6 +32,11 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   void CompileGraph();
 
+  // Infrastructure copied from class CodeGenerator or stubbed out.
+  void FinalizePcDescriptors(const Code& code);
+  void FinalizeVarDescriptors(const Code& code);
+  void FinalizeExceptionHandlers(const Code& code);
+
  private:
   int stack_local_count() const { return stack_local_count_; }
   void set_stack_local_count(int count) { stack_local_count_ = count; }

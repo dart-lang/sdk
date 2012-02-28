@@ -218,8 +218,8 @@ void CodeGenerator::GeneratePreEntryCode() {
 // - No two descriptors of same kind have the same PC.
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
-static void VerifyPcDescriptors(const PcDescriptors& descriptors,
-                                bool check_ids) {
+void CodeGenerator::VerifyPcDescriptors(const PcDescriptors& descriptors,
+                                        bool check_ids) {
 #if defined(DEBUG)
   // TODO(srdjan): Implement a more efficient way to check, currently drop
   // the check for too large number of descriptors.
