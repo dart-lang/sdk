@@ -164,6 +164,28 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return fragment;
   }
 
+  factory DocumentFragmentWrappingImplementation.xml(String xml) {
+    var fragment = new DocumentFragment();
+    var e = new XMLElement.tag("xml");
+    e.innerHTML = xml;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+
+  factory DocumentFragmentWrappingImplementation.svg(String svg) {
+    var fragment = new DocumentFragment();
+    var e = new SVGSVGElement();
+    e.innerHTML = svg;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+
   ElementList get elements() {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
@@ -188,6 +210,8 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   String get outerHTML() => innerHTML;
 
+  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // SVG strings?
   void set innerHTML(String value) {
     this.nodes.clear();
 

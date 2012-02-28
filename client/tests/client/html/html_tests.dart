@@ -8,6 +8,7 @@
 #import('dart:htmlimpl');
 #import('../../../testing/unittest/unittest.dart');
 
+#source('util.dart');
 #source('CSSStyleDeclarationTests.dart');
 #source('DocumentFragmentTests.dart');
 #source('ElementTests.dart');

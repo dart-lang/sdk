@@ -13576,6 +13576,9 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Document":
+      case "XMLDocument":
+        return new XMLDocumentWrappingImplementation._wrap(raw, raw.documentElement);
       case "HTMLDocument":
         return new DocumentWrappingImplementation._wrap(raw, raw.documentElement);
       case "SVGDocument":
@@ -13599,6 +13602,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLAppletElement*/
@@ -14087,6 +14092,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       /* Skipping AbstractWorker*/
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
@@ -14821,6 +14828,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLAppletElement*/
@@ -17106,6 +17115,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       /* Skipping AbstractWorker*/
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
@@ -21766,6 +21777,28 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return fragment;
   }
 
+  factory DocumentFragmentWrappingImplementation.xml(String xml) {
+    var fragment = new DocumentFragment();
+    var e = new XMLElement.tag("xml");
+    e.innerHTML = xml;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+
+  factory DocumentFragmentWrappingImplementation.svg(String svg) {
+    var fragment = new DocumentFragment();
+    var e = new SVGSVGElement();
+    e.innerHTML = svg;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+
   ElementList get elements() {
     if (_elements == null) {
       _elements = new FilteredElementList(this);
@@ -21790,6 +21823,8 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   String get outerHTML() => innerHTML;
 
+  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // SVG strings?
   void set innerHTML(String value) {
     this.nodes.clear();
 
@@ -25726,6 +25761,362 @@ class WorkerWrappingImplementation extends EventTargetWrappingImplementation imp
     return _on;
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
+    implements XMLDocument {
+  // This really just wants to extend both DocumentWrappingImplementation and
+  // XMLElementWrappingImplementation, but since that's not possible we delegate
+  // to the latter.
+  XMLElement documentEl;
+
+  XMLDocumentWrappingImplementation._wrap(documentPtr, ptr) :
+      super._wrap(documentPtr, ptr) {
+    // We want to wrap the pointer in an XMLElement to use its implementation of
+    // various Element methods, but DOMWrapperBase complains if
+    // dartObjectLocalStorage is already set.
+    ptr.dartObjectLocalStorage = null;
+    this.documentEl = new XMLElementWrappingImplementation._wrap(ptr);
+    ptr.dartObjectLocalStorage = this;
+  }
+
+  factory XMLDocumentWrappingImplementation.xml(String xml) {
+    final parser = new dom.DOMParser();
+    final xmlDoc = LevelDom.wrapDocument(
+        parser.parseFromString(xml, 'text/xml'));
+    // When XML parsing fails, the browser creates a document containing a
+    // PARSERERROR element. We want to throw an exception when parsing fails,
+    // but we don't want false positives if the user intends to create a
+    // PARSERERROR element for some reason, so we check for that in the input.
+    //
+    // TODO(nweiz): This is pretty hacky, it would be nice to this some other
+    // way if we can find one.
+    if (!xml.toLowerCase().contains('<parsererror') &&
+        xmlDoc.query('parsererror') != null) {
+      throw new IllegalArgumentException('Error parsing XML: "$xml"');
+    }
+    return xmlDoc;
+  }
+
+  Node get parent() => null;
+
+  Node _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case "beforebegin":
+        return null;
+      case "afterend":
+        return null;
+      case "afterbegin":
+        this.insertBefore(node, nodes.first);
+        return node;
+      case "beforeend":
+        this.nodes.add(node);
+        return node;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
+
+  XMLElement insertAdjacentElement([String where = null,
+      XMLElement element = null]) => this._insertAdjacentNode(where, element);
+
+  void insertAdjacentText([String where = null, String text = null]) {
+    this._insertAdjacentNode(where, new Text(text));
+  }
+
+  void insertAdjacentHTML(
+      [String position_OR_where = null, String text = null]) {
+    this._insertAdjacentNode(
+      position_OR_where, new DocumentFragment.xml(text));
+  }
+
+  Future<ElementRect> get rect() => documentEl.rect;
+
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) =>
+    new Future<Range>.immediate(null);
+
+  Future<Element> elementFromPoint([int x = null, int y = null]) =>
+    new Future<Element>.immediate(null);
+
+  bool execCommand([String command = null, bool userInterface = null,
+      String value = null]) => false;
+
+  bool queryCommandEnabled([String command = null]) => false;
+  bool queryCommandIndeterm([String command = null]) => false;
+  bool queryCommandState([String command = null]) => false;
+  bool queryCommandSupported([String command = null]) => false;
+  void blur() {}
+  void focus() {}
+  void scrollByLines([int lines = null]) {}
+  void scrollByPages([int pages = null]) {}
+  void scrollIntoView([bool centerIfNeeded = null]) {}
+  XMLElement get activeElement() => null;
+  String get domain() => "";
+
+  void set body(Element value) {
+    throw new UnsupportedOperationException("XML documents don't have a body.");
+  }
+
+  String get cookie() {
+    throw new UnsupportedOperationException(
+        "XML documents don't support cookies.");
+  }
+
+  void set cookie(String value) {
+    throw new UnsupportedOperationException(
+        "XML documents don't support cookies.");
+  }
+
+  String get manifest() => "";
+
+  void set manifest(String value) {
+    throw new UnsupportedOperationException(
+        "Manifest can't be set for XML documents.");
+  }
+
+  Set<String> get classes() => documentEl.classes;
+
+  ElementList get elements() => documentEl.elements;
+
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value) { documentEl.elements = value; }
+
+  String get outerHTML() => documentEl.outerHTML;
+
+  String get innerHTML() => documentEl.innerHTML;
+
+  void set innerHTML(String xml) { documentEl.innerHTML = xml; }
+
+  String get contentEditable() => documentEl.contentEditable;
+
+  void set contentEditable(String value) { documentEl.contentEditable = value; }
+
+  bool get isContentEditable() => documentEl.isContentEditable;
+
+  bool get draggable() => documentEl.draggable;
+
+  void set draggable(bool value) { documentEl.draggable = value; }
+
+  bool get spellcheck() => documentEl.spellcheck;
+
+  void set spellcheck(bool value) { documentEl.spellcheck = value; }
+
+  bool get hidden() => documentEl.hidden;
+
+  void set hidden(bool value) { documentEl.hidden = value; }
+
+  int get tabIndex() => documentEl.tabIndex;
+
+  void set tabIndex(int value) { documentEl.tabIndex = value; }
+
+  String get id() => documentEl.id;
+
+  void set id(String value) { documentEl.id = value; }
+
+  String get title() => documentEl.title;
+
+  void set title(String value) { documentEl.title = value; }
+
+  String get webkitdropzone() => documentEl.webkitdropzone;
+
+  void set webkitdropzone(String value) { documentEl.webkitdropzone = value; }
+
+  String get lang() => documentEl.lang;
+
+  void set lang(String value) { documentEl.lang = value; }
+
+  String get dir() => documentEl.dir;
+
+  void set dir(String value) { documentEl.dir = value; }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XMLClassSet extends _CssClassSet {
+  _XMLClassSet(element) : super(element);
+
+  String _className() {
+    final classStr = _element.getAttribute('class');
+    return classStr == null ? '' : classStr;
+  }
+
+  void _write(Set s) => _element.setAttribute('class', _formatSet(s));
+}
+
+class XMLElementWrappingImplementation extends ElementWrappingImplementation
+    implements XMLElement {
+  XMLElementWrappingImplementation._wrap(ptr) : super._wrap(ptr);
+
+  factory XMLElementWrappingImplementation.tag(String tag) =>
+    LevelDom.wrapElement(dom.document.createElementNS(null, tag));
+
+  factory XMLElementWrappingImplementation.xml(String xml) {
+    XMLElement parentTag = new XMLElement.tag('xml');
+    parentTag.innerHTML = xml;
+    if (parentTag.nodes.length == 1) return parentTag.nodes.removeLast();
+
+    throw new IllegalArgumentException('XML had ${parentTag.nodes.length} ' +
+        'top-level nodes but 1 expected');
+  }
+
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _XMLClassSet(_ptr);
+    }
+    return _cssClassSet;
+  }
+
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new FilteredElementList(this);
+    }
+    return _elements;
+  }
+
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML() {
+    final container = new Element.tag("div");
+    container.elements.add(this.clone(true));
+    return container.innerHTML;
+  }
+
+  String get innerHTML() {
+    final container = new Element.tag("div");
+    container.nodes.addAll(this.clone(true).nodes);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String xml) {
+    final xmlDoc = new XMLDocument.xml('<xml>$xml</xml>');
+    this.nodes = xmlDoc.nodes;
+  }
+
+  Node _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case "beforebegin":
+        if (parent == null) return null;
+        parent.insertBefore(node, this);
+        return node;
+      case "afterend":
+        if (parent == null) return null;
+        if (nextNode == null) {
+          parent.nodes.add(node);
+        } else {
+          parent.insertBefore(node, nextNode);
+        }
+        return node;
+      case "afterbegin":
+        this.insertBefore(node, nodes.first);
+        return node;
+      case "beforeend":
+        this.nodes.add(node);
+        return node;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
+
+  XMLElement insertAdjacentElement([String where = null,
+      XMLElement element = null]) => this._insertAdjacentNode(where, element);
+
+  void insertAdjacentText([String where = null, String text = null]) {
+    this._insertAdjacentNode(where, new Text(text));
+  }
+
+  void insertAdjacentHTML(
+      [String position_OR_where = null, String text = null]) {
+    this._insertAdjacentNode(
+      position_OR_where, new DocumentFragment.xml(text));
+  }
+
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
+  }
+
+  // For HTML elemens, the default value of "contentEditable" is "inherit", so
+  // we'll use that here as well even though it doesn't really make sense.
+  String get contentEditable() => _attr('contentEditable', 'inherit');
+
+  void set contentEditable(String value) {
+    attributes['contentEditable'] = value;
+  }
+
+  void blur() {}
+  void focus() {}
+  void scrollByLines([int lines = null]) {}
+  void scrollByPages([int pages = null]) {}
+  void scrollIntoView([bool centerIfNeeded = null]) {}
+
+  // Parentless HTML elements return false regardless of the value of their
+  // contentEditable attribute, so XML elements do the same since they're never
+  // actually editable.
+  bool get isContentEditable() => false;
+
+  bool get draggable() => attributes['draggable'] == 'true';
+
+  void set draggable(bool value) { attributes['draggable'] = value.toString(); }
+
+  bool get spellcheck() => attributes['spellcheck'] == 'true';
+
+  void set spellcheck(bool value) {
+    attributes['spellcheck'] = value.toString();
+  }
+
+  bool get hidden() => attributes.containsKey('hidden');
+
+  void set hidden(bool value) {
+    if (value) {
+      attributes['hidden'] = '';
+    } else {
+      attributes.remove('hidden');
+    }
+  }
+
+  int get tabIndex() {
+    try {
+      return Math.parseInt(_attr('tabIndex'));
+    } catch (BadNumberFormatException e) {
+      return 0;
+    }
+  }
+
+  void set tabIndex(int value) { attributes['tabIndex'] = value.toString(); }
+
+  String get id() => _attr('id');
+
+  void set id(String value) { attributes['id'] = value; }
+
+  String get title() => _attr('title');
+
+  void set title(String value) { attributes['title'] = value; }
+
+  String get webkitdropzone() => _attr('webkitdropzone');
+
+  void set webkitdropzone(String value) {
+    attributes['webkitdropzone'] = value;
+  }
+
+  String get lang() => _attr('lang');
+
+  void set lang(String value) { attributes['lang'] = value; }
+
+  String get dir() => _attr('dir');
+
+  void set dir(String value) { attributes['dir'] = value; }
+
+  String _attr(String name, [String def = '']) =>
+    attributes.containsKey(name) ? attributes[name] : def;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25826,7 +26217,7 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
 
   void set responseType(String value) { _ptr.responseType = value; }
 
-  Document get responseXML() => LevelDom.wrapDocument(_ptr.responseXML);
+  XMLDocument get responseXML() => LevelDom.wrapDocument(_ptr.responseXML);
 
   int get status() => _ptr.status;
 

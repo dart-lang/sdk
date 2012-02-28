@@ -16,15 +16,6 @@ testDocumentFragment() {
     return out;
   };
 
-  assertUnsupported(void fn()) {
-    try {
-      fn();
-    } catch (UnsupportedOperationException e) {
-      return;
-    }
-    Expect.fail('Expected UnsupportedOperationException');
-  };
-
   assertConstError(void fn()) {
     try {
       fn();
@@ -46,39 +37,47 @@ testDocumentFragment() {
     // Expect.isNull(style.getPropertyCSSValue('color'));
     // Expect.isNull(style.getPropertyShorthand('color'));
     // Expect.isFalse(style.isPropertyImplicit('color'));
-    assertUnsupported(() => style.cssText = '* {color: blue}');
-    assertUnsupported(() => style.removeProperty('color'));
-    assertUnsupported(() => style.setProperty('color', 'blue'));
+    expectUnsupported(() => style.cssText = '* {color: blue}');
+    expectUnsupported(() => style.removeProperty('color'));
+    expectUnsupported(() => style.setProperty('color', 'blue'));
   }
 
-  void expectEmptyRect(ClientRect rect) {
-    Expect.equals(0, rect.bottom);
-    Expect.equals(0, rect.top);
-    Expect.equals(0, rect.left);
-    Expect.equals(0, rect.right);
-    Expect.equals(0, rect.height);
-    Expect.equals(0, rect.width);
-  }
+  group('constructors', () {
+    test('0-argument makes an empty fragment', () {
+      final fragment = new DocumentFragment();
+      Expect.listEquals([], fragment.elements);
+    });
+
+    test('.html parses input as HTML', () {
+      final fragment = new DocumentFragment.html('<a>foo</a>');
+      Expect.isTrue(fragment.elements.first is AnchorElement);
+    });
+
+    test('.svg parses input as SVG', () {
+      final fragment = new DocumentFragment.svg('<a>foo</a>');
+      Expect.isTrue(fragment.elements.first is SVGAElement);
+    });
+  });
 
   test('Unsupported operations throw errors', () {
     var emptyFragment = new DocumentFragment();
-    assertUnsupported(() => emptyFragment.attributes = {});
-    assertUnsupported(() => emptyFragment.classes = []);
-    assertUnsupported(() => emptyFragment.dataAttributes = {});
-    assertUnsupported(() => emptyFragment.contentEditable = "true");
-    assertUnsupported(() => emptyFragment.dir);
-    assertUnsupported(() => emptyFragment.dir = "ltr");
-    assertUnsupported(() => emptyFragment.draggable = true);
-    assertUnsupported(() => emptyFragment.hidden = true);
-    assertUnsupported(() => emptyFragment.id = "foo");
-    assertUnsupported(() => emptyFragment.lang);
-    assertUnsupported(() => emptyFragment.lang = "en");
-    assertUnsupported(() => emptyFragment.scrollLeft = 10);
-    assertUnsupported(() => emptyFragment.scrollTop = 10);
-    assertUnsupported(() => emptyFragment.spellcheck = true);
-    assertUnsupported(() => emptyFragment.tabIndex = 5);
-    assertUnsupported(() => emptyFragment.title = "foo");
-    assertUnsupported(() => emptyFragment.webkitdropzone = "foo");
+    expectUnsupported(() => emptyFragment.attributes = {});
+    expectUnsupported(() => emptyFragment.classes = []);
+    expectUnsupported(() => emptyFragment.dataAttributes = {});
+    expectUnsupported(() => emptyFragment.contentEditable = "true");
+    expectUnsupported(() => emptyFragment.dir);
+    expectUnsupported(() => emptyFragment.dir = "ltr");
+    expectUnsupported(() => emptyFragment.draggable = true);
+    expectUnsupported(() => emptyFragment.hidden = true);
+    expectUnsupported(() => emptyFragment.id = "foo");
+    expectUnsupported(() => emptyFragment.lang);
+    expectUnsupported(() => emptyFragment.lang = "en");
+    expectUnsupported(() => emptyFragment.scrollLeft = 10);
+    expectUnsupported(() => emptyFragment.scrollTop = 10);
+    expectUnsupported(() => emptyFragment.spellcheck = true);
+    expectUnsupported(() => emptyFragment.tabIndex = 5);
+    expectUnsupported(() => emptyFragment.title = "foo");
+    expectUnsupported(() => emptyFragment.webkitdropzone = "foo");
   });
 
   group('elements', () {
@@ -312,9 +311,9 @@ testDocumentFragment() {
 
   test('setters throw errors', () {
     var style = new DocumentFragment().style;
-    assertUnsupported(() => style.cssText = '* {color: blue}');
-    assertUnsupported(() => style.removeProperty('color'));
-    assertUnsupported(() => style.setProperty('color', 'blue'));
+    expectUnsupported(() => style.cssText = '* {color: blue}');
+    expectUnsupported(() => style.removeProperty('color'));
+    expectUnsupported(() => style.setProperty('color', 'blue'));
   });
 
   // TODO(nweiz): re-enable when const is better supported in dartc and/or frog
