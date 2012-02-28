@@ -760,6 +760,7 @@ class FileTest {
 
   // Tests stream exception handling after file was closed.
   static void testCloseExceptionStream() {
+    asyncTestStarted();
     List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
@@ -771,6 +772,7 @@ class FileTest {
       output.close();
       Expect.throws(() => output.writeFrom(buffer, 0, 12));
       file.deleteSync();
+      asyncTestDone("testCloseExceptionStream");
     };
   }
 
