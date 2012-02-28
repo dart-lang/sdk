@@ -161,12 +161,14 @@ static RawError* CompileFunctionHelper(const Function& function,
     if (optimized) {
       // Transition to optimized code only from unoptimized code ... for now.
       ASSERT(function.HasCode());
-      ASSERT(!Code::Handle(function.code()).is_optimized());
-      // Do not use type feedback to optimize a function that was deoptimized.
+      ASSERT(!function.HasOptimizedCode());
+      // Do not use type feedback to optimize a function that was deoptimized
+      // too often.
       if (parsed_function.function().deoptimization_counter() <
           FLAG_deoptimization_counter_threshold) {
-        ExtractTypeFeedback(Code::Handle(parsed_function.function().code()),
-                            parsed_function.node_sequence());
+        ExtractTypeFeedback(
+            Code::Handle(parsed_function.function().unoptimized_code()),
+            parsed_function.node_sequence());
       }
       OptimizingCodeGenerator code_gen(&assembler, parsed_function);
       code_gen.GenerateCode();
@@ -176,7 +178,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       code_gen.FinalizePcDescriptors(code);
       code_gen.FinalizeExceptionHandlers(code);
       function.SetCode(code);
-      code_index_table->AddFunction(function);
+      code_index_table->AddCode(code);
       CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
       if (FLAG_trace_compiler) {
         OS::Print("--> patching entry 0x%x\n",
@@ -185,7 +187,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     } else {
       // Unoptimized code.
       if (Code::Handle(function.unoptimized_code()).IsNull()) {
-        ASSERT(Code::Handle(function.code()).IsNull());
+        ASSERT(!function.HasCode());
         // Compiling first time.
         CodeGenerator code_gen(&assembler, parsed_function);
         code_gen.GenerateCode();
@@ -198,15 +200,15 @@ static RawError* CompileFunctionHelper(const Function& function,
         function.set_unoptimized_code(code);
         function.SetCode(code);
         ASSERT(CodePatcher::CodeIsPatchable(code));
-        code_index_table->AddFunction(function);
+        code_index_table->AddCode(code);
       } else {
         // Disable optimized code.
-        const Code& optimized_code = Code::Handle(function.code());
-        ASSERT(optimized_code.is_optimized());
-        CodePatcher::PatchEntry(Code::Handle(function.code()));
+        ASSERT(function.HasOptimizedCode());
+        // Patch entry of optimized code
+        CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
         if (FLAG_trace_compiler) {
           OS::Print("--> patching entry 0x%x\n",
-                    Code::Handle(function.unoptimized_code()).EntryPoint());
+                    Code::Handle(function.CurrentCode()).EntryPoint());
         }
         // Use previously compiled code.
         function.SetCode(Code::Handle(function.unoptimized_code()));
@@ -219,12 +221,13 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
     if (FLAG_trace_compiler) {
       OS::Print("--> '%s' entry: 0x%x\n",
-                function_fullname, Code::Handle(function.code()).EntryPoint());
+                function_fullname,
+                Code::Handle(function.CurrentCode()).EntryPoint());
     }
     if (FLAG_disassemble) {
       OS::Print("Code for %sfunction '%s' {\n",
                 optimized ? "optimized " : "", function_fullname);
-      const Code& code = Code::Handle(function.code());
+      const Code& code = Code::Handle(function.CurrentCode());
       const Instructions& instructions =
           Instructions::Handle(code.instructions());
       uword start = instructions.EntryPoint();
@@ -360,7 +363,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     func.SetCode(code);
     CodeIndexTable* code_index_table = isolate->code_index_table();
     ASSERT(code_index_table != NULL);
-    code_index_table->AddFunction(func);
+    code_index_table->AddCode(code);
     // TODO(hausner): We need a way to remove these one-time execution
     // functions from the global code description (PC mapping) tables so
     // we don't pollute the system unnecessarily with stale data.

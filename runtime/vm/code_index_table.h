@@ -20,27 +20,24 @@ class RawArray;
 class RawCode;
 class RawFunction;
 
-// This class is used to lookup a Function object given a pc.
+// This class is used to lookup a Code object given a pc.
 // This functionality is used while stack walking in order to find the Dart
 // function corresponding to a frame (enables the pc descriptors for
 // a stack frame to be located).
-// Most functions fit within a normal page (PageSpace::KPageSize) but some
-// functions may have code which is larger than the size of a normal page.
-// These functions are referred to as large functions in this code and are
+// Most code objects fit within a normal page (PageSpace::KPageSize) but some
+// code objects may be larger than the size of a normal page.
+// These code objects are referred to as "large codes" in this code and are
 // handled by maintaining separate index lists.
 class CodeIndexTable {
  public:
   ~CodeIndexTable();
 
   // Add specified compiled function to the code index table.
-  void AddFunction(const Function& func);
+  void AddCode(const Code& code);
 
-  // Lookup code index table to find the function corresponding to the
-  // specified 'pc'. If there is no corresponding function a null object
+  // Lookup code index table to find the code object corresponding to the
+  // specified 'pc'. If there is no corresponding code object a null object
   // is returned.
-  RawFunction* LookupFunction(uword pc) const;
-
-  // Lookup code index table to find corresponding code object.
   RawCode* LookupCode(uword pc) const;
 
   // Visit all object pointers (support for GC).
@@ -121,23 +118,23 @@ class CodeIndexTable {
   // Find the index corresponding to the code page in the index table.
   int FindPageIndex(uword page_start) const;
 
-  // Add information about a function (entrypoint, size, function object)
+  // Add information about a code object (entrypoint, size, code object)
   // at the specified index of the index table.
-  void AddFunctionToList(int page_index,
-                         uword entrypoint,
-                         intptr_t size,
-                         const Function& func);
-
-  // Add information about a large function (entrypoint, size, function object)
-  // to the large function list.
-  void AddLargeFunction(uword entrypoint, intptr_t size, const Function& func);
-
-  // Helper function to add a function to the list.
-  void AddFuncHelper(IndexArray<PcRange>* pc_ranges,
-                     const Array& functions,
+  void AddCodeToList(int page_index,
                      uword entrypoint,
                      intptr_t size,
-                     const Function& func);
+                     const Code& code);
+
+  // Add information about a large code object (entrypoint, size, code object)
+  // to the large code object list.
+  void AddLargeCode(uword entrypoint, intptr_t size, const Code& code);
+
+  // Helper function to add a code object to the list.
+  void AddCodeHelper(IndexArray<PcRange>* pc_ranges,
+                     const Array& codes,
+                     uword entrypoint,
+                     intptr_t size,
+                     const Code& func);
 
   // Lookup code corresponding to the pc in the large functions list
   RawCode* LookupLargeCode(uword pc) const;

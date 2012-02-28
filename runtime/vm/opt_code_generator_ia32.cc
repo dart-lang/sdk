@@ -2736,7 +2736,7 @@ void OptimizingCodeGenerator::GenerateDirectCall(
     intptr_t arg_count,
     const Array& optional_argument_names) {
   ASSERT(!target.IsNull());
-  const Code& code = Code::Handle(target.code());
+  const Code& code = Code::Handle(target.CurrentCode());
   ASSERT(!code.IsNull());
   ExternalLabel target_label("DirectInstanceCall", code.EntryPoint());
 

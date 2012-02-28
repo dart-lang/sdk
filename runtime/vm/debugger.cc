@@ -32,7 +32,8 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
       line_number_(-1),
       is_patched_(false),
       next_(NULL) {
-  Code& code = Code::Handle(func.code());
+  ASSERT(!func.HasOptimizedCode());
+  Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());  // Function must be compiled.
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
@@ -89,7 +90,8 @@ const Function& ActivationFrame::DartFunction() {
     ASSERT(Isolate::Current() != NULL);
     CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
     ASSERT(code_index_table != NULL);
-    function_ = code_index_table->LookupFunction(pc_);
+    const Code& code = Code::Handle(code_index_table->LookupCode(pc_));
+    function_ = code.function();
   }
   return function_;
 }
@@ -138,7 +140,8 @@ RawScript* ActivationFrame::SourceScript() {
 intptr_t ActivationFrame::TokenIndex() {
   if (token_index_ < 0) {
     const Function& func = DartFunction();
-    Code& code = Code::Handle(func.code());
+    ASSERT(!func.HasOptimizedCode());
+    Code& code = Code::Handle(func.unoptimized_code());
     ASSERT(!code.IsNull());
     PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
     for (int i = 0; i < desc.Length(); i++) {
@@ -166,7 +169,8 @@ intptr_t ActivationFrame::LineNumber() {
 
 void ActivationFrame::GetDescIndices() {
   if (var_descriptors_ == NULL) {
-    const Code& code = Code::Handle(DartFunction().code());
+    ASSERT(!DartFunction().HasOptimizedCode());
+    const Code& code = Code::Handle(DartFunction().unoptimized_code());
     var_descriptors_ =
         &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
     GrowableArray<String*> var_names(8);
@@ -420,7 +424,8 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
       return;
     }
   }
-  Code& code = Code::Handle(target_function.code());
+  ASSERT(!target_function.HasOptimizedCode());
+  Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (int i = 0; i < desc.Length(); i++) {
@@ -458,7 +463,8 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
       return NULL;
     }
   }
-  Code& code = Code::Handle(target_function.code());
+  ASSERT(!target_function.HasOptimizedCode());
+  Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (int i = 0; i < desc.Length(); i++) {

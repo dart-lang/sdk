@@ -1232,9 +1232,13 @@ class Function : public Object {
   void SetParameterNameAt(intptr_t index, const String& value) const;
   void set_parameter_names(const Array& value) const;
 
-  RawCode* code() const { return raw_ptr()->code_; }
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
+
+  // Return the most recently compiled and installed code for this function.
+  // It is not the only Code object that points to this function.
+  RawCode* CurrentCode() const { return raw_ptr()->code_; }
+
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
@@ -1357,6 +1361,8 @@ class Function : public Object {
     return raw_ptr()->is_optimizable_;
   }
   void set_is_optimizable(bool value) const;
+
+  bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
 
@@ -3718,7 +3724,7 @@ void Object::SetRaw(RawObject* value) {
 
 
 bool Function::HasCode() const {
-  return code() != Code::null();
+  return raw_ptr()->code_ != Code::null();
 }
 
 

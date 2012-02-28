@@ -3585,6 +3585,11 @@ bool Function::HasInstantiatedSignature() const {
 }
 
 
+bool Function::HasOptimizedCode() const {
+  return HasCode() && Code::Handle(raw_ptr()->code_).is_optimized();
+}
+
+
 const char* Function::ToCString() const {
   const char* f0 = is_static() ? " static" : "";
   const char* f1 = NULL;
@@ -7995,9 +8000,10 @@ void Stacktrace::SetupStacktrace(intptr_t index,
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    function = code_index_table->LookupFunction(frame_pcs[i]);
+    code = code_index_table->LookupCode(frame_pcs[i]);
+    ASSERT(!code.IsNull());
+    function = code.function();
     function_array.SetAt((index + i), function);
-    code = function.code();
     code_array.SetAt((index + i), code);
     pc_offset = Smi::New(frame_pcs[i] - code.EntryPoint());
     pc_offset_array.SetAt((index + i), pc_offset);

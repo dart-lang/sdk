@@ -423,7 +423,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   Function& target_function = Function::Handle();
   CodePatcher::GetStaticCallAt(caller_frame->pc(), &target_function, &target);
   ASSERT(target_function.HasCode());
-  uword new_target = Code::Handle(target_function.code()).EntryPoint();
+  uword new_target = Code::Handle(target_function.CurrentCode()).EntryPoint();
   // Verify that we are not patching repeatedly.
   ASSERT(target != new_target);
   CodePatcher::PatchStaticCallAt(caller_frame->pc(), new_target);
@@ -488,7 +488,7 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
     functions_cache.AddCompiledFunction(function,
                                         num_arguments,
                                         num_named_arguments);
-    return function.code();
+    return function.CurrentCode();
   }
 }
 
@@ -809,7 +809,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
     }
   }
   const Context& context = Context::Handle(closure.context());
-  const Code& code = Code::Handle(function.code());
+  const Code& code = Code::Handle(function.CurrentCode());
   ASSERT(!code.IsNull());
   const Instructions& instrs = Instructions::Handle(code.instructions());
   ASSERT(!instrs.IsNull());
@@ -976,7 +976,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     function.set_usage_counter(0);
     return;
   }
-  if (Code::Handle(function.code()).is_optimized()) {
+  if (function.HasOptimizedCode()) {
     // The caller has been already optimized.
     // TODO(srdjan): This is a significant slowdown, the caller is probably in
     // a loop. Maybe test if the code has been optimized before calling.
@@ -986,15 +986,15 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     return;
   }
   if (function.is_optimizable()) {
-    ASSERT(!Code::Handle(function.code()).is_optimized());
-    const Code& unoptimized_code = Code::Handle(function.code());
+    ASSERT(!function.HasOptimizedCode());
+    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Compilation patches the entry of unoptimized code.
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
-    const Code& optimized_code = Code::Handle(function.code());
+    const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
     ASSERT(!unoptimized_code.IsNull());
   } else {
@@ -1022,9 +1022,10 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
     uword target = 0;
     Function& target_function = Function::Handle();
     CodePatcher::GetStaticCallAt(frame->pc(), &target_function, &target);
-    const uword new_entry_point = Code::Handle(function.code()).EntryPoint();
-    ASSERT(target != new_entry_point);  // Why patch otherwise.
     ASSERT(target_function.HasCode());
+    const uword new_entry_point =
+        Code::Handle(function.CurrentCode()).EntryPoint();
+    ASSERT(target != new_entry_point);  // Why patch otherwise.
     CodePatcher::PatchStaticCallAt(frame->pc(), new_entry_point);
     if (FLAG_trace_patching) {
       OS::Print("FixCallersTarget: patching from 0x%x to '%s' 0x%x\n",
@@ -1097,7 +1098,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   // We have to skip the following otherwise the compiler will complain
   // when it attempts to install unoptimized code into a function that
   // was already deoptimized.
-  if (Code::Handle(function.code()).is_optimized()) {
+  if (function.HasOptimizedCode()) {
     // Get unoptimized code. Compilation restores (reenables) the entry of
     // unoptimized code.
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
@@ -1182,7 +1183,7 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
           result ^= cache.At(i + FunctionsCache::kFunction);
           ASSERT(!result.IsNull());
           ASSERT(result.HasCode());
-          return result.code();
+          return result.CurrentCode();
         }
       }
     }

@@ -34,8 +34,7 @@ CodeIndexTable::~CodeIndexTable() {
 }
 
 
-void CodeIndexTable::AddFunction(const Function& func) {
-  const Code& code = Code::Handle(func.code());
+void CodeIndexTable::AddCode(const Code& code) {
   ASSERT(!code.IsNull());
   uword entrypoint = code.EntryPoint();  // Entry point for a function.
   intptr_t instr_size = code.Size();  // Instructions size for the function.
@@ -48,19 +47,10 @@ void CodeIndexTable::AddFunction(const Function& func) {
     }
     ASSERT(page_index != -1);
     // Add the entrypoint, size and function object at the specified index.
-    AddFunctionToList(page_index, entrypoint, instr_size, func);
+    AddCodeToList(page_index, entrypoint, instr_size, code);
   } else {
-    AddLargeFunction(entrypoint, instr_size, func);
+    AddLargeCode(entrypoint, instr_size, code);
   }
-}
-
-
-RawFunction* CodeIndexTable::LookupFunction(uword pc) const {
-  const Code& code = Code::Handle(LookupCode(pc));
-  if (code.IsNull()) {
-    return Function::null();
-  }
-  return code.function();
 }
 
 
@@ -131,10 +121,10 @@ int CodeIndexTable::FindPageIndex(uword page_start) const {
 }
 
 
-void CodeIndexTable::AddFunctionToList(int page_index,
-                                       uword entrypoint,
-                                       intptr_t size,
-                                       const Function& func) {
+void CodeIndexTable::AddCodeToList(int page_index,
+                                   uword entrypoint,
+                                   intptr_t size,
+                                   const Code& code) {
   // Get PC ranges index array at specified index.
   IndexArray<PcRange>* pc_ranges = code_pages_->At(page_index).pc_ranges;
   ASSERT(pc_ranges != NULL);
@@ -146,7 +136,7 @@ void CodeIndexTable::AddFunctionToList(int page_index,
   ASSERT(!codes.IsNull());
   // Asserting with an unsorted search, to ensure addition of pc was done right.
   ASSERT(FindPcIndex(*pc_ranges, entrypoint, kIsNotSorted) == -1);
-  AddFuncHelper(pc_ranges, codes, entrypoint, size, func);
+  AddCodeHelper(pc_ranges, codes, entrypoint, size, code);
   if (pc_ranges->IsFull()) {
     // Grow the pc ranges table and the associated functions table.
     int new_size = pc_ranges->length() + kInitialSize;
@@ -157,9 +147,9 @@ void CodeIndexTable::AddFunctionToList(int page_index,
 }
 
 
-void CodeIndexTable::AddLargeFunction(uword entrypoint,
-                                      intptr_t size,
-                                      const Function& func) {
+void CodeIndexTable::AddLargeCode(uword entrypoint,
+                                  intptr_t size,
+                                  const Code& code) {
   if (largecode_pc_ranges_ == NULL) {
     // No large functions seen so far.
     largecode_pc_ranges_ = new IndexArray<PcRange>(kInitialSize);
@@ -169,7 +159,7 @@ void CodeIndexTable::AddLargeFunction(uword entrypoint,
   ASSERT(FindPcIndex(*largecode_pc_ranges_, entrypoint, kIsNotSorted) == -1);
   const Array& largecode_list = Array::Handle(largecode_list_);
   ASSERT(!largecode_list.IsNull());
-  AddFuncHelper(largecode_pc_ranges_, largecode_list, entrypoint, size, func);
+  AddCodeHelper(largecode_pc_ranges_, largecode_list, entrypoint, size, code);
   if (largecode_pc_ranges_->IsFull()) {
     // Grow largecode_pc_ranges_ and largecode_list_.
     int new_size = largecode_pc_ranges_->length() + kInitialSize;
@@ -179,17 +169,17 @@ void CodeIndexTable::AddLargeFunction(uword entrypoint,
 }
 
 
-void CodeIndexTable::AddFuncHelper(IndexArray<PcRange>* pc_ranges,
+void CodeIndexTable::AddCodeHelper(IndexArray<PcRange>* pc_ranges,
                                    const Array& codes,
                                    uword entrypoint,
                                    intptr_t size,
-                                   const Function& func) {
+                                   const Code& code) {
   PcRange pc_range;
   pc_range.entrypoint = entrypoint;
   pc_range.size = size;
   intptr_t next_slot = pc_ranges->length();
   pc_ranges->Add(pc_range);  // pc_range gets added at 'next_slot'.
-  codes.SetAt(next_slot, Code::Handle(func.code()));
+  codes.SetAt(next_slot, code);
 }
 
 

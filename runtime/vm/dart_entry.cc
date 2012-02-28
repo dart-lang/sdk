@@ -26,10 +26,6 @@ RawObject* DartEntry::InvokeDynamic(
       return error.raw();
     }
   }
-  const Code& code = Code::Handle(function.code());
-  ASSERT(!code.IsNull());
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  ASSERT(!instrs.IsNull());
 
   // Set up arguments to include the receiver as the first argument.
   const int num_arguments = arguments.length() + 1;
@@ -39,15 +35,16 @@ RawObject* DartEntry::InvokeDynamic(
   for (int i = 1; i < num_arguments; i++) {
     args.Add(arguments[i - 1]);
   }
-
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   const Context& context =
       Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
   ASSERT(context.isolate() == Isolate::Current());
+  const Code& code = Code::Handle(function.CurrentCode());
+  ASSERT(!code.IsNull());
   return entrypoint(
-      instrs.EntryPoint(),
+      code.EntryPoint(),
       CodeGenerator::ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names),
       args.data(),
@@ -69,19 +66,16 @@ RawObject* DartEntry::InvokeStatic(
       return error.raw();
     }
   }
-  const Code& code = Code::Handle(function.code());
-  ASSERT(!code.IsNull());
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  ASSERT(!instrs.IsNull());
-
   // Now Call the invoke stub which will invoke the dart function.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   const Context& context =
       Context::ZoneHandle(Isolate::Current()->object_store()->empty_context());
   ASSERT(context.isolate() == Isolate::Current());
+  const Code& code = Code::Handle(function.CurrentCode());
+  ASSERT(!code.IsNull());
   return entrypoint(
-      instrs.EntryPoint(),
+      code.EntryPoint(),
       CodeGenerator::ArgumentsDescriptor(arguments.length(),
                                          optional_arguments_names),
       arguments.data(),
@@ -106,17 +100,14 @@ RawObject* DartEntry::InvokeClosure(
       return error.raw();
     }
   }
-  const Code& code = Code::Handle(function.code());
-  ASSERT(!code.IsNull());
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  ASSERT(!instrs.IsNull());
-
   // Now Call the invoke stub which will invoke the closure.
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
+  const Code& code = Code::Handle(function.CurrentCode());
+  ASSERT(!code.IsNull());
   return entrypoint(
-      instrs.EntryPoint(),
+      code.EntryPoint(),
       CodeGenerator::ArgumentsDescriptor(arguments.length(),
                                          optional_arguments_names),
       arguments.data(),

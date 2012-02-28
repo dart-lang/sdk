@@ -123,20 +123,18 @@ TEST_CASE(CodeIndexTable) {
   function_name = String::New(buffer);
   function = clsA.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
-  code = function.code();
+  code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
 
   OS::SNPrint(buffer, 256, "moo%d", 54);
   function_name = String::New(buffer);
   function = clsB.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
-  code = function.code();
+  code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
 
   // Lookup the large function
@@ -144,15 +142,13 @@ TEST_CASE(CodeIndexTable) {
   function_name = String::New(buffer);
   function = clsB.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
-  code = function.code();
+  code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
   EXPECT(code.Size() > PageSpace::kPageSize);
-  EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
-  EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
 }
 
