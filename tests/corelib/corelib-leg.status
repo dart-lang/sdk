@@ -34,6 +34,7 @@ QueueTest: Fail # Internal Error: Cannot find value
 SetIteratorTest: Fail # CompileTimeConstantEvaluator not implemented
 SetTest: Fail # Internal Error: Cannot find value
 SortTest: Fail # visitContinueStatement not implemented
+SplayTreeTest: Fail # Internal Error: Cannot find value
 StringPatternTest: Fail # Bad bailout code related to for-in.
 StringTest: Fail # Internal Error: Cannot find value
 

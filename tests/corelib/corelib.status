@@ -36,6 +36,8 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
+SplayTreeTest: Fail # named parameters on function statements is not supported.
+
 [ $component == webdriver && ($browser == ff || $browser == ie) ]
 UnicodeTest: Fail
 
