@@ -36,9 +36,7 @@ class _BaseDataInputStream {
   }
 
   void close() {
-    if (_scheduledDataCallback != null) {
-      _scheduledDataCallback.cancel();
-    }
+    _cancelScheduledDataCallback();
     _close();
     _checkScheduleCallbacks();
   }
@@ -60,6 +58,37 @@ class _BaseDataInputStream {
   }
 
   abstract List<int> _read(int bytesToRead);
+
+  void _dataReceived() {
+    // More data has been received asynchronously. Perform the data
+    // handler callback now.
+    _cancelScheduledDataCallback();
+    if (_clientDataHandler !== null) {
+      _clientDataHandler();
+    }
+    _checkScheduleCallbacks();
+  }
+
+  void _closeReceived() {
+    // Close indication has been received asynchronously. Perform the
+    // close callback now if all data has been delivered.
+    _streamMarkedClosed = true;
+    if (available() == 0) {
+      if (_clientCloseHandler !== null) {
+        _clientCloseHandler();
+        _closeCallbackCalled = true;
+      }
+    } else {
+      _checkScheduleCallbacks();
+    }
+  }
+
+  void _cancelScheduledDataCallback() {
+    if (_scheduledDataCallback != null) {
+      _scheduledDataCallback.cancel();
+      _scheduledDataCallback = null;
+    }
+  }
 
   void _checkScheduleCallbacks() {
     void issueDataCallback(Timer timer) {
@@ -84,9 +113,7 @@ class _BaseDataInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
-        if (_scheduledDataCallback != null) {
-          _scheduledDataCallback.cancel();
-        }
+        _cancelScheduledDataCallback();
         _close();
         _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
         _closeCallbackCalled = true;
