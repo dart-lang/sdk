@@ -336,8 +336,12 @@ class _IsolateNatives {
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
    */
-  static String get _thisScript() =>
-      _thisScriptCache != null ? _thisScriptCache : _computeThisScript();
+  static String get _thisScript() {
+    if (_thisScriptCache == null) {
+      _thisScriptCache = _computeThisScript();
+    }
+    return _thisScriptCache;
+  }
 
   static String _thisScriptCache;
 
@@ -358,7 +362,6 @@ class _IsolateNatives {
       src = "FIXME:5407062" + "_" + Math.random().toString();
       if (script) script.src = src;
     }
-    _IsolateNatives._thisScriptCache = src;
     return src;
   """;
 
@@ -606,6 +609,12 @@ class _IsolateNatives {
     // TODO(eub): convert to 'main' once we switch back to port at top-level.
     if (functionName == null) functionName = 'isolateMain';
     if (uri == null) uri = _thisScript;
+    if (!(new Uri.fromString(uri).isAbsolute())) {
+      // The constructor of dom workers requires an absolute URL. If we use a
+      // relative path we will get a DOM exception.
+      String prefix = _thisScript.substring(0, _thisScript.lastIndexOf('/'));
+      uri = "$prefix/$uri";
+    }
     final worker = _newWorker(uri);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
     var workerId = globalState.nextWorkerId++;

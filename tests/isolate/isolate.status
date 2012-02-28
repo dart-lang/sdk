@@ -37,9 +37,6 @@ MandelIsolateTest: Skip     # Bug 5353937.
 [ $component == frogium || $component == webdriver ]
 *StandaloneTest: Skip
 *StandaloneNegativeTest: Skip
-# We need multi-file tests for this.  See Issue 1666.
-# TODO(eub, sigmund): unskip.
-*spawnUri*: Skip  
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $component == frogium || $component == webdriver ]

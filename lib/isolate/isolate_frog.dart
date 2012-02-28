@@ -6,6 +6,7 @@
 // Dart isolate's API and implementation for frog.
 #library("dart:isolate");
 
+#import("../uri/uri.dart");
 #source("isolate_api.dart");
 #source("frog/compiler_hooks.dart");
 #source("frog/isolateimpl.dart");
