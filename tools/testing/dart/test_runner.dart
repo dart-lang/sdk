@@ -124,7 +124,7 @@ class BrowserTestCase extends TestCase {
    * Indicates the number of potential retries remaining, to compensate for
    * flaky browser tests.
    */
-  bool numRetries;
+  int numRetries;
 
   BrowserTestCase(displayName,
                     this.compilerPath,
@@ -216,7 +216,9 @@ class TestOutput {
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
-        requestRetry = true;
+        if (testCase.dynamic.numRetries > 0) {
+          requestRetry = true;
+        }
         return true;
       }
     }
@@ -283,7 +285,9 @@ class RunningProcess {
       testCase.output.requestRetry = false;
       this.timedOut = false;
       testCase.dynamic.numRetries--;
-      print("Potential flake. Re-running " + testCase.displayName);
+      print("Potential flake. " +
+          "Re-running ${testCase.displayName} " +
+          "(${testCase.dynamic.numRetries} attempt(s) remains)");
       this.start();
     } else {
       testCase.completed();
