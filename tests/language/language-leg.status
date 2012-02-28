@@ -13,6 +13,20 @@ Constructor6Test: Crash
 FunctionTest: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
+FunctionLiterals2Test: Crash # TODO(floitsch): investigate.
+
+GetSyntaxTest/none: Fail # TODO(ahe): investigate.
+GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
+SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
+ImplicitClosureTest: Fail # TODO(ahe): investigate.
+FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
+SyntaxTest/28: Fail # TODO(ahe): investigate.
+SyntaxTest/29: Fail # TODO(ahe): investigate.
+SyntaxTest/30: Fail # TODO(ahe): investigate.
+SyntaxTest/31: Fail # TODO(ahe): investigate.
+SyntaxTest/32: Fail # TODO(ahe): investigate.
+SyntaxTest/33: Fail # TODO(ahe): investigate.
+SyntaxTest/47: Fail # TODO(ahe): investigate.
 
 # Compilation errors.
 Arithmetic2Test: Fail # map not implemented
@@ -25,17 +39,14 @@ CallThroughGetterTest: Fail # Internal Error: Cannot find value
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ClassTest: Fail # Internal Error: Cannot find value
-ClosureTest: Fail # Internal Error: Cannot find value
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
 ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
 Context2Test: Fail # switch cases are not implemented
-ContextTest: Fail # Internal Error: Cannot find value
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
-DeoptNoFeedbackTest: Fail # Internal Error: Cannot find value
 DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
@@ -45,10 +56,7 @@ EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
 Factory4Test: Fail # named constructors with type arguments are not implemented
 FannkuchTest: Fail # Expect.equals(expected: <49>, actual: <0>) fails.
-FinalSyntaxTest/none: Fail # CompileTimeConstantEvaluator not implemented
 ForTest: Fail # SsaBuilder for loop without condition not implemented
-FunctionLiterals2Test: Fail # Internal Error: Cannot find value
-FunctionLiteralsTest: Fail # duplicate definition of _(int x)=> x
 FunctionSyntaxTest: Fail # Internal Error: Cannot find value
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
@@ -57,15 +65,10 @@ FunctionTypeAliasTest: Fail # cannot resolve type Fun
 FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional parameters
 FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
-GenericSyntaxTest: Fail # duplicate definition of A<B, C, D, E, F> g(){return h;}
 GenericTest: Fail # cannot resolve type T
 GenericsTest: Fail # duplicate definition of Map<int, int> _(int a){Expect.equals(2, a); return null;}
-GetSetSyntaxTest/none: Fail # Unexpected token ';'
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-ImplicitClosureTest: Fail # Internal Error: Cannot find value
-ImplicitClosureTest: Fail # Internal Error: Cannot find value
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
-IsObjectTest: Fail # Internal Error: Cannot find value
 Issue1363Test: Fail # lib is not a type
 Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
@@ -94,9 +97,7 @@ NonParameterizedFactory2Test: Fail # named constructors with type arguments are 
 NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ObjectDynamicMethodTest: Fail # map not implemented
-OptimizedSetterTest: Fail # Internal Error: Cannot find value
 OrderedMapsTest: Fail # map not implemented
-Param2Test: Fail # Internal Error: Cannot find value
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
 Prefix10Test: Fail # lib11 is not a type
@@ -118,7 +119,6 @@ StringInterpolate2Test: Fail # map not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
-SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperTest: Fail # cannot find tokens to produce error message for i++.
@@ -127,7 +127,6 @@ SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchScopeTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
-SyntaxTest/none: Fail # non-empty instruction stack
 TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
 ToplevelCollision2Test/none: Fail # duplicate definition

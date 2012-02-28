@@ -31,16 +31,15 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $component == leg && $mode == release ]
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
-Language/06_Functions/06_Functions_A01_t01: Crash
 
 
 [ $component == leg && $mode == debug ]
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
-Language/06_Functions/06_Functions_A01_t01: Fail
 
 
 [ $component == leg ]
+Language/13_Types/7_Type_Void_A01_t02: Fail # TODO(ahe): investigate.
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # TODO(ahe): investigate.
+
 # Crashes and time outs.
 LibTest/core/List/sort_A01_t04: Skip # Times out.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
@@ -52,8 +51,6 @@ LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out. Also, issue co19 81.
 
 
 # Fail type assertion on VM, cancels otherwise.
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail, Crash
-Language/06_Functions/06_Functions_A01_t01: Fail, Crash
 LibTest/core/Queue/addAll_A01_t01: Fail, Crash
 
 
@@ -116,17 +113,10 @@ LibTest/core/double/toInt_A01_t05: Fail, OK # VM handling of double literals.
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail # SsaBuilder.visitIdentifier on non-this
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t01: Fail # Cannot find value
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A03_t01: Fail # Cannot find value
-Language/06_Functions/06_Functions_A01_t02: Fail # non-empty instruction stack
 Language/06_Functions/06_Functions_A01_t04: Fail # switch cases are not implemented
-Language/06_Functions/06_Functions_A02_t01: Fail # Cannot find value
-Language/06_Functions/06_Functions_A03_t01: Fail # Cannot find value
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # CompileTimeConstantHandler non-primitive list-entries not implemented
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
-Language/13_Types/4_Interface_Types_A09_t01: Fail # Cannot find value
 Language/13_Types/5_Function_Types_A02_t03: Fail # Cannot find value
-Language/13_Types/5_Function_Types_A02_t05: Fail # Cannot find value
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/Date.fromString_A05_t01: Fail # Expect.fail('Some exception is expected')
 LibTest/core/Expect/setEquals_A01_t01: Fail # Cannot find value
@@ -149,12 +139,7 @@ LibTest/core/List/every_A02_t02: Fail # Cannot find value.
 LibTest/core/List/every_A04_t01: Fail # Cannot find value.
 LibTest/core/List/filter_A01_t01: Fail # Cannot find value.
 LibTest/core/List/filter_A01_t02: Fail # Cannot find value.
-LibTest/core/List/filter_A02_t01: Fail # Duplicate definition.
 LibTest/core/List/filter_A04_t01: Fail # Cannot find value.
-LibTest/core/List/forEach_A01_t01: Fail # Cannot find value.
-LibTest/core/List/forEach_A03_t01: Fail # Cannot find value.
-LibTest/core/List/some_A01_t01: Fail # Duplicate definition.
-LibTest/core/List/some_A01_t02: Fail # Cannot find value.
 LibTest/core/List/sort_A01_t01: Fail # visitContinueStatement not implemented
 LibTest/core/List/sort_A01_t02: Fail # non-empty instruction stack
 LibTest/core/List/sort_A01_t03: Fail # Cannot find value.
@@ -311,22 +296,12 @@ Language/13_Types/5_Function_Types_A01_t05: Fail # cannot resolve type returnsDy
 Language/13_Types/5_Function_Types_A01_t02: Fail # cannot resolve type t1
 Language/13_Types/5_Function_Types_A01_t03: Fail # cannot resolve type t1
 Language/13_Types/5_Function_Types_A01_t06: Fail # cannot resolve type t8
-Language/13_Types/4_Interface_Types_A08_t03: Fail # duplicate definition of D f(int i, D b, Map<int, int> m, func x, [func ox, D ob, List<int> ol, bool obool]){}
-Language/13_Types/4_Interface_Types_A10_t07: Fail # duplicate definition of I<f, num, List<Map<num, Map>>>>>> _(){}
 LibTest/core/Set/filter_A01_t01: Fail # duplicate definition of bool all(int e){return false;}
-LibTest/core/Queue/every_A01_t04: Fail # duplicate definition of bool f(int element){return element<1000;}
-LibTest/core/Queue/some_A01_t04: Fail # duplicate definition of bool f(int element){return element<1000;}
-LibTest/core/Queue/filter_A01_t04: Fail # duplicate definition of bool f(int element){return element==0;}
-LibTest/core/Queue/some_A01_t01: Fail # duplicate definition of bool f(var element){count++; return element>50;}
-LibTest/core/Queue/some_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return false;}
-LibTest/core/Queue/every_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return true;}
-LibTest/core/Queue/filter_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return true;}
 Language/13_Types/4_Interface_Types_A05_t04: Fail # duplicate definition of num f(){}
 Language/13_Types/5_Function_Types_A01_t01: Fail # duplicate definition of void f(){}
 Language/13_Types/5_Function_Types_A02_t04: Fail # duplicate definition of void f(){}
 LibTest/core/Isolate/spawn_A01_t02: Fail # duplicate definition of void func(SendPort result){result.call(2).receive(callbackB);}
 LibTest/core/Map/forEach_A01_t07: Fail # duplicate definition of void func(String key, Object value){map.remove("2"); i++;}
-LibTest/core/Queue/forEach_A01_t04: Fail # duplicate definition of void func(var element){list.removeFirst();}
 LibTest/core/SendPort/send_A03_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){message++; replyTo.send(message, sReply);}
 LibTest/core/SendPort/call_A01_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){print(message); rPort.close();}
 LibTest/core/ReceivePort/close_A01_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){rPort2.close(); Expect.equals(1, x);}
