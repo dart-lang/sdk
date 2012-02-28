@@ -21,7 +21,6 @@ SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
 ImplicitClosureTest: Fail # TODO(ahe): investigate.
 FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
 SyntaxTest/28: Fail # TODO(ahe): investigate.
-SyntaxTest/29: Fail # TODO(ahe): investigate.
 SyntaxTest/30: Fail # TODO(ahe): investigate.
 SyntaxTest/31: Fail # TODO(ahe): investigate.
 SyntaxTest/32: Fail # TODO(ahe): investigate.
@@ -66,7 +65,6 @@ FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional pa
 FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
 GenericTest: Fail # cannot resolve type T
-GenericsTest: Fail # duplicate definition of Map<int, int> _(int a){Expect.equals(2, a); return null;}
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
 Issue1363Test: Fail # lib is not a type
