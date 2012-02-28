@@ -174,7 +174,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
-  AddInstruction(new ReturnInstr(return_value));
+  AddInstruction(new ReturnInstr(return_value, node->token_index()));
   CloseFragment();
 }
 

@@ -148,6 +148,20 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   }
   __ LeaveFrame();
   __ ret();
+
+  // Generate 8 bytes of NOPs so that the debugger can patch the
+  // return pattern with a call to the debug stub.
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  __ nop(1);
+  AddCurrentDescriptor(PcDescriptors::kReturn,
+                       AstNode::kNoId,
+                       instr->token_index());
 }
 
 

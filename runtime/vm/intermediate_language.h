@@ -429,11 +429,13 @@ class BindInstr : public Instruction {
 
 class ReturnInstr : public Instruction {
  public:
-  explicit ReturnInstr(Value* value) : Instruction(), value_(value) { }
+  ReturnInstr(Value* value, intptr_t token_index)
+      : Instruction(), value_(value), token_index_(token_index) { }
 
   DECLARE_INSTRUCTION(Return)
 
   Value* value() const { return value_; }
+  intptr_t token_index() const { return token_index_; }
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
@@ -441,6 +443,7 @@ class ReturnInstr : public Instruction {
 
  private:
   Value* value_;
+  intptr_t token_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
