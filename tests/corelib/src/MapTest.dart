@@ -10,7 +10,7 @@ class MapTest {
   static testMain() {
     test(new HashMap());
     test(new LinkedHashMap());
-    test(new SplayTree());
+    test(new SplayTreeMap());
     testLinkedHashMap();
     testMapLiteral();
     testNullValue();
