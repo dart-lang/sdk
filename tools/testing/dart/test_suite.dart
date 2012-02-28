@@ -730,7 +730,7 @@ class StandardTestSuite implements TestSuite {
       // TODO(ager): Get rid of this hack when the runtime checkout goes away.
       var file = new File(executable_name);
       if (!file.existsSync()) {
-        executable_name = '../$filename';
+        executable_name = '../$executable_name';
         Expect.isTrue(new File(executable_name).existsSync());
         dartOptions[0] = executable_name;
       }
