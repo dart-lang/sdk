@@ -156,18 +156,39 @@ function native_NumberImplementation_toDouble() {
 }
 
 function native_NumberImplementation_toString() {
-  return this.toString();
+  "use strict";
+  var primitiveValue = +this;
+  // TODO(floitsch): is there a faster way to detect -0?
+  if (primitiveValue == 0 && (1 / primitiveValue) < 0) {
+    return "-0.0";
+  }
+  return "" + primitiveValue;
 }
 
 function native_NumberImplementation_toStringAsFixed(fractionDigits) {
+  var primitiveValue = +this;
+  // TODO(floitsch): is there a faster way to detect -0?
+  if (primitiveValue == 0 && (1 / primitiveValue) < 0) {
+    return "-" + this.toFixed(fractionDigits);
+  }
   return this.toFixed(fractionDigits);
 }
 
 function native_NumberImplementation_toStringAsPrecision(precision) {
+  var primitiveValue = +this;
+  // TODO(floitsch): is there a faster way to detect -0?
+  if (primitiveValue == 0 && (1 / primitiveValue) < 0) {
+    return "-" + this.toPrecision(precision);
+  }
   return this.toPrecision(precision);
 }
 
 function native_NumberImplementation_toStringAsExponential(fractionDigits) {
+  var primitiveValue = +this;
+  // TODO(floitsch): is there a faster way to detect -0?
+  if (primitiveValue == 0 && (1 / primitiveValue) < 0) {
+    return "-" + this.toExponential(fractionDigits);
+  }
   return this.toExponential(fractionDigits);
 }
 

@@ -54,6 +54,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/String/replaceFirst_A01_t01: Fail # Issue 429
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
+LibTest/core/double/toStringAsFixed_A01_t03: Fail  # Test is out of date.
 LibTest/core/double/toStringAsExponential_A01_t01: Fail # Issue 463
 LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461

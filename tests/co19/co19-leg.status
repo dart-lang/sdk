@@ -58,25 +58,13 @@ LibTest/core/Date/Date.fromString_A01_t04: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
-LibTest/core/Math/acos_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/acos_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/asin_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/asin_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/atan2_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan_A01_t02: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/cos_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/log_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/parseInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
 LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/sqrt_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
@@ -100,55 +88,21 @@ LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Revie
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A08_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A09_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A12_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A14_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A15_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A16_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A17_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/sqrt_A01_t03: Fail, OK # VM handling of double literals.
-LibTest/core/double/abs_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t07: Fail, OK # VM handling of double literals.
 LibTest/core/double/compareTo_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/floor_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/isNegative_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_division_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t07: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t11: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_multiplication_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t03: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_remainder_A01_t04: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_remainder_A01_t06: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_truncating_division_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_truncating_division_A01_t03: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_truncating_division_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_truncating_division_A01_t08: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t03: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t06: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t07: Fail, OK # VM handling of double literals.
 LibTest/core/double/round_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t04: Fail, OK # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t07: Fail, OK # VM handling of double literals.
-LibTest/core/double/truncate_A01_t01: Fail, OK # VM handling of double literals.
 
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: Fail # SsaBuilder: throw without expression not implemented
@@ -315,7 +269,6 @@ LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+100
 
 
 # TODO(floitsch): Please review these.
-LibTest/core/Expect/approxEquals_A01_t04: Fail # Unknown issue with doubles.
 LibTest/core/Expect/identical_A01_t01: Fail # Is NaN identical to NaN?
 
 

@@ -10,10 +10,10 @@
 
 namespace dart {
 
-bool DoubleToString(double d, String& result);
-bool DoubleToStringAsFixed(double d, int fraction_digits, String& result);
-bool DoubleToStringAsExponential(double d, int fraction_digits, String& result);
-bool DoubleToStringAsPrecision(double d, int precision, String& result);
+void DoubleToCString(double d, char* buffer, int buffer_size);
+RawString* DoubleToStringAsFixed(double d, int fraction_digits);
+RawString* DoubleToStringAsExponential(double d, int fraction_digits);
+RawString* DoubleToStringAsPrecision(double d, int precision);
 
 }  // namespace dart
 

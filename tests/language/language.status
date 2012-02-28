@@ -213,7 +213,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 ArithmeticTest: Fail # Issue 1470
 
 [ $component == frog || $component == frogium || $component == webdriver ]
-ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
+DoubleToStringAsFixedTest: Fail # fails due to rounding in constant propagation and -0.0.
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
 # consume frog output, so if frog is generating the incorrect code, chances are
@@ -256,6 +256,7 @@ FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
+DoubleToString: Fail  # Prints "3" instead of "3.0".
 ThirdTest: Fail # Issue 1511
 TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail

@@ -18,6 +18,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debuginfo.h"
+#include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
@@ -6265,22 +6266,12 @@ const char* Double::ToCString() const {
   if (isinf(value())) {
     return value() < 0 ? "-Infinity" : "Infinity";
   }
-  const char* kFormat = "%f";
-  // Calculate the size of the string.
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, value()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, value());
-  // Eliminate trailing 0s, but leave one digit after '.'.
-  // 'chars' is null terminated.
-  for (intptr_t i = len - 2; i >= 1; i--) {
-    if ((chars[i] == '0') && (chars[i - 1] != '.')) {
-      chars[i] = '\0';
-    } else {
-      break;
-    }
-  }
-  return chars;
+  const int kBufferSize = 128;
+  char* buffer = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(kBufferSize));
+  buffer[kBufferSize - 1] = '\0';
+  DoubleToCString(value(), buffer, kBufferSize);
+  return buffer;
 }
 
 

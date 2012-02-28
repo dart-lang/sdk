@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
@@ -13,9 +13,7 @@ class ToStringAsFixedTest {
     Expect.equals("NaN", (0.0 / 0.0).toStringAsFixed(3));
     Expect.equals("Infinity", (1.0/0.0).toStringAsFixed(3));
     Expect.equals("-Infinity", (-1.0/0.0).toStringAsFixed(3));
-    // TODO(floitsch): enable the following test when double.toString does the
-    // right thing.
-    // Expect.equals("1.1111111111111111e+21", 1111111111111111111111.0.toStringAsFixed(8));
+    Expect.equals("1.1111111111111111e+21", 1111111111111111111111.0.toStringAsFixed(8));
     Expect.equals("0.1", 0.1.toStringAsFixed(1));
     Expect.equals("0.10", 0.1.toStringAsFixed(2));
     Expect.equals("0.100", 0.1.toStringAsFixed(3));
@@ -41,9 +39,6 @@ class ToStringAsFixedTest {
     Expect.equals("0.0", 0.0.toStringAsFixed(1));
     Expect.equals("0.00", 0.0.toStringAsFixed(2));
 
-    // TODO(floitsch): enable the following test when double.toString does the
-    // right thing.
-    // Expect.equals("-1.1111111111111111e+21", (-1111111111111111111111.0).toStringAsFixed(8));
     Expect.equals("-0.1", (-0.1).toStringAsFixed(1));
     Expect.equals("-0.10", (-0.1).toStringAsFixed(2));
     Expect.equals("-0.100", (-0.1).toStringAsFixed(3));
@@ -64,9 +59,9 @@ class ToStringAsFixedTest {
     Expect.equals("-0.00000006", (-0.00000006).toStringAsFixed(8));
     Expect.equals("-0.000000060", (-0.00000006).toStringAsFixed(9));
     Expect.equals("-0.0000000600", (-0.00000006).toStringAsFixed(10));
-    Expect.equals("0", (-0.0).toStringAsFixed(0));
-    Expect.equals("0.0", (-0.0).toStringAsFixed(1));
-    Expect.equals("0.00", (-0.0).toStringAsFixed(2));
+    Expect.equals("-0", (-0.0).toStringAsFixed(0));
+    Expect.equals("-0.0", (-0.0).toStringAsFixed(1));
+    Expect.equals("-0.00", (-0.0).toStringAsFixed(2));
 
     Expect.equals("1000", 1000.0.toStringAsFixed(0));
     Expect.equals("0", 0.00001.toStringAsFixed(0));
