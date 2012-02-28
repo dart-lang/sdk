@@ -514,42 +514,11 @@ class _File implements File {
     return result;
   }
 
-  void openInputStream() {
-    _asyncUsed = true;
-    // Create a new file object to handle the opening of the file for
-    // creating an input stream. Currently the file input stream uses
-    // synchronous calls on the opened file so we need to open it
-    // synchronously.
-    new Timer((t) {
-      if (_inputStreamHandler != null) {
-        _inputStreamHandler(new _FileInputStream(_name));
-      }
-    }, 0);
-  }
-
-  InputStream openInputStreamSync() {
+  InputStream openInputStream() {
     return new _FileInputStream(_name);
   }
 
-  void openOutputStream([FileMode mode = FileMode.WRITE]) {
-    _asyncUsed = true;
-    if (mode != FileMode.WRITE &&
-        mode != FileMode.APPEND) {
-      throw new FileIOException(
-          "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
-    }
-    OutputStream stream = new _FileOutputStream(_name, mode);
-    new Timer(
-        (Timer ignore) {
-          if (_outputStreamHandler != null) _outputStreamHandler(stream);
-        }, 0);
-  }
-
-  OutputStream openOutputStreamSync([FileMode mode = FileMode.WRITE]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+  OutputStream openOutputStream([FileMode mode = FileMode.WRITE]) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
@@ -561,7 +530,7 @@ class _File implements File {
   void readAsBytes() {
     _asyncUsed = true;
     var chunks = new _BufferList();
-    var stream = openInputStreamSync();
+    var stream = openInputStream();
     stream.closeHandler = () {
       if (_readAsBytesHandler != null) {
         _readAsBytesHandler(chunks.readBytes(chunks.length));
@@ -703,14 +672,6 @@ class _File implements File {
     _openHandler = handler;
   }
 
-  void set inputStreamHandler(void handler(InputStream stream)) {
-    _inputStreamHandler = handler;
-  }
-
-  void set outputStreamHandler(void handler(OutputStream stream)) {
-    _outputStreamHandler = handler;
-  }
-
   void set readAsBytesHandler(void handler(List<int> bytes)) {
     _readAsBytesHandler = handler;
   }
@@ -747,8 +708,6 @@ class _File implements File {
   Function _deleteHandler;
   Function _directoryHandler;
   Function _openHandler;
-  Function _inputStreamHandler;
-  Function _outputStreamHandler;
   Function _readAsBytesHandler;
   Function _readAsTextHandler;
   Function _readAsLinesHandler;

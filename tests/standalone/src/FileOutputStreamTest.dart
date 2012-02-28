@@ -20,45 +20,12 @@ void testOpenOutputStreamSync() {
   String fileName = "${tempDirectory.path}/test";
   File file = new File(fileName);
   file.createSync();
-  OutputStream x = file.openOutputStreamSync();
+  OutputStream x = file.openOutputStream();
   x.write([65, 66, 67]);
   x.close();
   x.closeHandler = () {
     file.deleteSync();
     done.toSendPort().send("done");
-  };
-}
-
-
-void testOpenOutputStreamAsync() {
-  Directory tempDirectory = new Directory('');
-
-  // Create a port for waiting on the final result of this test.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) {
-    tempDirectory.delete();
-    tempDirectory.deleteHandler = () {
-      done.close();
-    };
-  });
-
-  tempDirectory.createTemp();
-  tempDirectory.createTempHandler = () {
-    String fileName = "${tempDirectory.path}/test";
-    File file = new File(fileName);
-    file.create();
-    file.createHandler = () {
-      file.openOutputStream();
-      file.outputStreamHandler = (OutputStream stream) {
-        stream.close();
-        stream.closeHandler = () {
-          file.delete();
-        };
-      };
-    };
-    file.deleteHandler = () {
-      done.toSendPort().send("done");
-    };
   };
 }
 
@@ -81,16 +48,14 @@ void testOutputStreamNoPendingWrite() {
     File file = new File(fileName);
     file.create();
     file.createHandler = () {
-      file.openOutputStream();
-      file.outputStreamHandler = (OutputStream stream) {
-        final total = 100;
-        var count = 0;
-        stream.noPendingWriteHandler = () {
-          stream.write([count++]);
-          if (count == total) {
-            stream.close();
-          }
-        };
+      OutputStream stream = file.openOutputStream();
+      final total = 100;
+      var count = 0;
+      stream.noPendingWriteHandler = () {
+        stream.write([count++]);
+        if (count == total) {
+          stream.close();
+        }
         stream.closeHandler = () {
           List buffer = new List<int>(total);
           File fileSync = new File(fileName);
@@ -111,6 +76,5 @@ void testOutputStreamNoPendingWrite() {
 
 main() {
   testOpenOutputStreamSync();
-  testOpenOutputStreamAsync();
   testOutputStreamNoPendingWrite();
 }
