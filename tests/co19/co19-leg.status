@@ -326,9 +326,6 @@ LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equ
 LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t01: Fail # Expect.isTrue(false) fails.
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # Expect.fail('NoSuchMethodException expected when calling an abstract method.')
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail # Expect.fail('NoSuchMethodException expected when calling abstract method or superclass.')
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t01: Fail # Expect.equals(expected: <1>, actual: <null>, 'Instance variable should already be initialized!') fails.
 Language/13_Types/4_Interface_Types_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
@@ -652,10 +649,6 @@ Language/07_Classes/3_Setters_A04_t05: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t06: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t01: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t02: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t03: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t04: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail, OK # @compile-error

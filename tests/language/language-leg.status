@@ -146,13 +146,12 @@ Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-
 ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+Factory2Test: Fail # (floitsch): on it.
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-InstFieldInitializerTest: Fail # Expect.equals(expected: <>, actual: <null>) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
-InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
@@ -161,7 +160,6 @@ ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails
 PrivateMemberTest: Fail # uncaught exception in toString
 Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
-PropertyFieldOverrideTest: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypedMessageTest: Fail # SyntaxError: Unexpected token this
 
@@ -229,6 +227,7 @@ FauxverrideTest/03: Fail, OK # Negative language test.
 FauxverrideTest/05: Fail, OK # Negative language test.
 Field1NegativeTest: Fail, OK # Negative language test.
 Field2NegativeTest: Fail, OK # Negative language test.
+Field3NegativeTest: Fail, OK # Negative language test.
 Field4NegativeTest: Fail, OK # Negative language test.
 Field5NegativeTest: Fail, OK # Negative language test.
 Field6NegativeTest: Fail, OK # Negative language test.
@@ -240,7 +239,6 @@ FinalParamNegativeTest: Fail, OK # Negative language test.
 FinalVarNegativeTest: Fail, OK # Negative language test.
 FunctionTypeAliasNegativeTest: Fail, OK # Negative language test.
 GetterDeclarationNegativeTest: Fail, OK # Negative language test.
-InstFieldInitializer1NegativeTest: Fail, OK # Negative language test.
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
 InterfaceCycleNegativeTest: Fail, OK # Negative language test.
 InterfaceFactory3NegativeTest: Fail, OK # Negative language test.
