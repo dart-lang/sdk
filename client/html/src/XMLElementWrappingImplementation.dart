@@ -52,19 +52,25 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
 
   String get outerHTML() {
     final container = new Element.tag("div");
-    container.elements.add(this.clone(true));
+    // Safari requires that the clone be removed from its owner document before
+    // being inserted into the HTML document.
+    container.elements.add(this.clone(true).remove());
     return container.innerHTML;
   }
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    container.nodes.addAll(this.clone(true).nodes);
+    // Safari requires that the clone be removed from its owner document before
+    // being inserted into the HTML document.
+    container.nodes.addAll(this.clone(true).remove().nodes);
     return container.innerHTML;
   }
 
   void set innerHTML(String xml) {
     final xmlDoc = new XMLDocument.xml('<xml>$xml</xml>');
-    this.nodes = xmlDoc.nodes;
+    // Safari requires that the root node be removed from the document before
+    // being inserted into the HTML document.
+    this.nodes = xmlDoc.remove().nodes;
   }
 
   Node _insertAdjacentNode(String where, Node node) {

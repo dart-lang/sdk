@@ -540,7 +540,6 @@ void testXMLDocument() {
     test('offsetParent', () => Expect.isNull(makeDocument().offsetParent));
     test('activeElement', () => Expect.isNull(makeDocument().activeElement));
     test('body', () => Expect.isNull(makeDocument().body));
-    test('charset', () => Expect.isNull(makeDocument().charset));
     test('window', () => Expect.isNull(makeDocument().window));
     test('domain', () => Expect.equals('', makeDocument().domain));
     test('head', () => Expect.isNull(makeDocument().head));
@@ -548,6 +547,11 @@ void testXMLDocument() {
     test('styleSheets', () =>
         Expect.listEquals([], makeDocument().styleSheets));
     test('title', () => Expect.equals('', makeDocument().title));
+
+    // TODO(nweiz): IE sets the charset to "windows-1252". How do we want to
+    // handle that?
+    //
+    // test('charset', () => Expect.isNull(makeDocument().charset));
 
     // TODO(nweiz): re-enable these when the WebKit-specificness won't break
     // non-WebKit browsers.
