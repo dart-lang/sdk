@@ -7967,7 +7967,9 @@ void ByteArray::Copy(uint8_t* dst,
   ASSERT(Utils::RangeCheck(src_offset, length, src.Length()));
   {
     NoGCScope no_gc;
-    memmove(dst, src.ByteAddr(src_offset), length);
+    if (length > 0) {
+      memmove(dst, src.ByteAddr(src_offset), length);
+    }
   }
 }
 
@@ -7979,7 +7981,9 @@ void ByteArray::Copy(const ByteArray& dst,
   ASSERT(Utils::RangeCheck(dst_offset, length, dst.Length()));
   {
     NoGCScope no_gc;
-    memmove(dst.ByteAddr(dst_offset), src, length);
+    if (length > 0) {
+      memmove(dst.ByteAddr(dst_offset), src, length);
+    }
   }
 }
 
@@ -7993,7 +7997,9 @@ void ByteArray::Copy(const ByteArray& dst,
   ASSERT(Utils::RangeCheck(dst_offset, length, dst.Length()));
   {
     NoGCScope no_gc;
-    memmove(dst.ByteAddr(dst_offset), src.ByteAddr(src_offset), length);
+    if (length > 0) {
+      memmove(dst.ByteAddr(dst_offset), src.ByteAddr(src_offset), length);
+    }
   }
 }
 
