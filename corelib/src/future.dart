@@ -130,7 +130,7 @@ interface Completer<T> default CompleterImpl<T> {
 
   /**
    * Indicate in [future] that an exception occured while trying to produce its
-   * value. The argument [exception] argument should not be [:null:].
+   * value. The argument [exception] should not be [:null:].
    */
   void completeException(Object exception);
 }
