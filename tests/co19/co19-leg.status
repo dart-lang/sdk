@@ -130,7 +130,6 @@ LibTest/core/List/every_A04_t01: Fail # Cannot find value.
 LibTest/core/List/filter_A01_t01: Fail # Cannot find value.
 LibTest/core/List/filter_A01_t02: Fail # Cannot find value.
 LibTest/core/List/filter_A04_t01: Fail # Cannot find value.
-LibTest/core/List/sort_A01_t01: Fail # visitContinueStatement not implemented
 LibTest/core/List/sort_A01_t02: Fail # non-empty instruction stack
 LibTest/core/List/sort_A01_t03: Fail # Cannot find value.
 LibTest/core/Map/Map_class_A01_t04: Fail # SsaBuilder.visitContinueStatement not implemented
@@ -263,7 +262,6 @@ LibTest/core/ReceivePort/ReceivePort.singleShot_A01_t01: Fail # factory ReceiveP
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # lib is not a type
 Language/05_Variables/05_Variables_A05_t03: Fail # map not implemented
 Language/05_Variables/05_Variables_A08_t03: Fail # map not implemented
-Language/06_Functions/06_Functions_A01_t03: Fail # map not implemented
 LibTest/core/HashMap/HashMap.from_A01_t01: Fail # map not implemented
 LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail # map not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: Fail # map not implemented
