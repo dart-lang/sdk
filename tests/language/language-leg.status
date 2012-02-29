@@ -54,7 +54,6 @@ DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
 Factory4Test: Fail # named constructors with type arguments are not implemented
-FannkuchTest: Fail # Expect.equals(expected: <49>, actual: <0>) fails.
 ForTest: Fail # SsaBuilder for loop without condition not implemented
 FunctionSyntaxTest: Fail # Internal Error: Cannot find value
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
