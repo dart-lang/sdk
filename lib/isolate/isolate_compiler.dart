@@ -17,6 +17,8 @@ SendPort _spawnUri(String uri) {
   throw new NotImplementedException();
 }
 
+ReceivePort _port = null;
+
 class _IsolateNatives {
   static Future<SendPort> spawn(Isolate isolate, bool isLight) {
     throw new NotImplementedException();
