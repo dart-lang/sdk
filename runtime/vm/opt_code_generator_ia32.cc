@@ -1015,8 +1015,8 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
 
 
 // Supports some mixed Smi/Mint operations.
-// For BIT_AND operation with one operand being Smi, we can throw away
-// any Mint bits above the Smi range.
+// For BIT_AND operation with right operand being Smi, we can throw away
+// any Mint bits above the Smi range as long as the right operand is positive.
 // 'allow_smi' is true if Smi and Mint classes have been encountered.
 void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
                                                    bool allow_smi) {
@@ -1031,6 +1031,8 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
     __ testl(EDX, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);  // Call operator if right is not Smi.
+    __ cmpl(EDX, Immediate(0));
+    __ j(LESS, &slow_case);  // Result will not be Smi.
 
     // Test left.
     __ testl(EAX, Immediate(kSmiTagMask));
