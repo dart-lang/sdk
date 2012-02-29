@@ -77,7 +77,6 @@ MapLiteral2Test: Fail # expected a constant string
 MapLiteral3Test: Fail # map not implemented
 MapLiteral4Test: Fail # map not implemented
 MapLiteralTest: Fail # Unexpected token ','
-MapTest: Fail # Internal Error: Cannot find value
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Unexpected token '('
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
