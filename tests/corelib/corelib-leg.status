@@ -9,7 +9,6 @@ prefix corelib
 
 
 [ $component == leg ]
-DoubleCompareTest: Fail, OK # VM handling of double literals.
 MathTest: Fail, OK # VM handling of double literals.
 
 MapTest: Skip # SplayTree gets stuck when looking up key. MUST FIX.

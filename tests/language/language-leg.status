@@ -28,7 +28,6 @@ SyntaxTest/47: Fail # TODO(ahe): investigate.
 
 # Compilation errors.
 Arithmetic2Test: Fail # map not implemented
-ArithmeticTest: Fail # Internal Error: Cannot find value
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
@@ -148,7 +147,6 @@ GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.

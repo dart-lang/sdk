@@ -59,7 +59,6 @@ LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
 LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
-LibTest/core/Math/atan2_A01_t03: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/parseInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
@@ -90,10 +89,6 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/compareTo_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/isNegative_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t05: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t03: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t05: Fail, OK # VM handling of double literals.
@@ -131,7 +126,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail #  Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
+LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>, <6a>) fails
 
 
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
