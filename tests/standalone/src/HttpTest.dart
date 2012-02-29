@@ -117,6 +117,13 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
+  // Return a 301 with a custom reason phrase.
+  void _reasonForMovingHandler(HttpRequest request, HttpResponse response) {
+    response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+    response.reasonPhrase = "Don't come looking here any more";
+    response.outputStream.close();
+  }
+
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
@@ -126,6 +133,10 @@ class TestServer extends Isolate {
     _requestHandlers["/0123456789"] =
         (HttpRequest request, HttpResponse response) {
           _zeroToTenHandler(request, response);
+        };
+    _requestHandlers["/reasonformoving"] =
+        (HttpRequest request, HttpResponse response) {
+          _reasonForMovingHandler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
@@ -372,6 +383,23 @@ void test404() {
 }
 
 
+void testReasonPhrase() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    HttpClient httpClient = new HttpClient();
+    HttpClientConnection conn =
+        httpClient.get("127.0.0.1", port, "/reasonformoving");
+    conn.responseHandler = (HttpClientResponse response) {
+      Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
+      Expect.equals("Don't come looking here any more", response.reasonPhrase);
+      httpClient.shutdown();
+      testServerMain.shutdown();
+    };
+  });
+  testServerMain.start();
+}
+
+
 void main() {
   testStartStop();
   testGET();
@@ -382,4 +410,5 @@ void main() {
   testReadShort(true);
   testReadShort(false);
   test404();
+  testReasonPhrase();
 }

@@ -154,16 +154,27 @@ interface HttpResponse default _HttpResponse {
    * the response is not known in advance set the content length to
    * -1 - which is also the default if not set.
    */
-  void set contentLength(int contentLength);
-  int get contentLength();
+  int contentLength;
 
   /**
    * Gets and sets the keep alive state of the connection. If the
    * associated request have a keep alive state of false setting keep
    * alive to true will have no effect.
    */
-  void set keepAlive(bool keepAlive);
-  bool get keepAlive();
+  bool keepAlive;
+
+  /**
+   * Gets and sets the status code. Any integer value is accepted, but
+   * for the official HTTP status codes use the fields from
+   * [HttpStatus].
+   */
+  int statusCode;
+
+  /**
+   * Gets and sets the reason phrase. If no reason phrase is explicitly
+   * set a default reason phrase is provided.
+   */
+  String reasonPhrase;
 
   /**
    * Sets a header on the response. NOTE: If the same header name is
@@ -264,14 +275,12 @@ interface HttpClientRequest default _HttpClientRequest {
    * the request is not known in advance set content length to -1,
    * which is also the default.
    */
-  void set contentLength(int contentLength);
-  int get contentLength();
+  int contentLength;
 
   /**
    * Gets and sets the keep alive state of the connection.
    */
-  void set keepAlive(bool keepAlive);
-  bool get keepAlive();
+  bool keepAlive;
 
   /**
    * Sets a header on the request. NOTE: If the same header name is

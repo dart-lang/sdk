@@ -668,17 +668,27 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   _HttpResponse(_HttpConnection httpConnection)
       : super(httpConnection),
-        statusCode = HttpStatus.OK,
+        _statusCode = HttpStatus.OK,
         _state = START;
 
   void set contentLength(int contentLength) {
     if (_outputStream != null) return new HttpException("Header already sent");
     _contentLength = contentLength;
   }
+
   void set keepAlive(bool keepAlive) {
     if (_outputStream != null) return new HttpException("Header already sent");
     _keepAlive = keepAlive;
   }
+
+  int get statusCode() => _statusCode;
+  void set statusCode(int statusCode) {
+    if (_outputStream != null) return new HttpException("Header already sent");
+    _statusCode = statusCode;
+  }
+
+  String get reasonPhrase() => _findReasonPhrase(_statusCode);
+  void set reasonPhrase(String reasonPhrase) => _reasonPhrase = reasonPhrase;
 
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
@@ -742,8 +752,8 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   String _findReasonPhrase(int statusCode) {
-    if (reasonPhrase != null) {
-      return reasonPhrase;
+    if (_reasonPhrase != null) {
+      return _reasonPhrase;
     }
 
     switch (statusCode) {
@@ -803,10 +813,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     // Write status line.
     stream.write(_Const.HTTP11);
     _writeSP();
-    data = statusCode.toString().charCodes();
+    data = _statusCode.toString().charCodes();
     stream.write(data);
     _writeSP();
-    data = _findReasonPhrase(statusCode).charCodes();
+    data = reasonPhrase.charCodes();
     stream.write(data);
     _writeCRLF();
 
@@ -828,8 +838,8 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   // Response status code.
-  int statusCode;
-  String reasonPhrase;
+  int _statusCode;
+  String _reasonPhrase;
   _HttpOutputStream _outputStream;
   int _state;
 }
@@ -1099,8 +1109,6 @@ class _HttpClientRequest
 
   void set contentLength(int contentLength) => _contentLength = contentLength;
   void set keepAlive(bool keepAlive) => _keepAlive = keepAlive;
-  int get statusCode() { return _statusCode; }
-  String get reasonPhrase() { return _reasonPhrase; }
 
   void setHeader(String name, String value) {
     _setHeader(name, value);
@@ -1204,8 +1212,8 @@ class _HttpClientResponse
     _connection = connection;
   }
 
-  int get statusCode() { return _statusCode; }
-  int get reasonPhrase() { return _reasonPhrase; }
+  int get statusCode() => _statusCode;
+  String get reasonPhrase() => _reasonPhrase;
   Map get headers() => _headers;
 
   InputStream get inputStream() {
