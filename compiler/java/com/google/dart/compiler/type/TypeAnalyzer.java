@@ -1119,10 +1119,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // Check the map literal entries against the return type.
       Type valueType = type.getArguments().get(1);
       for (DartMapLiteralEntry literalEntry : node.getEntries()) {
-        boolean result = checkAssignable(literalEntry, typeOf(literalEntry), valueType);
-        if (developerModeChecks == true && result == false) {
-          typeError(literalEntry, ResolverErrorCode.MAP_LITERAL_ELEMENT_TYPE,
-                    valueType.toString());
+        boolean isValueAssignable = checkAssignable(literalEntry, typeOf(literalEntry), valueType);
+        if (developerModeChecks && !isValueAssignable) {
+          typeError(literalEntry, ResolverErrorCode.MAP_LITERAL_ELEMENT_TYPE, valueType);
         }
       }
 
@@ -1716,10 +1715,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType type = node.getType();
       Type elementType = type.getArguments().get(0);
       for (DartExpression expression : node.getExpressions()) {
-        boolean result = checkAssignable(elementType, expression);
-        if (developerModeChecks == true && result == false) {
-          typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE,
-                    elementType.toString());
+        boolean isValueAssignable = checkAssignable(elementType, expression);
+        if (developerModeChecks && !isValueAssignable) {
+          typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE, elementType);
         }
       }
       return type;

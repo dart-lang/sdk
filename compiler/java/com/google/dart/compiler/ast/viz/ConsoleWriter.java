@@ -1,17 +1,16 @@
-// Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.ast.viz;
 
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartUnit;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.common.io.Closeables;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 
 /**
  * Write the AST in to System out.

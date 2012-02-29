@@ -1,10 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.testing;
 
-import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
@@ -56,11 +55,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public File getOutputFilename() {
-    return null;
-  }
-
-  @Override
   public File getOutputDirectory() {
     throw new AssertionError();
   }
@@ -73,21 +67,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   @Override
   public String getJvmMetricOptions() {
     return null;
-  }
-
-  @Override
-  public List<Backend> getBackends() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public boolean checkOnly() {
-    return true;
-  }
-
-  @Override
-  public boolean expectEntryPoint() {
-    return false;
   }
 
   @Override

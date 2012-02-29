@@ -11,34 +11,21 @@ import com.google.dart.compiler.metrics.Tracer.EventType;
  */
 public enum DartEventType implements EventType {
   ADD_OUTOFDATE("MistyRose"),
-  BACKEND_COMPILE("DarkGreen"),
-  BACKEND_OUTOFDATE("DarkOliveGreen"),
-  BACKEND_PACKAGE_APP("MediumPurple"),
   BUILD_LIB_SCOPES("violet"),
   COMPILE("green"),
   COMPILE_APP("gray"),
   COMPILE_LIBRARIES("brown"),
   EXEC_PHASE("blue"),
   IMPORT_EMBEDDED_LIBRARIES("purple"),
-  IS_CLASS_OUT_OF_DATE("Aqua"),
   IS_SOURCE_OUTOFDATE("Chartreuse"),
-  JS_NORMALIZE("DarkMagenta"),
-  JS_SOURCE_GEN("LightBlue"),
-  NAMER("MidnightBlue"),
-  PACKAGE_APP("pink"),
   SCANNER("GoldenRod"),
   PARSE("red"),
-  PARSE_API("green"),
   PARSE_OUTOFDATE("LightCoral"),
   RESOLVE_LIBRARIES("black"),
   TIMESTAMP_OUTOFDATE("LightSteelBlue"),
-  TRANSLATE_NODE("Gold"),
-  TRANSLATE_TO_JS("MediumOrchid"),
   UPDATE_LIBRARIES("yellow"),
   UPDATE_RESOLVE("orange"),
-  WRITE_METRICS("LightChiffon"),
-  WRITE_SOURCE_MAP("MediumAquaMarine"),
-  GEN_AST_INIT("Olive");
+  WRITE_METRICS("LightChiffon");
 
   final String cssColor;
   final String name;

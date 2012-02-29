@@ -40,7 +40,6 @@
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
             '../third_party/guava/r09/guava-r09.jar',
             '../third_party/json/r2_20080312/json.jar',
-            '../third_party/rhino/1_7R3/js.jar',
             '../third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
@@ -135,7 +134,6 @@
           'action': [
             '<(PRODUCT_DIR)/dartc', 'api.dart',
             '--fatal-warnings', '--fatal-type-errors',
-            '--deprecated-generate-code',
             '-out', '<(INTERMEDIATE_DIR)/<(_target_name)/api',
           ],
         },

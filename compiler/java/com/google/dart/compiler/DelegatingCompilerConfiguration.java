@@ -34,11 +34,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public List<Backend> getBackends() {
-    return delegate.getBackends();
-  }
-
-  @Override
   public CompilerMetrics getCompilerMetrics() {
     return delegate.getCompilerMetrics();
   }
@@ -69,23 +64,8 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public File getOutputFilename() {
-    return delegate.getOutputFilename();
-  }
-
-  @Override
   public File getOutputDirectory() {
     return delegate.getOutputDirectory();
-  }
-
-  @Override
-  public boolean checkOnly() {
-    return delegate.checkOnly();
-  }
-
-  @Override
-  public boolean expectEntryPoint() {
-    return delegate.expectEntryPoint();
   }
 
   @Override

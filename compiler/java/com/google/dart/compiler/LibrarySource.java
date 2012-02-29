@@ -8,12 +8,11 @@ import java.io.IOException;
 
 /**
  * Abstract interface to library source.
- *
- * TODO(jgw): Consider requiring implementors to intern LibrarySource instances
- * so that users can depend upon reference equality to avoid cycles (or require
- * them to use .equals()). As it is, there are two pieces of code in
- * DartCompiler and one in JavascriptBackend that do this manually, and it's a
- * little tricky.
+ * 
+ * TODO(jgw): Consider requiring implementors to intern LibrarySource instances so that users can
+ * depend upon reference equality to avoid cycles (or require them to use .equals()). As it is,
+ * there are two pieces of code in {@link DartCompiler} that do this manually, and it's a little
+ * tricky.
  */
 public interface LibrarySource extends Source {
 

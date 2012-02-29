@@ -16,7 +16,6 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockBundleLibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 
 import junit.framework.AssertionFailedError;
 
@@ -63,7 +62,7 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
+    config = new DefaultCompilerConfiguration() {
       @Override
       public boolean incremental() {
         return true;

@@ -877,11 +877,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   String shellPath() => TestUtils.compilerPath(configuration);
 
   List<String> additionalOptions(String filename) {
-    filename = new File(filename).fullPathSync().replaceAll('\\', '/');
-    Directory tempDir = createOutputDirectory(filename, 'dartc-test');
-    return
-        [ '--fatal-warnings', '--fatal-type-errors',
-          '--out', tempDir.path];
+    return ['--fatal-warnings', '--fatal-type-errors'];
   }
 
   void processDirectory() {

@@ -14,7 +14,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -103,6 +102,6 @@ public class MemoryLibrarySource implements LibrarySource {
    */
   public void setContent(String relPath, String content) {
     sourceContentMap.put(relPath, content);
-    sourceLastModifiedMap.put(relPath, new Date().getTime());
+    sourceLastModifiedMap.put(relPath, System.currentTimeMillis());
   }
 }

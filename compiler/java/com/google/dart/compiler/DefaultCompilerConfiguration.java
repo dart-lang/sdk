@@ -5,27 +5,21 @@
 package com.google.dart.compiler;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.type.TypeAnalyzer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * A configuration for the Dart compiler specifying which phases
- * and backends will be executed.
+ * A configuration for the Dart compiler specifying which phases will be executed.
  */
 public class DefaultCompilerConfiguration implements CompilerConfiguration {
-
-  private List<Backend> backends;
 
   private final CompilerOptions compilerOptions;
 
@@ -34,66 +28,26 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   private final SystemLibraryManager systemLibraryManager;
 
   /**
-   * A default configuration with the {@link JavascriptBackend}
+   * A default configuration.
    */
   public DefaultCompilerConfiguration() {
-    this(new JavascriptBackend());
+    this(new CompilerOptions());
   }
 
   /**
-   * A new instance with the specified {@link CompilerOptions}
-   * @throws FileNotFoundException
+   * A new instance with the specified {@link CompilerOptions}.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions) {
-    this (new JavascriptBackend(), compilerOptions);
+    this(compilerOptions, new SystemLibraryManager());
   }
 
   /**
-   * A new instance with the specified {@link Backend}
-   */
-  public DefaultCompilerConfiguration(Backend backend) {
-    this(new CompilerOptions(), backend);
-  }
-
-  /**
-   * A new instance with the specified {@link Backend} and {@link CompilerOptions}
-   */
-  public DefaultCompilerConfiguration(Backend backend, CompilerOptions compilerOptions) {
-    this(compilerOptions, backend);
-  }
-
-  /**
-   * A new instance with the specified list of {@link Backend}
-   */
-  public DefaultCompilerConfiguration(Backend... backends) {
-    this(new CompilerOptions(), backends);
-  }
-
-  /**
-   * A new instance with the specified list of {@link Backend}
-   */
-  public DefaultCompilerConfiguration(CompilerOptions compilerOptions, Backend... backends) {
-    this(compilerOptions, new SystemLibraryManager(), backends);
-  }
-
-  /**
-   * A new instance with the specified options, system library manager, and default {@link Backend
-   * backends}.
+   * A new instance with the specified options and system library manager.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions,
-      SystemLibraryManager libraryManager) throws FileNotFoundException {
-    this(compilerOptions, libraryManager, new JavascriptBackend());
-  }
-
-  /**
-   * A new instance with the specified options, system library manager, and list of {@link Backend
-   * backends}.
-   */
-  public DefaultCompilerConfiguration(CompilerOptions compilerOptions, SystemLibraryManager libraryManager, Backend... backends) {
-    this.backends = Arrays.asList(backends);
+      SystemLibraryManager libraryManager) {
     this.compilerOptions = compilerOptions;
-    this.compilerMetrics = compilerOptions.showMetrics() ?
-        new CompilerMetrics() : null;
+    this.compilerMetrics = compilerOptions.showMetrics() ? new CompilerMetrics() : null;
     this.systemLibraryManager = libraryManager;
   }
 
@@ -104,11 +58,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     phases.add(new Resolver.Phase());
     phases.add(new TypeAnalyzer());
     return phases;
-  }
-
-  @Override
-  public List<Backend> getBackends() {
-    return backends;
   }
 
   @Override
@@ -147,23 +96,8 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public File getOutputFilename() {
-    return compilerOptions.getOutputFilename();
-  }
-
-  @Override
   public File getOutputDirectory() {
     return compilerOptions.getWorkDirectory();
-  }
-
-  @Override
-  public boolean checkOnly() {
-    return compilerOptions.checkOnly();
-  }
-
-  @Override
-  public boolean expectEntryPoint() {
-    return false;
   }
 
   @Override
