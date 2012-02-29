@@ -75,8 +75,15 @@ class FutureImpl<T> implements Future<T> {
     }
   }
 
-  void handleException(void onException(Object exception)) {
-    _exceptionHandlers.add(onException);
+  void handleException(bool onException(Object exception)) {
+    if (_exceptionHandled) return;
+    if (_isComplete) {
+       if (_exception != null) {
+         _exceptionHandled = onException(_exception);
+       }
+    } else {
+      _exceptionHandlers.add(onException);
+    }
   }
 
   void _complete() {
