@@ -166,23 +166,22 @@ class BrowserTestCase extends TestCase {
  * [TestCase] this is the output of.
  */
 class TestOutput {
-  TestCase testCase;
-  int exitCode;
-  bool timedOut;
+  final TestCase testCase;
+  final int exitCode;
+  final bool timedOut;
+  final List<String> stdout;
+  final List<String> stderr;
+  final Duration time;
   bool failed = false;
-  List<String> stdout;
-  List<String> stderr;
-  Duration time;
   /**
    * Set to true if we encounter a condition in the output that indicates we
    * need to rerun this test.
    */
-  bool requestRetry;
+  bool requestRetry = false;
 
   TestOutput(this.testCase, this.exitCode, this.timedOut, this.stdout,
              this.stderr, this.time) {
     testCase.output = this;
-    requestRetry = false;
   }
 
   String get result() =>
@@ -272,7 +271,7 @@ class RunningProcess {
       [this.allowRetries, this.processQueue]);
 
   /**
-   * Called when all commands are executed. [exitCode] is 0 if all command
+   * Called when all commands are executed. [exitCode] is 0 if all commands
    * succeded, otherwise it will have the exit code of the first failing
    * command.
    */
@@ -332,21 +331,10 @@ class RunningProcess {
     }
   }
 
-  Function makeReadHandler(StringInputStream source, List<String> destination) {
-    return () {
-      if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
-      var line = source.readLine();
-      while (null != line) {
-        destination.add(line);
-        line = source.readLine();
-      }
-    };
-  }
-
   void start() {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
-    stdout = new List<String>();
-    stderr = new List<String>();
+    stdout = [];
+    stderr = [];
     currentStep = 0;
     runCommand(testCase.commands[currentStep++], stepExitHandler);
   }
@@ -367,9 +355,9 @@ class RunningProcess {
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
     StringInputStream stderrStringStream = new StringInputStream(stderrStream);
     stdoutStringStream.lineHandler =
-        makeReadHandler(stdoutStringStream, stdout);
+        _makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.lineHandler =
-        makeReadHandler(stderrStringStream, stderr);
+        _makeReadHandler(stderrStringStream, stderr);
     timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
   }
 
@@ -452,10 +440,10 @@ class BatchRunnerProcess {
 
   void doStartTest(TestCase testCase) {
     _startTime = new Date.now();
-    _testStdout = new List<String>();
-    _testStderr = new List<String>();
-    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
+    _testStdout = [];
+    _testStderr = [];
+    _stdoutStream.lineHandler = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler = _makeReadHandler(_stderrStream, _testStderr);
     _timer = new Timer(_timeoutHandler, testCase.timeout * 1000);
     var line = _createArgumentsLine(testCase.batchTestArguments);
     _process.stdin.write(line.charCodes());
@@ -465,7 +453,39 @@ class BatchRunnerProcess {
     return Strings.join(arguments, ' ') + '\n';
   }
 
+  // This removes the line handler from stderr and  reads all 
+  // remaining bytes from it.
+  // TODO(zundel): dart:io stream apis need flush()? issue 1407
+  _drainStderr() {
+    _stderrStream.lineHandler = null;
+    while(true) {
+      var available = 0;
+      try {
+        available = _process.stderr.available();
+      } catch (SocketIOException ex) {
+        break;
+      }
+      if (available <= 0) break;
+      String result = _stderrStream.readLine();
+      if (result == null) {
+        // This is intended to catch the last line, but might foul up
+        // if more bytes immediately come available after read() and before
+        // the test for available()
+        result = _stderrStream.read();
+        if (result == null) {
+          var buf = new List<int>(available);
+          _process.stderr.readInto(buf, 0, available);
+          result = new String.fromCharCodes(buf);
+          _testStderr.add(result);
+          break;
+        }
+      }
+      _testStderr.add(result);
+    }
+  }
+  
   int _reportResult(String output) {
+    _drainStderr();
     var test = _currentTest;
     _currentTest = null;
 
@@ -479,9 +499,10 @@ class BatchRunnerProcess {
     test.completed();
   }
 
-  Function _readOutput(StringInputStream stream, List<String> buffer) {
+  Function _readStdout(StringInputStream stream, List<String> buffer) {
     return () {
       var status;
+      if (stream.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = stream.readLine();
       // Drain the input stream to get the error output.
       while (line != null) {
@@ -505,33 +526,31 @@ class BatchRunnerProcess {
       }
     };
   }
-
+  
   void _exitHandler(exitCode) {
     if (_timer != null) _timer.cancel();
+    _reportResult(">>> TEST CRASH");
     _process.close();
-    _startProcess(() {
-      _reportResult(">>> TEST CRASH");
-    });
+    _startProcess();
   }
 
   void _timeoutHandler(ignore) {
-    _process.exitHandler = (exitCode) {
+    _process.exitHandler = (exitCode) {_
+      reportResult(">>> TEST TIMEOUT");
       _process.close();
-      _startProcess(() {
-        _reportResult(">>> TEST TIMEOUT");
-      });
+      _startProcess();
     };
     _process.kill();
   }
 
-  void _startProcess(then) {
+  void _startProcess([Function then = null]) {
     _process = new Process.start(_executable, _batchArguments);
     _stdoutStream = new StringInputStream(_process.stdout);
     _stderrStream = new StringInputStream(_process.stderr);
-    _testStdout = new List<String>();
-    _testStderr = new List<String>();
-    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
+    _testStdout = [];
+    _testStderr = [];
+    _stdoutStream.lineHandler = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler =_makeReadHandler(_stderrStream, _testStderr);
     _process.exitHandler = _exitHandler;
     _process.startHandler = then;
   }
@@ -782,3 +801,16 @@ class ProcessQueue {
     }
   }
 }
+
+Function _makeReadHandler(StringInputStream source, List<String> destination) {
+  return () {
+    if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
+    var line = source.readLine();
+    while (null != line) {
+      destination.add(line);
+      line = source.readLine();
+    }
+  };
+}
+
+

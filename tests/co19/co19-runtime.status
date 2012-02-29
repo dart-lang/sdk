@@ -29,6 +29,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail
+LibTest/core/String/contains/String_contains_A02_t01: Fail
 LibTest/core/String/replaceAll_A01_t01: Fail # Issue 429
 LibTest/core/String/split_A01_t01: Fail # Issue 429
 LibTest/core/String/split_A01_t02: Fail # Issue 429
@@ -112,7 +113,6 @@ LibTest/core/TypeError/url_A01_t01: Fail
 [ $component == vm ]
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
-
 Language/05_Variables/05_Variables_A05_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
