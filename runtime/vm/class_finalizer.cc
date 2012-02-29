@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,8 +19,6 @@ DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 DEFINE_FLAG(bool, verify_implements, false,
     "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, silent_warnings);
-DECLARE_FLAG(bool, warning_as_error);
 
 void ClassFinalizer::AddPendingClasses(
     const GrowableArray<const Class*>& classes) {
@@ -257,7 +255,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 
 
-// Resolve unresolved_class in the library of cls.
+// Resolve unresolved_class in the library of cls, or return null.
 RawClass* ClassFinalizer::ResolveClass(
     const Class& cls, const UnresolvedClass& unresolved_class) {
   const String& class_name = String::Handle(unresolved_class.ident());
@@ -273,13 +271,6 @@ RawClass* ClassFinalizer::ResolveClass(
     ASSERT(!lib_prefix.IsNull());
     resolved_class = lib_prefix.LookupLocalClass(class_name);
   }
-  if (resolved_class.IsNull()) {
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, unresolved_class.token_index(),
-                "cannot resolve class name '%s' from '%s'.\n",
-                String::Handle(unresolved_class.Name()).ToCString(),
-                String::Handle(cls.Name()).ToCString());
-  }
   return resolved_class.raw();
 }
 
@@ -294,7 +285,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
     return;
   }
   // Resolve failures lead to a longjmp.
-  ResolveType(cls, super_type);
+  ResolveType(cls, super_type, kFinalizeWellFormed);
   const Class& super_class = Class::Handle(super_type.type_class());
   if (cls.is_interface() != super_class.is_interface()) {
     String& class_name = String::Handle(cls.Name());
@@ -302,7 +293,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, cls.token_index(),
                 "class '%s' and superclass '%s' are not "
-                "both classes or both interfaces.\n",
+                "both classes or both interfaces",
                 class_name.ToCString(),
                 super_class_name.ToCString());
   }
@@ -339,7 +330,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         (super_class.raw() == object_store->four_byte_string_class())) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
-                  "'%s' is not allowed to extend '%s'\n",
+                  "'%s' is not allowed to extend '%s'",
                   String::Handle(cls.Name()).ToCString(),
                   String::Handle(super_class.Name()).ToCString());
     }
@@ -361,13 +352,19 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   // Lookup the factory class.
   const Class& factory_class =
       Class::Handle(ResolveClass(interface, unresolved_factory_class));
-  ASSERT(!factory_class.IsNull());
+  if (factory_class.IsNull()) {
+    const Script& script = Script::Handle(interface.script());
+    ReportError(script, unresolved_factory_class.token_index(),
+                "cannot resolve factory class name '%s' from '%s'",
+                String::Handle(unresolved_factory_class.Name()).ToCString(),
+                String::Handle(interface.Name()).ToCString());
+  }
   if (factory_class.is_interface()) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
     ReportError(script, unresolved_factory_class.token_index(),
-                "default clause of interface '%s' names non-class '%s'.\n",
+                "default clause of interface '%s' names non-class '%s'",
                 interface_name.ToCString(),
                 factory_name.ToCString());
   }
@@ -399,7 +396,7 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
       ReportError(script, unresolved_factory_class.token_index(),
                   "mismatch in number, names, or bounds of type parameters "
                   "between default clause of interface '%s' and actual factory "
-                  "class '%s'.\n",
+                  "class '%s'",
                   interface_name.ToCString(),
                   factory_name.ToCString());
     }
@@ -417,15 +414,17 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
     const Script& script = Script::Handle(interface.script());
     ReportError(script, unresolved_factory_class.token_index(),
                 "mismatch in number or names of type parameters between "
-                "interface '%s' and default factory class '%s'.\n",
+                "interface '%s' and default factory class '%s'",
                 interface_name.ToCString(),
                 factory_name.ToCString());
   }
 }
 
 
-void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
-  if (type.IsResolved()) {
+void ClassFinalizer::ResolveType(const Class& cls,
+                                 const AbstractType& type,
+                                 FinalizationKind finalization) {
+  if (type.IsResolved() || type.IsFinalized()) {
     return;
   }
   if (FLAG_trace_type_finalization) {
@@ -450,7 +449,16 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
     ASSERT(type.IsType());
     Type& parameterized_type = Type::Handle();
     parameterized_type ^= type.raw();
-    parameterized_type.set_type_class(Object::Handle(type_class.raw()));
+    if (!type_class.IsNull()) {
+      parameterized_type.set_type_class(Object::Handle(type_class.raw()));
+    } else {
+      // The type class could not be resolved. The type is malformed.
+      FinalizeMalformedType(cls, parameterized_type, finalization,
+                            "cannot resolve class name '%s' from '%s'",
+                            String::Handle(unresolved_class.Name()).ToCString(),
+                            String::Handle(cls.Name()).ToCString());
+      return;
+    }
   }
 
   // Resolve type arguments, if any.
@@ -461,7 +469,7 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
     AbstractType& type_argument = AbstractType::Handle();
     for (intptr_t i = 0; i < num_arguments; i++) {
       type_argument = arguments.TypeAt(i);
-      ResolveType(cls, type_argument);
+      ResolveType(cls, type_argument, finalization);
     }
   }
 }
@@ -482,11 +490,13 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
 //             i.e. cls_args = [String, double], offset = 2, length = 2.
 //   Output:   arguments = [int, double, String, double]
 void ClassFinalizer::FinalizeTypeArguments(
-    const Class& cls, const AbstractTypeArguments& arguments) {
+    const Class& cls,
+    const AbstractTypeArguments& arguments,
+    FinalizationKind finalization) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type ^= FinalizeType(cls, super_type);
+    super_type ^= FinalizeType(cls, super_type, finalization);
     cls.set_super_type(super_type);
     const Class& super_class = Class::Handle(super_type.type_class());
     const AbstractTypeArguments& super_type_args =
@@ -504,17 +514,19 @@ void ClassFinalizer::FinalizeTypeArguments(
       super_type_arg = super_type_arg.Canonicalize();
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
-    FinalizeTypeArguments(super_class, arguments);
+    FinalizeTypeArguments(super_class, arguments, finalization);
   }
 }
 
 
 RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
-                                              const AbstractType& type) {
-  ASSERT(type.IsResolved());
+                                              const AbstractType& type,
+                                              FinalizationKind finalization) {
   if (type.IsFinalized()) {
     return type.raw();
   }
+  ASSERT(type.IsResolved());
+
   if (FLAG_trace_type_finalization) {
     OS::Print("Finalize type '%s'\n", String::Handle(type.Name()).ToCString());
   }
@@ -539,10 +551,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   parameterized_type ^= type.raw();
 
   if (parameterized_type.IsBeingFinalized()) {
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, parameterized_type.token_index(),
-                "type '%s' illegally refers to itself\n",
-                String::Handle(parameterized_type.Name()).ToCString());
+    // Self reference detected. The type is malformed.
+    FinalizeMalformedType(
+        cls, parameterized_type, finalization,
+        "type '%s' illegally refers to itself",
+        String::Handle(parameterized_type.Name()).ToCString());
+    return parameterized_type.raw();
   }
 
   // Mark type as being finalized in order to detect illegal self reference.
@@ -556,7 +570,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
       AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
-      type_argument = FinalizeType(cls, type_argument);
+      type_argument = FinalizeType(cls, type_argument, finalization);
       arguments.SetTypeAt(i, type_argument);
     }
   }
@@ -580,6 +594,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         type_class, Function::Handle(type_class.signature_function()));
   }
 
+  // Illegally self referencing function types may get finalized indirectly.
+  if (parameterized_type.IsFinalized()) {
+    ASSERT(parameterized_type.IsMalformed());
+    return parameterized_type.raw();
+  }
+
   // The finalized type argument vector needs num_type_arguments types.
   const intptr_t num_type_arguments = type_class.NumTypeArguments();
   // The type class has num_type_parameters type parameters.
@@ -590,10 +610,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    const Script& script = Script::Handle(cls.script());
-    ReportError(script, type.token_index(),
-                "wrong number of type arguments in type '%s'\n",
-                String::Handle(type.Name()).ToCString());
+    // Wrong number of type arguments. The type is malformed.
+    FinalizeMalformedType(
+        cls, parameterized_type, finalization,
+        "wrong number of type arguments in type '%s'",
+        String::Handle(parameterized_type.Name()).ToCString());
+    return parameterized_type.raw();
   }
   // The full type argument vector consists of the type arguments of the
   // super types of type_class, which may be initialized from the parsed
@@ -618,20 +640,18 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           Function::Handle(type_class.signature_function());
       ASSERT(!signature_fun.is_static());
       const Class& signature_fun_owner = Class::Handle(signature_fun.owner());
-      FinalizeTypeArguments(signature_fun_owner, full_arguments);
+      FinalizeTypeArguments(signature_fun_owner, full_arguments, finalization);
     } else {
-      FinalizeTypeArguments(type_class, full_arguments);
+      FinalizeTypeArguments(type_class, full_arguments, finalization);
     }
     // FinalizeTypeArguments can modify 'full_arguments',
     // canonicalize afterwards.
     full_arguments ^= full_arguments.Canonicalize();
     parameterized_type.set_arguments(full_arguments);
 
-    // Mark the type as finalized before finalizing the upper bounds, because
-    // cycles via upper bounds are legal at compile time.
+    // Mark the type as finalized.
     parameterized_type.set_is_finalized();
 
-    ResolveAndFinalizeUpperBounds(type_class);
     // No need to verify the upper bounds of the finalized type arguments, since
     // bound errors are static type errors, which are not reported by the VM.
   } else {
@@ -645,15 +665,22 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
-  ResolveType(cls, type);
-  type = FinalizeType(cls, type);
+  FinalizationKind result_finalization = kFinalize;
+  if (function.IsFactory()) {
+    // The name of a factory must always be resolved to a class or interface.
+    // The parser sets the factory result type to a type with an unresolved
+    // class whose name matches the factory name.
+    result_finalization = kFinalizeWellFormed;
+  }
+  ResolveType(cls, type, result_finalization);
+  type = FinalizeType(cls, type, result_finalization);
   function.set_result_type(type);
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumberOfParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type);
-    type = FinalizeType(cls, type);
+    ResolveType(cls, type, kFinalize);
+    type = FinalizeType(cls, type, kFinalize);
     function.SetParameterTypeAt(i, type);
   }
 }
@@ -708,8 +735,11 @@ void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
          (bounds.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
     bound = bounds.TypeAt(i);
-    ResolveType(cls, bound);
-    bound = FinalizeType(cls, bound);
+    if (bound.IsDynamicType()) {
+      continue;
+    }
+    ResolveType(cls, bound, kFinalize);
+    bound = FinalizeType(cls, bound, kFinalize);
     bounds.SetTypeAt(i, bound);
   }
 }
@@ -737,8 +767,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    ResolveType(cls, type);
-    type = FinalizeType(cls, type);
+    ResolveType(cls, type, kFinalize);
+    type = FinalizeType(cls, type, kFinalize);
     field.set_type(type);
     name = field.name();
     super_class = FindSuperOwnerOfInstanceMember(cls, name);
@@ -748,7 +778,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, field.token_index(),
                   "field '%s' of class '%s' conflicts with instance "
-                  "member '%s' of super class '%s'.\n",
+                  "member '%s' of super class '%s'",
                   name.ToCString(),
                   class_name.ToCString(),
                   name.ToCString(),
@@ -773,7 +803,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, function.token_index(),
                     "static function '%s' of class '%s' conflicts with "
-                    "instance member '%s' of super class '%s'.\n",
+                    "instance member '%s' of super class '%s'",
                     function_name.ToCString(),
                     class_name.ToCString(),
                     function_name.ToCString(),
@@ -792,7 +822,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           const Script& script = Script::Handle(cls.script());
           ReportError(script, function.token_index(),
                       "class '%s' overrides function '%s' of super class '%s' "
-                      "with incompatible parameters.\n",
+                      "with incompatible parameters",
                       class_name.ToCString(),
                       function_name.ToCString(),
                       super_class_name.ToCString());
@@ -809,7 +839,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, function.token_index(),
                     "getter '%s' of class '%s' conflicts with "
-                    "function '%s' of super class '%s'.\n",
+                    "function '%s' of super class '%s'",
                     name.ToCString(),
                     class_name.ToCString(),
                     name.ToCString(),
@@ -824,7 +854,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, function.token_index(),
                     "setter '%s' of class '%s' conflicts with "
-                    "function '%s' of super class '%s'.\n",
+                    "function '%s' of super class '%s'",
                     name.ToCString(),
                     class_name.ToCString(),
                     name.ToCString(),
@@ -839,7 +869,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, function.token_index(),
                     "function '%s' of class '%s' conflicts with "
-                    "getter '%s' of super class '%s'.\n",
+                    "getter '%s' of super class '%s'",
                     function_name.ToCString(),
                     class_name.ToCString(),
                     function_name.ToCString(),
@@ -853,7 +883,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, function.token_index(),
                     "function '%s' of class '%s' conflicts with "
-                    "setter '%s' of super class '%s'.\n",
+                    "setter '%s' of super class '%s'",
                     function_name.ToCString(),
                     class_name.ToCString(),
                     function_name.ToCString(),
@@ -877,7 +907,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
     const String& name = String::Handle(cls.Name());
     const Script& script = Script::Handle(cls.script());
     ReportError(script, cls.token_index(),
-                "class '%s' has a cycle in its superclass relationship.\n",
+                "class '%s' has a cycle in its superclass relationship",
                 name.ToCString());
   }
   GrowableArray<const Class*> visited;
@@ -887,7 +917,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
     const Class& super_class = Class::Handle(super_type.type_class());
     // Finalize super class and super type.
     FinalizeClass(super_class, generating_snapshot);
-    super_type ^= FinalizeType(cls, super_type);
+    super_type ^= FinalizeType(cls, super_type, kFinalizeWellFormed);
     cls.set_super_type(super_type);
   }
   if (cls.is_interface()) {
@@ -908,7 +938,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   AbstractType& interface_type = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
-    interface_type = FinalizeType(cls, interface_type);
+    interface_type = FinalizeType(cls, interface_type, kFinalizeWellFormed);
     interface_types.SetAt(i, interface_type);
   }
   // Mark as finalized before resolving type parameter upper bounds and member
@@ -1012,7 +1042,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
       const String& interface_name = String::Handle(cls.Name());
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
-                  "Cyclic reference found for interface '%s'\n",
+                  "cyclic reference found for interface '%s'",
                   interface_name.ToCString());
     }
   }
@@ -1034,18 +1064,18 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
   AbstractType& interface = AbstractType::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
-    ResolveType(cls, interface);
+    ResolveType(cls, interface, kFinalizeWellFormed);
     if (interface.IsTypeParameter()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
-                  "Type parameter '%s' cannot be used as interface\n",
+                  "type parameter '%s' cannot be used as interface",
                   String::Handle(interface.Name()).ToCString());
     }
     const Class& interface_class = Class::Handle(interface.type_class());
     if (!interface_class.is_interface()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
-                  "Class '%s' is used where an interface is expected\n",
+                  "class '%s' is used where an interface is expected",
                   String::Handle(interface_class.Name()).ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend or implement
@@ -1062,7 +1092,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, cls.token_index(),
-                    "'%s' is not allowed to extend or implement '%s'\n",
+                    "'%s' is not allowed to extend or implement '%s'",
                     String::Handle(cls.Name()).ToCString(),
                     String::Handle(interface_class.Name()).ToCString());
       }
@@ -1086,7 +1116,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
     String& name = String::Handle(super.Name());
     const Script& script = Script::Handle(cls.script());
     ReportError(script, cls.token_index(),
-                "superclass '%s' must be const.\n", name.ToCString());
+                "superclass '%s' must be const", name.ToCString());
   }
   const Array& fields_array = Array::Handle(cls.fields());
   intptr_t len = fields_array.Length();
@@ -1098,7 +1128,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
       const String& field_name = String::Handle(field.name());
       const Script& script = Script::Handle(cls.script());
       ReportError(script, field.token_index(),
-                  "const class '%s' has non-final field '%s'\n",
+                  "const class '%s' has non-final field '%s'",
                   class_name.ToCString(), field_name.ToCString());
     }
   }
@@ -1143,6 +1173,39 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 }
 
 
+void ClassFinalizer::FinalizeMalformedType(const Class& cls,
+                                           const Type& type,
+                                           FinalizationKind finalization,
+                                           const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  LanguageError& error = LanguageError::Handle();
+  if ((finalization == kFinalizeWellFormed) || FLAG_enable_type_checks) {
+    const Script& script = Script::Handle(cls.script());
+    error ^=
+        Parser::FormatError(script, type.token_index(), "Error", format, args);
+    if (finalization == kFinalizeWellFormed) {
+      ReportError(error);
+    }
+  }
+  // Replace malformed type with Dynamic type.
+  type.set_type_class(Class::Handle(Object::dynamic_class()));
+  type.set_arguments(AbstractTypeArguments::Handle());
+  if (FLAG_enable_type_checks) {
+    // In checked mode, mark type as malformed.
+    type.set_malformed_error(error);
+  }
+  type.set_is_finalized();
+  type.Canonicalize();
+}
+
+
+void ClassFinalizer::ReportError(const Error& error) {
+  Isolate::Current()->long_jump_base()->Jump(1, error);
+  UNREACHABLE();
+}
+
+
 void ClassFinalizer::ReportError(const Script& script,
                                  intptr_t token_index,
                                  const char* format, ...) {
@@ -1150,8 +1213,7 @@ void ClassFinalizer::ReportError(const Script& script,
   va_start(args, format);
   const Error& error = Error::Handle(
       Parser::FormatError(script, token_index, "Error", format, args));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
-  UNREACHABLE();
+  ReportError(error);
 }
 
 
@@ -1161,26 +1223,7 @@ void ClassFinalizer::ReportError(const char* format, ...) {
   const Error& error = Error::Handle(
       Parser::FormatError(Script::Handle(), -1, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, error);
-  UNREACHABLE();
-}
-
-
-void ClassFinalizer::ReportWarning(const Script& script,
-                                  intptr_t token_index,
-                                  const char* format, ...) {
-  if (FLAG_silent_warnings) return;
-  va_list args;
-  va_start(args, format);
-  const Error& error = Error::Handle(
-      Parser::FormatError(script, token_index, "Warning", format, args));
-  va_end(args);
-  if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, error);
-    UNREACHABLE();
-  } else {
-    OS::Print("%s", error.ToErrorCString());
-  }
+  ReportError(error);
 }
 
 }  // namespace dart

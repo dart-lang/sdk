@@ -93,7 +93,7 @@ LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/addLast_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip  # Issue 331
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
-Language/13_Types/8_Parameterized_Types_A02_t01: Fail  # Issue 441
+Language/13_Types/8_Parameterized_Types_A02_t01: Fail  # Issue co19 - 82
 
 [ $component == vm && $system == win32 ]
 LibTest/core/Math/pow_A07_t01: Fail
@@ -174,8 +174,8 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
 Language/08_Interfaces/4_Superinterfaces_A02_t04: Fail
-Language/09_Generics/09_Generics_A01_t02: Fail
-Language/09_Generics/09_Generics_A01_t03: Fail
+Language/09_Generics/09_Generics_A04_t04: Fail  # Issue co19 - 83
+Language/09_Generics/09_Generics_A04_t05: Fail  # Issue co19 - 83
 Language/09_Generics/09_Generics_A04_t06: Fail
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail

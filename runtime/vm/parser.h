@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "vm/ast.h"
+#include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
 #include "vm/scanner.h"
 
@@ -181,12 +182,14 @@ class Parser : ValueObject {
                             const char* format,
                             va_list args);
 
-  // Reports error message at location of current token.
+  // Reports error/warning message at location of current token.
   void ErrorMsg(const char* msg, ...);
-  void ErrorMsg(intptr_t token_index, const char* msg, ...);
   void Warning(const char* msg, ...);
-  void Warning(intptr_t token_index, const char* msg, ...);
   void Unimplemented(const char* msg);
+
+  // Reports error message at given location.
+  void ErrorMsg(intptr_t token_index, const char* msg, ...);
+  void Warning(intptr_t token_index, const char* msg, ...);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
@@ -217,18 +220,14 @@ class Parser : ValueObject {
   void ParseLibraryInclude();
   void ParseLibraryResource();
 
-  enum TypeResolution {
-    kIgnore,  // Parsed type is ignored and replaced by Dynamic.
-    kDoNotResolve,  // Type resolution is postponed.
-    kCanResolve,  // Type resolution is optional.
-    kMustResolve  // Type resolution is required.
-  };
   void ResolveTypeFromClass(const Class& cls,
-                            TypeResolution type_resolution,
+                            ClassFinalizer::FinalizationKind finalization,
                             AbstractType* type);
-  RawAbstractType* ParseType(TypeResolution type_resolution);
+  RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization);
   void ParseTypeParameters(const Class& cls);
-  RawAbstractTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
+  RawAbstractTypeArguments* ParseTypeArguments(
+      Error* malformed_error,
+      ClassFinalizer::FinalizationKind finalization);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -323,7 +322,8 @@ class Parser : ValueObject {
   // Add the inlined finally block to the specified node.
   void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
-  RawAbstractType* ParseFinalVarOrType(TypeResolution type_resolution);
+  RawAbstractType* ParseFinalVarOrType(
+      ClassFinalizer::FinalizationKind finalization);
   AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
@@ -424,6 +424,7 @@ class Parser : ValueObject {
                           const char* function_name,
                           ArgumentListNode* arguments);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
+  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
 
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);

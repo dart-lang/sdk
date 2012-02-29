@@ -1911,6 +1911,26 @@ bool AbstractType::IsBeingFinalized() const {
 }
 
 
+bool AbstractType::IsMalformed() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
+RawError* AbstractType::malformed_error() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void AbstractType::set_malformed_error(const Error& value) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+}
+
+
 bool AbstractType::Equals(const AbstractType& other) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -2207,6 +2227,22 @@ void Type::set_is_being_finalized() const {
 }
 
 
+bool Type::IsMalformed() const {
+  return raw_ptr()->malformed_error_ != Error::null();
+}
+
+
+void Type::set_malformed_error(const Error& value) const {
+  StorePointer(&raw_ptr()->malformed_error_, value.raw());
+}
+
+
+RawError* Type::malformed_error() const {
+  ASSERT(IsMalformed());
+  return raw_ptr()->malformed_error_;
+}
+
+
 bool Type::IsResolved() const {
   if (IsFinalized()) {
     return true;
@@ -2278,7 +2314,7 @@ bool Type::Equals(const AbstractType& other) const {
   if (raw() == other.raw()) {
     return true;
   }
-  if (!other.IsType()) {
+  if (IsMalformed() || !other.IsType() || other.IsMalformed()) {
     return false;
   }
   Type& other_parameterized_type = Type::Handle();
@@ -2664,7 +2700,7 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
     type = TypeAt(i);
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
-      ASSERT(type.IsTypeParameter());
+      ASSERT(type.IsTypeParameter() || type.IsMalformed());
       return false;
     }
     type_class = type.type_class();
@@ -3466,7 +3502,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(signature_class, signature_type);
+    ClassFinalizer::FinalizeType(
+        signature_class, signature_type, ClassFinalizer::kFinalize);
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);

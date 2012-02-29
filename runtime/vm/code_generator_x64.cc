@@ -424,7 +424,7 @@ void CodeGenerator::GenerateEntryCode() {
       }
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
-                            function.token_index(),
+                            0,
                             kClosureArgumentMismatchRuntimeEntry);
       } else {
         __ Stop("Wrong number of arguments");
@@ -549,7 +549,7 @@ void CodeGenerator::GenerateEntryCode() {
     __ Bind(&wrong_num_arguments);
     if (function.IsClosureFunction()) {
       GenerateCallRuntime(AstNode::kNoId,
-                          function.token_index(),
+                          0,
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
@@ -571,7 +571,7 @@ void CodeGenerator::GenerateEntryCode() {
 
     if (FLAG_trace_functions) {
       __ pushq(RAX);  // Preserve result.
-      __ PushObject(function);
+      __ PushObject(Function::ZoneHandle(function.raw()));
       GenerateCallRuntime(AstNode::kNoId,
                           0,
                           kTraceFunctionExitRuntimeEntry);
@@ -619,7 +619,7 @@ void CodeGenerator::GenerateEntryCode() {
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(AstNode::kNoId,
-                      function.token_index(),
+                      0,
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 }
@@ -670,7 +670,6 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   AddCurrentDescriptor(PcDescriptors::kReturn,
                        node->id(),
                        node->token_index());
-
 
 #ifdef DEBUG
   __ Bind(&wrong_stack);
@@ -797,8 +796,7 @@ void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
 
 
 void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
-  const Context& result = Context::ZoneHandle();
-  __ PushObject(result);
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushq(CTX);
   GenerateCallRuntime(node->id(),
       node->token_index(), kCloneContextRuntimeEntry);
@@ -1300,7 +1298,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
                                        intptr_t token_index,
                                        const AbstractType& type,
                                        bool negate_result) {
-  ASSERT(type.IsFinalized());
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
@@ -1408,8 +1406,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       }
     }
   }
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -1461,6 +1458,23 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   ASSERT(token_index >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    const Immediate location =
+        Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+    __ pushq(location);  // Push the source location.
+    __ pushq(RAX);  // Push the source object.
+    __ PushObject(error_message);
+    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+    return;
+  }
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
@@ -1583,8 +1597,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     }
   }
   __ Bind(&runtime_call);
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
   __ pushq(location);  // Push the source location.
@@ -1650,16 +1663,13 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
   __ pushq(location);  // Push the source location.
   __ pushq(RAX);  // Push the source object.
   GenerateCallRuntime(node_id, token_index, kConditionTypeErrorRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ addq(RSP, Immediate(3 * kWordSize));
+  // We should never return here.
+  __ int3();
 
   __ Bind(&done);
 }
@@ -2098,7 +2108,7 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
                                          interpol_arg->names()));
   GenerateCall(node->token_index(),
                &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kOther);
+               PcDescriptors::kFuncCall);
   __ addq(RSP, Immediate(interpol_arg->length() * kWordSize));
   // Result is in RAX.
   if (IsResultNeeded(node)) {
@@ -2185,7 +2195,8 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::New(instantiator_class, type_arguments, token_index));
-    type ^= ClassFinalizer::FinalizeType(instantiator_class, type);
+    type ^= ClassFinalizer::FinalizeType(
+        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
   } else {
@@ -2268,8 +2279,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     if (node->constructor().IsFactory()) {
       // A runtime call to instantiate the type arguments is required before
       // calling the factory.
-      const Object& result = Object::ZoneHandle();
-      __ PushObject(result);  // Make room for the result of the runtime call.
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
       __ PushObject(node->type_arguments());
       __ pushq(RAX);  // Push instantiator type arguments.
       GenerateCallRuntime(node->id(),
@@ -2603,17 +2613,12 @@ void CodeGenerator::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void CodeGenerator::VisitThrowNode(ThrowNode* node) {
-  const Object& result = Object::ZoneHandle();
   node->exception()->Visit(this);
-  __ popq(RAX);  // Exception object is now in RAX.
+  // Exception object is on TOS.
   if (node->stacktrace() != NULL) {
-    __ PushObject(result);  // Make room for the result of the runtime call.
-    __ pushq(RAX);  // Push the exception object.
     node->stacktrace()->Visit(this);
     GenerateCallRuntime(node->id(), node->token_index(), kReThrowRuntimeEntry);
   } else {
-    __ PushObject(result);  // Make room for the result of the runtime call.
-    __ pushq(RAX);  // Push the exception object.
     GenerateCallRuntime(node->id(), node->token_index(), kThrowRuntimeEntry);
   }
   // We should never return here.

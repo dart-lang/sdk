@@ -10,6 +10,7 @@
 namespace dart {
 
 DECLARE_RUNTIME_ENTRY(ConditionTypeError);
+DECLARE_RUNTIME_ENTRY(MalformedTypeError);
 DECLARE_RUNTIME_ENTRY(RestArgumentTypeCheck);
 DECLARE_RUNTIME_ENTRY(TypeCheck);
 

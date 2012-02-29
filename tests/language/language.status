@@ -25,8 +25,6 @@ FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
 SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
-Prefix22Test: Fail            # Issue 575
-Prefix23Test: Fail            # Issue 575
 PseudoKWIllegalTest/03: Fail  # Issue 356
 PseudoKWIllegalTest/08: Fail  # Issue 356
 PseudoKWIllegalTest/10: Fail  # Issue 356
@@ -41,15 +39,18 @@ ImplicitThisTest/none: Fail # Issue 374
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)
 Constructor6Test: Fail          # (Discussion ongoing)
+FunctionTypeAliasNegativeTest: Fail # Spec not clear about self referencing types.
+
+# Bad tests needing to be fixed.
+Prefix23NegativeTest: Fail
+TypeVariableScopeTest/00: Fail
+TypeVariableScopeTest/03: Fail
+TypeVariableScopeTest/04: Fail
+TypeVariableScopeTest/05: Fail
 
 # Regular bugs which should be fixed.
 
 ConstInit6NegativeTest: Fail       # Issue 811
-
-# Issue 441.
-TypeVariableBoundsTest/09: Fail
-TypeVariableBoundsTest/10: Fail
-
 SuperFirstConstructorTest: Fail # Issue 1372.
 
 # Issue 1427
@@ -92,12 +93,15 @@ CompileTimeConstant6Test: Fail # Issue 1794
 
 [ ($component == vm || $component == dartium) && $unchecked ]
 
+IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
-FunctionTypeAliasNegativeTest: Fail # Bug 5231617
 
 [ ($component == vm || $component == dartium) && $checked ]
 
-WrongNumberTypeArgumentsTest: Fail # This test should be negative
+Prefix22Test: Fail # This test should be negative in checked mode.
+WrongNumberTypeArgumentsTest: Fail # This test should be negative in checked mode.
+TypeVariableBoundsTest/09: Fail # This test should be negative in checked mode.
+TypeVariableBoundsTest/10: Fail # This test should be negative in checked mode.
 
 [ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.

@@ -778,6 +778,9 @@ class AbstractType : public Object {
  public:
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
+  virtual bool IsMalformed() const;
+  virtual RawError* malformed_error() const;
+  virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
@@ -893,6 +896,9 @@ class Type : public AbstractType {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
   void set_is_being_finalized() const;
+  virtual bool IsMalformed() const;
+  virtual RawError* malformed_error() const;
+  virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
@@ -976,6 +982,7 @@ class TypeParameter : public AbstractType {
   }
   void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
+  virtual bool IsMalformed() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const { return raw_ptr()->name_; }
@@ -1020,6 +1027,7 @@ class InstantiatedType : public AbstractType {
  public:
   virtual bool IsFinalized() const { return true; }
   virtual bool IsBeingFinalized() const { return false; }
+  virtual bool IsMalformed() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return true; }
   virtual RawClass* type_class() const;
