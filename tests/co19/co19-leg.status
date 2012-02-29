@@ -50,10 +50,6 @@ LibTest/core/List/sort_A01_t06: Skip # Times out.
 LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out. Also, issue co19 81.
 
 
-# Fail type assertion on VM, cancels otherwise.
-LibTest/core/Queue/addAll_A01_t01: Fail, Crash
-
-
 # Issues with co19 test suite.
 LibTest/core/Date/Date.fromString_A01_t02: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date.fromString_A01_t03: Fail, OK # Undocumented behavior.
@@ -119,18 +115,13 @@ Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # 
 Language/13_Types/5_Function_Types_A02_t03: Fail # Cannot find value
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/Date.fromString_A05_t01: Fail # Expect.fail('Some exception is expected')
-LibTest/core/Expect/setEquals_A01_t01: Fail # Cannot find value
-LibTest/core/Expect/setEquals_A01_t02: Fail # Cannot find value
-LibTest/core/Expect/setEquals_A03_t01: Fail # Cannot find value
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
 LibTest/core/FallThroughError/toString_A01_t02: Fail # switch cases are not implemented
-LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/port_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/spawn_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/spawn_A01_t03: Fail # Cannot find value
 LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
 LibTest/core/List/List.from_A02_t01: Fail # Cannot find value
-LibTest/core/List/addAll_A01_t01: Fail # Cannot find value
 LibTest/core/List/every_A01_t01: Fail # Duplicate definition.
 LibTest/core/List/every_A01_t02: Fail # Cannot find value.
 LibTest/core/List/every_A02_t01: Fail # Duplicate definition.
@@ -152,47 +143,27 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail #  Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-LibTest/core/Set/Set.from_A01_t01: Fail # Cannot find value
-LibTest/core/Set/Set.from_A01_t02: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t01: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t03: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t04: Fail # Cannot find value
 LibTest/core/Set/add_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/add_A01_t03: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/add_A01_t06: Fail # Cannot find value
-LibTest/core/Set/clear_A01_t01: Fail # Cannot find value
 LibTest/core/Set/containsAll_A01_t01: Fail # Cannot find value
 LibTest/core/Set/containsAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/containsAll_A01_t03: Fail # Cannot find value
 LibTest/core/Set/contains_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/every_A01_t01: Fail # Cannot find value
 LibTest/core/Set/every_A01_t02: Fail # Cannot find value
 LibTest/core/Set/every_A01_t03: Fail # Cannot find value
-LibTest/core/Set/filter_A01_t03: Fail # Cannot find value
 LibTest/core/Set/filter_A01_t04: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t01: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t03: Fail # Cannot find value
 LibTest/core/Set/forEach_A01_t04: Fail # Cannot find value
 LibTest/core/Set/forEach_A01_t05: Fail # Cannot find value
 LibTest/core/Set/intersection_A01_t01: Fail # Cannot find value
-LibTest/core/Set/intersection_A01_t02: Fail # Cannot find value
-LibTest/core/Set/intersection_A01_t03: Fail # Cannot find value
-LibTest/core/Set/intersection_A02_t01: Fail # Cannot find value
-LibTest/core/Set/intersection_A03_t01: Fail # Cannot find value
 LibTest/core/Set/isEmpty_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/isSubsetOf_A01_t01: Fail # Cannot find value
 LibTest/core/Set/isSubsetOf_A01_t02: Fail # Cannot find value
 LibTest/core/Set/length_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/removeAll_A01_t01: Fail # Cannot find value
-LibTest/core/Set/removeAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/removeAll_A01_t03: Fail # Cannot find value
 LibTest/core/Set/remove_A01_t01: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/remove_A01_t03: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t04: Fail # Cannot find value
 LibTest/core/Set/remove_A01_t05: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/some_A01_t01: Fail # Cannot find value
 LibTest/core/Set/some_A01_t02: Fail # Cannot find value
 LibTest/core/Set/some_A01_t03: Fail # Cannot find value
 LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails

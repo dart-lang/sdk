@@ -18,7 +18,6 @@ FunctionLiterals2Test: Crash # TODO(floitsch): investigate.
 GetSyntaxTest/none: Fail # TODO(ahe): investigate.
 GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
 SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
-ImplicitClosureTest: Fail # TODO(ahe): investigate.
 FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
 SyntaxTest/28: Fail # TODO(ahe): investigate.
 SyntaxTest/30: Fail # TODO(ahe): investigate.
@@ -37,7 +36,6 @@ CallOperatorTest: Fail # Unexpected token 'call'
 CallThroughGetterTest: Fail # Internal Error: Cannot find value
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ClassTest: Fail # Internal Error: Cannot find value
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
