@@ -6,71 +6,62 @@
 
 
 /**
- * A Future is used to obtain a value sometime in the
- * future.
- *
- * Receivers of a Future obtain the value by passing
- * a callback to the 'then' method of Future.
- *
- * For example:
+ * A [Future] is used to obtain a value sometime in the future.  Receivers of a
+ * [Future] obtain the value by passing a callback to [then]. For example:
  *
  *   Future<int> future = getFutureFromSomewhere();
  *   future.then((value) {
  *     print("I received the number " + value);
  *   });
- *
  */
 interface Future<T> default FutureImpl<T> {
+
   /** A future whose value is immediately available. */
   Future.immediate(T value);
 
-  /**
-   * The value this future provided.  (If called when hasValue
-   * is false, then throws an exception.)
-   */
+  /** The value provided. Throws an exception if [hasValue] is false. */
   T get value();
 
   /**
-   * Exception that occurred (null if no exception occured).  (If called
-   * before [isComplete] is true, then this exception property itself
-   * throws a FutureNotCompleteException.)
+   * Exception that occurred ([:null:] if no exception occured). This property
+   * throws a [FutureNotCompleteException] if it is used before this future is
+   * completes.
    */
   Object get exception();
 
   /**
-   * Whether the future is complete (either the value is available or there
-   * was an exception).
+   * Whether the future is complete (either the value is available or there was
+   * an exception).
    */
   bool get isComplete();
 
   /**
-   * Whether the value is available (meaning isComplete is true, and there
-   * was no exception).
+   * Whether the value is available (meaning [isComplete] is true, and there was
+   * no exception).
    */
   bool get hasValue();
 
   /**
-   * When this future is complete and has a value, then call
-   * the onComplete callback function with the value.
+   * When this future is complete and has a value, then [onComplete] is called
+   * with the value.
    */
   void then(void onComplete(T value));
 
   /**
-   * If this future gets an exception, then call onException.
+   * If this future gets an exception, then call [onException].
    *
-   * If onException returns true, then the exception is considered
-   * handled.
+   * If [onException] returns true, then the exception is considered handled.
    *
-   * If onException does not return true (or handleException was never called),
-   * then the exception is not considered handled.  In that case, if there were
-   * any calls to [then] (meaning that there are onComplete callbacks waiting
-   * for the value), then the exception will be thrown when it is set.
+   * If [onException] does not return true (or [handleException] was never
+   * called), then the exception is not considered handled. In that case, if
+   * there were any calls to [then], then the exception will be thrown when the
+   * value is set.
    *
-   * (In most cases it should not be necessary to call handleException,
-   * because the exception associated with this Future will propagate naturally
-   * if the future's value is being consumed.  Only call handleException if you
-   * need to do some special local exception handling related to this
-   * particular Future's value.)
+   * In most cases it should not be necessary to call [handleException],
+   * because the exception associated with this [Future] will propagate
+   * naturally if the future's value is being consumed. Only call
+   * [handleException] if you need to do some special local exception handling
+   * related to this particular Future's value.
    */
   void handleException(bool onException(Object exception));
 
@@ -86,7 +77,7 @@ interface Future<T> default FutureImpl<T> {
    * You must not add exception handlers to [this] future prior to calling
    * transform, and any you add afterwards will not be invoked.
    */
-  Future transform(Function transformation);
+  Future transform(transformation(T value));
 
    /**
     * A future representing an asynchronous transformation applied to this
@@ -103,21 +94,21 @@ interface Future<T> default FutureImpl<T> {
     * You must not add exception handlers to [this] future prior to calling
     * chain, and any you add afterwards will not be invoked.
     */
-   Future chain(Function transformation);
+   Future chain(Future transformation(T value));
 }
 
 
 /**
- * A Completer is used to produce Future objects, and supply
- * a value to the Future object when the value becomes available.
+ * A [Completer] is used to produce [Future]s and supply their value when it
+ * becomes available.
  *
- * A service that provides values to callers, and wants to return Future objects
- * rather than returning the values immediately, can use a Completer as follows:
+ * A service that provides values to callers, and wants to return [Future]s can
+ * use a [Completer] as follows:
  *
  *   Completer completer = new Completer();
- *   Future future = completer.future;
- *
- *   // send [future] object back to client...
+ *   // send future object back to client...
+ *   return completer.future;
+ *   ...
  *
  *   // later when value is available, call:
  *   completer.complete(value);
@@ -129,33 +120,47 @@ interface Future<T> default FutureImpl<T> {
  */
 interface Completer<T> default CompleterImpl<T> {
 
-  /** Create a completer */
   Completer();
 
+  /** The future that will contain the value produced by this completer. */
   Future get future();
 
-  /**
-   * Called when value is available.
-   */
+  /** Supply a value for [future]. */
   void complete(T value);
 
   /**
-   * Called if an exception occured while trying to produce value.
+   * Indicate in [future] that an exception occured while trying to produce its
+   * value. The argument [exception] argument should not be [:null:].
    */
   void completeException(Object exception);
 }
 
+/** Thrown when reading a future's properties before it is complete. */
+class FutureNotCompleteException implements Exception {
+  FutureNotCompleteException() {}
+  String toString() => "Exception: future has not been completed";
+}
 
 /**
- * This class is for utility functions that operate on Futures (for
- * example, waiting for a collectin of Futures to complete).
+ * Thrown if a completer tries to set the value on a future that is already
+ * complete.
+ */
+class FutureAlreadyCompleteException implements Exception {
+  FutureAlreadyCompleteException() {}
+  String toString() => "Exception: future already completed";
+}
+
+
+/**
+ * [Futures] holds additional utility functions that operate on [Future]s (for
+ * example, waiting for a collection of Futures to complete).
  */
 class Futures {
 
   /**
-   * Returns a future which will complete once all the futures in a
-   * list are complete.  (The value of the returned future will
-   * be a list of all the values that were produced.)
+   * Returns a future which will complete once all the futures in a list are
+   * complete. (The value of the returned future will be a list of all the
+   * values that were produced.)
    */
   static Future<List> wait(List<Future> futures) {
     Completer completer = new Completer<List>();
@@ -175,6 +180,7 @@ class Futures {
         }
       });
     }
+
     // Special case where all the futures are already completed,
     // trigger the value now.
     if (futures.length == 0) {
@@ -184,4 +190,3 @@ class Futures {
     return completer.future;
   }
 }
-
