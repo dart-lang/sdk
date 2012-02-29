@@ -3310,7 +3310,9 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                Api::NewLocalHandle(url),
                                Api::NewLocalHandle(import_map));
   if (Dart_IsError(result)) {
-    ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
+    Error& prev_error = Error::Handle();
+    prev_error ^= Api::UnwrapHandle(result);
+    AppendErrorMsg(prev_error, token_pos, "library handler failed");
   }
   return result;
 }
@@ -5254,6 +5256,23 @@ AstNode* Parser::ParseStatement() {
 }
 
 
+RawError* Parser::FormatErrorWithAppend(const Error& prev_error,
+                                        const Script& script,
+                                        intptr_t token_index,
+                                        const char* message_header,
+                                        const char* format,
+                                        va_list args) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
+  FormatMessage(script, token_index, message_header,
+                message_buffer, kMessageBufferSize,
+                format, args);
+  const String& msg1 = String::Handle(String::New(prev_error.ToErrorCString()));
+  const String& msg2 = String::Handle(String::New(message_buffer));
+  return LanguageError::New(String::Handle(String::Concat(msg1, msg2)));
+}
+
+
 RawError* Parser::FormatError(const Script& script,
                               intptr_t token_index,
                               const char* message_header,
@@ -5348,6 +5367,18 @@ void Parser::ErrorMsg(const char* format, ...) {
   va_start(args, format);
   const Error& error = Error::Handle(
       FormatError(script_, token_index_, "Error", format, args));
+  va_end(args);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
+  UNREACHABLE();
+}
+
+
+void Parser::AppendErrorMsg(
+      const Error& prev_error, intptr_t token_index, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  const Error& error = Error::Handle(FormatErrorWithAppend(
+      prev_error, script_, token_index, "Error", format, args));
   va_end(args);
   Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();

@@ -192,6 +192,17 @@ class Parser : ValueObject {
   // Reports error message at given location.
   void ErrorMsg(intptr_t token_index, const char* msg, ...);
   void Warning(intptr_t token_index, const char* msg, ...);
+  // Concatenates two error messages, the previous and the current one.
+  void AppendErrorMsg(
+      const Error& prev_error, intptr_t token_index, const char* format, ...);
+
+  // Same as FormatError, but appends the new error to the 'prev_error'.
+  static RawError* FormatErrorWithAppend(const Error& prev_error,
+                                         const Script& script,
+                                         intptr_t token_index,
+                                         const char* message_header,
+                                         const char* format,
+                                         va_list args);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
