@@ -63,7 +63,7 @@
             'client/dom/dom.dart',
             'client/dom/generated',
             'client/dom/src',
-            'frog/frogc',
+            'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
           ],
           'outputs': [
