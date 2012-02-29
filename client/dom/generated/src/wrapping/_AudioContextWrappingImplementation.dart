@@ -124,16 +124,10 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
   static WaveShaperNode _createWaveShaper(receiver) native;
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _decodeAudioData(this, audioData, successCallback);
-      return;
-    } else {
-      _decodeAudioData_2(this, audioData, successCallback, errorCallback);
-      return;
-    }
+    _decodeAudioData(this, audioData, successCallback, errorCallback);
+    return;
   }
-  static void _decodeAudioData(receiver, audioData, successCallback) native;
-  static void _decodeAudioData_2(receiver, audioData, successCallback, errorCallback) native;
+  static void _decodeAudioData(receiver, audioData, successCallback, errorCallback) native;
 
   void startRendering() {
     _startRendering(this);

@@ -1180,6 +1180,9 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
 
@@ -1275,8 +1278,6 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _BarInfoJs toolbar;
 
-  final _DOMWindowJs top;
-
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
@@ -1370,6 +1371,12 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+
+  Window get _top() native "return this.top;";
+
+  // Override top to return secure wrapper.
+  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 }
 
 class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native "*DataTransferItem" {
@@ -3011,60 +3018,6 @@ class _HTMLIFrameElementJs extends _HTMLElementJs implements HTMLIFrameElement n
   // Override contentWindow to return secure wrapper.
   Window get contentWindow() {
     return _DOMWindowCrossFrameImpl._createSafe(_contentWindow);
-  }
-}
-
-// TODO(vsm): Unify with Dartium version.
-class _DOMWindowCrossFrameImpl implements DOMType, DOMWindow {
-  // Private window.
-  _DOMWindowJs _window;
-
-  // DOMType
-  var dartObjectLocalStorage;
-  String get typeName() => "DOMWindow";
-
-  // Fields.
-  // TODO(vsm): Wrap these two.
-  History get history() => _window.history;
-  Location get location() => _window.location;
-
-  bool get closed() => _window.closed;
-  int get length() => _window.length;
-  DOMWindow get opener() => _createDOMWindowCrossFrame(_window.opener);
-  DOMWindow get parent() => _createDOMWindowCrossFrame(_window.parent);
-  DOMWindow get top() => _createDOMWindowCrossFrame(_window.top);
-
-  // Methods.
-  void focus() {
-    _window.focus();
-  }
-
-  void blur() {
-    _window.blur();
-  }
-
-  void close() {
-    _window.close();
-  }
-
-  void postMessage(Dynamic message,
-                   String targetOrigin,
-                   [List messagePorts = null]) {
-    if (messagePorts == null) {
-      _window.postMessage(message, targetOrigin);
-    } else {
-      _window.postMessage(message, targetOrigin, messagePorts);
-    }
-  }
-
-  // Implementation support.
-  _DOMWindowCrossFrameImpl(this._window);
-
-  static DOMWindow _createSafe(w) {
-    // TODO(vsm): Check if it's the top-level window.  Return unwrapped.
-
-    // TODO(vsm): Cache or implement equality.
-    return new _DOMWindowCrossFrameImpl(w);
   }
 }
 
@@ -10006,6 +9959,10 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
 
   // Use implementation from Uint8Array.
   // final int length;
+
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }
@@ -21529,6 +21486,8 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   final int length;
 
+  void setElements(Object array, [int offset]);
+
   Uint8ClampedArray subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23959,6 +23918,57 @@ class _Collections {
 
   static bool isEmpty(Iterable<Object> iterable) {
     return !iterable.iterator().hasNext();
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(vsm): Unify with Dartium version.
+class _DOMWindowCrossFrameImpl implements DOMType, DOMWindow {
+  // Private window.
+  _DOMWindowJs _window;
+
+  // DOMType
+  var dartObjectLocalStorage;
+  String get typeName() => "DOMWindow";
+
+  // Fields.
+  // TODO(vsm): Implement history and location getters.
+
+  bool get closed() => _window.closed;
+  int get length() => _window.length;
+  DOMWindow get opener() => _createSafe(_window.opener);
+  DOMWindow get parent() => _createSafe(_window.parent);
+  DOMWindow get top() => _createSafe(_window.top);
+
+  // Methods.
+  void focus() => _window.focus();
+
+  void blur() => _window.blur();
+
+  void close() => _window.close();
+
+  void postMessage(Dynamic message,
+                   String targetOrigin,
+                   [List messagePorts = null]) {
+    if (messagePorts == null) {
+      _window.postMessage(message, targetOrigin);
+    } else {
+      _window.postMessage(message, targetOrigin, messagePorts);
+    }
+  }
+
+  // Implementation support.
+  _DOMWindowCrossFrameImpl(this._window);
+
+  static DOMWindow _createSafe(w) {
+    if (w === window) {
+      return w;
+    } else {
+      // TODO(vsm): Cache or implement equality.
+      return new _DOMWindowCrossFrameImpl(w);
+    }
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

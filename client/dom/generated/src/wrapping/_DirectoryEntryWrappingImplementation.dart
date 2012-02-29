@@ -17,78 +17,22 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   static DirectoryReader _createReader(receiver) native;
 
   void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (flags === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _getDirectory(this, path);
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _getDirectory_2(this, path, flags);
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _getDirectory_3(this, path, flags, successCallback);
-          return;
-        } else {
-          _getDirectory_4(this, path, flags, successCallback, errorCallback);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+    _getDirectory(this, path, flags, successCallback, errorCallback);
+    return;
   }
-  static void _getDirectory(receiver, path) native;
-  static void _getDirectory_2(receiver, path, flags) native;
-  static void _getDirectory_3(receiver, path, flags, successCallback) native;
-  static void _getDirectory_4(receiver, path, flags, successCallback, errorCallback) native;
+  static void _getDirectory(receiver, path, flags, successCallback, errorCallback) native;
 
   void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (flags === null) {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _getFile(this, path);
-          return;
-        }
-      }
-    } else {
-      if (successCallback === null) {
-        if (errorCallback === null) {
-          _getFile_2(this, path, flags);
-          return;
-        }
-      } else {
-        if (errorCallback === null) {
-          _getFile_3(this, path, flags, successCallback);
-          return;
-        } else {
-          _getFile_4(this, path, flags, successCallback, errorCallback);
-          return;
-        }
-      }
-    }
-    throw "Incorrect number or type of arguments";
+    _getFile(this, path, flags, successCallback, errorCallback);
+    return;
   }
-  static void _getFile(receiver, path) native;
-  static void _getFile_2(receiver, path, flags) native;
-  static void _getFile_3(receiver, path, flags, successCallback) native;
-  static void _getFile_4(receiver, path, flags, successCallback, errorCallback) native;
+  static void _getFile(receiver, path, flags, successCallback, errorCallback) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _removeRecursively(this, successCallback);
-      return;
-    } else {
-      _removeRecursively_2(this, successCallback, errorCallback);
-      return;
-    }
+    _removeRecursively(this, successCallback, errorCallback);
+    return;
   }
-  static void _removeRecursively(receiver, successCallback) native;
-  static void _removeRecursively_2(receiver, successCallback, errorCallback) native;
+  static void _removeRecursively(receiver, successCallback, errorCallback) native;
 
   String get typeName() { return "DirectoryEntry"; }
 }

@@ -298,14 +298,9 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open_2(receiver, url, name, options) native;
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _openDatabase(this, name, version, displayName, estimatedSize);
-    } else {
-      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
-    }
+    return _openDatabase(this, name, version, displayName, estimatedSize, creationCallback);
   }
-  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
-  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts === null) {
@@ -452,37 +447,16 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static int _webkitRequestAnimationFrame(receiver, callback, element) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _webkitRequestFileSystem(this, type, size, successCallback);
-      return;
-    } else {
-      _webkitRequestFileSystem_2(this, type, size, successCallback, errorCallback);
-      return;
-    }
+    _webkitRequestFileSystem(this, type, size, successCallback, errorCallback);
+    return;
   }
-  static void _webkitRequestFileSystem(receiver, type, size, successCallback) native;
-  static void _webkitRequestFileSystem_2(receiver, type, size, successCallback, errorCallback) native;
+  static void _webkitRequestFileSystem(receiver, type, size, successCallback, errorCallback) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _webkitResolveLocalFileSystemURL(this, url);
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _webkitResolveLocalFileSystemURL_2(this, url, successCallback);
-        return;
-      } else {
-        _webkitResolveLocalFileSystemURL_3(this, url, successCallback, errorCallback);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+    _webkitResolveLocalFileSystemURL(this, url, successCallback, errorCallback);
+    return;
   }
-  static void _webkitResolveLocalFileSystemURL(receiver, url) native;
-  static void _webkitResolveLocalFileSystemURL_2(receiver, url, successCallback) native;
-  static void _webkitResolveLocalFileSystemURL_3(receiver, url, successCallback, errorCallback) native;
+  static void _webkitResolveLocalFileSystemURL(receiver, url, successCallback, errorCallback) native;
 
   String get typeName() { return "DOMWindow"; }
 }

@@ -14,11 +14,12 @@ from systembase import *
 # either removed or custom implemented.
 _dom_frog_omitted_members = set([
     # Replace with custom.
+    'DOMWindow.get:top',
     'HTMLIFrameElement.get:contentWindow',
 
     # Remove.
-    'HTMLIFrameElement.get:contentDocument',
     'DOMWindow.get:frameElement',
+    'HTMLIFrameElement.get:contentDocument',
 ])
 
 class FrogSystem(System):
