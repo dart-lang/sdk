@@ -122,18 +122,19 @@ class FileTest {
             Expect.equals(false, writeDone);
             output.noPendingWriteHandler = () {
               output.close();
-
-              // Now read the contents of the file just written.
-              List<int> buffer2 = new List<int>(42);
-              file = new File(outFilename);
-              input = file.openInputStream();
-              input.dataHandler = () {
-                bytesRead = input.readInto(buffer2, 0, 42);
-                Expect.equals(42, bytesRead);
-                // Now compare the two buffers to check if they are identical.
-                for (int i = 0; i < buffer1.length; i++) {
-                  Expect.equals(buffer1[i],  buffer2[i]);
-                }
+              output.closeHandler = () {
+                // Now read the contents of the file just written.
+                List<int> buffer2 = new List<int>(42);
+                file = new File(outFilename);
+                input = file.openInputStream();
+                input.dataHandler = () {
+                  bytesRead = input.readInto(buffer2, 0, 42);
+                  Expect.equals(42, bytesRead);
+                  // Now compare the two buffers to check if they are identical.
+                  for (int i = 0; i < buffer1.length; i++) {
+                    Expect.equals(buffer1[i],  buffer2[i]);
+                  }
+                };
                 input.closeHandler = () {
                   // Delete the output file.
                   file.deleteSync();
