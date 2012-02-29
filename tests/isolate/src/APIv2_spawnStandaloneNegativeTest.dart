@@ -6,17 +6,17 @@
 #library('spawn_tests');
 #import('dart:isolate');
 
-child(ReceivePort port) {
-  port.receive((msg, reply) => reply.send("re: $msg"));
+child() {
+  port.receive((msg, reply) => reply.send('re: $msg'));
 }
 
 main() {
   ReceivePort port = new ReceivePort();
   port.receive((msg, _) {
-    Expect.equals("re: hello", msg); // should be hi, not hello
+    Expect.equals('re: hello', msg); // should be hi, not hello
     port.close();
   });
 
-  Isolate2 c = new Isolate2.fromCode(child);
-  c.sendPort.send("hi", port.toSendPort());
+  SendPort s = spawnFunction(child);
+  s.send('hi', port.toSendPort());
 }

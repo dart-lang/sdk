@@ -7,38 +7,38 @@
 #library('unresolved_ports');
 #import('dart:isolate');
 
-bethIsolate(ReceivePort port) {
+bethIsolate() {
   port.receive((msg, reply) => msg[1].send(
-        "${msg[0]}\nBeth says: Tim are you coming? And Bob?", reply));
+        '${msg[0]}\nBeth says: Tim are you coming? And Bob?', reply));
 }
 
-timIsolate(ReceivePort port) {
-  Isolate2 bob = new Isolate2.fromCode(bobIsolate);
-  port.receive((msg, reply) => bob.sendPort.send(
-        "$msg\nTim says: Can you tell 'main' that we are all coming?", reply));
+timIsolate() {
+  SendPort bob = spawnFunction(bobIsolate);
+  port.receive((msg, reply) => bob.send(
+        '$msg\nTim says: Can you tell "main" that we are all coming?', reply));
 }
 
-bobIsolate(ReceivePort port) {
+bobIsolate() {
   port.receive((msg, reply) => reply.send(
-        "$msg\nBob says: we are all coming!"));
+        '$msg\nBob says: we are all coming!'));
 }
 
 main() {
   ReceivePort port = new ReceivePort();
   port.receive((msg, _) {
-    Expect.equals("main says: Beth, find out if Tim is coming."
-      + "\nBeth says: Tim are you coming? And Bob?"
-      + "\nTim says: Can you tell 'main' that we are all coming?"
-      + "\nBob says: we are NOT coming!", msg); // should be 'all', not 'NOT'
+    Expect.equals('main says: Beth, find out if Tim is coming.'
+      + '\nBeth says: Tim are you coming? And Bob?'
+      + '\nTim says: Can you tell "main" that we are all coming?'
+      + '\nBob says: we are NOT coming!', msg); // should be 'all', not 'NOT'
     port.close();
   });
 
-  Isolate2 tim = new Isolate2.fromCode(timIsolate);
-  Isolate2 beth = new Isolate2.fromCode(bethIsolate);
+  SendPort tim = spawnFunction(timIsolate);
+  SendPort beth = spawnFunction(bethIsolate);
 
-  beth.sendPort.send(
+  beth.send(
       // because tim is created asynchronously, here we are sending an
       // unresolved port:
-      ["main says: Beth, find out if Tim is coming.", tim.sendPort],
+      ['main says: Beth, find out if Tim is coming.', tim],
       port.toSendPort());
 }

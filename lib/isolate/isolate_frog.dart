@@ -3,7 +3,40 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-// Dart isolate's API and implementation for frog.
+// Dart isolate's API and implementation for frog. Since dartdocs are generated
+// using frog, we include here some additional library level comments.
+
+/**
+ * The `dart:isolate` library defines APIs to spawn and communicate with
+ * isolates.
+ *
+ * All code in dart runs in the context of an isolate. Each isolate has its own
+ * heap, which means that all values in memory, including globals, are available
+ * only to that isolate. The only mechanism available to communicate between
+ * isolates is to pass messages. Messages are sent through ports. This library
+ * defines [ReceivePort] to represent the receiver's end of a communication
+ * channel, and [SendPort] to represent the sender's end.
+ *
+ * All isolates start with an initial receive port, which is set in the
+ * top-level property [port]. This port is used to establish the first
+ * communication between isolates.
+ *
+ * Two APIs are available to spawn a new isolate: [spawnFunction] and
+ * [spawnUri]. [spawnFunction] creates a new isolate that is using the same
+ * source code as the current isolate, [spawnUri] allows spawning an isolate
+ * that was written independently.
+ *
+ * There is currently no way to indicate in the API whether the isolates should
+ * run on the same or different threads. The underlying system will schedule the
+ * isolate were appropriate. In the near future we will add an API to create DOM
+ * isolates. These are isolates that share access to the DOM. All DOM isolates
+ * will run on the UI thread.
+ *
+ * This library is still evolving. New APIs are being added, and some will be
+ * deprecated and removed. In particular, the class [Isolate] will be
+ * deprecated as soon the dartvm has an implementation working for
+ * [spawnFunction] and [spawnUri], and we have an API to spawn DOM isolates.
+ */
 #library("dart:isolate");
 
 #import("../uri/uri.dart");
@@ -14,19 +47,17 @@
 #source("frog/messages.dart");
 #native("frog/natives.js");
 
-/** Default factory for [Isolate2]. */
-class _IsolateFactory {
+ReceivePort _port;
 
-  factory Isolate2.fromCode(Function topLevelFunction) {
-    final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
-    if (name == null) {
-      throw new UnsupportedOperationException(
-          "only top-level functions can be spawned.");
-    }
-    return new _Isolate2Impl(_IsolateNatives._spawn2(name, null, false));
+SendPort _spawnFunction(void topLevelFunction()) {
+  final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
+  if (name == null) {
+    throw new UnsupportedOperationException(
+        "only top-level functions can be spawned.");
   }
+  return _IsolateNatives._spawn2(name, null, false);
+}
 
-  factory Isolate2.fromUri(String uri) {
-    return new _Isolate2Impl(_IsolateNatives._spawn2(null, uri, false));
-  }
+SendPort _spawnUri(String uri) {
+  return _IsolateNatives._spawn2(null, uri, false);
 }

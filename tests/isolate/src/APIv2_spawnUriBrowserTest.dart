@@ -21,7 +21,7 @@ main() {
     });
 
     // TODO(eub): make this work for non-JS targets.
-    Isolate2 c = new Isolate2.fromUri('APIv2_spawnUriChildIsolate.js');
-    c.sendPort.send('hi', port.toSendPort());
+    SendPort s = spawnUri('APIv2_spawnUriChildIsolate.js');
+    s.send('hi', port.toSendPort());
   });
 }

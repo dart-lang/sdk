@@ -155,13 +155,14 @@ class _IsolateNatives {
       native "IsolateNatives_start";
 }
 
-class _IsolateFactory {
+// TODO(sigmund,turnidge): implement
 
-  factory Isolate2.fromCode(Function topLevelFunction) {
-    throw new NotImplementedException();
-  }
-
-  factory Isolate2.fromUri(String uri) {
-    throw new NotImplementedException();
-  }
+SendPort _spawnFunction(void topLevelFunction()) {
+  throw new NotImplementedException();
 }
+
+SendPort _spawnUri(String uri) {
+  throw new NotImplementedException();
+}
+
+ReceivePort _port = null;

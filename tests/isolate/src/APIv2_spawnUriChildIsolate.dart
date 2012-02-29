@@ -6,14 +6,6 @@
 #library('SpawnUriChildIsolate');
 #import('dart:isolate');
 
-void isolateMain(ReceivePort port) {
-  port.receive((msg, reply) => reply.send("re: $msg"));
-}
-
-// Just for frog's sake.  TODO(eub): clean this up when we're able to.
-main() {
-  if (false) {
-    isolateMain(null);
-    new ReceivePort();
-  }
+void main() {
+  port.receive((msg, reply) => reply.send('re: $msg'));
 }

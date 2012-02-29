@@ -3,6 +3,45 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * The initial [ReceivePort] available by default for this isolate. This
+ * [ReceivePort] is created automatically and it is commonly used to establish
+ * the first communication between isolates (see [spawnFunction] and
+ * [spawnUri]).
+ */
+ReceivePort get port() => _port;
+
+/**
+ * Creates and spawns an isolate that shares the same code as the current
+ * isolate, but that starts from [topLevelFunction]. The [topLevelFunction]
+ * argument must be a static top-level function or a static method that takes no
+ * arguments. It is illegal to pass a function closure.
+ *
+ * When any isolate starts (even the main script of the application), a default
+ * [ReceivePort] is created for it. This port is available from the top-level
+ * getter [port] defined in this library.
+ *
+ * [spawnFunction] returns a [SendPort] derived from the child isolate's default
+ * port.
+ *
+ * See comments at the top of this library for more details.
+ */
+// Note this feature is not yet available in the dartvm.
+SendPort spawnFunction(void topLevelFunction()) {
+  return _spawnFunction(topLevelFunction);
+}
+
+/**
+ * Creates and spawns an isolate whose code is available at [uri].  Like with
+ * [spawnFunction], the child isolate will have a default [ReceivePort], and a
+ * this function returns a [SendPort] derived from it.
+ *
+ * See comments at the top of this library for more details.
+ */
+SendPort spawnUri(String uri) {
+  return _spawnUri(uri);
+}
+
+/**
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
  * a [SendPort] is delivered to its respective [ReceivePort]. There might be
  * many [SendPort]s for the same [ReceivePort].
@@ -41,7 +80,6 @@ interface SendPort extends Hashable {
   int hashCode();
 
 }
-
 
 /**
  * [ReceivePort]s, together with [SendPort]s, are the only means of
@@ -92,6 +130,8 @@ interface ReceivePort default _ReceivePortFactory {
 }
 
 /**
+ * NOTE: This API will be deprecated soon.
+ *
  * The [Isolate] class serves two purposes: (1) as template for spawning a new
  * isolate, and (2) as entry-point for the newly spawned isolate.
  *
@@ -107,8 +147,14 @@ interface ReceivePort default _ReceivePortFactory {
  * Isolates may be "heavy" or "light". Heavy isolates live in their own thread,
  * whereas "light" isolates live in the same thread as the isolate which spawned
  * them.
+ *
+ * NOTE: once [spawnFunction] and [spawnUri] are supported in both frog and the
+ * dartvm, this class will be removed. The distinction of heavy and light will
+ * be removed too. Thus far the main use for 'light' isolates is for running
+ * isolates that share access to the DOM. A special API will be added for this
+ * purpose soon. See the library top-level comments for more details.
  */
-// TODO(sigmund): delete once we implement the new isolates in the vm
+// TODO(sigmund): delete once we implement the new API in the vm
 class Isolate {
 
   /**
@@ -176,40 +222,4 @@ class Isolate {
 
   final bool _isLight;
   ReceivePort _port;
-}
-
-/**
- * [Isolate2] provides APIs to spawn, communicate, and stop an isolate. An
- * isolate can be spawned by simply creating a new instance of [Isolate2]. The
- * [Isolate2] instance exposes a port to communicate with the isolate and
- * methods to control its behavior remotely.
- */
- // TODO(sigmund): rename to Isolate once we delete the old implementation
-interface Isolate2 default _IsolateFactory {
-
-  /**
-   * Create and spawn an isolate that shares the same code as the current
-   * isolate, but that starts from [topLevelFunction]. The [topLevelFunction]
-   * argument must be a static method closure that takes exactly one
-   * argument of type [ReceivePort]. It is illegal to pass a function closure
-   * that captures values in scope.
-   *
-   * When an child isolate is spawned, a new [ReceivePort] is created for it.
-   * This port is passed to [topLevelFunction]. A [SendPort] derived from
-   * such port is sent to the spawner isolate, which is accessible in
-   * [Isolate2.sendPort] field of this instance.
-   */
-  Isolate2.fromCode(Function topLevelFunction);
-
-  /**
-   * Create and spawn an isolate whose code is available at [uri].
-   * The code in [uri] must have an method called [: isolateMain :], which takes
-   * exactly one argument of type [ReceivePort].
-   * Like with [Isolate2.fromCode], a [ReceivePort] is created in the child
-   * isolate, and a [SendPort] to it is stored in [Isolate2.sendPort].
-   */
-  Isolate2.fromUri(String uri);
-
-  /** Port used to communicate with this isolate. */
-  SendPort sendPort;
 }

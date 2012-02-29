@@ -9,15 +9,12 @@
 
 #source("isolate_api.dart");
 
-class _IsolateFactory {
+SendPort _spawnFunction(void topLevelFunction()) {
+  throw new NotImplementedException();
+}
 
-  factory Isolate2.fromCode(Function topLevelFunction) {
-    throw new NotImplementedException();
-  }
-
-  factory Isolate2.fromUri(String uri) {
-    throw new NotImplementedException();
-  }
+SendPort _spawnUri(String uri) {
+  throw new NotImplementedException();
 }
 
 class _IsolateNatives {

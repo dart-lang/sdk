@@ -2,13 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Implementation of [Isolate2]. */
-class _Isolate2Impl implements Isolate2 {
-  SendPort sendPort;
-
-  _Isolate2Impl(this.sendPort);
-}
-
 /**
  * A native object that is shared across isolates. This object is visible to all
  * isolates running on the same worker (either UI or background web worker).
@@ -400,7 +393,7 @@ class _IsolateNatives {
   static void _processWorkerMessage(sender, e) {
     var msg = _deserializeMessage(_getEventData(e));
     switch (msg['command']) {
-      // TODO(sigmund): delete after we migrate to Isolate2
+      // TODO(sigmund): delete after we migrate to the new API
       case 'start':
         globalState.currentWorkerId = msg['id'];
         var runnerObject =
@@ -421,7 +414,7 @@ class _IsolateNatives {
         }, 'worker-start');
         globalState.topEventLoop.run();
         break;
-      // TODO(sigmund): delete after we migrate to Isolate2
+      // TODO(sigmund): delete after we migrate to the new API
       case 'spawn-worker':
         _spawnWorker(msg['factoryName'], msg['replyPort']);
         break;
@@ -587,7 +580,7 @@ class _IsolateNatives {
       String functionName, String uri, SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) throw new UnsupportedOperationException(
-            "Currently Isolate2.fromUri is not supported without web workers.");
+            "Currently spawnUri is not supported without web workers.");
     globalState.topEventLoop.enqueue(new IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate2(func, replyPort);
@@ -596,9 +589,9 @@ class _IsolateNatives {
 
   static void _startIsolate2(Function topLevel, SendPort replyTo) {
     fillStatics(globalState.currentContext);
-    final port = new ReceivePort();
+    _port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
-    topLevel(port);
+    topLevel();
   }
 
   /**
@@ -606,8 +599,7 @@ class _IsolateNatives {
    * name for the isolate entry point class.
    */
   static void _spawnWorker2(functionName, uri, replyPort) {
-    // TODO(eub): convert to 'main' once we switch back to port at top-level.
-    if (functionName == null) functionName = 'isolateMain';
+    if (functionName == null) functionName = 'main';
     if (uri == null) uri = _thisScript;
     if (!(new Uri.fromString(uri).isAbsolute())) {
       // The constructor of dom workers requires an absolute URL. If we use a
