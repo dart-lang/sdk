@@ -2,9 +2,9 @@
 #import('../../../testing/unittest/unittest.dart');
 #import('dart:dom');
 #import('dart:json');
-#import('dart:isolate');
+#import('dart:isolate', prefix:'isolate');
 
-class PingPongIsolate extends Isolate {
+class PingPongIsolate extends isolate.Isolate {
   PingPongIsolate() : super.heavy();
 
   void main() {
@@ -33,12 +33,12 @@ class PingPongIsolate extends Isolate {
 main() {
   forLayoutTests();
   asyncTest('IsolateSpawn', 1, () {
-    new PingPongIsolate().spawn().then((SendPort port) {
+    new PingPongIsolate().spawn().then((isolate.SendPort port) {
       callbackDone();
     });
   });
   asyncTest('NonDOMIsolates', 1, () {
-    new PingPongIsolate().spawn().then((SendPort port) {
+    new PingPongIsolate().spawn().then((isolate.SendPort port) {
       final msg1 = 'foo';
       final msg2 = 'bar';
       port.call(msg1).receive((response, _) {
