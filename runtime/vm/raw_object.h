@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/token.h"
 #include "vm/snapshot.h"
 
 #include "include/dart_api.h"
@@ -26,6 +27,7 @@ namespace dart {
     V(InstantiatedTypeArguments)                                               \
   V(Function)                                                                  \
   V(Field)                                                                     \
+  V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
@@ -530,14 +532,25 @@ class RawField : public RawObject {
 };
 
 
+class RawLiteralToken : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LiteralToken);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->literal_);
+  }
+  RawString* literal_;  // Literal characters as they appear in source text.
+  RawObject* value_;  // The actual object corresponding to the token.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->value_);
+  }
+  Token::Kind kind_;  // The literal kind (string, integer, double).
+
+  friend class SnapshotReader;
+};
+
+
 class RawTokenStream : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TokenStream);
-
-  enum {
-    kKindEntry = 0,
-    kLiteralEntry,
-    kNumberOfEntries
-  };
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
@@ -548,8 +561,7 @@ class RawTokenStream : public RawObject {
   // Variable length data follows here.
   RawObject* data_[0];
   RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(
-        &ptr()->data_[length * kNumberOfEntries - 1]);
+    return reinterpret_cast<RawObject**>(&ptr()->data_[length - 1]);
   }
 
   friend class SnapshotReader;

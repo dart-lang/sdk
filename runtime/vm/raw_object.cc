@@ -302,6 +302,13 @@ intptr_t RawField::VisitFieldPointers(RawField* raw_obj,
 }
 
 
+intptr_t RawLiteralToken::VisitLiteralTokenPointers(
+    RawLiteralToken* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return LiteralToken::InstanceSize();
+}
+
+
 intptr_t RawTokenStream::VisitTokenStreamPointers(
     RawTokenStream* raw_obj, ObjectPointerVisitor* visitor) {
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);

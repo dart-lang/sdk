@@ -144,6 +144,7 @@ class Object {
     kInstantiatedTypeArgumentsClass,
     kFunctionClass,
     kFieldClass,
+    kLiteralTokenClass,
     kTokenStreamClass,
     kScriptClass,
     kLibraryClass,
@@ -279,6 +280,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* function_class() { return function_class_; }
   static RawClass* field_class() { return field_class_; }
+  static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
@@ -390,6 +392,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* field_class_;  // Class of the Field vm object.
+  static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
   static RawClass* script_class_;  // Class of the Script vm object.
   static RawClass* library_class_;  // Class of the Library vm object.
@@ -1565,6 +1568,29 @@ class Field : public Object {
 };
 
 
+class LiteralToken : public Object {
+ public:
+  Token::Kind kind() const { return raw_ptr()->kind_; }
+  RawString* literal() const { return raw_ptr()->literal_; }
+  RawObject* value() const { return raw_ptr()->value_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawLiteralToken));
+  }
+
+  static RawLiteralToken* New();
+  static RawLiteralToken* New(Token::Kind kind, const String& literal);
+
+ private:
+  void set_kind(Token::Kind kind) const { raw_ptr()->kind_ = kind; }
+  void set_literal(const String& literal) const;
+  void set_value(const Object& value) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
+  friend class Class;
+};
+
+
 class TokenStream : public Object {
  public:
   inline intptr_t Length() const;
@@ -1572,22 +1598,20 @@ class TokenStream : public Object {
   inline Token::Kind KindAt(intptr_t index) const;
 
   void SetTokenAt(intptr_t index, Token::Kind kind, const String& literal);
+  void SetTokenAt(intptr_t index, const Object& token);
 
-  RawObject* LiteralAt(intptr_t index) const {
-    return *EntryAddr(index, RawTokenStream::kLiteralEntry);
-  }
+  RawObject* TokenAt(intptr_t index) const;
+  RawString* LiteralAt(intptr_t index) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(
-        sizeof(RawTokenStream) +
-            (len * RawTokenStream::kNumberOfEntries * kWordSize));
+    return RoundedAllocationSize(sizeof(RawTokenStream) + (len * kWordSize));
   }
   static intptr_t StreamLength(intptr_t len) {
-    return (len * RawTokenStream::kNumberOfEntries);
+    return len;
   }
 
   static RawTokenStream* New(intptr_t length);
@@ -1596,15 +1620,13 @@ class TokenStream : public Object {
  private:
   void SetLength(intptr_t value) const;
 
-  RawObject** EntryAddr(intptr_t index, intptr_t entry_offset) const {
+  RawObject** EntryAddr(intptr_t index) const {
     ASSERT((index >=0) && (index < Length()));
-    intptr_t data_index =
-        (index * RawTokenStream::kNumberOfEntries) + entry_offset;
-    return &raw_ptr()->data_[data_index];
+    return &raw_ptr()->data_[index];
   }
 
-  RawSmi** SmiAddr(intptr_t index, intptr_t entry_offset) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
+  RawSmi** SmiAddr(intptr_t index) const {
+    return reinterpret_cast<RawSmi**>(EntryAddr(index));
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
@@ -3770,8 +3792,17 @@ intptr_t TokenStream::Length() const {
 
 
 Token::Kind TokenStream::KindAt(intptr_t index) const {
-  return static_cast<Token::Kind>(
-      Smi::Value(*SmiAddr(index, RawTokenStream::kKindEntry)));
+  const Object& obj = Object::Handle(TokenAt(index));
+  if (obj.IsSmi()) {
+    return static_cast<Token::Kind>(
+        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
+  } else if (obj.IsLiteralToken()) {
+    LiteralToken& token = LiteralToken::Handle();
+    token ^= obj.raw();
+    return token.kind();
+  }
+  ASSERT(obj.IsString());  // Must be an identifier.
+  return Token::kIDENT;
 }
 
 

@@ -33,6 +33,7 @@ class RawFunction;
 class RawImmutableArray;
 class RawLibrary;
 class RawLibraryPrefix;
+class RawLiteralToken;
 class RawMint;
 class RawObject;
 class RawOneByteString;
@@ -372,6 +373,7 @@ class SnapshotReader : public BaseReader {
   RawLibrary* NewLibrary();
   RawLibraryPrefix* NewLibraryPrefix();
   RawScript* NewScript();
+  RawLiteralToken* NewLiteralToken();
 
  private:
   // Allocate uninitialized objects, this is used when reading a full snapshot.

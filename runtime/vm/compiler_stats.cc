@@ -25,6 +25,8 @@ Timer CompilerStats::parser_timer(true, "parser timer");
 Timer CompilerStats::scanner_timer(true, "scanner timer");
 
 intptr_t CompilerStats::num_tokens_total = 0;
+intptr_t CompilerStats::num_literal_tokens_total = 0;
+intptr_t CompilerStats::num_ident_tokens_total = 0;
 intptr_t CompilerStats::num_tokens_consumed = 0;
 intptr_t CompilerStats::num_token_checks = 0;
 intptr_t CompilerStats::num_tokens_rewind = 0;
@@ -36,6 +38,8 @@ void CompilerStats::Print() {
   }
   OS::Print("==== Compiler Stats ====\n");
   OS::Print("Number of tokens:   %ld\n", num_tokens_total);
+  OS::Print("  Literal tokens:   %ld\n", num_literal_tokens_total);
+  OS::Print("  Ident tokens:     %ld\n", num_ident_tokens_total);
   OS::Print("Tokens consumed:    %ld  (%.2f times number of tokens)\n",
             num_tokens_consumed,
             (1.0 * num_tokens_consumed) / num_tokens_total);
@@ -62,4 +66,3 @@ void CompilerStats::Print() {
 }
 
 }  // namespace dart
-

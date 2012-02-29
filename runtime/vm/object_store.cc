@@ -54,6 +54,7 @@ ObjectStore::ObjectStore()
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
+    keyword_symbols_(Array::null()),
     preallocate_objects_called_(false) {
 }
 
@@ -101,6 +102,16 @@ bool ObjectStore::PreallocateObjects() {
 
   preallocate_objects_called_ = true;
   return true;
+}
+
+
+void ObjectStore::InitKeywordTable() {
+  // Set up the keywords symbol array so that we can access it while scanning.
+  Array& keywords = Array::Handle(keyword_symbols());
+  ASSERT(keywords.IsNull());
+  keywords = Array::New(Token::numKeywords, Heap::kOld);
+  ASSERT(!keywords.IsError() && !keywords.IsNull());
+  set_keyword_symbols(keywords);
 }
 
 

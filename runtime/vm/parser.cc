@@ -266,6 +266,22 @@ String* Parser::CurrentLiteral() const {
 }
 
 
+RawDouble* Parser::CurrentDoubleLiteral() const {
+  LiteralToken& token = LiteralToken::Handle();
+  token ^= tokens_.TokenAt(token_index_);
+  ASSERT(token.kind() == Token::kDOUBLE);
+  return reinterpret_cast<RawDouble*>(token.value());
+}
+
+
+RawInteger* Parser::CurrentIntegerLiteral() const {
+  LiteralToken& token = LiteralToken::Handle();
+  token ^= tokens_.TokenAt(token_index_);
+  ASSERT(token.kind() == Token::kINTEGER);
+  return reinterpret_cast<RawInteger*>(token.value());
+}
+
+
 // A QualIdent is an optionally qualified identifier.
 struct QualIdent {
   QualIdent() {
@@ -7608,10 +7624,7 @@ AstNode* Parser::ParsePrimary() {
     primary = new LoadLocalNode(token_index_, *local);
     ConsumeToken();
   } else if (CurrentToken() == Token::kINTEGER) {
-    String* int_literal = CurrentLiteral();
-    ASSERT(int_literal != NULL);
-    ASSERT(int_literal->Length() > 0);
-    const Integer& literal = Integer::ZoneHandle(Integer::New(*int_literal));
+    const Integer& literal = Integer::ZoneHandle(CurrentIntegerLiteral());
     primary = new LiteralNode(token_index_, literal);
     ConsumeToken();
   } else if (CurrentToken() == Token::kTRUE) {
@@ -7630,11 +7643,7 @@ AstNode* Parser::ParsePrimary() {
     SetAllowFunctionLiterals(saved_mode);
     ExpectToken(Token::kRPAREN);
   } else if (CurrentToken() == Token::kDOUBLE) {
-    String* double_literal = CurrentLiteral();
-    ASSERT(double_literal != NULL);
-    ASSERT(double_literal->Length() > 0);
-    Double& double_value =
-        Double::ZoneHandle(Double::NewCanonical(*double_literal));
+    Double& double_value = Double::ZoneHandle(CurrentDoubleLiteral());
     if (double_value.IsNull()) {
       ErrorMsg("invalid double literal");
     }

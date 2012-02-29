@@ -70,6 +70,7 @@ RawClass* Object::instantiated_type_arguments_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -119,6 +120,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kFunctionClass;
   } else if (raw_class == field_class()) {
     return kFieldClass;
+  } else if (raw_class == literal_token_class()) {
+    return kLiteralTokenClass;
   } else if (raw_class == token_stream_class()) {
     return kTokenStreamClass;
   } else if (raw_class == script_class()) {
@@ -172,6 +175,7 @@ RawClass* Object::GetSingletonClass(int index) {
         return instantiated_type_arguments_class();
     case kFunctionClass: return function_class();
     case kFieldClass: return field_class();
+    case kLiteralTokenClass: return literal_token_class();
     case kTokenStreamClass: return token_stream_class();
     case kScriptClass: return script_class();
     case kLibraryClass: return library_class();
@@ -334,6 +338,9 @@ void Object::InitOnce() {
 
   cls = Class::New<Field>();
   field_class_ = cls.raw();
+
+  cls = Class::New<LiteralToken>();
+  literal_token_class_ = cls.raw();
 
   cls = Class::New<TokenStream>();
   token_stream_class_ = cls.raw();
@@ -3785,6 +3792,49 @@ const char* Field::ToCString() const {
 }
 
 
+void LiteralToken::set_literal(const String& literal) const {
+  StorePointer(&raw_ptr()->literal_, literal.raw());
+}
+
+
+void LiteralToken::set_value(const Object& value) const {
+  StorePointer(&raw_ptr()->value_, value.raw());
+}
+
+
+RawLiteralToken* LiteralToken::New() {
+  const Class& cls = Class::Handle(Object::literal_token_class());
+  RawObject* raw = Object::Allocate(cls,
+                                    LiteralToken::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawLiteralToken*>(raw);
+}
+
+
+RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
+  const LiteralToken& result = LiteralToken::Handle(LiteralToken::New());
+  result.set_kind(kind);
+  result.set_literal(literal);
+  if (kind == Token::kINTEGER) {
+    const Integer& value = Integer::Handle(Integer::New(literal));
+    result.set_value(value);
+  } else if (kind == Token::kDOUBLE) {
+    const Double& value = Double::Handle(Double::NewCanonical(literal));
+    result.set_value(value);
+  } else {
+    ASSERT(Token::NeedsLiteralToken(kind));
+    result.set_value(literal);
+  }
+  return result.raw();
+}
+
+
+const char* LiteralToken::ToCString() const {
+  const String& token = String::Handle(literal());
+  return token.ToCString();
+}
+
+
 void TokenStream::SetLength(intptr_t value) const {
   raw_ptr()->length_ = Smi::New(value);
 }
@@ -3793,9 +3843,60 @@ void TokenStream::SetLength(intptr_t value) const {
 void TokenStream::SetTokenAt(intptr_t index,
                              Token::Kind kind,
                              const String& literal) {
-  *(SmiAddr(index, RawTokenStream::kKindEntry)) = Smi::New(kind);
-  StorePointer(EntryAddr(index, RawTokenStream::kLiteralEntry),
-               reinterpret_cast<RawObject*>(literal.raw()));
+  if (kind == Token::kIDENT) {
+    if (FLAG_compiler_stats) {
+      CompilerStats::num_ident_tokens_total += 1;
+    }
+    StorePointer(EntryAddr(index), reinterpret_cast<RawObject*>(literal.raw()));
+  } else if (Token::NeedsLiteralToken(kind)) {
+    if (FLAG_compiler_stats) {
+      CompilerStats::num_literal_tokens_total += 1;
+    }
+    StorePointer(
+        EntryAddr(index),
+        reinterpret_cast<RawObject*>(LiteralToken::New(kind, literal)));
+  } else {
+    ASSERT(kind < Token::kNumTokens);
+    *(SmiAddr(index)) = Smi::New(kind);
+  }
+}
+
+
+void TokenStream::SetTokenAt(intptr_t index, const Object& token) {
+  StorePointer(EntryAddr(index), token.raw());
+}
+
+
+RawObject* TokenStream::TokenAt(intptr_t index) const {
+  return *EntryAddr(index);
+}
+
+
+RawString* TokenStream::LiteralAt(intptr_t index) const {
+  const Object& obj = Object::Handle(TokenAt(index));
+  if (obj.IsString()) {
+    return reinterpret_cast<RawString*>(obj.raw());
+  } else if (obj.IsSmi()) {
+    Token::Kind kind = static_cast<Token::Kind>(
+        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
+    ASSERT(kind < Token::kNumTokens);
+    if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
+      Isolate* isolate = Isolate::Current();
+      ObjectStore* object_store = isolate->object_store();
+      String& str = String::Handle(isolate, String::null());
+      const Array& symbols = Array::Handle(isolate,
+                                           object_store->keyword_symbols());
+      ASSERT(!symbols.IsNull());
+      str ^= symbols.At(kind - Token::kFirstKeyword);
+      ASSERT(!str.IsNull());
+      return str.raw();
+    }
+    return String::NewSymbol(Token::Str(kind));
+  } else {
+    LiteralToken& token = LiteralToken::Handle();
+    token ^= obj.raw();  // Must be a literal token.
+    return token.literal();
+  }
 }
 
 
@@ -3819,12 +3920,13 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
 
   TokenStream& result = TokenStream::Handle(New(len));
   // Copy the relevant data out of the scanner's token stream.
+  const String& empty_literal = String::Handle();
   for (intptr_t i = 0; i < len; i++) {
     Scanner::TokenDescriptor token = tokens[i];
     if (token.literal != NULL) {
       result.SetTokenAt(i, token.kind, *(token.literal));
     } else {
-      result.SetTokenAt(i, token.kind, String::Handle());
+      result.SetTokenAt(i, token.kind, empty_literal);
     }
   }
   return result.raw();

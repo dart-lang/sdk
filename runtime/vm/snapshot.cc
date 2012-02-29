@@ -302,6 +302,11 @@ RawScript* SnapshotReader::NewScript() {
 }
 
 
+RawLiteralToken* SnapshotReader::NewLiteralToken() {
+  ALLOC_NEW_OBJECT(LiteralToken, Object::literal_token_class());
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
 

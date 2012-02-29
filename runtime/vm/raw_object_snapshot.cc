@@ -572,6 +572,54 @@ void RawField::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage);
+
+  // Create the literal token object.
+  LiteralToken& literal_token = LiteralToken::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(LiteralToken));
+  reader->AddBackwardReference(object_id, &literal_token);
+
+  // Set the object tags.
+  literal_token.set_tags(tags);
+
+  // Read the token attributes.
+  Token::Kind token_kind = static_cast<Token::Kind>(reader->ReadIntptrValue());
+  literal_token.set_kind(token_kind);
+  *reader->StringHandle() ^= reader->ReadObject();
+  literal_token.set_literal(*reader->StringHandle());
+  *reader->ObjectHandle() = reader->ReadObject();
+  literal_token.set_value(*reader->ObjectHandle());
+
+  return literal_token.raw();
+}
+
+
+void RawLiteralToken::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT(kind != Snapshot::kMessage);
+
+  // Write out the serialization header value for this object.
+  writer->WriteSerializationMarker(kInlined, object_id);
+
+  // Write out the class and tags information.
+  writer->WriteObjectHeader(Object::kLiteralTokenClass, ptr()->tags_);
+
+  // Write out the kind field.
+  writer->Write<intptr_t>(ptr()->kind_);
+
+  // Write out literal and value fields.
+  writer->WriteObject(ptr()->literal_);
+  writer->WriteObject(ptr()->value_);
+}
+
+
 RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
                                       intptr_t object_id,
                                       intptr_t tags,
@@ -592,9 +640,8 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
 
   // Read the token stream into the TokenStream.
   for (intptr_t i = 0; i < len; i++) {
-    Token::Kind kind = static_cast<Token::Kind>(reader->ReadSmiValue());
-    *reader->StringHandle() ^= reader->ReadObject();
-    token_stream.SetTokenAt(i, kind, *reader->StringHandle());
+    *reader->ObjectHandle() = reader->ReadObject();
+    token_stream.SetTokenAt(i, *reader->ObjectHandle());
   }
   return token_stream.raw();
 }

@@ -127,6 +127,8 @@ class Parser : ValueObject {
   inline Token::Kind CurrentToken();
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
+  RawDouble* CurrentDoubleLiteral() const;
+  RawInteger* CurrentIntegerLiteral() const;
 
   // Sets parser to given token position in the stream.
   void SetPosition(intptr_t position);

@@ -310,6 +310,12 @@ class ObjectStore {
     out_of_memory_ = value.raw();
   }
 
+  RawArray* keyword_symbols() const { return keyword_symbols_; }
+  void set_keyword_symbols(const Array& value) {
+    keyword_symbols_ = value.raw();
+  }
+  void InitKeywordTable();
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -375,7 +381,8 @@ class ObjectStore {
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&out_of_memory_); }
+  RawArray* keyword_symbols_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 
   bool preallocate_objects_called_;
 
