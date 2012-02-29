@@ -42,20 +42,22 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
             if (_clientErrorHandler != null) {
               _clientErrorHandler();
             }
-            _streamMarkedClosed = true;
-            _checkScheduleCallbacks();
           } else {
             _data = contents;
-            _streamMarkedClosed = true;
-            _checkScheduleCallbacks();
           }
           openedFile.close();
+          openedFile.closeHandler = () {
+            _streamMarkedClosed = true;
+            _checkScheduleCallbacks();
+          };
         };
       } else {
-        _streamMarkedClosed = true;
-        _checkScheduleCallbacks();
         openedFile.close();
-      }
+        openedFile.closeHandler = () {
+          _streamMarkedClosed = true;
+          _checkScheduleCallbacks();
+        };
+      };
     };
   }
 
