@@ -7893,9 +7893,10 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 
 RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
   if ((len < 0) || (len > kMaxArrayElements)) {
-    // TODO(iposva): Should we throw an illegal parameter exception?
-    UNIMPLEMENTED();
-    return null();
+    // TODO(srdjan): Verify that illegal argument is the right thing to throw.
+    GrowableArray<const Object*> args;
+    args.Add(&Smi::Handle(Smi::New(len)));
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   Array& result = Array::Handle();
   {
