@@ -228,8 +228,8 @@ def MatchSourceFilter(filter, thing):
 def DartType(idl_type_name):
   match = re.match(r'sequence<(\w*)>$', idl_type_name)
   if match:
-    return 'List<%s>' % GetIDLTypeInfoByName(match.group(1)).dart_type()
-  return GetIDLTypeInfoByName(idl_type_name).dart_type()
+    return 'List<%s>' % GetIDLTypeInfo(match.group(1)).dart_type()
+  return GetIDLTypeInfo(idl_type_name).dart_type()
 
 # Given a list of overloaded arguments, render a dart argument.
 def _DartArg(args, interface):
@@ -643,8 +643,5 @@ _svg_supplemental_includes = [
     'SVGPathSegListPropertyTearOff',
 ]
 
-def GetIDLTypeInfo(idl_type):
-  return GetIDLTypeInfoByName(idl_type.id)
-
-def GetIDLTypeInfoByName(idl_type_name):
+def GetIDLTypeInfo(idl_type_name):
   return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))

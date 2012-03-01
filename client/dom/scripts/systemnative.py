@@ -74,7 +74,7 @@ class NativeImplementationSystem(System):
       parameters = []
       arguments = []
       for argument in operation.arguments:
-        argument_type_info = GetIDLTypeInfo(argument.type)
+        argument_type_info = GetIDLTypeInfo(argument.type.id)
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
         arguments.append(argument.id)
@@ -218,7 +218,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
   def StartInterface(self):
     self._class_name = self._ImplClassName(self._interface.id)
-    self._interface_type_info = GetIDLTypeInfoByName(self._interface.id)
+    self._interface_type_info = GetIDLTypeInfo(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
@@ -285,7 +285,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
-        self._interface, self._interface.ext_attrs, raises_dom_exceptions)
+        self._interface.id, self._interface.ext_attrs, raises_dom_exceptions)
     self._GenerateNativeCallback(callback_name='constructorCallback',
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
@@ -372,7 +372,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    type_info = GetIDLTypeInfo(attr.type)
+    type_info = GetIDLTypeInfo(attr.type.id)
     dart_declaration = '%s get %s()' % (type_info.dart_type(), attr.id)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
@@ -382,7 +382,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     arguments = []
     if 'Reflect' in attr.ext_attrs:
-      webcore_function_name = GetIDLTypeInfo(attr.type).webcore_getter_name()
+      webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_getter_name()
       if 'URL' in attr.ext_attrs:
         if 'NonEmpty' in attr.ext_attrs:
           webcore_function_name = 'getNonEmptyURLAttribute'
@@ -406,12 +406,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     invocation = self._GenerateWebCoreInvocation(function_expression,
-        arguments, attr.type, attr.ext_attrs, attr.get_raises)
+        arguments, attr.type.id, attr.ext_attrs, attr.get_raises)
     self._GenerateNativeCallback(cpp_callback_name, '', True, invocation,
         raises_exceptions=attr.get_raises)
 
   def _AddSetter(self, attr):
-    type_info = GetIDLTypeInfo(attr.type)
+    type_info = GetIDLTypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s)' % (attr.id, type_info.dart_type())
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
@@ -421,7 +421,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     arguments = []
     if 'Reflect' in attr.ext_attrs:
-      webcore_function_name = GetIDLTypeInfo(attr.type).webcore_setter_name()
+      webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_setter_name()
       arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
       webcore_function_name = re.sub(r'^(xml(?=[A-Z])|\w)',
@@ -439,7 +439,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     invocation = self._GenerateWebCoreInvocation(function_expression,
-        arguments, None, attr.ext_attrs, attr.set_raises)
+        arguments, 'void', attr.ext_attrs, attr.set_raises)
 
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions,
         True, invocation, raises_exceptions=True)
@@ -595,7 +595,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
-        operation.type, operation.ext_attrs, operation.raises)
+        operation.type.id, operation.ext_attrs, operation.raises)
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=True, invocation=invocation,
@@ -641,7 +641,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         BODY=body)
 
   def _GenerateParameterAdapter(self, emitter, idl_argument, index):
-    type_info = GetIDLTypeInfo(idl_argument.type)
+    type_info = GetIDLTypeInfo(idl_argument.type.id)
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
       self._cpp_impl_includes.add(include_name)
@@ -706,7 +706,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   def _GenerateWebCoreInvocation(self, function_expression, arguments,
       idl_return_type, attributes, raises_dom_exceptions):
     invocation_template = '        $FUNCTION_CALL;\n'
-    if idl_return_type and idl_return_type.id != 'void':
+    if idl_return_type != 'void':
       return_type_info = GetIDLTypeInfo(idl_return_type)
       self._cpp_impl_includes |= set(return_type_info.conversion_includes())
 
