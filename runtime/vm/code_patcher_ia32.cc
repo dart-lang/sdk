@@ -134,10 +134,6 @@ class InstanceCall : public DartCallPattern {
     return ic_data.raw();
   }
 
-  void SetIcData(const ICData& value) {
-    set_immediate_one(reinterpret_cast<int32_t>(value.raw()));
-  }
-
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };

@@ -83,7 +83,7 @@ const Array& CodeGenerator::ArgumentsDescriptor(
   // arguments, the number of positional arguments, alphabetically sorted
   // pairs of name/position, and a terminating null.
   const int descriptor_len = 3 + (2 * num_named_args);
-  Array& descriptor = Array::ZoneHandle(Array::New(descriptor_len));
+  Array& descriptor = Array::ZoneHandle(Array::New(descriptor_len, Heap::kOld));
 
   // Set total number of passed arguments.
   descriptor.SetAt(0, Smi::Handle(Smi::New(num_arguments)));

@@ -3679,10 +3679,6 @@ class ICData : public Instance {
     return raw_ptr()->target_name_;
   }
 
-  RawArray* ic_data() const {
-    return raw_ptr()->ic_data_;
-  }
-
   intptr_t num_args_tested() const {
     return raw_ptr()->num_args_tested_;
   }
@@ -3726,6 +3722,10 @@ class ICData : public Instance {
                         intptr_t num_args_tested);
 
  private:
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
   void set_function(const Function& value) const;
   void set_target_name(const String& value) const;
   void set_id(intptr_t value) const;

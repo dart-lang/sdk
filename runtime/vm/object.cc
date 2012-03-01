@@ -8507,6 +8507,7 @@ RawICData* ICData::New(const Function& function,
                        const String& target_name,
                        intptr_t id,
                        intptr_t num_args_tested) {
+  ASSERT(num_args_tested > 0);
   const Class& cls = Class::Handle(Object::icdata_class());
   ASSERT(!cls.IsNull());
   ICData& result = ICData::Handle();
@@ -8522,7 +8523,7 @@ RawICData* ICData::New(const Function& function,
   result.set_id(id);
   result.set_num_args_tested(num_args_tested);
   // Number of array elements in one test entry (num_args_tested + 1)
-  intptr_t len = num_args_tested + 1;
+  intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
   Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
