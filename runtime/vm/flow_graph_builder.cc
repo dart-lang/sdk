@@ -178,9 +178,6 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   CloseFragment();
 }
 
-void ValueGraphVisitor::VisitReturnNode(ReturnNode* node) { UNREACHABLE(); }
-void TestGraphVisitor::VisitReturnNode(ReturnNode* node) { UNREACHABLE(); }
-
 
 // <Expression> ::= Literal { literal: Instance }
 void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
@@ -199,183 +196,102 @@ void TestGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 // Type nodes only occur as the right-hand side of instanceof comparisons,
 // and they are handled specially in that context.
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
-void ValueGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
-void TestGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
 // <Expression> :: Assignable { expr:     <Expression>
 //                              type:     AbstractType
 //                              dst_name: String }
-AssertAssignableComp* EffectGraphVisitor::TranslateAssignable(
-    const AssignableNode& node) {
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node.expr()->Visit(&for_value);
-  Append(for_value);
-  CHECK_ALIVE(return NULL);
-
-  return new AssertAssignableComp(for_value.value(), node.type());
-}
-
 void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  AssertAssignableComp* assert = TranslateAssignable(*node);
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->expr()->Visit(&for_value);
+  Append(for_value);
   CHECK_ALIVE(return);
-  DoComputation(assert);
-}
 
-void ValueGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  AssertAssignableComp* assert = TranslateAssignable(*node);
-  CHECK_ALIVE(return);
-  ReturnValueOf(assert);
-}
-
-
-void TestGraphVisitor::VisitAssignableNode(AssignableNode* node) {
-  AssertAssignableComp* assert = TranslateAssignable(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(assert);
+  AssertAssignableComp* assert =
+      new AssertAssignableComp(for_value.value(), node->type());
+  ReturnComputation(assert);
 }
 
 
 // <Expression> :: BinaryOp { kind:  Token::Kind
 //                            left:  <Expression>
 //                            right: <Expression> }
-InstanceCallComp* EffectGraphVisitor::TranslateBinaryOp(
-    const BinaryOpNode& node) {
+void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded therefore do not call
   // operator.
-  if ((node.kind() == Token::kAND) || (node.kind() == Token::kOR)) {
+  if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
     Bailout("EffectGraphVisitor::VisitBinaryOpNode AND/OR");
   }
   ValueGraphVisitor for_left_value(owner(), temp_index());
-  node.left()->Visit(&for_left_value);
+  node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  CHECK_ALIVE(return NULL);
+  CHECK_ALIVE(return);
   ValueGraphVisitor for_right_value(owner(), for_left_value.temp_index());
-  node.right()->Visit(&for_right_value);
+  node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  CHECK_ALIVE(return NULL);
+  CHECK_ALIVE(return);
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  return new InstanceCallComp(node.Name(), arguments);
-}
-
-void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
-  InstanceCallComp* call = TranslateBinaryOp(*node);
-  CHECK_ALIVE(return);
-  DoComputation(call);
-}
-
-void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
-  InstanceCallComp* call = TranslateBinaryOp(*node);
-  CHECK_ALIVE(return);
-  ReturnValueOf(call);
-}
-
-void TestGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
-  InstanceCallComp* call = TranslateBinaryOp(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(call);
+  InstanceCallComp* call = new InstanceCallComp(node->Name(), arguments);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
   Bailout("EffectGraphVisitor::VisitStringConcatNode");
 }
-void ValueGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
-  Bailout("ValueGraphVisitor::VisitStringConcatNode");
-}
-void TestGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
-  Bailout("TestGraphVisitor::VisitStringConcatNode");
-}
 
 
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
-Computation* EffectGraphVisitor::TranslateComparison(
-    const ComparisonNode& node) {
-  if (Token::IsInstanceofOperator(node.kind())) {
+void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
+  if (Token::IsInstanceofOperator(node->kind())) {
     Bailout("instanceof not yet implemented");
-  } else if ((node.kind() == Token::kEQ) || (node.kind() == Token::kNE)) {
+  } else if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
     Bailout("'==' or '!=' comparison not yet implemented");
   }
   ValueGraphVisitor for_left_value(owner(), temp_index());
-  node.left()->Visit(&for_left_value);
+  node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  CHECK_ALIVE(return NULL);
+  CHECK_ALIVE(return);
   ValueGraphVisitor for_right_value(owner(), for_left_value.temp_index());
-  node.right()->Visit(&for_right_value);
+  node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  CHECK_ALIVE(return NULL);
-  if ((node.kind() == Token::kEQ_STRICT) ||
-      (node.kind() == Token::kNE_STRICT)) {
-    return new StrictCompareComp(
-        node.kind(), for_left_value.value(), for_right_value.value());
+  CHECK_ALIVE(return);
+  if ((node->kind() == Token::kEQ_STRICT) ||
+      (node->kind() == Token::kNE_STRICT)) {
+    StrictCompareComp* comp = new StrictCompareComp(
+        node->kind(), for_left_value.value(), for_right_value.value());
+    ReturnComputation(comp);
+    return;
   }
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  return new InstanceCallComp(node.Name(), arguments);
-}
-
-void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  Computation* call = TranslateComparison(*node);
-  CHECK_ALIVE(return);
-  DoComputation(call);
-}
-
-void ValueGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  Computation* call = TranslateComparison(*node);
-  CHECK_ALIVE(return);
-  ReturnValueOf(call);
-}
-
-void TestGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  Computation* call = TranslateComparison(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(call);
-}
-
-
-
-InstanceCallComp* EffectGraphVisitor::TranslateUnaryOp(
-    const UnaryOpNode& node) {
-  // "!" cannot be overloaded, therefore do not call operator.
-  if (node.kind() == Token::kNOT) {
-    Bailout("EffectGraphVisitor::VisitUnaryOpNode NOT");
-  }
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node.operand()->Visit(&for_value);
-  Append(for_value);
-  ZoneGrowableArray<Value*>* argument = new ZoneGrowableArray<Value*>(1);
-  argument->Add(for_value.value());
-  return new InstanceCallComp(node.Name(), argument);
+  InstanceCallComp* call = new InstanceCallComp(node->Name(), arguments);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  InstanceCallComp* call = TranslateUnaryOp(*node);
-  DoComputation(call);
-}
-void ValueGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  InstanceCallComp* call = TranslateUnaryOp(*node);
-  ReturnValueOf(call);
-}
-void TestGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  InstanceCallComp* call = TranslateUnaryOp(*node);
-  BranchOnValueOf(call);
+  // "!" cannot be overloaded, therefore do not call operator.
+  if (node->kind() == Token::kNOT) {
+    Bailout("EffectGraphVisitor::VisitUnaryOpNode NOT");
+  }
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->operand()->Visit(&for_value);
+  Append(for_value);
+  ZoneGrowableArray<Value*>* argument = new ZoneGrowableArray<Value*>(1);
+  argument->Add(for_value.value());
+  InstanceCallComp* call = new InstanceCallComp(node->Name(), argument);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   Bailout("EffectGraphVisitor::VisitIncrOpLocalNode");
-}
-void ValueGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  Bailout("ValueGraphVisitor::VisitIncrOpLocalNode");
-}
-void TestGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  Bailout("TestGraphVisitor::VisitIncrOpLocalNode");
 }
 
 
@@ -383,48 +299,21 @@ void EffectGraphVisitor::VisitIncrOpInstanceFieldNode(
     IncrOpInstanceFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitIncrOpInstanceFieldNode");
 }
-void ValueGraphVisitor::VisitIncrOpInstanceFieldNode(
-    IncrOpInstanceFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitIncrOpInstanceFieldNode");
-}
-void TestGraphVisitor::VisitIncrOpInstanceFieldNode(
-    IncrOpInstanceFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitIncrOpInstanceFieldNode");
-}
 
 
 void EffectGraphVisitor::VisitIncrOpStaticFieldNode(
     IncrOpStaticFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitIncrOpStaticFieldNode");
 }
-void ValueGraphVisitor::VisitIncrOpStaticFieldNode(
-    IncrOpStaticFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitIncrOpStaticFieldNode");
-}
-void TestGraphVisitor::VisitIncrOpStaticFieldNode(IncrOpStaticFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitIncrOpStaticFieldNode");
-}
 
 
 void EffectGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
   Bailout("EffectGraphVisitor::VisitIncrOpIndexedNode");
 }
-void ValueGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
-  Bailout("ValueGraphVisitor::VisitIncrOpIndexedNode");
-}
-void TestGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
-  Bailout("TestGraphVisitor::VisitIncrOpIndexedNode");
-}
 
 
 void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   Bailout("EffectGraphVisitor::VisitConditionalExprNode");
-}
-void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
-  Bailout("ValueGraphVisitor::VisitConditionalExprNode");
-}
-void TestGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
-  Bailout("TestGraphVisitor::VisitConditionalExprNode");
 }
 
 
@@ -447,29 +336,14 @@ void EffectGraphVisitor::VisitIfNode(IfNode* node) {
   Join(for_test, for_true, for_false);
 }
 
-void ValueGraphVisitor::VisitIfNode(IfNode* node) { UNREACHABLE(); }
-void TestGraphVisitor::VisitIfNode(IfNode* node) { UNREACHABLE(); }
-
 
 void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
   Bailout("EffectGraphVisitor::VisitSwitchNode");
-}
-void ValueGraphVisitor::VisitSwitchNode(SwitchNode* node) {
-  Bailout("ValueGraphVisitor::VisitSwitchNode");
-}
-void TestGraphVisitor::VisitSwitchNode(SwitchNode* node) {
-  Bailout("TestGraphVisitor::VisitSwitchNode");
 }
 
 
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   Bailout("EffectGraphVisitor::VisitCaseNode");
-}
-void ValueGraphVisitor::VisitCaseNode(CaseNode* node) {
-  Bailout("ValueGraphVisitor::VisitCaseNode");
-}
-void TestGraphVisitor::VisitCaseNode(CaseNode* node) {
-  Bailout("TestGraphVisitor::VisitCaseNode");
 }
 
 
@@ -485,50 +359,23 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   TieLoop(for_test, for_body);
 }
 
-void ValueGraphVisitor::VisitWhileNode(WhileNode* node) { UNREACHABLE(); }
-void TestGraphVisitor::VisitWhileNode(WhileNode* node) { UNREACHABLE(); }
-
 
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   Bailout("EffectGraphVisitor::VisitDoWhileNode");
-}
-void ValueGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  Bailout("ValueGraphVisitor::VisitDoWhileNode");
-}
-void TestGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  Bailout("TestGraphVisitor::VisitDoWhileNode");
 }
 
 
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
   Bailout("EffectGraphVisitor::VisitForNode");
 }
-void ValueGraphVisitor::VisitForNode(ForNode* node) {
-  Bailout("ValueGraphVisitor::VisitForNode");
-}
-void TestGraphVisitor::VisitForNode(ForNode* node) {
-  Bailout("TestGraphVisitor::VisitForNode");
-}
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   Bailout("EffectGraphVisitor::VisitJumpNode");
 }
-void ValueGraphVisitor::VisitJumpNode(JumpNode* node) {
-  Bailout("ValueGraphVisitor::VisitJumpNode");
-}
-void TestGraphVisitor::VisitJumpNode(JumpNode* node) {
-  Bailout("TestGraphVisitor::VisitJumpNode");
-}
 
 
 void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
-  UNREACHABLE();
-}
-void ValueGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
-  UNREACHABLE();
-}
-void TestGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
   UNREACHABLE();
 }
 
@@ -536,62 +383,35 @@ void TestGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   Bailout("EffectGraphVisitor::VisitArrayNode");
 }
-void ValueGraphVisitor::VisitArrayNode(ArrayNode* node) {
-  Bailout("ValueGraphVisitor::VisitArrayNode");
-}
-void TestGraphVisitor::VisitArrayNode(ArrayNode* node) {
-  Bailout("TestGraphVisitor::VisitArrayNode");
-}
 
 
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   Bailout("EffectGraphVisitor::VisitClosureNode");
 }
-void ValueGraphVisitor::VisitClosureNode(ClosureNode* node) {
-  Bailout("ValueGraphVisitor::VisitClosureNode");
-}
-void TestGraphVisitor::VisitClosureNode(ClosureNode* node) {
-  Bailout("TestGraphVisitor::VisitClosureNode");
-}
-
-
-InstanceCallComp* EffectGraphVisitor::TranslateInstanceCall(
-    const InstanceCallNode& node) {
-  ArgumentListNode* arguments = node.arguments();
-  int length = arguments->length();
-  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length + 1);
-  ValueGraphVisitor for_receiver(owner(), temp_index());
-  node.receiver()->Visit(&for_receiver);
-  Append(for_receiver);
-  CHECK_ALIVE(return NULL);
-  values->Add(for_receiver.value());
-  int index = temp_index();
-  for (intptr_t i = 0; i < length; ++i) {
-    ValueGraphVisitor for_value(owner(), index);
-    arguments->NodeAt(i)->Visit(&for_value);
-    Append(for_value);
-    CHECK_ALIVE(return NULL);
-    values->Add(for_value.value());
-    index = for_value.temp_index();
-  }
-  return new InstanceCallComp(node.function_name().ToCString(), values);
-}
 
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  InstanceCallComp* call = TranslateInstanceCall(*node);
+  ArgumentListNode* arguments = node->arguments();
+  int length = arguments->length();
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length + 1);
+
+  ValueGraphVisitor for_receiver(owner(), temp_index());
+  node->receiver()->Visit(&for_receiver);
+  Append(for_receiver);
   CHECK_ALIVE(return);
-  DoComputation(call);
-}
-void ValueGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  InstanceCallComp* call = TranslateInstanceCall(*node);
+  Value* receiver_value = for_receiver.value();
+  temp_index_ = for_receiver.temp_index();
+  if (receiver_value->IsConstant()) {
+    AddInstruction(new BindInstr(temp_index(), receiver_value));
+    receiver_value = new TempVal(AllocateTempIndex());
+  }
+  values->Add(receiver_value);
+
+  TranslateArgumentList(*arguments, values);
   CHECK_ALIVE(return);
-  ReturnValueOf(call);
-}
-void TestGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  InstanceCallComp* call = TranslateInstanceCall(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(call);
+  InstanceCallComp* call =
+      new InstanceCallComp(node->function_name().ToCString(), values);
+  ReturnComputation(call);
 }
 
 
@@ -615,130 +435,58 @@ void EffectGraphVisitor::TranslateArgumentList(
 
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
-StaticCallComp* EffectGraphVisitor::TranslateStaticCall(
-    const StaticCallNode& node) {
-  int length = node.arguments()->length();
-  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length);
-  TranslateArgumentList(*node.arguments(), values);
-  CHECK_ALIVE(return NULL);
-  return new StaticCallComp(node.function(), values);
-}
-
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  StaticCallComp* call = TranslateStaticCall(*node);
+  int length = node->arguments()->length();
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length);
+  TranslateArgumentList(*node->arguments(), values);
   CHECK_ALIVE(return);
-  DoComputation(call);
-}
-
-void ValueGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  StaticCallComp* call = TranslateStaticCall(*node);
-  CHECK_ALIVE(return);
-  ReturnValueOf(call);
-}
-
-void TestGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  StaticCallComp* call = TranslateStaticCall(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(call);
+  StaticCallComp* call = new StaticCallComp(node->function(), values);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Bailout("EffectGraphVisitor::VisitClosureCallNode");
 }
-void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Bailout("ValueGraphVisitor::VisitClosureCallNode");
-}
-void TestGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Bailout("TestGraphVisitor::VisitClosureCallNode");
-}
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   Bailout("EffectGraphVisitor::VisitCloneContextNode");
-}
-void ValueGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  Bailout("ValueGraphVisitor::VisitCloneContextNode");
-}
-void TestGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  Bailout("TestGraphVisitor::VisitCloneContextNode");
 }
 
 
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   Bailout("EffectGraphVisitor::VisitConstructorCallNode");
 }
-void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
-  Bailout("ValueGraphVisitor::VisitConstructorCallNode");
-}
-void TestGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
-  Bailout("TestGraphVisitor::VisitConstructorCallNode");
-}
 
 
 void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   Bailout("EffectGraphVisitor::VisitInstanceGetterNode");
-}
-void ValueGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  Bailout("ValueGraphVisitor::VisitInstanceGetterNode");
-}
-void TestGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  Bailout("TestGraphVisitor::VisitInstanceGetterNode");
 }
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   Bailout("EffectGraphVisitor::VisitInstanceSetterNode");
 }
-void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Bailout("ValueGraphVisitor::VisitInstanceSetterNode");
-}
-void TestGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Bailout("TestGraphVisitor::VisitInstanceSetterNode");
-}
 
 
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   Bailout("EffectGraphVisitor::VisitStaticGetterNode");
-}
-void ValueGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
-  Bailout("ValueGraphVisitor::VisitStaticGetterNode");
-}
-void TestGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
-  Bailout("TestGraphVisitor::VisitStaticGetterNode");
 }
 
 
 void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
   Bailout("EffectGraphVisitor::VisitStaticSetterNode");
 }
-void ValueGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
-  Bailout("ValueGraphVisitor::VisitStaticSetterNode");
-}
-void TestGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
-  Bailout("TestGraphVisitor::VisitStaticSetterNode");
-}
 
 
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
   Bailout("EffectGraphVisitor::VisitNativeBodyNode");
 }
-void ValueGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
-  Bailout("ValueGraphVisitor::VisitNativeBodyNode");
-}
-void TestGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
-  Bailout("TestGraphVisitor::VisitNativeBodyNode");
-}
 
 
 void EffectGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
   Bailout("EffectGraphVisitor::VisitPrimaryNode");
-}
-void ValueGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
-  Bailout("ValueGraphVisitor::VisitPrimaryNode");
-}
-void TestGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
-  Bailout("TestGraphVisitor::VisitPrimaryNode");
 }
 
 
@@ -749,42 +497,24 @@ void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 
 void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
   LoadLocalComp* load = new LoadLocalComp(node->local());
-  ReturnValueOf(load);
+  ReturnComputation(load);
 }
 
 void TestGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
   LoadLocalComp* load = new LoadLocalComp(node->local());
-  BranchOnValueOf(load);
+  ReturnComputation(load);
 }
 
 
 // <Expression> ::= StoreLocal { local: LocalVariable
 //                               value: <Expression> }
-StoreLocalComp* EffectGraphVisitor::TranslateStoreLocal(
-    const StoreLocalNode& node) {
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node.value()->Visit(&for_value);
-  Append(for_value);
-  CHECK_ALIVE(return NULL);
-  return new StoreLocalComp(node.local(), for_value.value());
-}
-
 void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
-  StoreLocalComp* store = TranslateStoreLocal(*node);
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
   CHECK_ALIVE(return);
-  DoComputation(store);
-}
-
-void ValueGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
-  StoreLocalComp* store = TranslateStoreLocal(*node);
-  CHECK_ALIVE(return);
-  ReturnValueOf(store);
-}
-
-void TestGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
-  StoreLocalComp* store = TranslateStoreLocal(*node);
-  CHECK_ALIVE(return);
-  BranchOnValueOf(store);
+  StoreLocalComp* store = new StoreLocalComp(node->local(), for_value.value());
+  ReturnComputation(store);
 }
 
 
@@ -792,70 +522,31 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
     LoadInstanceFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitLoadInstanceFieldNode");
 }
-void ValueGraphVisitor::VisitLoadInstanceFieldNode(
-    LoadInstanceFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitLoadInstanceFieldNode");
-}
-void TestGraphVisitor::VisitLoadInstanceFieldNode(LoadInstanceFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitLoadInstanceFieldNode");
-}
 
 
 void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     StoreInstanceFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitStoreInstanceFieldNode");
 }
-void ValueGraphVisitor::VisitStoreInstanceFieldNode(
-    StoreInstanceFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitStoreInstanceFieldNode");
-}
-void TestGraphVisitor::VisitStoreInstanceFieldNode(
-    StoreInstanceFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitStoreInstanceFieldNode");
-}
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitLoadStaticFieldNode");
-}
-void ValueGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitLoadStaticFieldNode");
-}
-void TestGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitLoadStaticFieldNode");
 }
 
 
 void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   Bailout("EffectGraphVisitor::VisitStoreStaticFieldNode");
 }
-void ValueGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  Bailout("ValueGraphVisitor::VisitStoreStaticFieldNode");
-}
-void TestGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  Bailout("TestGraphVisitor::VisitStoreStaticFieldNode");
-}
 
 
 void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   Bailout("EffectGraphVisitor::VisitLoadIndexedNode");
 }
-void ValueGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  Bailout("ValueGraphVisitor::VisitLoadIndexedNode");
-}
-void TestGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  Bailout("TestGraphVisitor::VisitLoadIndexedNode");
-}
 
 
 void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   Bailout("EffectGraphVisitor::VisitStoreIndexedNode");
-}
-void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  Bailout("ValueGraphVisitor::VisitStoreIndexedNode");
-}
-void TestGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  Bailout("TestGraphVisitor::VisitStoreIndexedNode");
 }
 
 
@@ -875,51 +566,24 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 }
 
-void ValueGraphVisitor::VisitSequenceNode(SequenceNode* node) { UNREACHABLE(); }
-void TestGraphVisitor::VisitSequenceNode(SequenceNode* node) { UNREACHABLE(); }
-
 
 void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   Bailout("EffectGraphVisitor::VisitCatchClauseNode");
-}
-void ValueGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
-  Bailout("ValueGraphVisitor::VisitCatchClauseNode");
-}
-void TestGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
-  Bailout("TestGraphVisitor::VisitCatchClauseNode");
 }
 
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   Bailout("EffectGraphVisitor::VisitTryCatchNode");
 }
-void ValueGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
-  Bailout("ValueGraphVisitor::VisitTryCatchNode");
-}
-void TestGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
-  Bailout("TestGraphVisitor::VisitTryCatchNode");
-}
 
 
 void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
   Bailout("EffectGraphVisitor::VisitThrowNode");
 }
-void ValueGraphVisitor::VisitThrowNode(ThrowNode* node) {
-  Bailout("ValueGraphVisitor::VisitThrowNode");
-}
-void TestGraphVisitor::VisitThrowNode(ThrowNode* node) {
-  Bailout("TestGraphVisitor::VisitThrowNode");
-}
 
 
 void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   Bailout("EffectGraphVisitor::VisitInlinedFinallyNode");
-}
-void ValueGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
-  Bailout("ValueGraphVisitor::VisitInlinedFinallyNode");
-}
-void TestGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
-  Bailout("TestGraphVisitor::VisitInlinedFinallyNode");
 }
 
 
