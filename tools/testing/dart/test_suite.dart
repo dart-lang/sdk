@@ -331,6 +331,7 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         enqueueBrowserTest(filename, testName, optionsFromFile,
                            expectations, isNegative);
@@ -591,6 +592,7 @@ class StandardTestSuite implements TestSuite {
         // TODO(whesse): Add --fatal-type-errors if needed.
         break;
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         String libdir = configuration['froglib'];
         if (libdir == '') {
@@ -687,6 +689,7 @@ class StandardTestSuite implements TestSuite {
         return 'application/dart';
       case 'chromium':
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         return 'text/javascript';
       default:
@@ -1023,7 +1026,9 @@ class JUnitTestSuite implements TestSuite {
 class TestUtils {
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
-      if (component != 'frogium' && component != 'webdriver') {
+      if (component != 'frogium'
+          && component != 'legium'
+          && component != 'webdriver') {
         return '.exe';
       } else {
         return '.bat';
@@ -1056,6 +1061,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         return 'frog/bin/frog$suffix';
       default:
@@ -1115,7 +1121,8 @@ class TestUtils {
       args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
-    if (configuration["component"] == "leg") {
+    if (configuration["component"] == "leg"
+        || configuration["component"] == "legium") {
       args.add("--verbose");
       args.add("--leg");
     }
