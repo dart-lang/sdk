@@ -15,13 +15,12 @@ class FileTest {
       Expect.isTrue(e.toString().contains('open file'));
     }
 
-    file.errorHandler = (s) {
+    file.onError = (s) {
       Expect.isTrue(s.contains('open file'));
     };
-    file.openHandler = () {
+    file.open(FileMode.READ, (opened) {
       Expect.fail('non-string name open');
-    };
-    file.open();
+    });
   }
 
   static void testExistsInvalidArgs(name) {
@@ -34,13 +33,12 @@ class FileTest {
       Expect.isTrue(e.toString().contains('is not a string'));
     }
 
-    file.errorHandler = (s) {
+    file.onError = (s) {
       Expect.isTrue(s.contains('is not a string'));
     };
-    file.existsHandler = (bool) {
+    file.exists((bool) {
       Expect.fail('non-string name exists');
-    };
-    file.exists();
+    });
   }
 
   static void testCreateInvalidArgs(name) {
@@ -53,13 +51,12 @@ class FileTest {
       Expect.isTrue(e.toString().contains('Cannot create file'));
     }
 
-    file.errorHandler = (s) {
+    file.onError = (s) {
       Expect.isTrue(s.contains('Cannot create file'));
     };
-    file.createHandler = (created) {
+    file.create((created) {
       Expect.fail('non-string name exists');
-    };
-    file.create();
+    });
   }
 
   static void testReadListInvalidArgs(buffer, offset, length) {
@@ -74,18 +71,16 @@ class FileTest {
     }
 
     var errors = 0;
-    file.errorHandler = (s) {
+    file.onError = (s) {
       errors++;
       Expect.isTrue(s.contains('Invalid arguments'));
+      file.close(() {
+        Expect.equals(1, errors);
+      });
     };
-    file.readListHandler = (bytes) {
+    file.readList(buffer, offset, length, (bytes) {
       Expect.fail('read list invalid arguments');
-    };
-    file.readList(buffer, offset, length);
-    file.closeHandler = () {
-      Expect.equals(1, errors);
-    };
-    file.close();
+    });
   }
 
   static void testWriteByteInvalidArgs(value) {
@@ -100,19 +95,18 @@ class FileTest {
     }
 
     var errors = 0;
-    file.errorHandler = (s) {
+    file.onError = (s) {
       errors++;
       Expect.isTrue(s.contains('Invalid argument'));
+      file.close(() {
+        Expect.equals(1, errors);
+      });
     };
     var calls = 0;
-    file.noPendingWriteHandler = () {
+    file.writeByte(value);
+    file.onNoPendingWrites = () {
       if (++calls > 1) Expect.fail('write list invalid argument');
     };
-    file.writeByte(value);
-    file.closeHandler = () {
-      Expect.equals(1, errors);
-    };
-    file.close();
   }
 
   static void testWriteListInvalidArgs(buffer, offset, bytes) {
@@ -127,19 +121,18 @@ class FileTest {
     }
 
     var errors = 0;
-    file.errorHandler = (s) {
+    file.onError = (s) {
       errors++;
       Expect.isTrue(s.contains('Invalid arguments'));
+      file.close(() {
+        Expect.equals(1, errors);
+      });
     };
     var calls = 0;
-    file.noPendingWriteHandler = () {
+    file.writeList(buffer, offset, bytes);
+    file.onNoPendingWrites = () {
       if (++calls > 1) Expect.fail('write string invalid argument');
     };
-    file.writeList(buffer, offset, bytes);
-    file.closeHandler = () {
-      Expect.equals(1, errors);
-    };
-    file.close();
   }
 
   static void testWriteStringInvalidArgs(string) {
@@ -155,16 +148,16 @@ class FileTest {
     }
 
     var errors = 0;
-    file.errorHandler = (s) {
+    file.onError = (s) {
       errors++;
       Expect.isTrue(s.contains('writeString failed'));
     };
     var calls = 0;
-    file.noPendingWriteHandler = () {
+    file.onNoPendingWrites = () {
       if (++calls > 1) Expect.fail('write list invalid argument');
     };
     file.writeString(string);
-    file.closeHandler = () {
+    file.onClosed = () {
       Expect.equals(1, errors);
     };
     file.close();
@@ -180,13 +173,12 @@ class FileTest {
       Expect.isTrue(e.toString().contains('fullPath failed'));
     }
 
-    file.errorHandler = (s) {
+    file.onError = (s) {
       Expect.isTrue(s.contains('fullPath failed'));
     };
-    file.fullPathHandler = (path) {
+    file.fullPath((path) {
       Expect.fail('full path invalid argument');
-    };
-    file.fullPath();
+    });
   }
 
   static String getFilename(String path) =>

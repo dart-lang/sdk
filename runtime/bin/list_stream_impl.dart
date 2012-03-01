@@ -73,16 +73,16 @@ class _ListOutputStream implements ListOutputStream {
     close();
   }
 
-  void set noPendingWriteHandler(void callback()) {
+  void set onNoPendingWrites(void callback()) {
     _clientNoPendingWriteHandler = callback;
     _checkScheduleCallbacks();
   }
 
-  void set closeHandler(void callback()) {
+  void set onClosed(void callback()) {
     _clientCloseHandler = callback;
   }
 
-  void set errorHandler(void callback()) {
+  void set onError(void callback()) {
     // No errors emitted.
   }
 

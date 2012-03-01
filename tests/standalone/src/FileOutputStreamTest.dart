@@ -23,7 +23,7 @@ void testOpenOutputStreamSync() {
   OutputStream x = file.openOutputStream();
   x.write([65, 66, 67]);
   x.close();
-  x.closeHandler = () {
+  x.onClosed = () {
     file.deleteSync();
     done.toSendPort().send("done");
   };
@@ -36,27 +36,24 @@ void testOutputStreamNoPendingWrite() {
   // Create a port for waiting on the final result of this test.
   ReceivePort done = new ReceivePort();
   done.receive((message, replyTo) {
-    tempDirectory.delete();
-    tempDirectory.deleteHandler = () {
+    tempDirectory.deleteRecursively(() {
       done.close();
-    };
+    });
   });
 
-  tempDirectory.createTemp();
-  tempDirectory.createTempHandler = () {
+  tempDirectory.createTemp(() {
     String fileName = "${tempDirectory.path}/test";
     File file = new File(fileName);
-    file.create();
-    file.createHandler = () {
+    file.create(() {
       OutputStream stream = file.openOutputStream();
       final total = 100;
       var count = 0;
-      stream.noPendingWriteHandler = () {
+      stream.onNoPendingWrites = () {
         stream.write([count++]);
         if (count == total) {
           stream.close();
         }
-        stream.closeHandler = () {
+        stream.onClosed = () {
           List buffer = new List<int>(total);
           File fileSync = new File(fileName);
           var openedFile = fileSync.openSync();
@@ -69,8 +66,8 @@ void testOutputStreamNoPendingWrite() {
           done.toSendPort().send("done");
         };
       };
-    };
-  };
+    });
+  });
 }
 
 

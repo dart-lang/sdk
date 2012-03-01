@@ -5,7 +5,7 @@
 class _SocketInputStream implements SocketInputStream {
   _SocketInputStream(Socket socket) : _socket = socket {
     if (_socket._id == -1) _closed = true;
-    _socket.closeHandler = _closeHandler;
+    _socket.onClosed = _onClosed;
   }
 
   List<int> read([int len]) {
@@ -57,20 +57,20 @@ class _SocketInputStream implements SocketInputStream {
 
   bool get closed() => _closed;
 
-  void set dataHandler(void callback()) {
-    _socket._dataHandler = callback;
+  void set onData(void callback()) {
+    _socket._onData = callback;
   }
 
-  void set closeHandler(void callback()) {
+  void set onClosed(void callback()) {
     _clientCloseHandler = callback;
-    _socket._closeHandler = _closeHandler;
+    _socket._onClosed = _onClosed;
   }
 
-  void set errorHandler(void callback()) {
-    _socket.errorHandler = callback;
+  void set onError(void callback()) {
+    _socket.onError = callback;
   }
 
-  void _closeHandler() {
+  void _onClosed() {
     _closed = true;
     if (_clientCloseHandler !== null) {
       _clientCloseHandler();
@@ -100,7 +100,7 @@ class _SocketOutputStream implements SocketOutputStream {
     if (!_pendingWrites.isEmpty()) {
       // Mark the socket for close when all data is written.
       _closing = true;
-      _socket._writeHandler = _writeHandler;
+      _socket._onWrite = _onWrite;
     } else {
       // Close the socket for writing.
       _socket._closeWrite();
@@ -109,25 +109,25 @@ class _SocketOutputStream implements SocketOutputStream {
   }
 
   void destroy() {
-    _socket.writeHandler = null;
+    _socket.onWrite = null;
     _pendingWrites.clear();
     _socket.close();
     _closed = true;
   }
 
-  void set noPendingWriteHandler(void callback()) {
-    _noPendingWriteHandler = callback;
-    if (_noPendingWriteHandler != null) {
-      _socket._writeHandler = _writeHandler;
+  void set onNoPendingWrites(void callback()) {
+    _onNoPendingWrites = callback;
+    if (_onNoPendingWrites != null) {
+      _socket._onWrite = _onWrite;
     }
   }
 
-  void set errorHandler(void callback()) {
+  void set onError(void callback()) {
     _streamErrorHandler = callback;
     if (_streamErrorHandler != null) {
-      _socket.errorHandler = _errorHandler;
+      _socket.onError = _onError;
     } else {
-      _socket.errorHandler = null;
+      _socket.onError = null;
     }
   }
 
@@ -151,11 +151,11 @@ class _SocketOutputStream implements SocketOutputStream {
       assert(offset + len == buffer.length);
       _pendingWrites.add(buffer, notWrittenOffset);
     }
-    _socket._writeHandler = _writeHandler;
+    _socket._onWrite = _onWrite;
     return false;
   }
 
-  void _writeHandler() {
+  void _onWrite() {
     // Write as much buffered data to the socket as possible.
     while (!_pendingWrites.isEmpty()) {
       List<int> buffer = _pendingWrites.first;
@@ -164,7 +164,7 @@ class _SocketOutputStream implements SocketOutputStream {
       int bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
       _pendingWrites.removeBytes(bytesWritten);
       if (bytesWritten < bytesToWrite) {
-        _socket._writeHandler = _writeHandler;
+        _socket._onWrite = _onWrite;
         return;
       }
     }
@@ -174,19 +174,19 @@ class _SocketOutputStream implements SocketOutputStream {
       _socket._closeWrite();
       _closed = true;
     } else {
-      if (_noPendingWriteHandler != null) _noPendingWriteHandler();
+      if (_onNoPendingWrites != null) _onNoPendingWrites();
     }
-    if (_noPendingWriteHandler == null) _socket._writeHandler = null;
+    if (_onNoPendingWrites == null) _socket._onWrite = null;
   }
 
-  void _errorHandler() {
+  void _onError() {
     close();
     if (_streamErrorHandler != null) _streamErrorHandler();
   }
 
   Socket _socket;
   _BufferList _pendingWrites;
-  var _noPendingWriteHandler;
+  var _onNoPendingWrites;
   var _streamErrorHandler;
   bool _closing = false;
   bool _closed = false;

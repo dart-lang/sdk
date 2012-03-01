@@ -227,8 +227,8 @@ class _StringInputStream implements StringInputStream {
     } else {
       throw new StreamException("Unsupported encoding $_encoding");
     }
-    _input.dataHandler = _dataHandler;
-    _input.closeHandler = _closeHandler;
+    _input.onData = _onData;
+    _input.onClosed = _onClosed;
   }
 
   String read() {
@@ -257,29 +257,29 @@ class _StringInputStream implements StringInputStream {
 
   bool get closed() => _inputClosed && _decoder.isEmpty();
 
-  void set dataHandler(void callback()) {
+  void set onData(void callback()) {
     _clientDataHandler = callback;
     _clientLineHandler = null;
     _checkInstallDataHandler();
     _checkScheduleCallback();
   }
 
-  void set lineHandler(void callback()) {
+  void set onLine(void callback()) {
     _clientLineHandler = callback;
     _clientDataHandler = null;
     _checkInstallDataHandler();
     _checkScheduleCallback();
   }
 
-  void set closeHandler(void callback()) {
+  void set onClosed(void callback()) {
     _clientCloseHandler = callback;
   }
 
-  void set errorHandler(void callback()) {
+  void set onError(void callback()) {
     _input.errorHandler = callback;
   }
 
-  void _dataHandler() {
+  void _onData() {
     _readData();
     if (!_decoder.isEmpty() && _clientDataHandler !== null) {
       _clientDataHandler();
@@ -291,7 +291,7 @@ class _StringInputStream implements StringInputStream {
     _checkInstallDataHandler();
   }
 
-  void _closeHandler() {
+  void _onClosed() {
     _inputClosed = true;
     if (_decoder.isEmpty() && _clientCloseHandler != null) {
       _clientCloseHandler();
@@ -311,19 +311,19 @@ class _StringInputStream implements StringInputStream {
   void _checkInstallDataHandler() {
     if (_inputClosed ||
         (_clientDataHandler === null && _clientLineHandler === null)) {
-      _input.dataHandler = null;
+      _input.onData = null;
     } else if (_clientDataHandler !== null) {
       if (_decoder.isEmpty()) {
-        _input.dataHandler = _dataHandler;
+        _input.onData = _onData;
       } else {
-        _input.dataHandler = null;
+        _input.onData = null;
       }
     } else {
       assert(_clientLineHandler !== null);
       if (_decoder.lineBreaks == 0) {
-        _input.dataHandler = _dataHandler;
+        _input.onData = _onData;
       } else {
-        _input.dataHandler = null;
+        _input.onData = null;
       }
     }
   }

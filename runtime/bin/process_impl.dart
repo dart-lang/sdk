@@ -44,7 +44,7 @@ class _Process implements Process {
     _closed = false;
     _killed = false;
     _started = false;
-    _exitHandlerCallback = null;
+    _onExit = null;
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
     new Timer((Timer ignore) => start(), 0);
@@ -69,9 +69,8 @@ class _Process implements Process {
                           status);
     if (!success) {
       close();
-      if (_errorHandler !== null) {
-        _errorHandler(new ProcessException(status._errorMessage,
-                                           status._errorCode));
+      if (_onError !== null) {
+        _onError(new ProcessException(status._errorMessage, status._errorCode));
         return;
       }
     }
@@ -88,7 +87,7 @@ class _Process implements Process {
     int exitDataRead = 0;
     final int EXIT_DATA_SIZE = 8;
     List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-    _exitHandler.inputStream.dataHandler = () {
+    _exitHandler.inputStream.onData = () {
 
       int exitCode(List<int> ints) {
         var code = _intFromBytes(ints, 0);
@@ -98,8 +97,8 @@ class _Process implements Process {
       }
 
       void handleExit() {
-        if (_exitHandlerCallback !== null) {
-          _exitHandlerCallback(exitCode(exitDataBuffer));
+        if (_onExit !== null) {
+          _onExit(exitCode(exitDataBuffer));
         }
       }
 
@@ -108,8 +107,8 @@ class _Process implements Process {
       if (exitDataRead == EXIT_DATA_SIZE) handleExit();
     };
 
-    if (_startHandler !== null) {
-      _startHandler();
+    if (_onStart !== null) {
+      _onStart();
     }
   }
 
@@ -145,8 +144,8 @@ class _Process implements Process {
 
   void kill() {
     if (_closed && _pid === null) {
-      if (_errorHandler !== null) {
-        _errorHandler(new ProcessException("Process closed"));
+      if (_onError !== null) {
+        _onError(new ProcessException("Process closed"));
       }
       return;
     }
@@ -158,8 +157,8 @@ class _Process implements Process {
       _killed = true;
       return;
     }
-    if (_errorHandler !== null) {
-      _errorHandler(new ProcessException("Could not kill process"));
+    if (_onError !== null) {
+      _onError(new ProcessException("Could not kill process"));
       return;
     }
   }
@@ -177,22 +176,22 @@ class _Process implements Process {
     _closed = true;
   }
 
-  void set exitHandler(void callback(int exitCode)) {
+  void set onExit(void callback(int exitCode)) {
     if (_closed) {
       throw new ProcessException("Process closed");
     }
     if (_killed) {
       throw new ProcessException("Process killed");
     }
-    _exitHandlerCallback = callback;
+    _onExit = callback;
   }
 
-  void set errorHandler(void callback(ProcessException exception)) {
-    _errorHandler = callback;
+  void set onError(void callback(ProcessException exception)) {
+    _onError = callback;
   }
 
-  void set startHandler(void callback()) {
-    _startHandler = callback;
+  void set onStart(void callback()) {
+    _onStart = callback;
   }
 
   String _path;
@@ -206,7 +205,7 @@ class _Process implements Process {
   bool _closed;
   bool _killed;
   bool _started;
-  Function _exitHandlerCallback;
-  Function _errorHandler;
-  Function _startHandler;
+  Function _onExit;
+  Function _onError;
+  Function _onStart;
 }

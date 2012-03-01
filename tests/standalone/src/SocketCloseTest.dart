@@ -97,9 +97,9 @@ class SocketClose {
     }
 
     void connectHandler() {
-      _socket.dataHandler = dataHandler;
-      _socket.closeHandler = closeHandler;
-      _socket.errorHandler = errorHandler;
+      _socket.onData = dataHandler;
+      _socket.onClosed = closeHandler;
+      _socket.onError = errorHandler;
 
       void writeHello() {
         int bytesWritten = 0;
@@ -143,7 +143,7 @@ class SocketClose {
 
     _socket = new Socket(SocketCloseServer.HOST, _port);
     Expect.equals(true, _socket !== null);
-    _socket.connectHandler = connectHandler;
+    _socket.onConnect = connectHandler;
   }
 
   void start() {
@@ -285,9 +285,9 @@ class SocketCloseServer extends Isolate {
 
       _iterations++;
 
-      connection.dataHandler = dataHandler;
-      connection.closeHandler = closeHandler;
-      connection.errorHandler = errorHandler;
+      connection.onData = dataHandler;
+      connection.onClosed = closeHandler;
+      connection.onError = errorHandler;
     }
 
     void errorHandlerServer() {
@@ -345,11 +345,11 @@ class SocketCloseServer extends Isolate {
         _mode = message;
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.connectionHandler = (connection) {
+        _server.onConnection = (connection) {
           var data = new ConnectionData(connection);
           connectionHandler(data);
         };
-        _server.errorHandler = errorHandlerServer;
+        _server.onError = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else {
         new Timer(waitForResult, 0);
