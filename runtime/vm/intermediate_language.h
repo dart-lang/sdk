@@ -6,6 +6,7 @@
 #define VM_INTERMEDIATE_LANGUAGE_H_
 
 #include "vm/allocation.h"
+#include "vm/ast.h"
 #include "vm/growable_array.h"
 #include "vm/handles_impl.h"
 #include "vm/object.h"
@@ -24,6 +25,7 @@ class LocalVariable;
 //                 | LoadLocal <LocalVariable>
 //                 | StoreLocal <LocalVariable> <Value>
 //                 | StrictCompare <Token::kind> <Value> <Value>
+//                 | NativeCall <String> <NativeFunction> <int> <bool>
 //
 // <Value> ::= Temp <int>
 //           | Constant <Instance>
@@ -40,10 +42,11 @@ class LocalVariable;
   FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(InstanceCall, InstanceCallComp)                                            \
-  M(StrictCompare, StrictCompareComp)                                          \
   M(StaticCall, StaticCallComp)                                                \
   M(LoadLocal, LoadLocalComp)                                                  \
-  M(StoreLocal, StoreLocalComp)
+  M(StoreLocal, StoreLocalComp)                                                \
+  M(StrictCompare, StrictCompareComp)                                          \
+  M(NativeCall, NativeCallComp)                                                \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -234,6 +237,23 @@ class StoreLocalComp : public Computation {
   Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
+};
+
+
+class NativeCallComp : public Computation {
+ public:
+  explicit NativeCallComp(NativeBodyNode* node) : ast_node_(*node) {}
+
+  DECLARE_COMPUTATION(NativeCall)
+
+  const String& native_name() const {
+    return ast_node_.native_c_function_name();
+  }
+
+ private:
+  const NativeBodyNode& ast_node_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeCallComp);
 };
 
 #undef DECLARE_COMPUTATION

@@ -461,7 +461,8 @@ void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
 
 
 void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
-  Bailout("EffectGraphVisitor::VisitNativeBodyNode");
+  NativeCallComp* native_call = new NativeCallComp(node);
+  ReturnComputation(native_call);
 }
 
 
@@ -678,6 +679,11 @@ void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
   OS::Print("StoreLocal(%s, ", comp->local().name().ToCString());
   comp->value()->Accept(this);
   OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
+  OS::Print("NativeCall(%s)", comp->native_name().ToCString());
 }
 
 

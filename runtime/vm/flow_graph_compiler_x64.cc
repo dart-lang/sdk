@@ -99,6 +99,11 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
+  Bailout("NativeCallComp");
+}
+
+
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
   Bailout("JoinEntryInstr");
 }
