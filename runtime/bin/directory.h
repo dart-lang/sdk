@@ -8,6 +8,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "platform/globals.h"
+#include "platform/thread.h"
 
 class DirectoryListing {
  public:
@@ -62,6 +63,14 @@ class Directory {
                         int os_error_message_len);
 
   static bool Delete(const char* path, bool recursive);
+
+  static Dart_Port GetServicePort();
+
+ private:
+  static dart::Mutex mutex_;
+  static int service_ports_size_;
+  static Dart_Port* service_ports_;
+  static int service_ports_index_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);

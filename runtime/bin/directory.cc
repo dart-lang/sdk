@@ -5,8 +5,14 @@
 #include "bin/directory.h"
 
 #include "bin/dartutils.h"
+#include "bin/thread.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
+
+dart::Mutex Directory::mutex_;
+int Directory::service_ports_size_ = 0;
+Dart_Port* Directory::service_ports_ = NULL;
+int Directory::service_ports_index_ = 0;
 
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kError = -1;
@@ -230,13 +236,35 @@ void DirectoryService(Dart_Port dest_port_id,
 }
 
 
+Dart_Port Directory::GetServicePort() {
+  MutexLocker lock(&mutex_);
+  if (service_ports_size_ == 0) {
+    ASSERT(service_ports_ == NULL);
+    service_ports_size_ = 16;
+    service_ports_ = new Dart_Port[service_ports_size_];
+    service_ports_index_ = 0;
+    for (int i = 0; i < service_ports_size_; i++) {
+      service_ports_[i] = kIllegalPort;
+    }
+  }
+
+  Dart_Port result = service_ports_[service_ports_index_];
+  if (result == kIllegalPort) {
+    result = Dart_NewNativePort("DirectoryService",
+                                DirectoryService,
+                                true);
+    ASSERT(result != kIllegalPort);
+    service_ports_[service_ports_index_] = result;
+  }
+  service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
+  return result;
+}
+
+
 void FUNCTION_NAME(Directory_NewServicePort)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
-  Dart_Port service_port = kIllegalPort;
-  service_port = Dart_NewNativePort("DirectoryService",
-                                    DirectoryService,
-                                    true);
+  Dart_Port service_port = Directory::GetServicePort();
   if (service_port != kIllegalPort) {
     // Return a send port for the service port.
     Dart_Handle send_port = Dart_NewSendPort(service_port);

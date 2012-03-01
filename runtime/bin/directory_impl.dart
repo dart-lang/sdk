@@ -27,9 +27,7 @@ class _Directory implements Directory {
   static SendPort _newServicePort() native "Directory_NewServicePort";
 
   void exists(void callback(bool exists)) {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
+    _ensureDirectoryService();
     List request = new List(2);
     request[0] = kExistsRequest;
     request[1] = _path;
@@ -53,9 +51,7 @@ class _Directory implements Directory {
   }
 
   void create(void callback()) {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
+    _ensureDirectoryService();
     List request = new List(2);
     request[0] = kCreateRequest;
     request[1] = _path;
@@ -75,9 +71,7 @@ class _Directory implements Directory {
   }
 
   void createTemp(void callback()) {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
+    _ensureDirectoryService();
     List request = new List(2);
     request[0] = kCreateTempRequest;
     request[1] = _path;
@@ -106,9 +100,7 @@ class _Directory implements Directory {
   }
 
   void _deleteHelper(bool recursive, String errorMsg, void callback()) {
-    if (_directoryService == null) {
-      _directoryService = _newServicePort();
-    }
+    _ensureDirectoryService();
     List request = new List(3);
     request[0] = kDeleteRequest;
     request[1] = _path;
@@ -199,13 +191,13 @@ class _Directory implements Directory {
     _onError = onError;
   }
 
-  void _closePort(ReceivePort port) {
-    if (port !== null) {
-      port.close();
+  String get path() { return _path; }
+
+  void _ensureDirectoryService() {
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
     }
   }
-
-  String get path() { return _path; }
 
   var _onDir;
   var _onFile;
