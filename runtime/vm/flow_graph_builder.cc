@@ -134,28 +134,18 @@ void EffectGraphVisitor::Bailout(const char* reason) {
 }
 
 
-// 'bailout' is a statement (without a semicolon), typically a return.
-#define CHECK_ALIVE(bailout)                            \
-  do {                                                  \
-    if (!is_open()) {                                   \
-      bailout;                                          \
-    }                                                   \
-  } while (false)
-
-
 // <Statement> ::= Return { value:                <Expression>
 //                          inlined_finally_list: <InlinedFinally>* }
 void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  CHECK_ALIVE(return);
 
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     EffectGraphVisitor for_effect(owner(), for_value.temp_index());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
     Append(for_effect);
-    CHECK_ALIVE(return);
+    if (!is_open()) return;
   }
 
   Value* return_value = for_value.value();
@@ -205,8 +195,6 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->expr()->Visit(&for_value);
   Append(for_value);
-  CHECK_ALIVE(return);
-
   AssertAssignableComp* assert =
       new AssertAssignableComp(for_value.value(), node->type());
   ReturnComputation(assert);
@@ -225,11 +213,9 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  CHECK_ALIVE(return);
   ValueGraphVisitor for_right_value(owner(), for_left_value.temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  CHECK_ALIVE(return);
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
@@ -255,11 +241,9 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  CHECK_ALIVE(return);
   ValueGraphVisitor for_right_value(owner(), for_left_value.temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  CHECK_ALIVE(return);
   if ((node->kind() == Token::kEQ_STRICT) ||
       (node->kind() == Token::kNE_STRICT)) {
     StrictCompareComp* comp = new StrictCompareComp(
@@ -398,7 +382,6 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  CHECK_ALIVE(return);
   Value* receiver_value = for_receiver.value();
   temp_index_ = for_receiver.temp_index();
   if (receiver_value->IsConstant()) {
@@ -408,7 +391,6 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   values->Add(receiver_value);
 
   TranslateArgumentList(*arguments, values);
-  CHECK_ALIVE(return);
   InstanceCallComp* call =
       new InstanceCallComp(node->function_name().ToCString(), values);
   ReturnComputation(call);
@@ -422,7 +404,6 @@ void EffectGraphVisitor::TranslateArgumentList(
     ValueGraphVisitor for_value(owner(), index);
     node.NodeAt(i)->Visit(&for_value);
     Append(for_value);
-    CHECK_ALIVE(return);
     Value* argument_value = for_value.value();
     index = for_value.temp_index();
     if (argument_value->IsConstant()) {
@@ -439,7 +420,6 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   int length = node->arguments()->length();
   ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length);
   TranslateArgumentList(*node->arguments(), values);
-  CHECK_ALIVE(return);
   StaticCallComp* call = new StaticCallComp(node->function(), values);
   ReturnComputation(call);
 }
@@ -512,7 +492,6 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  CHECK_ALIVE(return);
   StoreLocalComp* store = new StoreLocalComp(node->local(), for_value.value());
   ReturnComputation(store);
 }
@@ -558,11 +537,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       (node->scope()->num_context_variables() != 0)) {
     Bailout("Sequence needs a context.  Gotta have a context.");
   }
-  for (intptr_t i = 0; i < node->length(); ++i) {
+  intptr_t i = 0;
+  while (is_open() && (i < node->length())) {
     EffectGraphVisitor for_effect(owner(), temp_index());
-    node->NodeAt(i)->Visit(&for_effect);
+    node->NodeAt(i++)->Visit(&for_effect);
     Append(for_effect);
-    CHECK_ALIVE(return);
   }
 }
 
@@ -742,6 +721,8 @@ void FlowGraphBuilder::BuildGraph() {
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);
+  // Check that the graph is properly terminated.
+  ASSERT(!for_effect.is_open());
   if (for_effect.entry() != NULL) {
     // Accumulate basic block entries via postorder traversal.
     for_effect.entry()->Postorder(&postorder_block_entries_);
