@@ -359,8 +359,6 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
-TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
-TypeVariableBoundsTest/10: Fail
 TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
 TypeVariableShadowsClass: Fail # Issue 643
 WrongNumberTypeArgumentsTest/none: Fail
@@ -430,9 +428,14 @@ PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
+TypeVariableBoundsTest/00: Fail  # Should not complain in production mode.
+TypeVariableBoundsTest/10: Fail  # Should not complain in production mode.
+WrongNumberTypeArgumentsTest/00: Fail  # Should not complain in production mode.
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
+TypeVariableBounds2Test/00: Fail  # Issue 1939
+TypeVariableBounds2Test/03: Fail  # Issue 1939
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
