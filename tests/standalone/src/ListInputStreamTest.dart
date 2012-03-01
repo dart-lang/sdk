@@ -15,12 +15,12 @@ void testEmptyListInputStream() {
     throw "No data expected";
   }
 
-  void onClosed() {
+  void onClose() {
     donePort.toSendPort().send(null);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -33,12 +33,12 @@ void testEmptyDynamicListInputStream() {
     throw "No data expected";
   }
 
-  void onClosed() {
+  void onClose() {
     donePort.toSendPort().send(null);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
   stream.markEndOfStream();
 
   donePort.receive((x,y) => donePort.close());
@@ -58,13 +58,13 @@ void testListInputStream1() {
     Expect.equals(data[count++], x[0]);
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(data.length, count);
     donePort.toSendPort().send(count);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -85,13 +85,13 @@ void testListInputStream2() {
     Expect.equals(data[count++], x[1]);
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(data.length, count);
     donePort.toSendPort().send(count);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -104,13 +104,13 @@ void testListInputStreamPipe1() {
   OutputStream output = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
 
-  void onClosed() {
+  void onClose() {
     var contents = output.contents();
     Expect.equals(data.length, contents.length);
     donePort.toSendPort().send(null);
   }
 
-  input.onClosed = onClosed;
+  input.closeHandler = onClose;
   input.pipe(output);
 
   donePort.receive((x,y) => donePort.close());
@@ -122,12 +122,12 @@ void testListInputStreamPipe2() {
   ReceivePort donePort = new ReceivePort();
   int count = 0;
 
-  void onClosed() {
+  void onClose() {
     if (count < 10) {
       InputStream input = new ListInputStream();
       input.write(data);
       input.markEndOfStream();
-      input.onClosed = onClosed;
+      input.closeHandler = onClose;
       if (count < 9) {
         input.pipe(output, close: false);
       } else {
@@ -144,7 +144,7 @@ void testListInputStreamPipe2() {
   InputStream input = new ListInputStream();
   input.write(data);
   input.markEndOfStream();
-  input.onClosed = onClosed;
+  input.closeHandler = onClose;
   input.pipe(output, close: false);
   count++;
 
@@ -162,12 +162,12 @@ void testListInputClose1() {
     throw "No data expected";
   }
 
-  void onClosed() {
+  void onClose() {
     donePort.toSendPort().send(null);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
   stream.close();
 
   donePort.receive((x,y) => donePort.close());
@@ -186,13 +186,13 @@ void testListInputClose2() {
     stream.close();
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(2, count);
     donePort.toSendPort().send(count);
   }
 
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -216,14 +216,14 @@ void testDynamicListInputStream() {
     }
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(data.length, count);
     donePort.toSendPort().send(count);
   }
 
   stream.write(data);
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -237,13 +237,13 @@ void testDynamicListInputClose1() {
     throw "No data expected";
   }
 
-  void onClosed() {
+  void onClose() {
     donePort.toSendPort().send(null);
   }
 
   stream.write(data);
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
   stream.close();
   Expect.throws(() => stream.write(data), (e) => e is StreamException);
 
@@ -262,7 +262,7 @@ void testDynamicListInputClose2() {
     Expect.throws(() => stream.write(data), (e) => e is StreamException);
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(15, count);
     donePort.toSendPort().send(null);
   }
@@ -270,8 +270,8 @@ void testDynamicListInputClose2() {
   stream.write(data);
   stream.write(data);
   stream.write(data);
-  stream.onData = onData;
-  stream.onClosed = onClosed;
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }

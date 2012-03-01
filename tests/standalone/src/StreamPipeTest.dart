@@ -84,7 +84,7 @@ class PipeServerGame {
       SocketOutputStream socketOutput = _socket.outputStream;
       InputStream fileInput = new File(srcFileName).openInputStream();
 
-      fileInput.onClosed = () {
+      fileInput.closeHandler = () {
         SocketInputStream socketInput = _socket.inputStream;
         var tempDir = new Directory('');
         tempDir.createTempSync();
@@ -93,10 +93,10 @@ class PipeServerGame {
         dstFile.createSync();
         var fileOutput = dstFile.openOutputStream();
 
-        socketInput.onClosed = () {
+        socketInput.closeHandler = () {
           // Check that the resulting file is equal to the initial
           // file.
-          fileOutput.onClosed = () {
+          fileOutput.closeHandler = () {
             bool result = compareFileContent(srcFileName, dstFileName);
             new File(dstFileName).deleteSync();
             tempDir.deleteSync();
@@ -122,7 +122,7 @@ class PipeServerGame {
     // Connect to the server.
     _socket = new Socket(TestingServer.HOST, _port);
     if (_socket !== null) {
-      _socket.onConnect = connectHandler;
+      _socket.connectHandler = connectHandler;
     } else {
       Expect.fail("socket creation failed");
     }
@@ -153,7 +153,7 @@ class PipeServerGame {
 // stream to its output stream.
 class PipeServer extends TestingServer {
   void connectionHandler(Socket connection) {
-    connection.onError = () { Expect.fail("Socket error"); };
+    connection.errorHandler = () { Expect.fail("Socket error"); };
     connection.inputStream.pipe(connection.outputStream);
   }
 }
@@ -177,7 +177,7 @@ testFileToFilePipe1() {
   new File(dstFileName).createSync();
   var dstStream = new File(dstFileName).openOutputStream();
 
-  dstStream.onClosed = () {
+  dstStream.closeHandler = () {
     bool result = compareFileContent(srcFileName, dstFileName);
     new File(dstFileName).deleteSync();
     tempDir.deleteSync();
@@ -209,10 +209,10 @@ testFileToFilePipe2() {
   dstFile.createSync();
   var dstStream = dstFile.openOutputStream();
 
-  srcStream.onClosed = () {
+  srcStream.closeHandler = () {
     dstStream.write([32]);
     dstStream.close();
-    dstStream.onClosed = () {
+    dstStream.closeHandler = () {
       var src = srcFile.openSync();
       var dst = dstFile.openSync();
       var srcLength = src.lengthSync();
@@ -256,10 +256,10 @@ testFileToFilePipe3() {
   dstFile.createSync();
   var dstStream = dstFile.openOutputStream();
 
-  srcStream.onClosed = () {
+  srcStream.closeHandler = () {
     var srcStream2 = srcFile.openInputStream();
 
-    dstStream.onClosed = () {
+    dstStream.closeHandler = () {
       var src = srcFile.openSync();
       var dst = dstFile.openSync();
       var srcLength = src.lengthSync();

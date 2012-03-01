@@ -43,17 +43,17 @@ class _BaseDataInputStream {
 
   bool get closed() => _closeCallbackCalled;
 
-  void set onData(void callback()) {
+  void set dataHandler(void callback()) {
     _clientDataHandler = callback;
     _checkScheduleCallbacks();
   }
 
-  void set onClosed(void callback()) {
+  void set closeHandler(void callback()) {
     _clientCloseHandler = callback;
     _checkScheduleCallbacks();
   }
 
-  void set onError(void callback()) {
+  void set errorHandler(void callback()) {
     _clientErrorHandler = callback;
   }
 
@@ -150,8 +150,8 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
     List<int> data;
     while ((data = input.read()) !== null) {
       if (!output.write(data)) {
-        input.onData = null;
-        output.onNoPendingWrites = pipeNoPendingWriteHandler;
+        input.dataHandler = null;
+        output.noPendingWriteHandler = pipeNoPendingWriteHandler;
         break;
       }
     }
@@ -165,13 +165,13 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
   };
 
   pipeNoPendingWriteHandler = () {
-    input.onData = pipeDataHandler;
-    output.onNoPendingWrites = null;
+    input.dataHandler = pipeDataHandler;
+    output.noPendingWriteHandler = null;
   };
 
   _inputCloseHandler = input._clientCloseHandler;
-  input.onData = pipeDataHandler;
-  input.onClosed = pipeCloseHandler;
-  output.onNoPendingWrites = null;
+  input.dataHandler = pipeDataHandler;
+  input.closeHandler = pipeCloseHandler;
+  output.noPendingWriteHandler = null;
 }
 

@@ -16,7 +16,7 @@ void testStringInputStreamSync() {
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   StringInputStream x = new StringInputStream(file.openInputStream());
-  x.onLine = () {
+  x.lineHandler = () {
     // The file input stream is known (for now) to have read the whole
     // file when the data handler is called.
     String line = x.readLine();
@@ -32,11 +32,11 @@ void testInputStreamAsync() {
   var expected = "Hello Dart\nwassup!\n".charCodes();
   InputStream x = (new File(fileName)).openInputStream();
   var byteCount = 0;
-  x.onData = () {
+  x.dataHandler = () {
     Expect.equals(expected[byteCount], x.read(1)[0]);
     byteCount++;
   };
-  x.onClosed = () {
+  x.closeHandler = () {
     Expect.equals(expected.length, byteCount);
   };
 }
@@ -49,7 +49,7 @@ void testStringInputStreamAsync(String name, int length) {
   Expect.equals(length, file.openSync().lengthSync());
   StringInputStream x = new StringInputStream(file.openInputStream());
   int lineCount = 0;
-  x.onLine = () {
+  x.lineHandler = () {
     var line = x.readLine();
     lineCount++;
     Expect.isTrue(lineCount <= 10);
@@ -57,7 +57,7 @@ void testStringInputStreamAsync(String name, int length) {
       Expect.equals("Line $lineCount", line);
     }
   };
-  x.onClosed = () {
+  x.closeHandler = () {
     Expect.equals(10, lineCount);
   };
 }
@@ -73,14 +73,14 @@ void testChunkedInputStream() {
   File file = new File(fileName);
   ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
   x.chunkSize = 9;
-  x.onData = () {
+  x.dataHandler = () {
     List<int> chunk = x.read();
     Expect.equals(9, chunk.length);
     x.chunkSize = 5;
-    x.onData = () {
+    x.dataHandler = () {
       chunk = x.read();
       Expect.equals(5, chunk.length);
-      x.onData = () {
+      x.dataHandler = () {
         chunk = x.read();
         Expect.equals(5, chunk.length);
         chunk = x.read();

@@ -38,8 +38,8 @@ void test1() {
       testDone(byteCount);
     }
 
-    stream.onData = chunkData;
-    stream.onClosed = closeHandler;
+    stream.dataHandler = chunkData;
+    stream.closeHandler = closeHandler;
     stream.chunkSize = chunkSize;
   }
 
@@ -124,8 +124,8 @@ void test2() {
     Expect.equals(5, stage);
   }
 
-  stream.onData = chunkData;
-  stream.onClosed = streamClosed;
+  stream.dataHandler = chunkData;
+  stream.closeHandler = streamClosed;
   s.write([0, 1, 2, 3]);  // 4 bytes written to stream.
   Expect.equals(0, stage);
   s.write([4, 5, 6]);  // 7 bytes written to stream.

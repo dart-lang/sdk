@@ -102,8 +102,8 @@ class TestServer extends Isolate {
   // Echo the request content back to the response.
   void _zeroToTenHandler(HttpRequest request, HttpResponse response) {
     Expect.equals("GET", request.method);
-    request.inputStream.onData = () {};
-    request.inputStream.onClosed = () {
+    request.inputStream.dataHandler = () {};
+    request.inputStream.closeHandler = () {
       response.writeString("01234567890");
       response.outputStream.close();
     };
@@ -144,7 +144,7 @@ class TestServer extends Isolate {
         _server = new HttpServer();
         try {
           _server.listen("127.0.0.1", 0);
-          _server.onRequest = (HttpRequest req, HttpResponse rsp) {
+          _server.requestHandler = (HttpRequest req, HttpResponse rsp) {
             _requestReceivedHandler(req, rsp);
           };
           replyTo.send(new TestServerStatus.started(_server.port), null);
@@ -191,12 +191,12 @@ void testGET() {
     HttpClient httpClient = new HttpClient();
     HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/0123456789");
-    conn.onResponse = (HttpClientResponse response) {
+    conn.responseHandler = (HttpClientResponse response) {
       Expect.equals(HttpStatus.OK, response.statusCode);
       StringInputStream stream = new StringInputStream(response.inputStream);
       StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () {
+      stream.dataHandler = () => body.add(stream.read());
+      stream.closeHandler = () {
         Expect.equals("01234567890", body.toString());
         httpClient.shutdown();
         testServerMain.shutdown();
@@ -219,7 +219,7 @@ void testPOST(bool chunkedEncoding) {
     void sendRequest() {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -229,12 +229,12 @@ void testPOST(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.onResponse = (HttpClientResponse response) {
+      conn.responseHandler = (HttpClientResponse response) {
         Expect.equals(HttpStatus.OK, response.statusCode);
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
           Expect.equals(data, body.toString());
           count++;
           if (count < kMessageCount) {
@@ -270,7 +270,7 @@ void testReadInto(bool chunkedEncoding) {
     void sendRequest() {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -280,16 +280,16 @@ void testReadInto(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.onResponse = (HttpClientResponse response) {
+      conn.responseHandler = (HttpClientResponse response) {
         Expect.equals(HttpStatus.OK, response.statusCode);
         InputStream stream = response.inputStream;
         List<int> body = new List<int>();
-        stream.onData = () {
+        stream.dataHandler = () {
           List tmp = new List(3);
           int bytes = stream.readInto(tmp);
           body.addAll(tmp.getRange(0, bytes));
         };
-        stream.onClosed = () {
+        stream.closeHandler = () {
           Expect.equals(data, new String.fromCharCodes(body));
           count++;
           if (count < kMessageCount) {
@@ -325,7 +325,7 @@ void testReadShort(bool chunkedEncoding) {
     void sendRequest() {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.onRequest = (HttpClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -335,15 +335,15 @@ void testReadShort(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.onResponse = (HttpClientResponse response) {
+      conn.responseHandler = (HttpClientResponse response) {
         Expect.equals(HttpStatus.OK, response.statusCode);
         InputStream stream = response.inputStream;
         List<int> body = new List<int>();
-        stream.onData = () {
+        stream.dataHandler = () {
           List tmp = stream.read(2);
           body.addAll(tmp);
         };
-        stream.onClosed = () {
+        stream.closeHandler = () {
           Expect.equals(data, new String.fromCharCodes(body));
           count++;
           if (count < kMessageCount) {
@@ -373,7 +373,7 @@ void test404() {
     HttpClient httpClient = new HttpClient();
     HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/thisisnotfound");
-    conn.onResponse = (HttpClientResponse response) {
+    conn.responseHandler = (HttpClientResponse response) {
       Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
       httpClient.shutdown();
       testServerMain.shutdown();
@@ -389,7 +389,7 @@ void testReasonPhrase() {
     HttpClient httpClient = new HttpClient();
     HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/reasonformoving");
-    conn.onResponse = (HttpClientResponse response) {
+    conn.responseHandler = (HttpClientResponse response) {
       Expect.equals(HttpStatus.MOVED_PERMANENTLY, response.statusCode);
       Expect.equals("Don't come looking here any more", response.reasonPhrase);
       httpClient.shutdown();

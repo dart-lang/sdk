@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,17 +18,17 @@ void testEmptyListOutputStream2() {
   OutputStream stream = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
 
-  void onNoPendingWrites() {
+  void onNoPendingWrite() {
     stream.close();
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(null, stream.contents());
     donePort.toSendPort().send(null);
   }
 
-  stream.onNoPendingWrites = onNoPendingWrites;
-  stream.onClosed = onClosed;
+  stream.noPendingWriteHandler = onNoPendingWrite;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }
@@ -52,7 +52,7 @@ void testListOutputStream2() {
   OutputStream stream = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
   int stage = 0;
-  void onNoPendingWrites() {
+  void onNoPendingWrite() {
     switch (stage) {
       case 0:
         stream.write([1, 2]);
@@ -70,7 +70,7 @@ void testListOutputStream2() {
     stage++;
   }
 
-  void onClosed() {
+  void onClose() {
     Expect.equals(4, stage);
     var contents = stream.contents();
     Expect.equals(5, contents.length);
@@ -79,8 +79,8 @@ void testListOutputStream2() {
     donePort.toSendPort().send(null);
   }
 
-  stream.onNoPendingWrites = onNoPendingWrites;
-  stream.onClosed = onClosed;
+  stream.noPendingWriteHandler = onNoPendingWrite;
+  stream.closeHandler = onClose;
 
   donePort.receive((x,y) => donePort.close());
 }

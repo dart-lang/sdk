@@ -8,7 +8,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     if (_chunkSize === null) {
       _chunkSize = 0;
     }
-    _input.onClosed = _onClosed;
+    _input.closeHandler = _closeHandler;
   }
 
   List<int> read() {
@@ -39,20 +39,20 @@ class _ChunkedInputStream implements ChunkedInputStream {
 
   bool get closed() => _closed;
 
-  void set onData(void callback()) {
+  void set dataHandler(void callback()) {
     _clientDataHandler = callback;
     _checkInstallDataHandler();
   }
 
-  void set onClosed(void callback()) {
+  void set closeHandler(void callback()) {
     _clientCloseHandler = callback;
   }
 
-  void set onError(void callback()) {
-    _input.onError = callback;
+  void set errorHandler(void callback()) {
+    _input.errorHandler = callback;
   }
 
-  void _onData() {
+  void _dataHandler() {
     _readData();
     if (_bufferList.length >= _chunkSize && _clientDataHandler !== null) {
       _clientDataHandler();
@@ -68,7 +68,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     }
   }
 
-  void _onClosed() {
+  void _closeHandler() {
     _inputClosed = true;
     if (_bufferList.length == 0 && _clientCloseHandler !== null) {
       _clientCloseHandler();
@@ -80,12 +80,12 @@ class _ChunkedInputStream implements ChunkedInputStream {
 
   void _checkInstallDataHandler() {
     if (_clientDataHandler === null) {
-      _input.onData = null;
+      _input.dataHandler = null;
     } else {
       if (_bufferList.length < _chunkSize && !_inputClosed) {
-        _input.onData = _onData;
+        _input.dataHandler = _dataHandler;
       } else {
-        _input.onData = null;
+        _input.dataHandler = null;
       }
     }
   }

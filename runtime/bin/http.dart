@@ -60,11 +60,11 @@ interface HttpServer default _HttpServer {
 
   /**
    * Start listening for HTTP requests on the specified [host] and
-   * [port]. For each HTTP request the handler set through [onRequest]
-   * will be invoked. If a [port] of 0 is specified the server will
-   * choose an ephemeral port. The optional argument [backlog] can be
-   * used to specify the listen backlog for the underlying OS listen
-   * setup.
+   * [port]. For each HTTP request the handler set through
+   * [requestHandler] will be invoked. If a [port] of 0 is specified
+   * the server will choose an ephemeral port. The optional argument
+   * [backlog] can be used to specify the listen backlog for the
+   * underlying OS listen setup.
    */
   void listen(String host, int port, [int backlog]);
 
@@ -83,12 +83,12 @@ interface HttpServer default _HttpServer {
   /**
    * Sets the handler that gets called when a new HTTP request is received.
    */
-  void set onRequest(void handler(HttpRequest, HttpResponse));
+  void set requestHandler(void handler(HttpRequest, HttpResponse));
 
   /**
    * Sets the error handler that is called when a connection error occurs.
    */
-  void set onError(void handler(String errorMessage));
+  void set errorHandler(void handler(String errorMessage));
 }
 
 
@@ -239,16 +239,16 @@ interface HttpClient default _HttpClient {
  * that initiate a connection to an HTTP server. The handlers will be
  * called as the connection state progresses.
  *
- * The setting of all handlers is optional. If [onRequest] is not set
- * the request will be send without any additional headers and an
- * empty body. If [onResponse] is not set the response will be read
- * and discarded.
+ * The setting of all handlers is optional. If the [requestHandler] is
+ * not set the request will be send without any additional headers and
+ * an empty body. If the [responseHandler] is not set the response
+ * will be read and discarded.
  */
 interface HttpClientConnection {
   /**
    * Sets the handler that is called when the connection is established.
    */
-  void set onRequest(void handler(HttpClientRequest request));
+  void set requestHandler(void handler(HttpClientRequest request));
 
   /**
    * Sets callback to be called when the request has been send and
@@ -256,13 +256,13 @@ interface HttpClientConnection {
    * all headers of the response are received and data is ready to be
    * received.
    */
-  void set onResponse(void handler(HttpClientResponse response));
+  void set responseHandler(void handler(HttpClientResponse response));
 
   /**
    * Sets the handler that gets called if an error occurs while
    * processing the HTTP request.
    */
- void set onError(void handler(HttpException e));
+ void set errorHandler(void handler(HttpException e));
 }
 
 

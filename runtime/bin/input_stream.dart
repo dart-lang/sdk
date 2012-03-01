@@ -18,7 +18,7 @@
  *
  * [:
  *    InputStream input = ...
- *    input.onData = () {
+ *    input.dataHandler = () {
  *      var data = input.read();
  *      ...
  *    };
@@ -83,19 +83,19 @@ interface InputStream {
   /**
    * Sets the handler that gets called when data is available.
    */
-  void set onData(void callback());
+  void set dataHandler(void callback());
 
   /**
    * Sets the handler that gets called when there will be no more data
    * available in the stream.
    */
-  void set onClosed(void callback());
+  void set closeHandler(void callback());
 
   /**
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set errorHandler(void callback());
 }
 
 
@@ -137,29 +137,29 @@ interface StringInputStream default _StringInputStream {
 
   /**
    * Sets the handler that gets called when data is available. The two
-   * handlers [onData] and [onLine] are mutually exclusive
+   * handlers [dataHandler] and [lineHandler] are mutually exclusive
    * and setting one will remove the other.
    */
-  void set onData(void callback());
+  void set dataHandler(void callback());
 
   /**
    * Sets the handler that gets called when a line is available. The
-   * two handlers [onData] and [onLine] are mutually
+   * two handlers [dataHandler] and [lineHandler] are mutually
    * exclusive and setting one will remove the other.
    */
-  void set onLine(void callback());
+  void set lineHandler(void callback());
 
   /**
    * Sets the handler that gets called when there will be no more data
    * available in the stream.
    */
-  void set onClosed(void callback());
+  void set closeHandler(void callback());
 
   /**
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set errorHandler(void callback());
 }
 
 
@@ -202,19 +202,19 @@ interface ChunkedInputStream default _ChunkedInputStream {
    * of data is available or the underlying stream has been closed and
    * there is still unread data.
    */
-  void set onData(void callback());
+  void set dataHandler(void callback());
 
   /**
    * Sets the handler that gets called when there will be no more data
    * available in the stream.
    */
-  void set onClosed(void callback());
+  void set closeHandler(void callback());
 
   /**
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set errorHandler(void callback());
 }
 
 

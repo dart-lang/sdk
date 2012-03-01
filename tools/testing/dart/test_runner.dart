@@ -360,15 +360,15 @@ class RunningProcess {
       command.executable = command.executable.replaceAll('/', '\\');
     }
     process = new Process.start(command.executable, command.arguments);
-    process.onExit = exitHandler;
+    process.exitHandler = exitHandler;
     startTime = new Date.now();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
     StringInputStream stderrStringStream = new StringInputStream(stderrStream);
-    stdoutStringStream.onLine =
+    stdoutStringStream.lineHandler =
         makeReadHandler(stdoutStringStream, stdout);
-    stderrStringStream.onLine =
+    stderrStringStream.lineHandler =
         makeReadHandler(stderrStringStream, stderr);
     timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
   }
@@ -417,7 +417,7 @@ class BatchRunnerProcess {
       // if needed.
       _executable = testCase.commands.last().executable;
       _batchArguments = testCase.batchRunnerArguments;
-      _process.onExit = (exitCode) {
+      _process.exitHandler = (exitCode) {
         _process.close();
         _startProcess(() {
           doStartTest(testCase);
@@ -432,7 +432,7 @@ class BatchRunnerProcess {
   void terminate() {
     if (_process !== null) {
       bool closed = false;
-      _process.onExit = (exitCode) {
+      _process.exitHandler = (exitCode) {
         closed = true;
         _process.close();
       };
@@ -456,8 +456,8 @@ class BatchRunnerProcess {
     _testStdout = new List<String>();
     _testStderr = new List<String>();
     _stderrDrained = false;
-    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
-    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
+    _stdoutStream.lineHandler = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler = _readStderr(_stderrStream, _testStderr);
     _timer = new Timer(_timeoutHandler, testCase.timeout * 1000);
     var line = _createArgumentsLine(testCase.batchTestArguments);
     _process.stdin.write(line.charCodes());
@@ -540,7 +540,7 @@ class BatchRunnerProcess {
   }
 
   void _timeoutHandler(ignore) {
-    _process.onExit = (exitCode) {
+    _process.exitHandler = (exitCode) {
       _process.close();
       _startProcess(() {
         _reportResult(">>> TEST TIMEOUT");
@@ -556,10 +556,10 @@ class BatchRunnerProcess {
     _testStdout = new List<String>();
     _testStderr = new List<String>();
     _stderrDrained = false;
-    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
-    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
-    _process.onExit = _exitHandler;
-    _process.onStart = then;
+    _stdoutStream.lineHandler = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler = _readStderr(_stderrStream, _testStderr);
+    _process.exitHandler = _exitHandler;
+    _process.startHandler = then;
   }
 }
 
@@ -672,15 +672,15 @@ class ProcessQueue {
       }
 
       if (name == processNames[browserUsed].last()) {
-        process.onExit = (exitCode) {
+        process.exitHandler = (exitCode) {
           process.close();
           _progress.allDone();
         };
-        process.onError = (error) {
+        process.errorHandler = (error) {
           _progress.allDone();
         };
       } else {
-        process.onExit = (exitCode) {
+        process.exitHandler = (exitCode) {
           process.close();
         };
       }
@@ -718,7 +718,7 @@ class ProcessQueue {
           // implemented, and add Windows support.
           var deletion =
               new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
-          deletion.onExit = (int exitCode) {
+          deletion.exitHandler = (int exitCode) {
             if (exitCode == 0) {
               if (!_listTests) {  // Output of --list option is used by scripts.
                 print('\nTemporary directory $_temporaryDirectory deleted.');

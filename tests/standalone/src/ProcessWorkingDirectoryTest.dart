@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -25,13 +25,13 @@ class ProcessWorkingDirectoryTest {
                                         const ["0", "0", "99", "0"],
                                         directory.path);
 
-    process.onExit = (int exitCode) {
+    process.exitHandler = (int exitCode) {
       Expect.equals(exitCode, 99);
       process.close();
       directory.deleteSync();
     };
 
-    process.onError = (error) {
+    process.errorHandler = (error) {
       Expect.fail("error running process $error");
       directory.deleteSync();
     };
@@ -46,13 +46,13 @@ class ProcessWorkingDirectoryTest {
                                         const ["0", "0", "99", "0"],
                                         directory.path + "/subPath");
 
-    process.onExit = (int exitCode) {
+    process.exitHandler = (int exitCode) {
       Expect.fail("bad process completed");
       process.close();
       directory.deleteSync();
     };
 
-    process.onError = (error) {
+    process.errorHandler = (error) {
       Expect.isNotNull(error);
       directory.deleteSync();
     };

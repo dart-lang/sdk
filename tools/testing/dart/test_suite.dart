@@ -53,18 +53,18 @@ class CCTestListerIsolate extends Isolate {
       var p = new Process.start(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
-      stdoutStream.onLine = () {
+      stdoutStream.lineHandler = () {
         String line = stdoutStream.readLine();
         while (line != null) {
           tests.add(line);
           line = stdoutStream.readLine();
         }
       };
-      p.onError = (error) {
+      p.errorHandler = (error) {
         print("Failed to list tests: $runnerPath --list");
         replyTo.send("");
       };
-      p.onExit = (code) {
+      p.exitHandler = (code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
           replyTo.send("");
@@ -263,19 +263,20 @@ class StandardTestSuite implements TestSuite {
   void processDirectory() {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
-    dir.onError = (s) {
+    dir.errorHandler = (s) {
       throw s;
     };
-    dir.exists((bool exists) {
+    dir.existsHandler = (bool exists) {
       if (!exists) {
         print('Directory containing tests not found: $directoryPath');
         directoryListingDone(false);
       } else {
-        dir.onFile = processFile;
-        dir.onDone = directoryListingDone;
+        dir.fileHandler = processFile;
+        dir.doneHandler = directoryListingDone;
         dir.list(recursive: listRecursively());
       }
-    });
+    };
+    dir.exists();
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
@@ -887,11 +888,11 @@ class DartcCompilationTestSuite extends StandardTestSuite {
       Directory dir = new Directory("$directoryPath/$testDir");
       if (dir.existsSync()) {
         activityStarted();
-        dir.onError = (s) {
+        dir.errorHandler = (s) {
           throw s;
         };
-        dir.onFile = processFile;
-        dir.onDone = (ignore) => activityCompleted();
+        dir.fileHandler = processFile;
+        dir.doneHandler = (ignore) => activityCompleted();
         dir.list(recursive: listRecursively());
       }
     }
@@ -954,11 +955,11 @@ class JUnitTestSuite implements TestSuite {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
-    dir.onError = (s) {
+    dir.errorHandler = (s) {
       throw s;
     };
-    dir.onFile = processFile;
-    dir.onDone = createTest;
+    dir.fileHandler = processFile;
+    dir.doneHandler = createTest;
     dir.list(recursive: true);
   }
 
