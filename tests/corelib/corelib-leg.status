@@ -23,14 +23,12 @@ ForInTest: Fail # visitContinueStatement not implemented
 FutureTest: Fail # named constructors with type arguments are not implemented
 FuturesTest: Fail # factory ReceivePort is not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
-ListSortTest: Fail # visitContinueStatement not implemented
 ListTest: Fail # Internal Error: Cannot find value
 MapFromTest: Fail # map not implemented
 MapTest: Fail # map not implemented
 PortTest: Fail # SsaBuilder.visitContinueStatement not implemented
 QueueTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
-SortTest: Fail # visitContinueStatement not implemented
 SplayTreeTest: Fail # Internal Error: Cannot find value
 StringPatternTest: Fail # Bad bailout code related to for-in.
 StringTest: Fail # Internal Error: Cannot find value

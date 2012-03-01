@@ -40,15 +40,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 Language/13_Types/7_Type_Void_A01_t02: Fail # TODO(ahe): investigate.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # TODO(ahe): investigate.
 
-# Crashes and time outs.
-LibTest/core/List/sort_A01_t04: Skip # Times out.
-LibTest/core/List/sort_A01_t05: Skip # Times out.
-LibTest/core/List/sort_A01_t06: Skip # Times out.
-
-
-# This test should not time out. It is not that big.
-LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out. Also, issue co19 81.
-
 
 # Issues with co19 test suite.
 LibTest/core/Date/Date.fromString_A01_t02: Fail, OK # Undocumented behavior.
