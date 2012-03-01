@@ -7,7 +7,6 @@
 #include "platform/assert.h"
 #include "vm/flags.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 #include "vm/thread.h"
 #include "vm/token.h"
 
@@ -16,13 +15,6 @@ namespace dart {
 DEFINE_FLAG(bool, print_tokens, false, "Print scanned tokens.");
 
 void Scanner::InitKeywordTable() {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  keyword_symbol_table_ = object_store->keyword_symbols();
-  if (keyword_symbol_table_.IsNull()) {
-    object_store->InitKeywordTable();
-    keyword_symbol_table_ = object_store->keyword_symbols();
-    ASSERT(!keyword_symbol_table_.IsNull());
-  }
   for (int i = 0; i < Token::numKeywords; i++) {
     Token::Kind token = static_cast<Token::Kind>(Token::kFirstKeyword + i);
     keywords_[i].kind = token;
@@ -56,8 +48,7 @@ Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
       saved_context_(NULL),
-      private_key_(String::ZoneHandle(private_key.raw())),
-      keyword_symbol_table_(Array::ZoneHandle()) {
+      private_key_(String::ZoneHandle(private_key.raw())) {
   Reset();
   InitKeywordTable();
 }
@@ -270,13 +261,8 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
       }
       if (char_pos == ident_length) {
         if (keywords_[i].keyword_symbol == NULL) {
-          String& symbol = String::ZoneHandle();
-          symbol ^= keyword_symbol_table_.At(i);
-          if (symbol.IsNull()) {
-            symbol = String::NewSymbol(source_, ident_pos, ident_length);
-            keyword_symbol_table_.SetAt(i, symbol);
-          }
-          keywords_[i].keyword_symbol = &symbol;
+          keywords_[i].keyword_symbol = &String::ZoneHandle(
+              String::NewSymbol(source_, ident_pos, ident_length));
         }
         current_token_.literal = keywords_[i].keyword_symbol;
         current_token_.kind = keywords_[i].kind;

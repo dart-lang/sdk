@@ -12,10 +12,16 @@ class _DirectoryReaderWrappingImplementation extends DOMWrapperBase implements D
   }
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) {
-    _readEntries(this, successCallback, errorCallback);
-    return;
+    if (errorCallback === null) {
+      _readEntries(this, successCallback);
+      return;
+    } else {
+      _readEntries_2(this, successCallback, errorCallback);
+      return;
+    }
   }
-  static void _readEntries(receiver, successCallback, errorCallback) native;
+  static void _readEntries(receiver, successCallback) native;
+  static void _readEntries_2(receiver, successCallback, errorCallback) native;
 
   String get typeName() { return "DirectoryReader"; }
 }

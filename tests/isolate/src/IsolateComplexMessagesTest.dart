@@ -5,9 +5,8 @@
 // Dart test program for testing isolate communication with
 // complex messages.
 
-#library('IsolateComplexMessagesTest');
-#import('dart:isolate');
-#import('TestFramework.dart');
+#library("IsolateComplexMessagesTest");
+#import("TestFramework.dart");
 
 
 void test(TestExpectation expect) {

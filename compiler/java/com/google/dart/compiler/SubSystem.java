@@ -8,5 +8,5 @@ package com.google.dart.compiler;
  * Subsystem of compiler.
  */
 public enum SubSystem {
-  COMPILER, PARSER, STATIC_TYPE, RESOLVER
+  COMPILER, PARSER, STATIC_TYPE, RESOLVER, NORMALIZE, CODE_GEN, JS_BACKEND, CLOSURE_BACKEND
 }

@@ -5,8 +5,7 @@
 // Dart test program for testing that isolates are spawned.
 
 #library('IsolateNegativeTest');
-#import('dart:isolate');
-#import('TestFramework.dart');
+#import("TestFramework.dart");
 
 class IsolateNegativeTest extends Isolate {
   IsolateNegativeTest() : super();

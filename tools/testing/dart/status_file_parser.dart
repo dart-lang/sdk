@@ -59,14 +59,21 @@ void ReadConfigurationInto(path, sections, onDone) {
   if (!file.existsSync()) {
     throw new Exception('Cannot find test status file $path');
   }
-  InputStream file_stream = file.openInputStream();
+  // TODO(1797): When the checked in binary is updated to include the
+  // openInputStreamSync API remove this try/catch.
+  InputStream file_stream;
+  try {
+    file_stream = file.openInputStreamSync();
+  } catch (NoSuchMethodException e) {
+    file_stream = file.openInputStream();
+  }
   StringInputStream lines = new StringInputStream(file_stream);
 
   Section current = new Section.always();
   sections.add(current);
   String prefix = "";
 
-  lines.onLine = () {
+  lines.lineHandler = () {
     String line;
     while ((line = lines.readLine()) != null) {
       Match match = StripComment.firstMatch(line);
@@ -106,7 +113,7 @@ void ReadConfigurationInto(path, sections, onDone) {
     }
   };
 
-  lines.onClosed = () {
+  lines.closeHandler = () {
     onDone();
   };
 }

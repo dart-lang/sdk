@@ -46,6 +46,10 @@ public final class CompilerMetrics {
   private long nanoParseWallTime = 0;
   private AtomicLong nanoTotalParseTime = new AtomicLong();
   private long nativeLibCharCount;
+  private long packageAppTime = 0L;
+  private long packageAppTimeStart = 0L;
+  // JavascriptBackend Data
+  private long totalJsOutputCharCount;
 
   // Parser metrics
   private AtomicLong unitsParsed = new AtomicLong();
@@ -81,6 +85,10 @@ public final class CompilerMetrics {
     compileLibrariesTime = System.currentTimeMillis() - compileLibrariesTimeStart;
   }
 
+  public void endPackageAppTime() {
+    packageAppTime = System.currentTimeMillis() - packageAppTimeStart;
+  }
+
   public void endUpdateAndResolveTime() {
     updateAndResolveTime = System.currentTimeMillis() - updateAndResolveTimeStart;
   }
@@ -91,6 +99,10 @@ public final class CompilerMetrics {
 
   public long getJSNativeLibCharSize() {
     return nativeLibCharCount;
+  }
+
+  public long getJSOutputCharSize() {
+    return totalJsOutputCharCount;
   }
 
   public double getLinesPerMS() {
@@ -121,6 +133,10 @@ public final class CompilerMetrics {
     return unitsParsed.get();
   }
 
+  public long getPackageAppTime() {
+    return packageAppTime;
+  }
+
   public double getParseTime() {
     return nanoToMillis(nanoTotalParseTime.get());
   }
@@ -135,6 +151,20 @@ public final class CompilerMetrics {
 
   public double getPercentTimeParsing() {
     return getParseTime() / getTotalCompilationTime();
+  }
+
+  public double getRatioOutputToInput() {
+    if (getNumCharsParsed() == 0) {
+      return 0;
+    }
+    return getJSOutputCharSize() / getNumCharsParsed();
+  }
+
+  public double getRatioOutputToInputExcludingComments() {
+    if (getNumNonCommentChars() == 0) {
+      return 0;
+    }
+    return getJSOutputCharSize() / getNumNonCommentChars();
   }
   
   public double getTimeSpentPerUnit() {
@@ -152,8 +182,24 @@ public final class CompilerMetrics {
     return updateAndResolveTime;
   }
   
+  /**
+   * Records that the application was packaged to JS.
+   *
+   * @param totalJsOutputCharSize number of characts of JS output produced
+   * @param nativeLibCharCount number of characters of JS output consumed by native JS libs or -1 if
+   *          the backend did not record this information
+   */
+  public void packagedJsApplication(long totalJsOutputCharSize, long nativeLibCharCount) {
+    this.totalJsOutputCharCount = totalJsOutputCharSize;
+    this.nativeLibCharCount = nativeLibCharCount;
+  }
+  
   public void startCompileLibrariesTime() {
     compileLibrariesTimeStart = System.currentTimeMillis();
+  }
+  
+  public void startPackageAppTime() {
+    packageAppTimeStart = System.currentTimeMillis();
   }
   
   public void startUpdateAndResolveTime() {
@@ -180,6 +226,7 @@ public final class CompilerMetrics {
     out.format("Compile-time-total-ms          : %1$.2f%n", getTotalCompilationTime());
     out.format("# Update-and-resolve-time-ms     : %d\n", getUpdateAndResolveTime());
     out.format("# Compile-libraries-time-ms      : %d\n", getCompileLibrariesTime());
+    out.format("# Package-app-time-ms            : %d\n", getPackageAppTime());
     out.println("# Compile-time-unit-average-ms  : " + getTimeSpentPerUnit());
     out.format("# Parse-wall-time-ms             : %1$.2f%n", getParseWallTime());
     out.format("# Parse-time-ms                  : %1$.2f%n", getParseTime());
@@ -188,10 +235,13 @@ public final class CompilerMetrics {
     out.println("# Parsed-src-lines               : " + getNumLinesParsed());
     out.println("# Parsed-code-chars              : " + getNumNonCommentChars());
     out.println("# Parsed-code-lines              : " + getNumNonCommentLines());
+    out.println("# Output-js-chars                : " + getJSOutputCharSize());
     double jsNativeLibCharSize = (getJSNativeLibCharSize() == -1) ? 0 : getJSNativeLibCharSize();
     out.println("# Output-js-native-lib-chars     : " + jsNativeLibCharSize );
     out.println("# Processed-total-lines-ms       : " + getLinesPerMS());
     out.println("# Processed-code-lines-ms        : " + getNonCommentLinesPerMS());
+    out.println("# Ratio-output-intput-total      : " + getRatioOutputToInput());
+    out.println("# Ratio-output-intput-code       : " + getRatioOutputToInputExcludingComments());
     out.println("# Ratio-parsing-compile-percent  : " + getPercentTimeParsing() * 100);
   }
 }

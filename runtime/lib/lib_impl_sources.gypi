@@ -18,6 +18,8 @@
     'immutable_map.dart',
     'integers.cc',
     'integers.dart',
+    'isolate.cc',
+    'isolate.dart',
     'math.dart',
     'math.cc',
     'regexp.cc',

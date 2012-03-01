@@ -31,11 +31,4 @@ main() {
       Expect.equals(1024, a2[0]);
 
   });
-
-  test('typeTests', () {
-      var a = new Float32Array(10);
-      Expect.isTrue(a is List);
-      Expect.isTrue(a is List<num>);
-      Expect.isTrue(a is! List<String>);
-    });
 }

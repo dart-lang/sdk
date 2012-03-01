@@ -11,6 +11,8 @@
 #source("implementation/bool.dart");
 #source("implementation/collections.dart");
 #source("implementation/date_implementation.dart");
+#source("implementation/isolate.dart");
+#source("implementation/isolate_serialization.dart");
 #source("implementation/math_natives.dart");
 #source("implementation/number.dart");
 #source("implementation/regexp.dart");

@@ -8,11 +8,10 @@ prefix isolate
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
 [ $component == dartium || $component == vm ]
-SerializationTest: Skip  # tests frog-specific serialization code
+SerializationTest: Skip  # DartC test (uses coreimpl).
 *APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
 [ $component == dartc ]
-SerializationTest: Skip  # tests frog-specific serialization code
 IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
 *APIv2*: Skip # new api for isolates not in corelib yet.
@@ -37,6 +36,9 @@ MandelIsolateTest: Skip     # Bug 5353937.
 [ $component == frogium || $component == webdriver ]
 *StandaloneTest: Skip
 *StandaloneNegativeTest: Skip
+# We need multi-file tests for this.  See Issue 1666.
+# TODO(eub, sigmund): unskip.
+*spawnUri*: Skip  
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $component == frogium || $component == webdriver ]

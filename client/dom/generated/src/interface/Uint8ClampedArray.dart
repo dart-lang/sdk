@@ -14,7 +14,5 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   final int length;
 
-  void setElements(Object array, [int offset]);
-
   Uint8ClampedArray subarray(int start, [int end]);
 }

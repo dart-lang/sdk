@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,59 +36,28 @@ class _BaseDataInputStream {
   }
 
   void close() {
-    _cancelScheduledDataCallback();
+    if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
     _close();
     _checkScheduleCallbacks();
   }
 
   bool get closed() => _closeCallbackCalled;
 
-  void set onData(void callback()) {
+  void set dataHandler(void callback()) {
     _clientDataHandler = callback;
     _checkScheduleCallbacks();
   }
 
-  void set onClosed(void callback()) {
+  void set closeHandler(void callback()) {
     _clientCloseHandler = callback;
     _checkScheduleCallbacks();
   }
 
-  void set onError(void callback()) {
-    _clientErrorHandler = callback;
+  void set errorHandler(void callback()) {
+    // No errors emitted by default.
   }
 
   abstract List<int> _read(int bytesToRead);
-
-  void _dataReceived() {
-    // More data has been received asynchronously. Perform the data
-    // handler callback now.
-    _cancelScheduledDataCallback();
-    if (_clientDataHandler !== null) {
-      _clientDataHandler();
-    }
-    _checkScheduleCallbacks();
-  }
-
-  void _closeReceived() {
-    // Close indication has been received asynchronously. Perform the
-    // close callback now if all data has been delivered.
-    _streamMarkedClosed = true;
-    if (available() == 0) {
-      if (_clientCloseHandler !== null) {
-        _clientCloseHandler();
-        _closeCallbackCalled = true;
-      }
-    } else {
-      _checkScheduleCallbacks();
-    }
-  }
-
-  void _cancelScheduledDataCallback() {
-    if (_scheduledDataCallback != null) {
-      _scheduledDataCallback.cancel();
-      _scheduledDataCallback = null;
-    }
-  }
 
   void _checkScheduleCallbacks() {
     void issueDataCallback(Timer timer) {
@@ -113,7 +82,6 @@ class _BaseDataInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
-        _cancelScheduledDataCallback();
         _close();
         _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
         _closeCallbackCalled = true;
@@ -135,7 +103,6 @@ class _BaseDataInputStream {
   Timer _scheduledCloseCallback;
   Function _clientDataHandler;
   Function _clientCloseHandler;
-  Function _clientErrorHandler;
 }
 
 
@@ -150,8 +117,8 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
     List<int> data;
     while ((data = input.read()) !== null) {
       if (!output.write(data)) {
-        input.onData = null;
-        output.onNoPendingWrites = pipeNoPendingWriteHandler;
+        input.dataHandler = null;
+        output.noPendingWriteHandler = pipeNoPendingWriteHandler;
         break;
       }
     }
@@ -159,19 +126,17 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
 
   pipeCloseHandler = () {
     if (close) output.close();
-    if (_inputCloseHandler !== null) {
-      _inputCloseHandler();
-    }
+    if (_inputCloseHandler !== null) _inputCloseHandler();
   };
 
   pipeNoPendingWriteHandler = () {
-    input.onData = pipeDataHandler;
-    output.onNoPendingWrites = null;
+    input.dataHandler = pipeDataHandler;
+    output.noPendingWriteHandler = null;
   };
 
   _inputCloseHandler = input._clientCloseHandler;
-  input.onData = pipeDataHandler;
-  input.onClosed = pipeCloseHandler;
-  output.onNoPendingWrites = null;
+  input.dataHandler = pipeDataHandler;
+  input.closeHandler = pipeCloseHandler;
+  output.noPendingWriteHandler = null;
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@
  * An output stream provides internal buffering of the data written
  * through all calls to [write] and [writeFrom] if data cannot be
  * written immediately to the communication channel. The callback set
- * through [onNoPendingWrites] can be used to to keep the rate of
+ * through [noPendingWriteHandler] can be used to to keep the rate of
  * writing in sync with the rate the system can actually write data to
  * the underlying communication channel.
  */
@@ -59,19 +59,19 @@ interface OutputStream {
    * writing in sync with the rate the system can write data to the
    * underlying communication channel.
    */
-  void set onNoPendingWrites(void callback());
+  void set noPendingWriteHandler(void callback());
 
   /**
    * Sets the handler that gets called when the underlying
    * communication channel has been closed and no more data can be
    * send.
    */
-  void set onClosed(void callback());
+  void set closeHandler(void callback());
 
   /**
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set errorHandler(void callback());
 }
 

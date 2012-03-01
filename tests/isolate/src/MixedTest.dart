@@ -5,7 +5,6 @@
 // Dart test program for testing that heavy and light isolates can be mixed.
 
 #library('MixedTest');
-#import("dart:isolate");
 #import('TestFramework.dart');
 
 class IsolateA extends Isolate {

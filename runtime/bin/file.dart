@@ -29,11 +29,10 @@ interface File default _File {
   File(String name);
 
   /**
-   * Check if the file exists. The callback is called with the result
-   * when the operation completes. The [onError] function registered
-   * on the file object is called if an error occurs.
+   * Check if the file exists. The [existsHandler] is called with the
+   * result when the operation completes.
    */
-  void exists(void callback(bool exists));
+  void exists();
 
   /**
    * Synchronously check if the file exists.
@@ -41,13 +40,13 @@ interface File default _File {
   bool existsSync();
 
   /**
-   * Create the file. The callback is called when the file has been
-   * created. The [onError] function registered on the file object is
-   * called if the file cannot be created. Existing files are left
-   * untouched by create. Calling create on an existing file might
-   * fail if there are restrictive permissions on the file.
+   * Create the file. The [createHandler] is called when the file has
+   * been created. The [errorHandler] is called if the file cannot be
+   * created. Existing files are left untouched by create. Calling
+   * create on an existing file might fail if there are restrictive
+   * permissions on the file.
    */
-  void create(void callback());
+  void create();
 
   /**
    * Synchronously create the file. Existing files are left untouched
@@ -57,11 +56,11 @@ interface File default _File {
   void createSync();
 
   /**
-   * Delete the file. The callback is called when the file has been
-   * successfully deleted. The [onError] function registered on the
-   * file object is called if the file cannot be deleted.
+   * Delete the file. The [deleteHandler] is called when the file has
+   * been successfully deleted. The [errorHandler] is called if the
+   * file cannot be deleted.
    */
-  void delete(void callback());
+  void delete();
 
   /**
    * Synchronously delete the file.
@@ -69,12 +68,12 @@ interface File default _File {
   void deleteSync();
 
   /**
-   * Get a Directory object for the directory containing this
-   * file. When the operation completes the callback is called with
-   * the result. If the file does not exist the [onError] function
-   * registered on the file object is called.
+   * Get a Directory object for the directory containing this file. If
+   * the file does not exist the [errorHandler] is called. When the
+   * operation completes the [directoryHandler] is called with the
+   * result.
    */
-  void directory(void callback(Directory dir));
+  void directory();
 
   /**
    * Synchronously get a Directory object for the directory containing
@@ -84,14 +83,15 @@ interface File default _File {
 
   /**
    * Open the file for random access operations. When the file is
-   * opened the callback is called with the resulting
+   * opened the [openHandler] is called with the resulting
    * RandomAccessFile. RandomAccessFiles must be closed using the
-   * [close] method. If the file cannot be opened [onError] is called.
+   * [close] method. If the file cannot be opened the [errorHandler]
+   * is called.
    *
    * Files can be opened in three modes:
    *
    * FileMode.READ: open the file for reading. If the file does not
-   * exist [onError] is called.
+   * exist the [errorHandler] is called.
    *
    * FileMode.WRITE: open the file for both reading and writing and
    * truncate the file to length zero. If the file does not exist the
@@ -99,8 +99,10 @@ interface File default _File {
    *
    * FileMode.APPEND: same as FileMode.WRITE except that the file is
    * not truncated.
+   *
+   * By default mode is FileMode.READ.
    */
-  void open(FileMode mode, void callback(RandomAccessFile opened));
+  void open([FileMode mode]);
 
   /**
    * Synchronously open the file for random access operations. The
@@ -110,15 +112,14 @@ interface File default _File {
    *
    * See [open] for information on the [:mode:] argument.
    */
-  RandomAccessFile openSync(FileMode mode);
+  RandomAccessFile openSync([FileMode mode]);
 
   /**
-   * Get the canonical full path corresponding to the file name.  The
-   * callback is called with the result when the
-   * fullPath operation completes. If the operation fails the
-   * [onError] function registered on the file object is called.
+   * Get the canonical full path corresponding to the file name. The
+   * [fullPathHandler] is called with the result when the fullPath
+   * operation completes.
    */
-  void fullPath(void callback(String path));
+  void fullPath();
 
   /**
    * Synchronously get the canonical full path corresponding to the file name.
@@ -128,9 +129,21 @@ interface File default _File {
   /**
    * Create a new independent input stream for the file. The file
    * input stream must be closed when no longer used to free up system
-   * resources.
+   * resources.  The [inputStreamHandler] is called with the result
+   * when the openInputStream operation completes.
    */
   InputStream openInputStream();
+
+  /**
+   * Synchronously create a new independent input stream for the
+   * file. The file input stream must be closed when no longer used to
+   * free up system resources.
+   *
+   * Even though this call to open the input stream is synchronous the
+   * input stream itself is asynchronous as is the case for all input
+   * streams.
+   */
+  InputStream openInputStreamSync();
 
   /**
    * Creates a new independent output stream for the file. The file
@@ -150,12 +163,24 @@ interface File default _File {
   OutputStream openOutputStream([FileMode mode]);
 
   /**
-   * Read the entire file contents as a list of bytes. When the
-   * operation completes the callback is called. The [onError]
-   * function registered on the file object is called if the operation
-   * fails.
+   * Synchronously creates a new independent output stream for the
+   * file. The file output stream must be closed when no longer used
+   * to free up system resources.
+   *
+   * See [openOutputStream] for information on the [:mode:] argument.
+   *
+   * Even though this call to open the output stream is synchronous
+   * the output stream itself is asynchronous as is the case for all
+   * output streams.
    */
-  void readAsBytes(void callback(List<int> bytes));
+  OutputStream openOutputStreamSync([FileMode mode]);
+
+  /**
+   * Read the entire file contents as a list of bytes. When the
+   * operation completes the [readAsBytesHandler] is called.
+   * The [errorHandler] is called if the operation fails.
+   */
+  void readAsBytes();
 
   /**
    * Synchronously read the entire file contents as a list of bytes.
@@ -163,35 +188,37 @@ interface File default _File {
   List<int> readAsBytesSync();
 
   /**
-   * Read the entire file contents as text using the given [encoding]
-   * ('UTF-8', 'ISO-8859-1', 'ASCII').
+   * Read the entire file contents as text using the give [encoding]
+   * ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the encoding is
+   * 'UTF-8'.
    *
-   * When the operation completes the callback is called. The
-   * [onError] function registered on the file object is called if the
+   * When the operation completes the [readAsTextHandler] is called
+   * with the resulting string.  The [errorHandler] is called if the
    * operation fails.
    */
-  void readAsText(String encoding, void callback(String text));
+  void readAsText([String encoding]);
 
   /**
    * Synchronously read the entire file contents as text using the
-   * given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
+   * give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
    * encoding is 'UTF-8'.
    */
   String readAsTextSync([String encoding]);
 
   /**
    * Read the entire file contents as lines of text using the give
-   * [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII').
+   * [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
+   * encoding is 'UTF-8'.
    *
-   * When the operation completes the callback is called. The
-   * [onError] function registered on the file object is called if the
+   * When the operation completes the [readAsLinesHandler] is called
+   * with the resulting string.  The [errorHandler] is called if the
    * operation fails.
    */
-  void readAsLines(String encoding, void callback(List<String> lines));
+  void readAsLines();
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
+   * using the give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
    * default the encoding is 'UTF-8'.
    */
   List<String> readAsLinesSync([String encoding]);
@@ -202,10 +229,76 @@ interface File default _File {
   String get name();
 
   /**
+   * Sets the handler that gets called when an [exists] operation
+   * completes.
+   */
+  void set existsHandler(void handler(bool exists));
+
+  /**
+   * Sets the handler that gets called when a [create] operation
+   * completes.
+   */
+  void set createHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [delete] operation
+   * completes.
+   */
+  void set deleteHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [directory] operation
+   * completes.
+   */
+  void set directoryHandler(void handler(Directory directory));
+
+  /**
+   * Sets the handler that gets called when an [open] operation
+   * completes.
+   */
+  void set openHandler(void handler(RandomAccessFile openedFile));
+
+  /**
+   * Sets the handler that gets called when an [openInputStream]
+   * operation completes.
+   */
+  void set inputStreamHandler(void handler(InputStream stream));
+
+  /**
+   * Sets the handler that gets called when an [openOutputStream]
+   * operation completes.
+   */
+  void set outputStreamHandler(void handler(OutputStream stream));
+
+  /**
+   * Set the handler that gets called when a [readAsBytes] operation
+   * completes.
+   */
+  void set readAsBytesHandler(void handler(List<int> bytes));
+
+  /**
+   * Set the handler that gets called when a [readAsText] operation
+   * completes.
+   */
+  void set readAsTextHandler(void handler(String text));
+
+  /**
+   * Set the handler that gets called when a [readAsLines] operation
+   * completes.
+   */
+  void set readAsLinesHandler(void handler(List<String> lines));
+
+  /**
+   * Sets the handler that gets called when a [fullPath] operation
+   * completes.
+   */
+  void set fullPathHandler(void handler(String path));
+
+  /**
    * Sets the handler that gets called when errors occur during
    * operations on this file.
    */
-  void set onError(void handler(String error));
+  void set errorHandler(void handler(String error));
 }
 
 
@@ -216,9 +309,10 @@ interface File default _File {
  */
 interface RandomAccessFile {
   /**
-   * Close the file. When the file is closed the callback is called.
+   * Close the file. When the file is closed the [closeHandler] is
+   * called.
    */
-  void close(void callback());
+  void close();
 
   /**
    * Synchronously close the file.
@@ -227,9 +321,9 @@ interface RandomAccessFile {
 
   /**
    * Read a byte from the file. When the byte has been read the
-   * callback is called with the value.
+   * [readByteHandler] is called with the value.
    */
-  void readByte(void callback(int byte));
+  void readByte();
 
   /**
    * Synchronously read a single byte from the file.
@@ -238,10 +332,10 @@ interface RandomAccessFile {
 
   /**
    * Read a List<int> from the file. When the list has been read the
-   * callback is called with an integer indicating how much was read.
+   * [readListHandler] is called with an integer indicating how much
+   * was read.
    */
-  void readList(List<int> buffer, int offset, int bytes,
-                void callback(int read));
+  void readList(List<int> buffer, int offset, int bytes);
 
   /**
    * Synchronously read a List<int> from the file. Returns the number
@@ -251,8 +345,8 @@ interface RandomAccessFile {
 
   /**
    * Write a single byte to the file. If the byte cannot be written
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * the [errorHandler] is called. When all pending write operations
+   * have finished the [noPendingWriteHandler] is called.
    */
   void writeByte(int value);
 
@@ -264,8 +358,8 @@ interface RandomAccessFile {
 
   /**
    * Write a List<int> to the file. If the list cannot be written the
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * [errorHandler] is called. When all pending write operations have
+   * finished the [noPendingWriteHandler] is called.
    */
   void writeList(List<int> buffer, int offset, int bytes);
 
@@ -277,8 +371,8 @@ interface RandomAccessFile {
 
   /**
    * Write a string to the file. If the string cannot be written the
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * [errorHandler] is called. When all pending write operations have
+   * finished the [noPendingWriteHandler] is called.
    */
   // TODO(ager): writeString should take an encoding.
   void writeString(String string);
@@ -292,9 +386,9 @@ interface RandomAccessFile {
 
   /**
    * Get the current byte position in the file. When the operation
-   * completes the callback is called with the position.
+   * completes the [positionHandler] is called with the position.
    */
-  void position(void callback(int position));
+  void position();
 
   /**
    * Synchronously get the current byte position in the file.
@@ -303,9 +397,9 @@ interface RandomAccessFile {
 
   /**
    * Set the byte position in the file. When the operation completes
-   * the callback is called.
+   * the [setPositionHandler] is called.
    */
-  void setPosition(int position, void callback());
+  void setPosition(int position);
 
   /**
    * Synchronously set the byte position in the file.
@@ -314,9 +408,9 @@ interface RandomAccessFile {
 
   /**
    * Truncate (or extend) the file to [length] bytes. When the
-   * operation completes successfully the callback is called.
+   * operation completes successfully the [truncateHandler] is called.
    */
-  void truncate(int length, void callback());
+  void truncate(int length);
 
   /**
    * Synchronously truncate (or extend) the file to [length] bytes.
@@ -325,9 +419,9 @@ interface RandomAccessFile {
 
   /**
    * Get the length of the file. When the operation completes the
-   * callback is called with the length.
+   * [lengthHandler] is called with the length.
    */
-  void length(void callback(int length));
+  void length();
 
   /**
    * Synchronously get the length of the file.
@@ -335,10 +429,10 @@ interface RandomAccessFile {
   int lengthSync();
 
   /**
-   * Flush the contents of the file to disk. The callback is
+   * Flush the contents of the file to disk. The [flushHandler] is
    * called when the flush operation completes.
    */
-  void flush(void callback());
+   void flush();
 
   /**
    * Synchronously flush the contents of the file to disk.
@@ -351,16 +445,64 @@ interface RandomAccessFile {
   String get name();
 
   /**
+   * Sets the handler that gets called when a [close] operation
+   * completes.
+   */
+  void set closeHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [readByte] operation
+   * completes.
+   */
+  void set readByteHandler(void handler(int byte));
+
+  /**
+   * Sets the handler that gets called when a [readList] operation
+   * completes.
+   */
+  void set readListHandler(void handler(int read));
+
+  /**
    * Sets the handler that gets called when there are no more write
    * operations pending for this file.
    */
-  void set onNoPendingWrites(void handler());
+  void set noPendingWriteHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [position] operation
+   * completes.
+   */
+  void set positionHandler(void handler(int position));
+
+  /**
+   * Sets the handler that gets called when a [setPosition] operation
+   * completes.
+   */
+  void set setPositionHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [truncate] operation
+   * completes.
+   */
+  void set truncateHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [length] operation
+   * completes.
+   */
+  void set lengthHandler(void handler(int length));
+
+  /**
+   * Sets the handler that gets called when a [flush] operation
+   * completes.
+   */
+  void set flushHandler(void handler());
 
   /**
    * Sets the handler that gets called when errors occur when
    * operating on this file.
    */
-  void set onError(void handler(String error));
+  void set errorHandler(void handler(String error));
 }
 
 

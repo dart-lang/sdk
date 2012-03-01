@@ -218,10 +218,6 @@ class Token {
     return (Attributes(tok) & kPseudoKeyword) != 0;
   }
 
-  static bool IsKeyword(Kind tok) {
-    return (Attributes(tok) & kKeyword) != 0;
-  }
-
   static bool IsIdentifier(Kind tok) {
     return (tok == kIDENT) || IsPseudoKeyword(tok);
   }
@@ -255,15 +251,6 @@ class Token {
            (tok == kINDEX) ||
            (tok == kASSIGN_INDEX) ||
            (tok == kNEGATE);
-  }
-
-  static bool NeedsLiteralToken(Kind tok) {
-    ASSERT(tok < kNumTokens);
-    return ((tok == Token::kINTEGER) ||
-            (tok == Token::kSTRING) ||
-            (tok == Token::kINTERPOL_VAR) ||
-            (tok == Token::kERROR) ||
-            (tok == Token::kDOUBLE));
   }
 
  private:

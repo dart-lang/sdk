@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 
 #include "vm/ast.h"
-#include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
 #include "vm/scanner.h"
 
@@ -127,8 +126,6 @@ class Parser : ValueObject {
   inline Token::Kind CurrentToken();
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
-  RawDouble* CurrentDoubleLiteral() const;
-  RawInteger* CurrentIntegerLiteral() const;
 
   // Sets parser to given token position in the stream.
   void SetPosition(intptr_t position);
@@ -184,25 +181,12 @@ class Parser : ValueObject {
                             const char* format,
                             va_list args);
 
-  // Reports error/warning message at location of current token.
+  // Reports error message at location of current token.
   void ErrorMsg(const char* msg, ...);
-  void Warning(const char* msg, ...);
-  void Unimplemented(const char* msg);
-
-  // Reports error message at given location.
   void ErrorMsg(intptr_t token_index, const char* msg, ...);
+  void Warning(const char* msg, ...);
   void Warning(intptr_t token_index, const char* msg, ...);
-  // Concatenates two error messages, the previous and the current one.
-  void AppendErrorMsg(
-      const Error& prev_error, intptr_t token_index, const char* format, ...);
-
-  // Same as FormatError, but appends the new error to the 'prev_error'.
-  static RawError* FormatErrorWithAppend(const Error& prev_error,
-                                         const Script& script,
-                                         intptr_t token_index,
-                                         const char* message_header,
-                                         const char* format,
-                                         va_list args);
+  void Unimplemented(const char* msg);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
@@ -233,14 +217,18 @@ class Parser : ValueObject {
   void ParseLibraryInclude();
   void ParseLibraryResource();
 
+  enum TypeResolution {
+    kIgnore,  // Parsed type is ignored and replaced by Dynamic.
+    kDoNotResolve,  // Type resolution is postponed.
+    kCanResolve,  // Type resolution is optional.
+    kMustResolve  // Type resolution is required.
+  };
   void ResolveTypeFromClass(const Class& cls,
-                            ClassFinalizer::FinalizationKind finalization,
+                            TypeResolution type_resolution,
                             AbstractType* type);
-  RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization);
+  RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
-  RawAbstractTypeArguments* ParseTypeArguments(
-      Error* malformed_error,
-      ClassFinalizer::FinalizationKind finalization);
+  RawAbstractTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -335,8 +323,7 @@ class Parser : ValueObject {
   // Add the inlined finally block to the specified node.
   void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
-  RawAbstractType* ParseFinalVarOrType(
-      ClassFinalizer::FinalizationKind finalization);
+  RawAbstractType* ParseFinalVarOrType(TypeResolution type_resolution);
   AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
@@ -437,7 +424,6 @@ class Parser : ValueObject {
                           const char* function_name,
                           ArgumentListNode* arguments);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
 
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);

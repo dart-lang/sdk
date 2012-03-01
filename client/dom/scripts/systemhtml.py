@@ -6,84 +6,55 @@
 """This module provides shared functionality for the system to generate
 Dart:html APIs from the IDL database."""
 
+import os
+from generator import *
+from systembase import *
 from systemfrog import *
 from systeminterface import *
 
 # Members from the standard dom that should not be exposed publicly in dart:html
 # but need to be exposed internally to implement dart:html on top of a standard
 # browser.
-_private_html_members = set([
-  'Element.clientLeft',
-  'Element.clientTop',
-  'Element.clientWidth',
-  'Element.clientHeight',
-  'Element.offsetLeft',
-  'Element.offsetTop',
-  'Element.offsetWidth',
-  'Element.offsetHeight',
-  'Element.scrollLeft',
-  'Element.scrollTop',
-  'Element.scrollWidth',
-  'Element.scrollHeight',
-  'Element.childElementCount',
-  'Element.firstElementChild',
-  'Element.hasAttribute',
-  'Element.getAttribute',
-  'Element.removeAttribute',
-  'Element.setAttribute',
-  'Element.className',
-  'Element.children',
-  'Element.querySelectorAll',
-  'Document.querySelectorAll',
-  'Element.getBoundingClientRect',
-  'Element.getClientRects',
-  'Node.appendChild',
-  'Node.removeChild',
-  'Node.replaceChild',
-  'Node.attributes',
-  'Node.childNodes',
-  'Document.createElement',
-  'Document.createEvent',
-  'Document.createTextNode',
-  'Document.createTouchList',
-  'Window.getComputedStyle',
-  'EventTarget.removeEventListener',
-  'EventTarget.addEventListener',
-  'EventTarget.dispatchEvent',
-  'Event.initEvent',
-  'MouseEvent.initMouseEvent',
-])
+_private_html_members = {
+  'Element': set(['clientLeft', 'clientTop', 'clientWidth', 'clientHeight',
+      'offsetLeft', 'offsetTop', 'offsetWidth', 'offsetHeight',
+      'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight',
+      'childElementCount', 'firstElementChild', 'hasAttribute', 
+      'getAttribute', 'removeAttribute', 'setAttribute', 'className',
+      'children']),
+  'Node' : set(['appendChild', 'removeChild', 'replaceChild', 'attributes',
+      'childNodes']),
+  # TODO(jacobr): other direct translate methods on node such as
+  # textContext->text
+  'Document': set(['createElement', 'createEvent']),
+  'Window': set(['getComputedStyle']),
+  'EventTarget': set(['removeEventListener', 'addEventListener',
+      'dispatchEvent']),
+  'Event': set(['initEvent', 'target', 'srcElement', 'currentTarget'])
+}
 
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
-_html_library_renames = {
-    'Document.defaultView': 'window',
-    'DocumentFragment.querySelector': 'query',
-    'Element.querySelector': 'query',
-    'Element.webkitMatchesSelector' : 'matchesSelector',
-    'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
-    'Document.querySelector': 'query',
-    'DocumentFragment.querySelectorAll': 'queryAll',
-    'DocumentFragment.querySelectorAll': 'queryAll',
-    'Node.cloneNode': 'clone',
-    'Node.nextSibling': 'nextNode',
-    'Node.ownerDocument': 'document',
-    'Node.parentNode': 'parent',
-    'Node.previousSibling': 'previousNode',
-    'Node.textContent': 'text',
+html_library_renames = {
+    'Document.createTextNode': 'Text.Text',
+    'Document.get:defaultView': 'Document.get:window',
+    'DocumentFragment.querySelector': 'Element.query',
+    'Element.querySelector': 'Element.query',
+    'Document.querySelector': 'Element.query',
+    'DocumentFragment.querySelectorAll': 'Element.queryAll',
+    'DocumentFragment.querySelectorAll': 'Element.queryAll',
+    'Element.querySelectorAll': 'Element.queryAll',
+    'Element.scrollIntoViewIfNeeded': 'Element.scrollIntoView',
+    'Node.cloneNode': 'Node.clone',
+    'Node.get:nextSibling': 'Node.get:nextNode',
+    'Node.get:ownerDocument': 'Node.get:document',
+    'Node.get:parentNode': 'Node.get:parent',
+    'Node.get:previousSibling': 'Node.get:previousNode',
 }
 
-#TODO(jacobr): inject annotations into the interfaces based on this table and
-# on _html_library_renames.
-_injected_doc_fragments = {
-    'Element.query': '  /** @domName querySelector, Document.getElementById */',
-}
 # Members and classes from the dom that should be removed completelly from
 # dart:html.  These could be expressed in the IDL instead but expressing this
 # as a simple table instead is more concise.
-# Syntax is: ClassName.(get\.|set\.)?MemberName
-# Using get: and set: is optional and should only be used when a getter needs
-# to be suppressed but not the setter, etc. 
 # TODO(jacobr): cleanup and augment this list.
 _html_library_remove = set([
     'Window.get:document', # Removed as we have a custom implementation.
@@ -98,8 +69,10 @@ _html_library_remove = set([
     # TODO(jacobr): listing title here is a temporary hack due to a frog bug
     # involving when an interface inherits from another interface and defines
     # the same field. BUG(1633)
-    "Document.title",
-    "Element.title",
+    "Document.get:title",
+    "Document.set:title",
+    "Element.get:title",
+    "Element.set:title",
     "Document.get:documentElement",
     "Document.get:forms",
 #    "Document.get:selectedStylesheetSet",
@@ -111,11 +84,7 @@ _html_library_remove = set([
     "Document.get:implementation",
     "Document.createAttributeNS",
     "Document.get:inputEncoding",
-    "Document.getElementById",
     "Document.getElementsByClassName",
-    "Element.getElementsByClassName",
-    "Element.getElementsByTagNameNS",
-    "Element.getElementsByTagName",
     "Document.get:compatMode",
     "Document.importNode",
     "Document.evaluate",
@@ -123,7 +92,8 @@ _html_library_remove = set([
     "Document.querySelector",
     "Document.createExpression",
     "Document.getOverrideStyle",
-    "Document.xmlStandalone",
+    "Document.get:xmlStandalone",
+    "Document.set:xmlStandalone",
     "Document.createComment",
     "Document.adoptNode",
     "Document.get:characterSet",
@@ -139,13 +109,15 @@ _html_library_remove = set([
     "Document.get:doctype",
     "Document.getElementsByName",
     "Document.createTreeWalker",
-    "Document.location",
+    "Document.get:location",
+    "Document.set:location",
     "Document.createNSResolver",
     "Document.get:xmlEncoding",
     "Document.get:defaultCharset",
     "Document.get:applets",
     "Document.getSelection",
-    "Document.xmlVersion",
+    "Document.get:xmlVersion",
+    "Document.set:xmlVersion",
     "Document.get:anchors",
     "Document.getElementsByTagNameNS",
     "DocumentType.*",
@@ -158,64 +130,77 @@ _html_library_remove = set([
     "Element.setAttributeNodeNS",
     "Element.getAttributeNodeNS",
     "Element.setAttributeNS",
-    "BodyElement.text",
-    "AnchorElement.text",
-    "OptionElement.text",
-    "ScriptElement.text",
-    "TitleElement.text",
 #    "EventSource.get:url",
 # TODO(jacobr): should these be removed?
     "Document.close",
     "Document.hasFocus",
 
-    "Document.vlinkColor",
+    "Document.get:vlinkColor",
+    "Document.set:vlinkColor",
     "Document.captureEvents",
     "Document.releaseEvents",
     "Document.get:compatMode",
-    "Document.designMode",
-    "Document.dir",
-    "Document.all",
+    "Document.get:designMode",
+    "Document.set:designMode",
+    "Document.get:dir",
+    "Document.set:dir",
+    "Document.get:all",
+    "Document.set:all",
     "Document.write",
-    "Document.fgColor",
-    "Document.bgColor",
+    "Document.get:fgColor",
+    "Document.set:fgColor",
+    "Document.get:bgColor",
+    "Document.set:bgColor",
     "Document.get:plugins",
-    "Document.alinkColor",
+    "Document.get:alinkColor",
+    "Document.set:alinkColor",
     "Document.get:embeds",
     "Document.open",
     "Document.clear",
     "Document.get:scripts",
     "Document.writeln",
-    "Document.linkColor",
+    "Document.get:linkColor",
+    "Document.set:linkColor",
     "Element.get:itemRef",
-    "Element.outerText",
-    "Element.accessKey",
+    "Element.set:className",
+    "Element.get:outerText",
+    "Element.set:outerText",
+    "Element.get:accessKey",
+    "Element.set:accessKey",
     "Element.get:itemType",
-    "Element.innerText",
+    "Element.get:innerText",
+    "Element.set:innerText",
     "Element.set:outerHTML",
-    "Element.itemScope",
-    "Element.itemValue",
-    "Element.itemId",
+    "Element.get:itemScope",
+    "Element.set:itemScope",
+    "Element.get:itemValue",
+    "Element.set:itemValue",
+    "Element.get:itemId",
+    "Element.set:itemId",
     "Element.get:itemProp",
-    'Element.scrollIntoView',
     "EmbedElement.getSVGDocument",
     "FormElement.get:elements",
     "HTMLFrameElement.*",
     "HTMLFrameSetElement.*",
-    "HTMLHtmlElement.version",
+    "HTMLHtmlElement.get:version",
+    "HTMLHtmlElement.set:version",
 #    "IFrameElement.getSVGDocument",  #TODO(jacobr): should this be removed
-    "InputElement.dirName",
+    "InputElement.get:dirName",
+    "InputElement.set:dirName",
     "HTMLIsIndexElement.*",
     "ObjectElement.getSVGDocument",
     "HTMLOptionsCollection.*",
     "HTMLPropertiesCollection.*",
     "SelectElement.remove",
-    "TextAreaElement.dirName",
+    "TextAreaElement.get:dirName",
+    "TextAreaElement.set:dirName",
     "NamedNodeMap.*",
     "Node.isEqualNode",
     "Node.get:TEXT_NODE",
     "Node.hasAttributes",
     "Node.get:DOCUMENT_TYPE_NODE",
     "Node.get:DOCUMENT_POSITION_FOLLOWING",
+    "Node.get:childNodes",
     "Node.lookupNamespaceURI",
     "Node.get:ELEMENT_NODE",
     "Node.get:namespaceURI",
@@ -235,6 +220,7 @@ _html_library_remove = set([
     "Node.get:firstChild",
     "Node.get:DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC",
     "Node.get:lastChild",
+    "Node.get:attributes",
     "Node.get:NOTATION_NODE",
     "Node.normalize",
     "Node.get:parentElement",
@@ -273,6 +259,8 @@ _on_attribute_to_event_name_mapping = {
   'webkitanimationend': 'webkitAnimationEnd',
   'webkitanimationiteration': 'webkitAnimationIteration',
   'webkitanimationstart': 'webkitAnimationStart',
+  'webkitfullscreenchange': 'webkitFullScreenChange',
+  'webkitfullscreenerror': 'webkitFullScreenError',
   'webkitspeechchange': 'webkitSpeechChange',
   'webkittransitionend': 'webkitTransitionEnd',
 }
@@ -375,8 +363,8 @@ _html_event_names = {
   'webkitAnimationEnd': 'animationEnd',
   'webkitAnimationIteration': 'animationIteration',
   'webkitAnimationStart': 'animationStart',
-  'webkitfullscreenchange': 'fullscreenChange',
-  'webkitfullscreenerror': 'fullscreenError',
+  'webkitFullScreenChange': 'fullScreenChange',
+  'webkitFullScreenError': 'fullScreenError',
   'webkitSpeechChange': 'speechChange',
   'webkitTransitionEnd': 'transitionEnd'
 }
@@ -397,66 +385,32 @@ def _DomToHtmlEvents(interface_id, events):
   return sorted(event_names, key=lambda name: _html_event_names[name])
 
 # ------------------------------------------------------------------------------
-class HtmlSystemShared(object):
 
-  def __init__(self, database, generator):
+class HtmlSystem(System):
+
+  def __init__(self, templates, database, emitters, output_dir, generator):
+    super(HtmlSystem, self).__init__(
+        templates, database, emitters, output_dir)
     self._event_classes = set()
     self._seen_event_names = {}
-    self._database = database
     self._generator = generator
 
-  def _AllowInHtmlLibrary(self, interface, member, member_prefix):
-    return not self._Matches(interface, member, member_prefix,
-        _html_library_remove)
-
-  def _Matches(self, interface, member, member_prefix, candidates):
+  def _AllowInHtmlLibrary(self, interface, member):
+    if self._PrivateInHtmlLibrary(interface, member):
+      return False
     for interface_name in ([interface.id] +
         self._generator._AllImplementedInterfaces(interface)):
-      if (DartType(interface_name) + '.' + member in candidates or
-          DartType(interface_name) + '.' + member_prefix + member in candidates):
+      if interface.id + '.' + member in _html_library_remove:
+        return False
+    return True
+
+  def _PrivateInHtmlLibrary(self, interface, member):
+    for interface_name in ([interface.id] +
+        self._generator._AllImplementedInterfaces(interface)):
+      if (interface_name in _private_html_members and 
+          member in _private_html_members[interface_name]):
         return True
     return False
-
-  def MaybeReturnDocument(self, return_type):
-    """
-    To make it appear that there are not a distinct Document and
-    HTMLHtmlElement (document.documentElement) objects we always use
-    documentElement instead of the regular document object so must not
-    allow a regular document to leak out.
-    """
-    # TODO(jacobr): any method that returns a Node could also theoretically
-    # really return a Document but there are alot of methods that return nodes
-    # and they all appear to be safe.  Consider the alternate strategy of
-    # whitelisting just the known safe methods that return Nodes.
-    return (DartType(return_type) == 'EventTarget' or
-        DartType(return_type) == 'Document')
-
-  def RenameInHtmlLibrary(self, interface, member, member_prefix=''):
-    """
-    Returns the name of the member in the HTML library or None if the member is
-    suppressed in the HTML library
-    """
-    if not self._AllowInHtmlLibrary(interface, member, member_prefix):
-      return None
-
-    for interface_name in ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface)):
-      name = interface.id + '.' + member
-      if name in _html_library_renames:
-        return _html_library_renames[name]
-      name = interface.id + '.' + member_prefix + member
-      if name in _html_library_renames:
-        return _html_library_renames[name]
-
-    if self._PrivateInHtmlLibrary(interface, member, member_prefix):
-      return '_' + member
-
-    # No rename required
-    return member
-
-  def _PrivateInHtmlLibrary(self, interface, member, member_prefix):
-    return self._Matches(interface, member, member_prefix,
-        _private_html_members)
 
   # TODO(jacobr): this already exists
   def _TraverseParents(self, interface, callback):
@@ -468,7 +422,7 @@ class HtmlSystemShared(object):
         self._TraverseParents(parent_interface, callback)
 
   # TODO(jacobr): this isn't quite right.... 
-  def GetParentsEventsClasses(self, interface):
+  def _GetParentsEventsClasses(self, interface):
     # Ugly hack as we don't specify that Document inherits from Element
     # in our IDL.
     if interface.id == 'Document':
@@ -487,16 +441,6 @@ class HtmlSystemShared(object):
       for interface in interfaces_with_events:
         names.append(interface.id + 'Events')
       return names
-
-  def _ImplClassName(self, type_name):
-    return '_' + type_name + 'Impl'
-
-class HtmlSystem(System):
-
-  def __init__(self, templates, database, emitters, output_dir, generator):
-    super(HtmlSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._shared = HtmlSystemShared(database, generator)
 
 class HtmlInterfacesSystem(HtmlSystem):
 
@@ -527,7 +471,7 @@ class HtmlInterfacesSystem(HtmlSystem):
         interface, dart_interface_code,
         template,
         common_prefix, super_interface_name,
-        source_filter, self, self._shared)
+        source_filter, self)
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
@@ -553,11 +497,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
   def __init__(self, interface, emitter, template,
-               common_prefix, super_interface, source_filter, system, shared):
+               common_prefix, super_interface, source_filter, system):
     super(HtmlDartInterfaceGenerator, self).__init__(interface,
       emitter, template, common_prefix, super_interface, source_filter)
     self._system = system
-    self._shared = shared
 
   def StartInterface(self):
     typename = self._interface.id
@@ -573,10 +516,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
-        extends.append(DartType(parent.type.id))
+        extends.append(parent.type.id)
       else:
         suppressed_extends.append('%s.%s' %
-            (self._common_prefix, DartType(parent.type.id)))
+                                  (self._common_prefix, parent.type.id))
 
     comment = ' extends'
     extends_str = ''
@@ -609,31 +552,21 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         TYPE=DartType(element_type))
 
   def AddAttribute(self, getter, setter):
-    html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
-
-    if not html_getter_name:
+    if getter and not self._system._AllowInHtmlLibrary(self._interface,
+        'get:' + getter.id):
       getter = None
-    if not html_setter_name:
+    if setter and not self._system._AllowInHtmlLibrary(self._interface,
+        'set:' + setter.id):
       setter = None
     if not getter and not setter:
       return
-
-    # We don't yet handle inconsistent renames of the getter and setter yet.
-    if html_getter_name and html_setter_name:
-      assert html_getter_name == html_setter_name
-    if (getter and setter and
-        DartType(getter.type.id) == DartType(setter.type.id)):
+    if getter and setter and DartType(getter.type.id) == DartType(setter.type.id):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=html_getter_name,
-                                 TYPE=DartType(getter.type.id));
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=html_getter_name,
-                                 TYPE=DartType(getter.type.id));
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))
@@ -644,12 +577,11 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       operations - contains the overloads, one or more operations with the same
         name.
     """
-    html_name = self._shared.RenameInHtmlLibrary(self._interface, info.name)
-    if html_name:
+    if self._system._AllowInHtmlLibrary(self._interface, info.name):
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
-                                 TYPE=info.type_name,         
-                                 NAME=html_name,
+                                 TYPE=info.type_name,
+                                 NAME=info.name,
                                  PARAMS=info.ParametersInterfaceDeclaration())
 
   def FinishInterface(self):
@@ -660,7 +592,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
 
   def AddEventAttributes(self, event_attrs):
     event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
-    self._shared._event_classes.add(self._interface.id)
+    self._system._event_classes.add(self._interface.id)
     events_interface = self._interface.id + 'Events'
     self._members_emitter.Emit('\n  $TYPE get on();\n',
                                TYPE=events_interface)
@@ -668,7 +600,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         '\ninterface $INTERFACE extends $PARENTS {\n$!MEMBERS}\n',
         INTERFACE=events_interface,
         PARENTS=', '.join(
-            self._shared.GetParentsEventsClasses(self._interface)))
+            self._system._GetParentsEventsClasses(self._interface)))
 
     for event_name in event_attrs:
       if event_name in _html_event_names:
@@ -686,14 +618,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   interface.
   """
 
-  def __init__(self, system, interface, template, super_interface, dart_code,
-      shared):
+  def __init__(self, system, interface, template, super_interface, dart_code):
     super(HtmlFrogClassGenerator, self).__init__(
         system, interface, template, super_interface, dart_code)
-    self._shared = shared
 
-  def _ImplClassName(self, type_name):
-    return self._shared._ImplClassName(type_name)
 
   def StartInterface(self):
     interface = self._interface
@@ -704,9 +632,24 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     base = None
     if interface.parents:
       supertype = interface.parents[0].type.id
+      # FIXME: We're currently injecting List<..> and EventTarget as
+      # supertypes in dart.idl. We should annotate/preserve as
+      # attributes instead.  For now, this hack lets the interfaces
+      # inherit, but not the classes.
+      if (not IsDartListType(supertype) and
+          not supertype == 'EventTarget'):
+        base = self._ImplClassName(supertype)
       if IsDartCollectionType(supertype):
         # List methods are injected in AddIndexer.
         pass
+      elif supertype == 'EventTarget':
+        # Most implementors of EventTarget specify the EventListener operations
+        # again.  If the operations are not specified, try to inherit from the
+        # EventTarget implementation.
+        #
+        # Applies to MessagePort.
+        if not [op for op in interface.operations if op.id == 'addEventListener']:
+          base = self._ImplClassName(supertype)
       else:
         base = self._ImplClassName(supertype)
 
@@ -730,90 +673,33 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
 
+    element_type = MaybeTypedArrayElementType(interface)
     if element_type:
       self.AddTypedArrayConstructors(element_type)
 
-  def AddIndexer(self, element_type):
-    """Adds all the methods required to complete implementation of List."""
-    # We would like to simply inherit the implementation of everything except
-    # get length(), [], and maybe []=.  It is possible to extend from a base
-    # array implementation class only when there is no other implementation
-    # inheritance.  There might be no implementation inheritance other than
-    # DOMBaseWrapper for many classes, but there might be some where the
-    # array-ness is introduced by a non-root interface:
-    #
-    #   interface Y extends X, List<T> ...
-    #
-    # In the non-root case we have to choose between:
-    #
-    #   class YImpl extends XImpl { add List<T> methods; }
-    #
-    # and
-    #
-    #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
-    #
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) native "return this[index];";\n',
-        TYPE=self._NarrowOutputType(element_type))
-
-    if 'CustomIndexedSetter' in self._interface.ext_attrs:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
-          TYPE=self._NarrowInputType(element_type))
-    else:
-      # The HTML library implementation of NodeList has a custom indexed setter
-      # implementation that uses the parent node the NodeList is associated
-      # with if one is available.
-      if self._interface.id != 'NodeList':
-        self._members_emitter.Emit(
-            '\n'
-            '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-            '  }\n',
-            TYPE=self._NarrowInputType(element_type))
-
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    if self._interface.id != 'NodeList':
-      template_file = 'immutable_list_mixin.darttemplate'
-      template = self._system._templates.Load(template_file)
-      self._members_emitter.Emit(template, E=DartType(element_type))
-
   def AddAttribute(self, getter, setter):
   
-    html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
-
-    if not html_getter_name:
+    if self._system._PrivateInHtmlLibrary(self._interface, getter.id):
+      if getter:
+        self._AddGetter(getter, True)
+      if setter:
+        self._AddSetter(setter, True)
+      return
+    if getter and not self._system._AllowInHtmlLibrary(self._interface,
+        'get:' + getter.id):
       getter = None
-    if not html_setter_name:
+    if setter and not self._system._AllowInHtmlLibrary(self._interface,
+        'set:' + setter.id):
       setter = None
-
     if not getter and not setter:
       return
-
-    if ((getter and (html_getter_name != getter.id or
-                     self._shared.MaybeReturnDocument(getter.type.id))) or
-        (setter and (html_setter_name != setter.id or
-                     self._shared.MaybeReturnDocument(setter.type.id))) or
-        self._interface.id == 'Document'):
-      if getter:
-        self._AddRenamingGetter(getter, html_getter_name)
-      if setter:
-        self._AddRenamingSetter(setter, html_setter_name)
-      return
-
     # If the (getter, setter) pair is shadowing, we can't generate a shadowing
     # field (Issue 1633).
     (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter)
     (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
-        if DartType(getter.type.id) == DartType(super_getter.type.id):
+        if getter.type.id == super_getter.type.id:
           # Compatible getter, use the superclass property.  This works because
           # JavaScript will do its own dynamic dispatch.
           output_type = getter and self._NarrowOutputType(getter.type.id)
@@ -822,71 +708,53 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_getter_interface.id,
-              NAME=getter.id,
-              TYPE=output_type)
+              NAME=getter.id, TYPE=output_type)
           return
 
       self._members_emitter.Emit('\n  // Shadowing definition.')
-      self._AddAttributeUsingProperties(getter, setter)
+      if getter:
+        self._AddGetter(getter, False)
+      if setter:
+        self._AddSetter(setter, False)
       return
 
-    output_type = getter and self._NarrowOutputType(getter.type.id)
-    input_type = setter and self._NarrowInputType(setter.type.id)
-    if getter and setter and input_type == output_type:
-      self._members_emitter.Emit(
-          '\n  $TYPE $NAME;\n',
-          NAME=getter.id,
-          TYPE=output_type)
-      return
-    if getter and not setter:
-      self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;\n',
-          NAME=getter.id,
-          TYPE=output_type)
-      return
-    self._AddAttributeUsingProperties(getter, setter)
+    if self._interface.id != 'Document':
+      output_type = getter and self._NarrowOutputType(getter.type.id)
+      input_type = setter and self._NarrowInputType(setter.type.id)
+      if getter and setter and input_type == output_type:
+        self._members_emitter.Emit(
+            '\n  $TYPE $NAME;\n',
+            NAME=getter.id, TYPE=output_type)
+        return
+      if getter and not setter:
+        self._members_emitter.Emit(
+            '\n  final $TYPE $NAME;\n',
+            NAME=getter.id, TYPE=output_type)
+        return
+    self._AddAttributeUsingProperties(getter, setter, False)
 
-  def _AddAttributeUsingProperties(self, getter, setter):
+  def _AddAttributeUsingProperties(self, getter, setter, private):
     if getter:
-      self._AddGetter(getter)
+      self._AddGetter(getter, private)
     if setter:
-      self._AddSetter(setter)
+      self._AddSetter(setter, private)
 
-  def _AddGetter(self, attr):
-    self._AddRenamingGetter(attr, attr.id)
-
-  def _AddSetter(self, attr):
-    self._AddRenamingSetter(attr, attr.id)
-
-  def _AddRenamingGetter(self, attr, html_name):
-    return_type = self._NarrowOutputType(attr.type.id)
-    if self._shared.MaybeReturnDocument(attr.type.id):
-      self._members_emitter.Emit(
-        '\n  $TYPE get $(HTML_NAME)() => '
-        '_FixHtmlDocumentReference(_$(HTML_NAME));\n',
-        HTML_NAME=html_name,
-        NAME=attr.id,
-        TYPE=return_type)
-      html_name = '_' + html_name
-      # For correctness this needs to be the return type of the native helper
-      # method due to the fact that the real HTMLDocument object is not typed
-      # as a document.  TODO(jacobr): we could simplify this.
-      return_type = '_EventTargetImpl'
-
+  def _AddGetter(self, attr, private):
+    # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  $TYPE get $(HTML_NAME)() native "return $(THIS).$NAME;";\n',
-        HTML_NAME=html_name,
-        NAME=attr.id,
-        TYPE=return_type,
-        THIS='this.parentNode' if self._interface.id == 'Document' else 'this')
+        '\n  $TYPE get $PRIVATE$NAME() native "return $THIS.$NAME;";\n',
+        NAME=attr.id, TYPE=self._NarrowOutputType(attr.type.id),
+        PRIVATE='_' if private else '',
+        THIS='this.parentNode' if self._interface.id == 'Document' else 'this' 
+        )
 
-  def _AddRenamingSetter(self, attr, html_name):
+  def _AddSetter(self, attr, private):
+    # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  void set $HTML_NAME($TYPE value)'
-        ' native "$(THIS).$NAME = value;";\n',
-        HTML_NAME=html_name,
-        NAME=attr.id,
-        TYPE=self._NarrowInputType(attr.type.id),
+        '\n  void set $PRIVATE$NAME($TYPE value)'
+        ' native "$THIS.$NAME = value;";\n',
+        NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id),
+        PRIVATE='_' if private else '',
         THIS='this.parentNode' if self._interface.id == 'Document' else 'this')
 
   def AddOperation(self, info):
@@ -894,45 +762,29 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     Arguments:
       info: An OperationInfo object.
     """
-    html_name = self._shared.RenameInHtmlLibrary(self._interface, info.name)
-    if not html_name:
-      return
-
-    maybe_return_document = self._shared.MaybeReturnDocument(info.type_name)
-
-    # Do we need a native body?
-    if (self._interface.id == 'Document' or  # Need alternate 'this'
-        html_name != info.name or            # renamed operation
-        maybe_return_document):              # need to wrap value
-      # For example: use window.document instead of his.parentNode.
+    private_in_html = self._system._PrivateInHtmlLibrary(self._interface,
+        info.name)
+    if private_in_html or self._interface.id == 'Document':
+      # TODO(vsm): Handle overloads.
+      # TODO(jacobr): handle document more efficiently for cases where any
+      # document is fine.  For example: use window.document instead of
+      # this.parentNode.
       return_type = self._NarrowOutputType(info.type_name)
-      
-      operation_emitter = self._members_emitter.Emit('$!SCOPE',
-          THIS=('this.parentNode' if self._interface.id == 'Document'
-              else 'this'),
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE $PRIVATE$NAME($PARAMS)'
+          ' native "$(RETURN)$(THIS).$NAME($PARAMNAMES);";\n',
           TYPE=return_type,
-          HTML_NAME=html_name,
-          NAME=info.name,
           RETURN='' if return_type == 'void' else 'return ',
+          NAME=info.name,
+          PRIVATE='_' if private_in_html else '',
+          THIS='this.parentNode' if self._interface.id == 'Document'
+              else 'this',
           PARAMNAMES=info.ParametersAsArgumentList(),
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
-
-      if maybe_return_document:
-        assert len(info.overloads) == 1
-        operation_emitter.Emit(
-            '\n'
-            '  $TYPE $(HTML_NAME)($PARAMS) => '
-            '_FixHtmlDocumentReference(_$(HTML_NAME)($PARAMNAMES));\n'
-            '\n'
-            '  _EventTargetImpl _$(HTML_NAME)($PARAMS)'
-            ' native "return $(THIS).$NAME($PARAMNAMES);";\n')
-      else:
-        operation_emitter.Emit(
-            '\n'
-            '  $TYPE $(HTML_NAME)($PARAMS)'
-            ' native "$(RETURN)$(THIS).$NAME($PARAMNAMES);";\n')
-    else:
+    elif self._system._AllowInHtmlLibrary(self._interface, info.name):
+      # TODO(jacobr): this is duplicated from the parent class.
       self._members_emitter.Emit(
           '\n'
           '  $TYPE $NAME($PARAMS) native;\n',
@@ -951,9 +803,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         EVENTTARGET='_jsDocument' if self._interface.id == 'Document'
             else 'this')
 
-    self._shared._event_classes.add(self._interface.id)
+    self._system._event_classes.add(self._interface.id)
 
-    parent_event_classes = self._shared.GetParentsEventsClasses(
+    parent_event_classes = self._system._GetParentsEventsClasses(
         self._interface)
     if len(parent_event_classes) != 1:
       raise Exception('Only one parent event class allowed '
@@ -965,6 +817,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
         '  $CLASSNAME(_ptr) : super(_ptr);\n'
         '$!MEMBERS}\n',
+        TARGETCLASS=self._NarrowOutputType(self._interface.id),
         CLASSNAME=events_class,
         INTERFACE=events_interface,
         SUPER='_' + parent_event_classes[0] + 'Impl')
@@ -1005,7 +858,7 @@ class HtmlFrogSystem(HtmlSystem):
 
     dart_code = self._emitters.FileEmitter(dart_frog_file_path)
     return HtmlFrogClassGenerator(self, interface, template,
-                                  super_interface_name, dart_code, self._shared)
+                                  super_interface_name, dart_code)
 
   def GenerateLibraries(self, lib_dir):
     self._GenerateLibFile(
@@ -1024,83 +877,16 @@ class HtmlFrogSystem(HtmlSystem):
     return os.path.join(self._output_dir, 'html', 'frog',
                         '%s.dart' % interface_name)
 
-# -----------------------------------------------------------------------------
-
-class HtmlDartiumSystem(HtmlSystem):
-
-  def __init__(self, templates, database, emitters, output_dir, generator):
-    """Prepared for generating wrapping implementation.
-
-    - Creates emitter for Dart code.
-    """
-    super(HtmlDartiumSystem, self).__init__(
-        templates, database, emitters, output_dir, generator)
-    self._shared = HtmlSystemShared(database, generator)
-    self._dart_dartium_file_paths = []
-    self._wrap_cases = []
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """."""
-    dart_dartium_file_path = self._FilePathForImpl(interface.id)
-    self._dart_dartium_file_paths.append(dart_dartium_file_path)
-
-    template_file = 'impl_%s.darttemplate' % interface.id
-    template = self._templates.TryLoad(template_file)
-    # TODO(jacobr): change this name as it is confusing.
-    if not template:
-      template = self._templates.Load('frog_impl.darttemplate')
-
-    dart_code = self._emitters.FileEmitter(dart_dartium_file_path)
-    return HtmlDartiumInterfaceGenerator(self, interface, template,
-        super_interface_name, dart_code, self._BaseDefines(interface),
-        self._shared)
-
-  def _FilePathForImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'dartium',
-                        '%s.dart' % interface_name)
-
-  def ProcessCallback(self, interface, info):
-    pass
-
-  def GenerateLibraries(self, lib_dir):
-    # Library generated for implementation.
-    self._GenerateLibFile(
-        'html_dartium.darttemplate',
-        os.path.join(lib_dir, 'html_dartium.dart'),
-        (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
-         # FIXME: Move the implementation to a separate library.
-         self._dart_dartium_file_paths
-         ),
-        WRAPCASES='\n'.join(self._wrap_cases))
-
-  def Finish(self):
-    pass
-
 # ------------------------------------------------------------------------------
 
-# TODO(jacobr): there is far too much duplicated code between these bindings
-# and the Frog bindings.  A larger scale refactoring needs to be performed to
-# reduce the duplicated logic.
-class HtmlDartiumInterfaceGenerator(object):
-  """Generates a wrapper based implementation fo the HTML library that works
-  on Dartium.  This is not intended to be the final solution for implementing
-  dart:html on Dartium.  Eventually we should generate direct wrapperless
-  dart:html bindings that work on dartium."""
+class WrappingInterfaceGenerator(object):
+  """Generates Dart and JS implementation for one DOM IDL interface."""
 
-  def __init__(self, system, interface, template, super_interface, dart_code,
-      base_members, shared):
-    """Generates Dart wrapper code for the given interface.
+  def __init__(self, interface, super_interface, dart_code, base_members):
+    """Generates Dart and JS code for the given interface.
 
     Args:
-      system: system that is executing this generator.
-      template: template that output is generated into.
+
       interface: an IDLInterface instance. It is assumed that all types have
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
@@ -1110,99 +896,52 @@ class HtmlDartiumInterfaceGenerator(object):
           class.
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
-      shared: functionaly shared across all Html generators. 
     """
-    self._system = system
     self._interface = interface
     self._super_interface = super_interface
     self._dart_code = dart_code
     self._base_members = base_members
     self._current_secondary_parent = None
-    self._shared = shared
-    self._template = template
 
-  def DomObjectName(self):
-    return '_documentPtr' if self._interface.id == 'Document' else '_ptr'
-
-  # TODO(jacobr): these 3 methods are duplicated.
-  def _NarrowToImplementationType(self, type_name):
-    # TODO(sra): Move into the 'system' and cache the result.
-    if type_name == 'EventListener':
-      # Callbacks are typedef functions so don't have a class.
-      return type_name
-    if self._system._database.HasInterface(type_name):
-      interface = self._system._database.GetInterface(type_name)
-      if RecognizeCallback(interface):
-        # Callbacks are typedef functions so don't have a class.
-        return type_name
-      else:
-        return self._ImplClassName(type_name)
-    return type_name
-
-  def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
-
-  def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
 
   def StartInterface(self):
-
     interface = self._interface
     interface_name = interface.id
+
     self._class_name = self._ImplClassName(interface_name)
 
-    base = None
-    if interface.parents:
-      supertype = interface.parents[0].type.id
-      if not IsDartListType(supertype):
-        base = self._ImplClassName(supertype)
-      if IsDartCollectionType(supertype):
-        # List methods are injected in AddIndexer.
-        pass
-      else:
-        base = self._ImplClassName(supertype)
-   
-    # TODO(jacobr): this is fragile. There isn't a guarantee that dart:dom
-    # will continue to exactly match the IDL names.
-    dom_name = interface.javascript_binding_name
-    # We hard code the cases for these classes
-    if dom_name != 'HTMLHtmlElement' and dom_name != 'Document':
-      self._system._wrap_cases.append(
-          '    case "%s": return new %s._wrap(domObject);' %
-          (dom_name, self._class_name))
-
-    extends = ' extends ' + base if base else ' extends _DOMTypeBase'
-
-    # TODO: Include all implemented interfaces, including other Lists.
-    implements = [interface_name]
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
-      implements.append('List<' + DartType(element_type) + '>')
-    implements_str = ', '.join(implements)
+    base = self._BaseClassName(interface)
 
     (self._members_emitter,
      self._top_level_emitter) = self._dart_code.Emit(
-        self._template + '$!TOP_LEVEL',
-        #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-        #$!MEMBERS
-        #}
-        NATIVESPEC='', # hack to make reusing the same templates work.
-        CLASSNAME=self._class_name,
-        EXTENDS=extends,
-        IMPLEMENTS=' implements ' + implements_str)
+        '\n'
+        'class $CLASS extends $BASE implements $INTERFACE {\n'
+        '  $CLASS() : super() {}\n'
+        '\n'
+        '  static create_$CLASS() native {\n'
+        '    return new $CLASS();\n'
+        '  }\n'
+        '$!MEMBERS'
+        '\n'
+        '  String get typeName() { return "$INTERFACE"; }\n'
+        '}\n'
+        '$!TOP_LEVEL',
+        CLASS=self._class_name, BASE=base, INTERFACE=interface_name)
 
-    # Document requires a custom wrapper.
-    if dom_name != 'Document':
-      self._members_emitter.Emit(
-          '  $(CLASSNAME)._wrap(ptr) : super._wrap(ptr);\n',
-          CLASSNAME=self._class_name)
+  def _ImplClassName(self, type_name):
+    return '_' + type_name + 'WrappingImplementation'
 
   def _BaseClassName(self, interface):
     if not interface.parents:
-      return '_DOMTypeBase'
+      return 'DOMWrapperBase'
 
-    supertype = DartType(interface.parents[0].type.id)
+    supertype = interface.parents[0].type.id
 
+    # FIXME: We're currently injecting List<..> and EventTarget as
+    # supertypes in dart.idl. We should annotate/preserve as
+    # attributes instead.  For now, this hack lets the interfaces
+    # inherit, but not the classes.
+    # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
       return 'DOMWrapperBase'
 
@@ -1217,9 +956,6 @@ class HtmlDartiumInterfaceGenerator(object):
       return 'DOMWrapperBase'
 
     return self._ImplClassName(supertype)
-
-  def _ImplClassName(self, type_name):
-    return self._shared._ImplClassName(type_name)
 
   def FinishInterface(self):
     """."""
@@ -1236,43 +972,30 @@ class HtmlDartiumInterfaceGenerator(object):
     return method_name
 
   def AddAttribute(self, getter, setter):
-    html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+    if getter:
+      self._AddGetter(getter)
+    if setter:
+      self._AddSetter(setter)
 
-    if getter and html_getter_name:
-      self._AddGetter(getter, html_getter_name)
-    if setter and html_setter_name:
-      self._AddSetter(setter, html_setter_name)
-
-  def _AddGetter(self, attr, html_name):
-    if self._shared.MaybeReturnDocument(attr.type.id): 
-      self._members_emitter.Emit(
-          '\n'
-          '  $TYPE get $(HTML_NAME)() => '
-          '_FixHtmlDocumentReference(_wrap($(THIS).$NAME));\n',
-          NAME=attr.id,
-          HTML_NAME=html_name,
-          TYPE=DartType(attr.type.id),
-          THIS=self.DomObjectName())
-    else:
-      self._members_emitter.Emit(
-        '\n'
-        '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$NAME);\n',
-        NAME=attr.id,
-        HTML_NAME=html_name,
-        TYPE=DartType(attr.type.id),
-        THIS=self.DomObjectName())
-
-  def _AddSetter(self, attr, html_name):
+  def _AddGetter(self, attr):
+    # FIXME: Instead of injecting the interface name into the method when it is
+    # also implemented in the base class, suppress the method altogether if it
+    # has the same signature.  I.e., let the JS do the virtual dispatch instead.
+    method_name = self._MethodName('_get_', attr.id)
     self._members_emitter.Emit(
         '\n'
-        '  void set $(HTML_NAME)($TYPE value) { $(THIS).$NAME = _unwrap(value); }\n',
-        NAME=attr.id,
-        HTML_NAME=html_name,
-        TYPE=DartType(attr.type.id),
-        THIS=self.DomObjectName())
+        '  $TYPE get $NAME() { return $METHOD(this); }\n'
+        '  static $TYPE $METHOD(var _this) native;\n',
+        NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
+
+  def _AddSetter(self, attr):
+    # FIXME: See comment on getter.
+    method_name = self._MethodName('_set_', attr.id)
+    self._members_emitter.Emit(
+        '\n'
+        '  void set $NAME($TYPE value) { $METHOD(this, value); }\n'
+        '  static void $METHOD(var _this, $TYPE value) native;\n',
+        NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
@@ -1283,53 +1006,13 @@ class HtmlDartiumInterfaceGenerator(object):
     self.AddOperation(info)
 
   def AddEventAttributes(self, event_attrs):
-    event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
-    events_class = '_' + self._interface.id + 'EventsImpl'
-    events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE get on() {\n'
-        '    if (_on == null) _on = new $TYPE($EVENTTARGET);\n'
-        '    return _on;\n'
-        '  }\n',
-        TYPE=events_class,
-        EVENTTARGET='_wrappedDocumentPtr' if self._interface.id == 'Document'
-            else 'this')
-
-    self._shared._event_classes.add(self._interface.id)
-
-    parent_event_classes = self._shared.GetParentsEventsClasses(
-        self._interface)
-    if len(parent_event_classes) != 1:
-      raise Exception('Only one parent event class allowed '
-          + self._interface.id)
-
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    events_members = self._dart_code.Emit(
-        '\n'
-        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n',
-        CLASSNAME=events_class,
-        INTERFACE=events_interface,
-        SUPER='_' + parent_event_classes[0] + 'Impl')
-
-    for event_name in event_attrs:
-      if event_name in _html_event_names:
-        events_members.Emit(
-            "\n"
-            "  EventListenerList get $NAME() => _get('$RAWNAME');\n",
-            RAWNAME=event_name,
-            NAME=_html_event_names[event_name])
-      else:
-        raise Exception('No known html even name for event: ' + event_name)
+    pass
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
 
-  # TODO(jacobr): change this to more directly match the frog version.
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
@@ -1354,28 +1037,20 @@ class HtmlDartiumInterfaceGenerator(object):
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE operator[](int index) => _wrap($(THIS)[index]);\n'
-          '\n',
-          THIS=self.DomObjectName(),
+          '  $TYPE operator[](int index) {\n'
+          '    return item(index);\n'
+          '  }\n',
           TYPE=DartType(element_type))
 
     if self._HasNativeIndexSetter(self._interface):
       self._EmitNativeIndexSetter(self._interface, element_type)
     else:
-      # The HTML library implementation of NodeList has a custom indexed setter
-      # implementation that uses the parent node the NodeList is associated
-      # with if one is available.
-      if self._interface.id != 'NodeList':
-        self._members_emitter.Emit(
-            '\n'
-            '  void operator[]=(int index, $TYPE value) {\n'
-            '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-            '  }\n',
-            TYPE=DartType(element_type))
-
-    # The list interface for this class is manually generated.
-    if self._interface.id == 'NodeList':
-      return
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=element_type)
 
     self._members_emitter.Emit(
         '\n'
@@ -1464,7 +1139,7 @@ class HtmlDartiumInterfaceGenerator(object):
         '  Iterator<$TYPE> iterator() {\n'
         '    return new _FixedSizeListIterator<$TYPE>(this);\n'
         '  }\n',
-        TYPE=DartType(element_type))
+        TYPE=element_type)
 
   def _HasNativeIndexGetter(self, interface):
     return ('HasIndexGetter' in interface.ext_attrs or
@@ -1473,10 +1148,10 @@ class HtmlDartiumInterfaceGenerator(object):
   def _EmitNativeIndexGetter(self, interface, element_type):
     method_name = '_index'
     self._members_emitter.Emit(
-        '\n  $TYPE operator[](int index) => _wrap($(THIS)[index]);\n',
-        TYPE=DartType(element_type),
-        THIS=self.DomObjectName(),
-        METHOD=method_name)
+        '\n'
+        '  $TYPE operator[](int index) { return $METHOD(this, index); }\n'
+        '  static $TYPE $METHOD(var _this, int index) native;\n',
+        TYPE=element_type, METHOD=method_name)
 
   def _HasNativeIndexSetter(self, interface):
     return 'HasCustomIndexSetter' in interface.ext_attrs
@@ -1486,29 +1161,23 @@ class HtmlDartiumInterfaceGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  void operator[]=(int index, $TYPE value) {\n'
-        '    return $(THIS)[index] = _unwrap(value);\n'
-        '  }\n',
-        THIS=self.DomObjectName(),
-        TYPE=DartType(element_type),
-        METHOD=method_name)
+        '    return $METHOD(this, index, value);\n'
+        '  }\n'
+        '  static $METHOD(_this, index, value) native;\n',
+        TYPE=element_type, METHOD=method_name)
 
   def AddOperation(self, info):
     """
     Arguments:
       info: An OperationInfo object.
     """
-    html_name = self._shared.RenameInHtmlLibrary(self._interface, info.name)
-
-    if not html_name:
-      return
-
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $HTML_NAME($PARAMS) {\n'
+        '  $TYPE $NAME($PARAMS) {\n'
         '$!BODY'
         '  }\n',
         TYPE=info.type_name,
-        HTML_NAME=html_name,
+        NAME=info.name,
         PARAMS=info.ParametersImplementationDeclaration())
 
     # Process in order of ascending number of arguments to ensure missing
@@ -1533,7 +1202,7 @@ class HtmlDartiumInterfaceGenerator(object):
     # arguments from passing 'null' which is represented as 'undefined'?
     def UnwrapArgExpression(name, type):
       # TODO: Type specific unwrapping.
-      return '_unwrap(%s)' % (name)
+      return '__dom_unwrap(%s)' % (name)
 
     def ArgNameAndUnwrapper(arg_info, overload_arg):
       (name, type, value) = arg_info
@@ -1542,33 +1211,31 @@ class HtmlDartiumInterfaceGenerator(object):
     names_and_unwrappers = [ArgNameAndUnwrapper(info.arg_infos[i], arg)
                             for (i, arg) in enumerate(operation.arguments)]
     unwrap_args = [unwrap_arg for (_, unwrap_arg) in names_and_unwrappers]
-    arg_names = ['_unwrap(%s)' % name for (name, _) in names_and_unwrappers]
+    arg_names = [name for (name, _) in names_and_unwrappers]
 
-    argument_expressions = ', '.join(arg_names)
+    self._native_version += 1
+    native_name = self._MethodName('_', info.name)
+    if self._native_version > 1:
+      native_name = '%s_%s' % (native_name, self._native_version)
+
+    argument_expressions = ', '.join(['this'] + arg_names)
     if info.type_name != 'void':
-      # We could place the logic for handling Document directly in _wrap
-      # but we chose to place it here so that bugs in the wrapper and
-      # wrapperless implementations are more consistent. 
-      if self._shared.MaybeReturnDocument(info.type_name): 
-        emitter.Emit('$(INDENT)return _FixHtmlDocumentReference('
-                     '_wrap($(THIS).$NAME($ARGS)));\n',
-                     INDENT=indent,
-                     THIS=self.DomObjectName(),
-                     NAME=info.name,
-                     ARGS=argument_expressions)
-      else:
-        emitter.Emit('$(INDENT)return _wrap($(THIS).$NAME($ARGS));\n',
-                     INDENT=indent,
-                     THIS=self.DomObjectName(),
-                     NAME=info.name,
-                     ARGS=argument_expressions)
+      emitter.Emit('$(INDENT)return $NATIVENAME($ARGS);\n',
+                   INDENT=indent,
+                   NATIVENAME=native_name,
+                   ARGS=argument_expressions)
     else:
-      emitter.Emit('$(INDENT)$(THIS).$NAME($ARGS);\n'
+      emitter.Emit('$(INDENT)$NATIVENAME($ARGS);\n'
                    '$(INDENT)return;\n',
                    INDENT=indent,
-                   THIS=self.DomObjectName(),
-                   NAME=info.name,
+                   NATIVENAME=native_name,
                    ARGS=argument_expressions)
+
+    self._members_emitter.Emit('  static $TYPE $NAME($PARAMS) native;\n',
+                               NAME=native_name,
+                               TYPE=info.type_name,
+                               PARAMS=', '.join(['receiver'] + arg_names) )
+
 
   def GenerateDispatch(self, emitter, info, indent, position, overloads):
     """Generates a dispatch to one of the overloads.
@@ -1612,10 +1279,9 @@ class HtmlDartiumInterfaceGenerator(object):
       # precise type than the first.  E.g.,
       # void foo(Node x);
       # void foo(Element x);
-      type = DartType(first_overload.arguments[position].type.id)
+      type = first_overload.arguments[position].type.id
       test = TypeCheck(param_name, type)
-      pred = lambda op: (len(op.arguments) > position and
-          DartType(op.arguments[position].type.id) == type)
+      pred = lambda op: len(op.arguments) > position and op.arguments[position].type.id == type
     else:
       type = None
       test = NullCheck(param_name)

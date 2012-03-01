@@ -20,6 +20,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
@@ -74,7 +75,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    config = new DefaultCompilerConfiguration() {
+    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
       @Override
       public boolean incremental() {
         return true;
@@ -184,7 +185,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * Test for "hole" feature. If we use unqualified invocation and add/remove top-level method, this
    * should cause compilation of invocation unit.
    */
-  public void test_isMethodHole_useUnqualifiedInvocation() throws Exception {
+  public void test_isMethodHole_useUnqualifiedInvocation() {
     appSource.setContent(
         "B.dart",
         makeCode(
@@ -221,8 +222,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       didWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
-    // Wait, because analysis is so fast that may be A will have same time as old artifact.
-    Thread.sleep(5);
     // Remove top-level foo(), so invocation of foo() in B should be bound to the super class.
     {
       appSource.setContent("A.dart", "");
@@ -282,7 +281,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * Test for "hole" feature. If we use unqualified access and add/remove top-level field, this
    * should cause compilation of invocation unit.
    */
-  public void test_fieldHole_useUnqualifiedAccess() throws Exception {
+  public void test_fieldHole_useUnqualifiedAccess() {
     appSource.setContent(
         "B.dart",
         makeCode(
@@ -319,8 +318,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       didWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
-    // Wait, because analysis is so fast that may be A will have same time as old artifact.
-    Thread.sleep(5);
     // Remove top-level "foo", so access to "foo" in B should be bound to the super class.
     {
       appSource.setContent("A.dart", "");

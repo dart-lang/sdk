@@ -4,19 +4,18 @@
 
 // Negative test to make sure that we are reaching all assertions.
 #library('spawn_tests');
-#import('dart:isolate');
 
-child() {
-  port.receive((msg, reply) => reply.send('re: $msg'));
+child(ReceivePort port) {
+  port.receive((msg, reply) => reply.send("re: $msg"));
 }
 
 main() {
   ReceivePort port = new ReceivePort();
   port.receive((msg, _) {
-    Expect.equals('re: hello', msg); // should be hi, not hello
+    Expect.equals("re: hello", msg); // should be hi, not hello
     port.close();
   });
 
-  SendPort s = spawnFunction(child);
-  s.send('hi', port.toSendPort());
+  Isolate2 c = new Isolate2.fromCode(child);
+  c.sendPort.send("hi", port.toSendPort());
 }

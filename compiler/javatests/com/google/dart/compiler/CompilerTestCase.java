@@ -45,6 +45,11 @@ public abstract class CompilerTestCase extends TestCase {
   protected static final CompilerConfiguration CHECK_ONLY_CONFIGURATION =
       new DefaultCompilerConfiguration(new CompilerOptions()) {
         @Override
+        public boolean checkOnly() {
+          return true;
+        }
+
+        @Override
         public boolean incremental() {
           return true;
         }
@@ -206,14 +211,14 @@ public abstract class CompilerTestCase extends TestCase {
   }
 
   /**
-   * Compiles a single unit with a synthesized application.
+   * Compiles a single unit with a synthesized application, using the specified backend.
    */
   protected DartSource compileSingleUnit(String name, String code,
-       DartArtifactProvider provider) throws IOException {
+       DartArtifactProvider provider, Backend backend) throws IOException {
      MockLibrarySource lib = new MockLibrarySource();
      DartSourceTest src = new DartSourceTest(name, code, lib);
      lib.addSource(src);
-     CompilerConfiguration config = getCompilerConfiguration();
+     CompilerConfiguration config = getCompilerConfiguration(backend);
      DartCompilerListener listener = new DartCompilerListenerTest(src.getName());
      DartCompiler.compileLib(lib, config, provider, listener);
      return src;
@@ -222,8 +227,8 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Allow tests to override the configuration used.
    */
-  protected CompilerConfiguration getCompilerConfiguration() {
-    return new DefaultCompilerConfiguration();
+  protected CompilerConfiguration getCompilerConfiguration(Backend backend) {
+    return new DefaultCompilerConfiguration(backend);
   }
 
   /**

@@ -15,10 +15,10 @@ interface Directory default _Directory {
 
   /**
    * Check whether a directory with this name already exists. If the
-   * operation completes successfully the callback is called with the
-   * result. Otherwise [onError] is called.
+   * operation completes successfully the [existsHandler] is called with
+   * the result. Otherwise the [errorHandler] is called.
    */
-  void exists(void callback(bool exists));
+  void exists();
 
   /**
    * Synchronously check whether a directory with this name already exists.
@@ -26,11 +26,11 @@ interface Directory default _Directory {
   bool existsSync();
 
   /**
-   * Creates the directory with this name if it does not exist.  If
-   * the directory is successfully created the callback is
-   * called. Otherwise [onError] is called.
+   * Creates the directory with this name if it does not exist.
+   * If the directory is successfully created the [createHandler] is
+   * called. Otherwise the [errorHandler] is called.
    */
-  void create(void callback());
+  void create();
 
   /**
    * Synchronously creates the directory with this name if it does not exist.
@@ -39,18 +39,17 @@ interface Directory default _Directory {
   void createSync();
 
   /**
-   * Creates a temporary directory with a name based on the current
-   * path.  This name and path is used as a template, and additional
-   * characters are appended to it by the call to make a unique
-   * directory name.  If the path is the empty string, a default
-   * system temp directory and name are used for the template.
-   *
-   * The path is modified to be the path of the new directory.  After
-   * the new directory is created, and the path modified, the callback
-   * will be called.  The error handler is called if the temporary
-   * directory cannot be created.
+   * Creates a temporary directory with a name based on the current path.
+   * This name and path is used as a template, and additional characters are
+   * appended to it by the call to make a unique directory name.  If the
+   * path is the empty string, a default system temp directory and name
+   * are used for the template.
+   * The path is modified to be the path of the new directory.
+   * After the new directory is created, and the path modified, the callback
+   * createTempHandler will be called.  The error handler is called if
+   * the temporary directory cannot be created.
    */
-  void createTemp(void callback());
+  void createTemp();
 
   /**
    * Synchronously creates a temporary directory with a name based on the
@@ -63,32 +62,27 @@ interface Directory default _Directory {
   void createTempSync();
 
   /**
-   * Deletes the directory with this name. The directory must be
-   * empty. If the operation completes successfully the callback is
-   * called. Otherwise [onError] is called.
+   * Deletes the directory with this name. If the operation completes
+   * successfully the [deleteHandler] is called. Otherwise the
+   * [errorHandler] is called.
+   *
+   * If [recursive] is [:true:] this directory and all sub-directories
+   * and files in the directory are deleted. If [recursive] is
+   * [:false:] only this directory (which must be empty) is
+   * deleted. [recursive] is [:false:] by default.
    */
-  void delete(void callback());
+  void delete([bool recursive]);
 
   /**
-   * Deletes this directory and all sub-directories and files in the
-   * directories. If the operation completes successfully the callback
-   * is called. Otherwise [onError] is called.
+   * Deletes the directory with this name. Throws an exception
+   * if the directory cannot be deleted.
+   *
+   * If [recursive] is [:true:] this directory and all sub-directories
+   * and files in the directory are deleted. If [recursive] is
+   * [:false:] only this directory (which must be empty) is
+   * deleted. [recursive] is [:false:] by default.
    */
-  void deleteRecursively(void callback());
-
-  /**
-   * Synchronously deletes the directory with this name. The directory
-   * must be empty. Throws an exception if the directory cannot be
-   * deleted.
-   */
-  void deleteSync();
-
-  /**
-   * Synchronously deletes this directory and all sub-directories and
-   * files in the directories. Throws an exception if the directory
-   * cannot be deleted.
-   */
-  void deleteRecursivelySync();
+  void deleteSync([bool recursive]);
 
   /**
    * List the sub-directories and files of this
@@ -98,10 +92,6 @@ interface Directory default _Directory {
    * the listing operation is recursive, the error handler is called
    * if a subdirectory cannot be opened for listing.
    */
-  // TODO(ager): Should we change this to return an event emitting
-  // DirectoryLister object. Alternatively, pass in one callback that
-  // gets called with an indication of whether what it is called with
-  // is a file, a directory or an indication that the listing is over.
   void list([bool recursive]);
 
   /**
@@ -109,27 +99,50 @@ interface Directory default _Directory {
    * during listing operations. The directory handler is called with
    * the full path of the directory.
    */
-  void set onDir(void onDir(String dir));
+  void set dirHandler(void dirHandler(String dir));
 
   /**
    * Sets the handler that is called for all files during listing
    * operations. The file handler is called with the full path of the
    * file.
    */
-  void set onFile(void onFile(String file));
+  void set fileHandler(void fileHandler(String file));
 
   /**
    * Set the handler that is called when a directory listing is
    * done. The handler is called with an indication of whether or not
    * the listing operation completed.
    */
-  void set onDone(void onDone(bool completed));
+  void set doneHandler(void doneHandler(bool completed));
+
+  /**
+   * Set the handler that is called when checking if a directory with this
+   * name exists.
+   */
+  void set existsHandler(void existsHandler(bool exists));
+
+  /**
+   * Set the handler that is called when a directory is successfully created.
+   */
+  void set createHandler(void createHandler());
+
+  /**
+   * Set the handler that is called when a temporary directory is
+   * successfully created.
+   */
+  void set createTempHandler(void createTempHandler());
+
+  /**
+   * Set the handler that is called when a directory is successfully
+   * deleted.
+   */
+  void set deleteHandler(void deleteHandler());
 
   /**
    * Sets the handler that is called if there is an error while listing
    * or creating directories.
    */
-  void set onError(void onError(String error));
+  void set errorHandler(void errorHandler(String error));
 
   /**
    * Gets the path of this directory.

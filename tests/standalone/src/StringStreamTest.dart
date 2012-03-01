@@ -25,7 +25,7 @@ void testUtf8() {
     Expect.equals(new String.fromCharCodes([0x800]), s[4]);
     Expect.equals(new String.fromCharCodes([0xffff]), s[5]);
   }
-  stream.onData = stringData;
+  stream.dataHandler = stringData;
 }
 
 void testLatin1() {
@@ -47,7 +47,7 @@ void testLatin1() {
     Expect.equals(new String.fromCharCodes([0x80]), s[6]);
     Expect.equals(new String.fromCharCodes([0xff]), s[7]);
   }
-  stream.onData = stringData;
+  stream.dataHandler = stringData;
 }
 
 void testAscii() {
@@ -65,7 +65,7 @@ void testAscii() {
     Expect.equals("Dart", s.substring(1, 5));
     Expect.equals(new String.fromCharCodes([0x7f]), s[5]);
   }
-  stream.onData = stringData;
+  stream.dataHandler = stringData;
 }
 
 void testReadLine1() {
@@ -94,8 +94,8 @@ void testReadLine1() {
     Expect.equals(2, stage);
   }
 
-  stream.onData = stringData;
-  stream.onClosed = streamClosed;
+  stream.dataHandler = stringData;
+  stream.closeHandler = streamClosed;
   s.write("Line".charCodes());
 }
 
@@ -150,8 +150,8 @@ void testReadLine2() {
     Expect.equals(true, stream.closed);
   }
 
-  stream.onLine = stringData;
-  stream.onClosed = streamClosed;
+  stream.lineHandler = stringData;
+  stream.closeHandler = streamClosed;
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
 }
 

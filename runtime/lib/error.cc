@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,8 +106,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 static void ThrowTypeError(intptr_t location,
                            const String& src_type_name,
                            const String& dst_type_name,
-                           const String& dst_name,
-                           const String& malformed_error) {
+                           const String& dst_name) {
   // Allocate a new instance of TypeError.
   const Instance& type_error = Instance::Handle(NewInstance("TypeError"));
 
@@ -140,25 +139,18 @@ static void ThrowTypeError(intptr_t location,
   // Initialize field 'dstName'.
   SetField(type_error, cls, "dstName", dst_name);
 
-  // Initialize field 'malformedError'.
-  SetField(type_error, cls, "malformedError", malformed_error);
-
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stack_trace_at_throw) {
-    if (!malformed_error.IsNull()) {
-      OS::Print("%s", malformed_error.ToCString());
-    } else {
-      intptr_t line, column;
-      script.GetTokenLocation(location, &line, &column);
-      OS::Print("'%s': Failed type check: line %d pos %d: "
-                "type '%s' is not assignable to type '%s' of '%s'.\n",
-                String::Handle(script.url()).ToCString(),
-                line, column,
-                src_type_name.ToCString(),
-                dst_type_name.ToCString(),
-                dst_name.ToCString());
-    }
+    intptr_t line, column;
+    script.GetTokenLocation(location, &line, &column);
+    OS::Print("'%s': Failed type check: line %d pos %d: "
+              "type '%s' is not assignable to type '%s' of '%s'.\n",
+              String::Handle(script.url()).ToCString(),
+              line, column,
+              src_type_name.ToCString(),
+              dst_type_name.ToCString(),
+              dst_name.ToCString());
   }
   // Throw TypeError instance.
   Exceptions::Throw(type_error);
@@ -171,18 +163,15 @@ static void ThrowTypeError(intptr_t location,
 // Arg1: src value.
 // Arg2: dst type name.
 // Arg3: dst name.
-// Arg4: malformed type error message.
 // Return value: none, throws an exception.
-DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
+DEFINE_NATIVE_ENTRY(TypeError_throwNew, 4) {
   intptr_t location = Smi::CheckedHandle(arguments->At(0)).Value();
   const Instance& src_value = Instance::CheckedHandle(arguments->At(1));
   const String& dst_type_name = String::CheckedHandle(arguments->At(2));
   const String& dst_name = String::CheckedHandle(arguments->At(3));
-  const String& malformed_error = String::CheckedHandle(arguments->At(4));
   const String& src_type_name =
       String::Handle(Type::Handle(src_value.GetType()).Name());
-  ThrowTypeError(location, src_type_name,
-                 dst_type_name, dst_name, malformed_error);
+  ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
 }
 
 
@@ -302,9 +291,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     } else {
       dst_type_name = dst_type.Name();
     }
-    const String& no_malformed_type_error =  String::Handle();
-    ThrowTypeError(location, src_type_name, dst_type_name, dst_name,
-                   no_malformed_type_error);
+    ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
     UNREACHABLE();
   }
   arguments.SetReturn(src_instance);
@@ -321,36 +308,13 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
+  const char* msg = "boolean expression";
   const Type& bool_interface = Type::Handle(Type::BoolInterface());
   const Type& src_type = Type::Handle(src_instance.GetType());
   const String& src_type_name = String::Handle(src_type.Name());
   const String& bool_type_name = String::Handle(bool_interface.Name());
-  const String& expr = String::Handle(String::NewSymbol("boolean expression"));
-  const String& no_malformed_type_error =  String::Handle();
-  ThrowTypeError(location, src_type_name, bool_type_name, expr,
-                 no_malformed_type_error);
-  UNREACHABLE();
-}
-
-
-// Report that the type of the type check is malformed.
-// Arg0: index of the token of the failed type check.
-// Arg1: src value.
-// Arg2: malformed type error message.
-// Return value: none, throws an exception.
-DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
-  ASSERT(arguments.Count() ==
-      kMalformedTypeErrorRuntimeEntry.argument_count());
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& src_value = Instance::CheckedHandle(arguments.At(1));
-  const String& malformed_error = String::CheckedHandle(arguments.At(2));
-  const String& dst_type_name =
-      String::Handle(String::NewSymbol("malformed type"));
-  const String& dst_name = String::Handle(String::NewSymbol(""));
-  const String& src_type_name =
-      String::Handle(Type::Handle(src_value.GetType()).Name());
-  ThrowTypeError(location, src_type_name,
-                 dst_type_name, dst_name, malformed_error);
+  ThrowTypeError(location, src_type_name, bool_type_name,
+                 String::Handle(String::NewSymbol(msg)));
   UNREACHABLE();
 }
 
@@ -397,9 +361,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
         dst_type_name = element_type.Name();
       }
       const String& dst_name = String::Handle(String::New(buf));
-      const String& no_malformed_type_error =  String::Handle();
-      ThrowTypeError(location, src_type_name, dst_type_name, dst_name,
-                     no_malformed_type_error);
+      ThrowTypeError(location, src_type_name, dst_type_name, dst_name);
       UNREACHABLE();
     }
   }

@@ -11,7 +11,7 @@ class _Device {
    * the user agent.
    * Returns the user agent.
    */
-  static String get userAgent() => window.navigator.userAgent;
+  static String get userAgent() => dom.window.navigator.userAgent;
 
   /**
    * Determines if the current device is running Firefox.

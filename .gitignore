@@ -41,12 +41,9 @@ client/tests/drt
 *.pyc
 third_party/gsutil/*/gsutilc
 
-# Temporary vim files
+# temporary vim files
 *.swo
 *.swp
-
-# Emacs backup files
-*~
 
 /compiler/eclipse.workspace/tests/output/
 /compiler/eclipse.workspace/dartc/output/

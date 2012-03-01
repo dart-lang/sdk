@@ -7,7 +7,6 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#include "vm/token.h"
 #include "vm/snapshot.h"
 
 #include "include/dart_api.h"
@@ -27,7 +26,6 @@ namespace dart {
     V(InstantiatedTypeArguments)                                               \
   V(Function)                                                                  \
   V(Field)                                                                     \
-  V(LiteralToken)                                                              \
   V(TokenStream)                                                               \
   V(Script)                                                                    \
   V(Library)                                                                   \
@@ -389,10 +387,7 @@ class RawType : public RawAbstractType {
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawAbstractTypeArguments* arguments_;
-  RawError* malformed_error_;  // Error object if type is malformed.
-  RawObject** to() {
-      return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
-  }
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->arguments_); }
   intptr_t token_index_;
   int8_t type_state_;
 };
@@ -532,25 +527,14 @@ class RawField : public RawObject {
 };
 
 
-class RawLiteralToken : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LiteralToken);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->literal_);
-  }
-  RawString* literal_;  // Literal characters as they appear in source text.
-  RawObject* value_;  // The actual object corresponding to the token.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->value_);
-  }
-  Token::Kind kind_;  // The literal kind (string, integer, double).
-
-  friend class SnapshotReader;
-};
-
-
 class RawTokenStream : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(TokenStream);
+
+  enum {
+    kKindEntry = 0,
+    kLiteralEntry,
+    kNumberOfEntries
+  };
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
@@ -561,7 +545,8 @@ class RawTokenStream : public RawObject {
   // Variable length data follows here.
   RawObject* data_[0];
   RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->data_[length - 1]);
+    return reinterpret_cast<RawObject**>(
+        &ptr()->data_[length * kNumberOfEntries - 1]);
   }
 
   friend class SnapshotReader;
@@ -849,19 +834,12 @@ class RawMint : public RawInteger {
 class RawBigint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Bigint);
 
-  // Actual length at the time of allocation (later we may clamp the
-  // operational length but we need to maintain a consistent object
-  // length so that the object can be traversed during GC).
-  intptr_t allocated_length_;
+  // Note that the structure is not necessarily valid unless tweaked
+  // by Bigint::BNAddr().
+  BIGNUM bn_;
 
-  // Operation length of the bigint object, clamping can cause this length
-  // to be reduced. If the signed_length_ is negative then the number
-  // is negative.
-  intptr_t signed_length_;
-
-  // A sequence of Chunks (typedef in Bignum) representing bignum digits.
-  // Bignum::Chunk chunks_[Utils::Abs(signed_length_)];
-  uint8_t data_[0];
+  // Variable length data follows here.
+  BN_ULONG data_[0];
 };
 
 

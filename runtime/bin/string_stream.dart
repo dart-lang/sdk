@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -227,8 +227,8 @@ class _StringInputStream implements StringInputStream {
     } else {
       throw new StreamException("Unsupported encoding $_encoding");
     }
-    _input.onData = _onData;
-    _input.onClosed = _onClosed;
+    _input.dataHandler = _dataHandler;
+    _input.closeHandler = _closeHandler;
   }
 
   String read() {
@@ -257,29 +257,29 @@ class _StringInputStream implements StringInputStream {
 
   bool get closed() => _inputClosed && _decoder.isEmpty();
 
-  void set onData(void callback()) {
+  void set dataHandler(void callback()) {
     _clientDataHandler = callback;
     _clientLineHandler = null;
     _checkInstallDataHandler();
     _checkScheduleCallback();
   }
 
-  void set onLine(void callback()) {
+  void set lineHandler(void callback()) {
     _clientLineHandler = callback;
     _clientDataHandler = null;
     _checkInstallDataHandler();
     _checkScheduleCallback();
   }
 
-  void set onClosed(void callback()) {
+  void set closeHandler(void callback()) {
     _clientCloseHandler = callback;
   }
 
-  void set onError(void callback()) {
+  void set errorHandler(void callback()) {
     _input.errorHandler = callback;
   }
 
-  void _onData() {
+  void _dataHandler() {
     _readData();
     if (!_decoder.isEmpty() && _clientDataHandler !== null) {
       _clientDataHandler();
@@ -291,7 +291,7 @@ class _StringInputStream implements StringInputStream {
     _checkInstallDataHandler();
   }
 
-  void _onClosed() {
+  void _closeHandler() {
     _inputClosed = true;
     if (_decoder.isEmpty() && _clientCloseHandler != null) {
       _clientCloseHandler();
@@ -311,19 +311,19 @@ class _StringInputStream implements StringInputStream {
   void _checkInstallDataHandler() {
     if (_inputClosed ||
         (_clientDataHandler === null && _clientLineHandler === null)) {
-      _input.onData = null;
+      _input.dataHandler = null;
     } else if (_clientDataHandler !== null) {
       if (_decoder.isEmpty()) {
-        _input.onData = _onData;
+        _input.dataHandler = _dataHandler;
       } else {
-        _input.onData = null;
+        _input.dataHandler = null;
       }
     } else {
       assert(_clientLineHandler !== null);
       if (_decoder.lineBreaks == 0) {
-        _input.onData = _onData;
+        _input.dataHandler = _dataHandler;
       } else {
-        _input.onData = null;
+        _input.dataHandler = null;
       }
     }
   }
@@ -360,9 +360,7 @@ class _StringInputStream implements StringInputStream {
       if (_clientDataHandler != null &&
           !_decoder.isEmpty() &&
           _scheduledDataCallback == null) {
-        if (_scheduledLineCallback != null) {
-          _scheduledLineCallback.cancel();
-        }
+        if (_scheduledLineCallback != null) _scheduledLineCallback.cancel();
         _scheduledDataCallback = new Timer(issueDataCallback, 0);
       }
 
@@ -370,9 +368,7 @@ class _StringInputStream implements StringInputStream {
       if (_clientLineHandler != null &&
           (_decoder.lineBreaks > 0 || (!_decoder.isEmpty() && _inputClosed)) &&
           _scheduledLineCallback == null) {
-        if (_scheduledDataCallback != null) {
-          _scheduledDataCallback.cancel();
-        }
+        if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
         _scheduledLineCallback = new Timer(issueLineCallback, 0);
       }
 

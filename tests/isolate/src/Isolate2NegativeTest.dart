@@ -6,7 +6,6 @@
 // the program.
 
 #library('Isolate2NegativeTest');
-#import('dart:isolate');
 #import('TestFramework.dart');
 
 class Isolate2NegativeTest extends Isolate {

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -9,8 +9,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+#library("EchoServerStreamTest");
 #import("dart:io");
-#import("dart:isolate");
 #source("TestingServer.dart");
 
 class EchoServerGame {
@@ -48,7 +48,7 @@ class EchoServerGame {
         int offset = 0;
         List<int> data;
 
-        void onClosed() {
+        void onClose() {
           Expect.equals(MSGSIZE, offset);
           _messages++;
           if (_messages < MESSAGES) {
@@ -78,11 +78,11 @@ class EchoServerGame {
         }
 
         if (_messages % 2 == 0) data = new List<int>(MSGSIZE);
-        inputStream.onData = onData;
-        inputStream.onClosed = onClosed;
+        inputStream.dataHandler = onData;
+        inputStream.closeHandler = onClose;
       }
 
-      _socket.onError = errorHandler;
+      _socket.errorHandler = errorHandler;
 
       // Test both write and writeFrom in different forms.
       switch (_messages % 4) {
@@ -107,7 +107,7 @@ class EchoServerGame {
 
     _socket = new Socket(TestingServer.HOST, _port);
     if (_socket !== null) {
-      _socket.onConnect = connectHandler;
+      _socket.connectHandler = connectHandler;
     } else {
       Expect.fail("socket creation failed");
     }
@@ -139,7 +139,7 @@ class EchoServer extends TestingServer {
 
   static final int MSGSIZE = EchoServerGame.MSGSIZE;
 
-  void onConnection(Socket connection) {
+  void connectionHandler(Socket connection) {
     InputStream inputStream;
     List<int> buffer = new List<int>(MSGSIZE);
     int offset = 0;
@@ -166,8 +166,8 @@ class EchoServer extends TestingServer {
     }
 
     inputStream = connection.inputStream;
-    inputStream.onData = dataReceived;
-    connection.onError = errorHandler;
+    inputStream.dataHandler = dataReceived;
+    connection.errorHandler = errorHandler;
   }
 }
 

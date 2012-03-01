@@ -10,7 +10,6 @@
 // Test socket close events.
 
 #import("dart:io");
-#import("dart:isolate");
 
 final SERVERSHUTDOWN = -1;
 final ITERATIONS = 10;
@@ -100,9 +99,9 @@ class SocketClose {
     }
 
     void connectHandler() {
-      _socket.inputStream.onData = dataHandler;
-      _socket.inputStream.onClosed = closeHandler;
-      _socket.onError = errorHandler;
+      _socket.inputStream.dataHandler = dataHandler;
+      _socket.inputStream.closeHandler = closeHandler;
+      _socket.errorHandler = errorHandler;
 
       _iterations++;
       switch (_mode) {
@@ -112,7 +111,7 @@ class SocketClose {
           break;
         case 1:
           _socket.outputStream.write("Hello".charCodes());
-          _socket.outputStream.onNoPendingWrites = () {
+          _socket.outputStream.noPendingWriteHandler = () {
             _socket.inputStream.close();
             proceed();
           };
@@ -124,7 +123,7 @@ class SocketClose {
           break;
         case 5:
           _socket.outputStream.write("Hello".charCodes());
-          _socket.outputStream.onNoPendingWrites = () {
+          _socket.outputStream.noPendingWriteHandler = () {
             _socket.outputStream.close();
           };
           break;
@@ -134,7 +133,7 @@ class SocketClose {
         case 7:
         case 8:
           _socket.outputStream.write("Hello".charCodes());
-          _socket.outputStream.onNoPendingWrites = () {
+          _socket.outputStream.noPendingWriteHandler = () {
             _socket.outputStream.close();
           };
           break;
@@ -145,7 +144,7 @@ class SocketClose {
 
     _socket = new Socket(SocketCloseServer.HOST, _port);
     Expect.equals(true, _socket !== null);
-    _socket.onConnect = connectHandler;
+    _socket.connectHandler = connectHandler;
   }
 
   void start() {
@@ -254,7 +253,7 @@ class SocketCloseServer extends Isolate {
             readBytes(() {
               _dataEvents++;
               connection.outputStream.write("Hello".charCodes());
-              connection.outputStream.onNoPendingWrites = () {
+              connection.outputStream.noPendingWriteHandler = () {
                 connection.inputStream.close();
               };
             });
@@ -277,7 +276,7 @@ class SocketCloseServer extends Isolate {
             readBytes(() {
               _dataEvents++;
               connection.outputStream.write("Hello".charCodes());
-              connection.outputStream.onNoPendingWrites = () {
+              connection.outputStream.noPendingWriteHandler = () {
                 connection.outputStream.close();
               };
             });
@@ -305,9 +304,9 @@ class SocketCloseServer extends Isolate {
 
       _iterations++;
 
-      connection.inputStream.onData = dataHandler;
-      connection.inputStream.onClosed = closeHandler;
-      connection.onError = errorHandler;
+      connection.inputStream.dataHandler = dataHandler;
+      connection.inputStream.closeHandler = closeHandler;
+      connection.errorHandler = errorHandler;
     }
 
     void errorHandlerServer() {
@@ -368,11 +367,11 @@ class SocketCloseServer extends Isolate {
         _mode = message;
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.onConnection = (connection) {
+        _server.connectionHandler = (connection) {
           var data = new ConnectionData(connection);
           connectionHandler(data);
         };
-        _server.onError = errorHandlerServer;
+        _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else {
         new Timer(waitForResult, 0);

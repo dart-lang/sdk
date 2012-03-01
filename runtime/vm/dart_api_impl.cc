@@ -756,17 +756,14 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_SendPortImpl"));
+  const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   // TODO(turnidge): Consider adding a helper function to make
   // function resolution by class name and function name more concise.
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
                               class_name,
                               function_name,
                               kNumArguments,
@@ -783,16 +780,14 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
 DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
+      String::Handle(String::NewSymbol("ReceivePortImpl"));
   const String& function_name =
       String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
                               class_name,
                               function_name,
                               kNumArguments,
@@ -952,7 +947,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
 #if defined(DEBUG)
     Bigint& bigint = Bigint::Handle();
     bigint ^= int_obj.raw();
-    ASSERT(!BigintOperations::FitsIntoMint(bigint));
+    ASSERT(!BigintOperations::FitsIntoInt64(bigint));
 #endif
     *fits = false;
   }
@@ -1008,8 +1003,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     ASSERT(int_obj.IsBigint());
     Bigint& bigint = Bigint::Handle();
     bigint ^= int_obj.raw();
-    if (BigintOperations::FitsIntoMint(bigint)) {
-      *value = BigintOperations::ToMint(bigint);
+    if (BigintOperations::FitsIntoInt64(bigint)) {
+      *value = BigintOperations::ToInt64(bigint);
       return Api::Success();
     }
   }
@@ -1453,8 +1448,8 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   } else if (retval.IsBigint()) {
     Bigint& bigint = Bigint::Handle();
     bigint ^= retval.raw();
-    if (BigintOperations::FitsIntoMint(bigint)) {
-      *len = BigintOperations::ToMint(bigint);
+    if (BigintOperations::FitsIntoInt64(bigint)) {
+      *len = BigintOperations::ToInt64(bigint);
       return Api::Success();
     } else {
       return Api::NewError("Length of List object is greater than the "
@@ -2453,6 +2448,9 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     RETURN_TYPE_ERROR(source, String);
   }
   const Array& mapping_array = Api::UnwrapArrayHandle(import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(import_map, Array);
+  }
   Library& library = Library::Handle(isolate->object_store()->root_library());
   if (!library.IsNull()) {
     const String& library_url = String::Handle(library.url());
@@ -2461,11 +2459,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   }
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
-  if (mapping_array.IsNull()) {
-    library.set_import_map(Array::Handle(Array::Empty()));
-  } else {
-    library.set_import_map(mapping_array);
-  }
+  library.set_import_map(mapping_array);
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
@@ -2606,14 +2600,13 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     RETURN_TYPE_ERROR(source, String);
   }
   const Array& mapping_array = Api::UnwrapArrayHandle(import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(import_map, Array);
+  }
   Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
-    if (mapping_array.IsNull()) {
-      library.set_import_map(Array::Handle(Array::Empty()));
-    } else {
-      library.set_import_map(mapping_array);
-    }
+    library.set_import_map(mapping_array);
     library.Register();
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the

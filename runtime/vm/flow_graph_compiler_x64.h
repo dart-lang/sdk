@@ -15,11 +15,9 @@
 
 namespace dart {
 
-class Code;
-template <typename T> class GrowableArray;
 class ParsedFunction;
 
-class FlowGraphCompiler : public FlowGraphVisitor {
+class FlowGraphCompiler : public InstructionVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
@@ -27,38 +25,21 @@ class FlowGraphCompiler : public FlowGraphVisitor {
       : assembler_(assembler),
         parsed_function_(parsed_function),
         blocks_(blocks),
-        pc_descriptors_list_(new CodeGenerator::DescriptorList()),
-        stack_local_count_(0) { }
+        pc_descriptors_list_(new CodeGenerator::DescriptorList()) { }
 
   virtual ~FlowGraphCompiler() { }
 
   void CompileGraph();
 
-  // Infrastructure copied from class CodeGenerator or stubbed out.
-  void FinalizePcDescriptors(const Code& code);
-  void FinalizeVarDescriptors(const Code& code);
-  void FinalizeExceptionHandlers(const Code& code);
-
  private:
-  int stack_local_count() const { return stack_local_count_; }
-  void set_stack_local_count(int count) { stack_local_count_ = count; }
-
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
 
-  // Emit code to perform a computation, leaving its value in RAX.
-#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp);
-
   // Each visit function compiles a type of instruction.
-#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
-  virtual void Visit##ShortName(ShortName##Instr* instr);
-
-  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
-
-#undef DECLARE_VISIT_COMPUTATION
-#undef DECLARE_VISIT_INSTRUCTION
+#define DECLARE_VISIT(type)                             \
+  virtual void Visit##type(type##Instr* instr);
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+#undef DECLARE_VISIT
 
   // Emit code to load a Value into register RAX.
   void LoadValue(Value* value);
@@ -76,7 +57,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   const GrowableArray<BlockEntryInstr*>* blocks_;
 
   CodeGenerator::DescriptorList* pc_descriptors_list_;
-  int stack_local_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

@@ -1705,14 +1705,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ popq(R10);
   __ popq(RBX);
   __ LeaveFrame();
-
-  // Find out which dispatch stub to call.
-  Label ic_cache_one_arg;
-  __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
-  __ cmpq(RCX, Immediate(1));
-  __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
-  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&ic_cache_one_arg);
+  // Now call the dynamic function.
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
 }
 

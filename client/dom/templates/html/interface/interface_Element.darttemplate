@@ -84,7 +84,7 @@ class _DataAttributeMap implements Map<String, String> {
 
 class _CssClassSet implements Set<String> {
 
-  final _ElementImpl _element;
+  final _ElementJs _element;
 
   _CssClassSet(this._element);
 
@@ -248,20 +248,16 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
-interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
+// TODO(jacobr): referencing _ElementJs here is problematic when we need
+// to support wrappers as well.
+interface Element extends Node, NodeSelector default _ElementJs {
 // TODO(jacobr): switch back to:
-// interface $ID$EXTENDS default _ElementImpl {
+// interface $ID$EXTENDS default _ElementJs {
   Element.html(String html);
   Element.tag(String tag);
 
   Map<String, String> get attributes();
   void set attributes(Map<String, String> value);
-
-  /**
-   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
-   *   getElementsByTagNameNS
-   */
-  ElementList queryAll(String selectors);
 
   // TODO(jacobr): remove these methods and let them be generated automatically
   // once dart supports defining fields with the same name in an interface and
@@ -269,16 +265,15 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   String get title();
   void set title(String value);
 
-  /**
-   * @domName childElementCount, firstElementChild, lastElementChild,
-   *   children, Node.nodes.add
-   */
   ElementList get elements();
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value);
 
-  /** @domName className, classList */
+  Element query(String selectors);
+
+  ElementList queryAll(String selectors);
+
   Set<String> get classes();
 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
@@ -287,20 +282,16 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
 
-  /**
-   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
-   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
-   * scrollHeight, scrollWidth, scrollTop, scrollLeft
-   */
+  bool matchesSelector([String selectors]);
+
   Future<ElementRect> get rect();
 
-  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle();
 
-  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   Element clone(bool deep);
+
 
   Element get parent();
 

@@ -18,8 +18,6 @@
     'eventhandler.dart',
     'file.dart',
     'file_impl.dart',
-    'http.dart',
-    'http_impl.dart',
     'input_stream.dart',
     'list_stream.dart',
     'list_stream_impl.dart',

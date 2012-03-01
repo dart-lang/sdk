@@ -19,14 +19,14 @@ namespace dart {
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
+DECLARE_FLAG(bool, disassemble);
 
 void FlowGraphCompiler::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
-  const char* function_name = parsed_function_.function().ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
+  const char* kFormat = "FlowGraphCompiler Bailout: %s.";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, reason) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, function_name, reason);
+  OS::SNPrint(chars, len, kFormat, reason);
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));
   Isolate::Current()->long_jump_base()->Jump(1, error);
@@ -37,7 +37,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 void FlowGraphCompiler::LoadValue(Value* value) {
   if (value->IsConstant()) {
-    ConstantVal* constant = value->AsConstant();
+    ConstantValue* constant = value->AsConstant();
     if (constant->instance().IsSmi()) {
       int64_t imm = reinterpret_cast<int64_t>(constant->instance().raw());
       __ movq(RAX, Immediate(imm));
@@ -46,56 +46,8 @@ void FlowGraphCompiler::LoadValue(Value* value) {
     }
   } else {
     ASSERT(value->IsTemp());
-    __ popq(RAX);
+    Bailout("return of non-ConstantValue value");
   }
-}
-
-
-void FlowGraphCompiler::VisitTemp(TempVal* val) {
-  Bailout("TempVal");
-}
-
-
-void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
-  Bailout("ConstantVal");
-}
-
-
-void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
-  Bailout("AssertAssignableComp");
-}
-
-
-void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
-  Bailout("InstanceCallComp");
-}
-
-
-void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
-  Bailout("StrictCompareComp");
-}
-
-
-
-void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
-  Bailout("StaticCallComp");
-}
-
-
-void FlowGraphCompiler::VisitLoadLocal(LoadLocalComp* comp) {
-  if (comp->local().is_captured()) {
-    Bailout("load of context variable");
-  }
-  __ movq(RAX, Address(RBP, comp->local().index() * kWordSize));
-}
-
-
-void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
-  if (comp->local().is_captured()) {
-    Bailout("store to context variable");
-  }
-  LoadValue(comp->value());
-  __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
 }
 
 
@@ -110,13 +62,12 @@ void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
 
 
 void FlowGraphCompiler::VisitDo(DoInstr* instr) {
-  instr->computation()->Accept(this);
+  Bailout("DoInstr");
 }
 
 
 void FlowGraphCompiler::VisitBind(BindInstr* instr) {
-  instr->computation()->Accept(this);
-  __ pushq(RAX);
+  Bailout("DoInstr");
 }
 
 
@@ -125,9 +76,10 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
 
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
+  const intptr_t locals_space_size = 0;
   __ movq(R10, RBP);
   __ subq(R10, RSP);
-  __ cmpq(R10, Immediate(stack_local_count() * kWordSize));
+  __ cmpq(R10, Immediate(locals_space_size));
   Label stack_ok;
   __ j(EQUAL, &stack_ok, Assembler::kNearJump);
   __ Stop("Exit stack size does not match the entry stack size.");
@@ -148,37 +100,27 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   }
   __ LeaveFrame();
   __ ret();
-
-  // Generate 8 bytes of NOPs so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  AddCurrentDescriptor(PcDescriptors::kReturn,
-                       AstNode::kNoId,
-                       instr->token_index());
 }
 
 
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
-  Bailout("BranchInstr");
+  Bailout("VisitBranch");
 }
 
 
 void FlowGraphCompiler::CompileGraph() {
   const Function& function = parsed_function_.function();
-  if ((function.num_optional_parameters() != 0)) {
-    Bailout("function has optional parameters");
+  if ((function.num_fixed_parameters() != 0) ||
+      (function.num_optional_parameters() != 0)) {
+    Bailout("function has parameters");
   }
   LocalScope* scope = parsed_function_.node_sequence()->scope();
+  if (scope->child() != NULL) {
+    Bailout("function has local scopes");
+  }
   LocalScope* context_owner = NULL;
-  const int parameter_count = function.num_fixed_parameters();
-  const int first_parameter_index = 1 + parameter_count;
+  const int first_parameter_index = 1;
+  const int parameter_count = 0;
   const int first_local_index = -1;
   int first_free_frame_index =
       scope->AllocateVariables(first_parameter_index,
@@ -186,12 +128,13 @@ void FlowGraphCompiler::CompileGraph() {
                                first_local_index,
                                scope,
                                &context_owner);
-  set_stack_local_count(first_local_index - first_free_frame_index);
+  const int local_count = first_local_index - first_free_frame_index;
+  if (local_count != 0) Bailout("function has locals");
 
   if (blocks_->length() != 1) Bailout("more than 1 basic block");
 
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
-  __ EnterFrame(stack_local_count() * kWordSize);
+  __ EnterFrame(0);
 #ifdef DEBUG
   const bool check_arguments = true;
 #else
@@ -202,7 +145,7 @@ void FlowGraphCompiler::CompileGraph() {
     Label argc_in_range;
     // Total number of args is the first Smi in args descriptor array (R10).
     __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-    __ cmpq(RAX, Immediate(Smi::RawValue(parameter_count)));
+    __ cmpq(RAX, Immediate(Smi::RawValue(0)));
     __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
     if (function.IsClosureFunction()) {
       GenerateCallRuntime(AstNode::kNoId,
@@ -213,21 +156,11 @@ void FlowGraphCompiler::CompileGraph() {
     }
     __ Bind(&argc_in_range);
   }
-
-  // Initialize locals to null.
-  if (stack_local_count() > 0) {
-    __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(Object::null())));
-    for (int i = 0; i < stack_local_count(); ++i) {
-      // Subtract index i (locals lie at lower addresses than RBP).
-      __ movq(Address(RBP, (first_local_index - i) * kWordSize), RAX);
-    }
-  }
-
   // Generate stack overflow check.
   __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
   __ cmpq(RSP, Address(TMP, 0));
   Label no_stack_overflow;
-  __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
+  __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(AstNode::kNoId,
                       function.token_index(),
                       kStackOverflowRuntimeEntry);
@@ -254,6 +187,17 @@ void FlowGraphCompiler::CompileGraph() {
                                       0,
                                       -1);
   __ jmp(&StubCode::FixCallersTargetLabel());
+
+  if (FLAG_disassemble) {
+    const char* function_fullname = function.ToFullyQualifiedCString();
+    OS::Print(";;; Function %s\n", function_fullname);
+    const Code& code = Code::Handle(Code::FinalizeCode("GRAPH", assembler_));
+    const Instructions& instructions =
+        Instructions::Handle(code.instructions());
+    uword start = instructions.EntryPoint();
+    Disassembler::Disassemble(start, start + assembler_->CodeSize());
+    OS::Print("\n");
+  }
 }
 
 
@@ -275,29 +219,6 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                       node_id,
                                       token_index,
                                       CatchClauseNode::kInvalidTryIndex);
-}
-
-
-void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
-  ASSERT(pc_descriptors_list_ != NULL);
-  const PcDescriptors& descriptors = PcDescriptors::Handle(
-      pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  descriptors.Verify(parsed_function_.function().is_optimizable());
-  code.set_pc_descriptors(descriptors);
-}
-
-
-void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
-  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
-  code.set_var_descriptors(var_descs);
-}
-
-
-void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
-  // We don't compile exception handlers yet.
-  code.set_exception_handlers(
-      ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
 }
 
 

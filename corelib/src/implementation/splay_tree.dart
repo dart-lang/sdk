@@ -7,7 +7,10 @@
  * and right children in the tree.
  */
 class SplayTreeNode<K, V> {
-  SplayTreeNode(K this.key, V this.value);
+  SplayTreeNode(K k, V v) {
+    key = k;
+    value = v;
+  }
 
   K key;
   V value;
@@ -24,7 +27,7 @@ class SplayTreeNode<K, V> {
  * This implementation is a Dart version of the JavaScript
  * implementation in the V8 project.
  */
-class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
+class SplayTree<K extends Comparable, V> implements Map<K, V> {
 
   // The root node of the splay tree. It will contain either the last
   // element inserted, or the last element looked up.
@@ -38,7 +41,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
   // Number of elements in the splay tree.
   int _count;
 
-  SplayTreeMap() {
+  SplayTree() {
     _dummy = new SplayTreeNode<K, V>(null, null);
     _count = 0;
   }
@@ -61,8 +64,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
     SplayTreeNode<K, V> right = _dummy;
     SplayTreeNode<K, V> current = _root;
     while (true) {
-      int comp = key.compareTo(current.key);
-      if (comp < 0) {
+      if (key.compareTo(current.key) < 0) {
         if (current.left === null) break;
         if (key.compareTo(current.left.key) < 0) {
           // Rotate right.
@@ -76,7 +78,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
         right.left = current;
         right = current;
         current = current.left;
-      } else if (comp > 0) {
+      } else if (key.compareTo(current.key) > 0) {
         if (current.right === null) break;
         if (key.compareTo(current.right.key) > 0) {
           // Rotate left.
@@ -214,12 +216,11 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
 
   bool containsValue(V value) {
     bool found = false;
-    bool visit(SplayTreeNode node) {
-      if (node === null) return false;
-      if (node.value == value) return true;
-      return visit(node.left) || visit(node.right);
-    }
-    return visit(_root);
+    // Note: Worst performance you can get because we don't have
+    // non-local return.
+    // TODO: optimize this method with a similar code than forEach.
+    forEach((Object k, Object v) { if (value == v) found = true; });
+    return found;
   }
 
   Collection<K> getKeys() {
@@ -236,71 +237,5 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
 
   String toString() {
     return Maps.mapToString(this);
-  }
-
-  /**
-   * Get the first key in the map. Returns [null] if the map is empty.
-   */
-  K firstKey() {
-    if (_root === null) return null;
-    SplayTreeNode<K, V> node = _root;
-    while (node.left !== null) {
-      node = node.left;
-    }
-    // Maybe implement a splay-method that can splay the minimum without
-    // performing comparisons.
-    splay_(node.key);
-    return node.key;
-  }
-
-  /**
-   * Get the last key in the map. Returns [null] if the map is empty.
-   */
-  K lastKey() {
-    if (_root === null) return null;
-    SplayTreeNode<K, V> node = _root;
-    while (node.right !== null) {
-      node = node.right;
-    }
-    // Maybe implement a splay-method that can splay the maximum without
-    // performing comparisons.
-    splay_(node.key);
-    return node.key;
-  }
-
-  /**
-   * Get the last key in the map that is strictly smaller than [key]. Returns
-   * [null] if no key was not found.
-   */
-  K lastKeyBefore(K key) {
-    splay_(key);
-    K visit(SplayTreeNode node, [K ifEmpty]) {
-      if (node === null) return ifEmpty;
-      if (node.key.compareTo(key) >= 0) {
-        return visit(node.left, ifEmpty);
-      }
-      if (node.key.compareTo(key) < 0) {
-        return visit(node.right, node.key);
-      }
-    }
-    return visit(_root);
-  }
-
-  /**
-   * Get the first key in the map that is strictly larger than [key]. Returns
-   * [null] if no key was not found.
-   */
-  K firstKeyAfter(K key) {
-    splay_(key);
-    K visit(SplayTreeNode node, [K ifEmpty]) {
-      if (node === null) return ifEmpty;
-      if (node.key.compareTo(key) > 0) {
-        return visit(node.left, node.key);
-      }
-      if (node.key.compareTo(key) <= 0) {
-        return visit(node.right, ifEmpty);
-      }
-    }
-    return visit(_root);
   }
 }

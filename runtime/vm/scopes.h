@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28,7 +28,7 @@ class LocalVariable : public ZoneAllocated {
       is_final_(false),
       is_captured_(false),
       is_invisible_(false),
-      index_(LocalVariable::kUnitializedIndex) {
+      index_(LocalVariable::kUnitializedIndex_) {
     ASSERT(type.IsZoneHandle());
     ASSERT(type.IsFinalized());
   }
@@ -50,20 +50,15 @@ class LocalVariable : public ZoneAllocated {
   void set_is_captured() { is_captured_ = true; }
 
   bool HasIndex() const {
-    return index_ != kUnitializedIndex;
+    return index_ != kUnitializedIndex_;
   }
   int index() const {
     ASSERT(HasIndex());
     return index_;
   }
-
-  // Assign an index to a local.  This function can be called more than once
-  // on the same on local (e.g., if we tried to compile in one mode, bailed
-  // out, and fell back to a different compilation mode).  In any case, it
-  // should not change the index once set.
   void set_index(int index) {
-    ASSERT(!HasIndex() || (index_ == index));
-    ASSERT(index != kUnitializedIndex);
+    ASSERT(!HasIndex());
+    ASSERT(index != kUnitializedIndex_);
     index_ = index;
   }
 
@@ -74,7 +69,7 @@ class LocalVariable : public ZoneAllocated {
   bool Equals(const LocalVariable& other) const;
 
  private:
-  static const int kUnitializedIndex = INT_MIN;
+  static const int kUnitializedIndex_ = INT_MIN;
 
   const intptr_t token_index_;
   const String& name_;
@@ -174,7 +169,7 @@ class LocalScope : public ZoneAllocated {
   // The context level is only set in a scope that is either the owner scope of
   // a captured variable or that is the owner scope of a context.
   bool HasContextLevel() const {
-    return context_level_ != kUnitializedContextLevel;
+    return context_level_ != kUnitializedContextLevel_;
   }
   int context_level() const {
     ASSERT(HasContextLevel());
@@ -182,7 +177,7 @@ class LocalScope : public ZoneAllocated {
   }
   void set_context_level(int context_level) {
     ASSERT(!HasContextLevel());
-    ASSERT(context_level != kUnitializedContextLevel);
+    ASSERT(context_level != kUnitializedContextLevel_);
     context_level_ = context_level;
   }
 
@@ -288,7 +283,7 @@ class LocalScope : public ZoneAllocated {
 
   void CollectLocalVariables(GrowableArray<LocalVariable*>* vars);
 
-  static const int kUnitializedContextLevel = INT_MIN;
+  static const int kUnitializedContextLevel_ = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;

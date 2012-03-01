@@ -15,7 +15,7 @@ void main() {
 
   String filename = getFilename("bin/file_test.cc");
   File file = new File(filename);
-  InputStream input = file.openInputStream();
+  InputStream input = file.openInputStreamSync();
   try {
     input.readInto(a, 0, 1);
     Expect.fail("no exception thrown");

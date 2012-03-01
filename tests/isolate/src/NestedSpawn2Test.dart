@@ -7,7 +7,6 @@
 // disappeared.
 
 #library('NestedSpawn2Test');
-#import("dart:isolate");
 #import('TestFramework.dart');
 
 class IsolateA extends Isolate {

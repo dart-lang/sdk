@@ -1,7 +1,6 @@
 #library('DOMIsolatesTest');
 #import('../../../testing/unittest/unittest.dart');
 #import('dart:dom');
-#import('dart:isolate');
 
 isolateMain(port) {
   port.receive((msg, replyTo) {

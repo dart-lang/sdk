@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('MandelIsolateTest');
-#import('dart:isolate');
+#library("MandelIsolateTest");
 #import('TestFramework.dart');
 
 final TERMINATION_MESSAGE = -1;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("ConstructorTest");
-#import("dart:isolate");
 #import("TestFramework.dart");
 
 class ConstructorTest extends Isolate {

@@ -55,13 +55,7 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(
       reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
-
   library = Library::CoreImplLibrary();
-  ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(
-      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
-
-  library = Library::IsolateLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(
       reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));

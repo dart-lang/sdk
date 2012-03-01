@@ -150,19 +150,10 @@ class Double implements double {
     // look at the fractionDigits first.
 
     // Step 7.
-    if (fractionDigits !== null &&
-        (fractionDigits < 0 || fractionDigits > 20)) {
+    if (fractionDigits < 0 || fractionDigits > 20) {
       // TODO(antonm): should be proper RangeError or Dart counterpart.
       throw "Range error";
     }
-
-    if (isNaN()) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
-
-    // The dart function prints the shortest representation when fractionDigits
-    // equals null. The native function wants -1 instead.
-    fractionDigits = (fractionDigits === null) ? -1 : fractionDigits;
 
     return _toStringAsExponential(fractionDigits);
   }
@@ -181,10 +172,6 @@ class Double implements double {
       // TODO(antonm): should be proper RangeError or Dart counterpart.
       throw "Range error";
     }
-
-    if (isNaN()) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
 
     return _toStringAsPrecision(precision);
   }

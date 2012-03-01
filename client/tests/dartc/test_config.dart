@@ -29,10 +29,8 @@ class ClientDartcTestSuite extends DartcCompilationTestSuite {
 
   bool isTestFile(String filename) {
     if (!filename.endsWith(".dart")) return false;
-    // Using readOptionsFromFile here causes the file to be read twice,
-    // because readOptionsFromFile is called again in the superclass.
-    // Avoid this in new code.
-    return readOptionsFromFile(filename)["containsLeadingHash"];
+    var options = optionsFromFile(filename);
+    return optionsFromFile(filename)["containsLeadingHash"];
   }
 
   bool listRecursively() => true;

@@ -91,7 +91,7 @@ class _SocketBase {
 
   void _getPort() native "Socket_GetPort";
 
-  void set onError(void callback()) {
+  void set errorHandler(void callback()) {
     _setHandler(_ERROR_EVENT, callback);
   }
 
@@ -226,7 +226,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   bool _createBindListen(String bindAddress, int port, int backlog)
       native "ServerSocket_CreateBindListen";
 
-  void set onConnection(void callback(Socket connection)) {
+  void set connectionHandler(void callback(Socket connection)) {
     _clientConnectionHandler = callback;
     _setHandler(_IN_EVENT,
                 _clientConnectionHandler != null ? _connectionHandler : null);
@@ -359,23 +359,23 @@ class _Socket extends _SocketBase implements Socket {
     // For all errors we close the socket, call the error handler and
     // disable further calls of the error handler.
     close();
-    var onError = _handlerMap[_ERROR_EVENT];
-    if (onError != null) {
-      onError();
+    var errorHandler = _handlerMap[_ERROR_EVENT];
+    if (errorHandler != null) {
+      errorHandler();
       _setHandler(_ERROR_EVENT, null);
     }
   }
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";
 
-  void set onWrite(void callback()) {
+  void set writeHandler(void callback()) {
     if (_outputStream != null) throw new StreamException(
             "Cannot set write handler when output stream is used");
     _clientWriteHandler = callback;
     _updateOutHandler();
   }
 
-  void set onConnect(void callback()) {
+  void set connectHandler(void callback()) {
     if (_seenFirstOutEvent || _outputStream != null) {
       throw new StreamException(
           "Cannot set connect handler when already connected");
@@ -388,16 +388,16 @@ class _Socket extends _SocketBase implements Socket {
     _updateOutHandler();
   }
 
-  void set onData(void callback()) {
+  void set dataHandler(void callback()) {
     if (_inputStream != null) throw new StreamException(
             "Cannot set data handler when input stream is used");
-    _onData = callback;
+    _dataHandler = callback;
   }
 
-  void set onClosed(void callback()) {
+  void set closeHandler(void callback()) {
     if (_inputStream != null) throw new StreamException(
             "Cannot set close handler when input stream is used");
-    _onClosed = callback;
+    _closeHandler = callback;
   }
 
   bool _isListenSocket() => false;
@@ -427,15 +427,15 @@ class _Socket extends _SocketBase implements Socket {
     return _outputStream;
   }
 
-  void set _onWrite(void callback()) {
+  void set _writeHandler(void callback()) {
     _setHandler(_OUT_EVENT, callback);
   }
 
-  void set _onData(void callback()) {
+  void set _dataHandler(void callback()) {
     _setHandler(_IN_EVENT, callback);
   }
 
-  void set _onClosed(void callback()) {
+  void set _closeHandler(void callback()) {
     _setHandler(_CLOSE_EVENT, callback);
   }
 
@@ -448,7 +448,7 @@ class _Socket extends _SocketBase implements Socket {
       // handler (connect handler cannot be called again). Change this
       // before calling any handlers as handlers can change the
       // handlers.
-      if (_clientWriteHandler === null) _onWrite = _clientWriteHandler;
+      if (_clientWriteHandler === null) _writeHandler = _clientWriteHandler;
 
       // First out event is socket connected event.
       if (_clientConnectHandler !== null) _clientConnectHandler();
@@ -459,12 +459,12 @@ class _Socket extends _SocketBase implements Socket {
     }
 
     if (_clientConnectHandler === null && _clientWriteHandler === null) {
-      _onWrite = null;
+      _writeHandler = null;
     } else {
       if (_seenFirstOutEvent) {
-        _onWrite = _clientWriteHandler;
+        _writeHandler = _clientWriteHandler;
       } else {
-        _onWrite = firstWriteHandler;
+        _writeHandler = firstWriteHandler;
       }
     }
   }

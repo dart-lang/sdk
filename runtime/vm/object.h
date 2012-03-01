@@ -144,7 +144,6 @@ class Object {
     kInstantiatedTypeArgumentsClass,
     kFunctionClass,
     kFieldClass,
-    kLiteralTokenClass,
     kTokenStreamClass,
     kScriptClass,
     kLibraryClass,
@@ -280,7 +279,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
   static RawClass* function_class() { return function_class_; }
   static RawClass* field_class() { return field_class_; }
-  static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
@@ -392,7 +390,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* field_class_;  // Class of the Field vm object.
-  static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
   static RawClass* script_class_;  // Class of the Script vm object.
   static RawClass* library_class_;  // Class of the Library vm object.
@@ -781,9 +778,6 @@ class AbstractType : public Object {
  public:
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
-  virtual bool IsMalformed() const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
@@ -899,9 +893,6 @@ class Type : public AbstractType {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
   void set_is_being_finalized() const;
-  virtual bool IsMalformed() const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
@@ -985,7 +976,6 @@ class TypeParameter : public AbstractType {
   }
   void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
-  virtual bool IsMalformed() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const { return raw_ptr()->name_; }
@@ -1030,7 +1020,6 @@ class InstantiatedType : public AbstractType {
  public:
   virtual bool IsFinalized() const { return true; }
   virtual bool IsBeingFinalized() const { return false; }
-  virtual bool IsMalformed() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return true; }
   virtual RawClass* type_class() const;
@@ -1243,13 +1232,9 @@ class Function : public Object {
   void SetParameterNameAt(intptr_t index, const String& value) const;
   void set_parameter_names(const Array& value) const;
 
+  RawCode* code() const { return raw_ptr()->code_; }
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
-
-  // Return the most recently compiled and installed code for this function.
-  // It is not the only Code object that points to this function.
-  RawCode* CurrentCode() const { return raw_ptr()->code_; }
-
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
@@ -1372,8 +1357,6 @@ class Function : public Object {
     return raw_ptr()->is_optimizable_;
   }
   void set_is_optimizable(bool value) const;
-
-  bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
 
@@ -1568,29 +1551,6 @@ class Field : public Object {
 };
 
 
-class LiteralToken : public Object {
- public:
-  Token::Kind kind() const { return raw_ptr()->kind_; }
-  RawString* literal() const { return raw_ptr()->literal_; }
-  RawObject* value() const { return raw_ptr()->value_; }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawLiteralToken));
-  }
-
-  static RawLiteralToken* New();
-  static RawLiteralToken* New(Token::Kind kind, const String& literal);
-
- private:
-  void set_kind(Token::Kind kind) const { raw_ptr()->kind_ = kind; }
-  void set_literal(const String& literal) const;
-  void set_value(const Object& value) const;
-
-  HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
-  friend class Class;
-};
-
-
 class TokenStream : public Object {
  public:
   inline intptr_t Length() const;
@@ -1598,20 +1558,22 @@ class TokenStream : public Object {
   inline Token::Kind KindAt(intptr_t index) const;
 
   void SetTokenAt(intptr_t index, Token::Kind kind, const String& literal);
-  void SetTokenAt(intptr_t index, const Object& token);
 
-  RawObject* TokenAt(intptr_t index) const;
-  RawString* LiteralAt(intptr_t index) const;
+  RawObject* LiteralAt(intptr_t index) const {
+    return *EntryAddr(index, RawTokenStream::kLiteralEntry);
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawTokenStream) + (len * kWordSize));
+    return RoundedAllocationSize(
+        sizeof(RawTokenStream) +
+            (len * RawTokenStream::kNumberOfEntries * kWordSize));
   }
   static intptr_t StreamLength(intptr_t len) {
-    return len;
+    return (len * RawTokenStream::kNumberOfEntries);
   }
 
   static RawTokenStream* New(intptr_t length);
@@ -1620,13 +1582,15 @@ class TokenStream : public Object {
  private:
   void SetLength(intptr_t value) const;
 
-  RawObject** EntryAddr(intptr_t index) const {
+  RawObject** EntryAddr(intptr_t index, intptr_t entry_offset) const {
     ASSERT((index >=0) && (index < Length()));
-    return &raw_ptr()->data_[index];
+    intptr_t data_index =
+        (index * RawTokenStream::kNumberOfEntries) + entry_offset;
+    return &raw_ptr()->data_[data_index];
   }
 
-  RawSmi** SmiAddr(intptr_t index) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index));
+  RawSmi** SmiAddr(intptr_t index, intptr_t entry_offset) const {
+    return reinterpret_cast<RawSmi**>(EntryAddr(index, entry_offset));
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
@@ -1784,10 +1748,8 @@ class Library : public Object {
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
-  static void InitIsolateLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
-  static RawLibrary* IsolateLibrary();
   static void InitNativeWrappersLibrary(Isolate* isolate);
   static RawLibrary* NativeWrappersLibrary();
 
@@ -1996,9 +1958,6 @@ class PcDescriptors : public Object {
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors);
-
-  // Verify (assert) assumptions about pc descriptors in debug mode.
-  void Verify(bool check_ids) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
@@ -2652,8 +2611,8 @@ class Mint : public Integer {
 
 class Bigint : public Integer {
  public:
-  virtual bool IsZero() const { return raw_ptr()->signed_length_ == 0; }
-  virtual bool IsNegative() const { return raw_ptr()->signed_length_ < 0; }
+  virtual bool IsZero() const;
+  virtual bool IsNegative() const;
 
   virtual bool Equals(const Instance& other) const;
 
@@ -2662,59 +2621,46 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static intptr_t InstanceSize(intptr_t length) {
-    ASSERT(length >= 0);
-    return RoundedAllocationSize(sizeof(RawBigint) + (length * sizeof(Chunk)));
+  static intptr_t InstanceSize(const BIGNUM* bn) {
+    // Danger Will Robinson! Use of OpenSSL internals!
+    return RoundedAllocationSize(sizeof(RawBigint)
+                                 + sizeof(BN_ULONG) * bn->top);
   }
-  static intptr_t InstanceSize() { return 0; }
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawBigint) == OFFSET_OF(RawBigint, data_));
+    return 0;
+  }
+
+  static RawBigint* New(const BIGNUM* bn, Heap::Space space = Heap::kNew);
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
  private:
-  typedef uint32_t Chunk;
-  typedef uint64_t DoubleChunk;
-  static const int kChunkSize = sizeof(Chunk);
-
-  Chunk GetChunkAt(intptr_t i) const {
-    return *ChunkAddr(i);
-  }
-
-  void SetChunkAt(intptr_t i, Chunk newValue) const {
-    *ChunkAddr(i) = newValue;
-  }
-
-  intptr_t Length() const {
-    intptr_t signed_length = raw_ptr()->signed_length_;
-    return Utils::Abs(signed_length);
-  }
-
-  // SetLength does not change the sign.
-  void SetLength(intptr_t length) const {
-    ASSERT(length >= 0);
-    bool is_negative = IsNegative();
-    raw_ptr()->signed_length_ = length;
-    if (is_negative) ToggleSign();
-  }
-
-  void SetSign(bool is_negative) const {
-    if (is_negative != IsNegative()) {
-      ToggleSign();
-    }
-  }
+  void SetSign(bool is_negative) const;
 
   void ToggleSign() const {
-    raw_ptr()->signed_length_ = -raw_ptr()->signed_length_;
+    BIGNUM* bn = MutableBNAddr();
+    // Danger Will Robinson! Use of OpenSSL internals!
+    // FIXME(benl): can be changed to use BN_set_negative() on more
+    // recent OpenSSL releases (> 1.0.0).
+    SetSign(!bn->neg);
   }
 
-  Chunk* ChunkAddr(intptr_t index) const {
-    ASSERT(0 <= index);
-    ASSERT(index < Length());
-    uword digits_start = reinterpret_cast<uword>(raw_ptr()) + sizeof(RawBigint);
-    return &(reinterpret_cast<Chunk*>(digits_start)[index]);
+  BIGNUM* MutableBNAddr() const {
+    // Fix up internals as we may have been moved.
+    raw_ptr()->bn_.d = BNMemory();
+
+    return &raw_ptr()->bn_;
+  }
+  const BIGNUM* BNAddr() const { return MutableBNAddr(); }
+  BN_ULONG* BNMemory() const {
+    return &raw_ptr()->data_[0];
   }
 
-  static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
+  int NumberOfBits() const { return BN_num_bits(BNAddr()); }
+  bool IsBitSet(intptr_t bit) const { return Bit(bit) == 1; }
+  int Bit(intptr_t bit) const { return BN_is_bit_set(BNAddr(), bit); }
 
   HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
   friend class Class;
@@ -3769,7 +3715,7 @@ void Object::SetRaw(RawObject* value) {
 
 
 bool Function::HasCode() const {
-  return raw_ptr()->code_ != Code::null();
+  return code() != Code::null();
 }
 
 
@@ -3791,17 +3737,8 @@ intptr_t TokenStream::Length() const {
 
 
 Token::Kind TokenStream::KindAt(intptr_t index) const {
-  const Object& obj = Object::Handle(TokenAt(index));
-  if (obj.IsSmi()) {
-    return static_cast<Token::Kind>(
-        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
-  } else if (obj.IsLiteralToken()) {
-    LiteralToken& token = LiteralToken::Handle();
-    token ^= obj.raw();
-    return token.kind();
-  }
-  ASSERT(obj.IsString());  // Must be an identifier.
-  return Token::kIDENT;
+  return static_cast<Token::Kind>(
+      Smi::Value(*SmiAddr(index, RawTokenStream::kKindEntry)));
 }
 
 

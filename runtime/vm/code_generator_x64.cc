@@ -212,11 +212,54 @@ void CodeGenerator::GeneratePreEntryCode() {
 }
 
 
+// Verify assumptions (in debug mode only).
+// - No two deopt descriptors have the same node id (deoptimization).
+// - No two ic-call descriptors have the same node id (type feedback).
+// - No two descriptors of same kind have the same PC.
+// A function without unique ids is marked as non-optimizable (e.g., because of
+// finally blocks).
+static void VerifyPcDescriptors(const PcDescriptors& descriptors,
+                                bool check_ids) {
+#if defined(DEBUG)
+  // TODO(srdjan): Implement a more efficient way to check, currently drop
+  // the check for too large number of descriptors.
+  if (descriptors.Length() > 3000) {
+    if (FLAG_trace_compiler) {
+      OS::Print("Not checking pc decriptors, length %d\n",
+                descriptors.Length());
+    }
+    return;
+  }
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    uword pc = descriptors.PC(i);
+    PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
+    // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
+    intptr_t node_id = AstNode::kNoId;
+    if (check_ids) {
+      if ((descriptors.DescriptorKind(i) == PcDescriptors::kDeopt) ||
+          (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall)) {
+        node_id = descriptors.NodeId(i);
+      }
+    }
+    for (intptr_t k = i + 1; k < descriptors.Length(); k++) {
+      if (kind == descriptors.DescriptorKind(k)) {
+        if (node_id != AstNode::kNoId) {
+          ASSERT(descriptors.NodeId(k) != node_id);
+        }
+        ASSERT(pc != descriptors.PC(k));
+      }
+    }
+  }
+#endif  // DEBUG
+}
+
+
 void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  descriptors.Verify(parsed_function_.function().is_optimizable());
+  VerifyPcDescriptors(
+      descriptors, parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
 }
 
@@ -424,7 +467,7 @@ void CodeGenerator::GenerateEntryCode() {
       }
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
-                            0,
+                            function.token_index(),
                             kClosureArgumentMismatchRuntimeEntry);
       } else {
         __ Stop("Wrong number of arguments");
@@ -549,7 +592,7 @@ void CodeGenerator::GenerateEntryCode() {
     __ Bind(&wrong_num_arguments);
     if (function.IsClosureFunction()) {
       GenerateCallRuntime(AstNode::kNoId,
-                          0,
+                          function.token_index(),
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
@@ -571,7 +614,7 @@ void CodeGenerator::GenerateEntryCode() {
 
     if (FLAG_trace_functions) {
       __ pushq(RAX);  // Preserve result.
-      __ PushObject(Function::ZoneHandle(function.raw()));
+      __ PushObject(function);
       GenerateCallRuntime(AstNode::kNoId,
                           0,
                           kTraceFunctionExitRuntimeEntry);
@@ -619,7 +662,7 @@ void CodeGenerator::GenerateEntryCode() {
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(AstNode::kNoId,
-                      0,
+                      function.token_index(),
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 }
@@ -658,20 +701,6 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   __ ret();
   // TODO(hausner): insert generation of of PcDescriptor::kReturn,
   // analogous to 32bit version.
-
-  // Generate 8 bytes of NOPs so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  __ nop(1);
-  AddCurrentDescriptor(PcDescriptors::kReturn,
-                       node->id(),
-                       node->token_index());
 
 #ifdef DEBUG
   __ Bind(&wrong_stack);
@@ -798,7 +827,8 @@ void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
 
 
 void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Context& result = Context::ZoneHandle();
+  __ PushObject(result);
   __ pushq(CTX);
   GenerateCallRuntime(node->id(),
       node->token_index(), kCloneContextRuntimeEntry);
@@ -1298,7 +1328,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
                                        intptr_t token_index,
                                        const AbstractType& type,
                                        bool negate_result) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  ASSERT(type.IsFinalized());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
@@ -1406,7 +1436,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       }
     }
   }
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Object& result = Object::ZoneHandle();
+  __ PushObject(result);  // Make room for the result of the runtime call.
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -1458,23 +1489,6 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   ASSERT(token_index >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
-
-  // Generate throw new TypeError() if the type is malformed.
-  if (dst_type.IsMalformed()) {
-    const Error& error = Error::Handle(dst_type.malformed_error());
-    const String& error_message = String::ZoneHandle(
-        String::NewSymbol(error.ToErrorCString()));
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    const Immediate location =
-        Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
-    __ pushq(location);  // Push the source location.
-    __ pushq(RAX);  // Push the source object.
-    __ PushObject(error_message);
-    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
-    // We should never return here.
-    __ int3();
-    return;
-  }
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
@@ -1597,7 +1611,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     }
   }
   __ Bind(&runtime_call);
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Object& result = Object::ZoneHandle();
+  __ PushObject(result);  // Make room for the result of the runtime call.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
   __ pushq(location);  // Push the source location.
@@ -1663,13 +1678,16 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
+  const Object& result = Object::ZoneHandle();
+  __ PushObject(result);  // Make room for the result of the runtime call.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
   __ pushq(location);  // Push the source location.
   __ pushq(RAX);  // Push the source object.
   GenerateCallRuntime(node_id, token_index, kConditionTypeErrorRuntimeEntry);
-  // We should never return here.
-  __ int3();
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ addq(RSP, Immediate(3 * kWordSize));
 
   __ Bind(&done);
 }
@@ -2106,9 +2124,7 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
   __ LoadObject(RBX, interpol_func);
   __ LoadObject(R10, ArgumentsDescriptor(interpol_arg->length(),
                                          interpol_arg->names()));
-  GenerateCall(node->token_index(),
-               &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kFuncCall);
+  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
   __ addq(RSP, Immediate(interpol_arg->length() * kWordSize));
   // Result is in RAX.
   if (IsResultNeeded(node)) {
@@ -2191,8 +2207,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::New(instantiator_class, type_arguments, token_index));
-    type ^= ClassFinalizer::FinalizeType(
-        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
+    type ^= ClassFinalizer::FinalizeType(instantiator_class, type);
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
   } else {
@@ -2275,7 +2290,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     if (node->constructor().IsFactory()) {
       // A runtime call to instantiate the type arguments is required before
       // calling the factory.
-      __ PushObject(Object::ZoneHandle());  // Make room for the result.
+      const Object& result = Object::ZoneHandle();
+      __ PushObject(result);  // Make room for the result of the runtime call.
       __ PushObject(node->type_arguments());
       __ pushq(RAX);  // Push instantiator type arguments.
       GenerateCallRuntime(node->id(),
@@ -2599,12 +2615,17 @@ void CodeGenerator::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void CodeGenerator::VisitThrowNode(ThrowNode* node) {
+  const Object& result = Object::ZoneHandle();
   node->exception()->Visit(this);
-  // Exception object is on TOS.
+  __ popq(RAX);  // Exception object is now in RAX.
   if (node->stacktrace() != NULL) {
+    __ PushObject(result);  // Make room for the result of the runtime call.
+    __ pushq(RAX);  // Push the exception object.
     node->stacktrace()->Visit(this);
     GenerateCallRuntime(node->id(), node->token_index(), kReThrowRuntimeEntry);
   } else {
+    __ PushObject(result);  // Make room for the result of the runtime call.
+    __ pushq(RAX);  // Push the exception object.
     GenerateCallRuntime(node->id(), node->token_index(), kThrowRuntimeEntry);
   }
   // We should never return here.

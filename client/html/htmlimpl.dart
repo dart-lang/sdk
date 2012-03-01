@@ -466,8 +466,6 @@
 #source('src/WheelEventWrappingImplementation.dart');
 #source('src/WindowWrappingImplementation.dart');
 #source('src/WorkerWrappingImplementation.dart');
-#source('src/XMLDocumentWrappingImplementation.dart');
-#source('src/XMLElementWrappingImplementation.dart');
 #source('src/XMLHttpRequestProgressEventWrappingImplementation.dart');
 #source('src/XMLHttpRequestUploadWrappingImplementation.dart');
 #source('src/XMLHttpRequestWrappingImplementation.dart');

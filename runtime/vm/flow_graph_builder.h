@@ -38,6 +38,8 @@ class FlowGraphBuilder: public ValueObject {
 };
 
 
+#define DEFINE_VISIT(type, name) virtual void Visit##type(type* node);
+
 class TestGraphVisitor;
 
 // Translate an AstNode to a control-flow graph fragment for its effects
@@ -57,9 +59,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
         entry_(NULL),
         exit_(NULL) { }
 
-#define DEFINE_VISIT(type, name) virtual void Visit##type(type* node);
   NODE_LIST(DEFINE_VISIT)
-#undef DEFINE_VISIT
 
   FlowGraphBuilder* owner() const { return owner_; }
   intptr_t temp_index() const { return temp_index_; }
@@ -89,7 +89,14 @@ class EffectGraphVisitor : public AstNodeVisitor {
                const EffectGraphVisitor& body_fragment);
 
  protected:
-  // Helpers for translating parts of the AST.
+  // Implement the core part of the translation of expression node types.
+  AssertAssignableComp* TranslateAssignable(const AssignableNode& node);
+  InstanceCallComp* TranslateBinaryOp(const BinaryOpNode& node);
+  InstanceCallComp* TranslateUnaryOp(const UnaryOpNode& node);
+  Computation* TranslateComparison(const ComparisonNode& node);
+  StoreLocalComp* TranslateStoreLocal(const StoreLocalNode& node);
+  StaticCallComp* TranslateStaticCall(const StaticCallNode& node);
+  InstanceCallComp* TranslateInstanceCall(const InstanceCallNode& node);
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);
 
@@ -97,9 +104,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
  private:
-  // Specify a computation as the final result.  Adds a Do instruction to
-  // the graph, but normally overridden in subclasses.
-  virtual void ReturnComputation(Computation* computation) {
+  // Helper to append a Do instruction to the graph.
+  void DoComputation(Computation* computation) {
     AddInstruction(new DoInstr(computation));
   }
 
@@ -125,9 +131,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   ValueGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
       : EffectGraphVisitor(owner, temp_index), value_(NULL) { }
 
-  // Visit functions overridden by this class.
-  virtual void VisitLiteralNode(LiteralNode* node);
-  virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  NODE_LIST(DEFINE_VISIT)
 
   Value* value() const { return value_; }
 
@@ -135,12 +139,11 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // Helper to set the output state to return a Value.
   void ReturnValue(Value* value) { value_ = value; }
 
-  // Specify a computation as the final result.  Adds a Bind instruction to
-  // the graph and returns its temporary value (i.e., set the output
-  // parameters).
-  virtual void ReturnComputation(Computation* computation) {
+  // Helper to append a Bind instruction to the graph and return its
+  // temporary value (i.e., set the output parameters).
+  void ReturnValueOf(Computation* computation) {
     AddInstruction(new BindInstr(temp_index(), computation));
-    value_ = new TempVal(AllocateTempIndex());
+    value_ = new TempValue(AllocateTempIndex());
   }
 
   // Output parameters.
@@ -170,9 +173,7 @@ class TestGraphVisitor : public EffectGraphVisitor {
         false_successor_address_(NULL) {
   }
 
-  // Visit functions overridden by this class.
-  virtual void VisitLiteralNode(LiteralNode* node);
-  virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  NODE_LIST(DEFINE_VISIT)
 
   bool can_be_true() const {
     // Either both successors are set or neither is set.
@@ -201,17 +202,19 @@ class TestGraphVisitor : public EffectGraphVisitor {
   // Closes the fragment and sets the output parameters.
   void BranchOnValue(Value* value);
 
-  // Specify a computation as the final result.  Adds a Bind instruction to
-  // the graph and branches on its value.
-  virtual void ReturnComputation(Computation* computation) {
+  // Helper to bind a computation and branch on its value.
+  void BranchOnValueOf(Computation* computation) {
     AddInstruction(new BindInstr(temp_index(), computation));
-    BranchOnValue(new TempVal(temp_index()));
+    BranchOnValue(new TempValue(temp_index()));
   }
 
   // Output parameters.
   TargetEntryInstr** true_successor_address_;
   TargetEntryInstr** false_successor_address_;
 };
+
+#undef DEFINE_VISIT
+
 
 }  // namespace dart
 

@@ -30,11 +30,8 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
       pc_(0),
       saved_bytes_(0),
       line_number_(-1),
-      is_temporary_(false),
-      is_patched_(false),
       next_(NULL) {
-  ASSERT(!func.HasOptimizedCode());
-  Code& code = Code::Handle(func.unoptimized_code());
+  Code& code = Code::Handle(func.code());
   ASSERT(!code.IsNull());  // Function must be compiled.
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
@@ -90,8 +87,7 @@ const Function& ActivationFrame::DartFunction() {
     ASSERT(Isolate::Current() != NULL);
     CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
     ASSERT(code_index_table != NULL);
-    const Code& code = Code::Handle(code_index_table->LookupCode(pc_));
-    function_ = code.function();
+    function_ = code_index_table->LookupFunction(pc_);
   }
   return function_;
 }
@@ -140,8 +136,7 @@ RawScript* ActivationFrame::SourceScript() {
 intptr_t ActivationFrame::TokenIndex() {
   if (token_index_ < 0) {
     const Function& func = DartFunction();
-    ASSERT(!func.HasOptimizedCode());
-    Code& code = Code::Handle(func.unoptimized_code());
+    Code& code = Code::Handle(func.code());
     ASSERT(!code.IsNull());
     PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
     for (int i = 0; i < desc.Length(); i++) {
@@ -169,8 +164,7 @@ intptr_t ActivationFrame::LineNumber() {
 
 void ActivationFrame::GetDescIndices() {
   if (var_descriptors_ == NULL) {
-    ASSERT(!DartFunction().HasOptimizedCode());
-    const Code& code = Code::Handle(DartFunction().unoptimized_code());
+    const Code& code = Code::Handle(DartFunction().code());
     var_descriptors_ =
         &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
     GrowableArray<String*> var_names(8);
@@ -351,38 +345,6 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
-void Debugger::InstrumentForStepping(const Function &target_function) {
-  if (!target_function.HasCode()) {
-    Compiler::CompileFunction(target_function);
-    // If there were any errors, ignore them silently and return without
-    // adding breakpoints to target.
-    if (!target_function.HasCode()) {
-      return;
-    }
-  }
-  ASSERT(!target_function.HasOptimizedCode());
-  Code& code = Code::Handle(target_function.unoptimized_code());
-  ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  for (int i = 0; i < desc.Length(); i++) {
-    Breakpoint* bpt = GetBreakpoint(desc.PC(i));
-    if (bpt != NULL) {
-      // There is already a breakpoint for this address. Leave it alone.
-      continue;
-    }
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kFuncCall) ||
-        (kind == PcDescriptors::kReturn)) {
-      bpt = new Breakpoint(target_function, i);
-      bpt->set_temporary(true);
-      bpt->PatchCode();
-      RegisterBreakpoint(bpt);
-    }
-  }
-}
-
-
 // TODO(hausner): Distinguish between newly created breakpoints and
 // returning a breakpoint that already exists?
 Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
@@ -399,8 +361,7 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
       return NULL;
     }
   }
-  ASSERT(!target_function.HasOptimizedCode());
-  Code& code = Code::Handle(target_function.unoptimized_code());
+  Code& code = Code::Handle(target_function.code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (int i = 0; i < desc.Length(); i++) {

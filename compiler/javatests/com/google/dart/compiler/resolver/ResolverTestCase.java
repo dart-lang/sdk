@@ -308,6 +308,11 @@ abstract class ResolverTestCase extends TestCase {
     }
 
     @Override
+    public InterfaceType getIsolateType() {
+      throw new AssertionError();
+    }
+
+    @Override
     public InterfaceType getIteratorType(Type elementType) {
       throw new AssertionError();
     }

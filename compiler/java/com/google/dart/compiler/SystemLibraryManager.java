@@ -26,8 +26,7 @@ public class SystemLibraryManager {
     DOM("dom", "dom", "dom/", "dom.dart", "domlib.jar"),
     HTML("html", "html", "html/", "html.dart", "htmllib.jar"),
     HTMLIMPL("html", "htmlimpl", "html/", "htmlimpl.dart", "htmllib.jar"),
-    JSON("json", "json", "json/", "json.dart", "jsonlib.jar"),
-    ISOLATE("isolate", "isolate", "isolate/", "isolate_compiler.dart", "isolatelib.jar");
+    JSON("json", "json", "json/", "json.dart", "jsonlib.jar");
 
     final String hostName;
     final SystemLibraryPath base;

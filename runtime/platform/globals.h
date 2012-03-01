@@ -33,6 +33,7 @@
 #include <float.h>
 #include <limits.h>
 #include <math.h>
+#include <openssl/bn.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
