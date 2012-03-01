@@ -1356,6 +1356,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
                          name, element.getName());
       }
       switch (element.getKind()) {
+        case DYNAMIC:
+          return dynamicType;
         case CONSTRUCTOR:
           return typeError(node.getName(), TypeErrorCode.MEMBER_IS_A_CONSTRUCTOR,
                            name, element.getName());
