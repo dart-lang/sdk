@@ -385,6 +385,7 @@ ResourceTest: Fail  # browser tests are #sourcing the test, causing an error tha
 StringEscape1NegativeTest: Skip
 
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+Closure3Test: Fail
 MethodInvocationTest: Fail
 Private3Test: Fail
 StackTraceTest: Fail
