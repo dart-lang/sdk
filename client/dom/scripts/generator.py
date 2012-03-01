@@ -450,7 +450,7 @@ def TypeName(typeIds, interface):
 class IDLTypeInfo(object):
   def __init__(self, idl_type, dart_type=None, native_type=None, ref_counted=True,
                has_dart_wrapper=True, conversion_template=None,
-               custom_to_dart=False):
+               custom_to_dart=False, conversion_includes=[]):
     self._idl_type = idl_type
     self._dart_type = dart_type
     self._native_type = native_type
@@ -458,6 +458,7 @@ class IDLTypeInfo(object):
     self._has_dart_wrapper = has_dart_wrapper
     self._conversion_template = conversion_template
     self._custom_to_dart = custom_to_dart
+    self._conversion_includes = conversion_includes
 
   def idl_type(self):
     return self._idl_type
@@ -485,18 +486,23 @@ class IDLTypeInfo(object):
   def parameter_type(self):
     return '%s*' % self.native_type()
 
-  def webcore_include(self):
-    if self._idl_type == 'SVGNumber' or self._idl_type == 'SVGPoint':
-      return None
+  def webcore_includes(self):
+    if not self._idl_type.startswith('SVG'):
+      return [self._idl_type]
+
+    if self._idl_type in ['SVGNumber', 'SVGPoint']:
+      return []
     if self._idl_type.startswith('SVGPathSeg'):
-      return self._idl_type.replace('Abs', '').replace('Rel', '')
-    return self._idl_type
+      include = self._idl_type.replace('Abs', '').replace('Rel', '')
+    else:
+      include = self._idl_type
+    return [include] + _svg_supplemental_includes
 
   def receiver(self):
     return 'receiver->'
 
-  def conversion_include(self):
-    return 'Dart%s' % self._idl_type
+  def conversion_includes(self):
+    return ['Dart%s' % include for include in [self.dart_type()] + self._conversion_includes]
 
   def conversion_cast(self, expression):
     if self._conversion_template:
@@ -528,8 +534,8 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
       return 'const String&'
     return self.native_type()
 
-  def conversion_include(self):
-    return None
+  def conversion_includes(self):
+    return []
 
   def webcore_getter_name(self):
     return self._webcore_getter_name
@@ -600,6 +606,7 @@ _idl_type_registry = {
     'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic', ref_counted=True),
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
+    'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
@@ -608,6 +615,7 @@ _idl_type_registry = {
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
     'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
     'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
+    'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
     'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
 
     'SVGAngle': SVGTearOffIDLTypeInfo('SVGAngle'),
@@ -625,6 +633,15 @@ _idl_type_registry = {
     'SVGTransform': SVGTearOffIDLTypeInfo('SVGTransform'),
     'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff', ref_counted=False)
 }
+
+_svg_supplemental_includes = [
+    'SVGAnimatedPropertyTearOff',
+    'SVGAnimatedListPropertyTearOff',
+    'SVGStaticListPropertyTearOff',
+    'SVGAnimatedListPropertyTearOff',
+    'SVGTransformListPropertyTearOff',
+    'SVGPathSegListPropertyTearOff',
+]
 
 def GetIDLTypeInfo(idl_type):
   return GetIDLTypeInfoByName(idl_type.id)

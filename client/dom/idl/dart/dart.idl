@@ -23,6 +23,14 @@ module default {
   // Uint8ClampedArray implements sequence<int>;
 }
 
+module core {
+  [Supplemental]
+  interface Document {
+    [Suppressed] object getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+    CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+  };
+};
+
 module dom {
   // Force NodeSelector. WebKit defines these operations directly.
   interface NodeSelector {

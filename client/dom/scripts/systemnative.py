@@ -59,6 +59,7 @@ class NativeImplementationSystem(System):
     dart_interface_path = self._FilePathForDartInterface(self._interface.id)
     self._dom_public_files.append(dart_interface_path)
 
+    cpp_impl_includes = set()
     cpp_header_handlers_emitter = emitter.Emitter()
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
@@ -77,6 +78,7 @@ class NativeImplementationSystem(System):
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
         arguments.append(argument.id)
+        cpp_impl_includes |= set(argument_type_info.conversion_includes())
 
       cpp_header_handlers_emitter.Emit(
           '\n'
@@ -107,6 +109,7 @@ class NativeImplementationSystem(System):
     cpp_impl_emitter = self._emitters.FileEmitter(cpp_impl_path)
     cpp_impl_emitter.Emit(
         self._templates.Load('cpp_callback_implementation.template'),
+        INCLUDES=_GenerateCPPIncludes(cpp_impl_includes),
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
@@ -127,54 +130,24 @@ class NativeImplementationSystem(System):
         self._dom_impl_files,
         AUXILIARY_DIR=auxiliary_dir);
 
-    # Generate DartDerivedSourcesAll.cpp.
-    cpp_all_in_one_path = os.path.join(self._output_dir,
-        'DartDerivedSourcesAll.cpp')
+    # Generate DartDerivedSourcesXX.cpp.
+    partitions = 20 # FIXME: this should be configurable.
+    sources_count = len(self._cpp_impl_files)
+    for i in range(0, partitions):
+      derived_sources_path = os.path.join(self._output_dir,
+          'DartDerivedSources%02i.cpp' % (i + 1))
 
-    includes_emitter = emitter.Emitter()
-    for f in self._cpp_impl_files:
-        path = os.path.relpath(f, os.path.dirname(cpp_all_in_one_path))
-        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+      includes_emitter = emitter.Emitter()
+      for impl_file in self._cpp_impl_files[i::partitions]:
+          path = os.path.relpath(impl_file, os.path.dirname(derived_sources_path))
+          includes_emitter.Emit('#include "$PATH"\n', PATH=path)
 
-    cpp_all_in_one_emitter = self._emitters.FileEmitter(cpp_all_in_one_path)
-    cpp_all_in_one_emitter.Emit(
-        self._templates.Load('cpp_all_in_one.template'),
-        INCLUDES=includes_emitter.Fragments())
+      derived_sources_emitter = self._emitters.FileEmitter(derived_sources_path)
+      derived_sources_emitter.Emit(
+          self._templates.Load('cpp_derived_sources.template'),
+          INCLUDES=includes_emitter.Fragments())
 
     # Generate DartResolver.cpp.
-    cpp_resolver_path = os.path.join(self._output_dir, 'DartResolver.cpp')
-
-    includes_emitter = emitter.Emitter()
-    resolver_body_emitter = emitter.Emitter()
-    for f in self._cpp_header_files:
-      path = os.path.relpath(f, os.path.dirname(cpp_resolver_path))
-      includes_emitter.Emit('#include "$PATH"\n', PATH=path)
-      resolver_body_emitter.Emit(
-          '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
-          '        return func;\n',
-          CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
-
-    cpp_resolver_emitter = self._emitters.FileEmitter(cpp_resolver_path)
-    cpp_resolver_emitter.Emit(
-        self._templates.Load('cpp_resolver.template'),
-        INCLUDES=includes_emitter.Fragments(),
-        RESOLVER_BODY=resolver_body_emitter.Fragments())
-
-    # Generate DartDerivedSourcesAll.cpp
-    cpp_all_in_one_path = os.path.join(self._output_dir,
-        'DartDerivedSourcesAll.cpp')
-
-    includes_emitter = emitter.Emitter()
-    for file in self._cpp_impl_files:
-        path = os.path.relpath(file, os.path.dirname(cpp_all_in_one_path))
-        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
-
-    cpp_all_in_one_emitter = self._emitters.FileEmitter(cpp_all_in_one_path)
-    cpp_all_in_one_emitter.Emit(
-        self._templates.Load('cpp_all_in_one.template'),
-        INCLUDES=includes_emitter.Fragments())
-
-    # Generate DartResolver.cpp
     cpp_resolver_path = os.path.join(self._output_dir, 'DartResolver.cpp')
 
     includes_emitter = emitter.Emitter()
@@ -248,7 +221,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._interface_type_info = GetIDLTypeInfoByName(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
-    self._cpp_impl_includes = {}
+    self._cpp_impl_includes = set()
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
@@ -288,6 +261,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
             '            goto fail;\n'
             '        }\n'
             '        Document* document = domWindow->document();\n')
+      self._cpp_impl_includes.add('DOMWindow')
       arguments.append('document')
       create_function = 'createForJSConstructor'
     if 'CallWith' in self._interface.ext_attrs:
@@ -336,17 +310,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._cpp_impl_emitter.Emit(
         self._templates.Load('cpp_implementation.template'),
         INTERFACE=self._interface.id,
-        INCLUDES=''.join(['#include "%s.h"\n' %
-          k for k in self._cpp_impl_includes.keys()]),
+        INCLUDES=_GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
         RESOLVER=self._cpp_resolver_emitter.Fragments())
 
   def _GenerateCppHeader(self):
-    webcore_include = self._interface_type_info.webcore_include()
-    if webcore_include:
-      webcore_include = '#include "%s.h"\n' % webcore_include
-    else:
-      webcore_include = ''
+    webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
 
     if ('CustomToJS' in self._interface.ext_attrs or
         'CustomToJSObject' in self._interface.ext_attrs or
@@ -370,8 +339,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._cpp_header_emitter.Emit(
         self._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
-        WEBCORE_INCLUDE=webcore_include,
-        ADDITIONAL_INCLUDES='',
+        WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         TO_DART_VALUE=to_dart_value_emitter.Fragments(),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments())
@@ -583,10 +551,11 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         arguments.append('context')
       elif call_with == 'ScriptArguments|CallStack':
         raises_dart_exceptions = True
-        self._cpp_impl_includes['ScriptArguments'] = 1
-        self._cpp_impl_includes['ScriptCallStack'] = 1
-        self._cpp_impl_includes['V8Proxy'] = 1
-        self._cpp_impl_includes['v8'] = 1
+        self._cpp_impl_includes.add('DOMWindow')
+        self._cpp_impl_includes.add('ScriptArguments')
+        self._cpp_impl_includes.add('ScriptCallStack')
+        self._cpp_impl_includes.add('V8Proxy')
+        self._cpp_impl_includes.add('v8')
         parameter_definitions_emitter.Emit(
             '        v8::HandleScope handleScope;\n'
             '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
@@ -675,7 +644,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     type_info = GetIDLTypeInfo(idl_argument.type)
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
-      self._cpp_impl_includes[include_name] = 1
+      self._cpp_impl_includes.add(include_name)
     flags = ''
     if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
         ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
@@ -724,7 +693,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
                       'onmouseup', 'onresize', 'onscroll', 'onunload']
     if self._interface.id.startswith('SVG') and not attr.id in svg_exceptions:
       namespace = 'SVGNames'
-    self._cpp_impl_includes[namespace] = 1
+    self._cpp_impl_includes.add(namespace)
 
     attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
@@ -739,8 +708,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     invocation_template = '        $FUNCTION_CALL;\n'
     if idl_return_type and idl_return_type.id != 'void':
       return_type_info = GetIDLTypeInfo(idl_return_type)
-      if return_type_info.conversion_include():
-        self._cpp_impl_includes[return_type_info.conversion_include()] = 1
+      self._cpp_impl_includes |= set(return_type_info.conversion_includes())
 
       # Generate C++ cast based on idl return type.
       conversion_cast = return_type_info.conversion_cast('$FUNCTION_CALL')
@@ -786,7 +754,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     if 'ImplementedBy' in attributes:
       arguments.insert(0, 'receiver')
-      self._cpp_impl_includes[attributes['ImplementedBy']] = 1
+      self._cpp_impl_includes.add(attributes['ImplementedBy'])
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
+
+def _GenerateCPPIncludes(includes):
+  return ''.join(['#include "%s.h"\n' % include for include in includes])

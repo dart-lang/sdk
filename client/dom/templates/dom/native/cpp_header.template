@@ -8,8 +8,7 @@
 #define Dart$(INTERFACE)_h
 
 #include "DartDOMWrapper.h"
-$WEBCORE_INCLUDE
-$ADDITIONAL_INCLUDES
+$WEBCORE_INCLUDES
 #include <dart_api.h>
 
 namespace WebCore {
