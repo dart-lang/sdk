@@ -390,6 +390,7 @@ class BatchRunnerProcess {
   TestCase _currentTest;
   List<String> _testStdout;
   List<String> _testStderr;
+  bool _stdoutDrained = false;
   bool _stderrDrained = false;
   Date _startTime;
   Timer _timer;
@@ -455,6 +456,7 @@ class BatchRunnerProcess {
     _startTime = new Date.now();
     _testStdout = new List<String>();
     _testStderr = new List<String>();
+    _stdoutDrained = false;
     _stderrDrained = false;
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
@@ -474,6 +476,7 @@ class BatchRunnerProcess {
   }
 
   int _reportResult(String output) {
+    _stdoutDrained = true;
     // output = '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
     var outcome = output.split(" ")[2];
     var exitCode = 0;
@@ -488,7 +491,7 @@ class BatchRunnerProcess {
   void _stderrDone() {
     _stderrDrained = true;
     // Move on when both stdout and stderr has been drained.
-    if (_currentTest.output != null) _testCompleted();
+    if (_stdoutDrained) _testCompleted();
   }
 
   Function _readStdout(StringInputStream stream, List<String> buffer) {
@@ -555,6 +558,7 @@ class BatchRunnerProcess {
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
     _testStderr = new List<String>();
+    _stdoutDrained = false;
     _stderrDrained = false;
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
