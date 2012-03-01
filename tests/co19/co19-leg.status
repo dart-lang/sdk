@@ -235,6 +235,11 @@ LibTest/core/Isolate/spawn_A01_t05: Fail # TODO(ahe): Categorize failure.
 LibTest/core/Isolate/spawn_A01_t06: Fail # TODO(ahe): Categorize failure.
 
 
+LibTest/core/Map/containsValue_A01_t01: Fail # TODO(ahe): Categorize failure.
+LibTest/core/Map/forEach_A01_t07: Fail # TODO(ahe): Categorize failure.
+LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # TODO(ahe): Categorize failure.
+
+
 #
 # The following tests are all semantic tests that we can rely on dartc
 # catching for now.
