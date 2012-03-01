@@ -242,6 +242,10 @@ def run_batch_tests():
 
       source = run_test_in_browser(browser, html_out, timeout, is_perf)
 
+      # Test is done. Write end token to stderr and flush.
+      sys.stderr.write('>>> EOF STDERR\n')
+      sys.stderr.flush()
+
       # print one of:
       # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
       status = report_results(is_perf, source)
