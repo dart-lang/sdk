@@ -127,7 +127,7 @@ TryCatch3Test: Fail # Internal Error: Cannot find value
 TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
-
+WrongNumberTypeArgumentsTest/01: Fail  # Should not complain in production mode.
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
