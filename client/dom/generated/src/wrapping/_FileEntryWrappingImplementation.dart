@@ -12,28 +12,16 @@ class _FileEntryWrappingImplementation extends _EntryWrappingImplementation impl
   }
 
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _createWriter(this, successCallback);
-      return;
-    } else {
-      _createWriter_2(this, successCallback, errorCallback);
-      return;
-    }
+    _createWriter(this, successCallback, errorCallback);
+    return;
   }
-  static void _createWriter(receiver, successCallback) native;
-  static void _createWriter_2(receiver, successCallback, errorCallback) native;
+  static void _createWriter(receiver, successCallback, errorCallback) native;
 
   void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) {
-    if (errorCallback === null) {
-      _file(this, successCallback);
-      return;
-    } else {
-      _file_2(this, successCallback, errorCallback);
-      return;
-    }
+    _file(this, successCallback, errorCallback);
+    return;
   }
-  static void _file(receiver, successCallback) native;
-  static void _file_2(receiver, successCallback, errorCallback) native;
+  static void _file(receiver, successCallback, errorCallback) native;
 
   String get typeName() { return "FileEntry"; }
 }

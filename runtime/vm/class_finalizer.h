@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -41,10 +41,30 @@ class ClassFinalizer : public AllStatic {
                                    AbstractType* interface,
                                    AbstractType* conflicting);
 
+  // Modes for type resolution and finalization. The ordering is relevant.
+  enum FinalizationKind {
+    kIgnore,             // Parsed type is ignored and replaced by Dynamic.
+    kDoNotResolve,       // Type resolution is postponed.
+    kTryResolve,         // Type resolution is attempted, but not required.
+    kFinalize,           // Type resolution and type finalization are required.
+                         // A malformed type is tolerated.
+    kFinalizeWellFormed  // Error-free resolution and finalization are required.
+                         // A malformed type is not tolerated.
+  };
+
   // Finalize given type while parsing class cls.
   // Also canonicalize type if applicable.
   static RawAbstractType* FinalizeType(const Class& cls,
-                                       const AbstractType& type);
+                                       const AbstractType& type,
+                                       FinalizationKind finalization);
+
+  // Replace the malformed type with Dynamic and, depending on the given type
+  // finalization mode and execution mode, mark the type as malformed or report
+  // a compile time error.
+  static void FinalizeMalformedType(const Class& cls,
+                                    const Type& type,
+                                    FinalizationKind finalization,
+                                    const char* format, ...);
 
   // Pending classes are classes that need to be finalized.
   static void AddPendingClasses(const GrowableArray<const Class*>& classes);
@@ -79,8 +99,11 @@ class ClassFinalizer : public AllStatic {
   static void ResolveInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* visited);
   static void FinalizeTypeArguments(const Class& cls,
-                                    const AbstractTypeArguments& arguments);
-  static void ResolveType(const Class& cls, const AbstractType& type);
+                                    const AbstractTypeArguments& arguments,
+                                    FinalizationKind finalization);
+  static void ResolveType(const Class& cls,
+                          const AbstractType& type,
+                          FinalizationKind finalization);
   static void ResolveAndFinalizeUpperBounds(const Class& cls);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
@@ -89,13 +112,11 @@ class ClassFinalizer : public AllStatic {
   static void VerifyClassImplements(const Class& cls);
   static void CollectInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* interfaces);
+  static void ReportError(const Error& error);
   static void ReportError(const Script& script,
                           intptr_t token_index,
                           const char* format, ...);
   static void ReportError(const char* format, ...);
-  static void ReportWarning(const Script& script,
-                            intptr_t token_index,
-                            const char* format, ...);
 };
 
 }  // namespace dart

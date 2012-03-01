@@ -11,11 +11,23 @@ prefix language
 [ $component == leg ]
 Constructor6Test: Crash
 FunctionTest: Crash
+CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
+FunctionLiterals2Test: Crash # TODO(floitsch): investigate.
+
+GetSyntaxTest/none: Fail # TODO(ahe): investigate.
+GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
+SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
+FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
+SyntaxTest/28: Fail # TODO(ahe): investigate.
+SyntaxTest/30: Fail # TODO(ahe): investigate.
+SyntaxTest/31: Fail # TODO(ahe): investigate.
+SyntaxTest/32: Fail # TODO(ahe): investigate.
+SyntaxTest/33: Fail # TODO(ahe): investigate.
+SyntaxTest/47: Fail # TODO(ahe): investigate.
 
 # Compilation errors.
 Arithmetic2Test: Fail # map not implemented
-ArithmeticTest: Fail # Internal Error: Cannot find value
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
@@ -23,27 +35,23 @@ CallOperatorTest: Fail # Unexpected token 'call'
 CallThroughGetterTest: Fail # Internal Error: Cannot find value
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ClassTest: Fail # Internal Error: Cannot find value
-ClosureTest: Fail # Internal Error: Cannot find value
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
 ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
 Context2Test: Fail # switch cases are not implemented
-ContextTest: Fail # Internal Error: Cannot find value
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
-DeoptNoFeedbackTest: Fail # Internal Error: Cannot find value
+DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
+DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
+DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
 DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
+Factory3Test: Fail # Handling of compile-time constants.
 Factory4Test: Fail # named constructors with type arguments are not implemented
-FannkuchTest: Fail # Expect.equals(expected: <49>, actual: <0>) fails.
-FinalSyntaxTest/none: Fail # CompileTimeConstantEvaluator not implemented
 ForTest: Fail # SsaBuilder for loop without condition not implemented
-FunctionLiterals2Test: Fail # Internal Error: Cannot find value
-FunctionLiteralsTest: Fail # duplicate definition of _(int x)=> x
 FunctionSyntaxTest: Fail # Internal Error: Cannot find value
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
@@ -52,15 +60,9 @@ FunctionTypeAliasTest: Fail # cannot resolve type Fun
 FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional parameters
 FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
-GenericSyntaxTest: Fail # duplicate definition of A<B, C, D, E, F> g(){return h;}
 GenericTest: Fail # cannot resolve type T
-GenericsTest: Fail # duplicate definition of Map<int, int> _(int a){Expect.equals(2, a); return null;}
-GetSetSyntaxTest/none: Fail # Unexpected token ';'
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-ImplicitClosureTest: Fail # Internal Error: Cannot find value
-ImplicitClosureTest: Fail # Internal Error: Cannot find value
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
-IsObjectTest: Fail # Internal Error: Cannot find value
 Issue1363Test: Fail # lib is not a type
 Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
@@ -74,7 +76,6 @@ MapLiteral2Test: Fail # expected a constant string
 MapLiteral3Test: Fail # map not implemented
 MapLiteral4Test: Fail # map not implemented
 MapLiteralTest: Fail # Unexpected token ','
-MapTest: Fail # Internal Error: Cannot find value
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Unexpected token '('
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
@@ -84,12 +85,12 @@ NamedParameters3Test: Fail # Unimplemented non-matching static call
 NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamedParametersTypeTest: Fail # Internal Error: Cannot find value
 NamingTest: Fail # Internal Error: Cannot find value
+NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 NonParameterizedFactory2Test: Fail # named constructors with type arguments are not implemented
+NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ObjectDynamicMethodTest: Fail # map not implemented
-OptimizedSetterTest: Fail # Internal Error: Cannot find value
 OrderedMapsTest: Fail # map not implemented
-Param2Test: Fail # Internal Error: Cannot find value
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
 Prefix10Test: Fail # lib11 is not a type
@@ -103,17 +104,14 @@ Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 RegExpTest: Fail # named constructors with type arguments are not implemented
 ResourceTest: Fail # #resource tag not recognized - issue 1807
-RethrowTest: Fail # SsaBuilder: throw without expression not implemented
-SavannahTest: Fail # SsaBuilder.visitContinueStatement not implemented
+StackTraceTest: Fail # SsaBuilder: throw without expression not implemented
 StatementTest: Fail # switch cases are not implemented
 StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
 StringInterpolate2Test: Fail # map not implemented
-StringInterpolateNPETest: Fail # TypeError: Cannot call method 'get$name' of undefined
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
-SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperTest: Fail # cannot find tokens to produce error message for i++.
@@ -122,8 +120,6 @@ SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchScopeTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
-SyntaxTest/none: Fail # non-empty instruction stack
-Throw3Test: Fail # SsaBuilder: throw without expression not implemented
 TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
 ToplevelCollision2Test/none: Fail # duplicate definition
@@ -131,14 +127,12 @@ TryCatch3Test: Fail # Internal Error: Cannot find value
 TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
-NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
 BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
-CallThroughNullGetterTest: Fail # Expect.fail('Wrong exception.  Expected: ObjectNotClosureException got: null')
 ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
 ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 Constructor2Test: Fail # Expect.equals(expected: <1-2-3-4-5-6-7->, actual: <1-2-3-5-4-6-7->) fails.
@@ -146,33 +140,21 @@ Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-
 ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+Factory2Test: Fail # (floitsch): on it.
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-InstFieldInitializerTest: Fail # Expect.equals(expected: <>, actual: <null>) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
-InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
 PrivateMemberTest: Fail # uncaught exception in toString
 Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
-PropertyFieldOverrideTest: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypedMessageTest: Fail # SyntaxError: Unexpected token this
-
-
-# Mapping of JS errors to Dart exceptions.
-Factory3Test: Fail # TypeError: Cannot call method 'prepend$1' of undefined
-MethodInvocationTest: Fail # TypeError: Cannot call method 'foo$0' of undefined
-NullToStringTest: Fail # TypeError: Cannot call method 'get$toString' of undefined
-StackOverflowTest: Fail # RangeError: Maximum call stack size exceeded
-StackTraceTest: Fail # ReferenceError: stacktrace is not defined
-StringTest: Fail # TypeError: Object Hello has no method 'operator$indexSet$2'
 
 
 #
@@ -229,6 +211,7 @@ FauxverrideTest/03: Fail, OK # Negative language test.
 FauxverrideTest/05: Fail, OK # Negative language test.
 Field1NegativeTest: Fail, OK # Negative language test.
 Field2NegativeTest: Fail, OK # Negative language test.
+Field3NegativeTest: Fail, OK # Negative language test.
 Field4NegativeTest: Fail, OK # Negative language test.
 Field5NegativeTest: Fail, OK # Negative language test.
 Field6NegativeTest: Fail, OK # Negative language test.
@@ -240,7 +223,6 @@ FinalParamNegativeTest: Fail, OK # Negative language test.
 FinalVarNegativeTest: Fail, OK # Negative language test.
 FunctionTypeAliasNegativeTest: Fail, OK # Negative language test.
 GetterDeclarationNegativeTest: Fail, OK # Negative language test.
-InstFieldInitializer1NegativeTest: Fail, OK # Negative language test.
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
 InterfaceCycleNegativeTest: Fail, OK # Negative language test.
 InterfaceFactory3NegativeTest: Fail, OK # Negative language test.

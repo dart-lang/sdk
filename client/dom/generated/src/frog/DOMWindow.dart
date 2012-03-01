@@ -1,3 +1,6 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
 
@@ -93,8 +96,6 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _BarInfoJs toolbar;
 
-  final _DOMWindowJs top;
-
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
@@ -188,4 +189,10 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+
+  Window get _top() native "return this.top;";
+
+  // Override top to return secure wrapper.
+  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 }

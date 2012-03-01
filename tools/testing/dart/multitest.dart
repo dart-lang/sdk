@@ -81,7 +81,9 @@ void ExtractTestsFromMultitest(String filename,
   // except dart: or /, at the beginning of a line.
   RegExp relativeImportRegExp =
       const RegExp('^#(import|source)[(]["\'](?!(dart:|/))');
+  int lineCount = 0;
   for (String line in lines) {
+    lineCount++;
     if (line.contains('///')) {
       var parts = line.split('///')[1].split(':');
       var key = parts[0].trim();
@@ -92,7 +94,9 @@ void ExtractTestsFromMultitest(String filename,
       } else {
         (testsAsLines[key] = new List<String>.from(testTemplate)).add(line);
         outcomes[key] = rest;
-        Expect.isTrue(validMultitestOutcomes.contains(rest));
+        if (!validMultitestOutcomes.contains(rest)) {
+          Expect.fail("Invalid test directive on line ${lineCount}: $rest ");
+        }
       }
     } else {
       testTemplate.add(line);

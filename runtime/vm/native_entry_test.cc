@@ -83,7 +83,7 @@ DEFINE_NATIVE_ENTRY(TestStaticCallPatching, 0) {
   EXPECT(String::Handle(target_function.name()).
       Equals(String::Handle(String::New("NativePatchStaticCall"))));
   const uword function_entry_address =
-      Code::Handle(target_function.code()).EntryPoint();
+      Code::Handle(target_function.CurrentCode()).EntryPoint();
   EXPECT_EQ(function_entry_address, target_address);
 }
 

@@ -175,7 +175,7 @@ void CodeGenTest::Compile() {
     function_.SetCode(code);
     CodeIndexTable* code_index_table = isolate->code_index_table();
     ASSERT(code_index_table != NULL);
-    code_index_table->AddFunction(function_);
+    code_index_table->AddCode(code);
     retval = true;
   } else {
     retval = false;

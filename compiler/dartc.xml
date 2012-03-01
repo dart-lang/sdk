@@ -11,6 +11,7 @@
   <import file="domlib_sources.xml"/>
   <import file="htmllib_sources.xml"/>
   <import file="jsonlib_sources.xml"/>
+  <import file="isolatelib_sources.xml"/>
 
   <!--
     The file build.properties does not exist. If provided, properties can be customized.
@@ -32,6 +33,8 @@
 
   <property name="jsonlib.source.dir" value="${build.dir}/../lib/json/"/>
 
+  <property name="isolatelib.source.dir" value="${build.dir}/../lib/isolate/"/>
+
   <property name="build.test.classes.dir" value="${build.dir}/test/classes"/>
 
   <property name="dartc.jar" value="${build.dir}/dartc.jar"/>
@@ -43,6 +46,8 @@
   <property name="htmllib.jar" value="${build.dir}/htmllib.jar"/>
 
   <property name="jsonlib.jar" value="${build.dir}/jsonlib.jar"/>
+
+  <property name="isolatelib.jar" value="${build.dir}/isolatelib.jar"/>
 
   <property name="dist.dir" value="${build.dir}/dist"/>
 
@@ -153,6 +158,18 @@
     <touch file="${build.dir}/jsonlib.jar.stamp"/>
   </target>
 
+  <target name="isolatelib.jar" description="Packages the isolate library resources into one jar file." >
+    <delete dir="${build.dir}/api/dart/isolate"/>
+    <delete file="${isolatelib.jar}"/>
+    <mkdir dir="${isolatelib.source.dir}"/>
+    <copy todir="${isolatelib.source.dir}/isolate">
+      <filelist refid="isolatelib_resources"/>
+    </copy>
+    <jar destfile="${isolatelib.jar}" basedir="${isolatelib.source.dir}"/>
+    <touch file="${build.dir}/isolatelib.jar.stamp"/>
+  </target>
+
+
   <target name="compile-tests" depends="compile" description="Compiles all of the java tests and copies the resources to the test classes directory." >
     <mkdir dir="${build.test.classes.dir}"/>
     <javac destdir="${build.test.classes.dir}"
@@ -176,7 +193,7 @@
     <jar destfile="${dartc.jar}" basedir="${build.classes.dir}" manifest="dartc.mf"/>
   </target>
 
-  <target name="syslib" depends="corelib.jar,domlib.jar,htmllib.jar,jsonlib.jar" description="Stub for system library task">
+  <target name="syslib" depends="corelib.jar,domlib.jar,htmllib.jar,jsonlib.jar,isolatelib.jar" description="Stub for system library task">
     <!--
       Copy the system library jars to the lib folder.
     -->
@@ -184,6 +201,7 @@
     <copy file="${domlib.jar}" todir="${dist.dir}/lib"/>
     <copy file="${htmllib.jar}" todir="${dist.dir}/lib"/>
     <copy file="${jsonlib.jar}" todir="${dist.dir}/lib"/>
+    <copy file="${isolatelib.jar}" todir="${dist.dir}/lib"/>
 
     <touch file="${build.dir}/syslib.stamp"/>
   </target>
@@ -213,7 +231,7 @@
 
     <copy file="scripts/dartc.sh" tofile="${dist.dir}/bin/dartc">
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:$DARTC_LIBS/isolatelib.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${dist.dir}/bin/dartc" perm="a+rx"/>
@@ -227,7 +245,7 @@
         <include name="dartc_metrics.sh"/>
       </fileset>
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:$DARTC_LIBS/isolatelib.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${build.dir}/dartc_run.sh" perm="a+rx"/>

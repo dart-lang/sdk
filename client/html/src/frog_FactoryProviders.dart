@@ -77,17 +77,6 @@ class _CSSMatrixFactoryProvider {
       'return new WebKitCSSMatrix(spec);';
 }
 
-// TODO(jacobr): this factory does not require any native code so move to a
-// separate file so it can be shared between wrapper and wrapperless versions.
-class _EventFactoryProvider {
-  factory Event(String type, [bool canBubble = true,
-      bool cancelable = true]) {
-    _EventJs e = _document._createEvent("Event");
-    e._initEvent(type, canBubble, cancelable);
-    return e;
-  }
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';

@@ -475,6 +475,8 @@
 #source('src/WheelEvent.dart');
 #source('src/Window.dart');
 #source('src/Worker.dart');
+#source('src/XMLDocument.dart');
+#source('src/XMLElement.dart');
 #source('src/XMLHttpRequest.dart');
 #source('src/XMLHttpRequestProgressEvent.dart');
 #source('src/XMLHttpRequestUpload.dart');

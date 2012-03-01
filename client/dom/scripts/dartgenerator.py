@@ -281,7 +281,8 @@ class DartGenerator(object):
 
     if 'htmlfrog' in systems:
       html_system = HtmlFrogSystem(
-          TemplateLoader(self._template_dir, ['html/frog', 'html', '']),
+          TemplateLoader(self._template_dir,
+              ['html/frog', 'html/impl', 'html', '']),
           self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system
@@ -289,7 +290,8 @@ class DartGenerator(object):
 
     if 'htmldartium' in systems:
       html_system = HtmlDartiumSystem(
-          TemplateLoader(self._template_dir, ['html/dartium', 'html', '']),
+          TemplateLoader(self._template_dir,
+              ['html/dartium', 'html/impl', 'html', '']),
           self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system

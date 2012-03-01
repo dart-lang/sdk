@@ -7,8 +7,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("StreamPipeTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 // Helper method to be able to run the test from the runtime
@@ -81,33 +81,35 @@ class PipeServerGame {
           getDataFilename("tests/standalone/src/readline_test1.dat");
 
       SocketOutputStream socketOutput = _socket.outputStream;
-      InputStream fileInput = new File(srcFileName).openInputStreamSync();
+      InputStream fileInput = new File(srcFileName).openInputStream();
 
-      fileInput.closeHandler = () {
+      fileInput.onClosed = () {
         SocketInputStream socketInput = _socket.inputStream;
         var tempDir = new Directory('');
         tempDir.createTempSync();
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
-        var fileOutput = dstFile.openOutputStreamSync();
+        var fileOutput = dstFile.openOutputStream();
 
-        socketInput.closeHandler = () {
+        socketInput.onClosed = () {
           // Check that the resulting file is equal to the initial
           // file.
-          bool result = compareFileContent(srcFileName, dstFileName);
-          new File(dstFileName).deleteSync();
-          tempDir.deleteSync();
-          Expect.isTrue(result);
+          fileOutput.onClosed = () {
+            bool result = compareFileContent(srcFileName, dstFileName);
+            new File(dstFileName).deleteSync();
+            tempDir.deleteSync();
+            Expect.isTrue(result);
 
-          _socket.close();
+            _socket.close();
 
-          // Run this twice.
-          if (count++ < 2) {
-            runTest();
-          } else {
-            shutdown();
-          }
+            // Run this twice.
+            if (count++ < 2) {
+              runTest();
+            } else {
+              shutdown();
+            }
+          };
         };
 
         socketInput.pipe(fileOutput);
@@ -119,7 +121,7 @@ class PipeServerGame {
     // Connect to the server.
     _socket = new Socket(TestingServer.HOST, _port);
     if (_socket !== null) {
-      _socket.connectHandler = connectHandler;
+      _socket.onConnect = connectHandler;
     } else {
       Expect.fail("socket creation failed");
     }
@@ -149,8 +151,8 @@ class PipeServerGame {
 // The testing server will simply pipe each connecting sockets input
 // stream to its output stream.
 class PipeServer extends TestingServer {
-  void connectionHandler(Socket connection) {
-    connection.errorHandler = () { Expect.fail("Socket error"); };
+  void onConnection(Socket connection) {
+    connection.onError = () { Expect.fail("Socket error"); };
     connection.inputStream.pipe(connection.outputStream);
   }
 }
@@ -159,21 +161,27 @@ class PipeServer extends TestingServer {
 // Test piping from one file to another and closing both streams
 // after wards.
 testFileToFilePipe1() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
-  var srcStream = new File(srcFileName).openInputStreamSync();
+  var srcStream = new File(srcFileName).openInputStream();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
-  var dstStream = new File(dstFileName).openOutputStreamSync();
+  var dstStream = new File(dstFileName).openOutputStream();
 
-  srcStream.closeHandler = () {
+  dstStream.onClosed = () {
     bool result = compareFileContent(srcFileName, dstFileName);
     new File(dstFileName).deleteSync();
     tempDir.deleteSync();
     Expect.isTrue(result);
+    donePort.toSendPort().send(null);
   };
 
   srcStream.pipe(dstStream);
@@ -183,37 +191,45 @@ testFileToFilePipe1() {
 // Test piping from one file to another and write additional data to
 // the output stream after piping finished.
 testFileToFilePipe2() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
-  var srcStream = srcFile.openInputStreamSync();
+  var srcStream = srcFile.openInputStream();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
-  var dstStream = dstFile.openOutputStreamSync();
+  var dstStream = dstFile.openOutputStream();
 
-  srcStream.closeHandler = () {
+  srcStream.onClosed = () {
     dstStream.write([32]);
     dstStream.close();
-    var src = srcFile.openSync();
-    var dst = dstFile.openSync();
-    var srcLength = src.lengthSync();
-    var dstLength = dst.lengthSync();
-    Expect.equals(srcLength + 1, dstLength);
-    Expect.isTrue(compareFileContent(srcFileName,
-                                     dstFileName,
-                                     count: srcLength));
-    dst.setPositionSync(srcLength);
-    var data = new List<int>(1);
-    var read2 = dst.readListSync(data, 0, 1);
-    Expect.equals(32, data[0]);
-    src.closeSync();
-    dst.closeSync();
-    dstFile.deleteSync();
-    tempDir.deleteSync();
+    dstStream.onClosed = () {
+      var src = srcFile.openSync();
+      var dst = dstFile.openSync();
+      var srcLength = src.lengthSync();
+      var dstLength = dst.lengthSync();
+      Expect.equals(srcLength + 1, dstLength);
+      Expect.isTrue(compareFileContent(srcFileName,
+                                       dstFileName,
+                                       count: srcLength));
+      dst.setPositionSync(srcLength);
+      var data = new List<int>(1);
+      var read2 = dst.readListSync(data, 0, 1);
+      Expect.equals(32, data[0]);
+      src.closeSync();
+      dst.closeSync();
+      dstFile.deleteSync();
+      tempDir.deleteSync();
+      donePort.toSendPort().send(null);
+    };
   };
 
   srcStream.pipe(dstStream, close: false);
@@ -222,22 +238,27 @@ testFileToFilePipe2() {
 
 // Test piping two copies of one file to another.
 testFileToFilePipe3() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
-  var srcStream = srcFile.openInputStreamSync();
+  var srcStream = srcFile.openInputStream();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
-  var dstStream = dstFile.openOutputStreamSync();
+  var dstStream = dstFile.openOutputStream();
 
-  srcStream.closeHandler = () {
-    var srcStream2 = srcFile.openInputStreamSync();
+  srcStream.onClosed = () {
+    var srcStream2 = srcFile.openInputStream();
 
-    srcStream2.closeHandler = () {
+    dstStream.onClosed = () {
       var src = srcFile.openSync();
       var dst = dstFile.openSync();
       var srcLength = src.lengthSync();
@@ -254,6 +275,7 @@ testFileToFilePipe3() {
       dst.closeSync();
       dstFile.deleteSync();
       tempDir.deleteSync();
+      donePort.toSendPort().send(null);
     };
 
     // Pipe another copy of the source file.

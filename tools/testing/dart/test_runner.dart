@@ -18,6 +18,21 @@
 
 final int NO_TIMEOUT = 0;
 
+/** A command executed as a step in a test case. */
+class Command {
+  /** Path to the executable of this command. */
+  String executable;
+
+  /** Command line arguments to the executable. */
+  List<String> arguments;
+
+  /** The actual command line that will be executed. */
+  String commandLine;
+
+  Command(this.executable, this.arguments) {
+    commandLine = "$executable ${Strings.join(arguments, ' ')}";
+  }
+}
 
 /**
  * TestCase contains all the information needed to run a test and evaluate
@@ -36,10 +51,15 @@ final int NO_TIMEOUT = 0;
  * the test is completed.
  */
 class TestCase {
-  String executablePath;
-  List<String> arguments;
+  /**
+   * A list of commands to execute. Most test cases have a single command. Frog
+   * tests have two commands, one to compilate the source and another to execute
+   * it. Some isolate tests might even have three, if they require compiling
+   * multiple sources that are run in isolation.
+   */
+  final List<Command> commands;
+
   Map configuration;
-  String commandLine;
   String displayName;
   TestOutput output;
   bool isNegative;
@@ -47,8 +67,7 @@ class TestCase {
   Function completedHandler;
 
   TestCase(this.displayName,
-           this.executablePath,
-           this.arguments,
+           this.commands,
            this.configuration,
            this.completedHandler,
            this.expectedOutcomes,
@@ -56,7 +75,6 @@ class TestCase {
     if (!isNegative) {
       this.isNegative = displayName.contains("NegativeTest");
     }
-    commandLine = "$executablePath ${Strings.join(arguments, ' ')}";
 
     // Special command handling. If a special command is specified
     // we have to completely rewrite the command that we are using.
@@ -69,24 +87,31 @@ class TestCase {
       var specialCommandSplit = specialCommand.split('@');
       var prefix = specialCommandSplit[0];
       var suffix = specialCommandSplit[1];
-      commandLine = '$prefix $commandLine $suffix';
-      var newArguments = [];
-      if (prefix.length > 0) {
-        var prefixSplit = prefix.split(' ');
-        var newExecutablePath = prefixSplit[0];
-        for (int i = 1; i < prefixSplit.length; i++) {
-          var current = prefixSplit[i];
-          if (!current.isEmpty()) newArguments.add(current);
+      List<Command> newCommands = [];
+      for (Command c in commands) {
+        var newExecutablePath;
+        var newArguments = [];
+
+        if (prefix.length > 0) {
+          var prefixSplit = prefix.split(' ');
+          newExecutablePath = prefixSplit[0];
+          for (int i = 1; i < prefixSplit.length; i++) {
+            var current = prefixSplit[i];
+            if (!current.isEmpty()) newArguments.add(current);
+          }
+          newArguments.add(c.executable);
         }
-        newArguments.add(executablePath);
-        executablePath = newExecutablePath;
+        newArguments.addAll(arguments);
+        var suffixSplit = suffix.split(' ');
+        suffixSplit.forEach((e) {
+          if (!e.isEmpty()) newArguments.add(e);
+        });
+        final newCommand = new Command(newExecutablePath, newArguments);
+        newCommands.add(newCommand);
+        Expect.stringEquals('$prefix ${c.commandLine} $suffix',
+            newCommand.commandLine);
       }
-      newArguments.addAll(arguments);
-      var suffixSplit = suffix.split(' ');
-      suffixSplit.forEach((e) {
-        if (!e.isEmpty()) newArguments.add(e);
-      });
-      arguments = newArguments;
+      commands = newCommand;
     }
   }
 
@@ -100,7 +125,7 @@ class TestCase {
   }
 
   List<String> get batchRunnerArguments() => ['-batch'];
-  List<String> get batchTestArguments() => arguments;
+  List<String> get batchTestArguments() => commands.last().arguments;
 
   void completed() { completedHandler(this); }
 }
@@ -113,46 +138,24 @@ class TestCase {
  */
 class BrowserTestCase extends TestCase {
   /**
-   * The executable that is run in a new process in the compilation phase.
-   */
-  String compilerPath;
-  /**
-   * The arguments for the compilation command.
-   */
-  List<String> compilerArguments;
-  /**
    * Indicates the number of potential retries remaining, to compensate for
    * flaky browser tests.
    */
-  bool numRetries;
+  int numRetries;
 
-  BrowserTestCase(displayName,
-                    this.compilerPath,
-                    this.compilerArguments,
-                    executablePath,
-                    arguments,
-                    configuration,
-                    completedHandler,
-                    expectedOutcomes,
-                    [isNegative = false]) : super(displayName,
-                                                  executablePath,
-                                                  arguments,
-                                                  configuration,
-                                                  completedHandler,
-                                                  expectedOutcomes,
-                                                  isNegative) {
-    if (compilerPath != null) {
-      commandLine = 'execution command: $commandLine';
-      String compilationCommand =
-          '$compilerPath ${Strings.join(compilerArguments, " ")}';
-      commandLine = 'compilation command: $compilationCommand\n$commandLine';
-    }
+  BrowserTestCase(displayName, commands, configuration, completedHandler,
+      expectedOutcomes, [isNegative = false])
+    : super(displayName, commands, configuration, completedHandler,
+        expectedOutcomes, isNegative) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 
-  List<String> get batchRunnerArguments() => [arguments[0], '--batch'];
+  List<String> get _lastArguments() => commands.last().arguments;
+
+  List<String> get batchRunnerArguments() => [_lastArguments[0], '--batch'];
+
   List<String> get batchTestArguments() =>
-      arguments.getRange(1, arguments.length - 1);
+      _lastArguments.getRange(1, _lastArguments.length - 1);
 }
 
 
@@ -216,7 +219,9 @@ class TestOutput {
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
         // the test.
-        requestRetry = true;
+        if (testCase.dynamic.numRetries > 0) {
+          requestRetry = true;
+        }
         return true;
       }
     }
@@ -260,13 +265,20 @@ class RunningProcess {
   List<Function> handlers;
   bool allowRetries = false;
 
+  /** Which command of [testCase.commands] is currently being executed. */
+  int currentStep;
+
   RunningProcess(TestCase this.testCase,
       [this.allowRetries, this.processQueue]);
 
-  void exitHandler(int exitCode) {
+  /**
+   * Called when all commands are executed. [exitCode] is 0 if all command
+   * succeded, otherwise it will have the exit code of the first failing
+   * command.
+   */
+  void testComplete(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
                    stderr, new Date.now().difference(startTime));
-    process.close();
     timeoutTimer.cancel();
     if (testCase.output.unexpectedOutput && testCase.configuration['verbose']) {
       print(testCase.displayName);
@@ -283,27 +295,39 @@ class RunningProcess {
       testCase.output.requestRetry = false;
       this.timedOut = false;
       testCase.dynamic.numRetries--;
-      print("Potential flake. Re-running " + testCase.displayName);
+      print("Potential flake. " +
+          "Re-running ${testCase.displayName} " +
+          "(${testCase.dynamic.numRetries} attempt(s) remains)");
       this.start();
     } else {
       testCase.completed();
     }
   }
 
-  void compilerExitHandler(int exitCode) {
-    if (exitCode != 0) {
-      stderr.add('test.dart: Compilation step failed (exit code $exitCode)\n');
-      exitHandler(exitCode);
+  /**
+   * Process exit handler called at the end of every command. It internally
+   * treats all but the last command as compilation steps. The last command is
+   * the actual test and its output is analyzed in [testComplete].
+   */
+  void stepExitHandler(int exitCode) {
+    process.close();
+    int totalSteps = testCase.commands.length;
+    String suffix =' (step $currentStep of $totalSteps)';
+    if (currentStep == totalSteps) { // done with test command
+      testComplete(exitCode);
+    } else if (exitCode != 0) {
+      stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
+      testComplete(exitCode);
     } else {
-      process.close();
-      stderr.add('test.dart: Compilation finished, starting execution\n');
-      stdout.add('test.dart: Compilation finished, starting execution\n');
-      if (testCase.configuration['component'] == 'webdriver') {
+      stderr.add('test.dart: Compilion finished $suffix\n');
+      stdout.add('test.dart: Compilion finished $suffix\n');
+      if (currentStep == totalSteps - 1
+          && testCase.configuration['component'] == 'webdriver') {
         // Note: processQueue will always be non-null for component == webdriver
         // (It is only null for component == vm)
         processQueue._getBatchRunner(testCase).startTest(testCase);
       } else {
-        runCommand(testCase.executablePath, testCase.arguments, exitHandler);
+        runCommand(testCase.commands[currentStep++], stepExitHandler);
       }
     }
   }
@@ -323,34 +347,28 @@ class RunningProcess {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
     stdout = new List<String>();
     stderr = new List<String>();
-    if (testCase is BrowserTestCase && testCase.dynamic.compilerPath != null) {
-      runCommand(testCase.dynamic.compilerPath,
-                 testCase.dynamic.compilerArguments,
-                 compilerExitHandler);
-    } else {
-      runCommand(testCase.executablePath, testCase.arguments, exitHandler);
-    }
+    currentStep = 0;
+    runCommand(testCase.commands[currentStep++], stepExitHandler);
   }
 
-  void runCommand(String executable,
-                  List<String> arguments,
+  void runCommand(Command command,
                   void exitHandler(int exitCode)) {
     if (new Platform().operatingSystem() == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
       // TODO(efortuna): Remove this when fixed (Issue 1306).
-      executable = executable.replaceAll('/', '\\');
+      command.executable = command.executable.replaceAll('/', '\\');
     }
-    process = new Process.start(executable, arguments);
-    process.exitHandler = exitHandler;
+    process = new Process.start(command.executable, command.arguments);
+    process.onExit = exitHandler;
     startTime = new Date.now();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
     StringInputStream stderrStringStream = new StringInputStream(stderrStream);
-    stdoutStringStream.lineHandler =
+    stdoutStringStream.onLine =
         makeReadHandler(stdoutStringStream, stdout);
-    stderrStringStream.lineHandler =
+    stderrStringStream.onLine =
         makeReadHandler(stderrStringStream, stderr);
     timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
   }
@@ -372,13 +390,15 @@ class BatchRunnerProcess {
   TestCase _currentTest;
   List<String> _testStdout;
   List<String> _testStderr;
+  bool _stdoutDrained = false;
+  bool _stderrDrained = false;
   Date _startTime;
   Timer _timer;
 
   bool _isWebDriver;
 
   BatchRunnerProcess(TestCase testCase) {
-    _executable = testCase.executablePath;
+    _executable = testCase.commands.last().executable;
     _batchArguments = testCase.batchRunnerArguments;
     _isWebDriver = testCase.configuration['component'] == 'webdriver';
   }
@@ -389,16 +409,16 @@ class BatchRunnerProcess {
     _currentTest = testCase;
     if (_process === null) {
       // Start process if not yet started.
-      _executable = testCase.executablePath;
+      _executable = testCase.commands.last().executable;
       _startProcess(() {
         doStartTest(testCase);
       });
-    } else if (testCase.executablePath != _executable) {
+    } else if (testCase.commands.last().executable != _executable) {
       // Restart this runner with the right executable for this test
       // if needed.
-      _executable = testCase.executablePath;
+      _executable = testCase.commands.last().executable;
       _batchArguments = testCase.batchRunnerArguments;
-      _process.exitHandler = (exitCode) {
+      _process.onExit = (exitCode) {
         _process.close();
         _startProcess(() {
           doStartTest(testCase);
@@ -413,7 +433,7 @@ class BatchRunnerProcess {
   void terminate() {
     if (_process !== null) {
       bool closed = false;
-      _process.exitHandler = (exitCode) {
+      _process.onExit = (exitCode) {
         closed = true;
         _process.close();
       };
@@ -436,8 +456,10 @@ class BatchRunnerProcess {
     _startTime = new Date.now();
     _testStdout = new List<String>();
     _testStderr = new List<String>();
-    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
+    _stdoutDrained = false;
+    _stderrDrained = false;
+    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
     _timer = new Timer(_timeoutHandler, testCase.timeout * 1000);
     var line = _createArgumentsLine(testCase.batchTestArguments);
     _process.stdin.write(line.charCodes());
@@ -447,25 +469,35 @@ class BatchRunnerProcess {
     return Strings.join(arguments, ' ') + '\n';
   }
 
-  int _reportResult(String output) {
+  void _testCompleted() {
     var test = _currentTest;
     _currentTest = null;
+    test.completed();
+  }
 
+  int _reportResult(String output) {
+    _stdoutDrained = true;
     // output = '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
     var outcome = output.split(" ")[2];
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput(test, exitCode, outcome == "TIMEOUT", _testStdout,
+    new TestOutput(_currentTest, exitCode, outcome == "TIMEOUT", _testStdout,
                    _testStderr, new Date.now().difference(_startTime));
-    test.completed();
+    // Move on when both stdout and stderr has been drained.
+    if (_stderrDrained) _testCompleted();
   }
 
-  Function _readOutput(StringInputStream stream, List<String> buffer) {
+  void _stderrDone() {
+    _stderrDrained = true;
+    // Move on when both stdout and stderr has been drained.
+    if (_stdoutDrained) _testCompleted();
+  }
+
+  Function _readStdout(StringInputStream stream, List<String> buffer) {
     return () {
       var status;
       var line = stream.readLine();
-      // Drain the input stream to get the error output.
       while (line != null) {
         if (line.startsWith('>>> TEST')) {
           status = line;
@@ -488,6 +520,20 @@ class BatchRunnerProcess {
     };
   }
 
+  Function _readStderr(StringInputStream stream, List<String> buffer) {
+    return () {
+      var line = stream.readLine();
+      while (line != null) {
+        if (line.startsWith('>>> EOF STDERR')) {
+          _stderrDone();
+        } else {
+          buffer.add(line);
+        }
+        line = stream.readLine();
+      }
+    };
+  }
+
   void _exitHandler(exitCode) {
     if (_timer != null) _timer.cancel();
     _process.close();
@@ -497,7 +543,7 @@ class BatchRunnerProcess {
   }
 
   void _timeoutHandler(ignore) {
-    _process.exitHandler = (exitCode) {
+    _process.onExit = (exitCode) {
       _process.close();
       _startProcess(() {
         _reportResult(">>> TEST TIMEOUT");
@@ -512,10 +558,12 @@ class BatchRunnerProcess {
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
     _testStderr = new List<String>();
-    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
-    _process.exitHandler = _exitHandler;
-    _process.startHandler = then;
+    _stdoutDrained = false;
+    _stderrDrained = false;
+    _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
+    _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
+    _process.onExit = _exitHandler;
+    _process.onStart = then;
   }
 }
 
@@ -628,15 +676,15 @@ class ProcessQueue {
       }
 
       if (name == processNames[browserUsed].last()) {
-        process.exitHandler = (exitCode) {
+        process.onExit = (exitCode) {
           process.close();
           _progress.allDone();
         };
-        process.errorHandler = (error) {
+        process.onError = (error) {
           _progress.allDone();
         };
       } else {
-        process.exitHandler = (exitCode) {
+        process.onExit = (exitCode) {
           process.close();
         };
       }
@@ -674,7 +722,7 @@ class ProcessQueue {
           // implemented, and add Windows support.
           var deletion =
               new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
-          deletion.exitHandler = (int exitCode) {
+          deletion.onExit = (int exitCode) {
             if (exitCode == 0) {
               if (!_listTests) {  // Output of --list option is used by scripts.
                 print('\nTemporary directory $_temporaryDirectory deleted.');
@@ -728,13 +776,13 @@ class ProcessQueue {
     _checkDone();
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
-      if (_verbose) print(test.commandLine);
+      if (_verbose) print(test.commands.last().commandLine);
       if (_listTests) {
         final String tab = '\t';
         String outcomes =
             Strings.join(new List.from(test.expectedOutcomes), ',');
         print(test.displayName + tab + outcomes + tab + test.isNegative +
-              tab + Strings.join(test.arguments, tab));
+              tab + Strings.join(test.commands.last().arguments, tab));
         return;
       }
       _progress.start(test);

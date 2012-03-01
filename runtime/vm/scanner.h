@@ -15,6 +15,7 @@
 namespace dart {
 
 // Forward declarations.
+class Array;
 class Library;
 class RawString;
 class String;
@@ -210,6 +211,7 @@ class Scanner : ValueObject {
 
   SourcePosition c0_pos_;      // Source position of lookahead character c0_.
   KeywordTable keywords_[Token::numKeywords];
+  Array& keyword_symbol_table_;  // Access to keyword symbols in object store.
 };
 
 

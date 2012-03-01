@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/bigint_store.h"
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
@@ -101,7 +100,6 @@ Isolate::Isolate()
       top_handle_scope_(NULL),
 #endif
       random_seed_(Random::kDefaultRandomSeed),
-      bigint_store_(NULL),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
       library_tag_handler_(NULL),
@@ -123,7 +121,6 @@ Isolate::~Isolate() {
   delete heap_;
   delete object_store_;
   // Do not delete stack resources: top_resource_ and current_zone_.
-  delete bigint_store_;
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;

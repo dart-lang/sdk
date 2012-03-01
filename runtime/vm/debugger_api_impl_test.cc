@@ -15,7 +15,7 @@ namespace dart {
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 
-static const bool verbose = false;
+static const bool verbose = true;
 
 #define EXPECT_NOT_ERROR(handle)                                              \
   if (Dart_IsError(handle)) {                                                 \
@@ -88,6 +88,230 @@ TEST_CASE(Debug_Breakpoint) {
 }
 
 
+void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {"f1", "foo", "main"};
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepOut();
+}
+
+
+TEST_CASE(Debug_StepOut) {
+  const char* kScriptChars =
+      "void f1() { return 1; }  \n"
+      "void f2() { return 2; }  \n"
+      "                         \n"
+      "void foo() {             \n"
+      "  f1();                  \n"
+      "  return f2();           \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  return foo();          \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestStepOutHandler);
+
+  // Set a breakpoint in function f1, then repeatedly step out until
+  // we get to main. We should see one breakpoint each in f1,
+  // foo, main, but not in f2.
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("f1");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(2, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
+void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {
+      "main",
+        "foo",
+          "f1",
+        "foo",
+          "X.X.",
+            "Object.Object.",
+          "X.X.",
+        "foo",
+          "X.kvmk",
+            "f2",
+          "X.kvmk",
+            "IntegerImplementation.+",
+              "IntegerImplementation.addFromInteger",
+            "IntegerImplementation.+",
+          "X.kvmk",
+        "foo",
+      "main"
+  };
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepInto();
+}
+
+
+TEST_CASE(Debug_StepInto) {
+  const char* kScriptChars =
+      "void f1() { return 1; }  \n"
+      "void f2() { return 2; }  \n"
+      "                         \n"
+      "class X {                \n"
+      "  kvmk(a, [b, c]) {      \n"
+      "    return c + f2();     \n"
+      "  }                      \n"
+      "}                        \n"
+      "                         \n"
+      "void foo() {             \n"
+      "  f1();                  \n"
+      "  var o = new X();       \n"
+      "  return o.kvmk(3, c:5); \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  return foo();          \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestStepIntoHandler);
+
+  // Set a breakpoint in function f1, then repeatedly step out until
+  // we get to main. We should see one breakpoint each in f1,
+  // foo, main, but not in f2.
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("main");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(7, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
+void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {
+      "moo", "foo", "moo", "foo", "moo", "foo", "main"};
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepOver();
+}
+
+
+TEST_CASE(Debug_SingleStep) {
+  const char* kScriptChars =
+      "void moo(s) { return 1; } \n"
+      "                          \n"
+      "void foo() {              \n"
+      "  moo('step one');        \n"
+      "  moo('step two');        \n"
+      "  moo('step three');      \n"
+      "}                         \n"
+      "                          \n"
+      "void main() {             \n"
+      "  foo();                  \n"
+      "}                         \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestSingleStepHandler);
+
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("moo");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(breakpoint_hit == true);
+}
+
+
+
 static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
                                     Dart_StackTrace trace) {
   const char* expected_trace[] = {"foo", "main"};
@@ -151,7 +375,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke(lib, "main");
   EXPECT(!Dart_IsError(retval));
-  EXPECT(breakpoint_hit_counter == 2);
+  EXPECT_EQ(2, breakpoint_hit_counter);
 }
 
 

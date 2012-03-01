@@ -16,7 +16,6 @@
     'function.dart',
     'int.dart',
     'hashable.dart',
-    'isolate.dart',
     'iterable.dart',
     'iterator.dart',
     'math.dart',

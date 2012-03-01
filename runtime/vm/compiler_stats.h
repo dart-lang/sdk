@@ -19,6 +19,8 @@ DECLARE_FLAG(bool, compiler_stats);
 class CompilerStats : AllStatic {
  public:
   static intptr_t num_tokens_total;
+  static intptr_t num_literal_tokens_total;
+  static intptr_t num_ident_tokens_total;
   static intptr_t num_tokens_consumed;
   static intptr_t num_token_checks;
   static intptr_t num_tokens_rewind;

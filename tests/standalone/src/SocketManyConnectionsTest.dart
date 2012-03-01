@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // Test creating a large number of socket connections.
 
-#library("SocketManyConnectionsTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 final CONNECTIONS = 200;
@@ -38,7 +38,7 @@ class SocketManyConnectionsTest {
     for (int i = 0; i < CONNECTIONS; i++) {
       _sockets[i] = new Socket(TestingServer.HOST, _port);
       if (_sockets[i] !== null) {
-        _sockets[i].connectHandler = connectHandler;
+        _sockets[i].onConnect = connectHandler;
       } else {
         Expect.fail("socket creation failed");
       }
@@ -67,7 +67,7 @@ class SocketManyConnectionsTest {
 
 class TestServer extends TestingServer {
 
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
     Socket _client;
 
     void closeHandler() {
@@ -80,8 +80,8 @@ class TestServer extends TestingServer {
     }
 
     _connections++;
-    connection.closeHandler = closeHandler;
-    connection.errorHandler = errorHandler;
+    connection.onClosed = closeHandler;
+    connection.onError = errorHandler;
   }
 
   int _connections = 0;

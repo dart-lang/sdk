@@ -13,11 +13,10 @@ import java.io.Writer;
 import java.net.URI;
 
 /**
- * An interface used internally by the {@link DartCompiler} and implementers of
- * {@link Backend} for determining where an artifact should be generated and
- * providing feedback during the compilation process. This is an internal
- * compiler construct and as such should not be instantiated or implemented by
- * those outside the compiler itself.
+ * An interface used internally by the {@link DartCompiler} for determining where an artifact should
+ * be generated and providing feedback during the compilation process. This is an internal compiler
+ * construct and as such should not be instantiated or implemented by those outside the compiler
+ * itself.
  */
 public interface DartCompilerContext {
 

@@ -12,5 +12,9 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
   // Use implementation from Uint8Array.
   // final int length;
 
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
+
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }

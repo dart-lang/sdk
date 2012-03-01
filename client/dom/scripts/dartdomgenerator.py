@@ -146,6 +146,11 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
     subprocess.call(['cd ../../html ; ../tools/copy_dart.py frog html_frog.dart'],
                     shell=True);
 
+  if 'htmldartium' in systems:
+    _logger.info('Copy html_dartium to ../html/dartium/')
+    subprocess.call(['cd ../../html ; ../tools/copy_dart.py dartium html_dartium.dart'],
+                    shell=True);
+
 def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',

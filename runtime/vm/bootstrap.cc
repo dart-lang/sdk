@@ -38,6 +38,16 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
+RawScript* Bootstrap::LoadIsolateScript()  {
+  const String& url = String::Handle(String::New("dart:isolate", Heap::kOld));
+  const String& src = String::Handle(String::New(isolate_source_, Heap::kOld));
+
+  const Script& result =
+      Script::Handle(Script::New(url, src, RawScript::kSource));
+  return result.raw();
+}
+
+
 RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   if (FLAG_print_bootstrap) {
     OS::Print("Bootstrap source '%s':\n%s\n",
@@ -48,6 +58,8 @@ RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   const Error& error = Error::Handle(Compiler::Compile(library, script));
   if (error.IsNull()) {
     library.SetLoaded();
+  } else {
+    library.SetLoadError();
   }
   return error.raw();
 }

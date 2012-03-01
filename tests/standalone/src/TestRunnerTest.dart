@@ -16,7 +16,7 @@ class TestController {
   // Used as TestCase.completedCallback.
   static processCompletedTest(TestCase testCase) {
     TestOutput output = testCase.output;
-    print("Test: ${testCase.commandLine}");
+    print("Test: ${testCase.commands.last().commandLine}");
     if (output.unexpectedOutput) {
       throw "Unexpected output: ${output.result}";
     }
@@ -47,10 +47,10 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
   var configuration = { 'timeout': 2,
                         'special-command': '' };
   return new TestCase(testName,
-                      getDartFileName(),
-                      <String>["--ignore-unrecognized-flags",
-                               "--enable_type_checks",
-                               test_path],
+                      [new Command(getDartFileName(),
+                                   <String>["--ignore-unrecognized-flags",
+                                            "--enable_type_checks",
+                                            test_path])],
                       configuration,
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
@@ -65,8 +65,8 @@ void main() {
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
 
   new RunningProcess(new TestCase("CrashTest",
-                                  getProcessTestFileName(),
-                                  const ["0", "0", "1", "1"],
+                                  [new Command(getProcessTestFileName(),
+                                               const ["0", "0", "1", "1"])],
                                   configuration,
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH]))).start();

@@ -5,6 +5,7 @@
 // Dart test program for testing that isolates can spawn other isolates.
 
 #library('NestedSpawnTest');
+#import("dart:isolate");
 #import('TestFramework.dart');
 
 class IsolateA extends Isolate {

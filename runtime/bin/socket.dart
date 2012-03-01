@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,12 +13,12 @@ interface ServerSocket default _ServerSocket {
    * The connection handler gets called when there is a new incoming
    * connection on the socket.
    */
-  void set connectionHandler(void callback(Socket connection));
+  void set onConnection(void callback(Socket connection));
 
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set errorHandler(void callback());
+  void set onError(void callback());
 
   /**
    * Returns the port used by this socket.
@@ -65,30 +65,30 @@ interface Socket default _Socket {
    * The connect handler gets called when connection to a given host
    * succeeded.
    */
-  void set connectHandler(void callback());
+  void set onConnect(void callback());
 
   /**
    * The data handler gets called when data becomes available at the socket.
    */
-  void set dataHandler(void callback());
+  void set onData(void callback());
 
   /**
    * The write handler gets called when the socket becomes available for
    * writing.
    */
-  void set writeHandler(void callback());
+  void set onWrite(void callback());
 
   /**
    * The close handler gets called when a the last byte have been read
    * from a socket. At this point the socket might still be open for
    * writing for sending more data.
    */
-  void set closeHandler(void callback());
+  void set onClosed(void callback());
 
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set errorHandler(void callback());
+  void set onError(void callback());
 
   /**
    * Returns input stream to the socket.
@@ -110,7 +110,7 @@ interface Socket default _Socket {
    * and calling it several times is supported. If [halfClose] is true
    * the socket will only be closed for writing and it might still be
    * possible to read data. Calling [close] will not trigger a call to
-   * the [closeHandler].
+   * [onClosed].
    */
   void close([bool halfClose]);
 }

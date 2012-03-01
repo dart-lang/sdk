@@ -48,7 +48,7 @@ RawFunction* DartFrame::LookupDartFunction() const {
   ASSERT(Isolate::Current() != NULL);
   CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
   ASSERT(code_index_table != NULL);
-  return code_index_table->LookupFunction(pc());
+  return Code::Handle(code_index_table->LookupCode(pc())).function();
 }
 
 
@@ -97,7 +97,7 @@ bool StubFrame::IsValid() const {
   ASSERT(Isolate::Current() != NULL);
   CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
   ASSERT(code_index_table != NULL);
-  return code_index_table->LookupFunction(pc()) == Function::null();
+  return Code::Handle(code_index_table->LookupCode(pc())).IsNull();
 }
 
 

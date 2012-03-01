@@ -61,6 +61,9 @@ PlatformTest: Skip # Uses Platform
 ChunkedStreamTest: Skip # Uses InputStream
 DartStdIOPipeTest: Skip # Uses dart:io
 FileOutputStreamTest: Skip # Uses dart:io
+HttpTest: Skip # Uses dart:io
+HttpParserTest: Skip # Uses dart:io
+UrlEncodingTest: Skip # Uses dart:io
 TestExtensionTest: Skip # Extensions implemented only in Dart shell.
 
 [ $component == dartc || $component == chromium ]

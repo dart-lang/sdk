@@ -429,10 +429,10 @@ void X86Decoder::PrintAddress(uword addr) {
       CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
       if (code_index_table != NULL) {
         // Print only if jumping to entry point.
-        const Function& function = Function::Handle(
-            code_index_table->LookupFunction(addr));
-        if (!function.IsNull() &&
-            (Code::Handle(function.code()).EntryPoint() == addr)) {
+        const Code& code = Code::Handle(
+            code_index_table->LookupCode(addr));
+        if (!code.IsNull() && (code.EntryPoint() == addr)) {
+          const Function& function = Function::Handle(code.function());
           const char* name_of_function = function.ToFullyQualifiedCString();
           Print(" [");
           Print(name_of_function);

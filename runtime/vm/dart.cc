@@ -21,6 +21,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_isolates);
+
 Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
@@ -84,6 +86,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     // of Object::Init(..) in a regular isolate creation path.
     Object::InitFromSnapshot(isolate);
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+    if (FLAG_trace_isolates) {
+      OS::Print("Size of isolate snapshot = %ld\n", snapshot->length());
+    }
     SnapshotReader reader(snapshot, isolate);
     reader.ReadFullSnapshot();
   }

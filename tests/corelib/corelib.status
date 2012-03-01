@@ -25,7 +25,6 @@ StringSplitRegExpTest: Fail    # Issue 429
 
 ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail
-DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
 ForInTest: Fail
 ListTest: Fail
 MapsTest: Fail
@@ -35,6 +34,11 @@ RegExp4Test: Fail # New test added on 10/28.
 StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
+
+SplayTreeTest: Fail # named parameters on function statements is not supported.
+
+[ $component == frogsh ]
+DoubleCompareTest: Fail
 
 [ $component == webdriver && ($browser == ff || $browser == ie) ]
 UnicodeTest: Fail

@@ -11,22 +11,54 @@
 
 
 
-// TODO(sra): What 'window' do we get in a worker?  Perhaps this
-// should return the interface type.
-Window get window() native "return window;";
-_WindowJs get _window() native "return window;";
+_WindowImpl _cachedWindow;
+_DocumentImpl _cachedDocument;
 
-Document get document() native "return window.document.documentElement;";
-_DocumentJs get _document() native "return window.document.documentElement;";
+void _init() {
+  _cachedDocument = _document;
+  _cachedWindow = _window;
+  // Feature detect that dart:dom and dart:html are not both loaded by
+  // checking for the presence of a bug that manifests itself when both
+  // libraries are loaded.
+  // TODO(jacobr): remove this code once b/1911 is fixed and the frog compiler
+  // is changed to generate compile time errors if two libraries that define
+  // the same native types in conflicting ways are imported.
+  var element = new Element.tag('body');
+  element.innerHTML = 'f';
+  if (element.text == '') {
+    _cachedWindow.console.error(
+      'Cannot import dart:html and dart:dom within the same application.');
+    throw new UnsupportedOperationException(
+      'Cannot import dart:html and dart:dom within the same application.');
+  }
+}
 
-class _AbstractWorkerJs implements AbstractWorker native "*AbstractWorker" {
+Window get window() {
+  if (_cachedWindow == null) {
+    _init();
+  }
+  return _cachedWindow;
+}
+
+_WindowImpl get _window() native "return window;";
+
+Document get document() {
+  if (_cachedDocument == null) {
+    _init();
+  }
+  return _cachedDocument;
+}
+
+_DocumentImpl get _document() native "return window.document.documentElement;";
+
+class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
 
   _AbstractWorkerEventsImpl get on() =>
     new _AbstractWorkerEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 }
@@ -37,7 +69,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
   EventListenerList get error() => _get('error');
 }
 
-class _AnchorElementJs extends _ElementJs implements AnchorElement native "*HTMLAnchorElement" {
+class _AnchorElementImpl extends _ElementImpl implements AnchorElement native "*HTMLAnchorElement" {
 
   String charset;
 
@@ -77,14 +109,12 @@ class _AnchorElementJs extends _ElementJs implements AnchorElement native "*HTML
 
   String target;
 
-  final String text;
-
   String type;
 
   String toString() native;
 }
 
-class _AnimationJs implements Animation native "*WebKitAnimation" {
+class _AnimationImpl implements Animation native "*WebKitAnimation" {
 
   static final int DIRECTION_ALTERNATE = 1;
 
@@ -121,21 +151,21 @@ class _AnimationJs implements Animation native "*WebKitAnimation" {
   void play() native;
 }
 
-class _AnimationEventJs extends _EventJs implements AnimationEvent native "*WebKitAnimationEvent" {
+class _AnimationEventImpl extends _EventImpl implements AnimationEvent native "*WebKitAnimationEvent" {
 
   final String animationName;
 
   final num elapsedTime;
 }
 
-class _AnimationListJs implements AnimationList native "*WebKitAnimationList" {
+class _AnimationListImpl implements AnimationList native "*WebKitAnimationList" {
 
   final int length;
 
-  _AnimationJs item(int index) native;
+  _AnimationImpl item(int index) native;
 }
 
-class _AppletElementJs extends _ElementJs implements AppletElement native "*HTMLAppletElement" {
+class _AppletElementImpl extends _ElementImpl implements AppletElement native "*HTMLAppletElement" {
 
   String align;
 
@@ -160,7 +190,7 @@ class _AppletElementJs extends _ElementJs implements AppletElement native "*HTML
   String width;
 }
 
-class _AreaElementJs extends _ElementJs implements AreaElement native "*HTMLAreaElement" {
+class _AreaElementImpl extends _ElementImpl implements AreaElement native "*HTMLAreaElement" {
 
   String alt;
 
@@ -191,36 +221,36 @@ class _AreaElementJs extends _ElementJs implements AreaElement native "*HTMLArea
   String target;
 }
 
-class _ArrayBufferJs implements ArrayBuffer native "*ArrayBuffer" {
+class _ArrayBufferImpl implements ArrayBuffer native "*ArrayBuffer" {
 
   final int byteLength;
 
-  _ArrayBufferJs slice(int begin, [int end = null]) native;
+  _ArrayBufferImpl slice(int begin, [int end = null]) native;
 }
 
-class _ArrayBufferViewJs implements ArrayBufferView native "*ArrayBufferView" {
+class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" {
 
-  final _ArrayBufferJs buffer;
+  final _ArrayBufferImpl buffer;
 
   final int byteLength;
 
   final int byteOffset;
 }
 
-class _AttrJs extends _NodeJs implements Attr native "*Attr" {
+class _AttrImpl extends _NodeImpl implements Attr native "*Attr" {
 
   final bool isId;
 
   final String name;
 
-  final _ElementJs ownerElement;
+  final _ElementImpl ownerElement;
 
   final bool specified;
 
   String value;
 }
 
-class _AudioBufferJs implements AudioBuffer native "*AudioBuffer" {
+class _AudioBufferImpl implements AudioBuffer native "*AudioBuffer" {
 
   final num duration;
 
@@ -232,20 +262,20 @@ class _AudioBufferJs implements AudioBuffer native "*AudioBuffer" {
 
   final num sampleRate;
 
-  _Float32ArrayJs getChannelData(int channelIndex) native;
+  _Float32ArrayImpl getChannelData(int channelIndex) native;
 }
 
-class _AudioBufferSourceNodeJs extends _AudioSourceNodeJs implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
+class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
 
-  _AudioBufferJs buffer;
+  _AudioBufferImpl buffer;
 
-  final _AudioGainJs gain;
+  final _AudioGainImpl gain;
 
   bool loop;
 
   bool looping;
 
-  final _AudioParamJs playbackRate;
+  final _AudioParamImpl playbackRate;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
@@ -254,78 +284,78 @@ class _AudioBufferSourceNodeJs extends _AudioSourceNodeJs implements AudioBuffer
   void noteOn(num when) native;
 }
 
-class _AudioChannelMergerJs extends _AudioNodeJs implements AudioChannelMerger native "*AudioChannelMerger" {
+class _AudioChannelMergerImpl extends _AudioNodeImpl implements AudioChannelMerger native "*AudioChannelMerger" {
 }
 
-class _AudioChannelSplitterJs extends _AudioNodeJs implements AudioChannelSplitter native "*AudioChannelSplitter" {
+class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSplitter native "*AudioChannelSplitter" {
 }
 
-class _AudioContextJs implements AudioContext native "*AudioContext" {
+class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   final num currentTime;
 
-  final _AudioDestinationNodeJs destination;
+  final _AudioDestinationNodeImpl destination;
 
-  final _AudioListenerJs listener;
+  final _AudioListenerImpl listener;
 
   EventListener oncomplete;
 
   final num sampleRate;
 
-  _RealtimeAnalyserNodeJs createAnalyser() native;
+  _RealtimeAnalyserNodeImpl createAnalyser() native;
 
-  _BiquadFilterNodeJs createBiquadFilter() native;
+  _BiquadFilterNodeImpl createBiquadFilter() native;
 
-  _AudioBufferJs createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  _AudioBufferImpl createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
-  _AudioBufferSourceNodeJs createBufferSource() native;
+  _AudioBufferSourceNodeImpl createBufferSource() native;
 
-  _AudioChannelMergerJs createChannelMerger() native;
+  _AudioChannelMergerImpl createChannelMerger() native;
 
-  _AudioChannelSplitterJs createChannelSplitter() native;
+  _AudioChannelSplitterImpl createChannelSplitter() native;
 
-  _ConvolverNodeJs createConvolver() native;
+  _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeJs createDelayNode() native;
+  _DelayNodeImpl createDelayNode() native;
 
-  _DynamicsCompressorNodeJs createDynamicsCompressor() native;
+  _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
-  _AudioGainNodeJs createGainNode() native;
+  _AudioGainNodeImpl createGainNode() native;
 
-  _HighPass2FilterNodeJs createHighPass2Filter() native;
+  _HighPass2FilterNodeImpl createHighPass2Filter() native;
 
-  _JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize) native;
+  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize) native;
 
-  _LowPass2FilterNodeJs createLowPass2Filter() native;
+  _LowPass2FilterNodeImpl createLowPass2Filter() native;
 
-  _MediaElementAudioSourceNodeJs createMediaElementSource(_MediaElementJs mediaElement) native;
+  _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
-  _AudioPannerNodeJs createPanner() native;
+  _AudioPannerNodeImpl createPanner() native;
 
-  _WaveShaperNodeJs createWaveShaper() native;
+  _WaveShaperNodeImpl createWaveShaper() native;
 
-  void decodeAudioData(_ArrayBufferJs audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+  void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
 
   void startRendering() native;
 }
 
-class _AudioDestinationNodeJs extends _AudioNodeJs implements AudioDestinationNode native "*AudioDestinationNode" {
+class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode native "*AudioDestinationNode" {
 
   final int numberOfChannels;
 }
 
-class _AudioElementJs extends _MediaElementJs implements AudioElement native "*HTMLAudioElement" {
+class _AudioElementImpl extends _MediaElementImpl implements AudioElement native "*HTMLAudioElement" {
 }
 
-class _AudioGainJs extends _AudioParamJs implements AudioGain native "*AudioGain" {
+class _AudioGainImpl extends _AudioParamImpl implements AudioGain native "*AudioGain" {
 }
 
-class _AudioGainNodeJs extends _AudioNodeJs implements AudioGainNode native "*AudioGainNode" {
+class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode native "*AudioGainNode" {
 
-  final _AudioGainJs gain;
+  final _AudioGainImpl gain;
 }
 
-class _AudioListenerJs implements AudioListener native "*AudioListener" {
+class _AudioListenerImpl implements AudioListener native "*AudioListener" {
 
   num dopplerFactor;
 
@@ -338,20 +368,20 @@ class _AudioListenerJs implements AudioListener native "*AudioListener" {
   void setVelocity(num x, num y, num z) native;
 }
 
-class _AudioNodeJs implements AudioNode native "*AudioNode" {
+class _AudioNodeImpl implements AudioNode native "*AudioNode" {
 
-  final _AudioContextJs context;
+  final _AudioContextImpl context;
 
   final int numberOfInputs;
 
   final int numberOfOutputs;
 
-  void connect(_AudioNodeJs destination, int output, int input) native;
+  void connect(_AudioNodeImpl destination, int output, int input) native;
 
   void disconnect(int output) native;
 }
 
-class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native "*AudioPannerNode" {
+class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode native "*AudioPannerNode" {
 
   static final int EQUALPOWER = 0;
 
@@ -365,7 +395,7 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
 
   static final int SOUNDFIELD = 2;
 
-  final _AudioGainJs coneGain;
+  final _AudioGainImpl coneGain;
 
   num coneInnerAngle;
 
@@ -373,7 +403,7 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
 
   num coneOuterGain;
 
-  final _AudioGainJs distanceGain;
+  final _AudioGainImpl distanceGain;
 
   int distanceModel;
 
@@ -392,7 +422,7 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
   void setVelocity(num x, num y, num z) native;
 }
 
-class _AudioParamJs implements AudioParam native "*AudioParam" {
+class _AudioParamImpl implements AudioParam native "*AudioParam" {
 
   final num defaultValue;
 
@@ -416,37 +446,37 @@ class _AudioParamJs implements AudioParam native "*AudioParam" {
 
   void setValueAtTime(num value, num time) native;
 
-  void setValueCurveAtTime(_Float32ArrayJs values, num time, num duration) native;
+  void setValueCurveAtTime(_Float32ArrayImpl values, num time, num duration) native;
 }
 
-class _AudioProcessingEventJs extends _EventJs implements AudioProcessingEvent native "*AudioProcessingEvent" {
+class _AudioProcessingEventImpl extends _EventImpl implements AudioProcessingEvent native "*AudioProcessingEvent" {
 
-  final _AudioBufferJs inputBuffer;
+  final _AudioBufferImpl inputBuffer;
 
-  final _AudioBufferJs outputBuffer;
+  final _AudioBufferImpl outputBuffer;
 }
 
-class _AudioSourceNodeJs extends _AudioNodeJs implements AudioSourceNode native "*AudioSourceNode" {
+class _AudioSourceNodeImpl extends _AudioNodeImpl implements AudioSourceNode native "*AudioSourceNode" {
 }
 
-class _BRElementJs extends _ElementJs implements BRElement native "*HTMLBRElement" {
+class _BRElementImpl extends _ElementImpl implements BRElement native "*HTMLBRElement" {
 
   String clear;
 }
 
-class _BarInfoJs implements BarInfo native "*BarInfo" {
+class _BarInfoImpl implements BarInfo native "*BarInfo" {
 
   final bool visible;
 }
 
-class _BaseElementJs extends _ElementJs implements BaseElement native "*HTMLBaseElement" {
+class _BaseElementImpl extends _ElementImpl implements BaseElement native "*HTMLBaseElement" {
 
   String href;
 
   String target;
 }
 
-class _BaseFontElementJs extends _ElementJs implements BaseFontElement native "*HTMLBaseFontElement" {
+class _BaseFontElementImpl extends _ElementImpl implements BaseFontElement native "*HTMLBaseFontElement" {
 
   String color;
 
@@ -455,12 +485,12 @@ class _BaseFontElementJs extends _ElementJs implements BaseFontElement native "*
   int size;
 }
 
-class _BeforeLoadEventJs extends _EventJs implements BeforeLoadEvent native "*BeforeLoadEvent" {
+class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
 
   final String url;
 }
 
-class _BiquadFilterNodeJs extends _AudioNodeJs implements BiquadFilterNode native "*BiquadFilterNode" {
+class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode native "*BiquadFilterNode" {
 
   static final int ALLPASS = 7;
 
@@ -478,34 +508,34 @@ class _BiquadFilterNodeJs extends _AudioNodeJs implements BiquadFilterNode nativ
 
   static final int PEAKING = 5;
 
-  final _AudioParamJs Q;
+  final _AudioParamImpl Q;
 
-  final _AudioParamJs frequency;
+  final _AudioParamImpl frequency;
 
-  final _AudioParamJs gain;
+  final _AudioParamImpl gain;
 
   int type;
 
-  void getFrequencyResponse(_Float32ArrayJs frequencyHz, _Float32ArrayJs magResponse, _Float32ArrayJs phaseResponse) native;
+  void getFrequencyResponse(_Float32ArrayImpl frequencyHz, _Float32ArrayImpl magResponse, _Float32ArrayImpl phaseResponse) native;
 }
 
-class _BlobJs implements Blob native "*Blob" {
+class _BlobImpl implements Blob native "*Blob" {
 
   final int size;
 
   final String type;
 
-  _BlobJs webkitSlice([int start = null, int end = null, String contentType = null]) native;
+  _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }
 
-class _BlobBuilderJs implements BlobBuilder native "*WebKitBlobBuilder" {
+class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
 
   void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
 
-  _BlobJs getBlob([String contentType = null]) native;
+  _BlobImpl getBlob([String contentType = null]) native;
 }
 
-class _BodyElementJs extends _ElementJs implements BodyElement native "*HTMLBodyElement" {
+class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
   String aLink;
 
@@ -514,8 +544,6 @@ class _BodyElementJs extends _ElementJs implements BodyElement native "*HTMLBody
   String bgColor;
 
   String link;
-
-  String text;
 
   String vLink;
 
@@ -553,13 +581,13 @@ class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEv
   EventListenerList get unload() => _get('unload');
 }
 
-class _ButtonElementJs extends _ElementJs implements ButtonElement native "*HTMLButtonElement" {
+class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*HTMLButtonElement" {
 
   bool autofocus;
 
   bool disabled;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   String formAction;
 
@@ -571,7 +599,7 @@ class _ButtonElementJs extends _ElementJs implements ButtonElement native "*HTML
 
   String formTarget;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   String name;
 
@@ -579,7 +607,7 @@ class _ButtonElementJs extends _ElementJs implements ButtonElement native "*HTML
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   String value;
 
@@ -590,49 +618,49 @@ class _ButtonElementJs extends _ElementJs implements ButtonElement native "*HTML
   void setCustomValidity(String error) native;
 }
 
-class _CDATASectionJs extends _TextJs implements CDATASection native "*CDATASection" {
+class _CDATASectionImpl extends _TextImpl implements CDATASection native "*CDATASection" {
 }
 
-class _CSSCharsetRuleJs extends _CSSRuleJs implements CSSCharsetRule native "*CSSCharsetRule" {
+class _CSSCharsetRuleImpl extends _CSSRuleImpl implements CSSCharsetRule native "*CSSCharsetRule" {
 
   String encoding;
 }
 
-class _CSSFontFaceRuleJs extends _CSSRuleJs implements CSSFontFaceRule native "*CSSFontFaceRule" {
+class _CSSFontFaceRuleImpl extends _CSSRuleImpl implements CSSFontFaceRule native "*CSSFontFaceRule" {
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 }
 
-class _CSSImportRuleJs extends _CSSRuleJs implements CSSImportRule native "*CSSImportRule" {
+class _CSSImportRuleImpl extends _CSSRuleImpl implements CSSImportRule native "*CSSImportRule" {
 
   final String href;
 
-  final _MediaListJs media;
+  final _MediaListImpl media;
 
-  final _CSSStyleSheetJs styleSheet;
+  final _CSSStyleSheetImpl styleSheet;
 }
 
-class _CSSKeyframeRuleJs extends _CSSRuleJs implements CSSKeyframeRule native "*WebKitCSSKeyframeRule" {
+class _CSSKeyframeRuleImpl extends _CSSRuleImpl implements CSSKeyframeRule native "*WebKitCSSKeyframeRule" {
 
   String keyText;
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 }
 
-class _CSSKeyframesRuleJs extends _CSSRuleJs implements CSSKeyframesRule native "*WebKitCSSKeyframesRule" {
+class _CSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRule native "*WebKitCSSKeyframesRule" {
 
-  final _CSSRuleListJs cssRules;
+  final _CSSRuleListImpl cssRules;
 
   String name;
 
   void deleteRule(String key) native;
 
-  _CSSKeyframeRuleJs findRule(String key) native;
+  _CSSKeyframeRuleImpl findRule(String key) native;
 
   void insertRule(String rule) native;
 }
 
-class _CSSMatrixJs implements CSSMatrix native "*WebKitCSSMatrix" {
+class _CSSMatrixImpl implements CSSMatrix native "*WebKitCSSMatrix" {
 
   num a;
 
@@ -678,46 +706,46 @@ class _CSSMatrixJs implements CSSMatrix native "*WebKitCSSMatrix" {
 
   num m44;
 
-  _CSSMatrixJs inverse() native;
+  _CSSMatrixImpl inverse() native;
 
-  _CSSMatrixJs multiply(_CSSMatrixJs secondMatrix) native;
+  _CSSMatrixImpl multiply(_CSSMatrixImpl secondMatrix) native;
 
-  _CSSMatrixJs rotate(num rotX, num rotY, num rotZ) native;
+  _CSSMatrixImpl rotate(num rotX, num rotY, num rotZ) native;
 
-  _CSSMatrixJs rotateAxisAngle(num x, num y, num z, num angle) native;
+  _CSSMatrixImpl rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  _CSSMatrixJs scale(num scaleX, num scaleY, num scaleZ) native;
+  _CSSMatrixImpl scale(num scaleX, num scaleY, num scaleZ) native;
 
   void setMatrixValue(String string) native;
 
-  _CSSMatrixJs skewX(num angle) native;
+  _CSSMatrixImpl skewX(num angle) native;
 
-  _CSSMatrixJs skewY(num angle) native;
+  _CSSMatrixImpl skewY(num angle) native;
 
   String toString() native;
 
-  _CSSMatrixJs translate(num x, num y, num z) native;
+  _CSSMatrixImpl translate(num x, num y, num z) native;
 }
 
-class _CSSMediaRuleJs extends _CSSRuleJs implements CSSMediaRule native "*CSSMediaRule" {
+class _CSSMediaRuleImpl extends _CSSRuleImpl implements CSSMediaRule native "*CSSMediaRule" {
 
-  final _CSSRuleListJs cssRules;
+  final _CSSRuleListImpl cssRules;
 
-  final _MediaListJs media;
+  final _MediaListImpl media;
 
   void deleteRule(int index) native;
 
   int insertRule(String rule, int index) native;
 }
 
-class _CSSPageRuleJs extends _CSSRuleJs implements CSSPageRule native "*CSSPageRule" {
+class _CSSPageRuleImpl extends _CSSRuleImpl implements CSSPageRule native "*CSSPageRule" {
 
   String selectorText;
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 }
 
-class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
+class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
 
   static final int CSS_ATTR = 22;
 
@@ -773,13 +801,13 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
 
   final int primitiveType;
 
-  _CounterJs getCounterValue() native;
+  _CounterImpl getCounterValue() native;
 
   num getFloatValue(int unitType) native;
 
-  _RGBColorJs getRGBColorValue() native;
+  _RGBColorImpl getRGBColorValue() native;
 
-  _RectJs getRectValue() native;
+  _RectImpl getRectValue() native;
 
   String getStringValue() native;
 
@@ -788,7 +816,7 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
   void setStringValue(int stringType, String stringValue) native;
 }
 
-class _CSSRuleJs implements CSSRule native "*CSSRule" {
+class _CSSRuleImpl implements CSSRule native "*CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -812,18 +840,18 @@ class _CSSRuleJs implements CSSRule native "*CSSRule" {
 
   String cssText;
 
-  final _CSSRuleJs parentRule;
+  final _CSSRuleImpl parentRule;
 
-  final _CSSStyleSheetJs parentStyleSheet;
+  final _CSSStyleSheetImpl parentStyleSheet;
 
   final int type;
 }
 
-class _CSSRuleListJs implements CSSRuleList native "*CSSRuleList" {
+class _CSSRuleListImpl implements CSSRuleList native "*CSSRuleList" {
 
   final int length;
 
-  _CSSRuleJs item(int index) native;
+  _CSSRuleImpl item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -831,38 +859,28 @@ class _CSSRuleListJs implements CSSRuleList native "*CSSRuleList" {
 
 String _cachedBrowserPrefix;
 
-class _CSSStyleDeclarationJs implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
-
-  factory _CSSStyleDeclarationJs.css(String css) {
-    var style = new Element.tag('div').style;
-    style.cssText = css;
-    return style;
-  }
-
-  factory _CSSStyleDeclarationJs() {
-    return new _CSSStyleDeclarationJs.css('');
-  }
-
-  static String get _browserPrefix() {
-    if (_cachedBrowserPrefix === null) {
-      if (_Device.isFirefox) {
-        _cachedBrowserPrefix = '-moz-';
-      } else {
-        _cachedBrowserPrefix = '-webkit-';
-      }
-      // TODO(jacobr): support IE 9.0 and Opera as well.
+String get _browserPrefix() {
+  if (_cachedBrowserPrefix === null) {
+    if (_Device.isFirefox) {
+      _cachedBrowserPrefix = '-moz-';
+    } else {
+      _cachedBrowserPrefix = '-webkit-';
     }
-    return _cachedBrowserPrefix;
+    // TODO(jacobr): support IE 9.0 and Opera as well.
   }
+  return _cachedBrowserPrefix;
+}
+
+class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
 
   String cssText;
 
   final int length;
 
-  final _CSSRuleJs parentRule;
+  final _CSSRuleImpl parentRule;
 
-  _CSSValueJs getPropertyCSSValue(String propertyName) native;
+  _CSSValueImpl getPropertyCSSValue(String propertyName) native;
 
   String getPropertyPriority(String propertyName) native;
 
@@ -3644,20 +3662,20 @@ class _CSSStyleDeclarationJs implements CSSStyleDeclaration native "*CSSStyleDec
   }
 }
 
-class _CSSStyleRuleJs extends _CSSRuleJs implements CSSStyleRule native "*CSSStyleRule" {
+class _CSSStyleRuleImpl extends _CSSRuleImpl implements CSSStyleRule native "*CSSStyleRule" {
 
   String selectorText;
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 }
 
-class _CSSStyleSheetJs extends _StyleSheetJs implements CSSStyleSheet native "*CSSStyleSheet" {
+class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet native "*CSSStyleSheet" {
 
-  final _CSSRuleListJs cssRules;
+  final _CSSRuleListImpl cssRules;
 
-  final _CSSRuleJs ownerRule;
+  final _CSSRuleImpl ownerRule;
 
-  final _CSSRuleListJs rules;
+  final _CSSRuleListImpl rules;
 
   int addRule(String selector, String style, [int index = null]) native;
 
@@ -3668,7 +3686,7 @@ class _CSSStyleSheetJs extends _StyleSheetJs implements CSSStyleSheet native "*C
   void removeRule(int index) native;
 }
 
-class _CSSTransformValueJs extends _CSSValueListJs implements CSSTransformValue native "*WebKitCSSTransformValue" {
+class _CSSTransformValueImpl extends _CSSValueListImpl implements CSSTransformValue native "*WebKitCSSTransformValue" {
 
   static final int CSS_MATRIX = 11;
 
@@ -3715,10 +3733,10 @@ class _CSSTransformValueJs extends _CSSValueListJs implements CSSTransformValue 
   final int operationType;
 }
 
-class _CSSUnknownRuleJs extends _CSSRuleJs implements CSSUnknownRule native "*CSSUnknownRule" {
+class _CSSUnknownRuleImpl extends _CSSRuleImpl implements CSSUnknownRule native "*CSSUnknownRule" {
 }
 
-class _CSSValueJs implements CSSValue native "*CSSValue" {
+class _CSSValueImpl implements CSSValue native "*CSSValue" {
 
   static final int CSS_CUSTOM = 3;
 
@@ -3733,14 +3751,14 @@ class _CSSValueJs implements CSSValue native "*CSSValue" {
   final int cssValueType;
 }
 
-class _CSSValueListJs extends _CSSValueJs implements CSSValueList native "*CSSValueList" {
+class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList native "*CSSValueList" {
 
   final int length;
 
-  _CSSValueJs item(int index) native;
+  _CSSValueImpl item(int index) native;
 }
 
-class _CanvasElementJs extends _ElementJs implements CanvasElement native "*HTMLCanvasElement" {
+class _CanvasElementImpl extends _ElementImpl implements CanvasElement native "*HTMLCanvasElement" {
 
   int height;
 
@@ -3751,15 +3769,15 @@ class _CanvasElementJs extends _ElementJs implements CanvasElement native "*HTML
   String toDataURL(String type) native;
 }
 
-class _CanvasGradientJs implements CanvasGradient native "*CanvasGradient" {
+class _CanvasGradientImpl implements CanvasGradient native "*CanvasGradient" {
 
   void addColorStop(num offset, String color) native;
 }
 
-class _CanvasPatternJs implements CanvasPattern native "*CanvasPattern" {
+class _CanvasPatternImpl implements CanvasPattern native "*CanvasPattern" {
 }
 
-class _CanvasPixelArrayJs implements CanvasPixelArray native "*CanvasPixelArray" {
+class _CanvasPixelArrayImpl implements CanvasPixelArray native "*CanvasPixelArray" {
 
   final int length;
 
@@ -3835,12 +3853,12 @@ class _CanvasPixelArrayJs implements CanvasPixelArray native "*CanvasPixelArray"
   // -- end List<int> mixins.
 }
 
-class _CanvasRenderingContextJs implements CanvasRenderingContext native "*CanvasRenderingContext" {
+class _CanvasRenderingContextImpl implements CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  final _CanvasElementJs canvas;
+  final _CanvasElementImpl canvas;
 }
 
-class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
+class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
   Dynamic fillStyle;
 
@@ -3892,17 +3910,17 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void closePath() native;
 
-  _ImageDataJs createImageData(var imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataImpl createImageData(var imagedata_OR_sw, [num sh = null]) native;
 
-  _CanvasGradientJs createLinearGradient(num x0, num y0, num x1, num y1) native;
+  _CanvasGradientImpl createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  _CanvasPatternJs createPattern(var canvas_OR_image, String repetitionType) native;
+  _CanvasPatternImpl createPattern(var canvas_OR_image, String repetitionType) native;
 
-  _CanvasGradientJs createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
+  _CanvasGradientImpl createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
 
-  void drawImageFromRect(_ImageElementJs image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
+  void drawImageFromRect(_ImageElementImpl image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
 
   void fill() native;
 
@@ -3910,17 +3928,17 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void fillText(String text, num x, num y, [num maxWidth = null]) native;
 
-  _ImageDataJs getImageData(num sx, num sy, num sw, num sh) native;
+  _ImageDataImpl getImageData(num sx, num sy, num sw, num sh) native;
 
   bool isPointInPath(num x, num y) native;
 
   void lineTo(num x, num y) native;
 
-  _TextMetricsJs measureText(String text) native;
+  _TextMetricsImpl measureText(String text) native;
 
   void moveTo(num x, num y) native;
 
-  void putImageData(_ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void putImageData(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
@@ -3965,7 +3983,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
   void translate(num tx, num ty) native;
 }
 
-class _CharacterDataJs extends _NodeJs implements CharacterData native "*CharacterData" {
+class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*CharacterData" {
 
   String data;
 
@@ -3982,7 +4000,7 @@ class _CharacterDataJs extends _NodeJs implements CharacterData native "*Charact
   String substringData(int offset, int length) native;
 }
 
-class _ClientRectJs implements ClientRect native "*ClientRect" {
+class _ClientRectImpl implements ClientRect native "*ClientRect" {
 
   final num bottom;
 
@@ -3997,22 +4015,22 @@ class _ClientRectJs implements ClientRect native "*ClientRect" {
   final num width;
 }
 
-class _ClientRectListJs implements ClientRectList native "*ClientRectList" {
+class _ClientRectListImpl implements ClientRectList native "*ClientRectList" {
 
   final int length;
 
-  _ClientRectJs item(int index) native;
+  _ClientRectImpl item(int index) native;
 }
 
-class _ClipboardJs implements Clipboard native "*Clipboard" {
+class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   String dropEffect;
 
   String effectAllowed;
 
-  final _FileListJs files;
+  final _FileListImpl files;
 
-  final _DataTransferItemListJs items;
+  final _DataTransferItemListImpl items;
 
   final List types;
 
@@ -4022,10 +4040,10 @@ class _ClipboardJs implements Clipboard native "*Clipboard" {
 
   bool setData(String type, String data) native;
 
-  void setDragImage(_ImageElementJs image, int x, int y) native;
+  void setDragImage(_ImageElementImpl image, int x, int y) native;
 }
 
-class _CloseEventJs extends _EventJs implements CloseEvent native "*CloseEvent" {
+class _CloseEventImpl extends _EventImpl implements CloseEvent native "*CloseEvent" {
 
   final int code;
 
@@ -4034,25 +4052,25 @@ class _CloseEventJs extends _EventJs implements CloseEvent native "*CloseEvent" 
   final bool wasClean;
 }
 
-class _CommentJs extends _CharacterDataJs implements Comment native "*Comment" {
+class _CommentImpl extends _CharacterDataImpl implements Comment native "*Comment" {
 }
 
-class _CompositionEventJs extends _UIEventJs implements CompositionEvent native "*CompositionEvent" {
+class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent native "*CompositionEvent" {
 
   final String data;
 
-  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowJs viewArg, String dataArg) native;
+  void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowImpl viewArg, String dataArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _ConsoleJs
+class _ConsoleImpl
     // Console is sometimes a singleton bag-of-properties without a prototype.
     implements Console 
     native "=(typeof console == 'undefined' ? {} : console)" {
 
-  final _MemoryInfoJs memory;
+  final _MemoryInfoImpl memory;
 
   final List profiles;
 
@@ -4096,19 +4114,19 @@ class _ConsoleJs
 
 }
 
-class _ContentElementJs extends _ElementJs implements ContentElement native "*HTMLContentElement" {
+class _ContentElementImpl extends _ElementImpl implements ContentElement native "*HTMLContentElement" {
 
   String select;
 }
 
-class _ConvolverNodeJs extends _AudioNodeJs implements ConvolverNode native "*ConvolverNode" {
+class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode native "*ConvolverNode" {
 
-  _AudioBufferJs buffer;
+  _AudioBufferImpl buffer;
 
   bool normalize;
 }
 
-class _CoordinatesJs implements Coordinates native "*Coordinates" {
+class _CoordinatesImpl implements Coordinates native "*Coordinates" {
 
   final num accuracy;
 
@@ -4125,7 +4143,7 @@ class _CoordinatesJs implements Coordinates native "*Coordinates" {
   final num speed;
 }
 
-class _CounterJs implements Counter native "*Counter" {
+class _CounterImpl implements Counter native "*Counter" {
 
   final String identifier;
 
@@ -4134,24 +4152,24 @@ class _CounterJs implements Counter native "*Counter" {
   final String separator;
 }
 
-class _CryptoJs implements Crypto native "*Crypto" {
+class _CryptoImpl implements Crypto native "*Crypto" {
 
-  void getRandomValues(_ArrayBufferViewJs array) native;
+  void getRandomValues(_ArrayBufferViewImpl array) native;
 }
 
-class _CustomEventJs extends _EventJs implements CustomEvent native "*CustomEvent" {
+class _CustomEventImpl extends _EventImpl implements CustomEvent native "*CustomEvent" {
 
   final Object detail;
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }
 
-class _DListElementJs extends _ElementJs implements DListElement native "*HTMLDListElement" {
+class _DListElementImpl extends _ElementImpl implements DListElement native "*HTMLDListElement" {
 
   bool compact;
 }
 
-class _DOMApplicationCacheJs implements DOMApplicationCache native "*DOMApplicationCache" {
+class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int CHECKING = 2;
 
@@ -4174,7 +4192,7 @@ class _DOMApplicationCacheJs implements DOMApplicationCache native "*DOMApplicat
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 
@@ -4203,7 +4221,7 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
   EventListenerList get updateReady() => _get('updateready');
 }
 
-class _DOMExceptionJs implements DOMException native "*DOMException" {
+class _DOMExceptionImpl implements DOMException native "*DOMException" {
 
   static final int ABORT_ERR = 20;
 
@@ -4264,64 +4282,70 @@ class _DOMExceptionJs implements DOMException native "*DOMException" {
   String toString() native;
 }
 
-class _DOMFileSystemJs implements DOMFileSystem native "*DOMFileSystem" {
+class _DOMFileSystemImpl implements DOMFileSystem native "*DOMFileSystem" {
 
   final String name;
 
-  final _DirectoryEntryJs root;
+  final _DirectoryEntryImpl root;
 }
 
-class _DOMFileSystemSyncJs implements DOMFileSystemSync native "*DOMFileSystemSync" {
+class _DOMFileSystemSyncImpl implements DOMFileSystemSync native "*DOMFileSystemSync" {
 
   final String name;
 
-  final _DirectoryEntrySyncJs root;
+  final _DirectoryEntrySyncImpl root;
 }
 
-class _DOMFormDataJs implements DOMFormData native "*DOMFormData" {
+class _DOMFormDataImpl implements DOMFormData native "*DOMFormData" {
 
   void append(String name, String value, String filename) native;
 }
 
-class _DOMImplementationJs implements DOMImplementation native "*DOMImplementation" {
+class _DOMImplementationImpl implements DOMImplementation native "*DOMImplementation" {
 
-  _CSSStyleSheetJs createCSSStyleSheet(String title, String media) native;
+  _CSSStyleSheetImpl createCSSStyleSheet(String title, String media) native;
 
-  _DocumentJs createDocument(String namespaceURI, String qualifiedName, _DocumentTypeJs doctype) native;
+  _DocumentImpl createDocument(String namespaceURI, String qualifiedName, _DocumentTypeImpl doctype) => _FixHtmlDocumentReference(_createDocument(namespaceURI, qualifiedName, doctype));
 
-  _DocumentTypeJs createDocumentType(String qualifiedName, String publicId, String systemId) native;
+  _EventTargetImpl _createDocument(String namespaceURI, String qualifiedName, _DocumentTypeImpl doctype) native "return this.createDocument(namespaceURI, qualifiedName, doctype);";
 
-  _DocumentJs createHTMLDocument(String title) native;
+  _DocumentTypeImpl createDocumentType(String qualifiedName, String publicId, String systemId) native;
+
+  _DocumentImpl createHTMLDocument(String title) => _FixHtmlDocumentReference(_createHTMLDocument(title));
+
+  _EventTargetImpl _createHTMLDocument(String title) native "return this.createHTMLDocument(title);";
 
   bool hasFeature(String feature, String version) native;
 }
 
-class _DOMMimeTypeJs implements DOMMimeType native "*DOMMimeType" {
+class _DOMMimeTypeImpl implements DOMMimeType native "*DOMMimeType" {
 
   final String description;
 
-  final _DOMPluginJs enabledPlugin;
+  final _DOMPluginImpl enabledPlugin;
 
   final String suffixes;
 
   final String type;
 }
 
-class _DOMMimeTypeArrayJs implements DOMMimeTypeArray native "*DOMMimeTypeArray" {
+class _DOMMimeTypeArrayImpl implements DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
   final int length;
 
-  _DOMMimeTypeJs item(int index) native;
+  _DOMMimeTypeImpl item(int index) native;
 
-  _DOMMimeTypeJs namedItem(String name) native;
+  _DOMMimeTypeImpl namedItem(String name) native;
 }
 
-class _DOMParserJs implements DOMParser native "*DOMParser" {
+class _DOMParserImpl implements DOMParser native "*DOMParser" {
 
-  _DocumentJs parseFromString(String str, String contentType) native;
+  _DocumentImpl parseFromString(String str, String contentType) => _FixHtmlDocumentReference(_parseFromString(str, contentType));
+
+  _EventTargetImpl _parseFromString(String str, String contentType) native "return this.parseFromString(str, contentType);";
 }
 
-class _DOMPluginJs implements DOMPlugin native "*DOMPlugin" {
+class _DOMPluginImpl implements DOMPlugin native "*DOMPlugin" {
 
   final String description;
 
@@ -4331,37 +4355,37 @@ class _DOMPluginJs implements DOMPlugin native "*DOMPlugin" {
 
   final String name;
 
-  _DOMMimeTypeJs item(int index) native;
+  _DOMMimeTypeImpl item(int index) native;
 
-  _DOMMimeTypeJs namedItem(String name) native;
+  _DOMMimeTypeImpl namedItem(String name) native;
 }
 
-class _DOMPluginArrayJs implements DOMPluginArray native "*DOMPluginArray" {
+class _DOMPluginArrayImpl implements DOMPluginArray native "*DOMPluginArray" {
 
   final int length;
 
-  _DOMPluginJs item(int index) native;
+  _DOMPluginImpl item(int index) native;
 
-  _DOMPluginJs namedItem(String name) native;
+  _DOMPluginImpl namedItem(String name) native;
 
   void refresh(bool reload) native;
 }
 
-class _DOMSelectionJs implements DOMSelection native "*DOMSelection" {
+class _DOMSelectionImpl implements DOMSelection native "*DOMSelection" {
 
-  final _NodeJs anchorNode;
+  final _NodeImpl anchorNode;
 
   final int anchorOffset;
 
-  final _NodeJs baseNode;
+  final _NodeImpl baseNode;
 
   final int baseOffset;
 
-  final _NodeJs extentNode;
+  final _NodeImpl extentNode;
 
   final int extentOffset;
 
-  final _NodeJs focusNode;
+  final _NodeImpl focusNode;
 
   final int focusOffset;
 
@@ -4371,43 +4395,43 @@ class _DOMSelectionJs implements DOMSelection native "*DOMSelection" {
 
   final String type;
 
-  void addRange(_RangeJs range) native;
+  void addRange(_RangeImpl range) native;
 
-  void collapse(_NodeJs node, int index) native;
+  void collapse(_NodeImpl node, int index) native;
 
   void collapseToEnd() native;
 
   void collapseToStart() native;
 
-  bool containsNode(_NodeJs node, bool allowPartial) native;
+  bool containsNode(_NodeImpl node, bool allowPartial) native;
 
   void deleteFromDocument() native;
 
   void empty() native;
 
-  void extend(_NodeJs node, int offset) native;
+  void extend(_NodeImpl node, int offset) native;
 
-  _RangeJs getRangeAt(int index) native;
+  _RangeImpl getRangeAt(int index) native;
 
   void modify(String alter, String direction, String granularity) native;
 
   void removeAllRanges() native;
 
-  void selectAllChildren(_NodeJs node) native;
+  void selectAllChildren(_NodeImpl node) native;
 
-  void setBaseAndExtent(_NodeJs baseNode, int baseOffset, _NodeJs extentNode, int extentOffset) native;
+  void setBaseAndExtent(_NodeImpl baseNode, int baseOffset, _NodeImpl extentNode, int extentOffset) native;
 
-  void setPosition(_NodeJs node, int offset) native;
+  void setPosition(_NodeImpl node, int offset) native;
 
   String toString() native;
 }
 
-class _DOMSettableTokenListJs extends _DOMTokenListJs implements DOMSettableTokenList native "*DOMSettableTokenList" {
+class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettableTokenList native "*DOMSettableTokenList" {
 
   String value;
 }
 
-class _DOMTokenListJs implements DOMTokenList native "*DOMTokenList" {
+class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
   final int length;
 
@@ -4424,21 +4448,21 @@ class _DOMTokenListJs implements DOMTokenList native "*DOMTokenList" {
   bool toggle(String token) native;
 }
 
-class _DOMURLJs implements DOMURL native "*DOMURL" {
+class _DOMURLImpl implements DOMURL native "*DOMURL" {
 }
 
-class _DataTransferItemJs implements DataTransferItem native "*DataTransferItem" {
+class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
 
   final String kind;
 
   final String type;
 
-  _BlobJs getAsFile() native;
+  _BlobImpl getAsFile() native;
 
   void getAsString(StringCallback callback) native;
 }
 
-class _DataTransferItemListJs implements DataTransferItemList native "*DataTransferItemList" {
+class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
 
   final int length;
 
@@ -4446,10 +4470,10 @@ class _DataTransferItemListJs implements DataTransferItemList native "*DataTrans
 
   void clear() native;
 
-  _DataTransferItemJs item(int index) native;
+  _DataTransferItemImpl item(int index) native;
 }
 
-class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataView" {
+class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*DataView" {
 
   num getFloat32(int byteOffset, [bool littleEndian = null]) native;
 
@@ -4484,7 +4508,7 @@ class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataVi
   void setUint8() native;
 }
 
-class _DatabaseJs implements Database native "*Database" {
+class _DatabaseImpl implements Database native "*Database" {
 
   final String version;
 
@@ -4495,7 +4519,7 @@ class _DatabaseJs implements Database native "*Database" {
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
 }
 
-class _DatabaseSyncJs implements DatabaseSync native "*DatabaseSync" {
+class _DatabaseSyncImpl implements DatabaseSync native "*DatabaseSync" {
 
   final String lastErrorMessage;
 
@@ -4508,7 +4532,7 @@ class _DatabaseSyncJs implements DatabaseSync native "*DatabaseSync" {
   void transaction(SQLTransactionSyncCallback callback) native;
 }
 
-class _DedicatedWorkerContextJs extends _WorkerContextJs implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
+class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
 
   EventListener onmessage;
 
@@ -4517,22 +4541,22 @@ class _DedicatedWorkerContextJs extends _WorkerContextJs implements DedicatedWor
   void webkitPostMessage(Object message, [List transferList = null]) native;
 }
 
-class _DelayNodeJs extends _AudioNodeJs implements DelayNode native "*DelayNode" {
+class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayNode" {
 
-  final _AudioParamJs delayTime;
+  final _AudioParamImpl delayTime;
 }
 
-class _DetailsElementJs extends _ElementJs implements DetailsElement native "*HTMLDetailsElement" {
+class _DetailsElementImpl extends _ElementImpl implements DetailsElement native "*HTMLDetailsElement" {
 
   bool open;
 }
 
-class _DeviceMotionEventJs extends _EventJs implements DeviceMotionEvent native "*DeviceMotionEvent" {
+class _DeviceMotionEventImpl extends _EventImpl implements DeviceMotionEvent native "*DeviceMotionEvent" {
 
   final num interval;
 }
 
-class _DeviceOrientationEventJs extends _EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
+class _DeviceOrientationEventImpl extends _EventImpl implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
 
   final bool absolute;
 
@@ -4545,14 +4569,14 @@ class _DeviceOrientationEventJs extends _EventJs implements DeviceOrientationEve
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 
-class _DirectoryElementJs extends _ElementJs implements DirectoryElement native "*HTMLDirectoryElement" {
+class _DirectoryElementImpl extends _ElementImpl implements DirectoryElement native "*HTMLDirectoryElement" {
 
   bool compact;
 }
 
-class _DirectoryEntryJs extends _EntryJs implements DirectoryEntry native "*DirectoryEntry" {
+class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*DirectoryEntry" {
 
-  _DirectoryReaderJs createReader() native;
+  _DirectoryReaderImpl createReader() native;
 
   void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
@@ -4561,28 +4585,28 @@ class _DirectoryEntryJs extends _EntryJs implements DirectoryEntry native "*Dire
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
 
-class _DirectoryEntrySyncJs extends _EntrySyncJs implements DirectoryEntrySync native "*DirectoryEntrySync" {
+class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySync native "*DirectoryEntrySync" {
 
-  _DirectoryReaderSyncJs createReader() native;
+  _DirectoryReaderSyncImpl createReader() native;
 
-  _DirectoryEntrySyncJs getDirectory(String path, Object flags) native;
+  _DirectoryEntrySyncImpl getDirectory(String path, Object flags) native;
 
-  _FileEntrySyncJs getFile(String path, Object flags) native;
+  _FileEntrySyncImpl getFile(String path, Object flags) native;
 
   void removeRecursively() native;
 }
 
-class _DirectoryReaderJs implements DirectoryReader native "*DirectoryReader" {
+class _DirectoryReaderImpl implements DirectoryReader native "*DirectoryReader" {
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
 
-class _DirectoryReaderSyncJs implements DirectoryReaderSync native "*DirectoryReaderSync" {
+class _DirectoryReaderSyncImpl implements DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  _EntryArraySyncJs readEntries() native;
+  _EntryArraySyncImpl readEntries() native;
 }
 
-class _DivElementJs extends _ElementJs implements DivElement native "*HTMLDivElement" {
+class _DivElementImpl extends _ElementImpl implements DivElement native "*HTMLDivElement" {
 
   String align;
 }
@@ -4590,15 +4614,15 @@ class _DivElementJs extends _ElementJs implements DivElement native "*HTMLDivEle
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DocumentJs extends _ElementJs
+class _DocumentImpl extends _ElementImpl
     implements Document
     native "*HTMLHtmlElement" {
 
-  _ElementJs get activeElement() native "return this.parentNode.activeElement;";
+  _ElementImpl get activeElement() native "return this.parentNode.activeElement;";
 
-  _ElementJs get body() native "return this.parentNode.body;";
+  _ElementImpl get body() native "return this.parentNode.body;";
 
-  void set body(_ElementJs value) native "this.parentNode.body = value;";
+  void set body(_ElementImpl value) native "this.parentNode.body = value;";
 
   String get charset() native "return this.parentNode.charset;";
 
@@ -4608,11 +4632,11 @@ class _DocumentJs extends _ElementJs
 
   void set cookie(String value) native "this.parentNode.cookie = value;";
 
-  _WindowJs get defaultView() native "return this.parentNode.defaultView;";
+  _WindowImpl get window() native "return this.parentNode.defaultView;";
 
   String get domain() native "return this.parentNode.domain;";
 
-  _HeadElementJs get head() native "return this.parentNode.head;";
+  _HeadElementImpl get head() native "return this.parentNode.head;";
 
   String get lastModified() native "return this.parentNode.lastModified;";
 
@@ -4626,9 +4650,9 @@ class _DocumentJs extends _ElementJs
 
   void set selectedStylesheetSet(String value) native "this.parentNode.selectedStylesheetSet = value;";
 
-  _StyleSheetListJs get styleSheets() native "return this.parentNode.styleSheets;";
+  _StyleSheetListImpl get styleSheets() native "return this.parentNode.styleSheets;";
 
-  _ElementJs get webkitCurrentFullScreenElement() native "return this.parentNode.webkitCurrentFullScreenElement;";
+  _ElementImpl get webkitCurrentFullScreenElement() native "return this.parentNode.webkitCurrentFullScreenElement;";
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.parentNode.webkitFullScreenKeyboardInputAllowed;";
 
@@ -4641,79 +4665,29 @@ class _DocumentJs extends _ElementJs
   _DocumentEventsImpl get on() =>
     new _DocumentEventsImpl(_jsDocument);
 
-  _NodeJs adoptNode(_NodeJs source) native "return this.parentNode.adoptNode(source);";
+  _RangeImpl caretRangeFromPoint(int x, int y) native "return this.parentNode.caretRangeFromPoint(x, y);";
 
-  void captureEvents() native "this.parentNode.captureEvents();";
+  _CDATASectionImpl createCDATASection(String data) native "return this.parentNode.createCDATASection(data);";
 
-  _RangeJs caretRangeFromPoint(int x, int y) native "return this.parentNode.caretRangeFromPoint(x, y);";
+  _DocumentFragmentImpl createDocumentFragment() native "return this.parentNode.createDocumentFragment();";
 
-  void clear() native "this.parentNode.clear();";
+  _ElementImpl _createElement(String tagName) native "return this.parentNode.createElement(tagName);";
 
-  void close() native "this.parentNode.close();";
+  _EventImpl _createEvent(String eventType) native "return this.parentNode.createEvent(eventType);";
 
-  _AttrJs createAttribute(String name) native "return this.parentNode.createAttribute(name);";
+  _RangeImpl createRange() native "return this.parentNode.createRange();";
 
-  _AttrJs createAttributeNS(String namespaceURI, String qualifiedName) native "return this.parentNode.createAttributeNS(namespaceURI, qualifiedName);";
+  _TextImpl _createTextNode(String data) native "return this.parentNode.createTextNode(data);";
 
-  _CDATASectionJs createCDATASection(String data) native "return this.parentNode.createCDATASection(data);";
+  _TouchImpl createTouch(_WindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "return this.parentNode.createTouch(window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);";
 
-  _CommentJs createComment(String data) native "return this.parentNode.createComment(data);";
+  _TouchListImpl _createTouchList() native "return this.parentNode.createTouchList();";
 
-  _DocumentFragmentJs createDocumentFragment() native "return this.parentNode.createDocumentFragment();";
-
-  _ElementJs _createElement(String tagName) native "return this.parentNode.createElement(tagName);";
-
-  _ElementJs createElementNS(String namespaceURI, String qualifiedName) native "return this.parentNode.createElementNS(namespaceURI, qualifiedName);";
-
-  _EntityReferenceJs createEntityReference(String name) native "return this.parentNode.createEntityReference(name);";
-
-  _EventJs _createEvent(String eventType) native "return this.parentNode.createEvent(eventType);";
-
-  _XPathExpressionJs createExpression(String expression, _XPathNSResolverJs resolver) native "return this.parentNode.createExpression(expression, resolver);";
-
-  _XPathNSResolverJs createNSResolver(_NodeJs nodeResolver) native "return this.parentNode.createNSResolver(nodeResolver);";
-
-  _NodeIteratorJs createNodeIterator(_NodeJs root, int whatToShow, _NodeFilterJs filter, bool expandEntityReferences) native "return this.parentNode.createNodeIterator(root, whatToShow, filter, expandEntityReferences);";
-
-  _ProcessingInstructionJs createProcessingInstruction(String target, String data) native "return this.parentNode.createProcessingInstruction(target, data);";
-
-  _RangeJs createRange() native "return this.parentNode.createRange();";
-
-  _TextJs createTextNode(String data) native "return this.parentNode.createTextNode(data);";
-
-  _TouchJs createTouch(_WindowJs window, _EventTargetJs target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "return this.parentNode.createTouch(window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);";
-
-  _TouchListJs createTouchList() native "return this.parentNode.createTouchList();";
-
-  _TreeWalkerJs createTreeWalker(_NodeJs root, int whatToShow, _NodeFilterJs filter, bool expandEntityReferences) native "return this.parentNode.createTreeWalker(root, whatToShow, filter, expandEntityReferences);";
-
-  _ElementJs elementFromPoint(int x, int y) native "return this.parentNode.elementFromPoint(x, y);";
-
-  _XPathResultJs evaluate(String expression, _NodeJs contextNode, _XPathNSResolverJs resolver, int type, _XPathResultJs inResult) native "return this.parentNode.evaluate(expression, contextNode, resolver, type, inResult);";
+  _ElementImpl elementFromPoint(int x, int y) native "return this.parentNode.elementFromPoint(x, y);";
 
   bool execCommand(String command, bool userInterface, String value) native "return this.parentNode.execCommand(command, userInterface, value);";
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
-
-  _ElementJs getElementById(String elementId) native "return this.parentNode.getElementById(elementId);";
-
-  _NodeListJs getElementsByClassName(String tagname) native "return this.parentNode.getElementsByClassName(tagname);";
-
-  _NodeListJs getElementsByName(String elementName) native "return this.parentNode.getElementsByName(elementName);";
-
-  _NodeListJs getElementsByTagName(String tagname) native "return this.parentNode.getElementsByTagName(tagname);";
-
-  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native "return this.parentNode.getElementsByTagNameNS(namespaceURI, localName);";
-
-  _CSSStyleDeclarationJs getOverrideStyle(_ElementJs element, String pseudoElement) native "return this.parentNode.getOverrideStyle(element, pseudoElement);";
-
-  _DOMSelectionJs getSelection() native "return this.parentNode.getSelection();";
-
-  bool hasFocus() native "return this.parentNode.hasFocus();";
-
-  _NodeJs importNode(_NodeJs importedNode, [bool deep = null]) native "return this.parentNode.importNode(importedNode, deep);";
-
-  void open() native "this.parentNode.open();";
 
   bool queryCommandEnabled(String command) native "return this.parentNode.queryCommandEnabled(command);";
 
@@ -4725,26 +4699,10 @@ class _DocumentJs extends _ElementJs
 
   String queryCommandValue(String command) native "return this.parentNode.queryCommandValue(command);";
 
-  _ElementJs querySelector(String selectors) native "return this.parentNode.querySelector(selectors);";
-
-  _NodeListJs querySelectorAll(String selectors) native "return this.parentNode.querySelectorAll(selectors);";
-
-  void releaseEvents() native "this.parentNode.releaseEvents();";
-
   void webkitCancelFullScreen() native "this.parentNode.webkitCancelFullScreen();";
 
-  _WebKitNamedFlowJs webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
+  _WebKitNamedFlowImpl webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
 
-  void write(String text) native "this.parentNode.write(text);";
-
-  void writeln(String text) native "this.parentNode.writeln(text);";
-
-
-  // We execute query selectors off the traditional document rather than the
-  // HTMLHtmlElement to make the result of query and queryAll less surprising.
-  // Note: this means that document.query('html') will return the Document.
-  _ElementJs query(String selectors) native "return this.parentNode.querySelector(selectors);";
-  ElementList queryAll(String selectors) native "return this.parentNode.querySelectorAll(selectors);";
 
   // TODO(jacobr): remove these methods and let them be generated automatically
   // once dart supports defining fields with the same name in an interface and
@@ -4755,24 +4713,24 @@ class _DocumentJs extends _ElementJs
 
   // For efficiency and simplicity, we always use the HtmlElement as the
   // Document but sometimes internally we need the real JS document object.
-  _NodeJs get _jsDocument() native "return this.parentNode;";
+  _NodeImpl get _jsDocument() native "return this.parentNode;";
 
   // The document doesn't have a parent element.
-  _ElementJs get parent() => null;
+  _ElementImpl get parent() => null;
 }
 
 // This class should not be externally visible.  If a user ever gets access to
-// a _SecretHtmlDocumentJs object that is a bug.  This object is hidden by
+// a _SecretHtmlDocumentImpl object that is a bug.  This object is hidden by
 // adding checks to all methods that could an HTMLDocument.  We believe that
 // list is limited to Event.target, and HTMLHtmlElement.parent.
-class _SecretHtmlDocumentJs extends _NodeJs implements Node
+class _SecretHtmlDocumentImpl extends _NodeImpl implements Node
     native "*HTMLDocument" {
-  _DocumentJs get _documentElement() native "return this.documentElement;";
+  _DocumentImpl get _documentElement() native "return this.documentElement;";
 }
 
 EventTarget _FixHtmlDocumentReference(EventTarget eventTarget) {
-  if (eventTarget is _SecretHtmlDocumentJs) {
-    _SecretHtmlDocumentJs secretDocument = eventTarget;
+  if (eventTarget is _SecretHtmlDocumentImpl) {
+    _SecretHtmlDocumentImpl secretDocument = eventTarget;
     return secretDocument._documentElement;
   } else {
     return eventTarget;
@@ -4822,9 +4780,9 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get focus() => _get('focus');
 
-  EventListenerList get fullScreenChange() => _get('webkitFullScreenChange');
+  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
 
-  EventListenerList get fullScreenError() => _get('webkitFullScreenError');
+  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
 
   EventListenerList get input() => _get('input');
 
@@ -4877,41 +4835,42 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   EventListenerList get touchStart() => _get('touchstart');
 }
 
-class _DocumentFragmentJs extends _NodeJs implements DocumentFragment native "*DocumentFragment" {
+class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
 
-  _ElementJs querySelector(String selectors) native;
+  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListJs querySelectorAll(String selectors) native;
+  _NodeListImpl queryAll(String selectors) native "return this.querySelectorAll(selectors);";
 }
 
-class _DocumentTypeJs extends _NodeJs implements DocumentType native "*DocumentType" {
+class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*DocumentType" {
 
-  final _NamedNodeMapJs entities;
+  final _NamedNodeMapImpl entities;
 
   final String internalSubset;
 
   final String name;
 
-  final _NamedNodeMapJs notations;
+  final _NamedNodeMapImpl notations;
 
   final String publicId;
 
   final String systemId;
 }
 
-class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
+class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jacobr): use Lists.dart to remove some of the duplicated functionality.
+// TODO(jacobr): use _Lists.dart to remove some of the duplicated
+// functionality.
 class _ChildrenElementList implements ElementList {
   // Raw Element.
-  final _ElementJs _element;
-  final _HTMLCollectionJs _childElements;
+  final _ElementImpl _element;
+  final _HTMLCollectionImpl _childElements;
 
-  _ChildrenElementList._wrap(_ElementJs element)
+  _ChildrenElementList._wrap(_ElementImpl element)
     : _childElements = element._children,
       _element = element;
 
@@ -4923,24 +4882,24 @@ class _ChildrenElementList implements ElementList {
     return output;
   }
 
-  _ElementJs get first() {
+  _ElementImpl get first() {
     return _element._firstElementChild;
   }
 
   void forEach(void f(Element element)) {
-    for (_ElementJs element in _childElements) {
+    for (_ElementImpl element in _childElements) {
       f(element);
     }
   }
 
-  Collection<Element> filter(bool f(Element element)) {
-    List<Element> output = <Element>[];
+  ElementList filter(bool f(Element element)) {
+    final output = <Element>[];
     forEach((Element element) {
       if (f(element)) {
         output.add(element);
       }
     });
-    return output;
+    return new _FrozenElementList._wrap(output);
   }
 
   bool every(bool f(Element element)) {
@@ -4962,19 +4921,19 @@ class _ChildrenElementList implements ElementList {
   }
 
   bool isEmpty() {
-    return _element._firstElementChild !== null;
+    return _element._firstElementChild == null;
   }
 
   int get length() {
     return _childElements.length;
   }
 
-  _ElementJs operator [](int index) {
+  _ElementImpl operator [](int index) {
     return _childElements[index];
   }
 
-  void operator []=(int index, _ElementJs value) {
-    _element._replaceChild(value, _childElements.item(index));
+  void operator []=(int index, _ElementImpl value) {
+    _element._replaceChild(value, _childElements[index]);
   }
 
    void set length(int newLength) {
@@ -4982,17 +4941,17 @@ class _ChildrenElementList implements ElementList {
      throw const UnsupportedOperationException('');
    }
 
-  Element add(_ElementJs value) {
+  Element add(_ElementImpl value) {
     _element._appendChild(value);
     return value;
   }
 
-  Element addLast(_ElementJs value) => add(value);
+  Element addLast(_ElementImpl value) => add(value);
 
   Iterator<Element> iterator() => _toList().iterator();
 
-  void addAll(Collection<_ElementJs> collection) {
-    for (_ElementJs element in collection) {
+  void addAll(Collection<_ElementImpl> collection) {
+    for (_ElementImpl element in collection) {
       _element._appendChild(element);
     }
   }
@@ -5017,9 +4976,9 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  List getRange(int start, int length) =>
+    new _FrozenElementList._wrap(_Lists.getRange(this, start, length,
+        <Element>[]));
 
   int indexOf(Element element, [int start = 0]) {
     return _Lists.indexOf(this, element, start, this.length);
@@ -5048,16 +5007,167 @@ class _ChildrenElementList implements ElementList {
   }
 }
 
+// TODO(jacobr): this is an inefficient implementation but it is hard to see
+// a better option given that we cannot quite force NodeList to be an
+// ElementList as there are valid cases where a NodeList JavaScript object
+// contains Node objects that are not Elements.
+class _FrozenElementList implements ElementList {
+  final List<Node> _nodeList;
+
+  _FrozenElementList._wrap(this._nodeList);
+
+  Element get first() {
+    return _nodeList.first;
+  }
+
+  void forEach(void f(Element element)) {
+    for (Element el in this) {
+      f(el);
+    }
+  }
+
+  Collection map(f(Element element)) {
+    final out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
+  }
+
+  ElementList filter(bool f(Element element)) {
+    final out = new _ElementList([]);
+    for (Element el in this) {
+      if (f(el)) out.add(el);
+    }
+    return out;
+  }
+
+  bool every(bool f(Element element)) {
+    for(Element element in this) {
+      if (!f(element)) {
+        return false;
+      }
+    };
+    return true;
+  }
+
+  bool some(bool f(Element element)) {
+    for(Element element in this) {
+      if (f(element)) {
+        return true;
+      }
+    };
+    return false;
+  }
+
+  bool isEmpty() => _nodeList.isEmpty();
+
+  int get length() => _nodeList.length;
+
+  Element operator [](int index) => _nodeList[index];
+
+  void operator []=(int index, Element value) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void set length(int newLength) {
+    _nodeList.length = newLength;
+  }
+
+  void add(Element value) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void addLast(Element value) {
+    throw const UnsupportedOperationException('');
+  }
+
+  Iterator<Element> iterator() => new _FrozenElementListIterator(this);
+
+  void addAll(Collection<Element> collection) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void sort(int compare(Element a, Element b)) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void removeRange(int start, int length) {
+    throw const UnsupportedOperationException('');
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const UnsupportedOperationException('');
+  }
+
+  ElementList getRange(int start, int length) =>
+    new _FrozenElementList._wrap(_nodeList.getRange(start, length));
+
+  int indexOf(Element element, [int start = 0]) =>
+    _nodeList.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) =>
+    _nodeList.lastIndexOf(element, start);
+
+  void clear() {
+    throw const UnsupportedOperationException('');
+  }
+
+  Element removeLast() {
+    throw const UnsupportedOperationException('');
+  }
+
+  Element last() => _nodeList.last();
+}
+
+class _FrozenElementListIterator implements Iterator<Element> {
+  final _FrozenElementList _list;
+  int _index = 0;
+
+  _FrozenElementListIterator(this._list);
+
+  /**
+   * Gets the next element in the iteration. Throws a
+   * [NoMoreElementsException] if no element is left.
+   */
+  Element next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+
+    return _list[_index++];
+  }
+
+  /**
+   * Returns whether the [Iterator] has elements left.
+   */
+  bool hasNext() => _index < _list.length;
+}
+
+class _ElementList extends _ListWrapper<Element> implements ElementList {
+  _ElementList(List<Element> list) : super(list);
+
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(super.filter(f));
+
+  ElementList getRange(int start, int length) =>
+    new _ElementList(super.getRange(start, length));
+}
+
 class ElementAttributeMap implements Map<String, String> {
 
-  final _ElementJs _element;
+  final _ElementImpl _element;
 
   ElementAttributeMap._wrap(this._element);
 
   bool containsValue(String value) {
-    final attributes = _element.attributes;
+    final attributes = _element._attributes;
     for (int i = 0, len = attributes.length; i < len; i++) {
-      if(value == attributes.item(i).value) {
+      if(value == attributes[i].value) {
         return true;
       }
     }
@@ -5089,34 +5199,34 @@ class ElementAttributeMap implements Map<String, String> {
   void clear() {
     final attributes = _element._attributes;
     for (int i = attributes.length - 1; i >= 0; i--) {
-      remove(attributes.item(i).name);
+      remove(attributes[i].name);
     }
   }
 
   void forEach(void f(String key, String value)) {
-    final attributes = _element.attributes;
+    final attributes = _element._attributes;
     for (int i = 0, len = attributes.length; i < len; i++) {
-      final item = attributes.item(i);
+      final item = attributes[i];
       f(item.name, item.value);
     }
   }
 
   Collection<String> getKeys() {
     // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.attributes;
+    final attributes = _element._attributes;
     final keys = new List<String>(attributes.length);
     for (int i = 0, len = attributes.length; i < len; i++) {
-      keys[i] = attributes.item(i).name;
+      keys[i] = attributes[i].name;
     }
     return keys;
   }
 
   Collection<String> getValues() {
     // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element.attributes;
+    final attributes = _element._attributes;
     final values = new List<String>(attributes.length);
     for (int i = 0, len = attributes.length; i < len; i++) {
-      values[i] = attributes.item(i).value;
+      values[i] = attributes[i].value;
     }
     return values;
   }
@@ -5168,10 +5278,10 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectJs _boundingClientRect; 
-  final _ClientRectListJs _clientRects;
+  final _ClientRectImpl _boundingClientRect; 
+  final _ClientRectListImpl _clientRects;
 
-  _ElementRectImpl(_ElementJs element) :
+  _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element._clientLeft,
                                   element._clientTop,
                                   element._clientWidth, 
@@ -5184,10 +5294,10 @@ class _ElementRectImpl implements ElementRect {
                                   element._scrollTop,
                                   element._scrollWidth,
                                   element._scrollHeight),
-    _boundingClientRect = element.getBoundingClientRect(),
-    _clientRects = element.getClientRects();
+    _boundingClientRect = element._getBoundingClientRect(),
+    _clientRects = element._getClientRects();
 
-  _ClientRectJs get bounding() => _boundingClientRect;
+  _ClientRectImpl get bounding() => _boundingClientRect;
 
   // TODO(jacobr): cleanup.
   List<ClientRect> get clientRects() {
@@ -5199,72 +5309,12 @@ class _ElementRectImpl implements ElementRect {
   }
 }
 
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
-
-class _ElementJs extends _NodeJs implements Element native "*Element" {
-
-  static final _CUSTOM_PARENT_TAG_MAP = const {
-    'body' : 'html',
-    'head' : 'html',
-    'caption' : 'table',
-    'td': 'tr',
-    'colgroup': 'table',
-    'col' : 'colgroup',
-    'tr' : 'tbody',
-    'tbody' : 'table',
-    'tfoot' : 'table',
-    'thead' : 'table',
-    'track' : 'audio',
-  };
-
-  /** @domName Document.createElement */
-  factory Element.html(String html) {
-    // TODO(jacobr): this method can be made more robust and performant.
-    // 1) Cache the dummy parent elements required to use innerHTML rather than
-    //    creating them every call.
-    // 2) Verify that the html does not contain leading or trailing text nodes.
-    // 3) Verify that the html does not contain both <head> and <body> tags.
-    // 4) Detatch the created element from its dummy parent.
-    String parentTag = 'div';
-    String tag;
-    final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
-      tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
-      }
-    }
-    _ElementJs temp = _document._createElement(parentTag);
-    temp.innerHTML = html;
-
-    if (temp._childElementCount == 1) {
-      return temp._firstElementChild;     
-    } else if (parentTag == 'html' && temp._childElementCount == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
-      return temp.elements[tag == 'head' ? 0 : 1];
-    } else {
-      throw new IllegalArgumentException('HTML had ${temp._childElementCount} ' +
-          'top level elements but 1 expected');
-    }
-  }
-
-  /** @domName Document.createElement */
-  factory Element.tag(String tag) {
-    return _document._createElement(tag);
-  }
+class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   // TODO(jacobr): caching these may hurt performance.
   ElementAttributeMap _elementAttributeMap;
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() native "return this.parentNode.title;";
-  void set title(String value) native "this.parentNode.title = value;";
 
   /**
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
@@ -5291,22 +5341,11 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
     elements.addAll(value);
   }
 
-  /**
-   * @domName childElementCount, firstElementChild, lastElementChild,
-   *   children, Node.nodes.add
-   */
   ElementList get elements() => new _ChildrenElementList._wrap(this);
 
-  /** @domName querySelector, Document.getElementById */
-  Element query(String selectors) native "return this.querySelector(selectors);";
+  ElementList queryAll(String selectors) =>
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-  /**
-   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
-   *   getElementsByTagNameNS
-   */
-  ElementList queryAll(String selectors) native "return this.querySelectorAll(selectors);";
-
-  /** @domName className, classList */
   Set<String> get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _CssClassSet(this);
@@ -5335,41 +5374,30 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
     }
   }
 
-  bool matchesSelector(String selectors) native "return this.webkitMatchesSelector(selectors)";
-
-  /**
-   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
-   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
-   * scrollHeight, scrollWidth, scrollTop, scrollLeft
-   */
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new _ElementRectImpl(this),
         new Completer<ElementRect>());
   }
 
-  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');
   }
 
-  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(() =>
-            _window._getComputedStyle(this, pseudoElement),
+            window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
-
-  _ElementJs clone(bool deep) native;
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int get _childElementCount() native "return this.childElementCount;";
 
-  _HTMLCollectionJs get _children() native "return this.children;";
+  _HTMLCollectionImpl get _children() native "return this.children;";
 
-  final _DOMTokenListJs classList;
+  final _DOMTokenListImpl classList;
 
   String get _className() native "return this.className;";
 
@@ -5389,7 +5417,7 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   bool draggable;
 
-  _ElementJs get _firstElementChild() native "return this.firstElementChild;";
+  _ElementImpl get _firstElementChild() native "return this.firstElementChild;";
 
   bool hidden;
 
@@ -5401,15 +5429,15 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   String lang;
 
-  final _ElementJs lastElementChild;
+  final _ElementImpl lastElementChild;
 
-  final _ElementJs nextElementSibling;
+  final _ElementImpl nextElementSibling;
 
   int get _offsetHeight() native "return this.offsetHeight;";
 
   int get _offsetLeft() native "return this.offsetLeft;";
 
-  final _ElementJs offsetParent;
+  final _ElementImpl offsetParent;
 
   int get _offsetTop() native "return this.offsetTop;";
 
@@ -5417,7 +5445,7 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   final String outerHTML;
 
-  final _ElementJs previousElementSibling;
+  final _ElementImpl previousElementSibling;
 
   int get _scrollHeight() native "return this.scrollHeight;";
 
@@ -5433,7 +5461,7 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   bool spellcheck;
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 
   int tabIndex;
 
@@ -5454,27 +5482,21 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   String _getAttribute(String name) native "return this.getAttribute(name);";
 
-  _ClientRectJs getBoundingClientRect() native;
+  _ClientRectImpl _getBoundingClientRect() native "return this.getBoundingClientRect();";
 
-  _ClientRectListJs getClientRects() native;
-
-  _NodeListJs getElementsByClassName(String name) native;
-
-  _NodeListJs getElementsByTagName(String name) native;
-
-  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
+  _ClientRectListImpl _getClientRects() native "return this.getClientRects();";
 
   bool _hasAttribute(String name) native "return this.hasAttribute(name);";
 
-  _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
+  _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
 
   void insertAdjacentHTML(String where, String html) native;
 
   void insertAdjacentText(String where, String text) native;
 
-  _ElementJs querySelector(String selectors) native;
+  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListJs querySelectorAll(String selectors) native;
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 
   void _removeAttribute(String name) native "this.removeAttribute(name);";
 
@@ -5482,13 +5504,11 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   void scrollByPages(int pages) native;
 
-  void scrollIntoView([bool alignWithTop = null]) native;
-
-  void scrollIntoViewIfNeeded([bool centerIfNeeded = null]) native;
+  void scrollIntoView([bool centerIfNeeded = null]) native "this.scrollIntoViewIfNeeded(centerIfNeeded);";
 
   void _setAttribute(String name, String value) native "this.setAttribute(name, value);";
 
-  bool webkitMatchesSelector(String selectors) native;
+  bool matchesSelector(String selectors) native "return this.webkitMatchesSelector(selectors);";
 
   void webkitRequestFullScreen(int flags) native;
 
@@ -5537,9 +5557,9 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
   EventListenerList get focus() => _get('focus');
 
-  EventListenerList get fullScreenChange() => _get('webkitFullScreenChange');
+  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
 
-  EventListenerList get fullScreenError() => _get('webkitFullScreenError');
+  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
 
   EventListenerList get input() => _get('input');
 
@@ -5592,7 +5612,7 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
 }
 
-class _ElementTimeControlJs implements ElementTimeControl native "*ElementTimeControl" {
+class _ElementTimeControlImpl implements ElementTimeControl native "*ElementTimeControl" {
 
   void beginElement() native;
 
@@ -5603,20 +5623,20 @@ class _ElementTimeControlJs implements ElementTimeControl native "*ElementTimeCo
   void endElementAt(num offset) native;
 }
 
-class _ElementTraversalJs implements ElementTraversal native "*ElementTraversal" {
+class _ElementTraversalImpl implements ElementTraversal native "*ElementTraversal" {
 
   final int childElementCount;
 
-  final _ElementJs firstElementChild;
+  final _ElementImpl firstElementChild;
 
-  final _ElementJs lastElementChild;
+  final _ElementImpl lastElementChild;
 
-  final _ElementJs nextElementSibling;
+  final _ElementImpl nextElementSibling;
 
-  final _ElementJs previousElementSibling;
+  final _ElementImpl previousElementSibling;
 }
 
-class _EmbedElementJs extends _ElementJs implements EmbedElement native "*HTMLEmbedElement" {
+class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HTMLEmbedElement" {
 
   String align;
 
@@ -5631,7 +5651,7 @@ class _EmbedElementJs extends _ElementJs implements EmbedElement native "*HTMLEm
   String width;
 }
 
-class _EntityJs extends _NodeJs implements Entity native "*Entity" {
+class _EntityImpl extends _NodeImpl implements Entity native "*Entity" {
 
   final String notationName;
 
@@ -5640,12 +5660,12 @@ class _EntityJs extends _NodeJs implements Entity native "*Entity" {
   final String systemId;
 }
 
-class _EntityReferenceJs extends _NodeJs implements EntityReference native "*EntityReference" {
+class _EntityReferenceImpl extends _NodeImpl implements EntityReference native "*EntityReference" {
 }
 
-class _EntryJs implements Entry native "*Entry" {
+class _EntryImpl implements Entry native "*Entry" {
 
-  final _DOMFileSystemJs filesystem;
+  final _DOMFileSystemImpl filesystem;
 
   final String fullPath;
 
@@ -5655,36 +5675,36 @@ class _EntryJs implements Entry native "*Entry" {
 
   final String name;
 
-  void copyTo(_DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void copyTo(_DirectoryEntryImpl parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void moveTo(_DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void moveTo(_DirectoryEntryImpl parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   String toURL() native;
 }
 
-class _EntryArrayJs implements EntryArray native "*EntryArray" {
+class _EntryArrayImpl implements EntryArray native "*EntryArray" {
 
   final int length;
 
-  _EntryJs item(int index) native;
+  _EntryImpl item(int index) native;
 }
 
-class _EntryArraySyncJs implements EntryArraySync native "*EntryArraySync" {
+class _EntryArraySyncImpl implements EntryArraySync native "*EntryArraySync" {
 
   final int length;
 
-  _EntrySyncJs item(int index) native;
+  _EntrySyncImpl item(int index) native;
 }
 
-class _EntrySyncJs implements EntrySync native "*EntrySync" {
+class _EntrySyncImpl implements EntrySync native "*EntrySync" {
 
-  final _DOMFileSystemSyncJs filesystem;
+  final _DOMFileSystemSyncImpl filesystem;
 
   final String fullPath;
 
@@ -5694,20 +5714,20 @@ class _EntrySyncJs implements EntrySync native "*EntrySync" {
 
   final String name;
 
-  _EntrySyncJs copyTo(_DirectoryEntrySyncJs parent, String name) native;
+  _EntrySyncImpl copyTo(_DirectoryEntrySyncImpl parent, String name) native;
 
-  _MetadataJs getMetadata() native;
+  _MetadataImpl getMetadata() native;
 
-  _DirectoryEntrySyncJs getParent() native;
+  _DirectoryEntrySyncImpl getParent() native;
 
-  _EntrySyncJs moveTo(_DirectoryEntrySyncJs parent, String name) native;
+  _EntrySyncImpl moveTo(_DirectoryEntrySyncImpl parent, String name) native;
 
   void remove() native;
 
   String toURL() native;
 }
 
-class _ErrorEventJs extends _EventJs implements ErrorEvent native "*ErrorEvent" {
+class _ErrorEventImpl extends _EventImpl implements ErrorEvent native "*ErrorEvent" {
 
   final String filename;
 
@@ -5715,16 +5735,8 @@ class _ErrorEventJs extends _EventJs implements ErrorEvent native "*ErrorEvent" 
 
   final String message;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-class _EventJs implements Event native "*Event" {
-
-  EventTarget get target() => _FixHtmlDocumentReference(_target);
-  EventTarget get srcElement() => _FixHtmlDocumentReference(_srcElement);
-  EventTarget get currentTarget() =>
-      _FixHtmlDocumentReference(_currentTarget);
+class _EventImpl implements Event native "*Event" {
 
   static final int AT_TARGET = 2;
 
@@ -5770,9 +5782,11 @@ class _EventJs implements Event native "*Event" {
 
   final bool cancelable;
 
-  final _ClipboardJs clipboardData;
+  final _ClipboardImpl clipboardData;
 
-  _EventTargetJs get _currentTarget() native "return this.currentTarget;";
+  _EventTargetImpl get currentTarget() => _FixHtmlDocumentReference(_currentTarget);
+
+  _EventTargetImpl get _currentTarget() native "return this.currentTarget;";
 
   final bool defaultPrevented;
 
@@ -5780,9 +5794,13 @@ class _EventJs implements Event native "*Event" {
 
   bool returnValue;
 
-  _EventTargetJs get _srcElement() native "return this.srcElement;";
+  _EventTargetImpl get srcElement() => _FixHtmlDocumentReference(_srcElement);
 
-  _EventTargetJs get _target() native "return this.target;";
+  _EventTargetImpl get _srcElement() native "return this.srcElement;";
+
+  _EventTargetImpl get target() => _FixHtmlDocumentReference(_target);
+
+  _EventTargetImpl get _target() native "return this.target;";
 
   final int timeStamp;
 
@@ -5795,10 +5813,9 @@ class _EventJs implements Event native "*Event" {
   void stopImmediatePropagation() native;
 
   void stopPropagation() native;
-
 }
 
-class _EventExceptionJs implements EventException native "*EventException" {
+class _EventExceptionImpl implements EventException native "*EventException" {
 
   static final int DISPATCH_REQUEST_ERR = 1;
 
@@ -5813,7 +5830,7 @@ class _EventExceptionJs implements EventException native "*EventException" {
   String toString() native;
 }
 
-class _EventSourceJs implements EventSource native "*EventSource" {
+class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -5834,7 +5851,7 @@ class _EventSourceJs implements EventSource native "*EventSource" {
 
   void close() native;
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 }
@@ -5855,7 +5872,7 @@ class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
 class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
-  // _EventTargetJs or EventTarget
+  // _EventTargetImpl or EventTarget
   final var _ptr;
 
   _EventsImpl(this._ptr);
@@ -5869,7 +5886,7 @@ class _EventsImpl implements Events {
 
 class _EventListenerListImpl implements EventListenerList {
   
-  // TODO(jacobr): make this _EventTargetJs
+  // TODO(jacobr): make this _EventTargetImpl
   final var _ptr;
   final String _type;
 
@@ -5906,25 +5923,25 @@ class _EventListenerListImpl implements EventListenerList {
 }
 
 
-class _EventTargetJs implements EventTarget native "*EventTarget" {
+class _EventTargetImpl implements EventTarget native "*EventTarget" {
 
   Events get on() => new _EventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs event) native "return this.dispatchEvent(event);";
+  bool _dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 
 }
 
-class _FieldSetElementJs extends _ElementJs implements FieldSetElement native "*HTMLFieldSetElement" {
+class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement native "*HTMLFieldSetElement" {
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   final bool willValidate;
 
@@ -5933,7 +5950,7 @@ class _FieldSetElementJs extends _ElementJs implements FieldSetElement native "*
   void setCustomValidity(String error) native;
 }
 
-class _FileJs extends _BlobJs implements File native "*File" {
+class _FileImpl extends _BlobImpl implements File native "*File" {
 
   final String fileName;
 
@@ -5946,21 +5963,21 @@ class _FileJs extends _BlobJs implements File native "*File" {
   final String webkitRelativePath;
 }
 
-class _FileEntryJs extends _EntryJs implements FileEntry native "*FileEntry" {
+class _FileEntryImpl extends _EntryImpl implements FileEntry native "*FileEntry" {
 
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
 
-class _FileEntrySyncJs extends _EntrySyncJs implements FileEntrySync native "*FileEntrySync" {
+class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync native "*FileEntrySync" {
 
-  _FileWriterSyncJs createWriter() native;
+  _FileWriterSyncImpl createWriter() native;
 
-  _FileJs file() native;
+  _FileImpl file() native;
 }
 
-class _FileErrorJs implements FileError native "*FileError" {
+class _FileErrorImpl implements FileError native "*FileError" {
 
   static final int ABORT_ERR = 3;
 
@@ -5989,7 +6006,7 @@ class _FileErrorJs implements FileError native "*FileError" {
   final int code;
 }
 
-class _FileExceptionJs implements FileException native "*FileException" {
+class _FileExceptionImpl implements FileException native "*FileException" {
 
   static final int ABORT_ERR = 3;
 
@@ -6024,14 +6041,14 @@ class _FileExceptionJs implements FileException native "*FileException" {
   String toString() native;
 }
 
-class _FileListJs implements FileList native "*FileList" {
+class _FileListImpl implements FileList native "*FileList" {
 
   final int length;
 
-  _FileJs item(int index) native;
+  _FileImpl item(int index) native;
 }
 
-class _FileReaderJs implements FileReader native "*FileReader" {
+class _FileReaderImpl implements FileReader native "*FileReader" {
 
   static final int DONE = 2;
 
@@ -6039,7 +6056,7 @@ class _FileReaderJs implements FileReader native "*FileReader" {
 
   static final int LOADING = 1;
 
-  final _FileErrorJs error;
+  final _FileErrorImpl error;
 
   EventListener onabort;
 
@@ -6061,31 +6078,31 @@ class _FileReaderJs implements FileReader native "*FileReader" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
-  void readAsArrayBuffer(_BlobJs blob) native;
+  void readAsArrayBuffer(_BlobImpl blob) native;
 
-  void readAsBinaryString(_BlobJs blob) native;
+  void readAsBinaryString(_BlobImpl blob) native;
 
-  void readAsDataURL(_BlobJs blob) native;
+  void readAsDataURL(_BlobImpl blob) native;
 
-  void readAsText(_BlobJs blob, [String encoding = null]) native;
+  void readAsText(_BlobImpl blob, [String encoding = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _FileReaderSyncJs implements FileReaderSync native "*FileReaderSync" {
+class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
 
-  _ArrayBufferJs readAsArrayBuffer(_BlobJs blob) native;
+  _ArrayBufferImpl readAsArrayBuffer(_BlobImpl blob) native;
 
-  String readAsBinaryString(_BlobJs blob) native;
+  String readAsBinaryString(_BlobImpl blob) native;
 
-  String readAsDataURL(_BlobJs blob) native;
+  String readAsDataURL(_BlobImpl blob) native;
 
-  String readAsText(_BlobJs blob, [String encoding = null]) native;
+  String readAsText(_BlobImpl blob, [String encoding = null]) native;
 }
 
-class _FileWriterJs implements FileWriter native "*FileWriter" {
+class _FileWriterImpl implements FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
 
@@ -6093,7 +6110,7 @@ class _FileWriterJs implements FileWriter native "*FileWriter" {
 
   static final int WRITING = 1;
 
-  final _FileErrorJs error;
+  final _FileErrorImpl error;
 
   final int length;
 
@@ -6119,10 +6136,10 @@ class _FileWriterJs implements FileWriter native "*FileWriter" {
 
   void truncate(int size) native;
 
-  void write(_BlobJs data) native;
+  void write(_BlobImpl data) native;
 }
 
-class _FileWriterSyncJs implements FileWriterSync native "*FileWriterSync" {
+class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
 
   final int length;
 
@@ -6132,10 +6149,10 @@ class _FileWriterSyncJs implements FileWriterSync native "*FileWriterSync" {
 
   void truncate(int size) native;
 
-  void write(_BlobJs data) native;
+  void write(_BlobImpl data) native;
 }
 
-class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<num> native "*Float32Array" {
+class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>  _construct_Float32Array(length);
 
@@ -6222,10 +6239,10 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Float32ArrayJs subarray(int start, [int end = null]) native;
+  _Float32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
+class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>  _construct_Float64Array(length);
 
@@ -6312,10 +6329,10 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Float64ArrayJs subarray(int start, [int end = null]) native;
+  _Float64ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _FontElementJs extends _ElementJs implements FontElement native "*HTMLFontElement" {
+class _FontElementImpl extends _ElementImpl implements FontElement native "*HTMLFontElement" {
 
   String color;
 
@@ -6324,7 +6341,7 @@ class _FontElementJs extends _ElementJs implements FontElement native "*HTMLFont
   String size;
 }
 
-class _FormElementJs extends _ElementJs implements FormElement native "*HTMLFormElement" {
+class _FormElementImpl extends _ElementImpl implements FormElement native "*HTMLFormElement" {
 
   String acceptCharset;
 
@@ -6353,11 +6370,13 @@ class _FormElementJs extends _ElementJs implements FormElement native "*HTMLForm
   void submit() native;
 }
 
-class _FrameElementJs extends _ElementJs implements FrameElement native "*HTMLFrameElement" {
+class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HTMLFrameElement" {
 
-  final _DocumentJs contentDocument;
+  _DocumentImpl get contentDocument() => _FixHtmlDocumentReference(_contentDocument);
 
-  final _WindowJs contentWindow;
+  _EventTargetImpl get _contentDocument() native "return this.contentDocument;";
+
+  final _WindowImpl contentWindow;
 
   String frameBorder;
 
@@ -6381,10 +6400,10 @@ class _FrameElementJs extends _ElementJs implements FrameElement native "*HTMLFr
 
   final int width;
 
-  _SVGDocumentJs getSVGDocument() native;
+  _SVGDocumentImpl getSVGDocument() native;
 }
 
-class _FrameSetElementJs extends _ElementJs implements FrameSetElement native "*HTMLFrameSetElement" {
+class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement native "*HTMLFrameSetElement" {
 
   String cols;
 
@@ -6424,7 +6443,7 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
   EventListenerList get unload() => _get('unload');
 }
 
-class _GeolocationJs implements Geolocation native "*Geolocation" {
+class _GeolocationImpl implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 
@@ -6433,14 +6452,14 @@ class _GeolocationJs implements Geolocation native "*Geolocation" {
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null]) native;
 }
 
-class _GeopositionJs implements Geoposition native "*Geoposition" {
+class _GeopositionImpl implements Geoposition native "*Geoposition" {
 
-  final _CoordinatesJs coords;
+  final _CoordinatesImpl coords;
 
   final int timestamp;
 }
 
-class _HRElementJs extends _ElementJs implements HRElement native "*HTMLHRElement" {
+class _HRElementImpl extends _ElementImpl implements HRElement native "*HTMLHRElement" {
 
   String align;
 
@@ -6451,24 +6470,24 @@ class _HRElementJs extends _ElementJs implements HRElement native "*HTMLHRElemen
   String width;
 }
 
-class _HTMLAllCollectionJs implements HTMLAllCollection native "*HTMLAllCollection" {
+class _HTMLAllCollectionImpl implements HTMLAllCollection native "*HTMLAllCollection" {
 
   final int length;
 
-  _NodeJs item(int index) native;
+  _NodeImpl item(int index) native;
 
-  _NodeJs namedItem(String name) native;
+  _NodeImpl namedItem(String name) native;
 
-  _NodeListJs tags(String name) native;
+  _NodeListImpl tags(String name) native;
 }
 
-class _HTMLCollectionJs implements HTMLCollection native "*HTMLCollection" {
+class _HTMLCollectionImpl implements HTMLCollection native "*HTMLCollection" {
 
   final int length;
 
-  _NodeJs operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, _NodeJs value) {
+  void operator[]=(int index, _NodeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
@@ -6539,12 +6558,12 @@ class _HTMLCollectionJs implements HTMLCollection native "*HTMLCollection" {
 
   // -- end List<Node> mixins.
 
-  _NodeJs item(int index) native;
+  _NodeImpl item(int index) native;
 
-  _NodeJs namedItem(String name) native;
+  _NodeImpl namedItem(String name) native;
 }
 
-class _HTMLOptionsCollectionJs extends _HTMLCollectionJs implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
+class _HTMLOptionsCollectionImpl extends _HTMLCollectionImpl implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   // Shadowing definition.
   int get length() native "return this.length;";
@@ -6556,7 +6575,7 @@ class _HTMLOptionsCollectionJs extends _HTMLCollectionJs implements HTMLOptionsC
   void remove(int index) native;
 }
 
-class _HashChangeEventJs extends _EventJs implements HashChangeEvent native "*HashChangeEvent" {
+class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent native "*HashChangeEvent" {
 
   final String newURL;
 
@@ -6565,24 +6584,24 @@ class _HashChangeEventJs extends _EventJs implements HashChangeEvent native "*Ha
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 
-class _HeadElementJs extends _ElementJs implements HeadElement native "*HTMLHeadElement" {
+class _HeadElementImpl extends _ElementImpl implements HeadElement native "*HTMLHeadElement" {
 
   String profile;
 }
 
-class _HeadingElementJs extends _ElementJs implements HeadingElement native "*HTMLHeadingElement" {
+class _HeadingElementImpl extends _ElementImpl implements HeadingElement native "*HTMLHeadingElement" {
 
   String align;
 }
 
-class _HighPass2FilterNodeJs extends _AudioNodeJs implements HighPass2FilterNode native "*HighPass2FilterNode" {
+class _HighPass2FilterNodeImpl extends _AudioNodeImpl implements HighPass2FilterNode native "*HighPass2FilterNode" {
 
-  final _AudioParamJs cutoff;
+  final _AudioParamImpl cutoff;
 
-  final _AudioParamJs resonance;
+  final _AudioParamImpl resonance;
 }
 
-class _HistoryJs implements History native "*History" {
+class _HistoryImpl implements History native "*History" {
 
   final int length;
 
@@ -6602,7 +6621,7 @@ class _HistoryJs implements History native "*History" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _HtmlElementJs extends _ElementJs implements HtmlElement
+class _HtmlElementImpl extends _ElementImpl implements HtmlElement
     native "*IntentionallyInvalid" {
 
   String manifest;
@@ -6611,10 +6630,10 @@ class _HtmlElementJs extends _ElementJs implements HtmlElement
 
 }
 
-class _IDBAnyJs implements IDBAny native "*IDBAny" {
+class _IDBAnyImpl implements IDBAny native "*IDBAny" {
 }
 
-class _IDBCursorJs implements IDBCursor native "*IDBCursor" {
+class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   static final int NEXT = 0;
 
@@ -6626,27 +6645,29 @@ class _IDBCursorJs implements IDBCursor native "*IDBCursor" {
 
   final int direction;
 
-  final _IDBKeyJs key;
+  final _IDBKeyImpl key;
 
-  final _IDBKeyJs primaryKey;
+  final _IDBKeyImpl primaryKey;
 
-  final _IDBAnyJs source;
+  final _IDBAnyImpl source;
 
-  void continueFunction([_IDBKeyJs key = null]) native;
+  void continueFunction([_IDBKeyImpl key = null]) native;
 
-  _IDBRequestJs delete() native;
+  _IDBRequestImpl delete() native;
 
-  _IDBRequestJs update(Dynamic value) native;
+  _IDBRequestImpl update(Dynamic value) native;
 }
 
-class _IDBCursorWithValueJs extends _IDBCursorJs implements IDBCursorWithValue native "*IDBCursorWithValue" {
+class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  final _IDBAnyJs value;
+  final _IDBAnyImpl value;
 }
 
-class _IDBDatabaseJs implements IDBDatabase native "*IDBDatabase" {
+class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
 
   final String name;
+
+  final List<String> objectStoreNames;
 
   EventListener onabort;
 
@@ -6660,27 +6681,27 @@ class _IDBDatabaseJs implements IDBDatabase native "*IDBDatabase" {
 
   void close() native;
 
-  _IDBObjectStoreJs createObjectStore(String name) native;
+  _IDBObjectStoreImpl createObjectStore(String name) native;
 
   void deleteObjectStore(String name) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  _IDBVersionChangeRequestJs setVersion(String version) native;
+  _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionImpl transaction(var storeName_OR_storeNames, int mode) native;
 }
 
-class _IDBDatabaseErrorJs implements IDBDatabaseError native "*IDBDatabaseError" {
+class _IDBDatabaseErrorImpl implements IDBDatabaseError native "*IDBDatabaseError" {
 
   int code;
 
   String message;
 }
 
-class _IDBDatabaseExceptionJs implements IDBDatabaseException native "*IDBDatabaseException" {
+class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int ABORT_ERR = 8;
 
@@ -6717,18 +6738,18 @@ class _IDBDatabaseExceptionJs implements IDBDatabaseException native "*IDBDataba
   String toString() native;
 }
 
-class _IDBFactoryJs implements IDBFactory native "*IDBFactory" {
+class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
-  int cmp(_IDBKeyJs first, _IDBKeyJs second) native;
+  int cmp(_IDBKeyImpl first, _IDBKeyImpl second) native;
 
-  _IDBVersionChangeRequestJs deleteDatabase(String name) native;
+  _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
-  _IDBRequestJs getDatabaseNames() native;
+  _IDBRequestImpl getDatabaseNames() native;
 
-  _IDBRequestJs open(String name) native;
+  _IDBRequestImpl open(String name) native;
 }
 
-class _IDBIndexJs implements IDBIndex native "*IDBIndex" {
+class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final String keyPath;
 
@@ -6736,73 +6757,75 @@ class _IDBIndexJs implements IDBIndex native "*IDBIndex" {
 
   final String name;
 
-  final _IDBObjectStoreJs objectStore;
+  final _IDBObjectStoreImpl objectStore;
 
   final bool unique;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
 
-  _IDBRequestJs getKey(_IDBKeyJs key) native;
+  _IDBRequestImpl getKey(_IDBKeyImpl key) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
 
-  _IDBRequestJs openKeyCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestImpl openKeyCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
 }
 
-class _IDBKeyJs implements IDBKey native "*IDBKey" {
+class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 }
 
-class _IDBKeyRangeJs implements IDBKeyRange native "*IDBKeyRange" {
+class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  final _IDBKeyJs lower;
+  final _IDBKeyImpl lower;
 
   final bool lowerOpen;
 
-  final _IDBKeyJs upper;
+  final _IDBKeyImpl upper;
 
   final bool upperOpen;
 
-  _IDBKeyRangeJs bound(_IDBKeyJs lower, _IDBKeyJs upper, [bool lowerOpen = null, bool upperOpen = null]) native;
+  _IDBKeyRangeImpl bound(_IDBKeyImpl lower, _IDBKeyImpl upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 
-  _IDBKeyRangeJs lowerBound(_IDBKeyJs bound, [bool open = null]) native;
+  _IDBKeyRangeImpl lowerBound(_IDBKeyImpl bound, [bool open = null]) native;
 
-  _IDBKeyRangeJs only(_IDBKeyJs value) native;
+  _IDBKeyRangeImpl only(_IDBKeyImpl value) native;
 
-  _IDBKeyRangeJs upperBound(_IDBKeyJs bound, [bool open = null]) native;
+  _IDBKeyRangeImpl upperBound(_IDBKeyImpl bound, [bool open = null]) native;
 }
 
-class _IDBObjectStoreJs implements IDBObjectStore native "*IDBObjectStore" {
+class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
+
+  final List<String> indexNames;
 
   final String keyPath;
 
   final String name;
 
-  final _IDBTransactionJs transaction;
+  final _IDBTransactionImpl transaction;
 
-  _IDBRequestJs add(Dynamic value, [_IDBKeyJs key = null]) native;
+  _IDBRequestImpl add(Dynamic value, [_IDBKeyImpl key = null]) native;
 
-  _IDBRequestJs clear() native;
+  _IDBRequestImpl clear() native;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
 
-  _IDBIndexJs createIndex(String name, String keyPath) native;
+  _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestJs delete(_IDBKeyJs key) native;
+  _IDBRequestImpl delete(_IDBKeyImpl key) native;
 
   void deleteIndex(String name) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
 
-  _IDBIndexJs index(String name) native;
+  _IDBIndexImpl index(String name) native;
 
-  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
 
-  _IDBRequestJs put(Dynamic value, [_IDBKeyJs key = null]) native;
+  _IDBRequestImpl put(Dynamic value, [_IDBKeyImpl key = null]) native;
 }
 
-class _IDBRequestJs implements IDBRequest native "*IDBRequest" {
+class _IDBRequestImpl implements IDBRequest native "*IDBRequest" {
 
   static final int DONE = 2;
 
@@ -6816,22 +6839,22 @@ class _IDBRequestJs implements IDBRequest native "*IDBRequest" {
 
   final int readyState;
 
-  final _IDBAnyJs result;
+  final _IDBAnyImpl result;
 
-  final _IDBAnyJs source;
+  final _IDBAnyImpl source;
 
-  final _IDBTransactionJs transaction;
+  final _IDBTransactionImpl transaction;
 
   final String webkitErrorMessage;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _IDBTransactionJs implements IDBTransaction native "*IDBTransaction" {
+class _IDBTransactionImpl implements IDBTransaction native "*IDBTransaction" {
 
   static final int READ_ONLY = 0;
 
@@ -6839,7 +6862,7 @@ class _IDBTransactionJs implements IDBTransaction native "*IDBTransaction" {
 
   static final int VERSION_CHANGE = 2;
 
-  final _IDBDatabaseJs db;
+  final _IDBDatabaseImpl db;
 
   final int mode;
 
@@ -6853,30 +6876,32 @@ class _IDBTransactionJs implements IDBTransaction native "*IDBTransaction" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
-  _IDBObjectStoreJs objectStore(String name) native;
+  _IDBObjectStoreImpl objectStore(String name) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _IDBVersionChangeEventJs extends _EventJs implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
+class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
 
   final String version;
 }
 
-class _IDBVersionChangeRequestJs extends _IDBRequestJs implements IDBVersionChangeRequest native "*IDBVersionChangeRequest" {
+class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersionChangeRequest native "*IDBVersionChangeRequest" {
 
   EventListener onblocked;
 }
 
-class _IFrameElementJs extends _ElementJs implements IFrameElement native "*HTMLIFrameElement" {
+class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*HTMLIFrameElement" {
 
   String align;
 
-  final _DocumentJs contentDocument;
+  _DocumentImpl get contentDocument() => _FixHtmlDocumentReference(_contentDocument);
 
-  final _WindowJs contentWindow;
+  _EventTargetImpl get _contentDocument() native "return this.contentDocument;";
+
+  final _WindowImpl contentWindow;
 
   String frameBorder;
 
@@ -6898,19 +6923,19 @@ class _IFrameElementJs extends _ElementJs implements IFrameElement native "*HTML
 
   String width;
 
-  _SVGDocumentJs getSVGDocument() native;
+  _SVGDocumentImpl getSVGDocument() native;
 }
 
-class _ImageDataJs implements ImageData native "*ImageData" {
+class _ImageDataImpl implements ImageData native "*ImageData" {
 
-  final _CanvasPixelArrayJs data;
+  final _CanvasPixelArrayImpl data;
 
   final int height;
 
   final int width;
 }
 
-class _ImageElementJs extends _ElementJs implements ImageElement native "*HTMLImageElement" {
+class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HTMLImageElement" {
 
   String align;
 
@@ -6951,7 +6976,7 @@ class _ImageElementJs extends _ElementJs implements ImageElement native "*HTMLIm
   final int y;
 }
 
-class _InputElementJs extends _ElementJs implements InputElement native "*HTMLInputElement" {
+class _InputElementImpl extends _ElementImpl implements InputElement native "*HTMLInputElement" {
 
   String accept;
 
@@ -6971,9 +6996,9 @@ class _InputElementJs extends _ElementJs implements InputElement native "*HTMLIn
 
   bool disabled;
 
-  final _FileListJs files;
+  final _FileListImpl files;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   String formAction;
 
@@ -6989,7 +7014,7 @@ class _InputElementJs extends _ElementJs implements InputElement native "*HTMLIn
 
   bool indeterminate;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   String max;
 
@@ -7027,7 +7052,7 @@ class _InputElementJs extends _ElementJs implements InputElement native "*HTMLIn
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   String value;
 
@@ -7065,7 +7090,7 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
   EventListenerList get speechChange() => _get('webkitSpeechChange');
 }
 
-class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
+class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>  _construct_Int16Array(length);
 
@@ -7152,10 +7177,10 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Int16ArrayJs subarray(int start, [int end = null]) native;
+  _Int16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
+class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> native "*Int32Array" {
 
   factory Int32Array(int length) =>  _construct_Int32Array(length);
 
@@ -7242,10 +7267,10 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Int32ArrayJs subarray(int start, [int end = null]) native;
+  _Int32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
+class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> native "*Int8Array" {
 
   factory Int8Array(int length) =>  _construct_Int8Array(length);
 
@@ -7332,17 +7357,17 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Int8ArrayJs subarray(int start, [int end = null]) native;
+  _Int8ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _JavaScriptAudioNodeJs extends _AudioNodeJs implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
+class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
 
   final int bufferSize;
 
   EventListener onaudioprocess;
 }
 
-class _JavaScriptCallFrameJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
+class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int CATCH_SCOPE = 4;
 
@@ -7354,7 +7379,7 @@ class _JavaScriptCallFrameJs implements JavaScriptCallFrame native "*JavaScriptC
 
   static final int WITH_SCOPE = 2;
 
-  final _JavaScriptCallFrameJs caller;
+  final _JavaScriptCallFrameImpl caller;
 
   final int column;
 
@@ -7375,7 +7400,7 @@ class _JavaScriptCallFrameJs implements JavaScriptCallFrame native "*JavaScriptC
   int scopeType(int scopeIndex) native;
 }
 
-class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*KeyboardEvent" {
+class _KeyboardEventImpl extends _UIEventImpl implements KeyboardEvent native "*KeyboardEvent" {
 
   final bool altGraphKey;
 
@@ -7391,10 +7416,10 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
 
   final bool shiftKey;
 
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, _WindowJs view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 
-class _KeygenElementJs extends _ElementJs implements KeygenElement native "*HTMLKeygenElement" {
+class _KeygenElementImpl extends _ElementImpl implements KeygenElement native "*HTMLKeygenElement" {
 
   bool autofocus;
 
@@ -7402,11 +7427,11 @@ class _KeygenElementJs extends _ElementJs implements KeygenElement native "*HTML
 
   bool disabled;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   String keytype;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   String name;
 
@@ -7414,7 +7439,7 @@ class _KeygenElementJs extends _ElementJs implements KeygenElement native "*HTML
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   final bool willValidate;
 
@@ -7423,30 +7448,30 @@ class _KeygenElementJs extends _ElementJs implements KeygenElement native "*HTML
   void setCustomValidity(String error) native;
 }
 
-class _LIElementJs extends _ElementJs implements LIElement native "*HTMLLIElement" {
+class _LIElementImpl extends _ElementImpl implements LIElement native "*HTMLLIElement" {
 
   String type;
 
   int value;
 }
 
-class _LabelElementJs extends _ElementJs implements LabelElement native "*HTMLLabelElement" {
+class _LabelElementImpl extends _ElementImpl implements LabelElement native "*HTMLLabelElement" {
 
-  final _ElementJs control;
+  final _ElementImpl control;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   String htmlFor;
 }
 
-class _LegendElementJs extends _ElementJs implements LegendElement native "*HTMLLegendElement" {
+class _LegendElementImpl extends _ElementImpl implements LegendElement native "*HTMLLegendElement" {
 
   String align;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 }
 
-class _LinkElementJs extends _ElementJs implements LinkElement native "*HTMLLinkElement" {
+class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTMLLinkElement" {
 
   String charset;
 
@@ -7462,21 +7487,21 @@ class _LinkElementJs extends _ElementJs implements LinkElement native "*HTMLLink
 
   String rev;
 
-  final _StyleSheetJs sheet;
+  final _StyleSheetImpl sheet;
 
-  _DOMSettableTokenListJs sizes;
+  _DOMSettableTokenListImpl sizes;
 
   String target;
 
   String type;
 }
 
-class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
+class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
 }
 
-class _LocationJs implements Location native "*Location" {
+class _LocationImpl implements Location native "*Location" {
 
   String hash;
 
@@ -7505,21 +7530,21 @@ class _LocationJs implements Location native "*Location" {
   String toString() native;
 }
 
-class _LowPass2FilterNodeJs extends _AudioNodeJs implements LowPass2FilterNode native "*LowPass2FilterNode" {
+class _LowPass2FilterNodeImpl extends _AudioNodeImpl implements LowPass2FilterNode native "*LowPass2FilterNode" {
 
-  final _AudioParamJs cutoff;
+  final _AudioParamImpl cutoff;
 
-  final _AudioParamJs resonance;
+  final _AudioParamImpl resonance;
 }
 
-class _MapElementJs extends _ElementJs implements MapElement native "*HTMLMapElement" {
+class _MapElementImpl extends _ElementImpl implements MapElement native "*HTMLMapElement" {
 
-  final _HTMLCollectionJs areas;
+  final _HTMLCollectionImpl areas;
 
   String name;
 }
 
-class _MarqueeElementJs extends _ElementJs implements MarqueeElement native "*HTMLMarqueeElement" {
+class _MarqueeElementImpl extends _ElementImpl implements MarqueeElement native "*HTMLMarqueeElement" {
 
   String behavior;
 
@@ -7548,9 +7573,9 @@ class _MarqueeElementJs extends _ElementJs implements MarqueeElement native "*HT
   void stop() native;
 }
 
-class _MediaControllerJs implements MediaController native "*MediaController" {
+class _MediaControllerImpl implements MediaController native "*MediaController" {
 
-  final _TimeRangesJs buffered;
+  final _TimeRangesImpl buffered;
 
   num currentTime;
 
@@ -7564,15 +7589,15 @@ class _MediaControllerJs implements MediaController native "*MediaController" {
 
   num playbackRate;
 
-  final _TimeRangesJs played;
+  final _TimeRangesImpl played;
 
-  final _TimeRangesJs seekable;
+  final _TimeRangesImpl seekable;
 
   num volume;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
   void pause() native;
 
@@ -7581,7 +7606,7 @@ class _MediaControllerJs implements MediaController native "*MediaController" {
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMediaElement" {
+class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
 
   static final int EOS_DECODE_ERR = 2;
 
@@ -7615,9 +7640,9 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   bool autoplay;
 
-  final _TimeRangesJs buffered;
+  final _TimeRangesImpl buffered;
 
-  _MediaControllerJs controller;
+  _MediaControllerImpl controller;
 
   bool controls;
 
@@ -7633,7 +7658,7 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   final bool ended;
 
-  final _MediaErrorJs error;
+  final _MediaErrorImpl error;
 
   final num initialTime;
 
@@ -7649,13 +7674,13 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   num playbackRate;
 
-  final _TimeRangesJs played;
+  final _TimeRangesImpl played;
 
   String preload;
 
   final int readyState;
 
-  final _TimeRangesJs seekable;
+  final _TimeRangesImpl seekable;
 
   final bool seeking;
 
@@ -7663,7 +7688,7 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   final num startTime;
 
-  final _TextTrackListJs textTracks;
+  final _TextTrackListImpl textTracks;
 
   num volume;
 
@@ -7681,7 +7706,7 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackJs addTextTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackImpl addTextTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -7691,17 +7716,17 @@ class _MediaElementJs extends _ElementJs implements MediaElement native "*HTMLMe
 
   void play() native;
 
-  void webkitSourceAppend(_Uint8ArrayJs data) native;
+  void webkitSourceAppend(_Uint8ArrayImpl data) native;
 
   void webkitSourceEndOfStream(int status) native;
 }
 
-class _MediaElementAudioSourceNodeJs extends _AudioSourceNodeJs implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
+class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  final _MediaElementJs mediaElement;
+  final _MediaElementImpl mediaElement;
 }
 
-class _MediaErrorJs implements MediaError native "*MediaError" {
+class _MediaErrorImpl implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
 
@@ -7714,7 +7739,7 @@ class _MediaErrorJs implements MediaError native "*MediaError" {
   final int code;
 }
 
-class _MediaListJs implements MediaList native "*MediaList" {
+class _MediaListImpl implements MediaList native "*MediaList" {
 
   final int length;
 
@@ -7800,29 +7825,29 @@ class _MediaListJs implements MediaList native "*MediaList" {
   String item(int index) native;
 }
 
-class _MediaQueryListJs implements MediaQueryList native "*MediaQueryList" {
+class _MediaQueryListImpl implements MediaQueryList native "*MediaQueryList" {
 
   final bool matches;
 
   final String media;
 
-  void addListener(_MediaQueryListListenerJs listener) native;
+  void addListener(_MediaQueryListListenerImpl listener) native;
 
-  void removeListener(_MediaQueryListListenerJs listener) native;
+  void removeListener(_MediaQueryListListenerImpl listener) native;
 }
 
-class _MediaQueryListListenerJs implements MediaQueryListListener native "*MediaQueryListListener" {
+class _MediaQueryListListenerImpl implements MediaQueryListListener native "*MediaQueryListListener" {
 
-  void queryChanged(_MediaQueryListJs list) native;
+  void queryChanged(_MediaQueryListImpl list) native;
 }
 
-class _MediaStreamJs implements MediaStream native "*MediaStream" {
+class _MediaStreamImpl implements MediaStream native "*MediaStream" {
 
   static final int ENDED = 2;
 
   static final int LIVE = 1;
 
-  final _MediaStreamTrackListJs audioTracks;
+  final _MediaStreamTrackListImpl audioTracks;
 
   final String label;
 
@@ -7830,28 +7855,28 @@ class _MediaStreamJs implements MediaStream native "*MediaStream" {
 
   final int readyState;
 
-  final _MediaStreamTrackListJs videoTracks;
+  final _MediaStreamTrackListImpl videoTracks;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs event) native;
+  bool dispatchEvent(_EventImpl event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _MediaStreamEventJs extends _EventJs implements MediaStreamEvent native "*MediaStreamEvent" {
+class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent native "*MediaStreamEvent" {
 
-  final _MediaStreamJs stream;
+  final _MediaStreamImpl stream;
 }
 
-class _MediaStreamListJs implements MediaStreamList native "*MediaStreamList" {
+class _MediaStreamListImpl implements MediaStreamList native "*MediaStreamList" {
 
   final int length;
 
-  _MediaStreamJs item(int index) native;
+  _MediaStreamImpl item(int index) native;
 }
 
-class _MediaStreamTrackJs implements MediaStreamTrack native "*MediaStreamTrack" {
+class _MediaStreamTrackImpl implements MediaStreamTrack native "*MediaStreamTrack" {
 
   bool enabled;
 
@@ -7860,14 +7885,14 @@ class _MediaStreamTrackJs implements MediaStreamTrack native "*MediaStreamTrack"
   final String label;
 }
 
-class _MediaStreamTrackListJs implements MediaStreamTrackList native "*MediaStreamTrackList" {
+class _MediaStreamTrackListImpl implements MediaStreamTrackList native "*MediaStreamTrackList" {
 
   final int length;
 
-  _MediaStreamTrackJs item(int index) native;
+  _MediaStreamTrackImpl item(int index) native;
 }
 
-class _MemoryInfoJs implements MemoryInfo native "*MemoryInfo" {
+class _MemoryInfoImpl implements MemoryInfo native "*MemoryInfo" {
 
   final int jsHeapSizeLimit;
 
@@ -7876,19 +7901,19 @@ class _MemoryInfoJs implements MemoryInfo native "*MemoryInfo" {
   final int usedJSHeapSize;
 }
 
-class _MenuElementJs extends _ElementJs implements MenuElement native "*HTMLMenuElement" {
+class _MenuElementImpl extends _ElementImpl implements MenuElement native "*HTMLMenuElement" {
 
   bool compact;
 }
 
-class _MessageChannelJs implements MessageChannel native "*MessageChannel" {
+class _MessageChannelImpl implements MessageChannel native "*MessageChannel" {
 
-  final _MessagePortJs port1;
+  final _MessagePortImpl port1;
 
-  final _MessagePortJs port2;
+  final _MessagePortImpl port2;
 }
 
-class _MessageEventJs extends _EventJs implements MessageEvent native "*MessageEvent" {
+class _MessageEventImpl extends _EventImpl implements MessageEvent native "*MessageEvent" {
 
   final Object data;
 
@@ -7898,14 +7923,14 @@ class _MessageEventJs extends _EventJs implements MessageEvent native "*MessageE
 
   final List ports;
 
-  final _WindowJs source;
+  final _WindowImpl source;
 
-  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowJs sourceArg, List messagePorts) native;
+  void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowImpl sourceArg, List messagePorts) native;
 
-  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowJs sourceArg, List transferables) native;
+  void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _WindowImpl sourceArg, List transferables) native;
 }
 
-class _MessagePortJs implements MessagePort native "*MessagePort" {
+class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*MessagePort" {
 
   _MessagePortEventsImpl get on() =>
     new _MessagePortEventsImpl(this);
@@ -7914,7 +7939,7 @@ class _MessagePortJs implements MessagePort native "*MessagePort" {
 
   void close() native;
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void postMessage(String message, [List messagePorts = null]) native;
 
@@ -7931,7 +7956,7 @@ class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
   EventListenerList get message() => _get('message');
 }
 
-class _MetaElementJs extends _ElementJs implements MetaElement native "*HTMLMetaElement" {
+class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTMLMetaElement" {
 
   String content;
 
@@ -7942,18 +7967,18 @@ class _MetaElementJs extends _ElementJs implements MetaElement native "*HTMLMeta
   String scheme;
 }
 
-class _MetadataJs implements Metadata native "*Metadata" {
+class _MetadataImpl implements Metadata native "*Metadata" {
 
   final Date modificationTime;
 }
 
-class _MeterElementJs extends _ElementJs implements MeterElement native "*HTMLMeterElement" {
+class _MeterElementImpl extends _ElementImpl implements MeterElement native "*HTMLMeterElement" {
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   num high;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   num low;
 
@@ -7966,14 +7991,14 @@ class _MeterElementJs extends _ElementJs implements MeterElement native "*HTMLMe
   num value;
 }
 
-class _ModElementJs extends _ElementJs implements ModElement native "*HTMLModElement" {
+class _ModElementImpl extends _ElementImpl implements ModElement native "*HTMLModElement" {
 
   String cite;
 
   String dateTime;
 }
 
-class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent" {
+class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseEvent" {
 
   final bool altKey;
 
@@ -7985,9 +8010,9 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final bool ctrlKey;
 
-  final _ClipboardJs dataTransfer;
+  final _ClipboardImpl dataTransfer;
 
-  final _NodeJs fromElement;
+  final _NodeImpl fromElement;
 
   final bool metaKey;
 
@@ -7995,7 +8020,9 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final int offsetY;
 
-  final _EventTargetJs relatedTarget;
+  _EventTargetImpl get relatedTarget() => _FixHtmlDocumentReference(_relatedTarget);
+
+  _EventTargetImpl get _relatedTarget() native "return this.relatedTarget;";
 
   final int screenX;
 
@@ -8003,16 +8030,16 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final bool shiftKey;
 
-  final _NodeJs toElement;
+  final _NodeImpl toElement;
 
   final int x;
 
   final int y;
 
-  void initMouseEvent(String type, bool canBubble, bool cancelable, _WindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetJs relatedTarget) native;
+  void _initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "this.initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);";
 }
 
-class _MutationEventJs extends _EventJs implements MutationEvent native "*MutationEvent" {
+class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
 
@@ -8028,18 +8055,18 @@ class _MutationEventJs extends _EventJs implements MutationEvent native "*Mutati
 
   final String prevValue;
 
-  final _NodeJs relatedNode;
+  final _NodeImpl relatedNode;
 
-  void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeJs relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
+  void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 
-class _NamedNodeMapJs implements NamedNodeMap native "*NamedNodeMap" {
+class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
 
   final int length;
 
-  _NodeJs operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, _NodeJs value) {
+  void operator[]=(int index, _NodeImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
@@ -8110,22 +8137,22 @@ class _NamedNodeMapJs implements NamedNodeMap native "*NamedNodeMap" {
 
   // -- end List<Node> mixins.
 
-  _NodeJs getNamedItem(String name) native;
+  _NodeImpl getNamedItem(String name) native;
 
-  _NodeJs getNamedItemNS(String namespaceURI, String localName) native;
+  _NodeImpl getNamedItemNS(String namespaceURI, String localName) native;
 
-  _NodeJs item(int index) native;
+  _NodeImpl item(int index) native;
 
-  _NodeJs removeNamedItem(String name) native;
+  _NodeImpl removeNamedItem(String name) native;
 
-  _NodeJs removeNamedItemNS(String namespaceURI, String localName) native;
+  _NodeImpl removeNamedItemNS(String namespaceURI, String localName) native;
 
-  _NodeJs setNamedItem(_NodeJs node) native;
+  _NodeImpl setNamedItem(_NodeImpl node) native;
 
-  _NodeJs setNamedItemNS(_NodeJs node) native;
+  _NodeImpl setNamedItemNS(_NodeImpl node) native;
 }
 
-class _NavigatorJs implements Navigator native "*Navigator" {
+class _NavigatorImpl implements Navigator native "*Navigator" {
 
   final String appCodeName;
 
@@ -8135,17 +8162,17 @@ class _NavigatorJs implements Navigator native "*Navigator" {
 
   final bool cookieEnabled;
 
-  final _GeolocationJs geolocation;
+  final _GeolocationImpl geolocation;
 
   final String language;
 
-  final _DOMMimeTypeArrayJs mimeTypes;
+  final _DOMMimeTypeArrayImpl mimeTypes;
 
   final bool onLine;
 
   final String platform;
 
-  final _DOMPluginArrayJs plugins;
+  final _DOMPluginArrayImpl plugins;
 
   final String product;
 
@@ -8166,7 +8193,7 @@ class _NavigatorJs implements Navigator native "*Navigator" {
   void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }
 
-class _NavigatorUserMediaErrorJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
+class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
 
   static final int PERMISSION_DENIED = 1;
 
@@ -8176,12 +8203,176 @@ class _NavigatorUserMediaErrorJs implements NavigatorUserMediaError native "*Nav
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
+  _NodeListImpl get nodes() {
+    final list = _childNodes;
+    list._parent = this;
+    return list;
+  }
+
+  void set nodes(Collection<Node> value) {
+    // Copy list first since we don't want liveness during iteration.
+    // TODO(jacobr): there is a better way to do this.
+    List copy = new List.from(value);
+    nodes.clear();
+    nodes.addAll(copy);
+  }
+
+  // TODO(jacobr): should we throw an exception if parent is already null?
+  _NodeImpl remove() {
+    if (this.parent != null) {
+      this.parent._removeChild(this);
+    }
+    return this;
+  }
+
+  _NodeImpl replaceWith(Node otherNode) {
+    try {
+      this.parent._replaceChild(otherNode, this);
+    } catch(var e) {
+      
+    };
+    return this;
+  }
+
+
+  static final int ATTRIBUTE_NODE = 2;
+
+  static final int CDATA_SECTION_NODE = 4;
+
+  static final int COMMENT_NODE = 8;
+
+  static final int DOCUMENT_FRAGMENT_NODE = 11;
+
+  static final int DOCUMENT_NODE = 9;
+
+  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+
+  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
+
+  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
+
+  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
+
+  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
+
+  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
+
+  static final int DOCUMENT_TYPE_NODE = 10;
+
+  static final int ELEMENT_NODE = 1;
+
+  static final int ENTITY_NODE = 6;
+
+  static final int ENTITY_REFERENCE_NODE = 5;
+
+  static final int NOTATION_NODE = 12;
+
+  static final int PROCESSING_INSTRUCTION_NODE = 7;
+
+  static final int TEXT_NODE = 3;
+
+  _NamedNodeMapImpl get _attributes() native "return this.attributes;";
+
+  _NodeListImpl get _childNodes() native "return this.childNodes;";
+
+  _NodeImpl get nextNode() native "return this.nextSibling;";
+
+  _DocumentImpl get document() => _FixHtmlDocumentReference(_document);
+
+  _EventTargetImpl get _document() native "return this.ownerDocument;";
+
+  _NodeImpl get parent() native "return this.parentNode;";
+
+  _NodeImpl get previousNode() native "return this.previousSibling;";
+
+  String get text() native "return this.textContent;";
+
+  void set text(String value) native "this.textContent = value;";
+
+  _NodeImpl _appendChild(_NodeImpl newChild) native "return this.appendChild(newChild);";
+
+  _NodeImpl clone(bool deep) native "return this.cloneNode(deep);";
+
+  bool contains(_NodeImpl other) native;
+
+  bool hasChildNodes() native;
+
+  _NodeImpl insertBefore(_NodeImpl newChild, _NodeImpl refChild) native;
+
+  _NodeImpl _removeChild(_NodeImpl oldChild) native "return this.removeChild(oldChild);";
+
+  _NodeImpl _replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "return this.replaceChild(newChild, oldChild);";
+
+}
+
+class _NodeFilterImpl implements NodeFilter native "*NodeFilter" {
+
+  static final int FILTER_ACCEPT = 1;
+
+  static final int FILTER_REJECT = 2;
+
+  static final int FILTER_SKIP = 3;
+
+  static final int SHOW_ALL = 0xFFFFFFFF;
+
+  static final int SHOW_ATTRIBUTE = 0x00000002;
+
+  static final int SHOW_CDATA_SECTION = 0x00000008;
+
+  static final int SHOW_COMMENT = 0x00000080;
+
+  static final int SHOW_DOCUMENT = 0x00000100;
+
+  static final int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
+
+  static final int SHOW_DOCUMENT_TYPE = 0x00000200;
+
+  static final int SHOW_ELEMENT = 0x00000001;
+
+  static final int SHOW_ENTITY = 0x00000020;
+
+  static final int SHOW_ENTITY_REFERENCE = 0x00000010;
+
+  static final int SHOW_NOTATION = 0x00000800;
+
+  static final int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
+
+  static final int SHOW_TEXT = 0x00000004;
+
+  int acceptNode(_NodeImpl n) native;
+}
+
+class _NodeIteratorImpl implements NodeIterator native "*NodeIterator" {
+
+  final bool expandEntityReferences;
+
+  final _NodeFilterImpl filter;
+
+  final bool pointerBeforeReferenceNode;
+
+  final _NodeImpl referenceNode;
+
+  final _NodeImpl root;
+
+  final int whatToShow;
+
+  void detach() native;
+
+  _NodeImpl nextNode() native;
+
+  _NodeImpl previousNode() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // TODO(nweiz): when all implementations we target have the same name for the
 // coreimpl implementation of List<E>, extend that rather than wrapping.
 class _ListWrapper<E> implements List<E> {
-  List<E> _list;
+  List _list;
 
-  _ListWrapper(List<E> this._list);
+  _ListWrapper(List this._list);
 
   Iterator<E> iterator() => _list.iterator();
 
@@ -8237,203 +8428,23 @@ class _ListWrapper<E> implements List<E> {
   E get first() => _list[0];
 }
 
-class _NodeList extends _ListWrapper<Node> implements NodeList {
-  _NodeList(List<Node> list) : super(list);
+/**
+ * This class is used to insure the results of list operations are NodeLists
+ * instead of lists.
+ */
+class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
+  _NodeListWrapper(List list) : super(list);
 
-  NodeList filter(bool f(Node element)) => new _NodeList(super.filter(f));
+  NodeList filter(bool f(Node element)) =>
+    new _NodeListWrapper(_list.filter(f));
 
   NodeList getRange(int start, int length) =>
-    new _NodeList(super.getRange(start, length));
+    new _NodeListWrapper(_list.getRange(start, length));
 }
 
-class _NodeJs implements Node native "*Node" {
-  _NodeListJs get nodes() {
-    final list = _childNodes;
-    list._parent = this;
-    return list;
-  }
+class _NodeListImpl implements NodeList native "*NodeList" {
+  _NodeImpl _parent;
 
-  void set nodes(Collection<Node> value) {
-    // Copy list first since we don't want liveness during iteration.
-    // TODO(jacobr): there is a better way to do this.
-    List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
-  }
-
-  _NodeJs get nextNode() native "return this.nextSibling;";
-
-  _NodeJs get previousNode() native "return this.previousSibling;";
-
-  _DocumentJs get document() native "return this.ownerDocument;";
-
-  _NodeJs get parent() native "return this.parentNode;";
-
-  String get text() native "return this.textContent;";
-
-  void set text(String value) native "this.textContent = value;";
-
-  // TODO(jacobr): should we throw an exception if parent is already null?
-  _NodeJs remove() {
-    if (this.parent != null) {
-      this.parent._removeChild(this);
-    }
-    return this;
-  }
-
-  _NodeJs replaceWith(Node otherNode) {
-    try {
-      this.parent._replaceChild(otherNode, this);
-    } catch(var e) {
-      
-    };
-    return this;
-  }
-
-
-  static final int ATTRIBUTE_NODE = 2;
-
-  static final int CDATA_SECTION_NODE = 4;
-
-  static final int COMMENT_NODE = 8;
-
-  static final int DOCUMENT_FRAGMENT_NODE = 11;
-
-  static final int DOCUMENT_NODE = 9;
-
-  static final int DOCUMENT_POSITION_CONTAINED_BY = 0x10;
-
-  static final int DOCUMENT_POSITION_CONTAINS = 0x08;
-
-  static final int DOCUMENT_POSITION_DISCONNECTED = 0x01;
-
-  static final int DOCUMENT_POSITION_FOLLOWING = 0x04;
-
-  static final int DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
-
-  static final int DOCUMENT_POSITION_PRECEDING = 0x02;
-
-  static final int DOCUMENT_TYPE_NODE = 10;
-
-  static final int ELEMENT_NODE = 1;
-
-  static final int ENTITY_NODE = 6;
-
-  static final int ENTITY_REFERENCE_NODE = 5;
-
-  static final int NOTATION_NODE = 12;
-
-  static final int PROCESSING_INSTRUCTION_NODE = 7;
-
-  static final int TEXT_NODE = 3;
-
-  _NamedNodeMapJs get _attributes() native "return this.attributes;";
-
-  _NodeListJs get _childNodes() native "return this.childNodes;";
-
-  final _NodeJs nextSibling;
-
-  final _DocumentJs ownerDocument;
-
-  final _NodeJs parentNode;
-
-  final _NodeJs previousSibling;
-
-  String textContent;
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
-
-  _NodeJs _appendChild(_NodeJs newChild) native "return this.appendChild(newChild);";
-
-  _NodeJs cloneNode(bool deep) native;
-
-  bool contains(_NodeJs other) native;
-
-  bool _dispatchEvent(_EventJs event) native "return this.dispatchEvent(event);";
-
-  bool hasChildNodes() native;
-
-  _NodeJs insertBefore(_NodeJs newChild, _NodeJs refChild) native;
-
-  _NodeJs _removeChild(_NodeJs oldChild) native "return this.removeChild(oldChild);";
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
-
-  _NodeJs _replaceChild(_NodeJs newChild, _NodeJs oldChild) native "return this.replaceChild(newChild, oldChild);";
-
-}
-
-class _NodeFilterJs implements NodeFilter native "*NodeFilter" {
-
-  static final int FILTER_ACCEPT = 1;
-
-  static final int FILTER_REJECT = 2;
-
-  static final int FILTER_SKIP = 3;
-
-  static final int SHOW_ALL = 0xFFFFFFFF;
-
-  static final int SHOW_ATTRIBUTE = 0x00000002;
-
-  static final int SHOW_CDATA_SECTION = 0x00000008;
-
-  static final int SHOW_COMMENT = 0x00000080;
-
-  static final int SHOW_DOCUMENT = 0x00000100;
-
-  static final int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
-
-  static final int SHOW_DOCUMENT_TYPE = 0x00000200;
-
-  static final int SHOW_ELEMENT = 0x00000001;
-
-  static final int SHOW_ENTITY = 0x00000020;
-
-  static final int SHOW_ENTITY_REFERENCE = 0x00000010;
-
-  static final int SHOW_NOTATION = 0x00000800;
-
-  static final int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
-
-  static final int SHOW_TEXT = 0x00000004;
-
-  int acceptNode(_NodeJs n) native;
-}
-
-class _NodeIteratorJs implements NodeIterator native "*NodeIterator" {
-
-  final bool expandEntityReferences;
-
-  final _NodeFilterJs filter;
-
-  final bool pointerBeforeReferenceNode;
-
-  final _NodeJs referenceNode;
-
-  final _NodeJs root;
-
-  final int whatToShow;
-
-  void detach() native;
-
-  _NodeJs nextNode() native;
-
-  _NodeJs previousNode() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _NodeListJs implements NodeList native "*NodeList" {
-  _NodeJs _parent;
-
-  int get length() native "return this.length;";
-
-  _NodeJs operator[](int index) native "return this[index];";
-
-  void operator[]=(int index, _NodeJs value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
   // -- start List<Node> mixins.
   // Node is the element type.
 
@@ -8448,26 +8459,42 @@ class _NodeListJs implements NodeList native "*NodeList" {
 
   // From Collection<Node>:
 
-  void add(_NodeJs value) {
+  void add(_NodeImpl value) {
     _parent._appendChild(value);
   }
 
-  void addLast(_NodeJs value) {
+  void addLast(_NodeImpl value) {
     _parent._appendChild(value);
   }
 
-  void addAll(Collection<_NodeJs> collection) {
-    for (_NodeJs node in collection) {
+  void addAll(Collection<_NodeImpl> collection) {
+    for (_NodeImpl node in collection) {
       _parent._appendChild(node);      
     }
   }
 
+  _NodeImpl removeLast() {
+    final last = this.last();
+    if (last != null) {
+      _parent._removeChild(last);
+    }
+    return last;
+  }
+
+  void clear() {
+    _parent.text = '';
+  }
+
+  void operator []=(int index, _NodeImpl value) {
+    _parent._replaceChild(value, this[index]);
+  }
+
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
 
   Collection map(f(Node element)) => _Collections.map(this, [], f);
 
   Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
+     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
 
   bool every(bool f(Node element)) => _Collections.every(this, f);
 
@@ -8488,6 +8515,7 @@ class _NodeListJs implements NodeList native "*NodeList" {
       _Lists.lastIndexOf(this, element, start);
 
   Node last() => this[length - 1];
+  Node get first() => this[0];
 
   // FIXME: implement thesee.
   void setRange(int start, int length, List<Node> from, [int startFrom]) {
@@ -8499,107 +8527,33 @@ class _NodeListJs implements NodeList native "*NodeList" {
   void insertRange(int start, int length, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+  NodeList getRange(int start, int length) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
 
   // -- end List<Node> mixins.
 
-/*
-Ignore members. TODO(jacobr): find a cleaner solution.
 
   final int length;
 
-  _NodeJs operator[](int index) native "return this[index];";
+  _NodeImpl operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, _NodeJs value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-  // -- start List<Node> mixins.
-  // Node is the element type.
-
-  // From Iterable<Node>:
-
-  Iterator<Node> iterator() {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new _FixedSizeListIterator<Node>(this);
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void addAll(Collection<Node> collection) {
-    throw new UnsupportedOperationException("Cannot add to immutable List.");
-  }
-
-  void forEach(void f(Node element)) => _Collections.forEach(this, f);
-
-  Collection map(f(Node element)) => _Collections.map(this, [], f);
-
-  Collection<Node> filter(bool f(Node element)) =>
-     _Collections.filter(this, <Node>[], f);
-
-  bool every(bool f(Node element)) => _Collections.every(this, f);
-
-  bool some(bool f(Node element)) => _Collections.some(this, f);
-
-  bool isEmpty() => this.length == 0;
-
-  // From List<Node>:
-
-  void sort(int compare(Node a, Node b)) {
-    throw new UnsupportedOperationException("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      _Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
-
-  Node last() => this[length - 1];
-
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
-    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
-  }
-  void removeRange(int start, int length) {
-    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
-  }
-  void insertRange(int start, int length, [Node initialValue]) {
-    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
-  }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
-
-  // -- end List<Node> mixins.
-
-*/
 }
 
-class _NodeSelectorJs implements NodeSelector native "*NodeSelector" {
+class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementJs querySelector(String selectors) native;
+  _ElementImpl querySelector(String selectors) native;
 
-  _NodeListJs querySelectorAll(String selectors) native;
+  _NodeListImpl querySelectorAll(String selectors) native;
 }
 
-class _NotationJs extends _NodeJs implements Notation native "*Notation" {
+class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
 
   final String publicId;
 
   final String systemId;
 }
 
-class _NotificationJs implements Notification native "*Notification" {
+class _NotificationImpl extends _EventTargetImpl implements Notification native "*Notification" {
 
   String dir;
 
@@ -8608,13 +8562,7 @@ class _NotificationJs implements Notification native "*Notification" {
   _NotificationEventsImpl get on() =>
     new _NotificationEventsImpl(this);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
-
   void cancel() native;
-
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 
   void show() native;
 }
@@ -8633,39 +8581,39 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
   EventListenerList get show() => _get('show');
 }
 
-class _NotificationCenterJs implements NotificationCenter native "*NotificationCenter" {
+class _NotificationCenterImpl implements NotificationCenter native "*NotificationCenter" {
 
   int checkPermission() native;
 
-  _NotificationJs createHTMLNotification(String url) native;
+  _NotificationImpl createHTMLNotification(String url) native;
 
-  _NotificationJs createNotification(String iconUrl, String title, String body) native;
+  _NotificationImpl createNotification(String iconUrl, String title, String body) native;
 
   void requestPermission(VoidCallback callback) native;
 }
 
-class _OESStandardDerivativesJs implements OESStandardDerivatives native "*OESStandardDerivatives" {
+class _OESStandardDerivativesImpl implements OESStandardDerivatives native "*OESStandardDerivatives" {
 
   static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 
-class _OESTextureFloatJs implements OESTextureFloat native "*OESTextureFloat" {
+class _OESTextureFloatImpl implements OESTextureFloat native "*OESTextureFloat" {
 }
 
-class _OESVertexArrayObjectJs implements OESVertexArrayObject native "*OESVertexArrayObject" {
+class _OESVertexArrayObjectImpl implements OESVertexArrayObject native "*OESVertexArrayObject" {
 
   static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  void bindVertexArrayOES(_WebGLVertexArrayObjectOESJs arrayObject) native;
+  void bindVertexArrayOES(_WebGLVertexArrayObjectOESImpl arrayObject) native;
 
-  _WebGLVertexArrayObjectOESJs createVertexArrayOES() native;
+  _WebGLVertexArrayObjectOESImpl createVertexArrayOES() native;
 
-  void deleteVertexArrayOES(_WebGLVertexArrayObjectOESJs arrayObject) native;
+  void deleteVertexArrayOES(_WebGLVertexArrayObjectOESImpl arrayObject) native;
 
-  bool isVertexArrayOES(_WebGLVertexArrayObjectOESJs arrayObject) native;
+  bool isVertexArrayOES(_WebGLVertexArrayObjectOESImpl arrayObject) native;
 }
 
-class _OListElementJs extends _ElementJs implements OListElement native "*HTMLOListElement" {
+class _OListElementImpl extends _ElementImpl implements OListElement native "*HTMLOListElement" {
 
   bool compact;
 
@@ -8676,7 +8624,7 @@ class _OListElementJs extends _ElementJs implements OListElement native "*HTMLOL
   String type;
 }
 
-class _ObjectElementJs extends _ElementJs implements ObjectElement native "*HTMLObjectElement" {
+class _ObjectElementImpl extends _ElementImpl implements ObjectElement native "*HTMLObjectElement" {
 
   String align;
 
@@ -8690,13 +8638,15 @@ class _ObjectElementJs extends _ElementJs implements ObjectElement native "*HTML
 
   String codeType;
 
-  final _DocumentJs contentDocument;
+  _DocumentImpl get contentDocument() => _FixHtmlDocumentReference(_contentDocument);
+
+  _EventTargetImpl get _contentDocument() native "return this.contentDocument;";
 
   String data;
 
   bool declare;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   String height;
 
@@ -8712,7 +8662,7 @@ class _ObjectElementJs extends _ElementJs implements ObjectElement native "*HTML
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   int vspace;
 
@@ -8725,12 +8675,12 @@ class _ObjectElementJs extends _ElementJs implements ObjectElement native "*HTML
   void setCustomValidity(String error) native;
 }
 
-class _OfflineAudioCompletionEventJs extends _EventJs implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
+class _OfflineAudioCompletionEventImpl extends _EventImpl implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
 
-  final _AudioBufferJs renderedBuffer;
+  final _AudioBufferImpl renderedBuffer;
 }
 
-class _OperationNotAllowedExceptionJs implements OperationNotAllowedException native "*OperationNotAllowedException" {
+class _OperationNotAllowedExceptionImpl implements OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 
@@ -8743,20 +8693,20 @@ class _OperationNotAllowedExceptionJs implements OperationNotAllowedException na
   String toString() native;
 }
 
-class _OptGroupElementJs extends _ElementJs implements OptGroupElement native "*HTMLOptGroupElement" {
+class _OptGroupElementImpl extends _ElementImpl implements OptGroupElement native "*HTMLOptGroupElement" {
 
   bool disabled;
 
   String label;
 }
 
-class _OptionElementJs extends _ElementJs implements OptionElement native "*HTMLOptionElement" {
+class _OptionElementImpl extends _ElementImpl implements OptionElement native "*HTMLOptionElement" {
 
   bool defaultSelected;
 
   bool disabled;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
   final int index;
 
@@ -8764,20 +8714,18 @@ class _OptionElementJs extends _ElementJs implements OptionElement native "*HTML
 
   bool selected;
 
-  String text;
-
   String value;
 }
 
-class _OutputElementJs extends _ElementJs implements OutputElement native "*HTMLOutputElement" {
+class _OutputElementImpl extends _ElementImpl implements OutputElement native "*HTMLOutputElement" {
 
   String defaultValue;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
-  _DOMSettableTokenListJs htmlFor;
+  _DOMSettableTokenListImpl htmlFor;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   String name;
 
@@ -8785,7 +8733,7 @@ class _OutputElementJs extends _ElementJs implements OutputElement native "*HTML
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   String value;
 
@@ -8796,7 +8744,7 @@ class _OutputElementJs extends _ElementJs implements OutputElement native "*HTML
   void setCustomValidity(String error) native;
 }
 
-class _OverflowEventJs extends _EventJs implements OverflowEvent native "*OverflowEvent" {
+class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*OverflowEvent" {
 
   static final int BOTH = 2;
 
@@ -8811,17 +8759,17 @@ class _OverflowEventJs extends _EventJs implements OverflowEvent native "*Overfl
   final bool verticalOverflow;
 }
 
-class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent native "*PageTransitionEvent" {
+class _PageTransitionEventImpl extends _EventImpl implements PageTransitionEvent native "*PageTransitionEvent" {
 
   final bool persisted;
 }
 
-class _ParagraphElementJs extends _ElementJs implements ParagraphElement native "*HTMLParagraphElement" {
+class _ParagraphElementImpl extends _ElementImpl implements ParagraphElement native "*HTMLParagraphElement" {
 
   String align;
 }
 
-class _ParamElementJs extends _ElementJs implements ParamElement native "*HTMLParamElement" {
+class _ParamElementImpl extends _ElementImpl implements ParamElement native "*HTMLParamElement" {
 
   String name;
 
@@ -8832,7 +8780,7 @@ class _ParamElementJs extends _ElementJs implements ParamElement native "*HTMLPa
   String valueType;
 }
 
-class _PeerConnectionJs implements PeerConnection native "*PeerConnection" {
+class _PeerConnectionImpl implements PeerConnection native "*PeerConnection" {
 
   static final int ACTIVE = 2;
 
@@ -8842,7 +8790,7 @@ class _PeerConnectionJs implements PeerConnection native "*PeerConnection" {
 
   static final int NEW = 0;
 
-  final _MediaStreamListJs localStreams;
+  final _MediaStreamListImpl localStreams;
 
   EventListener onaddstream;
 
@@ -8858,35 +8806,35 @@ class _PeerConnectionJs implements PeerConnection native "*PeerConnection" {
 
   final int readyState;
 
-  final _MediaStreamListJs remoteStreams;
+  final _MediaStreamListImpl remoteStreams;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  void addStream(_MediaStreamJs stream) native;
+  void addStream(_MediaStreamImpl stream) native;
 
   void close() native;
 
-  bool dispatchEvent(_EventJs event) native;
+  bool dispatchEvent(_EventImpl event) native;
 
   void processSignalingMessage(String message) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  void removeStream(_MediaStreamJs stream) native;
+  void removeStream(_MediaStreamImpl stream) native;
 
   void send(String text) native;
 }
 
-class _PerformanceJs implements Performance native "*Performance" {
+class _PerformanceImpl implements Performance native "*Performance" {
 
-  final _MemoryInfoJs memory;
+  final _MemoryInfoImpl memory;
 
-  final _PerformanceNavigationJs navigation;
+  final _PerformanceNavigationImpl navigation;
 
-  final _PerformanceTimingJs timing;
+  final _PerformanceTimingImpl timing;
 }
 
-class _PerformanceNavigationJs implements PerformanceNavigation native "*PerformanceNavigation" {
+class _PerformanceNavigationImpl implements PerformanceNavigation native "*PerformanceNavigation" {
 
   static final int TYPE_BACK_FORWARD = 2;
 
@@ -8901,7 +8849,7 @@ class _PerformanceNavigationJs implements PerformanceNavigation native "*Perform
   final int type;
 }
 
-class _PerformanceTimingJs implements PerformanceTiming native "*PerformanceTiming" {
+class _PerformanceTimingImpl implements PerformanceTiming native "*PerformanceTiming" {
 
   final int connectEnd;
 
@@ -8946,19 +8894,19 @@ class _PerformanceTimingJs implements PerformanceTiming native "*PerformanceTimi
   final int unloadEventStart;
 }
 
-class _PointJs implements Point native "*WebKitPoint" {
+class _PointImpl implements Point native "*WebKitPoint" {
 
   num x;
 
   num y;
 }
 
-class _PopStateEventJs extends _EventJs implements PopStateEvent native "*PopStateEvent" {
+class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*PopStateEvent" {
 
   final Object state;
 }
 
-class _PositionErrorJs implements PositionError native "*PositionError" {
+class _PositionErrorImpl implements PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
 
@@ -8971,27 +8919,27 @@ class _PositionErrorJs implements PositionError native "*PositionError" {
   final String message;
 }
 
-class _PreElementJs extends _ElementJs implements PreElement native "*HTMLPreElement" {
+class _PreElementImpl extends _ElementImpl implements PreElement native "*HTMLPreElement" {
 
   int width;
 
   bool wrap;
 }
 
-class _ProcessingInstructionJs extends _NodeJs implements ProcessingInstruction native "*ProcessingInstruction" {
+class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruction native "*ProcessingInstruction" {
 
   String data;
 
-  final _StyleSheetJs sheet;
+  final _StyleSheetImpl sheet;
 
   final String target;
 }
 
-class _ProgressElementJs extends _ElementJs implements ProgressElement native "*HTMLProgressElement" {
+class _ProgressElementImpl extends _ElementImpl implements ProgressElement native "*HTMLProgressElement" {
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   num max;
 
@@ -9000,7 +8948,7 @@ class _ProgressElementJs extends _ElementJs implements ProgressElement native "*
   num value;
 }
 
-class _ProgressEventJs extends _EventJs implements ProgressEvent native "*ProgressEvent" {
+class _ProgressEventImpl extends _EventImpl implements ProgressEvent native "*ProgressEvent" {
 
   final bool lengthComputable;
 
@@ -9009,21 +8957,21 @@ class _ProgressEventJs extends _EventJs implements ProgressEvent native "*Progre
   final int total;
 }
 
-class _QuoteElementJs extends _ElementJs implements QuoteElement native "*HTMLQuoteElement" {
+class _QuoteElementImpl extends _ElementImpl implements QuoteElement native "*HTMLQuoteElement" {
 
   String cite;
 }
 
-class _RGBColorJs implements RGBColor native "*RGBColor" {
+class _RGBColorImpl implements RGBColor native "*RGBColor" {
 
-  final _CSSPrimitiveValueJs blue;
+  final _CSSPrimitiveValueImpl blue;
 
-  final _CSSPrimitiveValueJs green;
+  final _CSSPrimitiveValueImpl green;
 
-  final _CSSPrimitiveValueJs red;
+  final _CSSPrimitiveValueImpl red;
 }
 
-class _RangeJs implements Range native "*Range" {
+class _RangeImpl implements Range native "*Range" {
 
   static final int END_TO_END = 2;
 
@@ -9043,27 +8991,27 @@ class _RangeJs implements Range native "*Range" {
 
   final bool collapsed;
 
-  final _NodeJs commonAncestorContainer;
+  final _NodeImpl commonAncestorContainer;
 
-  final _NodeJs endContainer;
+  final _NodeImpl endContainer;
 
   final int endOffset;
 
-  final _NodeJs startContainer;
+  final _NodeImpl startContainer;
 
   final int startOffset;
 
-  _DocumentFragmentJs cloneContents() native;
+  _DocumentFragmentImpl cloneContents() native;
 
-  _RangeJs cloneRange() native;
+  _RangeImpl cloneRange() native;
 
   void collapse(bool toStart) native;
 
-  int compareNode(_NodeJs refNode) native;
+  int compareNode(_NodeImpl refNode) native;
 
-  int comparePoint(_NodeJs refNode, int offset) native;
+  int comparePoint(_NodeImpl refNode, int offset) native;
 
-  _DocumentFragmentJs createContextualFragment(String html) native;
+  _DocumentFragmentImpl createContextualFragment(String html) native;
 
   void deleteContents() native;
 
@@ -9071,40 +9019,40 @@ class _RangeJs implements Range native "*Range" {
 
   void expand(String unit) native;
 
-  _DocumentFragmentJs extractContents() native;
+  _DocumentFragmentImpl extractContents() native;
 
-  _ClientRectJs getBoundingClientRect() native;
+  _ClientRectImpl getBoundingClientRect() native;
 
-  _ClientRectListJs getClientRects() native;
+  _ClientRectListImpl getClientRects() native;
 
-  void insertNode(_NodeJs newNode) native;
+  void insertNode(_NodeImpl newNode) native;
 
-  bool intersectsNode(_NodeJs refNode) native;
+  bool intersectsNode(_NodeImpl refNode) native;
 
-  bool isPointInRange(_NodeJs refNode, int offset) native;
+  bool isPointInRange(_NodeImpl refNode, int offset) native;
 
-  void selectNode(_NodeJs refNode) native;
+  void selectNode(_NodeImpl refNode) native;
 
-  void selectNodeContents(_NodeJs refNode) native;
+  void selectNodeContents(_NodeImpl refNode) native;
 
-  void setEnd(_NodeJs refNode, int offset) native;
+  void setEnd(_NodeImpl refNode, int offset) native;
 
-  void setEndAfter(_NodeJs refNode) native;
+  void setEndAfter(_NodeImpl refNode) native;
 
-  void setEndBefore(_NodeJs refNode) native;
+  void setEndBefore(_NodeImpl refNode) native;
 
-  void setStart(_NodeJs refNode, int offset) native;
+  void setStart(_NodeImpl refNode, int offset) native;
 
-  void setStartAfter(_NodeJs refNode) native;
+  void setStartAfter(_NodeImpl refNode) native;
 
-  void setStartBefore(_NodeJs refNode) native;
+  void setStartBefore(_NodeImpl refNode) native;
 
-  void surroundContents(_NodeJs newParent) native;
+  void surroundContents(_NodeImpl newParent) native;
 
   String toString() native;
 }
 
-class _RangeExceptionJs implements RangeException native "*RangeException" {
+class _RangeExceptionImpl implements RangeException native "*RangeException" {
 
   static final int BAD_BOUNDARYPOINTS_ERR = 1;
 
@@ -9119,7 +9067,7 @@ class _RangeExceptionJs implements RangeException native "*RangeException" {
   String toString() native;
 }
 
-class _RealtimeAnalyserNodeJs extends _AudioNodeJs implements RealtimeAnalyserNode native "*RealtimeAnalyserNode" {
+class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalyserNode native "*RealtimeAnalyserNode" {
 
   int fftSize;
 
@@ -9131,25 +9079,25 @@ class _RealtimeAnalyserNodeJs extends _AudioNodeJs implements RealtimeAnalyserNo
 
   num smoothingTimeConstant;
 
-  void getByteFrequencyData(_Uint8ArrayJs array) native;
+  void getByteFrequencyData(_Uint8ArrayImpl array) native;
 
-  void getByteTimeDomainData(_Uint8ArrayJs array) native;
+  void getByteTimeDomainData(_Uint8ArrayImpl array) native;
 
-  void getFloatFrequencyData(_Float32ArrayJs array) native;
+  void getFloatFrequencyData(_Float32ArrayImpl array) native;
 }
 
-class _RectJs implements Rect native "*Rect" {
+class _RectImpl implements Rect native "*Rect" {
 
-  final _CSSPrimitiveValueJs bottom;
+  final _CSSPrimitiveValueImpl bottom;
 
-  final _CSSPrimitiveValueJs left;
+  final _CSSPrimitiveValueImpl left;
 
-  final _CSSPrimitiveValueJs right;
+  final _CSSPrimitiveValueImpl right;
 
-  final _CSSPrimitiveValueJs top;
+  final _CSSPrimitiveValueImpl top;
 }
 
-class _SQLErrorJs implements SQLError native "*SQLError" {
+class _SQLErrorImpl implements SQLError native "*SQLError" {
 
   static final int CONSTRAINT_ERR = 6;
 
@@ -9172,7 +9120,7 @@ class _SQLErrorJs implements SQLError native "*SQLError" {
   final String message;
 }
 
-class _SQLExceptionJs implements SQLException native "*SQLException" {
+class _SQLExceptionImpl implements SQLException native "*SQLException" {
 
   static final int CONSTRAINT_ERR = 6;
 
@@ -9195,43 +9143,43 @@ class _SQLExceptionJs implements SQLException native "*SQLException" {
   final String message;
 }
 
-class _SQLResultSetJs implements SQLResultSet native "*SQLResultSet" {
+class _SQLResultSetImpl implements SQLResultSet native "*SQLResultSet" {
 
   final int insertId;
 
-  final _SQLResultSetRowListJs rows;
+  final _SQLResultSetRowListImpl rows;
 
   final int rowsAffected;
 }
 
-class _SQLResultSetRowListJs implements SQLResultSetRowList native "*SQLResultSetRowList" {
+class _SQLResultSetRowListImpl implements SQLResultSetRowList native "*SQLResultSetRowList" {
 
   final int length;
 
   Object item(int index) native;
 }
 
-class _SQLTransactionJs implements SQLTransaction native "*SQLTransaction" {
+class _SQLTransactionImpl implements SQLTransaction native "*SQLTransaction" {
 }
 
-class _SQLTransactionSyncJs implements SQLTransactionSync native "*SQLTransactionSync" {
+class _SQLTransactionSyncImpl implements SQLTransactionSync native "*SQLTransactionSync" {
 }
 
-class _SVGAElementJs extends _SVGElementJs implements SVGAElement native "*SVGAElement" {
+class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*SVGAElement" {
 
-  final _SVGAnimatedStringJs target;
+  final _SVGAnimatedStringImpl target;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -9243,40 +9191,40 @@ class _SVGAElementJs extends _SVGElementJs implements SVGAElement native "*SVGAE
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGAltGlyphDefElementJs extends _SVGElementJs implements SVGAltGlyphDefElement native "*SVGAltGlyphDefElement" {
+class _SVGAltGlyphDefElementImpl extends _SVGElementImpl implements SVGAltGlyphDefElement native "*SVGAltGlyphDefElement" {
 }
 
-class _SVGAltGlyphElementJs extends _SVGTextPositioningElementJs implements SVGAltGlyphElement native "*SVGAltGlyphElement" {
+class _SVGAltGlyphElementImpl extends _SVGTextPositioningElementImpl implements SVGAltGlyphElement native "*SVGAltGlyphElement" {
 
   String format;
 
@@ -9284,13 +9232,13 @@ class _SVGAltGlyphElementJs extends _SVGTextPositioningElementJs implements SVGA
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 }
 
-class _SVGAltGlyphItemElementJs extends _SVGElementJs implements SVGAltGlyphItemElement native "*SVGAltGlyphItemElement" {
+class _SVGAltGlyphItemElementImpl extends _SVGElementImpl implements SVGAltGlyphItemElement native "*SVGAltGlyphItemElement" {
 }
 
-class _SVGAngleJs implements SVGAngle native "*SVGAngle" {
+class _SVGAngleImpl implements SVGAngle native "*SVGAngle" {
 
   static final int SVG_ANGLETYPE_DEG = 2;
 
@@ -9315,105 +9263,105 @@ class _SVGAngleJs implements SVGAngle native "*SVGAngle" {
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 
-class _SVGAnimateColorElementJs extends _SVGAnimationElementJs implements SVGAnimateColorElement native "*SVGAnimateColorElement" {
+class _SVGAnimateColorElementImpl extends _SVGAnimationElementImpl implements SVGAnimateColorElement native "*SVGAnimateColorElement" {
 }
 
-class _SVGAnimateElementJs extends _SVGAnimationElementJs implements SVGAnimateElement native "*SVGAnimateElement" {
+class _SVGAnimateElementImpl extends _SVGAnimationElementImpl implements SVGAnimateElement native "*SVGAnimateElement" {
 }
 
-class _SVGAnimateMotionElementJs extends _SVGAnimationElementJs implements SVGAnimateMotionElement native "*SVGAnimateMotionElement" {
+class _SVGAnimateMotionElementImpl extends _SVGAnimationElementImpl implements SVGAnimateMotionElement native "*SVGAnimateMotionElement" {
 }
 
-class _SVGAnimateTransformElementJs extends _SVGAnimationElementJs implements SVGAnimateTransformElement native "*SVGAnimateTransformElement" {
+class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implements SVGAnimateTransformElement native "*SVGAnimateTransformElement" {
 }
 
-class _SVGAnimatedAngleJs implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
+class _SVGAnimatedAngleImpl implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
-  final _SVGAngleJs animVal;
+  final _SVGAngleImpl animVal;
 
-  final _SVGAngleJs baseVal;
+  final _SVGAngleImpl baseVal;
 }
 
-class _SVGAnimatedBooleanJs implements SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
+class _SVGAnimatedBooleanImpl implements SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
   final bool animVal;
 
   bool baseVal;
 }
 
-class _SVGAnimatedEnumerationJs implements SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
+class _SVGAnimatedEnumerationImpl implements SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   final int animVal;
 
   int baseVal;
 }
 
-class _SVGAnimatedIntegerJs implements SVGAnimatedInteger native "*SVGAnimatedInteger" {
+class _SVGAnimatedIntegerImpl implements SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
   final int animVal;
 
   int baseVal;
 }
 
-class _SVGAnimatedLengthJs implements SVGAnimatedLength native "*SVGAnimatedLength" {
+class _SVGAnimatedLengthImpl implements SVGAnimatedLength native "*SVGAnimatedLength" {
 
-  final _SVGLengthJs animVal;
+  final _SVGLengthImpl animVal;
 
-  final _SVGLengthJs baseVal;
+  final _SVGLengthImpl baseVal;
 }
 
-class _SVGAnimatedLengthListJs implements SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
+class _SVGAnimatedLengthListImpl implements SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
 
-  final _SVGLengthListJs animVal;
+  final _SVGLengthListImpl animVal;
 
-  final _SVGLengthListJs baseVal;
+  final _SVGLengthListImpl baseVal;
 }
 
-class _SVGAnimatedNumberJs implements SVGAnimatedNumber native "*SVGAnimatedNumber" {
+class _SVGAnimatedNumberImpl implements SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
   final num animVal;
 
   num baseVal;
 }
 
-class _SVGAnimatedNumberListJs implements SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
+class _SVGAnimatedNumberListImpl implements SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  final _SVGNumberListJs animVal;
+  final _SVGNumberListImpl animVal;
 
-  final _SVGNumberListJs baseVal;
+  final _SVGNumberListImpl baseVal;
 }
 
-class _SVGAnimatedPreserveAspectRatioJs implements SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
+class _SVGAnimatedPreserveAspectRatioImpl implements SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
-  final _SVGPreserveAspectRatioJs animVal;
+  final _SVGPreserveAspectRatioImpl animVal;
 
-  final _SVGPreserveAspectRatioJs baseVal;
+  final _SVGPreserveAspectRatioImpl baseVal;
 }
 
-class _SVGAnimatedRectJs implements SVGAnimatedRect native "*SVGAnimatedRect" {
+class _SVGAnimatedRectImpl implements SVGAnimatedRect native "*SVGAnimatedRect" {
 
-  final _SVGRectJs animVal;
+  final _SVGRectImpl animVal;
 
-  final _SVGRectJs baseVal;
+  final _SVGRectImpl baseVal;
 }
 
-class _SVGAnimatedStringJs implements SVGAnimatedString native "*SVGAnimatedString" {
+class _SVGAnimatedStringImpl implements SVGAnimatedString native "*SVGAnimatedString" {
 
   final String animVal;
 
   String baseVal;
 }
 
-class _SVGAnimatedTransformListJs implements SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
+class _SVGAnimatedTransformListImpl implements SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  final _SVGTransformListJs animVal;
+  final _SVGTransformListImpl animVal;
 
-  final _SVGTransformListJs baseVal;
+  final _SVGTransformListImpl baseVal;
 }
 
-class _SVGAnimationElementJs extends _SVGElementJs implements SVGAnimationElement native "*SVGAnimationElement" {
+class _SVGAnimationElementImpl extends _SVGElementImpl implements SVGAnimationElement native "*SVGAnimationElement" {
 
-  final _SVGElementJs targetElement;
+  final _SVGElementImpl targetElement;
 
   num getCurrentTime() native;
 
@@ -9423,17 +9371,17 @@ class _SVGAnimationElementJs extends _SVGElementJs implements SVGAnimationElemen
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From ElementTimeControl
 
@@ -9446,21 +9394,21 @@ class _SVGAnimationElementJs extends _SVGElementJs implements SVGAnimationElemen
   void endElementAt(num offset) native;
 }
 
-class _SVGCircleElementJs extends _SVGElementJs implements SVGCircleElement native "*SVGCircleElement" {
+class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement native "*SVGCircleElement" {
 
-  final _SVGAnimatedLengthJs cx;
+  final _SVGAnimatedLengthImpl cx;
 
-  final _SVGAnimatedLengthJs cy;
+  final _SVGAnimatedLengthImpl cy;
 
-  final _SVGAnimatedLengthJs r;
+  final _SVGAnimatedLengthImpl r;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -9472,47 +9420,47 @@ class _SVGCircleElementJs extends _SVGElementJs implements SVGCircleElement nati
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement native "*SVGClipPathElement" {
+class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElement native "*SVGClipPathElement" {
 
-  final _SVGAnimatedEnumerationJs clipPathUnits;
+  final _SVGAnimatedEnumerationImpl clipPathUnits;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -9524,37 +9472,37 @@ class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement 
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
+class _SVGColorImpl extends _CSSValueImpl implements SVGColor native "*SVGColor" {
 
   static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -9566,7 +9514,7 @@ class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
 
   final int colorType;
 
-  final _RGBColorJs rgbColor;
+  final _RGBColorImpl rgbColor;
 
   void setColor(int colorType, String rgbColor, String iccColor) native;
 
@@ -9575,7 +9523,7 @@ class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
   void setRGBColorICCColor(String rgbColor, String iccColor) native;
 }
 
-class _SVGComponentTransferFunctionElementJs extends _SVGElementJs implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
+class _SVGComponentTransferFunctionElementImpl extends _SVGElementImpl implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -9589,55 +9537,55 @@ class _SVGComponentTransferFunctionElementJs extends _SVGElementJs implements SV
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  final _SVGAnimatedNumberJs amplitude;
+  final _SVGAnimatedNumberImpl amplitude;
 
-  final _SVGAnimatedNumberJs exponent;
+  final _SVGAnimatedNumberImpl exponent;
 
-  final _SVGAnimatedNumberJs intercept;
+  final _SVGAnimatedNumberImpl intercept;
 
-  final _SVGAnimatedNumberJs offset;
+  final _SVGAnimatedNumberImpl offset;
 
-  final _SVGAnimatedNumberJs slope;
+  final _SVGAnimatedNumberImpl slope;
 
-  final _SVGAnimatedNumberListJs tableValues;
+  final _SVGAnimatedNumberListImpl tableValues;
 
-  final _SVGAnimatedEnumerationJs type;
+  final _SVGAnimatedEnumerationImpl type;
 }
 
-class _SVGCursorElementJs extends _SVGElementJs implements SVGCursorElement native "*SVGCursorElement" {
+class _SVGCursorElementImpl extends _SVGElementImpl implements SVGCursorElement native "*SVGCursorElement" {
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 }
 
-class _SVGDefsElementJs extends _SVGElementJs implements SVGDefsElement native "*SVGDefsElement" {
+class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement native "*SVGDefsElement" {
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -9649,37 +9597,37 @@ class _SVGDefsElementJs extends _SVGElementJs implements SVGDefsElement native "
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGDescElementJs extends _SVGElementJs implements SVGDescElement native "*SVGDescElement" {
+class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement native "*SVGDescElement" {
 
   // From SVGLangSpace
 
@@ -9689,59 +9637,59 @@ class _SVGDescElementJs extends _SVGElementJs implements SVGDescElement native "
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGDocumentJs extends _DocumentJs implements SVGDocument native "*SVGDocument" {
+class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument native "*SVGDocument" {
 
-  final _SVGSVGElementJs rootElement;
+  final _SVGSVGElementImpl rootElement;
 
-  _EventJs _createEvent(String eventType) native "return this.createEvent(eventType);";
+  _EventImpl _createEvent(String eventType) native "return this.createEvent(eventType);";
 }
 
-class _SVGElementJs extends _ElementJs implements SVGElement native "*SVGElement" {
+class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGElement" {
 
   // Shadowing definition.
   String get id() native "return this.id;";
 
   void set id(String value) native "this.id = value;";
 
-  final _SVGSVGElementJs ownerSVGElement;
+  final _SVGSVGElementImpl ownerSVGElement;
 
-  final _SVGElementJs viewportElement;
+  final _SVGElementImpl viewportElement;
 
   String xmlbase;
 }
 
-class _SVGElementInstanceJs implements SVGElementInstance native "*SVGElementInstance" {
+class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance native "*SVGElementInstance" {
 
-  final _SVGElementInstanceListJs childNodes;
+  final _SVGElementInstanceListImpl childNodes;
 
-  final _SVGElementJs correspondingElement;
+  final _SVGElementImpl correspondingElement;
 
-  final _SVGUseElementJs correspondingUseElement;
+  final _SVGUseElementImpl correspondingUseElement;
 
-  final _SVGElementInstanceJs firstChild;
+  final _SVGElementInstanceImpl firstChild;
 
-  final _SVGElementInstanceJs lastChild;
+  final _SVGElementInstanceImpl lastChild;
 
-  final _SVGElementInstanceJs nextSibling;
+  final _SVGElementInstanceImpl nextSibling;
 
-  final _SVGElementInstanceJs parentNode;
+  final _SVGElementInstanceImpl parentNode;
 
-  final _SVGElementInstanceJs previousSibling;
+  final _SVGElementInstanceImpl previousSibling;
 
   _SVGElementInstanceEventsImpl get on() =>
     new _SVGElementInstanceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs event) native "return this.dispatchEvent(event);";
+  bool _dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 }
@@ -9830,30 +9778,30 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
   EventListenerList get unload() => _get('unload');
 }
 
-class _SVGElementInstanceListJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
+class _SVGElementInstanceListImpl implements SVGElementInstanceList native "*SVGElementInstanceList" {
 
   final int length;
 
-  _SVGElementInstanceJs item(int index) native;
+  _SVGElementInstanceImpl item(int index) native;
 }
 
-class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement native "*SVGEllipseElement" {
+class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElement native "*SVGEllipseElement" {
 
-  final _SVGAnimatedLengthJs cx;
+  final _SVGAnimatedLengthImpl cx;
 
-  final _SVGAnimatedLengthJs cy;
+  final _SVGAnimatedLengthImpl cy;
 
-  final _SVGAnimatedLengthJs rx;
+  final _SVGAnimatedLengthImpl rx;
 
-  final _SVGAnimatedLengthJs ry;
+  final _SVGAnimatedLengthImpl ry;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -9865,37 +9813,37 @@ class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement na
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGExceptionJs implements SVGException native "*SVGException" {
+class _SVGExceptionImpl implements SVGException native "*SVGException" {
 
   static final int SVG_INVALID_VALUE_ERR = 1;
 
@@ -9912,12 +9860,12 @@ class _SVGExceptionJs implements SVGException native "*SVGException" {
   String toString() native;
 }
 
-class _SVGExternalResourcesRequiredJs implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
+class _SVGExternalResourcesRequiredImpl implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 }
 
-class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement native "*SVGFEBlendElement" {
+class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -9931,35 +9879,35 @@ class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement na
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedStringJs in2;
+  final _SVGAnimatedStringImpl in2;
 
-  final _SVGAnimatedEnumerationJs mode;
+  final _SVGAnimatedEnumerationImpl mode;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
+class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
 
   static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -9971,61 +9919,61 @@ class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatr
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedEnumerationJs type;
+  final _SVGAnimatedEnumerationImpl type;
 
-  final _SVGAnimatedNumberListJs values;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  final _SVGAnimatedLengthJs height;
-
-  final _SVGAnimatedStringJs result;
-
-  final _SVGAnimatedLengthJs width;
-
-  final _SVGAnimatedLengthJs x;
-
-  final _SVGAnimatedLengthJs y;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringJs get _className() native "return this.className;";
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
-
-  _CSSValueJs getPresentationAttribute(String name) native;
-}
-
-class _SVGFEComponentTransferElementJs extends _SVGElementJs implements SVGFEComponentTransferElement native "*SVGFEComponentTransferElement" {
-
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedNumberListImpl values;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeElement native "*SVGFECompositeElement" {
+class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGFEComponentTransferElement native "*SVGFEComponentTransferElement" {
+
+  final _SVGAnimatedStringImpl in1;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  final _SVGAnimatedLengthImpl height;
+
+  final _SVGAnimatedStringImpl result;
+
+  final _SVGAnimatedLengthImpl width;
+
+  final _SVGAnimatedLengthImpl x;
+
+  final _SVGAnimatedLengthImpl y;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+}
+
+class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFECompositeElement native "*SVGFECompositeElement" {
 
   static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
@@ -10041,43 +9989,43 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedStringJs in2;
+  final _SVGAnimatedStringImpl in2;
 
-  final _SVGAnimatedNumberJs k1;
+  final _SVGAnimatedNumberImpl k1;
 
-  final _SVGAnimatedNumberJs k2;
+  final _SVGAnimatedNumberImpl k2;
 
-  final _SVGAnimatedNumberJs k3;
+  final _SVGAnimatedNumberImpl k3;
 
-  final _SVGAnimatedNumberJs k4;
+  final _SVGAnimatedNumberImpl k4;
 
-  final _SVGAnimatedEnumerationJs operator;
+  final _SVGAnimatedEnumerationImpl operator;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
+class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
 
   static final int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -10087,87 +10035,87 @@ class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvol
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  final _SVGAnimatedNumberJs bias;
+  final _SVGAnimatedNumberImpl bias;
 
-  final _SVGAnimatedNumberJs divisor;
+  final _SVGAnimatedNumberImpl divisor;
 
-  final _SVGAnimatedEnumerationJs edgeMode;
+  final _SVGAnimatedEnumerationImpl edgeMode;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedNumberListJs kernelMatrix;
+  final _SVGAnimatedNumberListImpl kernelMatrix;
 
-  final _SVGAnimatedNumberJs kernelUnitLengthX;
+  final _SVGAnimatedNumberImpl kernelUnitLengthX;
 
-  final _SVGAnimatedNumberJs kernelUnitLengthY;
+  final _SVGAnimatedNumberImpl kernelUnitLengthY;
 
-  final _SVGAnimatedIntegerJs orderX;
+  final _SVGAnimatedIntegerImpl orderX;
 
-  final _SVGAnimatedIntegerJs orderY;
+  final _SVGAnimatedIntegerImpl orderY;
 
-  final _SVGAnimatedBooleanJs preserveAlpha;
+  final _SVGAnimatedBooleanImpl preserveAlpha;
 
-  final _SVGAnimatedIntegerJs targetX;
+  final _SVGAnimatedIntegerImpl targetX;
 
-  final _SVGAnimatedIntegerJs targetY;
-
-  // From SVGFilterPrimitiveStandardAttributes
-
-  final _SVGAnimatedLengthJs height;
-
-  final _SVGAnimatedStringJs result;
-
-  final _SVGAnimatedLengthJs width;
-
-  final _SVGAnimatedLengthJs x;
-
-  final _SVGAnimatedLengthJs y;
-
-  // From SVGStylable
-
-  _SVGAnimatedStringJs get _className() native "return this.className;";
-
-  // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
-
-  _CSSValueJs getPresentationAttribute(String name) native;
-}
-
-class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffuseLightingElement native "*SVGFEDiffuseLightingElement" {
-
-  final _SVGAnimatedNumberJs diffuseConstant;
-
-  final _SVGAnimatedStringJs in1;
-
-  final _SVGAnimatedNumberJs kernelUnitLengthX;
-
-  final _SVGAnimatedNumberJs kernelUnitLengthY;
-
-  final _SVGAnimatedNumberJs surfaceScale;
+  final _SVGAnimatedIntegerImpl targetY;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
+class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFEDiffuseLightingElement native "*SVGFEDiffuseLightingElement" {
+
+  final _SVGAnimatedNumberImpl diffuseConstant;
+
+  final _SVGAnimatedStringImpl in1;
+
+  final _SVGAnimatedNumberImpl kernelUnitLengthX;
+
+  final _SVGAnimatedNumberImpl kernelUnitLengthY;
+
+  final _SVGAnimatedNumberImpl surfaceScale;
+
+  // From SVGFilterPrimitiveStandardAttributes
+
+  final _SVGAnimatedLengthImpl height;
+
+  final _SVGAnimatedStringImpl result;
+
+  final _SVGAnimatedLengthImpl width;
+
+  final _SVGAnimatedLengthImpl x;
+
+  final _SVGAnimatedLengthImpl y;
+
+  // From SVGStylable
+
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
+
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationImpl style;
+
+  _CSSValueImpl getPresentationAttribute(String name) native;
+}
+
+class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFEDisplacementMapElement native "*SVGFEDisplacementMapElement" {
 
   static final int SVG_CHANNEL_A = 4;
 
@@ -10179,156 +10127,156 @@ class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDispl
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedStringJs in2;
+  final _SVGAnimatedStringImpl in2;
 
-  final _SVGAnimatedNumberJs scale;
+  final _SVGAnimatedNumberImpl scale;
 
-  final _SVGAnimatedEnumerationJs xChannelSelector;
+  final _SVGAnimatedEnumerationImpl xChannelSelector;
 
-  final _SVGAnimatedEnumerationJs yChannelSelector;
+  final _SVGAnimatedEnumerationImpl yChannelSelector;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEDistantLightElementJs extends _SVGElementJs implements SVGFEDistantLightElement native "*SVGFEDistantLightElement" {
+class _SVGFEDistantLightElementImpl extends _SVGElementImpl implements SVGFEDistantLightElement native "*SVGFEDistantLightElement" {
 
-  final _SVGAnimatedNumberJs azimuth;
+  final _SVGAnimatedNumberImpl azimuth;
 
-  final _SVGAnimatedNumberJs elevation;
+  final _SVGAnimatedNumberImpl elevation;
 }
 
-class _SVGFEDropShadowElementJs extends _SVGElementJs implements SVGFEDropShadowElement native "*SVGFEDropShadowElement" {
+class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropShadowElement native "*SVGFEDropShadowElement" {
 
-  final _SVGAnimatedNumberJs dx;
+  final _SVGAnimatedNumberImpl dx;
 
-  final _SVGAnimatedNumberJs dy;
+  final _SVGAnimatedNumberImpl dy;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedNumberJs stdDeviationX;
+  final _SVGAnimatedNumberImpl stdDeviationX;
 
-  final _SVGAnimatedNumberJs stdDeviationY;
+  final _SVGAnimatedNumberImpl stdDeviationY;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEFloodElementJs extends _SVGElementJs implements SVGFEFloodElement native "*SVGFEFloodElement" {
+class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElement native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEFuncAElementJs extends _SVGComponentTransferFunctionElementJs implements SVGFEFuncAElement native "*SVGFEFuncAElement" {
+class _SVGFEFuncAElementImpl extends _SVGComponentTransferFunctionElementImpl implements SVGFEFuncAElement native "*SVGFEFuncAElement" {
 }
 
-class _SVGFEFuncBElementJs extends _SVGComponentTransferFunctionElementJs implements SVGFEFuncBElement native "*SVGFEFuncBElement" {
+class _SVGFEFuncBElementImpl extends _SVGComponentTransferFunctionElementImpl implements SVGFEFuncBElement native "*SVGFEFuncBElement" {
 }
 
-class _SVGFEFuncGElementJs extends _SVGComponentTransferFunctionElementJs implements SVGFEFuncGElement native "*SVGFEFuncGElement" {
+class _SVGFEFuncGElementImpl extends _SVGComponentTransferFunctionElementImpl implements SVGFEFuncGElement native "*SVGFEFuncGElement" {
 }
 
-class _SVGFEFuncRElementJs extends _SVGComponentTransferFunctionElementJs implements SVGFEFuncRElement native "*SVGFEFuncRElement" {
+class _SVGFEFuncRElementImpl extends _SVGComponentTransferFunctionElementImpl implements SVGFEFuncRElement native "*SVGFEFuncRElement" {
 }
 
-class _SVGFEGaussianBlurElementJs extends _SVGElementJs implements SVGFEGaussianBlurElement native "*SVGFEGaussianBlurElement" {
+class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaussianBlurElement native "*SVGFEGaussianBlurElement" {
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedNumberJs stdDeviationX;
+  final _SVGAnimatedNumberImpl stdDeviationX;
 
-  final _SVGAnimatedNumberJs stdDeviationY;
+  final _SVGAnimatedNumberImpl stdDeviationY;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEImageElementJs extends _SVGElementJs implements SVGFEImageElement native "*SVGFEImageElement" {
+class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElement native "*SVGFEImageElement" {
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGLangSpace
 
@@ -10338,60 +10286,60 @@ class _SVGFEImageElementJs extends _SVGElementJs implements SVGFEImageElement na
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEMergeElementJs extends _SVGElementJs implements SVGFEMergeElement native "*SVGFEMergeElement" {
+class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElement native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEMergeNodeElementJs extends _SVGElementJs implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
+class _SVGFEMergeNodeElementImpl extends _SVGElementImpl implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 }
 
-class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphologyElement native "*SVGFEMorphologyElement" {
+class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorphologyElement native "*SVGFEMorphologyElement" {
 
   static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -10399,155 +10347,155 @@ class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphology
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedEnumerationJs operator;
+  final _SVGAnimatedEnumerationImpl operator;
 
-  final _SVGAnimatedNumberJs radiusX;
+  final _SVGAnimatedNumberImpl radiusX;
 
-  final _SVGAnimatedNumberJs radiusY;
+  final _SVGAnimatedNumberImpl radiusY;
 
   void setRadius(num radiusX, num radiusY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEOffsetElementJs extends _SVGElementJs implements SVGFEOffsetElement native "*SVGFEOffsetElement" {
+class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElement native "*SVGFEOffsetElement" {
 
-  final _SVGAnimatedNumberJs dx;
+  final _SVGAnimatedNumberImpl dx;
 
-  final _SVGAnimatedNumberJs dy;
+  final _SVGAnimatedNumberImpl dy;
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFEPointLightElementJs extends _SVGElementJs implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
+class _SVGFEPointLightElementImpl extends _SVGElementImpl implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
 
-  final _SVGAnimatedNumberJs x;
+  final _SVGAnimatedNumberImpl x;
 
-  final _SVGAnimatedNumberJs y;
+  final _SVGAnimatedNumberImpl y;
 
-  final _SVGAnimatedNumberJs z;
+  final _SVGAnimatedNumberImpl z;
 }
 
-class _SVGFESpecularLightingElementJs extends _SVGElementJs implements SVGFESpecularLightingElement native "*SVGFESpecularLightingElement" {
+class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFESpecularLightingElement native "*SVGFESpecularLightingElement" {
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
-  final _SVGAnimatedNumberJs specularConstant;
+  final _SVGAnimatedNumberImpl specularConstant;
 
-  final _SVGAnimatedNumberJs specularExponent;
+  final _SVGAnimatedNumberImpl specularExponent;
 
-  final _SVGAnimatedNumberJs surfaceScale;
+  final _SVGAnimatedNumberImpl surfaceScale;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFESpotLightElementJs extends _SVGElementJs implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
+class _SVGFESpotLightElementImpl extends _SVGElementImpl implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
 
-  final _SVGAnimatedNumberJs limitingConeAngle;
+  final _SVGAnimatedNumberImpl limitingConeAngle;
 
-  final _SVGAnimatedNumberJs pointsAtX;
+  final _SVGAnimatedNumberImpl pointsAtX;
 
-  final _SVGAnimatedNumberJs pointsAtY;
+  final _SVGAnimatedNumberImpl pointsAtY;
 
-  final _SVGAnimatedNumberJs pointsAtZ;
+  final _SVGAnimatedNumberImpl pointsAtZ;
 
-  final _SVGAnimatedNumberJs specularExponent;
+  final _SVGAnimatedNumberImpl specularExponent;
 
-  final _SVGAnimatedNumberJs x;
+  final _SVGAnimatedNumberImpl x;
 
-  final _SVGAnimatedNumberJs y;
+  final _SVGAnimatedNumberImpl y;
 
-  final _SVGAnimatedNumberJs z;
+  final _SVGAnimatedNumberImpl z;
 }
 
-class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement native "*SVGFETileElement" {
+class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement native "*SVGFETileElement" {
 
-  final _SVGAnimatedStringJs in1;
+  final _SVGAnimatedStringImpl in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
+class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
 
   static final int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -10561,63 +10509,63 @@ class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulence
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  final _SVGAnimatedNumberJs baseFrequencyX;
+  final _SVGAnimatedNumberImpl baseFrequencyX;
 
-  final _SVGAnimatedNumberJs baseFrequencyY;
+  final _SVGAnimatedNumberImpl baseFrequencyY;
 
-  final _SVGAnimatedIntegerJs numOctaves;
+  final _SVGAnimatedIntegerImpl numOctaves;
 
-  final _SVGAnimatedNumberJs seed;
+  final _SVGAnimatedNumberImpl seed;
 
-  final _SVGAnimatedEnumerationJs stitchTiles;
+  final _SVGAnimatedEnumerationImpl stitchTiles;
 
-  final _SVGAnimatedEnumerationJs type;
+  final _SVGAnimatedEnumerationImpl type;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement native "*SVGFilterElement" {
+class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement native "*SVGFilterElement" {
 
-  final _SVGAnimatedIntegerJs filterResX;
+  final _SVGAnimatedIntegerImpl filterResX;
 
-  final _SVGAnimatedIntegerJs filterResY;
+  final _SVGAnimatedIntegerImpl filterResY;
 
-  final _SVGAnimatedEnumerationJs filterUnits;
+  final _SVGAnimatedEnumerationImpl filterUnits;
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedEnumerationJs primitiveUnits;
+  final _SVGAnimatedEnumerationImpl primitiveUnits;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGLangSpace
 
@@ -10627,73 +10575,73 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGFilterPrimitiveStandardAttributesJs extends _SVGStylableJs implements SVGFilterPrimitiveStandardAttributes native "*SVGFilterPrimitiveStandardAttributes" {
+class _SVGFilterPrimitiveStandardAttributesImpl extends _SVGStylableImpl implements SVGFilterPrimitiveStandardAttributes native "*SVGFilterPrimitiveStandardAttributes" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedStringJs result;
+  final _SVGAnimatedStringImpl result;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 }
 
-class _SVGFitToViewBoxJs implements SVGFitToViewBox native "*SVGFitToViewBox" {
+class _SVGFitToViewBoxImpl implements SVGFitToViewBox native "*SVGFitToViewBox" {
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 }
 
-class _SVGFontElementJs extends _SVGElementJs implements SVGFontElement native "*SVGFontElement" {
+class _SVGFontElementImpl extends _SVGElementImpl implements SVGFontElement native "*SVGFontElement" {
 }
 
-class _SVGFontFaceElementJs extends _SVGElementJs implements SVGFontFaceElement native "*SVGFontFaceElement" {
+class _SVGFontFaceElementImpl extends _SVGElementImpl implements SVGFontFaceElement native "*SVGFontFaceElement" {
 }
 
-class _SVGFontFaceFormatElementJs extends _SVGElementJs implements SVGFontFaceFormatElement native "*SVGFontFaceFormatElement" {
+class _SVGFontFaceFormatElementImpl extends _SVGElementImpl implements SVGFontFaceFormatElement native "*SVGFontFaceFormatElement" {
 }
 
-class _SVGFontFaceNameElementJs extends _SVGElementJs implements SVGFontFaceNameElement native "*SVGFontFaceNameElement" {
+class _SVGFontFaceNameElementImpl extends _SVGElementImpl implements SVGFontFaceNameElement native "*SVGFontFaceNameElement" {
 }
 
-class _SVGFontFaceSrcElementJs extends _SVGElementJs implements SVGFontFaceSrcElement native "*SVGFontFaceSrcElement" {
+class _SVGFontFaceSrcElementImpl extends _SVGElementImpl implements SVGFontFaceSrcElement native "*SVGFontFaceSrcElement" {
 }
 
-class _SVGFontFaceUriElementJs extends _SVGElementJs implements SVGFontFaceUriElement native "*SVGFontFaceUriElement" {
+class _SVGFontFaceUriElementImpl extends _SVGElementImpl implements SVGFontFaceUriElement native "*SVGFontFaceUriElement" {
 }
 
-class _SVGForeignObjectElementJs extends _SVGElementJs implements SVGForeignObjectElement native "*SVGForeignObjectElement" {
+class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeignObjectElement native "*SVGForeignObjectElement" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -10705,45 +10653,45 @@ class _SVGForeignObjectElementJs extends _SVGElementJs implements SVGForeignObje
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGElement" {
+class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*SVGGElement" {
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -10755,40 +10703,40 @@ class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGE
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGGlyphElementJs extends _SVGElementJs implements SVGGlyphElement native "*SVGGlyphElement" {
+class _SVGGlyphElementImpl extends _SVGElementImpl implements SVGGlyphElement native "*SVGGlyphElement" {
 }
 
-class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement native "*SVGGlyphRefElement" {
+class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElement native "*SVGGlyphRefElement" {
 
   num dx;
 
@@ -10804,19 +10752,19 @@ class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement 
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement native "*SVGGradientElement" {
+class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElement native "*SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_PAD = 1;
 
@@ -10826,56 +10774,56 @@ class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement 
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  final _SVGAnimatedTransformListJs gradientTransform;
+  final _SVGAnimatedTransformListImpl gradientTransform;
 
-  final _SVGAnimatedEnumerationJs gradientUnits;
+  final _SVGAnimatedEnumerationImpl gradientUnits;
 
-  final _SVGAnimatedEnumerationJs spreadMethod;
+  final _SVGAnimatedEnumerationImpl spreadMethod;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGHKernElementJs extends _SVGElementJs implements SVGHKernElement native "*SVGHKernElement" {
+class _SVGHKernElementImpl extends _SVGElementImpl implements SVGHKernElement native "*SVGHKernElement" {
 }
 
-class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native "*SVGImageElement" {
+class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement native "*SVGImageElement" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -10887,44 +10835,44 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGLangSpaceJs implements SVGLangSpace native "*SVGLangSpace" {
+class _SVGLangSpaceImpl implements SVGLangSpace native "*SVGLangSpace" {
 
   String xmllang;
 
   String xmlspace;
 }
 
-class _SVGLengthJs implements SVGLength native "*SVGLength" {
+class _SVGLengthImpl implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
 
@@ -10961,42 +10909,42 @@ class _SVGLengthJs implements SVGLength native "*SVGLength" {
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
 }
 
-class _SVGLengthListJs implements SVGLengthList native "*SVGLengthList" {
+class _SVGLengthListImpl implements SVGLengthList native "*SVGLengthList" {
 
   final int numberOfItems;
 
-  _SVGLengthJs appendItem(_SVGLengthJs item) native;
+  _SVGLengthImpl appendItem(_SVGLengthImpl item) native;
 
   void clear() native;
 
-  _SVGLengthJs getItem(int index) native;
+  _SVGLengthImpl getItem(int index) native;
 
-  _SVGLengthJs initialize(_SVGLengthJs item) native;
+  _SVGLengthImpl initialize(_SVGLengthImpl item) native;
 
-  _SVGLengthJs insertItemBefore(_SVGLengthJs item, int index) native;
+  _SVGLengthImpl insertItemBefore(_SVGLengthImpl item, int index) native;
 
-  _SVGLengthJs removeItem(int index) native;
+  _SVGLengthImpl removeItem(int index) native;
 
-  _SVGLengthJs replaceItem(_SVGLengthJs item, int index) native;
+  _SVGLengthImpl replaceItem(_SVGLengthImpl item, int index) native;
 }
 
-class _SVGLineElementJs extends _SVGElementJs implements SVGLineElement native "*SVGLineElement" {
+class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement native "*SVGLineElement" {
 
-  final _SVGAnimatedLengthJs x1;
+  final _SVGAnimatedLengthImpl x1;
 
-  final _SVGAnimatedLengthJs x2;
+  final _SVGAnimatedLengthImpl x2;
 
-  final _SVGAnimatedLengthJs y1;
+  final _SVGAnimatedLengthImpl y1;
 
-  final _SVGAnimatedLengthJs y2;
+  final _SVGAnimatedLengthImpl y2;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11008,74 +10956,74 @@ class _SVGLineElementJs extends _SVGElementJs implements SVGLineElement native "
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGLinearGradientElementJs extends _SVGGradientElementJs implements SVGLinearGradientElement native "*SVGLinearGradientElement" {
+class _SVGLinearGradientElementImpl extends _SVGGradientElementImpl implements SVGLinearGradientElement native "*SVGLinearGradientElement" {
 
-  final _SVGAnimatedLengthJs x1;
+  final _SVGAnimatedLengthImpl x1;
 
-  final _SVGAnimatedLengthJs x2;
+  final _SVGAnimatedLengthImpl x2;
 
-  final _SVGAnimatedLengthJs y1;
+  final _SVGAnimatedLengthImpl y1;
 
-  final _SVGAnimatedLengthJs y2;
+  final _SVGAnimatedLengthImpl y2;
 }
 
-class _SVGLocatableJs implements SVGLocatable native "*SVGLocatable" {
+class _SVGLocatableImpl implements SVGLocatable native "*SVGLocatable" {
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGMPathElementJs extends _SVGElementJs implements SVGMPathElement native "*SVGMPathElement" {
+class _SVGMPathElementImpl extends _SVGElementImpl implements SVGMPathElement native "*SVGMPathElement" {
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 }
 
-class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement native "*SVGMarkerElement" {
+class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -11089,21 +11037,21 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  final _SVGAnimatedLengthJs markerHeight;
+  final _SVGAnimatedLengthImpl markerHeight;
 
-  final _SVGAnimatedEnumerationJs markerUnits;
+  final _SVGAnimatedEnumerationImpl markerUnits;
 
-  final _SVGAnimatedLengthJs markerWidth;
+  final _SVGAnimatedLengthImpl markerWidth;
 
-  final _SVGAnimatedAngleJs orientAngle;
+  final _SVGAnimatedAngleImpl orientAngle;
 
-  final _SVGAnimatedEnumerationJs orientType;
+  final _SVGAnimatedEnumerationImpl orientType;
 
-  final _SVGAnimatedLengthJs refX;
+  final _SVGAnimatedLengthImpl refX;
 
-  final _SVGAnimatedLengthJs refY;
+  final _SVGAnimatedLengthImpl refY;
 
-  void setOrientToAngle(_SVGAngleJs angle) native;
+  void setOrientToAngle(_SVGAngleImpl angle) native;
 
   void setOrientToAuto() native;
 
@@ -11115,45 +11063,45 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 }
 
-class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "*SVGMaskElement" {
+class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement native "*SVGMaskElement" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedEnumerationJs maskContentUnits;
+  final _SVGAnimatedEnumerationImpl maskContentUnits;
 
-  final _SVGAnimatedEnumerationJs maskUnits;
+  final _SVGAnimatedEnumerationImpl maskUnits;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11165,19 +11113,19 @@ class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGMatrixJs implements SVGMatrix native "*SVGMatrix" {
+class _SVGMatrixImpl implements SVGMatrix native "*SVGMatrix" {
 
   num a;
 
@@ -11191,60 +11139,60 @@ class _SVGMatrixJs implements SVGMatrix native "*SVGMatrix" {
 
   num f;
 
-  _SVGMatrixJs flipX() native;
+  _SVGMatrixImpl flipX() native;
 
-  _SVGMatrixJs flipY() native;
+  _SVGMatrixImpl flipY() native;
 
-  _SVGMatrixJs inverse() native;
+  _SVGMatrixImpl inverse() native;
 
-  _SVGMatrixJs multiply(_SVGMatrixJs secondMatrix) native;
+  _SVGMatrixImpl multiply(_SVGMatrixImpl secondMatrix) native;
 
-  _SVGMatrixJs rotate(num angle) native;
+  _SVGMatrixImpl rotate(num angle) native;
 
-  _SVGMatrixJs rotateFromVector(num x, num y) native;
+  _SVGMatrixImpl rotateFromVector(num x, num y) native;
 
-  _SVGMatrixJs scale(num scaleFactor) native;
+  _SVGMatrixImpl scale(num scaleFactor) native;
 
-  _SVGMatrixJs scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+  _SVGMatrixImpl scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
-  _SVGMatrixJs skewX(num angle) native;
+  _SVGMatrixImpl skewX(num angle) native;
 
-  _SVGMatrixJs skewY(num angle) native;
+  _SVGMatrixImpl skewY(num angle) native;
 
-  _SVGMatrixJs translate(num x, num y) native;
+  _SVGMatrixImpl translate(num x, num y) native;
 }
 
-class _SVGMetadataElementJs extends _SVGElementJs implements SVGMetadataElement native "*SVGMetadataElement" {
+class _SVGMetadataElementImpl extends _SVGElementImpl implements SVGMetadataElement native "*SVGMetadataElement" {
 }
 
-class _SVGMissingGlyphElementJs extends _SVGElementJs implements SVGMissingGlyphElement native "*SVGMissingGlyphElement" {
+class _SVGMissingGlyphElementImpl extends _SVGElementImpl implements SVGMissingGlyphElement native "*SVGMissingGlyphElement" {
 }
 
-class _SVGNumberJs implements SVGNumber native "*SVGNumber" {
+class _SVGNumberImpl implements SVGNumber native "*SVGNumber" {
 
   num value;
 }
 
-class _SVGNumberListJs implements SVGNumberList native "*SVGNumberList" {
+class _SVGNumberListImpl implements SVGNumberList native "*SVGNumberList" {
 
   final int numberOfItems;
 
-  _SVGNumberJs appendItem(_SVGNumberJs item) native;
+  _SVGNumberImpl appendItem(_SVGNumberImpl item) native;
 
   void clear() native;
 
-  _SVGNumberJs getItem(int index) native;
+  _SVGNumberImpl getItem(int index) native;
 
-  _SVGNumberJs initialize(_SVGNumberJs item) native;
+  _SVGNumberImpl initialize(_SVGNumberImpl item) native;
 
-  _SVGNumberJs insertItemBefore(_SVGNumberJs item, int index) native;
+  _SVGNumberImpl insertItemBefore(_SVGNumberImpl item, int index) native;
 
-  _SVGNumberJs removeItem(int index) native;
+  _SVGNumberImpl removeItem(int index) native;
 
-  _SVGNumberJs replaceItem(_SVGNumberJs item, int index) native;
+  _SVGNumberImpl replaceItem(_SVGNumberImpl item, int index) native;
 }
 
-class _SVGPaintJs extends _SVGColorJs implements SVGPaint native "*SVGPaint" {
+class _SVGPaintImpl extends _SVGColorImpl implements SVGPaint native "*SVGPaint" {
 
   static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 
@@ -11275,69 +11223,69 @@ class _SVGPaintJs extends _SVGColorJs implements SVGPaint native "*SVGPaint" {
   void setUri(String uri) native;
 }
 
-class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "*SVGPathElement" {
+class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement native "*SVGPathElement" {
 
-  final _SVGPathSegListJs animatedNormalizedPathSegList;
+  final _SVGPathSegListImpl animatedNormalizedPathSegList;
 
-  final _SVGPathSegListJs animatedPathSegList;
+  final _SVGPathSegListImpl animatedPathSegList;
 
-  final _SVGPathSegListJs normalizedPathSegList;
+  final _SVGPathSegListImpl normalizedPathSegList;
 
-  final _SVGAnimatedNumberJs pathLength;
+  final _SVGAnimatedNumberImpl pathLength;
 
-  final _SVGPathSegListJs pathSegList;
+  final _SVGPathSegListImpl pathSegList;
 
-  _SVGPathSegArcAbsJs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  _SVGPathSegArcAbsImpl createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  _SVGPathSegArcRelJs createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  _SVGPathSegArcRelImpl createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  _SVGPathSegClosePathJs createSVGPathSegClosePath() native;
+  _SVGPathSegClosePathImpl createSVGPathSegClosePath() native;
 
-  _SVGPathSegCurvetoCubicAbsJs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+  _SVGPathSegCurvetoCubicAbsImpl createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  _SVGPathSegCurvetoCubicRelJs createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+  _SVGPathSegCurvetoCubicRelImpl createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  _SVGPathSegCurvetoCubicSmoothAbsJs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+  _SVGPathSegCurvetoCubicSmoothAbsImpl createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
-  _SVGPathSegCurvetoCubicSmoothRelJs createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+  _SVGPathSegCurvetoCubicSmoothRelImpl createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
-  _SVGPathSegCurvetoQuadraticAbsJs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+  _SVGPathSegCurvetoQuadraticAbsImpl createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
-  _SVGPathSegCurvetoQuadraticRelJs createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+  _SVGPathSegCurvetoQuadraticRelImpl createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
-  _SVGPathSegCurvetoQuadraticSmoothAbsJs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+  _SVGPathSegCurvetoQuadraticSmoothAbsImpl createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
-  _SVGPathSegCurvetoQuadraticSmoothRelJs createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+  _SVGPathSegCurvetoQuadraticSmoothRelImpl createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
-  _SVGPathSegLinetoAbsJs createSVGPathSegLinetoAbs(num x, num y) native;
+  _SVGPathSegLinetoAbsImpl createSVGPathSegLinetoAbs(num x, num y) native;
 
-  _SVGPathSegLinetoHorizontalAbsJs createSVGPathSegLinetoHorizontalAbs(num x) native;
+  _SVGPathSegLinetoHorizontalAbsImpl createSVGPathSegLinetoHorizontalAbs(num x) native;
 
-  _SVGPathSegLinetoHorizontalRelJs createSVGPathSegLinetoHorizontalRel(num x) native;
+  _SVGPathSegLinetoHorizontalRelImpl createSVGPathSegLinetoHorizontalRel(num x) native;
 
-  _SVGPathSegLinetoRelJs createSVGPathSegLinetoRel(num x, num y) native;
+  _SVGPathSegLinetoRelImpl createSVGPathSegLinetoRel(num x, num y) native;
 
-  _SVGPathSegLinetoVerticalAbsJs createSVGPathSegLinetoVerticalAbs(num y) native;
+  _SVGPathSegLinetoVerticalAbsImpl createSVGPathSegLinetoVerticalAbs(num y) native;
 
-  _SVGPathSegLinetoVerticalRelJs createSVGPathSegLinetoVerticalRel(num y) native;
+  _SVGPathSegLinetoVerticalRelImpl createSVGPathSegLinetoVerticalRel(num y) native;
 
-  _SVGPathSegMovetoAbsJs createSVGPathSegMovetoAbs(num x, num y) native;
+  _SVGPathSegMovetoAbsImpl createSVGPathSegMovetoAbs(num x, num y) native;
 
-  _SVGPathSegMovetoRelJs createSVGPathSegMovetoRel(num x, num y) native;
+  _SVGPathSegMovetoRelImpl createSVGPathSegMovetoRel(num x, num y) native;
 
   int getPathSegAtLength(num distance) native;
 
-  _SVGPointJs getPointAtLength(num distance) native;
+  _SVGPointImpl getPointAtLength(num distance) native;
 
   num getTotalLength() native;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11349,37 +11297,37 @@ class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGPathSegJs implements SVGPathSeg native "*SVGPathSeg" {
+class _SVGPathSegImpl implements SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
@@ -11426,7 +11374,7 @@ class _SVGPathSegJs implements SVGPathSeg native "*SVGPathSeg" {
   final String pathSegTypeAsLetter;
 }
 
-class _SVGPathSegArcAbsJs extends _SVGPathSegJs implements SVGPathSegArcAbs native "*SVGPathSegArcAbs" {
+class _SVGPathSegArcAbsImpl extends _SVGPathSegImpl implements SVGPathSegArcAbs native "*SVGPathSegArcAbs" {
 
   num angle;
 
@@ -11443,7 +11391,7 @@ class _SVGPathSegArcAbsJs extends _SVGPathSegJs implements SVGPathSegArcAbs nati
   num y;
 }
 
-class _SVGPathSegArcRelJs extends _SVGPathSegJs implements SVGPathSegArcRel native "*SVGPathSegArcRel" {
+class _SVGPathSegArcRelImpl extends _SVGPathSegImpl implements SVGPathSegArcRel native "*SVGPathSegArcRel" {
 
   num angle;
 
@@ -11460,10 +11408,10 @@ class _SVGPathSegArcRelJs extends _SVGPathSegJs implements SVGPathSegArcRel nati
   num y;
 }
 
-class _SVGPathSegClosePathJs extends _SVGPathSegJs implements SVGPathSegClosePath native "*SVGPathSegClosePath" {
+class _SVGPathSegClosePathImpl extends _SVGPathSegImpl implements SVGPathSegClosePath native "*SVGPathSegClosePath" {
 }
 
-class _SVGPathSegCurvetoCubicAbsJs extends _SVGPathSegJs implements SVGPathSegCurvetoCubicAbs native "*SVGPathSegCurvetoCubicAbs" {
+class _SVGPathSegCurvetoCubicAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicAbs native "*SVGPathSegCurvetoCubicAbs" {
 
   num x;
 
@@ -11478,7 +11426,7 @@ class _SVGPathSegCurvetoCubicAbsJs extends _SVGPathSegJs implements SVGPathSegCu
   num y2;
 }
 
-class _SVGPathSegCurvetoCubicRelJs extends _SVGPathSegJs implements SVGPathSegCurvetoCubicRel native "*SVGPathSegCurvetoCubicRel" {
+class _SVGPathSegCurvetoCubicRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicRel native "*SVGPathSegCurvetoCubicRel" {
 
   num x;
 
@@ -11493,7 +11441,7 @@ class _SVGPathSegCurvetoCubicRelJs extends _SVGPathSegJs implements SVGPathSegCu
   num y2;
 }
 
-class _SVGPathSegCurvetoCubicSmoothAbsJs extends _SVGPathSegJs implements SVGPathSegCurvetoCubicSmoothAbs native "*SVGPathSegCurvetoCubicSmoothAbs" {
+class _SVGPathSegCurvetoCubicSmoothAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicSmoothAbs native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
   num x;
 
@@ -11504,7 +11452,7 @@ class _SVGPathSegCurvetoCubicSmoothAbsJs extends _SVGPathSegJs implements SVGPat
   num y2;
 }
 
-class _SVGPathSegCurvetoCubicSmoothRelJs extends _SVGPathSegJs implements SVGPathSegCurvetoCubicSmoothRel native "*SVGPathSegCurvetoCubicSmoothRel" {
+class _SVGPathSegCurvetoCubicSmoothRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoCubicSmoothRel native "*SVGPathSegCurvetoCubicSmoothRel" {
 
   num x;
 
@@ -11515,7 +11463,7 @@ class _SVGPathSegCurvetoCubicSmoothRelJs extends _SVGPathSegJs implements SVGPat
   num y2;
 }
 
-class _SVGPathSegCurvetoQuadraticAbsJs extends _SVGPathSegJs implements SVGPathSegCurvetoQuadraticAbs native "*SVGPathSegCurvetoQuadraticAbs" {
+class _SVGPathSegCurvetoQuadraticAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticAbs native "*SVGPathSegCurvetoQuadraticAbs" {
 
   num x;
 
@@ -11526,7 +11474,7 @@ class _SVGPathSegCurvetoQuadraticAbsJs extends _SVGPathSegJs implements SVGPathS
   num y1;
 }
 
-class _SVGPathSegCurvetoQuadraticRelJs extends _SVGPathSegJs implements SVGPathSegCurvetoQuadraticRel native "*SVGPathSegCurvetoQuadraticRel" {
+class _SVGPathSegCurvetoQuadraticRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticRel native "*SVGPathSegCurvetoQuadraticRel" {
 
   num x;
 
@@ -11537,114 +11485,114 @@ class _SVGPathSegCurvetoQuadraticRelJs extends _SVGPathSegJs implements SVGPathS
   num y1;
 }
 
-class _SVGPathSegCurvetoQuadraticSmoothAbsJs extends _SVGPathSegJs implements SVGPathSegCurvetoQuadraticSmoothAbs native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
+class _SVGPathSegCurvetoQuadraticSmoothAbsImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticSmoothAbs native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
 
   num x;
 
   num y;
 }
 
-class _SVGPathSegCurvetoQuadraticSmoothRelJs extends _SVGPathSegJs implements SVGPathSegCurvetoQuadraticSmoothRel native "*SVGPathSegCurvetoQuadraticSmoothRel" {
+class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implements SVGPathSegCurvetoQuadraticSmoothRel native "*SVGPathSegCurvetoQuadraticSmoothRel" {
 
   num x;
 
   num y;
 }
 
-class _SVGPathSegLinetoAbsJs extends _SVGPathSegJs implements SVGPathSegLinetoAbs native "*SVGPathSegLinetoAbs" {
+class _SVGPathSegLinetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoAbs native "*SVGPathSegLinetoAbs" {
 
   num x;
 
   num y;
 }
 
-class _SVGPathSegLinetoHorizontalAbsJs extends _SVGPathSegJs implements SVGPathSegLinetoHorizontalAbs native "*SVGPathSegLinetoHorizontalAbs" {
+class _SVGPathSegLinetoHorizontalAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoHorizontalAbs native "*SVGPathSegLinetoHorizontalAbs" {
 
   num x;
 }
 
-class _SVGPathSegLinetoHorizontalRelJs extends _SVGPathSegJs implements SVGPathSegLinetoHorizontalRel native "*SVGPathSegLinetoHorizontalRel" {
+class _SVGPathSegLinetoHorizontalRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoHorizontalRel native "*SVGPathSegLinetoHorizontalRel" {
 
   num x;
 }
 
-class _SVGPathSegLinetoRelJs extends _SVGPathSegJs implements SVGPathSegLinetoRel native "*SVGPathSegLinetoRel" {
+class _SVGPathSegLinetoRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoRel native "*SVGPathSegLinetoRel" {
 
   num x;
 
   num y;
 }
 
-class _SVGPathSegLinetoVerticalAbsJs extends _SVGPathSegJs implements SVGPathSegLinetoVerticalAbs native "*SVGPathSegLinetoVerticalAbs" {
+class _SVGPathSegLinetoVerticalAbsImpl extends _SVGPathSegImpl implements SVGPathSegLinetoVerticalAbs native "*SVGPathSegLinetoVerticalAbs" {
 
   num y;
 }
 
-class _SVGPathSegLinetoVerticalRelJs extends _SVGPathSegJs implements SVGPathSegLinetoVerticalRel native "*SVGPathSegLinetoVerticalRel" {
+class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPathSegLinetoVerticalRel native "*SVGPathSegLinetoVerticalRel" {
 
   num y;
 }
 
-class _SVGPathSegListJs implements SVGPathSegList native "*SVGPathSegList" {
+class _SVGPathSegListImpl implements SVGPathSegList native "*SVGPathSegList" {
 
   final int numberOfItems;
 
-  _SVGPathSegJs appendItem(_SVGPathSegJs newItem) native;
+  _SVGPathSegImpl appendItem(_SVGPathSegImpl newItem) native;
 
   void clear() native;
 
-  _SVGPathSegJs getItem(int index) native;
+  _SVGPathSegImpl getItem(int index) native;
 
-  _SVGPathSegJs initialize(_SVGPathSegJs newItem) native;
+  _SVGPathSegImpl initialize(_SVGPathSegImpl newItem) native;
 
-  _SVGPathSegJs insertItemBefore(_SVGPathSegJs newItem, int index) native;
+  _SVGPathSegImpl insertItemBefore(_SVGPathSegImpl newItem, int index) native;
 
-  _SVGPathSegJs removeItem(int index) native;
+  _SVGPathSegImpl removeItem(int index) native;
 
-  _SVGPathSegJs replaceItem(_SVGPathSegJs newItem, int index) native;
+  _SVGPathSegImpl replaceItem(_SVGPathSegImpl newItem, int index) native;
 }
 
-class _SVGPathSegMovetoAbsJs extends _SVGPathSegJs implements SVGPathSegMovetoAbs native "*SVGPathSegMovetoAbs" {
+class _SVGPathSegMovetoAbsImpl extends _SVGPathSegImpl implements SVGPathSegMovetoAbs native "*SVGPathSegMovetoAbs" {
 
   num x;
 
   num y;
 }
 
-class _SVGPathSegMovetoRelJs extends _SVGPathSegJs implements SVGPathSegMovetoRel native "*SVGPathSegMovetoRel" {
+class _SVGPathSegMovetoRelImpl extends _SVGPathSegImpl implements SVGPathSegMovetoRel native "*SVGPathSegMovetoRel" {
 
   num x;
 
   num y;
 }
 
-class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement native "*SVGPatternElement" {
+class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElement native "*SVGPatternElement" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedEnumerationJs patternContentUnits;
+  final _SVGAnimatedEnumerationImpl patternContentUnits;
 
-  final _SVGAnimatedTransformListJs patternTransform;
+  final _SVGAnimatedTransformListImpl patternTransform;
 
-  final _SVGAnimatedEnumerationJs patternUnits;
+  final _SVGAnimatedEnumerationImpl patternUnits;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11656,65 +11604,65 @@ class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement na
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 }
 
-class _SVGPointJs implements SVGPoint native "*SVGPoint" {
+class _SVGPointImpl implements SVGPoint native "*SVGPoint" {
 
   num x;
 
   num y;
 
-  _SVGPointJs matrixTransform(_SVGMatrixJs matrix) native;
+  _SVGPointImpl matrixTransform(_SVGMatrixImpl matrix) native;
 }
 
-class _SVGPointListJs implements SVGPointList native "*SVGPointList" {
+class _SVGPointListImpl implements SVGPointList native "*SVGPointList" {
 
   final int numberOfItems;
 
-  _SVGPointJs appendItem(_SVGPointJs item) native;
+  _SVGPointImpl appendItem(_SVGPointImpl item) native;
 
   void clear() native;
 
-  _SVGPointJs getItem(int index) native;
+  _SVGPointImpl getItem(int index) native;
 
-  _SVGPointJs initialize(_SVGPointJs item) native;
+  _SVGPointImpl initialize(_SVGPointImpl item) native;
 
-  _SVGPointJs insertItemBefore(_SVGPointJs item, int index) native;
+  _SVGPointImpl insertItemBefore(_SVGPointImpl item, int index) native;
 
-  _SVGPointJs removeItem(int index) native;
+  _SVGPointImpl removeItem(int index) native;
 
-  _SVGPointJs replaceItem(_SVGPointJs item, int index) native;
+  _SVGPointImpl replaceItem(_SVGPointImpl item, int index) native;
 }
 
-class _SVGPolygonElementJs extends _SVGElementJs implements SVGPolygonElement native "*SVGPolygonElement" {
+class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElement native "*SVGPolygonElement" {
 
-  final _SVGPointListJs animatedPoints;
+  final _SVGPointListImpl animatedPoints;
 
-  final _SVGPointListJs points;
+  final _SVGPointListImpl points;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11726,49 +11674,49 @@ class _SVGPolygonElementJs extends _SVGElementJs implements SVGPolygonElement na
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement native "*SVGPolylineElement" {
+class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElement native "*SVGPolylineElement" {
 
-  final _SVGPointListJs animatedPoints;
+  final _SVGPointListImpl animatedPoints;
 
-  final _SVGPointListJs points;
+  final _SVGPointListImpl points;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11780,37 +11728,37 @@ class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement 
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGPreserveAspectRatioJs implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
+class _SVGPreserveAspectRatioImpl implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_MEETORSLICE_MEET = 1;
 
@@ -11845,20 +11793,20 @@ class _SVGPreserveAspectRatioJs implements SVGPreserveAspectRatio native "*SVGPr
   int meetOrSlice;
 }
 
-class _SVGRadialGradientElementJs extends _SVGGradientElementJs implements SVGRadialGradientElement native "*SVGRadialGradientElement" {
+class _SVGRadialGradientElementImpl extends _SVGGradientElementImpl implements SVGRadialGradientElement native "*SVGRadialGradientElement" {
 
-  final _SVGAnimatedLengthJs cx;
+  final _SVGAnimatedLengthImpl cx;
 
-  final _SVGAnimatedLengthJs cy;
+  final _SVGAnimatedLengthImpl cy;
 
-  final _SVGAnimatedLengthJs fx;
+  final _SVGAnimatedLengthImpl fx;
 
-  final _SVGAnimatedLengthJs fy;
+  final _SVGAnimatedLengthImpl fy;
 
-  final _SVGAnimatedLengthJs r;
+  final _SVGAnimatedLengthImpl r;
 }
 
-class _SVGRectJs implements SVGRect native "*SVGRect" {
+class _SVGRectImpl implements SVGRect native "*SVGRect" {
 
   num height;
 
@@ -11869,27 +11817,27 @@ class _SVGRectJs implements SVGRect native "*SVGRect" {
   num y;
 }
 
-class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "*SVGRectElement" {
+class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement native "*SVGRectElement" {
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGAnimatedLengthJs rx;
+  final _SVGAnimatedLengthImpl rx;
 
-  final _SVGAnimatedLengthJs ry;
+  final _SVGAnimatedLengthImpl ry;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -11901,37 +11849,37 @@ class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGRenderingIntentJs implements SVGRenderingIntent native "*SVGRenderingIntent" {
+class _SVGRenderingIntentImpl implements SVGRenderingIntent native "*SVGRenderingIntent" {
 
   static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
@@ -11946,7 +11894,7 @@ class _SVGRenderingIntentJs implements SVGRenderingIntent native "*SVGRenderingI
   static final int RENDERING_INTENT_UNKNOWN = 0;
 }
 
-class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*SVGSVGElement" {
+class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native "*SVGSVGElement" {
 
   String contentScriptType;
 
@@ -11954,9 +11902,9 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   num currentScale;
 
-  final _SVGPointJs currentTranslate;
+  final _SVGPointImpl currentTranslate;
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
   final num pixelUnitToMillimeterX;
 
@@ -11968,35 +11916,35 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   bool useCurrentView;
 
-  final _SVGRectJs viewport;
+  final _SVGRectImpl viewport;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   bool animationsPaused() native;
 
-  bool checkEnclosure(_SVGElementJs element, _SVGRectJs rect) native;
+  bool checkEnclosure(_SVGElementImpl element, _SVGRectImpl rect) native;
 
-  bool checkIntersection(_SVGElementJs element, _SVGRectJs rect) native;
+  bool checkIntersection(_SVGElementImpl element, _SVGRectImpl rect) native;
 
-  _SVGAngleJs createSVGAngle() native;
+  _SVGAngleImpl createSVGAngle() native;
 
-  _SVGLengthJs createSVGLength() native;
+  _SVGLengthImpl createSVGLength() native;
 
-  _SVGMatrixJs createSVGMatrix() native;
+  _SVGMatrixImpl createSVGMatrix() native;
 
-  _SVGNumberJs createSVGNumber() native;
+  _SVGNumberImpl createSVGNumber() native;
 
-  _SVGPointJs createSVGPoint() native;
+  _SVGPointImpl createSVGPoint() native;
 
-  _SVGRectJs createSVGRect() native;
+  _SVGRectImpl createSVGRect() native;
 
-  _SVGTransformJs createSVGTransform() native;
+  _SVGTransformImpl createSVGTransform() native;
 
-  _SVGTransformJs createSVGTransformFromMatrix(_SVGMatrixJs matrix) native;
+  _SVGTransformImpl createSVGTransformFromMatrix(_SVGMatrixImpl matrix) native;
 
   void deselectAll() native;
 
@@ -12004,11 +11952,11 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   num getCurrentTime() native;
 
-  _ElementJs getElementById(String elementId) native;
+  _ElementImpl getElementById(String elementId) native;
 
-  _NodeListJs getEnclosureList(_SVGRectJs rect, _SVGElementJs referenceElement) native;
+  _NodeListImpl getEnclosureList(_SVGRectImpl rect, _SVGElementImpl referenceElement) native;
 
-  _NodeListJs getIntersectionList(_SVGRectJs rect, _SVGElementJs referenceElement) native;
+  _NodeListImpl getIntersectionList(_SVGRectImpl rect, _SVGElementImpl referenceElement) native;
 
   void pauseAnimations() native;
 
@@ -12024,11 +11972,11 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -12040,73 +11988,73 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 
   // From SVGZoomAndPan
 
   int zoomAndPan;
 }
 
-class _SVGScriptElementJs extends _SVGElementJs implements SVGScriptElement native "*SVGScriptElement" {
+class _SVGScriptElementImpl extends _SVGElementImpl implements SVGScriptElement native "*SVGScriptElement" {
 
   String type;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 }
 
-class _SVGSetElementJs extends _SVGAnimationElementJs implements SVGSetElement native "*SVGSetElement" {
+class _SVGSetElementImpl extends _SVGAnimationElementImpl implements SVGSetElement native "*SVGSetElement" {
 }
 
-class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "*SVGStopElement" {
+class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement native "*SVGStopElement" {
 
-  final _SVGAnimatedNumberJs offset;
+  final _SVGAnimatedNumberImpl offset;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGStringListJs implements SVGStringList native "*SVGStringList" {
+class _SVGStringListImpl implements SVGStringList native "*SVGStringList" {
 
   final int numberOfItems;
 
@@ -12125,25 +12073,20 @@ class _SVGStringListJs implements SVGStringList native "*SVGStringList" {
   String replaceItem(String item, int index) native;
 }
 
-class _SVGStylableJs implements SVGStylable native "*SVGStylable" {
+class _SVGStylableImpl implements SVGStylable native "*SVGStylable" {
 
-  final _SVGAnimatedStringJs className;
+  final _SVGAnimatedStringImpl className;
 
-  final _CSSStyleDeclarationJs style;
+  final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGStyleElementJs extends _SVGElementJs implements SVGStyleElement native "*SVGStyleElement" {
+class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement native "*SVGStyleElement" {
 
   bool disabled;
 
   String media;
-
-  // Shadowing definition.
-  String get title() native "return this.title;";
-
-  void set title(String value) native "this.title = value;";
 
   String type;
 
@@ -12154,15 +12097,15 @@ class _SVGStyleElementJs extends _SVGElementJs implements SVGStyleElement native
   String xmlspace;
 }
 
-class _SVGSwitchElementJs extends _SVGElementJs implements SVGSwitchElement native "*SVGSwitchElement" {
+class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement native "*SVGSwitchElement" {
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -12174,37 +12117,37 @@ class _SVGSwitchElementJs extends _SVGElementJs implements SVGSwitchElement nati
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGSymbolElementJs extends _SVGElementJs implements SVGSymbolElement native "*SVGSymbolElement" {
+class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement native "*SVGSymbolElement" {
 
   // From SVGLangSpace
 
@@ -12214,46 +12157,46 @@ class _SVGSymbolElementJs extends _SVGElementJs implements SVGSymbolElement nati
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 }
 
-class _SVGTRefElementJs extends _SVGTextPositioningElementJs implements SVGTRefElement native "*SVGTRefElement" {
+class _SVGTRefElementImpl extends _SVGTextPositioningElementImpl implements SVGTRefElement native "*SVGTRefElement" {
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 }
 
-class _SVGTSpanElementJs extends _SVGTextPositioningElementJs implements SVGTSpanElement native "*SVGTSpanElement" {
+class _SVGTSpanElementImpl extends _SVGTextPositioningElementImpl implements SVGTSpanElement native "*SVGTSpanElement" {
 }
 
-class _SVGTestsJs implements SVGTests native "*SVGTests" {
+class _SVGTestsImpl implements SVGTests native "*SVGTests" {
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 }
 
-class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentElement native "*SVGTextContentElement" {
+class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextContentElement native "*SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 
@@ -12261,23 +12204,23 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  final _SVGAnimatedEnumerationJs lengthAdjust;
+  final _SVGAnimatedEnumerationImpl lengthAdjust;
 
-  final _SVGAnimatedLengthJs textLength;
+  final _SVGAnimatedLengthImpl textLength;
 
-  int getCharNumAtPosition(_SVGPointJs point) native;
+  int getCharNumAtPosition(_SVGPointImpl point) native;
 
   num getComputedTextLength() native;
 
-  _SVGPointJs getEndPositionOfChar(int offset) native;
+  _SVGPointImpl getEndPositionOfChar(int offset) native;
 
-  _SVGRectJs getExtentOfChar(int offset) native;
+  _SVGRectImpl getExtentOfChar(int offset) native;
 
   int getNumberOfChars() native;
 
   num getRotationOfChar(int offset) native;
 
-  _SVGPointJs getStartPositionOfChar(int offset) native;
+  _SVGPointImpl getStartPositionOfChar(int offset) native;
 
   num getSubStringLength(int offset, int length) native;
 
@@ -12285,11 +12228,11 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -12301,40 +12244,40 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGTextElementJs extends _SVGTextPositioningElementJs implements SVGTextElement native "*SVGTextElement" {
+class _SVGTextElementImpl extends _SVGTextPositioningElementImpl implements SVGTextElement native "*SVGTextElement" {
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGTextPathElementJs extends _SVGTextContentElementJs implements SVGTextPathElement native "*SVGTextPathElement" {
+class _SVGTextPathElementImpl extends _SVGTextContentElementImpl implements SVGTextPathElement native "*SVGTextPathElement" {
 
   static final int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -12348,31 +12291,31 @@ class _SVGTextPathElementJs extends _SVGTextContentElementJs implements SVGTextP
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  final _SVGAnimatedEnumerationJs method;
+  final _SVGAnimatedEnumerationImpl method;
 
-  final _SVGAnimatedEnumerationJs spacing;
+  final _SVGAnimatedEnumerationImpl spacing;
 
-  final _SVGAnimatedLengthJs startOffset;
+  final _SVGAnimatedLengthImpl startOffset;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 }
 
-class _SVGTextPositioningElementJs extends _SVGTextContentElementJs implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
+class _SVGTextPositioningElementImpl extends _SVGTextContentElementImpl implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
 
-  final _SVGAnimatedLengthListJs dx;
+  final _SVGAnimatedLengthListImpl dx;
 
-  final _SVGAnimatedLengthListJs dy;
+  final _SVGAnimatedLengthListImpl dy;
 
-  final _SVGAnimatedNumberListJs rotate;
+  final _SVGAnimatedNumberListImpl rotate;
 
-  final _SVGAnimatedLengthListJs x;
+  final _SVGAnimatedLengthListImpl x;
 
-  final _SVGAnimatedLengthListJs y;
+  final _SVGAnimatedLengthListImpl y;
 }
 
-class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native "*SVGTitleElement" {
+class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 
@@ -12382,15 +12325,15 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 }
 
-class _SVGTransformJs implements SVGTransform native "*SVGTransform" {
+class _SVGTransformImpl implements SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_MATRIX = 1;
 
@@ -12408,11 +12351,11 @@ class _SVGTransformJs implements SVGTransform native "*SVGTransform" {
 
   final num angle;
 
-  final _SVGMatrixJs matrix;
+  final _SVGMatrixImpl matrix;
 
   final int type;
 
-  void setMatrix(_SVGMatrixJs matrix) native;
+  void setMatrix(_SVGMatrixImpl matrix) native;
 
   void setRotate(num angle, num cx, num cy) native;
 
@@ -12425,40 +12368,40 @@ class _SVGTransformJs implements SVGTransform native "*SVGTransform" {
   void setTranslate(num tx, num ty) native;
 }
 
-class _SVGTransformListJs implements SVGTransformList native "*SVGTransformList" {
+class _SVGTransformListImpl implements SVGTransformList native "*SVGTransformList" {
 
   final int numberOfItems;
 
-  _SVGTransformJs appendItem(_SVGTransformJs item) native;
+  _SVGTransformImpl appendItem(_SVGTransformImpl item) native;
 
   void clear() native;
 
-  _SVGTransformJs consolidate() native;
+  _SVGTransformImpl consolidate() native;
 
-  _SVGTransformJs createSVGTransformFromMatrix(_SVGMatrixJs matrix) native;
+  _SVGTransformImpl createSVGTransformFromMatrix(_SVGMatrixImpl matrix) native;
 
-  _SVGTransformJs getItem(int index) native;
+  _SVGTransformImpl getItem(int index) native;
 
-  _SVGTransformJs initialize(_SVGTransformJs item) native;
+  _SVGTransformImpl initialize(_SVGTransformImpl item) native;
 
-  _SVGTransformJs insertItemBefore(_SVGTransformJs item, int index) native;
+  _SVGTransformImpl insertItemBefore(_SVGTransformImpl item, int index) native;
 
-  _SVGTransformJs removeItem(int index) native;
+  _SVGTransformImpl removeItem(int index) native;
 
-  _SVGTransformJs replaceItem(_SVGTransformJs item, int index) native;
+  _SVGTransformImpl replaceItem(_SVGTransformImpl item, int index) native;
 }
 
-class _SVGTransformableJs extends _SVGLocatableJs implements SVGTransformable native "*SVGTransformable" {
+class _SVGTransformableImpl extends _SVGLocatableImpl implements SVGTransformable native "*SVGTransformable" {
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 }
 
-class _SVGURIReferenceJs implements SVGURIReference native "*SVGURIReference" {
+class _SVGURIReferenceImpl implements SVGURIReference native "*SVGURIReference" {
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 }
 
-class _SVGUnitTypesJs implements SVGUnitTypes native "*SVGUnitTypes" {
+class _SVGUnitTypesImpl implements SVGUnitTypes native "*SVGUnitTypes" {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
@@ -12467,31 +12410,31 @@ class _SVGUnitTypesJs implements SVGUnitTypes native "*SVGUnitTypes" {
   static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
 
-class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*SVGUseElement" {
+class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native "*SVGUseElement" {
 
-  final _SVGElementInstanceJs animatedInstanceRoot;
+  final _SVGElementInstanceImpl animatedInstanceRoot;
 
-  final _SVGAnimatedLengthJs height;
+  final _SVGAnimatedLengthImpl height;
 
-  final _SVGElementInstanceJs instanceRoot;
+  final _SVGElementInstanceImpl instanceRoot;
 
-  final _SVGAnimatedLengthJs width;
+  final _SVGAnimatedLengthImpl width;
 
-  final _SVGAnimatedLengthJs x;
+  final _SVGAnimatedLengthImpl x;
 
-  final _SVGAnimatedLengthJs y;
+  final _SVGAnimatedLengthImpl y;
 
   // From SVGURIReference
 
-  final _SVGAnimatedStringJs href;
+  final _SVGAnimatedStringImpl href;
 
   // From SVGTests
 
-  final _SVGStringListJs requiredExtensions;
+  final _SVGStringListImpl requiredExtensions;
 
-  final _SVGStringListJs requiredFeatures;
+  final _SVGStringListImpl requiredFeatures;
 
-  final _SVGStringListJs systemLanguage;
+  final _SVGStringListImpl systemLanguage;
 
   bool hasExtension(String extension) native;
 
@@ -12503,80 +12446,80 @@ class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*S
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _className() native "return this.className;";
 
   // Use implementation from Element.
-  // final _CSSStyleDeclarationJs style;
+  // final _CSSStyleDeclarationImpl style;
 
-  _CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueImpl getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  final _SVGAnimatedTransformListJs transform;
+  final _SVGAnimatedTransformListImpl transform;
 
   // From SVGLocatable
 
-  final _SVGElementJs farthestViewportElement;
+  final _SVGElementImpl farthestViewportElement;
 
-  final _SVGElementJs nearestViewportElement;
+  final _SVGElementImpl nearestViewportElement;
 
-  _SVGRectJs getBBox() native;
+  _SVGRectImpl getBBox() native;
 
-  _SVGMatrixJs getCTM() native;
+  _SVGMatrixImpl getCTM() native;
 
-  _SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixImpl getScreenCTM() native;
 
-  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
+  _SVGMatrixImpl getTransformToElement(_SVGElementImpl element) native;
 }
 
-class _SVGVKernElementJs extends _SVGElementJs implements SVGVKernElement native "*SVGVKernElement" {
+class _SVGVKernElementImpl extends _SVGElementImpl implements SVGVKernElement native "*SVGVKernElement" {
 }
 
-class _SVGViewElementJs extends _SVGElementJs implements SVGViewElement native "*SVGViewElement" {
+class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement native "*SVGViewElement" {
 
-  final _SVGStringListJs viewTarget;
+  final _SVGStringListImpl viewTarget;
 
   // From SVGExternalResourcesRequired
 
-  final _SVGAnimatedBooleanJs externalResourcesRequired;
+  final _SVGAnimatedBooleanImpl externalResourcesRequired;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 
   // From SVGZoomAndPan
 
   int zoomAndPan;
 }
 
-class _SVGViewSpecJs extends _SVGZoomAndPanJs implements SVGViewSpec native "*SVGViewSpec" {
+class _SVGViewSpecImpl extends _SVGZoomAndPanImpl implements SVGViewSpec native "*SVGViewSpec" {
 
   final String preserveAspectRatioString;
 
-  final _SVGTransformListJs transform;
+  final _SVGTransformListImpl transform;
 
   final String transformString;
 
   final String viewBoxString;
 
-  final _SVGElementJs viewTarget;
+  final _SVGElementImpl viewTarget;
 
   final String viewTargetString;
 
   // From SVGFitToViewBox
 
-  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
+  final _SVGAnimatedPreserveAspectRatioImpl preserveAspectRatio;
 
-  final _SVGAnimatedRectJs viewBox;
+  final _SVGAnimatedRectImpl viewBox;
 }
 
-class _SVGZoomAndPanJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
+class _SVGZoomAndPanImpl implements SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_DISABLE = 1;
 
@@ -12587,20 +12530,20 @@ class _SVGZoomAndPanJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
   int zoomAndPan;
 }
 
-class _SVGZoomEventJs extends _UIEventJs implements SVGZoomEvent native "*SVGZoomEvent" {
+class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent native "*SVGZoomEvent" {
 
   final num newScale;
 
-  final _SVGPointJs newTranslate;
+  final _SVGPointImpl newTranslate;
 
   final num previousScale;
 
-  final _SVGPointJs previousTranslate;
+  final _SVGPointImpl previousTranslate;
 
-  final _SVGRectJs zoomRectScreen;
+  final _SVGRectImpl zoomRectScreen;
 }
 
-class _ScreenJs implements Screen native "*Screen" {
+class _ScreenImpl implements Screen native "*Screen" {
 
   final int availHeight;
 
@@ -12619,7 +12562,7 @@ class _ScreenJs implements Screen native "*Screen" {
   final int width;
 }
 
-class _ScriptElementJs extends _ElementJs implements ScriptElement native "*HTMLScriptElement" {
+class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*HTMLScriptElement" {
 
   bool async;
 
@@ -12633,21 +12576,19 @@ class _ScriptElementJs extends _ElementJs implements ScriptElement native "*HTML
 
   String src;
 
-  String text;
-
   String type;
 }
 
-class _ScriptProfileJs implements ScriptProfile native "*ScriptProfile" {
+class _ScriptProfileImpl implements ScriptProfile native "*ScriptProfile" {
 
-  final _ScriptProfileNodeJs head;
+  final _ScriptProfileNodeImpl head;
 
   final String title;
 
   final int uid;
 }
 
-class _ScriptProfileNodeJs implements ScriptProfileNode native "*ScriptProfileNode" {
+class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfileNode" {
 
   final int callUID;
 
@@ -12668,15 +12609,15 @@ class _ScriptProfileNodeJs implements ScriptProfileNode native "*ScriptProfileNo
   final bool visible;
 }
 
-class _SelectElementJs extends _ElementJs implements SelectElement native "*HTMLSelectElement" {
+class _SelectElementImpl extends _ElementImpl implements SelectElement native "*HTMLSelectElement" {
 
   bool autofocus;
 
   bool disabled;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   int length;
 
@@ -12684,7 +12625,7 @@ class _SelectElementJs extends _ElementJs implements SelectElement native "*HTML
 
   String name;
 
-  final _HTMLOptionsCollectionJs options;
+  final _HTMLOptionsCollectionImpl options;
 
   bool required;
 
@@ -12696,52 +12637,52 @@ class _SelectElementJs extends _ElementJs implements SelectElement native "*HTML
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   String value;
 
   final bool willValidate;
 
-  void add(_ElementJs element, _ElementJs before) native;
+  void add(_ElementImpl element, _ElementImpl before) native;
 
   bool checkValidity() native;
 
-  _NodeJs item(int index) native;
+  _NodeImpl item(int index) native;
 
-  _NodeJs namedItem(String name) native;
+  _NodeImpl namedItem(String name) native;
 
   void setCustomValidity(String error) native;
 }
 
-class _ShadowElementJs extends _ElementJs implements ShadowElement native "*HTMLShadowElement" {
+class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*HTMLShadowElement" {
 }
 
-class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*ShadowRoot" {
+class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native "*ShadowRoot" {
 
-  final _ElementJs host;
+  final _ElementImpl host;
 
-  _ElementJs getElementById(String elementId) native;
+  _ElementImpl getElementById(String elementId) native;
 
-  _NodeListJs getElementsByClassName(String className) native;
+  _NodeListImpl getElementsByClassName(String className) native;
 
-  _NodeListJs getElementsByTagName(String tagName) native;
+  _NodeListImpl getElementsByTagName(String tagName) native;
 
-  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
+  _NodeListImpl getElementsByTagNameNS(String namespaceURI, String localName) native;
 }
 
-class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
+class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker native "*SharedWorker" {
 
-  final _MessagePortJs port;
+  final _MessagePortImpl port;
 }
 
-class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerContext native "*SharedWorkerContext" {
+class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorkerContext native "*SharedWorkerContext" {
 
   final String name;
 
   EventListener onconnect;
 }
 
-class _SourceElementJs extends _ElementJs implements SourceElement native "*HTMLSourceElement" {
+class _SourceElementImpl extends _ElementImpl implements SourceElement native "*HTMLSourceElement" {
 
   String media;
 
@@ -12750,29 +12691,29 @@ class _SourceElementJs extends _ElementJs implements SourceElement native "*HTML
   String type;
 }
 
-class _SpanElementJs extends _ElementJs implements SpanElement native "*HTMLSpanElement" {
+class _SpanElementImpl extends _ElementImpl implements SpanElement native "*HTMLSpanElement" {
 }
 
-class _SpeechInputEventJs extends _EventJs implements SpeechInputEvent native "*SpeechInputEvent" {
+class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
 
-  final _SpeechInputResultListJs results;
+  final _SpeechInputResultListImpl results;
 }
 
-class _SpeechInputResultJs implements SpeechInputResult native "*SpeechInputResult" {
+class _SpeechInputResultImpl implements SpeechInputResult native "*SpeechInputResult" {
 
   final num confidence;
 
   final String utterance;
 }
 
-class _SpeechInputResultListJs implements SpeechInputResultList native "*SpeechInputResultList" {
+class _SpeechInputResultListImpl implements SpeechInputResultList native "*SpeechInputResultList" {
 
   final int length;
 
-  _SpeechInputResultJs item(int index) native;
+  _SpeechInputResultImpl item(int index) native;
 }
 
-class _StorageJs implements Storage native "*Storage" {
+class _StorageImpl implements Storage native "*Storage" {
 
   final int length;
 
@@ -12787,7 +12728,7 @@ class _StorageJs implements Storage native "*Storage" {
   void setItem(String key, String data) native;
 }
 
-class _StorageEventJs extends _EventJs implements StorageEvent native "*StorageEvent" {
+class _StorageEventImpl extends _EventImpl implements StorageEvent native "*StorageEvent" {
 
   final String key;
 
@@ -12795,14 +12736,14 @@ class _StorageEventJs extends _EventJs implements StorageEvent native "*StorageE
 
   final String oldValue;
 
-  final _StorageJs storageArea;
+  final _StorageImpl storageArea;
 
   final String url;
 
-  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageJs storageAreaArg) native;
+  void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageImpl storageAreaArg) native;
 }
 
-class _StorageInfoJs implements StorageInfo native "*StorageInfo" {
+class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
 
   static final int PERSISTENT = 1;
 
@@ -12813,48 +12754,48 @@ class _StorageInfoJs implements StorageInfo native "*StorageInfo" {
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback = null, StorageInfoErrorCallback errorCallback = null]) native;
 }
 
-class _StyleElementJs extends _ElementJs implements StyleElement native "*HTMLStyleElement" {
+class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HTMLStyleElement" {
 
   bool disabled;
 
   String media;
 
-  final _StyleSheetJs sheet;
+  final _StyleSheetImpl sheet;
 
   String type;
 }
 
-class _StyleMediaJs implements StyleMedia native "*StyleMedia" {
+class _StyleMediaImpl implements StyleMedia native "*StyleMedia" {
 
   final String type;
 
   bool matchMedium(String mediaquery) native;
 }
 
-class _StyleSheetJs implements StyleSheet native "*StyleSheet" {
+class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
 
   bool disabled;
 
   final String href;
 
-  final _MediaListJs media;
+  final _MediaListImpl media;
 
-  final _NodeJs ownerNode;
+  final _NodeImpl ownerNode;
 
-  final _StyleSheetJs parentStyleSheet;
+  final _StyleSheetImpl parentStyleSheet;
 
   final String title;
 
   final String type;
 }
 
-class _StyleSheetListJs implements StyleSheetList native "*StyleSheetList" {
+class _StyleSheetListImpl implements StyleSheetList native "*StyleSheetList" {
 
   final int length;
 
-  _StyleSheetJs operator[](int index) native "return this[index];";
+  _StyleSheetImpl operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, _StyleSheetJs value) {
+  void operator[]=(int index, _StyleSheetImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<StyleSheet> mixins.
@@ -12925,15 +12866,15 @@ class _StyleSheetListJs implements StyleSheetList native "*StyleSheetList" {
 
   // -- end List<StyleSheet> mixins.
 
-  _StyleSheetJs item(int index) native;
+  _StyleSheetImpl item(int index) native;
 }
 
-class _TableCaptionElementJs extends _ElementJs implements TableCaptionElement native "*HTMLTableCaptionElement" {
+class _TableCaptionElementImpl extends _ElementImpl implements TableCaptionElement native "*HTMLTableCaptionElement" {
 
   String align;
 }
 
-class _TableCellElementJs extends _ElementJs implements TableCellElement native "*HTMLTableCellElement" {
+class _TableCellElementImpl extends _ElementImpl implements TableCellElement native "*HTMLTableCellElement" {
 
   String abbr;
 
@@ -12966,7 +12907,7 @@ class _TableCellElementJs extends _ElementJs implements TableCellElement native 
   String width;
 }
 
-class _TableColElementJs extends _ElementJs implements TableColElement native "*HTMLTableColElement" {
+class _TableColElementImpl extends _ElementImpl implements TableColElement native "*HTMLTableColElement" {
 
   String align;
 
@@ -12981,7 +12922,7 @@ class _TableColElementJs extends _ElementJs implements TableColElement native "*
   String width;
 }
 
-class _TableElementJs extends _ElementJs implements TableElement native "*HTMLTableElement" {
+class _TableElementImpl extends _ElementImpl implements TableElement native "*HTMLTableElement" {
 
   String align;
 
@@ -12989,7 +12930,7 @@ class _TableElementJs extends _ElementJs implements TableElement native "*HTMLTa
 
   String border;
 
-  _TableCaptionElementJs caption;
+  _TableCaptionElementImpl caption;
 
   String cellPadding;
 
@@ -12997,25 +12938,25 @@ class _TableElementJs extends _ElementJs implements TableElement native "*HTMLTa
 
   String frame;
 
-  final _HTMLCollectionJs rows;
+  final _HTMLCollectionImpl rows;
 
   String rules;
 
   String summary;
 
-  final _HTMLCollectionJs tBodies;
+  final _HTMLCollectionImpl tBodies;
 
-  _TableSectionElementJs tFoot;
+  _TableSectionElementImpl tFoot;
 
-  _TableSectionElementJs tHead;
+  _TableSectionElementImpl tHead;
 
   String width;
 
-  _ElementJs createCaption() native;
+  _ElementImpl createCaption() native;
 
-  _ElementJs createTFoot() native;
+  _ElementImpl createTFoot() native;
 
-  _ElementJs createTHead() native;
+  _ElementImpl createTHead() native;
 
   void deleteCaption() native;
 
@@ -13025,16 +12966,16 @@ class _TableElementJs extends _ElementJs implements TableElement native "*HTMLTa
 
   void deleteTHead() native;
 
-  _ElementJs insertRow(int index) native;
+  _ElementImpl insertRow(int index) native;
 }
 
-class _TableRowElementJs extends _ElementJs implements TableRowElement native "*HTMLTableRowElement" {
+class _TableRowElementImpl extends _ElementImpl implements TableRowElement native "*HTMLTableRowElement" {
 
   String align;
 
   String bgColor;
 
-  final _HTMLCollectionJs cells;
+  final _HTMLCollectionImpl cells;
 
   String ch;
 
@@ -13048,10 +12989,10 @@ class _TableRowElementJs extends _ElementJs implements TableRowElement native "*
 
   void deleteCell(int index) native;
 
-  _ElementJs insertCell(int index) native;
+  _ElementImpl insertCell(int index) native;
 }
 
-class _TableSectionElementJs extends _ElementJs implements TableSectionElement native "*HTMLTableSectionElement" {
+class _TableSectionElementImpl extends _ElementImpl implements TableSectionElement native "*HTMLTableSectionElement" {
 
   String align;
 
@@ -13059,25 +13000,25 @@ class _TableSectionElementJs extends _ElementJs implements TableSectionElement n
 
   String chOff;
 
-  final _HTMLCollectionJs rows;
+  final _HTMLCollectionImpl rows;
 
   String vAlign;
 
   void deleteRow(int index) native;
 
-  _ElementJs insertRow(int index) native;
+  _ElementImpl insertRow(int index) native;
 }
 
-class _TextJs extends _CharacterDataJs implements Text native "*Text" {
+class _TextImpl extends _CharacterDataImpl implements Text native "*Text" {
 
   final String wholeText;
 
-  _TextJs replaceWholeText(String content) native;
+  _TextImpl replaceWholeText(String content) native;
 
-  _TextJs splitText(int offset) native;
+  _TextImpl splitText(int offset) native;
 }
 
-class _TextAreaElementJs extends _ElementJs implements TextAreaElement native "*HTMLTextAreaElement" {
+class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement native "*HTMLTextAreaElement" {
 
   bool autofocus;
 
@@ -13087,9 +13028,9 @@ class _TextAreaElementJs extends _ElementJs implements TextAreaElement native "*
 
   bool disabled;
 
-  final _FormElementJs form;
+  final _FormElementImpl form;
 
-  final _NodeListJs labels;
+  final _NodeListImpl labels;
 
   int maxLength;
 
@@ -13115,7 +13056,7 @@ class _TextAreaElementJs extends _ElementJs implements TextAreaElement native "*
 
   final String validationMessage;
 
-  final _ValidityStateJs validity;
+  final _ValidityStateImpl validity;
 
   String value;
 
@@ -13132,19 +13073,19 @@ class _TextAreaElementJs extends _ElementJs implements TextAreaElement native "*
   void setSelectionRange(int start, int end, [String direction = null]) native;
 }
 
-class _TextEventJs extends _UIEventJs implements TextEvent native "*TextEvent" {
+class _TextEventImpl extends _UIEventImpl implements TextEvent native "*TextEvent" {
 
   final String data;
 
-  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowJs viewArg, String dataArg) native;
+  void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, _WindowImpl viewArg, String dataArg) native;
 }
 
-class _TextMetricsJs implements TextMetrics native "*TextMetrics" {
+class _TextMetricsImpl implements TextMetrics native "*TextMetrics" {
 
   final num width;
 }
 
-class _TextTrackJs implements TextTrack native "*TextTrack" {
+class _TextTrackImpl implements TextTrack native "*TextTrack" {
 
   static final int DISABLED = 0;
 
@@ -13152,9 +13093,9 @@ class _TextTrackJs implements TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  final _TextTrackCueListJs activeCues;
+  final _TextTrackCueListImpl activeCues;
 
-  final _TextTrackCueListJs cues;
+  final _TextTrackCueListImpl cues;
 
   final String kind;
 
@@ -13166,18 +13107,18 @@ class _TextTrackJs implements TextTrack native "*TextTrack" {
 
   EventListener oncuechange;
 
-  void addCue(_TextTrackCueJs cue) native;
+  void addCue(_TextTrackCueImpl cue) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
-  void removeCue(_TextTrackCueJs cue) native;
+  void removeCue(_TextTrackCueImpl cue) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _TextTrackCueJs implements TextTrackCue native "*TextTrackCue" {
+class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
   String alignment;
 
@@ -13205,27 +13146,27 @@ class _TextTrackCueJs implements TextTrackCue native "*TextTrackCue" {
 
   int textPosition;
 
-  final _TextTrackJs track;
+  final _TextTrackImpl track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
-  _DocumentFragmentJs getCueAsHTML() native;
+  _DocumentFragmentImpl getCueAsHTML() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _TextTrackCueListJs implements TextTrackCueList native "*TextTrackCueList" {
+class _TextTrackCueListImpl implements TextTrackCueList native "*TextTrackCueList" {
 
   final int length;
 
-  _TextTrackCueJs getCueById(String id) native;
+  _TextTrackCueImpl getCueById(String id) native;
 
-  _TextTrackCueJs item(int index) native;
+  _TextTrackCueImpl item(int index) native;
 }
 
-class _TextTrackListJs implements TextTrackList native "*TextTrackList" {
+class _TextTrackListImpl implements TextTrackList native "*TextTrackList" {
 
   final int length;
 
@@ -13233,14 +13174,14 @@ class _TextTrackListJs implements TextTrackList native "*TextTrackList" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
-  _TextTrackJs item(int index) native;
+  _TextTrackImpl item(int index) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _TimeRangesJs implements TimeRanges native "*TimeRanges" {
+class _TimeRangesImpl implements TimeRanges native "*TimeRanges" {
 
   final int length;
 
@@ -13249,12 +13190,10 @@ class _TimeRangesJs implements TimeRanges native "*TimeRanges" {
   num start(int index) native;
 }
 
-class _TitleElementJs extends _ElementJs implements TitleElement native "*HTMLTitleElement" {
-
-  String text;
+class _TitleElementImpl extends _ElementImpl implements TitleElement native "*HTMLTitleElement" {
 }
 
-class _TouchJs implements Touch native "*Touch" {
+class _TouchImpl implements Touch native "*Touch" {
 
   final int clientX;
 
@@ -13270,7 +13209,9 @@ class _TouchJs implements Touch native "*Touch" {
 
   final int screenY;
 
-  final _EventTargetJs target;
+  _EventTargetImpl get target() => _FixHtmlDocumentReference(_target);
+
+  _EventTargetImpl get _target() native "return this.target;";
 
   final num webkitForce;
 
@@ -13281,11 +13222,11 @@ class _TouchJs implements Touch native "*Touch" {
   final num webkitRotationAngle;
 }
 
-class _TouchEventJs extends _UIEventJs implements TouchEvent native "*TouchEvent" {
+class _TouchEventImpl extends _UIEventImpl implements TouchEvent native "*TouchEvent" {
 
   final bool altKey;
 
-  final _TouchListJs changedTouches;
+  final _TouchListImpl changedTouches;
 
   final bool ctrlKey;
 
@@ -13293,20 +13234,20 @@ class _TouchEventJs extends _UIEventJs implements TouchEvent native "*TouchEvent
 
   final bool shiftKey;
 
-  final _TouchListJs targetTouches;
+  final _TouchListImpl targetTouches;
 
-  final _TouchListJs touches;
+  final _TouchListImpl touches;
 
-  void initTouchEvent(_TouchListJs touches, _TouchListJs targetTouches, _TouchListJs changedTouches, String type, _WindowJs view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initTouchEvent(_TouchListImpl touches, _TouchListImpl targetTouches, _TouchListImpl changedTouches, String type, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
-class _TouchListJs implements TouchList native "*TouchList" {
+class _TouchListImpl implements TouchList native "*TouchList" {
 
   final int length;
 
-  _TouchJs operator[](int index) native "return this[index];";
+  _TouchImpl operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, _TouchJs value) {
+  void operator[]=(int index, _TouchImpl value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Touch> mixins.
@@ -13377,10 +13318,10 @@ class _TouchListJs implements TouchList native "*TouchList" {
 
   // -- end List<Touch> mixins.
 
-  _TouchJs item(int index) native;
+  _TouchImpl item(int index) native;
 }
 
-class _TrackElementJs extends _ElementJs implements TrackElement native "*HTMLTrackElement" {
+class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HTMLTrackElement" {
 
   static final int ERROR = 3;
 
@@ -13402,49 +13343,49 @@ class _TrackElementJs extends _ElementJs implements TrackElement native "*HTMLTr
 
   String srclang;
 
-  final _TextTrackJs track;
+  final _TextTrackImpl track;
 }
 
-class _TrackEventJs extends _EventJs implements TrackEvent native "*TrackEvent" {
+class _TrackEventImpl extends _EventImpl implements TrackEvent native "*TrackEvent" {
 
   final Object track;
 }
 
-class _TransitionEventJs extends _EventJs implements TransitionEvent native "*WebKitTransitionEvent" {
+class _TransitionEventImpl extends _EventImpl implements TransitionEvent native "*WebKitTransitionEvent" {
 
   final num elapsedTime;
 
   final String propertyName;
 }
 
-class _TreeWalkerJs implements TreeWalker native "*TreeWalker" {
+class _TreeWalkerImpl implements TreeWalker native "*TreeWalker" {
 
-  _NodeJs currentNode;
+  _NodeImpl currentNode;
 
   final bool expandEntityReferences;
 
-  final _NodeFilterJs filter;
+  final _NodeFilterImpl filter;
 
-  final _NodeJs root;
+  final _NodeImpl root;
 
   final int whatToShow;
 
-  _NodeJs firstChild() native;
+  _NodeImpl firstChild() native;
 
-  _NodeJs lastChild() native;
+  _NodeImpl lastChild() native;
 
-  _NodeJs nextNode() native;
+  _NodeImpl nextNode() native;
 
-  _NodeJs nextSibling() native;
+  _NodeImpl nextSibling() native;
 
-  _NodeJs parentNode() native;
+  _NodeImpl parentNode() native;
 
-  _NodeJs previousNode() native;
+  _NodeImpl previousNode() native;
 
-  _NodeJs previousSibling() native;
+  _NodeImpl previousSibling() native;
 }
 
-class _UIEventJs extends _EventJs implements UIEvent native "*UIEvent" {
+class _UIEventImpl extends _EventImpl implements UIEvent native "*UIEvent" {
 
   final int charCode;
 
@@ -13460,21 +13401,21 @@ class _UIEventJs extends _EventJs implements UIEvent native "*UIEvent" {
 
   final int pageY;
 
-  final _WindowJs view;
+  final _WindowImpl view;
 
   final int which;
 
-  void initUIEvent(String type, bool canBubble, bool cancelable, _WindowJs view, int detail) native;
+  void initUIEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail) native;
 }
 
-class _UListElementJs extends _ElementJs implements UListElement native "*HTMLUListElement" {
+class _UListElementImpl extends _ElementImpl implements UListElement native "*HTMLUListElement" {
 
   bool compact;
 
   String type;
 }
 
-class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
+class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int> native "*Uint16Array" {
 
   factory Uint16Array(int length) =>  _construct_Uint16Array(length);
 
@@ -13561,10 +13502,10 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Uint16ArrayJs subarray(int start, [int end = null]) native;
+  _Uint16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
+class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>  _construct_Uint32Array(length);
 
@@ -13651,10 +13592,10 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Uint32ArrayJs subarray(int start, [int end = null]) native;
+  _Uint32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
+class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> native "*Uint8Array" {
 
   factory Uint8Array(int length) =>  _construct_Uint8Array(length);
 
@@ -13741,10 +13682,10 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  _Uint8ArrayJs subarray(int start, [int end = null]) native;
+  _Uint8ArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
+class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
 
   factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
 
@@ -13757,13 +13698,13 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
   // Use implementation from Uint8Array.
   // final int length;
 
-  _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
+  _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }
 
-class _UnknownElementJs extends _ElementJs implements UnknownElement native "*HTMLUnknownElement" {
+class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
 }
 
-class _ValidityStateJs implements ValidityState native "*ValidityState" {
+class _ValidityStateImpl implements ValidityState native "*ValidityState" {
 
   final bool customError;
 
@@ -13784,7 +13725,7 @@ class _ValidityStateJs implements ValidityState native "*ValidityState" {
   final bool valueMissing;
 }
 
-class _VideoElementJs extends _MediaElementJs implements VideoElement native "*HTMLVideoElement" {
+class _VideoElementImpl extends _MediaElementImpl implements VideoElement native "*HTMLVideoElement" {
 
   int height;
 
@@ -13813,12 +13754,12 @@ class _VideoElementJs extends _MediaElementJs implements VideoElement native "*H
   void webkitExitFullscreen() native;
 }
 
-class _WaveShaperNodeJs extends _AudioNodeJs implements WaveShaperNode native "*WaveShaperNode" {
+class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode native "*WaveShaperNode" {
 
-  _Float32ArrayJs curve;
+  _Float32ArrayImpl curve;
 }
 
-class _WebGLActiveInfoJs implements WebGLActiveInfo native "*WebGLActiveInfo" {
+class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   final String name;
 
@@ -13827,10 +13768,10 @@ class _WebGLActiveInfoJs implements WebGLActiveInfo native "*WebGLActiveInfo" {
   final int type;
 }
 
-class _WebGLBufferJs implements WebGLBuffer native "*WebGLBuffer" {
+class _WebGLBufferImpl implements WebGLBuffer native "*WebGLBuffer" {
 }
 
-class _WebGLCompressedTextureS3TCJs implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
+class _WebGLCompressedTextureS3TCImpl implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
@@ -13841,7 +13782,7 @@ class _WebGLCompressedTextureS3TCJs implements WebGLCompressedTextureS3TC native
   static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 
-class _WebGLContextAttributesJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
+class _WebGLContextAttributesImpl implements WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool alpha;
 
@@ -13856,40 +13797,40 @@ class _WebGLContextAttributesJs implements WebGLContextAttributes native "*WebGL
   bool stencil;
 }
 
-class _WebGLContextEventJs extends _EventJs implements WebGLContextEvent native "*WebGLContextEvent" {
+class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent native "*WebGLContextEvent" {
 
   final String statusMessage;
 }
 
-class _WebGLDebugRendererInfoJs implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
+class _WebGLDebugRendererInfoImpl implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static final int UNMASKED_RENDERER_WEBGL = 0x9246;
 
   static final int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 
-class _WebGLDebugShadersJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
+class _WebGLDebugShadersImpl implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  String getTranslatedShaderSource(_WebGLShaderJs shader) native;
+  String getTranslatedShaderSource(_WebGLShaderImpl shader) native;
 }
 
-class _WebGLFramebufferJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
+class _WebGLFramebufferImpl implements WebGLFramebuffer native "*WebGLFramebuffer" {
 }
 
-class _WebGLLoseContextJs implements WebGLLoseContext native "*WebGLLoseContext" {
+class _WebGLLoseContextImpl implements WebGLLoseContext native "*WebGLLoseContext" {
 
   void loseContext() native;
 
   void restoreContext() native;
 }
 
-class _WebGLProgramJs implements WebGLProgram native "*WebGLProgram" {
+class _WebGLProgramImpl implements WebGLProgram native "*WebGLProgram" {
 }
 
-class _WebGLRenderbufferJs implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
+class _WebGLRenderbufferImpl implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }
 
-class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebGLRenderingContext native "*WebGLRenderingContext" {
+class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements WebGLRenderingContext native "*WebGLRenderingContext" {
 
   static final int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -14489,17 +14430,17 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void activeTexture(int texture) native;
 
-  void attachShader(_WebGLProgramJs program, _WebGLShaderJs shader) native;
+  void attachShader(_WebGLProgramImpl program, _WebGLShaderImpl shader) native;
 
-  void bindAttribLocation(_WebGLProgramJs program, int index, String name) native;
+  void bindAttribLocation(_WebGLProgramImpl program, int index, String name) native;
 
-  void bindBuffer(int target, _WebGLBufferJs buffer) native;
+  void bindBuffer(int target, _WebGLBufferImpl buffer) native;
 
-  void bindFramebuffer(int target, _WebGLFramebufferJs framebuffer) native;
+  void bindFramebuffer(int target, _WebGLFramebufferImpl framebuffer) native;
 
-  void bindRenderbuffer(int target, _WebGLRenderbufferJs renderbuffer) native;
+  void bindRenderbuffer(int target, _WebGLRenderbufferImpl renderbuffer) native;
 
-  void bindTexture(int target, _WebGLTextureJs texture) native;
+  void bindTexture(int target, _WebGLTextureImpl texture) native;
 
   void blendColor(num red, num green, num blue, num alpha) native;
 
@@ -14527,41 +14468,41 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  void compileShader(_WebGLShaderJs shader) native;
+  void compileShader(_WebGLShaderImpl shader) native;
 
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewJs data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewImpl data) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewJs data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewImpl data) native;
 
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  _WebGLBufferJs createBuffer() native;
+  _WebGLBufferImpl createBuffer() native;
 
-  _WebGLFramebufferJs createFramebuffer() native;
+  _WebGLFramebufferImpl createFramebuffer() native;
 
-  _WebGLProgramJs createProgram() native;
+  _WebGLProgramImpl createProgram() native;
 
-  _WebGLRenderbufferJs createRenderbuffer() native;
+  _WebGLRenderbufferImpl createRenderbuffer() native;
 
-  _WebGLShaderJs createShader(int type) native;
+  _WebGLShaderImpl createShader(int type) native;
 
-  _WebGLTextureJs createTexture() native;
+  _WebGLTextureImpl createTexture() native;
 
   void cullFace(int mode) native;
 
-  void deleteBuffer(_WebGLBufferJs buffer) native;
+  void deleteBuffer(_WebGLBufferImpl buffer) native;
 
-  void deleteFramebuffer(_WebGLFramebufferJs framebuffer) native;
+  void deleteFramebuffer(_WebGLFramebufferImpl framebuffer) native;
 
-  void deleteProgram(_WebGLProgramJs program) native;
+  void deleteProgram(_WebGLProgramImpl program) native;
 
-  void deleteRenderbuffer(_WebGLRenderbufferJs renderbuffer) native;
+  void deleteRenderbuffer(_WebGLRenderbufferImpl renderbuffer) native;
 
-  void deleteShader(_WebGLShaderJs shader) native;
+  void deleteShader(_WebGLShaderImpl shader) native;
 
-  void deleteTexture(_WebGLTextureJs texture) native;
+  void deleteTexture(_WebGLTextureImpl texture) native;
 
   void depthFunc(int func) native;
 
@@ -14569,7 +14510,7 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void depthRange(num zNear, num zFar) native;
 
-  void detachShader(_WebGLProgramJs program, _WebGLShaderJs shader) native;
+  void detachShader(_WebGLProgramImpl program, _WebGLShaderImpl shader) native;
 
   void disable(int cap) native;
 
@@ -14587,25 +14528,25 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void flush() native;
 
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, _WebGLRenderbufferJs renderbuffer) native;
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, _WebGLRenderbufferImpl renderbuffer) native;
 
-  void framebufferTexture2D(int target, int attachment, int textarget, _WebGLTextureJs texture, int level) native;
+  void framebufferTexture2D(int target, int attachment, int textarget, _WebGLTextureImpl texture, int level) native;
 
   void frontFace(int mode) native;
 
   void generateMipmap(int target) native;
 
-  _WebGLActiveInfoJs getActiveAttrib(_WebGLProgramJs program, int index) native;
+  _WebGLActiveInfoImpl getActiveAttrib(_WebGLProgramImpl program, int index) native;
 
-  _WebGLActiveInfoJs getActiveUniform(_WebGLProgramJs program, int index) native;
+  _WebGLActiveInfoImpl getActiveUniform(_WebGLProgramImpl program, int index) native;
 
-  List getAttachedShaders(_WebGLProgramJs program) native;
+  List getAttachedShaders(_WebGLProgramImpl program) native;
 
-  int getAttribLocation(_WebGLProgramJs program, String name) native;
+  int getAttribLocation(_WebGLProgramImpl program, String name) native;
 
   Object getBufferParameter(int target, int pname) native;
 
-  _WebGLContextAttributesJs getContextAttributes() native;
+  _WebGLContextAttributesImpl getContextAttributes() native;
 
   int getError() native;
 
@@ -14615,23 +14556,23 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   Object getParameter(int pname) native;
 
-  String getProgramInfoLog(_WebGLProgramJs program) native;
+  String getProgramInfoLog(_WebGLProgramImpl program) native;
 
-  Object getProgramParameter(_WebGLProgramJs program, int pname) native;
+  Object getProgramParameter(_WebGLProgramImpl program, int pname) native;
 
   Object getRenderbufferParameter(int target, int pname) native;
 
-  String getShaderInfoLog(_WebGLShaderJs shader) native;
+  String getShaderInfoLog(_WebGLShaderImpl shader) native;
 
-  Object getShaderParameter(_WebGLShaderJs shader, int pname) native;
+  Object getShaderParameter(_WebGLShaderImpl shader, int pname) native;
 
-  String getShaderSource(_WebGLShaderJs shader) native;
+  String getShaderSource(_WebGLShaderImpl shader) native;
 
   Object getTexParameter(int target, int pname) native;
 
-  Object getUniform(_WebGLProgramJs program, _WebGLUniformLocationJs location) native;
+  Object getUniform(_WebGLProgramImpl program, _WebGLUniformLocationImpl location) native;
 
-  _WebGLUniformLocationJs getUniformLocation(_WebGLProgramJs program, String name) native;
+  _WebGLUniformLocationImpl getUniformLocation(_WebGLProgramImpl program, String name) native;
 
   Object getVertexAttrib(int index, int pname) native;
 
@@ -14639,31 +14580,31 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void hint(int target, int mode) native;
 
-  bool isBuffer(_WebGLBufferJs buffer) native;
+  bool isBuffer(_WebGLBufferImpl buffer) native;
 
   bool isContextLost() native;
 
   bool isEnabled(int cap) native;
 
-  bool isFramebuffer(_WebGLFramebufferJs framebuffer) native;
+  bool isFramebuffer(_WebGLFramebufferImpl framebuffer) native;
 
-  bool isProgram(_WebGLProgramJs program) native;
+  bool isProgram(_WebGLProgramImpl program) native;
 
-  bool isRenderbuffer(_WebGLRenderbufferJs renderbuffer) native;
+  bool isRenderbuffer(_WebGLRenderbufferImpl renderbuffer) native;
 
-  bool isShader(_WebGLShaderJs shader) native;
+  bool isShader(_WebGLShaderImpl shader) native;
 
-  bool isTexture(_WebGLTextureJs texture) native;
+  bool isTexture(_WebGLTextureImpl texture) native;
 
   void lineWidth(num width) native;
 
-  void linkProgram(_WebGLProgramJs program) native;
+  void linkProgram(_WebGLProgramImpl program) native;
 
   void pixelStorei(int pname, int param) native;
 
   void polygonOffset(num factor, num units) native;
 
-  void readPixels(int x, int y, int width, int height, int format, int type, _ArrayBufferViewJs pixels) native;
+  void readPixels(int x, int y, int width, int height, int format, int type, _ArrayBufferViewImpl pixels) native;
 
   void releaseShaderCompiler() native;
 
@@ -14673,7 +14614,7 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void scissor(int x, int y, int width, int height) native;
 
-  void shaderSource(_WebGLShaderJs shader, String string) native;
+  void shaderSource(_WebGLShaderImpl shader, String string) native;
 
   void stencilFunc(int func, int ref, int mask) native;
 
@@ -14687,98 +14628,98 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewImpl pixels = null]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewImpl pixels = null]) native;
 
-  void uniform1f(_WebGLUniformLocationJs location, num x) native;
+  void uniform1f(_WebGLUniformLocationImpl location, num x) native;
 
-  void uniform1fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
+  void uniform1fv(_WebGLUniformLocationImpl location, _Float32ArrayImpl v) native;
 
-  void uniform1i(_WebGLUniformLocationJs location, int x) native;
+  void uniform1i(_WebGLUniformLocationImpl location, int x) native;
 
-  void uniform1iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
+  void uniform1iv(_WebGLUniformLocationImpl location, _Int32ArrayImpl v) native;
 
-  void uniform2f(_WebGLUniformLocationJs location, num x, num y) native;
+  void uniform2f(_WebGLUniformLocationImpl location, num x, num y) native;
 
-  void uniform2fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
+  void uniform2fv(_WebGLUniformLocationImpl location, _Float32ArrayImpl v) native;
 
-  void uniform2i(_WebGLUniformLocationJs location, int x, int y) native;
+  void uniform2i(_WebGLUniformLocationImpl location, int x, int y) native;
 
-  void uniform2iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
+  void uniform2iv(_WebGLUniformLocationImpl location, _Int32ArrayImpl v) native;
 
-  void uniform3f(_WebGLUniformLocationJs location, num x, num y, num z) native;
+  void uniform3f(_WebGLUniformLocationImpl location, num x, num y, num z) native;
 
-  void uniform3fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
+  void uniform3fv(_WebGLUniformLocationImpl location, _Float32ArrayImpl v) native;
 
-  void uniform3i(_WebGLUniformLocationJs location, int x, int y, int z) native;
+  void uniform3i(_WebGLUniformLocationImpl location, int x, int y, int z) native;
 
-  void uniform3iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
+  void uniform3iv(_WebGLUniformLocationImpl location, _Int32ArrayImpl v) native;
 
-  void uniform4f(_WebGLUniformLocationJs location, num x, num y, num z, num w) native;
+  void uniform4f(_WebGLUniformLocationImpl location, num x, num y, num z, num w) native;
 
-  void uniform4fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
+  void uniform4fv(_WebGLUniformLocationImpl location, _Float32ArrayImpl v) native;
 
-  void uniform4i(_WebGLUniformLocationJs location, int x, int y, int z, int w) native;
+  void uniform4i(_WebGLUniformLocationImpl location, int x, int y, int z, int w) native;
 
-  void uniform4iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
+  void uniform4iv(_WebGLUniformLocationImpl location, _Int32ArrayImpl v) native;
 
-  void uniformMatrix2fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
+  void uniformMatrix2fv(_WebGLUniformLocationImpl location, bool transpose, _Float32ArrayImpl array) native;
 
-  void uniformMatrix3fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
+  void uniformMatrix3fv(_WebGLUniformLocationImpl location, bool transpose, _Float32ArrayImpl array) native;
 
-  void uniformMatrix4fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
+  void uniformMatrix4fv(_WebGLUniformLocationImpl location, bool transpose, _Float32ArrayImpl array) native;
 
-  void useProgram(_WebGLProgramJs program) native;
+  void useProgram(_WebGLProgramImpl program) native;
 
-  void validateProgram(_WebGLProgramJs program) native;
+  void validateProgram(_WebGLProgramImpl program) native;
 
   void vertexAttrib1f(int indx, num x) native;
 
-  void vertexAttrib1fv(int indx, _Float32ArrayJs values) native;
+  void vertexAttrib1fv(int indx, _Float32ArrayImpl values) native;
 
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  void vertexAttrib2fv(int indx, _Float32ArrayJs values) native;
+  void vertexAttrib2fv(int indx, _Float32ArrayImpl values) native;
 
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  void vertexAttrib3fv(int indx, _Float32ArrayJs values) native;
+  void vertexAttrib3fv(int indx, _Float32ArrayImpl values) native;
 
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  void vertexAttrib4fv(int indx, _Float32ArrayJs values) native;
+  void vertexAttrib4fv(int indx, _Float32ArrayImpl values) native;
 
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 
   void viewport(int x, int y, int width, int height) native;
 }
 
-class _WebGLShaderJs implements WebGLShader native "*WebGLShader" {
+class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
 }
 
-class _WebGLTextureJs implements WebGLTexture native "*WebGLTexture" {
+class _WebGLTextureImpl implements WebGLTexture native "*WebGLTexture" {
 }
 
-class _WebGLUniformLocationJs implements WebGLUniformLocation native "*WebGLUniformLocation" {
+class _WebGLUniformLocationImpl implements WebGLUniformLocation native "*WebGLUniformLocation" {
 }
 
-class _WebGLVertexArrayObjectOESJs implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
+class _WebGLVertexArrayObjectOESImpl implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }
 
-class _WebKitCSSRegionRuleJs extends _CSSRuleJs implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
+class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
 
-  final _CSSRuleListJs cssRules;
+  final _CSSRuleListImpl cssRules;
 }
 
-class _WebKitNamedFlowJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
+class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
 }
 
-class _WebSocketJs implements WebSocket native "*WebSocket" {
+class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
 
   static final int CLOSED = 3;
 
@@ -14809,7 +14750,7 @@ class _WebSocketJs implements WebSocket native "*WebSocket" {
 
   void close([int code = null, String reason = null]) native;
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 
@@ -14828,7 +14769,7 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
   EventListenerList get open() => _get('open');
 }
 
-class _WheelEventJs extends _UIEventJs implements WheelEvent native "*WheelEvent" {
+class _WheelEventImpl extends _UIEventImpl implements WheelEvent native "*WheelEvent" {
 
   final bool altKey;
 
@@ -14862,132 +14803,15 @@ class _WheelEventJs extends _UIEventJs implements WheelEvent native "*WheelEvent
 
   final int y;
 
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _WindowJs view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef Object ComputeValue();
+class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow" {
 
-class _MeasurementRequest<T> {
-  final ComputeValue computeValue;
-  final Completer<T> completer;
-  Object value;
-  bool exception = false;
-  _MeasurementRequest(this.computeValue, this.completer);
-}
-
-final _MEASUREMENT_MESSAGE = "DART-MEASURE";
-List<_MeasurementRequest> _pendingRequests;
-List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
-bool _nextMeasurementFrameScheduled = false;
-bool _firstMeasurementRequest = true;
-
-void _maybeScheduleMeasurementFrame() {
-  if (_nextMeasurementFrameScheduled) return;
-
-  _nextMeasurementFrameScheduled = true;
-  // postMessage gives us a way to receive a callback after the current
-  // event listener has unwound but before the browser has repainted.
-  if (_firstMeasurementRequest) {
-    // Messages from other windows do not cause a security risk as
-    // all we care about is that _onCompleteMeasurementRequests is called
-    // after the current event loop is unwound and calling the function is
-    // a noop when zero requests are pending.
-    window.on.message.add((e) => _completeMeasurementFutures());
-    _firstMeasurementRequest = false;
-  }
-
-  // TODO(jacobr): other mechanisms such as setImmediate and
-  // requestAnimationFrame may work better of platforms that support them.
-  // The key is we need a way to execute code immediately after the current
-  // event listener queue unwinds.
-  window.postMessage(_MEASUREMENT_MESSAGE, "*");
-}
-
-/**
- * Registers a [callback] which is called after the next batch of measurements
- * completes. Even if no measurements completed, the callback is triggered
- * when they would have completed to avoid confusing bugs if it happened that
- * no measurements were actually requested.
- */
-void _addMeasurementFrameCallback(TimeoutHandler callback) {
-  if (_pendingMeasurementFrameCallbacks === null) {
-    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
-    _maybeScheduleMeasurementFrame();
-  }
-  _pendingMeasurementFrameCallbacks.add(callback);
-}
-
-/**
- * Returns a [Future] whose value will be the result of evaluating
- * [computeValue] during the next safe measurement interval.
- * The next safe measurement interval is after the current event loop has
- * unwound but before the browser has rendered the page.
- * It is important that the [computeValue] function only queries the html
- * layout and html in any way.
- */
-Future _createMeasurementFuture(ComputeValue computeValue,
-                                Completer completer) {
-  if (_pendingRequests === null) {
-    _pendingRequests = <_MeasurementRequest>[];
-    _maybeScheduleMeasurementFrame();
-  }
-  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
-  return completer.future;
-}
-
-/**
- * Complete all pending measurement futures evaluating them in a single batch
- * so that the the browser is guaranteed to avoid multiple layouts.
- */
-void _completeMeasurementFutures() {
-  if (_nextMeasurementFrameScheduled == false) {
-    // Ignore spurious call to this function.
-    return;
-  }
-
-  _nextMeasurementFrameScheduled = false;
-  // We must compute all new values before fulfilling the futures as
-  // the onComplete callbacks for the futures could modify the DOM making
-  // subsequent measurement calculations expensive to compute.
-  if (_pendingRequests !== null) {
-    for (_MeasurementRequest request in _pendingRequests) {
-      try {
-        request.value = request.computeValue();
-      } catch(var e) {
-        request.value = e;
-        request.exception = true;
-      }
-    }
-  }
-
-  final completedRequests = _pendingRequests;
-  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
-  _pendingRequests = null;
-  _pendingMeasurementFrameCallbacks = null;
-  if (completedRequests !== null) {
-    for (_MeasurementRequest request in completedRequests) {
-      if (request.exception) {
-        request.completer.completeException(request.value);
-      } else {
-        request.completer.complete(request.value);
-      }
-    }
-  }
-
-  if (readyMeasurementFrameCallbacks !== null) {
-    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
-      // TODO(jacobr): wrap each call to a handler in a try-catch block.
-      handler();
-    }
-  }
-}
-
-class _WindowJs implements Window native "@*DOMWindow" {
-
-  _DocumentJs get document() native "return this.document.documentElement;";
+  _DocumentImpl get document() native "return this.document.documentElement;";
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
@@ -14998,15 +14822,15 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   static final int TEMPORARY = 0;
 
-  final _DOMApplicationCacheJs applicationCache;
+  final _DOMApplicationCacheImpl applicationCache;
 
-  final _NavigatorJs clientInformation;
+  final _NavigatorImpl clientInformation;
 
   final bool closed;
 
-  final _ConsoleJs console;
+  final _ConsoleImpl console;
 
-  final _CryptoJs crypto;
+  final _CryptoImpl crypto;
 
   String defaultStatus;
 
@@ -15014,13 +14838,13 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   final num devicePixelRatio;
 
-  final _EventJs event;
+  final _EventImpl event;
 
-  final _ElementJs frameElement;
+  final _ElementImpl frameElement;
 
-  final _WindowJs frames;
+  final _WindowImpl frames;
 
-  final _HistoryJs history;
+  final _HistoryImpl history;
 
   final int innerHeight;
 
@@ -15028,21 +14852,21 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   final int length;
 
-  final _StorageJs localStorage;
+  final _StorageImpl localStorage;
 
-  _LocationJs location;
+  _LocationImpl location;
 
-  final _BarInfoJs locationbar;
+  final _BarInfoImpl locationbar;
 
-  final _BarInfoJs menubar;
+  final _BarInfoImpl menubar;
 
   String name;
 
-  final _NavigatorJs navigator;
+  final _NavigatorImpl navigator;
 
   final bool offscreenBuffering;
 
-  final _WindowJs opener;
+  final _WindowImpl opener;
 
   final int outerHeight;
 
@@ -15052,13 +14876,13 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   final int pageYOffset;
 
-  final _WindowJs parent;
+  final _WindowImpl parent;
 
-  final _PerformanceJs performance;
+  final _PerformanceImpl performance;
 
-  final _BarInfoJs personalbar;
+  final _BarInfoImpl personalbar;
 
-  final _ScreenJs screen;
+  final _ScreenImpl screen;
 
   final int screenLeft;
 
@@ -15072,29 +14896,29 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   final int scrollY;
 
-  final _BarInfoJs scrollbars;
+  final _BarInfoImpl scrollbars;
 
-  final _WindowJs self;
+  final _WindowImpl self;
 
-  final _StorageJs sessionStorage;
+  final _StorageImpl sessionStorage;
 
   String status;
 
-  final _BarInfoJs statusbar;
+  final _BarInfoImpl statusbar;
 
-  final _StyleMediaJs styleMedia;
+  final _StyleMediaImpl styleMedia;
 
-  final _BarInfoJs toolbar;
+  final _BarInfoImpl toolbar;
 
-  final _WindowJs top;
+  final _WindowImpl top;
 
-  final _IDBFactoryJs webkitIndexedDB;
+  final _IDBFactoryImpl webkitIndexedDB;
 
-  final _NotificationCenterJs webkitNotifications;
+  final _NotificationCenterImpl webkitNotifications;
 
-  final _StorageInfoJs webkitStorageInfo;
+  final _StorageInfoImpl webkitStorageInfo;
 
-  final _WindowJs window;
+  final _WindowImpl window;
 
   _WindowEventsImpl get on() =>
     new _WindowEventsImpl(this);
@@ -15119,27 +14943,27 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   bool confirm(String message) native;
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   void focus() native;
 
-  _CSSStyleDeclarationJs _getComputedStyle(_ElementJs element, String pseudoElement) native "return this.getComputedStyle(element, pseudoElement);";
+  _CSSStyleDeclarationImpl _getComputedStyle(_ElementImpl element, String pseudoElement) native "return this.getComputedStyle(element, pseudoElement);";
 
-  _CSSRuleListJs getMatchedCSSRules(_ElementJs element, String pseudoElement) native;
+  _CSSRuleListImpl getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
 
-  _DOMSelectionJs getSelection() native;
+  _DOMSelectionImpl getSelection() native;
 
-  _MediaQueryListJs matchMedia(String query) native;
+  _MediaQueryListImpl matchMedia(String query) native;
 
   void moveBy(num x, num y) native;
 
   void moveTo(num x, num y) native;
 
-  _WindowJs open(String url, String name, [String options = null]) native;
+  _WindowImpl open(String url, String name, [String options = null]) native;
 
-  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
 
@@ -15173,13 +14997,13 @@ class _WindowJs implements Window native "@*DOMWindow" {
 
   void webkitCancelRequestAnimationFrame(int id) native;
 
-  _PointJs webkitConvertPointFromNodeToPage(_NodeJs node, _PointJs p) native;
+  _PointImpl webkitConvertPointFromNodeToPage(_NodeImpl node, _PointImpl p) native;
 
-  _PointJs webkitConvertPointFromPageToNode(_NodeJs node, _PointJs p) native;
+  _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, _ElementJs element) native;
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, _ElementImpl element) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
@@ -15339,7 +15163,7 @@ class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   EventListenerList get waiting() => _get('waiting');
 }
 
-class _WorkerJs extends _AbstractWorkerJs implements Worker native "*Worker" {
+class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker" {
 
   _WorkerEventsImpl get on() =>
     new _WorkerEventsImpl(this);
@@ -15357,23 +15181,23 @@ class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvent
   EventListenerList get message() => _get('message');
 }
 
-class _WorkerContextJs implements WorkerContext native "*WorkerContext" {
+class _WorkerContextImpl implements WorkerContext native "*WorkerContext" {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
-  final _WorkerLocationJs location;
+  final _WorkerLocationImpl location;
 
-  final _WorkerNavigatorJs navigator;
+  final _WorkerNavigatorImpl navigator;
 
   EventListener onerror;
 
-  final _WorkerContextJs self;
+  final _WorkerContextImpl self;
 
-  final _IDBFactoryJs webkitIndexedDB;
+  final _IDBFactoryImpl webkitIndexedDB;
 
-  final _NotificationCenterJs webkitNotifications;
+  final _NotificationCenterImpl webkitNotifications;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -15383,13 +15207,13 @@ class _WorkerContextJs implements WorkerContext native "*WorkerContext" {
 
   void close() native;
 
-  bool dispatchEvent(_EventJs evt) native;
+  bool dispatchEvent(_EventImpl evt) native;
 
   void importScripts() native;
 
-  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  _DatabaseSyncJs openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseSyncImpl openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -15399,14 +15223,14 @@ class _WorkerContextJs implements WorkerContext native "*WorkerContext" {
 
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  _DOMFileSystemSyncJs webkitRequestFileSystemSync(int type, int size) native;
+  _DOMFileSystemSyncImpl webkitRequestFileSystemSync(int type, int size) native;
 
-  _EntrySyncJs webkitResolveLocalFileSystemSyncURL(String url) native;
+  _EntrySyncImpl webkitResolveLocalFileSystemSyncURL(String url) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 }
 
-class _WorkerLocationJs implements WorkerLocation native "*WorkerLocation" {
+class _WorkerLocationImpl implements WorkerLocation native "*WorkerLocation" {
 
   final String hash;
 
@@ -15427,7 +15251,7 @@ class _WorkerLocationJs implements WorkerLocation native "*WorkerLocation" {
   String toString() native;
 }
 
-class _WorkerNavigatorJs implements WorkerNavigator native "*WorkerNavigator" {
+class _WorkerNavigatorImpl implements WorkerNavigator native "*WorkerNavigator" {
 
   final String appName;
 
@@ -15440,7 +15264,7 @@ class _WorkerNavigatorJs implements WorkerNavigator native "*WorkerNavigator" {
   final String userAgent;
 }
 
-class _XMLHttpRequestJs implements XMLHttpRequest native "*XMLHttpRequest" {
+class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest native "*XMLHttpRequest" {
 
   static final int DONE = 4;
 
@@ -15458,19 +15282,21 @@ class _XMLHttpRequestJs implements XMLHttpRequest native "*XMLHttpRequest" {
 
   final Object response;
 
-  final _BlobJs responseBlob;
+  final _BlobImpl responseBlob;
 
   final String responseText;
 
   String responseType;
 
-  final _DocumentJs responseXML;
+  _DocumentImpl get responseXML() => _FixHtmlDocumentReference(_responseXML);
+
+  _EventTargetImpl get _responseXML() native "return this.responseXML;";
 
   final int status;
 
   final String statusText;
 
-  final _XMLHttpRequestUploadJs upload;
+  final _XMLHttpRequestUploadImpl upload;
 
   bool withCredentials;
 
@@ -15481,7 +15307,7 @@ class _XMLHttpRequestJs implements XMLHttpRequest native "*XMLHttpRequest" {
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   String getAllResponseHeaders() native;
 
@@ -15516,7 +15342,7 @@ class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEve
   EventListenerList get readyStateChange() => _get('readystatechange');
 }
 
-class _XMLHttpRequestExceptionJs implements XMLHttpRequestException native "*XMLHttpRequestException" {
+class _XMLHttpRequestExceptionImpl implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int ABORT_ERR = 102;
 
@@ -15531,21 +15357,21 @@ class _XMLHttpRequestExceptionJs implements XMLHttpRequestException native "*XML
   String toString() native;
 }
 
-class _XMLHttpRequestProgressEventJs extends _ProgressEventJs implements XMLHttpRequestProgressEvent native "*XMLHttpRequestProgressEvent" {
+class _XMLHttpRequestProgressEventImpl extends _ProgressEventImpl implements XMLHttpRequestProgressEvent native "*XMLHttpRequestProgressEvent" {
 
   final int position;
 
   final int totalSize;
 }
 
-class _XMLHttpRequestUploadJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
+class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   _XMLHttpRequestUploadEventsImpl get on() =>
     new _XMLHttpRequestUploadEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
-  bool _dispatchEvent(_EventJs evt) native "return this.dispatchEvent(evt);";
+  bool _dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
 
   void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
 }
@@ -15566,21 +15392,21 @@ class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequ
   EventListenerList get progress() => _get('progress');
 }
 
-class _XMLSerializerJs implements XMLSerializer native "*XMLSerializer" {
+class _XMLSerializerImpl implements XMLSerializer native "*XMLSerializer" {
 
-  String serializeToString(_NodeJs node) native;
+  String serializeToString(_NodeImpl node) native;
 }
 
-class _XPathEvaluatorJs implements XPathEvaluator native "*XPathEvaluator" {
+class _XPathEvaluatorImpl implements XPathEvaluator native "*XPathEvaluator" {
 
-  _XPathExpressionJs createExpression(String expression, _XPathNSResolverJs resolver) native;
+  _XPathExpressionImpl createExpression(String expression, _XPathNSResolverImpl resolver) native;
 
-  _XPathNSResolverJs createNSResolver(_NodeJs nodeResolver) native;
+  _XPathNSResolverImpl createNSResolver(_NodeImpl nodeResolver) native;
 
-  _XPathResultJs evaluate(String expression, _NodeJs contextNode, _XPathNSResolverJs resolver, int type, _XPathResultJs inResult) native;
+  _XPathResultImpl evaluate(String expression, _NodeImpl contextNode, _XPathNSResolverImpl resolver, int type, _XPathResultImpl inResult) native;
 }
 
-class _XPathExceptionJs implements XPathException native "*XPathException" {
+class _XPathExceptionImpl implements XPathException native "*XPathException" {
 
   static final int INVALID_EXPRESSION_ERR = 51;
 
@@ -15595,17 +15421,17 @@ class _XPathExceptionJs implements XPathException native "*XPathException" {
   String toString() native;
 }
 
-class _XPathExpressionJs implements XPathExpression native "*XPathExpression" {
+class _XPathExpressionImpl implements XPathExpression native "*XPathExpression" {
 
-  _XPathResultJs evaluate(_NodeJs contextNode, int type, _XPathResultJs inResult) native;
+  _XPathResultImpl evaluate(_NodeImpl contextNode, int type, _XPathResultImpl inResult) native;
 }
 
-class _XPathNSResolverJs implements XPathNSResolver native "*XPathNSResolver" {
+class _XPathNSResolverImpl implements XPathNSResolver native "*XPathNSResolver" {
 
   String lookupNamespaceURI(String prefix) native;
 }
 
-class _XPathResultJs implements XPathResult native "*XPathResult" {
+class _XPathResultImpl implements XPathResult native "*XPathResult" {
 
   static final int ANY_TYPE = 0;
 
@@ -15635,24 +15461,24 @@ class _XPathResultJs implements XPathResult native "*XPathResult" {
 
   final int resultType;
 
-  final _NodeJs singleNodeValue;
+  final _NodeImpl singleNodeValue;
 
   final int snapshotLength;
 
   final String stringValue;
 
-  _NodeJs iterateNext() native;
+  _NodeImpl iterateNext() native;
 
-  _NodeJs snapshotItem(int index) native;
+  _NodeImpl snapshotItem(int index) native;
 }
 
-class _XSLTProcessorJs implements XSLTProcessor native "*XSLTProcessor" {
+class _XSLTProcessorImpl implements XSLTProcessor native "*XSLTProcessor" {
 
   void clearParameters() native;
 
   String getParameter(String namespaceURI, String localName) native;
 
-  void importStylesheet(_NodeJs stylesheet) native;
+  void importStylesheet(_NodeImpl stylesheet) native;
 
   void removeParameter(String namespaceURI, String localName) native;
 
@@ -15660,9 +15486,11 @@ class _XSLTProcessorJs implements XSLTProcessor native "*XSLTProcessor" {
 
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  _DocumentJs transformToDocument(_NodeJs source) native;
+  _DocumentImpl transformToDocument(_NodeImpl source) => _FixHtmlDocumentReference(_transformToDocument(source));
 
-  _DocumentFragmentJs transformToFragment(_NodeJs source, _DocumentJs docVal) native;
+  _EventTargetImpl _transformToDocument(_NodeImpl source) native "return this.transformToDocument(source);";
+
+  _DocumentFragmentImpl transformToFragment(_NodeImpl source, _DocumentImpl docVal) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15673,6 +15501,12 @@ class _XSLTProcessorJs implements XSLTProcessor native "*XSLTProcessor" {
 interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
+
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event evt);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface AbstractWorkerEvents extends Events {
@@ -15724,8 +15558,6 @@ interface AnchorElement extends Element {
   String shape;
 
   String target;
-
-  final String text;
 
   String type;
 
@@ -16330,8 +16162,6 @@ interface BodyElement extends Element {
 
   String link;
 
-  String text;
-
   String vLink;
 
   BodyElementEvents get on();
@@ -16703,15 +16533,14 @@ interface CSSRuleList {
 
   CSSRule item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface CSSStyleDeclaration {
+interface CSSStyleDeclaration default _CSSStyleDeclarationFactoryProvider {
   CSSStyleDeclaration();
-
   CSSStyleDeclaration.css(String css);
 
 
@@ -19170,6 +18999,12 @@ interface DOMApplicationCache extends EventTarget {
 
   void abort();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event evt);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   void swapCache();
 
   void update();
@@ -19755,7 +19590,7 @@ interface Document extends HtmlElement {
 
   String cookie;
 
-  final Window defaultView;
+  final Window window;
 
   final String domain;
 
@@ -19791,21 +19626,23 @@ interface Document extends HtmlElement {
 
   DocumentFragment createDocumentFragment();
 
+  Element _createElement(String tagName);
+
+  Event _createEvent(String eventType);
+
   Range createRange();
 
-  Text createTextNode(String data);
+  Text _createTextNode(String data);
 
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
 
-  TouchList createTouchList();
+  TouchList _createTouchList();
 
   Element elementFromPoint(int x, int y);
 
   bool execCommand(String command, bool userInterface, String value);
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height);
-
-  Element getElementById(String elementId);
 
   bool queryCommandEnabled(String command);
 
@@ -19865,9 +19702,9 @@ interface DocumentEvents extends ElementEvents {
 
   EventListenerList get focus();
 
-  EventListenerList get fullScreenChange();
+  EventListenerList get fullscreenChange();
 
-  EventListenerList get fullScreenError();
+  EventListenerList get fullscreenError();
 
   EventListenerList get input();
 
@@ -19927,9 +19764,9 @@ interface DocumentEvents extends ElementEvents {
 
 interface DocumentFragment extends Node, NodeSelector {
 
-  Element querySelector(String selectors);
+  Element query(String selectors);
 
-  NodeList querySelectorAll(String selectors);
+  NodeList queryAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20045,7 +19882,7 @@ class _DataAttributeMap implements Map<String, String> {
 
 class _CssClassSet implements Set<String> {
 
-  final _ElementJs _element;
+  final _ElementImpl _element;
 
   _CssClassSet(this._element);
 
@@ -20209,16 +20046,20 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
-// TODO(jacobr): referencing _ElementJs here is problematic when we need
-// to support wrappers as well.
-interface Element extends Node, NodeSelector default _ElementJs {
+interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 // TODO(jacobr): switch back to:
-// interface Element extends Node, NodeSelector, ElementTraversal default _ElementJs {
+// interface Element extends Node, NodeSelector, ElementTraversal default _ElementImpl {
   Element.html(String html);
   Element.tag(String tag);
 
   Map<String, String> get attributes();
   void set attributes(Map<String, String> value);
+
+  /**
+   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
+   *   getElementsByTagNameNS
+   */
+  ElementList queryAll(String selectors);
 
   // TODO(jacobr): remove these methods and let them be generated automatically
   // once dart supports defining fields with the same name in an interface and
@@ -20226,15 +20067,16 @@ interface Element extends Node, NodeSelector default _ElementJs {
   String get title();
   void set title(String value);
 
+  /**
+   * @domName childElementCount, firstElementChild, lastElementChild,
+   *   children, Node.nodes.add
+   */
   ElementList get elements();
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value);
 
-  Element query(String selectors);
-
-  ElementList queryAll(String selectors);
-
+  /** @domName className, classList */
   Set<String> get classes();
 
   // TODO: The type of value should be Collection<String>. See http://b/5392897
@@ -20243,37 +20085,41 @@ interface Element extends Node, NodeSelector default _ElementJs {
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
 
-  bool matchesSelector([String selectors]);
-
+  /**
+   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
+   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
+   * scrollHeight, scrollWidth, scrollTop, scrollLeft
+   */
   Future<ElementRect> get rect();
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle();
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   Element clone(bool deep);
-
 
   Element get parent();
 
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  final int childElementCount;
+  final int _childElementCount;
 
-  final HTMLCollection children;
+  final HTMLCollection _children;
 
   final DOMTokenList classList;
 
-  final String className;
+  String _className;
 
-  final int clientHeight;
+  final int _clientHeight;
 
-  final int clientLeft;
+  final int _clientLeft;
 
-  final int clientTop;
+  final int _clientTop;
 
-  final int clientWidth;
+  final int _clientWidth;
 
   String contentEditable;
 
@@ -20281,7 +20127,7 @@ interface Element extends Node, NodeSelector default _ElementJs {
 
   bool draggable;
 
-  final Element firstElementChild;
+  final Element _firstElementChild;
 
   bool hidden;
 
@@ -20297,27 +20143,27 @@ interface Element extends Node, NodeSelector default _ElementJs {
 
   final Element nextElementSibling;
 
-  final int offsetHeight;
+  final int _offsetHeight;
 
-  final int offsetLeft;
+  final int _offsetLeft;
 
   final Element offsetParent;
 
-  final int offsetTop;
+  final int _offsetTop;
 
-  final int offsetWidth;
+  final int _offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
 
-  final int scrollHeight;
+  final int _scrollHeight;
 
-  int scrollLeft;
+  int _scrollLeft;
 
-  int scrollTop;
+  int _scrollTop;
 
-  final int scrollWidth;
+  final int _scrollWidth;
 
   bool spellcheck;
 
@@ -20339,15 +20185,13 @@ interface Element extends Node, NodeSelector default _ElementJs {
 
   void focus();
 
-  ClientRect getBoundingClientRect();
+  String _getAttribute(String name);
 
-  ClientRectList getClientRects();
+  ClientRect _getBoundingClientRect();
 
-  NodeList getElementsByClassName(String name);
+  ClientRectList _getClientRects();
 
-  NodeList getElementsByTagName(String name);
-
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+  bool _hasAttribute(String name);
 
   Element insertAdjacentElement(String where, Element element);
 
@@ -20355,19 +20199,21 @@ interface Element extends Node, NodeSelector default _ElementJs {
 
   void insertAdjacentText(String where, String text);
 
-  Element querySelector(String selectors);
+  Element query(String selectors);
 
-  NodeList querySelectorAll(String selectors);
+  NodeList _querySelectorAll(String selectors);
+
+  void _removeAttribute(String name);
 
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
-  void scrollIntoView([bool alignWithTop]);
+  void scrollIntoView([bool centerIfNeeded]);
 
-  void scrollIntoViewIfNeeded([bool centerIfNeeded]);
+  void _setAttribute(String name, String value);
 
-  bool webkitMatchesSelector(String selectors);
+  bool matchesSelector(String selectors);
 
   void webkitRequestFullScreen(int flags);
 
@@ -20415,9 +20261,9 @@ interface ElementEvents extends Events {
 
   EventListenerList get focus();
 
-  EventListenerList get fullScreenChange();
+  EventListenerList get fullscreenChange();
 
-  EventListenerList get fullScreenError();
+  EventListenerList get fullscreenError();
 
   EventListenerList get input();
 
@@ -20664,7 +20510,7 @@ interface ErrorEvent extends Event {
 
   final String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20742,6 +20588,8 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
+  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
+
   void preventDefault();
 
   void stopImmediatePropagation();
@@ -20790,7 +20638,13 @@ interface EventSource extends EventTarget {
 
   EventSourceEvents get on();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close();
+
+  bool _dispatchEvent(Event evt);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface EventSourceEvents extends Events {
@@ -20801,7 +20655,7 @@ interface EventSourceEvents extends Events {
 
   EventListenerList get open();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20822,6 +20676,12 @@ interface Events {
 interface EventTarget {
 
   final Events on;
+
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event event);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21512,6 +21372,8 @@ interface IDBDatabase {
 
   final String name;
 
+  final List<String> objectStoreNames;
+
   EventListener onabort;
 
   EventListener onerror;
@@ -21534,7 +21396,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(String storeName, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21673,6 +21535,8 @@ interface IDBKeyRange {
 // WARNING: Do not edit - generated code.
 
 interface IDBObjectStore {
+
+  final List<String> indexNames;
 
   final String keyPath;
 
@@ -22719,9 +22583,15 @@ interface MessagePort extends EventTarget {
 
   MessagePortEvents get on();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close();
 
+  bool _dispatchEvent(Event evt);
+
   void postMessage(String message, [List messagePorts]);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -22807,7 +22677,13 @@ interface ModElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface MouseEvent extends UIEvent {
+interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
+
+  MouseEvent(String type, Window view, int detail, int screenX, int screenY,
+      int clientX, int clientY, int button, [bool canBubble, bool cancelable,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey,
+      EventTarget relatedTarget]);
+
 
   final bool altKey;
 
@@ -22843,7 +22719,7 @@ interface MouseEvent extends UIEvent {
 
   final int y;
 
-  void initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22967,7 +22843,7 @@ typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22978,18 +22854,6 @@ interface Node extends EventTarget {
 
   // TODO: The type of value should be Collection<Node>. See http://b/5392897
   void set nodes(value);
-
-  Node get nextNode();
-
-  Document get document();
-
-  Node get parent();
-
-  Node get previousNode();
-
-  String get text();
-
-  void set text(String value);
 
   Node replaceWith(Node otherNode);
 
@@ -23032,23 +22896,33 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  final Node nextSibling;
+  final NamedNodeMap _attributes;
 
-  final Document ownerDocument;
+  final NodeList _childNodes;
 
-  final Node parentNode;
+  final Node nextNode;
 
-  final Node previousSibling;
+  final Document document;
 
-  String textContent;
+  final Node parent;
 
-  Node cloneNode(bool deep);
+  final Node previousNode;
+
+  String text;
+
+  Node _appendChild(Node newChild);
+
+  Node clone(bool deep);
 
   bool contains(Node other);
 
   bool hasChildNodes();
 
   Node insertBefore(Node newChild, Node refChild);
+
+  Node _removeChild(Node oldChild);
+
+  Node _replaceChild(Node newChild, Node oldChild);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23373,8 +23247,6 @@ interface OptionElement extends Element {
   String label;
 
   bool selected;
-
-  String text;
 
   String value;
 }
@@ -24405,6 +24277,8 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
+
+  Event _createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24447,6 +24321,12 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance previousSibling;
 
   SVGElementInstanceEvents get on();
+
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event event);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -26315,8 +26195,6 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
   String media;
 
-  String title;
-
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26700,8 +26578,6 @@ interface ScriptElement extends Element {
   String htmlFor;
 
   String src;
-
-  String text;
 
   String type;
 }
@@ -27222,13 +27098,15 @@ interface TableSectionElement extends Element {
 
   Element insertRow(int index);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface Text extends CharacterData {
+interface Text extends CharacterData default _TextFactoryProvider {
+
+  Text(String data);
 
   final String wholeText;
 
@@ -27455,8 +27333,6 @@ interface TimeRanges {
 // WARNING: Do not edit - generated code.
 
 interface TitleElement extends Element {
-
-  String text;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28901,7 +28777,13 @@ interface WebSocket extends EventTarget {
 
   WebSocketEvents get on();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close([int code, String reason]);
+
+  bool _dispatchEvent(Event evt);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }
@@ -29080,6 +28962,8 @@ interface Window extends EventTarget {
 
   WindowEvents get on();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void alert(String message);
 
   String atob(String string);
@@ -29098,9 +28982,13 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
+  bool _dispatchEvent(Event evt);
+
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
+
+  CSSStyleDeclaration _getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
@@ -29123,6 +29011,8 @@ interface Window extends EventTarget {
   String prompt(String message, String defaultValue);
 
   void releaseEvents();
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 
@@ -29479,6 +29369,10 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void abort();
 
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event evt);
+
   String getAllResponseHeaders();
 
   String getResponseHeader(String header);
@@ -29486,6 +29380,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
 
@@ -29549,6 +29445,12 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
+
+  void _addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool _dispatchEvent(Event evt);
+
+  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface XMLHttpRequestUploadEvents extends Events {
@@ -30327,6 +30229,229 @@ class _Collections {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+typedef Object ComputeValue();
+
+class _MeasurementRequest<T> {
+  final ComputeValue computeValue;
+  final Completer<T> completer;
+  Object value;
+  bool exception = false;
+  _MeasurementRequest(this.computeValue, this.completer);
+}
+
+final _MEASUREMENT_MESSAGE = "DART-MEASURE";
+List<_MeasurementRequest> _pendingRequests;
+List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
+bool _nextMeasurementFrameScheduled = false;
+bool _firstMeasurementRequest = true;
+
+void _maybeScheduleMeasurementFrame() {
+  if (_nextMeasurementFrameScheduled) return;
+
+  _nextMeasurementFrameScheduled = true;
+  // postMessage gives us a way to receive a callback after the current
+  // event listener has unwound but before the browser has repainted.
+  if (_firstMeasurementRequest) {
+    // Messages from other windows do not cause a security risk as
+    // all we care about is that _onCompleteMeasurementRequests is called
+    // after the current event loop is unwound and calling the function is
+    // a noop when zero requests are pending.
+    window.on.message.add((e) => _completeMeasurementFutures());
+    _firstMeasurementRequest = false;
+  }
+
+  // TODO(jacobr): other mechanisms such as setImmediate and
+  // requestAnimationFrame may work better of platforms that support them.
+  // The key is we need a way to execute code immediately after the current
+  // event listener queue unwinds.
+  window.postMessage(_MEASUREMENT_MESSAGE, "*");
+}
+
+/**
+ * Registers a [callback] which is called after the next batch of measurements
+ * completes. Even if no measurements completed, the callback is triggered
+ * when they would have completed to avoid confusing bugs if it happened that
+ * no measurements were actually requested.
+ */
+void _addMeasurementFrameCallback(TimeoutHandler callback) {
+  if (_pendingMeasurementFrameCallbacks === null) {
+    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
+    _maybeScheduleMeasurementFrame();
+  }
+  _pendingMeasurementFrameCallbacks.add(callback);
+}
+
+/**
+ * Returns a [Future] whose value will be the result of evaluating
+ * [computeValue] during the next safe measurement interval.
+ * The next safe measurement interval is after the current event loop has
+ * unwound but before the browser has rendered the page.
+ * It is important that the [computeValue] function only queries the html
+ * layout and html in any way.
+ */
+Future _createMeasurementFuture(ComputeValue computeValue,
+                                Completer completer) {
+  if (_pendingRequests === null) {
+    _pendingRequests = <_MeasurementRequest>[];
+    _maybeScheduleMeasurementFrame();
+  }
+  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
+  return completer.future;
+}
+
+/**
+ * Complete all pending measurement futures evaluating them in a single batch
+ * so that the the browser is guaranteed to avoid multiple layouts.
+ */
+void _completeMeasurementFutures() {
+  if (_nextMeasurementFrameScheduled == false) {
+    // Ignore spurious call to this function.
+    return;
+  }
+
+  _nextMeasurementFrameScheduled = false;
+  // We must compute all new values before fulfilling the futures as
+  // the onComplete callbacks for the futures could modify the DOM making
+  // subsequent measurement calculations expensive to compute.
+  if (_pendingRequests !== null) {
+    for (_MeasurementRequest request in _pendingRequests) {
+      try {
+        request.value = request.computeValue();
+      } catch(var e) {
+        request.value = e;
+        request.exception = true;
+      }
+    }
+  }
+
+  final completedRequests = _pendingRequests;
+  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
+  _pendingRequests = null;
+  _pendingMeasurementFrameCallbacks = null;
+  if (completedRequests !== null) {
+    for (_MeasurementRequest request in completedRequests) {
+      if (request.exception) {
+        request.completer.completeException(request.value);
+      } else {
+        request.completer.complete(request.value);
+      }
+    }
+  }
+
+  if (readyMeasurementFrameCallbacks !== null) {
+    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
+      // TODO(jacobr): wrap each call to a handler in a try-catch block.
+      handler();
+    }
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _TextFactoryProvider {
+
+  factory Text(data) => document._createTextNode(data);
+}
+
+class _EventFactoryProvider {
+  factory Event(String type, [bool canBubble = true,
+      bool cancelable = true]) {
+    _EventImpl e = document._createEvent("Event");
+    e._initEvent(type, canBubble, cancelable);
+    return e;
+  }
+}
+
+class _MouseEventFactoryProvider {
+  factory MouseEvent(String type, Window view, int detail,
+      int screenX, int screenY, int clientX, int clientY, int button,
+      [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
+      bool altKey = false, bool shiftKey = false, bool metaKey = false,
+      EventTarget relatedTarget = null]) {
+    final e = document._createEvent("MouseEvent");
+    e._initMouseEvent(type, canBubble, cancelable, view, detail,
+        screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+        button, relatedTarget);
+    return e;
+  }
+}
+
+class _CSSStyleDeclarationFactoryProvider {
+  factory CSSStyleDeclaration.css(String css) {
+    var style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  } 
+
+  factory CSSStyleDeclaration() {
+    return new CSSStyleDeclaration.css('');
+  }
+}
+
+final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+class _ElementFactoryProvider {
+  static final _CUSTOM_PARENT_TAG_MAP = const {
+    'body' : 'html',
+    'head' : 'html',
+    'caption' : 'table',
+    'td': 'tr',
+    'tbody': 'table',
+    'colgroup': 'table',
+    'col' : 'colgroup',
+    'tr' : 'tbody',
+    'tbody' : 'table',
+    'tfoot' : 'table',
+    'thead' : 'table',
+    'track' : 'audio',
+  };
+
+  /** @domName Document.createElement */
+  factory Element.html(String html) {
+    // TODO(jacobr): this method can be made more robust and performant.
+    // 1) Cache the dummy parent elements required to use innerHTML rather than
+    //    creating them every call.
+    // 2) Verify that the html does not contain leading or trailing text nodes.
+    // 3) Verify that the html does not contain both <head> and <body> tags.
+    // 4) Detatch the created element from its dummy parent.
+    String parentTag = 'div';
+    String tag;
+    final match = _START_TAG_REGEXP.firstMatch(html);
+    if (match !== null) {
+      tag = match.group(1).toLowerCase();
+      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
+        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      }
+    }
+    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
+    _ElementImpl temp = document._createElement(parentTag);
+    temp.innerHTML = html;
+
+    Element element;
+    if (temp.elements.length == 1) {
+      element = temp.elements.first;
+    } else if (parentTag == 'html' && temp.elements.length == 2) {
+      // Work around for edge case in WebKit and possibly other browsers where
+      // both body and head elements are created even though the inner html
+      // only contains a head or body element.
+      element = temp.elements[tag == 'head' ? 0 : 1];
+    } else {
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+          'top level elements but 1 expected');
+    }
+    element.remove();
+    return element;
+  }
+
+  /** @domName Document.createElement */
+  factory Element.tag(String tag) {
+    return document._createElement(tag);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _AudioContextFactoryProvider {
 
   factory AudioContext() native '''
@@ -30402,17 +30527,6 @@ class _CSSMatrixFactoryProvider {
       'return new WebKitCSSMatrix(spec);';
 }
 
-// TODO(jacobr): this factory does not require any native code so move to a
-// separate file so it can be shared between wrapper and wrapperless versions.
-class _EventFactoryProvider {
-  factory Event(String type, [bool canBubble = true,
-      bool cancelable = true]) {
-    _EventJs e = _document._createEvent("Event");
-    e._initEvent(type, canBubble, cancelable);
-    return e;
-  }
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
@@ -30448,7 +30562,23 @@ class _XMLHttpRequestFactoryProvider {
     return request;
   }
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(rnystrom): add a way to supress public classes from DartDoc output.
+/**
+ * This class is intended for testing purposes only.
+ */
+class Testing {
+  static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
+    target._addEventListener(type, listener, useCapture);
+  }
+  static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
+    target._removeEventListener(type, listener, useCapture);
+  }
+
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -30461,7 +30591,7 @@ class _Device {
    * the user agent.
    * Returns the user agent.
    */
-  static String get userAgent() => dom.window.navigator.userAgent;
+  static String get userAgent() => window.navigator.userAgent;
 
   /**
    * Determines if the current device is running Firefox.

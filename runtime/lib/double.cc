@@ -186,29 +186,62 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
+  // The boundaries are exclusive.
+  static const double kLowerBoundary = -1e21;
+  static const double kUpperBoundary = 1e21;
+
   const Double& arg = Double::CheckedHandle(arguments->At(0));
   GET_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->At(1));
   double d = arg.value();
-  int fraction_digits_value = fraction_digits.Value();
-  String& result = String::Handle();
-  bool succeeded = DoubleToStringAsFixed(d, fraction_digits_value, result);
-  if (!succeeded) {
+  intptr_t fraction_digits_value = fraction_digits.Value();
+  if (0 <= fraction_digits_value && fraction_digits_value <= 20
+      && kLowerBoundary < d && d < kUpperBoundary) {
+    String& result = String::Handle();
+    result = DoubleToStringAsFixed(d, static_cast<int>(fraction_digits_value));
+    arguments->SetReturn(result);
+  } else {
     GrowableArray<const Object*> args;
     args.Add(&String::ZoneHandle(String::New(
         "Illegal arguments to double.toStringAsFixed")));
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
-  arguments->SetReturn(result);
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
-  UNIMPLEMENTED();
+  const Double& arg = Double::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->At(1));
+  double d = arg.value();
+  intptr_t fraction_digits_value = fraction_digits.Value();
+  if (-1 <= fraction_digits_value && fraction_digits_value <= 20) {
+    String& result = String::Handle();
+    result = DoubleToStringAsExponential(
+        d, static_cast<int>(fraction_digits_value));
+    arguments->SetReturn(result);
+  } else {
+    GrowableArray<const Object*> args;
+    args.Add(&String::ZoneHandle(String::New(
+        "Illegal arguments to double.toStringAsExponential")));
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  }
 }
 
 
 DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
-  UNIMPLEMENTED();
+  const Double& arg = Double::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, precision, arguments->At(1));
+  double d = arg.value();
+  intptr_t precision_value = precision.Value();
+  if (1 <= precision_value && precision_value <= 21) {
+    String& result = String::Handle();
+    result = DoubleToStringAsPrecision(d, static_cast<int>(precision_value));
+    arguments->SetReturn(result);
+  } else {
+    GrowableArray<const Object*> args;
+    args.Add(&String::ZoneHandle(String::New(
+        "Illegal arguments to double.toStringAsPrecision")));
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  }
 }
 
 

@@ -9,7 +9,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,7 +45,7 @@ public class MockArtifactProvider extends DartArtifactProvider {
   public Writer getArtifactWriter(Source source, String part, String ext) {
     Artifact artifact = new Artifact();
     artifacts.put(keyFor(source, part, ext), artifact);
-    artifact.lastModified = new Date().getTime();
+    artifact.lastModified = System.currentTimeMillis();
     return artifact.writer;
   }
 

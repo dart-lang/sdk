@@ -5,6 +5,9 @@
 // Things that should be "auto-generated" are between AUTO START and
 // AUTO END (or just AUTO if it's a single line).
 
+#library("MintMakerTest");
+#import("dart:isolate");
+
 
 class Mint {
   Mint() : registry_ = new Map<SendPort, Purse>() {

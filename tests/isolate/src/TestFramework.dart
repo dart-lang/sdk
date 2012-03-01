@@ -4,6 +4,7 @@
 
 #library("TestFramework");
 #import("dart:coreimpl");
+#import("dart:isolate");
 
 
 typedef void AsynchronousTestFunction(TestExpectation check);

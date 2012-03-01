@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Errors are created and thrown by DartVM only.
@@ -29,15 +29,20 @@ class TypeError extends AssertionError {
   static _throwNew(int location,
                    Object src_value,
                    String dst_type_name,
-                   String dst_name)
+                   String dst_name,
+                   String malformed_error)
       native "TypeError_throwNew";
   String toString() {
+    if (malformedError != null) {
+      return malformedError;
+    }
     return "'$url': Failed type check: line $line pos $column: " +
         "type '$srcType' is not assignable to type '$dstType' of '$dstName'.";
   }
   final String srcType;
   final String dstType;
   final String dstName;
+  final String malformedError;
 }
 
 class FallThroughError {
@@ -70,7 +75,7 @@ class StaticResolutionException implements Exception {
       "pos $column\n$failedResolutionLine\n";
 
   static _throwNew(int token_pos) native "StaticResolutionException_throwNew";
-  
+
   final String failedResolutionLine;
   final String url;
   final int line;

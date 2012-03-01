@@ -10,105 +10,55 @@
 
 namespace dart {
 
-// ==== Printing support.
-void AssertAssignableComp::Print() const {
-  OS::Print("AssertAssignable(");
-  value_->Print();
-  OS::Print(", %s)", type_.ToCString());
-}
-
-
-void InstanceCallComp::Print() const {
-  OS::Print("InstanceCall(%s", name_);
-  for (intptr_t i = 0; i < arguments_->length(); ++i) {
-    OS::Print(", ");
-    (*arguments_)[i]->Print();
+// ==== Support for visiting flow graphs.
+#define DEFINE_ACCEPT(ShortName, ClassName)                                    \
+  void ClassName::Accept(FlowGraphVisitor* visitor) {                          \
+    visitor->Visit##ShortName(this);                                           \
   }
-  OS::Print(")");
-}
+
+FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
+
+#undef DEFINE_ACCEPT
 
 
-void StrictCompareComp::Print() const {
-  OS::Print("StrictCompare(%s, ", Token::Str(kind_));
-  left_->Print();
-  OS::Print(", ");
-  right_->Print();
-  OS::Print(")");
-}
-
-
-
-void StaticCallComp::Print() const {
-  OS::Print("StaticCall(%s", String::Handle(function_.name()).ToCString());
-  for (intptr_t i = 0; i < arguments_->length(); ++i) {
-    OS::Print(", ");
-    (*arguments_)[i]->Print();
-  }
-  OS::Print(")");
-}
-
-
-void LoadLocalComp::Print() const {
-  OS::Print("LoadLocal(%s)", local_.name().ToCString());
-}
-
-
-void StoreLocalComp::Print() const {
-  OS::Print("StoreLocal(%s, ", local_.name().ToCString());
-  value_->Print();
-  OS::Print(")");
-}
-
-
-void TempValue::Print() const {
-  OS::Print("t%d", index_);
-}
-
-
-void ConstantValue::Print() const {
-  OS::Print("#%s", instance_.ToCString());
-}
-
-
-// ==== Support for visiting instructions.
-Instruction* JoinEntryInstr::Accept(InstructionVisitor* visitor) {
+Instruction* JoinEntryInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitJoinEntry(this);
   return successor_;
 }
 
 
-Instruction* TargetEntryInstr::Accept(InstructionVisitor* visitor) {
+Instruction* TargetEntryInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitTargetEntry(this);
   return successor_;
 }
 
 
-Instruction* DoInstr::Accept(InstructionVisitor* visitor) {
+Instruction* DoInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitDo(this);
   return successor_;
 }
 
 
-Instruction* BindInstr::Accept(InstructionVisitor* visitor) {
+Instruction* BindInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitBind(this);
   return successor_;
 }
 
 
-Instruction* ReturnInstr::Accept(InstructionVisitor* visitor) {
+Instruction* ReturnInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitReturn(this);
   return NULL;
 }
 
 
-Instruction* BranchInstr::Accept(InstructionVisitor* visitor) {
+Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitBranch(this);
   return NULL;
 }
 
 
 // Default implementation of visiting basic blocks.  Can be overridden.
-void InstructionVisitor::VisitBlocks(
+void FlowGraphVisitor::VisitBlocks(
     const GrowableArray<BlockEntryInstr*>& block_order) {
   for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
     Instruction* current = block_order[i]->Accept(this);
