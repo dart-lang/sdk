@@ -429,12 +429,12 @@ PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
-TypeVariableBoundsTest/09: Fail  # Should not complain in production mode.
 TypeVariableBoundsTest/10: Fail  # Should not complain in production mode.
 WrongNumberTypeArgumentsTest/00: Fail  # Should not complain in production mode.
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
+TypeVariableBoundsTest/09: Fail
 TypeVariableBounds2Test/00: Fail  # Issue 1939
 TypeVariableBounds2Test/03: Fail  # Issue 1939
 
