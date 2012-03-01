@@ -9,7 +9,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("EchoServerStreamTest");
 #import("dart:io");
 #import("dart:isolate");
 #source("TestingServer.dart");
@@ -140,7 +139,7 @@ class EchoServer extends TestingServer {
 
   static final int MSGSIZE = EchoServerGame.MSGSIZE;
 
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
     InputStream inputStream;
     List<int> buffer = new List<int>(MSGSIZE);
     int offset = 0;

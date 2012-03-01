@@ -7,7 +7,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("StreamPipeTest");
 #import("dart:io");
 #import("dart:isolate");
 #source("TestingServer.dart");
@@ -152,7 +151,7 @@ class PipeServerGame {
 // The testing server will simply pipe each connecting sockets input
 // stream to its output stream.
 class PipeServer extends TestingServer {
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
     connection.onError = () { Expect.fail("Socket error"); };
     connection.inputStream.pipe(connection.outputStream);
   }

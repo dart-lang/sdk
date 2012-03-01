@@ -9,7 +9,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("EchoServerTest");
 #import("dart:io");
 #import("dart:isolate");
 #source("TestingServer.dart");
@@ -133,7 +132,7 @@ class EchoServer extends TestingServer {
 
   static final msgSize = EchoServerGame.MSGSIZE;
 
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
 
     void messageHandler() {
 

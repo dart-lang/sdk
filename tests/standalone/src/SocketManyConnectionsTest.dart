@@ -4,7 +4,6 @@
 //
 // Test creating a large number of socket connections.
 
-#library("SocketManyConnectionsTest");
 #import("dart:io");
 #import("dart:isolate");
 #source("TestingServer.dart");
@@ -68,7 +67,7 @@ class SocketManyConnectionsTest {
 
 class TestServer extends TestingServer {
 
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
     Socket _client;
 
     void closeHandler() {

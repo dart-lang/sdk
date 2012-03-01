@@ -8,7 +8,7 @@ class TestingServer extends Isolate {
   static final INIT = 0;
   static final SHUTDOWN = -1;
 
-  abstract void connectionHandler();
+  abstract void onConnection();
 
   void main() {
     void errorHandlerServer() {
@@ -19,7 +19,7 @@ class TestingServer extends Isolate {
       if (message == INIT) {
         _server = new ServerSocket(HOST, 0, 10);
         Expect.equals(true, _server !== null);
-        _server.onConnection = connectionHandler;
+        _server.onConnection = onConnection;
         _server.onError = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else if (message == SHUTDOWN) {
@@ -30,4 +30,35 @@ class TestingServer extends Isolate {
   }
 
   ServerSocket _server;
+}
+
+class TestingServerTest {
+
+  TestingServerTest.start(TestingServer server)
+      : _receivePort = new ReceivePort(),
+        _sendPort = null {
+    server.spawn().then((SendPort port) {
+      _sendPort = port;
+      start();
+    });
+  }
+
+  abstract void run();
+
+  void start() {
+    _receivePort.receive((var message, SendPort replyTo) {
+      _port = message;
+      run();
+    });
+    _sendPort.send(TestingServer.INIT, _receivePort.toSendPort());
+  }
+
+  void shutdown() {
+    _sendPort.send(TestingServer.SHUTDOWN, _receivePort.toSendPort());
+    _receivePort.close();
+  }
+
+  int _port;
+  ReceivePort _receivePort;
+  SendPort _sendPort;
 }
