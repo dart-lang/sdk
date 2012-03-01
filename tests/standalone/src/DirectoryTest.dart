@@ -21,35 +21,31 @@ class DirectoryTest {
     Expect.isFalse(f.existsSync());
     f.createSync();
 
-    directory.dirHandler = (dir) {
+    directory.onDir = (dir) {
       listedDir = true;
       Expect.isTrue(dir.contains(directory.path));
       Expect.isTrue(dir.contains('subdir'));
     };
 
-    directory.fileHandler = (f) {
+    directory.onFile = (f) {
       listedFile = true;
       Expect.isTrue(f.contains(directory.path));
       Expect.isTrue(f.contains('subdir'));
       Expect.isTrue(f.contains('file.txt'));
     };
 
-    directory.doneHandler = (completed) {
+    directory.onDone = (completed) {
       Expect.isTrue(completed, "directory listing did not complete");
       Expect.isTrue(listedDir, "directory not found");
       Expect.isTrue(listedFile, "file not found");
-      directory.delete(recursive: true);
-      directory.deleteHandler = () {
-        f.exists();
-        f.existsHandler = (exists) => Expect.isFalse(exists);
-        directory.exists();
-        directory.existsHandler = (exists) => Expect.isFalse(exists);
-        subDirectory.exists();
-        subDirectory.existsHandler = (exists) => Expect.isFalse(exists);
-      };
+      directory.deleteRecursively(() {
+        f.exists((exists) => Expect.isFalse(exists));
+        directory.exists((exists) => Expect.isFalse(exists));
+        subDirectory.exists((exists) => Expect.isFalse(exists));
+      });
     };
 
-    directory.errorHandler = (error) {
+    directory.onError = (error) {
       Expect.fail("error listing directory: $error");
     };
 
@@ -63,48 +59,44 @@ class DirectoryTest {
 
   static void testListNonExistent() {
     Directory d = new Directory("");
-    d.errorHandler = (error) {
+    d.onError = (error) {
       Expect.fail("Directory error: $error");
     };
-    d.createTemp();
-    d.createTempHandler = () {
-      d.delete();
-      d.deleteHandler = () {
+    d.createTemp(() {
+      d.delete(() {
         // Test that listing a non-existing directory fails.
-        d.errorHandler = (error) {
+        d.onError = (error) {
           // TODO(ager): When directory errors have been changed to
           // post back exceptions, check that we get the right exception
           // type here.
         };
-        d.fileHandler = (file) {
+        d.onFile = (file) {
           Expect.fail("Listing of non-existing directory should fail");
         };
-        d.fileHandler = (dir) {
+        d.onDir = (dir) {
           Expect.fail("Listing of non-existing directory should fail");
         };
-        d.doneHandler = (done) {
+        d.onDone = (done) {
           Expect.isFalse(done);
         };
         d.list();
         d.list(recursive: true);
-      };
-    };
+      });
+    });
   }
 
   static void testListTooLongName() {
     Directory d = new Directory("");
-    d.errorHandler = (error) {
+    d.onError = (error) {
       Expect.fail("Directory error: $error");
     };
-    d.createTemp();
-    d.createTempHandler = () {
+    d.createTemp(() {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
-      subDir.errorHandler = (error) {
+      subDir.onError = (error) {
         Expect.fail("Directory error: $error");
       };
-      subDir.create();
-      subDir.createHandler = () {
+      subDir.create(() {
         // Construct a long string of the form
         // 'tempdir/subdir/../subdir/../subdir'.
         var buffer = new StringBuffer();
@@ -114,67 +106,64 @@ class DirectoryTest {
         }
         var long = new Directory("${buffer.toString()}");
         var errors = 0;
-        long.errorHandler = (error) {
+        long.onError = (error) {
           // TODO(ager): When directory errors have been changed to
           // post back exceptions, check that we get the right exception
           // type here.
           if (++errors == 2) {
-            d.delete(recursive: true);
+            d.deleteRecursively(() => null);
           }
         };
-        long.fileHandler = (file) {
+        long.onFile = (file) {
           Expect.fail("Listing of non-existing directory should fail");
         };
-        long.fileHandler = (dir) {
+        long.onDir = (dir) {
           Expect.fail("Listing of non-existing directory should fail");
         };
-        long.doneHandler = (done) {
+        long.onDone = (done) {
           Expect.isFalse(done);
         };
         long.list();
         long.list(recursive: true);
-      };
-    };
+      });
+    });
   }
 
   static void testDeleteNonExistent() {
     Directory d = new Directory("");
-    d.errorHandler = (error) {
+    d.onError = (error) {
       Expect.fail("Directory error: $error");
     };
-    d.createTemp();
-    d.createTempHandler = () {
-      d.delete();
-      d.deleteHandler = () {
+    d.createTemp(() {
+      d.delete(() {
         // Test that deleting a non-existing directory fails.
-        d.errorHandler = (error) {
+        d.onError = (error) {
           // TODO(ager): When directory errors have been changed to
           // post back exceptions, check that we get the right exception
           // type here.
         };
-        d.deleteHandler = () {
+        d.delete(() {
           Expect.fail("Deletion of non-existing directory should fail");
-        };
-        d.delete();
-        d.delete(recursive: true);
-      };
-    };
+        });
+        d.deleteRecursively(() {
+          Expect.fail("Deletion of non-existing directory should fail");
+        });
+      });
+    });
   }
 
   static void testDeleteTooLongName() {
     Directory d = new Directory("");
-    d.errorHandler = (error) {
+    d.onError = (error) {
       Expect.fail("Directory error: $error");
     };
-    d.createTemp();
-    d.createTempHandler = () {
+    d.createTemp(() {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
-      subDir.errorHandler = (error) {
+      subDir.onError = (error) {
         Expect.fail("Directory error: $error");
       };
-      subDir.create();
-      subDir.createHandler = () {
+      subDir.create(() {
         // Construct a long string of the form
         // 'tempdir/subdir/../subdir/../subdir'.
         var buffer = new StringBuffer();
@@ -184,21 +173,22 @@ class DirectoryTest {
         }
         var long = new Directory("${buffer.toString()}");
         var errors = 0;
-        long.errorHandler = (error) {
+        long.onError = (error) {
           // TODO(ager): When directory errors have been changed to
           // post back exceptions, check that we get the right exception
           // type here.
           if (++errors == 2) {
-            d.delete(recursive: true);
+            d.deleteRecursively(() => null);
           }
         };
-        long.deleteHandler = () {
+        long.delete(() {
           Expect.fail("Deletion of a directory with a long name should fail");
-        };
-        long.delete();
-        long.delete(recursive:true);
-      };
-    };
+        });
+        long.deleteRecursively(() {
+          Expect.fail("Deletion of a directory with a long name should fail");
+        });
+      });
+    });
   }
 
   static void testDeleteNonExistentSync() {
@@ -206,7 +196,7 @@ class DirectoryTest {
     d.createTempSync();
     d.deleteSync();
     Expect.throws(d.deleteSync);
-    Expect.throws(() => d.deleteSync(recursive: true));
+    Expect.throws(() => d.deleteRecursivelySync());
   }
 
   static void testDeleteTooLongNameSync() {
@@ -224,40 +214,32 @@ class DirectoryTest {
     }
     var long = new Directory("${buffer.toString()}");
     Expect.throws(long.deleteSync);
-    Expect.throws(() => long.deleteSync(recursive:true));
+    Expect.throws(() => long.deleteRecursivelySync());
   }
 
   static void testExistsCreateDelete() {
     Directory d = new Directory("");
-    d.createTempHandler = () {
-      d.existsHandler = (bool exists) {
+    d.createTemp(() {
+      d.exists((bool exists) {
         Expect.isTrue(exists);
         Directory created = new Directory("${d.path}/subdir");
-        created.createHandler = () {
-          created.existsHandler = (bool exists) {
+        created.create(() {
+          created.exists((bool exists) {
             Expect.isTrue(exists);
-            created.deleteHandler = () {
-              created.existsHandler = (bool exists) {
+            created.delete(() {
+              created.exists((bool exists) {
                 Expect.isFalse(exists);
-                d.deleteHandler = () {
-                  d.existsHandler = (bool exists) {
+                d.delete(() {
+                  d.exists((bool exists) {
                     Expect.isFalse(exists);
-                  };
-                  d.exists();
-                };
-                d.delete();
-              };
-              created.exists();
-            };
-            created.delete();
-          };
-          created.exists();
-        };
-        created.create();
-      };
-      d.exists();
-    };
-    d.createTemp();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   }
 
   static void testExistsCreateDeleteSync() {
@@ -288,16 +270,14 @@ class DirectoryTest {
     Function stage3;  // Loops to stage 0.
 
     Function error(String message) {
-      Expect.fail("Directory errorHandler: $message");
+      Expect.fail("Directory onError: $message");
     }
 
     stage0 = () {
-      tempDir1.createTempHandler = stage1a;
-      tempDir1.errorHandler = error;
-      tempDir1.createTemp();
-      tempDir2.createTempHandler = stage1b;
-      tempDir2.errorHandler = error;
-      tempDir2.createTemp();
+      tempDir1.onError = error;
+      tempDir1.createTemp(stage1a);
+      tempDir2.onError = error;
+      tempDir2.createTemp(stage1b);
     };
 
     stage1a = () {
@@ -348,33 +328,29 @@ class DirectoryTest {
 
   static void testCreateDeleteTemp() {
     Directory tempDirectory = new Directory("");
-    tempDirectory.createTempHandler = () {
+    tempDirectory.createTemp(() {
       String filename = tempDirectory.path +
           new Platform().pathSeparator() + "dart_testfile";
       File file = new File(filename);
       Expect.isFalse(file.existsSync());
-      file.errorHandler = (error) {
-        Expect.fail("testCreateTemp file.errorHandler called: $error");
+      file.onError = (error) {
+        Expect.fail("testCreateTemp file.onError called: $error");
       };
-      file.createHandler = () {
-        file.existsHandler = (bool exists) {
+      file.create(() {
+        file.exists((bool exists) {
           Expect.isTrue(exists);
           // Try to delete the directory containing the file - should throw.
           Expect.throws(tempDirectory.deleteSync);
           Expect.isTrue(tempDirectory.existsSync());
 
           // Delete the file, and then delete the directory.
-          file.deleteHandler = () {
+          file.delete(() {
             tempDirectory.deleteSync();
             Expect.isFalse(tempDirectory.existsSync());
-          };
-          file.delete();
-        };
-        file.exists();
-      };
-      file.create();
-    };
-    tempDirectory.createTemp();
+          });
+        });
+      });
+    });
   }
 
   static void testMain() {
@@ -400,9 +376,8 @@ class NestedTempDirectoryTest {
   NestedTempDirectoryTest.run()
       : createdDirectories = new List<Directory>(),
         current = new Directory("") {
-    current.createTempHandler = createPhaseCallback;
-    current.errorHandler = errorCallback;
-    current.createTemp();
+    current.onError = errorCallback;
+    current.createTemp(createPhaseCallback);
   }
 
   void errorCallback(error) {
@@ -417,9 +392,8 @@ class NestedTempDirectoryTest {
     if (createdDirectories.length < nestingDepth) {
       current = new Directory(
           current.path + "/nested_temp_dir_${createdDirectories.length}_");
-      current.errorHandler = errorCallback;
-      current.createTempHandler = createPhaseCallback;
-      current.createTemp();
+      current.onError = errorCallback;
+      current.createTemp(createPhaseCallback);
     } else {
       deletePhaseCallback();
     }
@@ -472,9 +446,8 @@ testCreateTempError() {
     });
 
   Directory dir = new Directory(location);
-  dir.errorHandler = (error) { resultPort.toSendPort().send("error"); };
-  dir.createTempHandler = () { resultPort.toSendPort().send("success"); };
-  dir.createTemp();
+  dir.onError = (error) { resultPort.toSendPort().send("error"); };
+  dir.createTemp(() => resultPort.toSendPort().send("success"));
 }
 
 

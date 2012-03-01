@@ -597,27 +597,27 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     return _inputStream;
   }
 
-  void _requestStartHandler(String method, String uri) {
+  void _onRequestStart(String method, String uri) {
     _method = method;
     _uri = uri;
     _parseRequestUri(uri);
   }
 
-  void _headerReceivedHandler(String name, String value) {
+  void _onHeaderReceived(String name, String value) {
     _setHeader(name, value);
   }
 
-  void _headersCompleteHandler() {
+  void _onHeadersComplete() {
     // Prepare for receiving data.
     _buffer = new _BufferList();
   }
 
-  void _dataReceivedHandler(List<int> data) {
+  void _onDataReceived(List<int> data) {
     _buffer.add(data);
     if (_inputStream != null) _inputStream._dataReceived();
   }
 
-  void _dataEndHandler() {
+  void _onDataEnd() {
     if (_inputStream != null) _inputStream._closeReceived();
   }
 
@@ -727,7 +727,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   void _streamClose() {
     _state = DONE;
     // Stop tracking no pending write events.
-    _httpConnection.outputStream.noPendingWriteHandler = null;
+    _httpConnection.outputStream.onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
     // If the connection is closing then close the output stream to
@@ -739,7 +739,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   void _streamSetNoPendingWriteHandler(callback()) {
     if (_state != DONE) {
-      _httpConnection.outputStream.noPendingWriteHandler = callback;
+      _httpConnection.outputStream.onNoPendingWrites = callback;
     }
   }
 
@@ -901,15 +901,15 @@ class _HttpOutputStream implements OutputStream {
     throw "Not implemented";
   }
 
-  void set noPendingWriteHandler(void callback()) {
+  void set onNoPendingWrites(void callback()) {
     _requestOrResponse._streamSetNoPendingWriteHandler(callback);
   }
 
-  void set closeHandler(void callback()) {
+  void set onClosed(void callback()) {
     _requestOrResponse._streamSetCloseHandler(callback);
   }
 
-  void set errorHandler(void callback()) {
+  void set onError(void callback()) {
     _requestOrResponse._streamSetErrorHandler(callback);
   }
 
@@ -924,16 +924,16 @@ class _HttpConnectionBase {
   void _connectionEstablished(Socket socket) {
     _socket = socket;
     // Register handler for socket events.
-    _socket.dataHandler = _dataHandler;
-    _socket.closeHandler = _closeHandler;
-    _socket.errorHandler = _errorHandler;
+    _socket.onData = _onData;
+    _socket.onClosed = _onClosed;
+    _socket.onError = _onError;
   }
 
   OutputStream get outputStream() {
     return _socket.outputStream;
   }
 
-  void _dataHandler() {
+  void _onData() {
     int available = _socket.available();
     if (available == 0) {
       return;
@@ -950,27 +950,27 @@ class _HttpConnectionBase {
     }
   }
 
-  void _closeHandler() {
+  void _onClosed() {
     // Client closed socket for writing. Socket should still be open
     // for writing the response.
     _closing = true;
-    if (_disconnectHandlerCallback != null) _disconnectHandlerCallback();
+    if (_onDisconnectCallback != null) _onDisconnectCallback();
   }
 
-  void _errorHandler() {
+  void _onError() {
     // If an error occours, treat the socket as closed.
-    _closeHandler();
-    if (_errorHandlerCallback != null) {
-      _errorHandlerCallback("Connection closed while sending data to client.");
+    _onClosed();
+    if (_onErrorCallback != null) {
+      _onErrorCallback("Connection closed while sending data to client.");
     }
   }
 
-  void set disconnectHandler(void callback()) {
-    _disconnectHandlerCallback = callback;
+  void set onDisconnect(void callback()) {
+    _onDisconnectCallback = callback;
   }
 
-  void set errorHandler(void callback(String errorMessage)) {
-    _errorHandlerCallback = callback;
+  void set onError(void callback(String errorMessage)) {
+    _onErrorCallback = callback;
   }
 
   Socket _socket;
@@ -979,8 +979,8 @@ class _HttpConnectionBase {
 
   Queue _sendBuffers;
 
-  Function _disconnectHandlerCallback;
-  Function _errorHandlerCallback;
+  Function _onDisconnectCallback;
+  Function _onErrorCallback;
 }
 
 
@@ -989,46 +989,46 @@ class _HttpConnection extends _HttpConnectionBase {
   _HttpConnection() {
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
-        (method, uri) => _requestStartHandler(method, uri);
+        (method, uri) => _onRequestStart(method, uri);
     _httpParser.responseStart =
         (statusCode, reasonPhrase) =>
-            _responseStartHandler(statusCode, reasonPhrase);
+            _onResponseStart(statusCode, reasonPhrase);
     _httpParser.headerReceived =
-        (name, value) => _headerReceivedHandler(name, value);
-    _httpParser.headersComplete = () => _headersCompleteHandler();
-    _httpParser.dataReceived = (data) => _dataReceivedHandler(data);
-    _httpParser.dataEnd = () => _dataEndHandler();
+        (name, value) => _onHeaderReceived(name, value);
+    _httpParser.headersComplete = () => _onHeadersComplete();
+    _httpParser.dataReceived = (data) => _onDataReceived(data);
+    _httpParser.dataEnd = () => _onDataEnd();
   }
 
-  void _requestStartHandler(String method, String uri) {
+  void _onRequestStart(String method, String uri) {
     // Create new request and response objects for this request.
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
-    _request._requestStartHandler(method, uri);
+    _request._onRequestStart(method, uri);
   }
 
-  void _responseStartHandler(int statusCode, String reasonPhrase) {
+  void _onResponseStart(int statusCode, String reasonPhrase) {
     // TODO(sgjesse): Error handling.
   }
 
-  void _headerReceivedHandler(String name, String value) {
-    _request._headerReceivedHandler(name, value);
+  void _onHeaderReceived(String name, String value) {
+    _request._onHeaderReceived(name, value);
   }
 
-  void _headersCompleteHandler() {
-    _request._headersCompleteHandler();
+  void _onHeadersComplete() {
+    _request._onHeadersComplete();
     _response.keepAlive = _httpParser.keepAlive;
     if (requestReceived != null) {
       requestReceived(_request, _response);
     }
   }
 
-  void _dataReceivedHandler(List<int> data) {
-    _request._dataReceivedHandler(data);
+  void _onDataReceived(List<int> data) {
+    _request._onDataReceived(data);
   }
 
-  void _dataEndHandler() {
-    _request._dataEndHandler();
+  void _onDataEnd() {
+    _request._onDataEnd();
   }
 
   HttpRequest _request;
@@ -1044,13 +1044,13 @@ class _HttpConnection extends _HttpConnectionBase {
 class _HttpServer implements HttpServer {
   void listen(String host, int port, [int backlog = 5]) {
 
-    void connectionHandler(Socket socket) {
+    void onConnection(Socket socket) {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection();
       connection._connectionEstablished(socket);
-      connection.requestReceived = _requestHandler;
+      connection.requestReceived = _onRequest;
       _connections.add(connection);
-      void disconnectHandler() {
+      void onDisconnect() {
         for (int i = 0; i < _connections.length; i++) {
           if (_connections[i] == connection) {
             _connections.removeRange(i, 1);
@@ -1058,34 +1058,34 @@ class _HttpServer implements HttpServer {
           }
         }
       }
-      connection.disconnectHandler = disconnectHandler;
-      void errorHandler(String errorMessage) {
-        if (_errorHandler != null) _errorHandler(errorMessage);
+      connection.onDisconnect = onDisconnect;
+      void onError(String errorMessage) {
+        if (_onError != null) _onError(errorMessage);
       }
-      connection.errorHandler = errorHandler;
+      connection.onError = onError;
     }
 
     // TODO(ajohnsen): Use Set once Socket is Hashable.
     _connections = new List<_HttpConnection>();
     _server = new ServerSocket(host, port, backlog);
-    _server.connectionHandler = connectionHandler;
+    _server.onConnection = onConnection;
   }
 
   void close() => _server.close();
   int get port() => _server.port;
 
-  void set errorHandler(void handler(String errorMessage)) {
-    _errorHandler = handler;
+  void set onError(void handler(String errorMessage)) {
+    _onError = handler;
   }
 
-  void set requestHandler(void handler(HttpRequest, HttpResponse)) {
-    _requestHandler = handler;
+  void set onRequest(void handler(HttpRequest, HttpResponse)) {
+    _onRequest = handler;
   }
 
   ServerSocket _server;  // The server listen socket.
   List<_HttpConnection> _connections;  // List of currently connected clients.
-  Function _requestHandler;
-  Function _errorHandler;
+  Function _onRequest;
+  Function _onError;
 }
 
 
@@ -1143,7 +1143,7 @@ class _HttpClientRequest
   void _streamClose() {
     _state = DONE;
     // Stop tracking no pending write events.
-    _httpConnection.outputStream.noPendingWriteHandler = null;
+    _httpConnection.outputStream.onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
     // If the connection is closing then close the output stream to
@@ -1155,7 +1155,7 @@ class _HttpClientRequest
 
   void _streamSetNoPendingWriteHandler(callback()) {
     if (_state != DONE) {
-      _httpConnection.outputStream.noPendingWriteHandler = callback;
+      _httpConnection.outputStream.onNoPendingWrites = callback;
     }
   }
 
@@ -1223,32 +1223,32 @@ class _HttpClientResponse
     return _inputStream;
   }
 
-  void _requestStartHandler(String method, String uri) {
+  void _onRequestStart(String method, String uri) {
     // TODO(sgjesse): Error handling
   }
 
-  void _responseStartHandler(int statusCode, String reasonPhrase) {
+  void _onResponseStart(int statusCode, String reasonPhrase) {
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
   }
 
-  void _headerReceivedHandler(String name, String value) {
+  void _onHeaderReceived(String name, String value) {
     _setHeader(name, value);
   }
 
-  void _headersCompleteHandler() {
+  void _onHeadersComplete() {
     _buffer = new _BufferList();
-    if (_connection._responseHandler != null) {
-      _connection._responseHandler(this);
+    if (_connection._onResponse != null) {
+      _connection._onResponse(this);
     }
   }
 
-  void _dataReceivedHandler(List<int> data) {
+  void _onDataReceived(List<int> data) {
     _buffer.add(data);
     if (_inputStream != null) _inputStream._dataReceived();
   }
 
-  void _dataEndHandler() {
+  void _onDataEnd() {
     if (_inputStream != null) _inputStream._closeReceived();
   }
 
@@ -1285,15 +1285,15 @@ class _HttpClientConnection
     _socketConn = socketConn;
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
-        (method, uri) => _requestStartHandler(method, uri);
+        (method, uri) => _onRequestStart(method, uri);
     _httpParser.responseStart =
         (statusCode, reasonPhrase) =>
-            _responseStartHandler(statusCode, reasonPhrase);
+            _onResponseStart(statusCode, reasonPhrase);
     _httpParser.headerReceived =
-        (name, value) => _headerReceivedHandler(name, value);
-    _httpParser.headersComplete = () => _headersCompleteHandler();
-    _httpParser.dataReceived = (data) => _dataReceivedHandler(data);
-    _httpParser.dataEnd = () => _dataEndHandler();
+        (name, value) => _onHeaderReceived(name, value);
+    _httpParser.headersComplete = () => _onHeadersComplete();
+    _httpParser.dataReceived = (data) => _onDataReceived(data);
+    _httpParser.dataEnd = () => _onDataEnd();
   }
 
   HttpClientRequest open(String method, String uri) {
@@ -1303,27 +1303,27 @@ class _HttpClientConnection
     return _request;
   }
 
-  void _requestStartHandler(String method, String uri) {
+  void _onRequestStart(String method, String uri) {
     // TODO(sgjesse): Error handling.
   }
 
-  void _responseStartHandler(int statusCode, String reasonPhrase) {
-    _response._responseStartHandler(statusCode, reasonPhrase);
+  void _onResponseStart(int statusCode, String reasonPhrase) {
+    _response._onResponseStart(statusCode, reasonPhrase);
   }
 
-  void _headerReceivedHandler(String name, String value) {
-    _response._headerReceivedHandler(name, value);
+  void _onHeaderReceived(String name, String value) {
+    _response._onHeaderReceived(name, value);
   }
 
-  void _headersCompleteHandler() {
-    _response._headersCompleteHandler();
+  void _onHeadersComplete() {
+    _response._onHeadersComplete();
   }
 
-  void _dataReceivedHandler(List<int> data) {
-    _response._dataReceivedHandler(data);
+  void _onDataReceived(List<int> data) {
+    _response._onDataReceived(data);
   }
 
-  void _dataEndHandler() {
+  void _onDataEnd() {
     if (_response.headers["connection"] == "close") {
       _socket.close();
     } else {
@@ -1331,19 +1331,19 @@ class _HttpClientConnection
       _socket = null;
       _socketConn = null;
     }
-    _response._dataEndHandler();
+    _response._onDataEnd();
   }
 
-  void set requestHandler(void handler(HttpClientRequest request)) {
-    _requestHandler = handler;
+  void set onRequest(void handler(HttpClientRequest request)) {
+    _onRequest = handler;
   }
 
-  void set responseHandler(void handler(HttpClientResponse response)) {
-    _responseHandler = handler;
+  void set onResponse(void handler(HttpClientResponse response)) {
+    _onResponse = handler;
   }
 
-  Function _requestHandler;
-  Function _responseHandler;
+  Function _onRequest;
+  Function _onResponse;
 
   _HttpClient _client;
   _SocketConnection _socketConn;
@@ -1364,9 +1364,9 @@ class _SocketConnection {
                     Socket this._socket);
 
   void _markReturned() {
-    _socket.dataHandler = null;
-    _socket.closeHandler = null;
-    _socket.errorHandler = null;
+    _socket.onData = null;
+    _socket.onClosed = null;
+    _socket.onError = null;
     _returnTime = new Date.now();
   }
 
@@ -1423,8 +1423,8 @@ class _HttpClient implements HttpClient {
                            _HttpClientConnection connection) {
       connection._connectionEstablished(socketConn);
       HttpClientRequest request = connection.open(method, path);
-      if (connection._requestHandler != null) {
-        connection._requestHandler(request);
+      if (connection._onRequest != null) {
+        connection._onRequest(request);
       } else {
         request.outputStream.close();
       }
@@ -1437,15 +1437,15 @@ class _HttpClient implements HttpClient {
     Queue socketConnections = _openSockets[_connectionKey(host, port)];
     if (socketConnections == null || socketConnections.isEmpty()) {
       Socket socket = new Socket(host, port);
-      socket.connectHandler = () {
-        socket.errorHandler = null;
+      socket.onConnect = () {
+        socket.onError = null;
         _SocketConnection socketConn =
             new _SocketConnection(host, port, socket);
         _connectionOpened(socketConn, connection);
       };
-      socket.errorHandler = () {
-        if (_errorHandler !== null) {
-          _errorHandler(HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
+      socket.onError = () {
+        if (_onError !== null) {
+          _onError(HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
         }
       };
     } else {
@@ -1505,12 +1505,12 @@ class _HttpClient implements HttpClient {
     socketConn._markReturned();
   }
 
-  void set errorHandler(void callback(int status)) {
-    _errorHandler = callback;
+  void set onError(void callback(int status)) {
+    _onError = callback;
   }
 
-  Function _openHandler;
-  Function _errorHandler;
+  Function _onOpen;
+  Function _onError;
   Map<String, Queue<_SocketConnection>> _openSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?

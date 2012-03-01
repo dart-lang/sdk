@@ -26,7 +26,7 @@ class _Directory implements Directory {
   static bool _delete(String path, bool recursive) native "Directory_Delete";
   static SendPort _newServicePort() native "Directory_NewServicePort";
 
-  void exists() {
+  void exists(void callback(bool exists)) {
     if (_directoryService == null) {
       _directoryService = _newServicePort();
     }
@@ -34,14 +34,12 @@ class _Directory implements Directory {
     request[0] = kExistsRequest;
     request[1] = _path;
     _directoryService.call(request).receive((result, replyTo) {
-      var handler =
-          (_existsHandler != null) ? _existsHandler : (result) => null;
       if (result < 0) {
-        if (_errorHandler != null) {
-          _errorHandler("Diretory exists test failed: $_path");
+        if (_onError != null) {
+          _onError("Diretory exists test failed: $_path");
         }
       } else {
-        handler(result == 1);
+        callback(result == 1);
       }
     });
   }
@@ -54,7 +52,7 @@ class _Directory implements Directory {
     return (exists == 1);
   }
 
-  void create() {
+  void create(void callback()) {
     if (_directoryService == null) {
       _directoryService = _newServicePort();
     }
@@ -63,9 +61,9 @@ class _Directory implements Directory {
     request[1] = _path;
     _directoryService.call(request).receive((result, replyTo) {
       if (result) {
-        if (_createHandler != null) _createHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("Directory creation failed: $_path");
+        callback();
+      } else if (_onError != null) {
+        _onError("Directory creation failed: $_path");
       }
     });
   }
@@ -76,7 +74,7 @@ class _Directory implements Directory {
     }
   }
 
-  void createTemp() {
+  void createTemp(void callback()) {
     if (_directoryService == null) {
       _directoryService = _newServicePort();
     }
@@ -86,10 +84,10 @@ class _Directory implements Directory {
     _directoryService.call(request).receive((result, replyTo) {
       if (result is !List) {
         _path = result;
-        if (_createTempHandler != null) _createTempHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("Could not create temporary directory [$_path]: " +
-                      "${result[1]}");
+        callback();
+      } else if (_onError != null) {
+        _onError("Could not create temporary directory [$_path]: " +
+                 "${result[1]}");
       }
     });
   }
@@ -107,7 +105,7 @@ class _Directory implements Directory {
     }
   }
 
-  void delete([bool recursive = false]) {
+  void _deleteHelper(bool recursive, String errorMsg, void callback()) {
     if (_directoryService == null) {
       _directoryService = _newServicePort();
     }
@@ -117,20 +115,33 @@ class _Directory implements Directory {
     request[2] = recursive;
     _directoryService.call(request).receive((result, replyTo) {
       if (result) {
-        if (_deleteHandler != null) _deleteHandler();
-      } else if (_errorHandler != null) {
-        if (recursive) {
-          _errorHandler("Recursive directory deletion failed: $_path");
-        } else {
-          _errorHandler("Non-recursive directory deletion failed: $_path");
-        }
+        callback();
+      } else if (_onError != null) {
+        _onError("${errorMsg}: $_path");
       }
     });
   }
 
-  void deleteSync([bool recursive = false]) {
+  void delete(void callback()) {
+    _deleteHelper(false, "Directory deletion failed", callback);
+  }
+
+  void deleteRecursively(void callback()) {
+    _deleteHelper(true, "Recursive directory deletion failed", callback);
+  }
+
+  void deleteSync() {
+    bool recursive = false;
     if (!_delete(_path, recursive)) {
       throw new DirectoryException("Directory deletion failed: $_path");
+    }
+  }
+
+  void deleteRecursivelySync() {
+    bool recursive = true;
+    if (!_delete(_path, recursive)) {
+      throw new DirectoryException(
+          "Recursive directory deletion failed: $_path");
     }
   }
 
@@ -151,57 +162,41 @@ class _Directory implements Directory {
     responsePort.receive((message, replyTo) {
       if (message is !List || message[0] is !int) {
         responsePort.close();
-        if (_errorHandler != null) _errorHandler("Internal error");
+        if (_onError != null) _onError("Internal error");
         return;
       }
       switch (message[0]) {
         case kListDirectory:
-          if (_dirHandler != null) _dirHandler(message[1]);
+          if (_onDir != null) _onDir(message[1]);
           break;
         case kListFile:
-          if (_fileHandler != null) _fileHandler(message[1]);
+          if (_onFile != null) _onFile(message[1]);
           break;
         case kListError:
-          if (_errorHandler != null) _errorHandler(message[1]);
+          if (_onError != null) _onError(message[1]);
           break;
         case kListDone:
           responsePort.close();
-          if (_doneHandler != null) _doneHandler(message[1]);
+          if (_onDone != null) _onDone(message[1]);
           break;
       }
     });
   }
 
-  void set dirHandler(void dirHandler(String dir)) {
-    _dirHandler = dirHandler;
+  void set onDir(void onDir(String dir)) {
+    _onDir = onDir;
   }
 
-  void set fileHandler(void fileHandler(String file)) {
-    _fileHandler = fileHandler;
+  void set onFile(void onFile(String file)) {
+    _onFile = onFile;
   }
 
-  void set doneHandler(void doneHandler(bool completed)) {
-    _doneHandler = doneHandler;
+  void set onDone(void onDone(bool completed)) {
+    _onDone = onDone;
   }
 
-  void set existsHandler(void existsHandler(bool exists)) {
-    _existsHandler = existsHandler;
-  }
-
-  void set createHandler(void createHandler()) {
-    _createHandler = createHandler;
-  }
-
-  void set createTempHandler(void createTempHandler()) {
-    _createTempHandler = createTempHandler;
-  }
-
-  void set deleteHandler(void deleteHandler()) {
-    _deleteHandler = deleteHandler;
-  }
-
-  void set errorHandler(void errorHandler(String error)) {
-    _errorHandler = errorHandler;
+  void set onError(void onError(String error)) {
+    _onError = onError;
   }
 
   void _closePort(ReceivePort port) {
@@ -212,14 +207,10 @@ class _Directory implements Directory {
 
   String get path() { return _path; }
 
-  var _dirHandler;
-  var _fileHandler;
-  var _doneHandler;
-  var _existsHandler;
-  var _createHandler;
-  var _createTempHandler;
-  var _deleteHandler;
-  var _errorHandler;
+  var _onDir;
+  var _onFile;
+  var _onDone;
+  var _onError;
 
   String _path;
   SendPort _directoryService;

@@ -66,7 +66,7 @@ void ReadConfigurationInto(path, sections, onDone) {
   sections.add(current);
   String prefix = "";
 
-  lines.lineHandler = () {
+  lines.onLine = () {
     String line;
     while ((line = lines.readLine()) != null) {
       Match match = StripComment.firstMatch(line);
@@ -106,7 +106,7 @@ void ReadConfigurationInto(path, sections, onDone) {
     }
   };
 
-  lines.closeHandler = () {
+  lines.onClosed = () {
     onDone();
   };
 }
