@@ -66,8 +66,8 @@ main() {
   new Box<Object, Object>(); /// 08: compile-time error
 
   // Fisk does not exist.
-  Box<Fisk> box = null; /// 09: static type error
+  Box<Fisk> box = null; /// 09: dynamic type error
 
   // Too many type arguments.
-  Box<Object, Object> box = null; /// 10: static type error
+  Box<Object, Object> box = null; /// 10: dynamic type error
 }

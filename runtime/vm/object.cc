@@ -34,6 +34,7 @@ namespace dart {
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, enable_type_checks);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -1457,24 +1458,34 @@ bool Class::IsMoreSpecificThan(
       interface_class = interface.type_class();
       interface_args = interface.arguments();
       if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
-        // This type implements an interface that is parameterized with generic
-        // type(s), e.g. it implements Array<T>.
+        // This type class implements an interface that is parameterized with
+        // generic type(s), e.g. it implements List<T>.
         // The uninstantiated type T must be instantiated using the type
         // parameters of this type before performing the type test.
-        if (type_arguments.IsNull()) {
-          // This type is raw, so the uninstantiated type arguments of the
-          // interface cannot be instantiated and we must check against a raw
-          // interface.
-          interface_args = TypeArguments::null();
-        } else {
-          // The type arguments of this type that are referred to by the type
-          // parameters of the interface are at the end of the type vector,
-          // after the type arguments of the super type of this type.
-          // The index of the type parameters is adjusted upon finalization.
-          ASSERT(interface.IsFinalized());
-          interface_args = interface_args.InstantiateFrom(type_arguments);
-          // TODO(regis): Do we have to consider the bounds of the type
-          // parameters of the interface?
+        // The type arguments of this type that are referred to by the type
+        // parameters of the interface are at the end of the type vector,
+        // after the type arguments of the super type of this type.
+        // The index of the type parameters is adjusted upon finalization.
+        ASSERT(interface.IsFinalized());
+        interface_args = interface_args.InstantiateFrom(type_arguments);
+        // In checked mode, verify that the instantiated interface type
+        // arguments are within the bounds specified by the interface class.
+        // Note that the additional bounds check in checked mode may lead to a
+        // dynamic type error, but it will never change the result of the type
+        // check from true in production mode to false in checked mode.
+        if (FLAG_enable_type_checks && !interface_args.IsNull()) {
+          AbstractTypeArguments& interface_bounds =
+              AbstractTypeArguments::Handle(
+                  interface_class.type_parameter_bounds());
+          ASSERT(!interface_bounds.IsNull());
+          if (!interface_bounds.IsInstantiated()) {
+            interface_bounds = interface_bounds.InstantiateFrom(type_arguments);
+          }
+          const intptr_t len = interface_args.Length();
+          if (!interface_args.IsMoreSpecificThan(interface_bounds, len)) {
+            // TODO(regis): Handle malformed type error.
+            continue;
+          }
         }
       }
       if (interface_class.IsMoreSpecificThan(interface_args,

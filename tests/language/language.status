@@ -98,10 +98,8 @@ Prefix16NegativeTest: Fail    # Bug 5532534
 
 [ ($component == vm || $component == dartium) && $checked ]
 
+TypeVariableBounds2Test/03: Fail # Work in progress.
 Prefix22Test: Fail # This test should be negative in checked mode.
-WrongNumberTypeArgumentsTest: Fail # This test should be negative in checked mode.
-TypeVariableBoundsTest/09: Fail # This test should be negative in checked mode.
-TypeVariableBoundsTest/10: Fail # This test should be negative in checked mode.
 
 [ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.
@@ -183,6 +181,7 @@ SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
+TypeVariableBounds2Test*: Skip  # Issue 1939.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 
@@ -364,7 +363,7 @@ TypeVariableBoundsTest/00: Fail # these tests would work if the type was constru
 TypeVariableBoundsTest/10: Fail
 TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
 TypeVariableShadowsClass: Fail # Issue 643
-WrongNumberTypeArgumentsTest: Fail
+WrongNumberTypeArgumentsTest/none: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
