@@ -154,7 +154,7 @@ intptr_t GetIntData(uint8_t* data) {
 
 static Message* NextMessage() {
   Isolate* isolate = Isolate::Current();
-  Message* result = isolate->message_handler()->queue()->Dequeue(0);
+  Message* result = isolate->message_handler()->Dequeue(0);
   return result;
 }
 
