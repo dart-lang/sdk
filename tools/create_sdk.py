@@ -231,18 +231,10 @@ def Main(argv):
   htmlimpl_dest_dir = join(LIB, 'htmlimpl')
   os.makedirs(htmlimpl_dest_dir)
 
-  copyfile(join(html_src_dir, 'release', 'html.dart'), 
+  copyfile(join(html_src_dir, 'release', 'html.dart'),
            join(html_dest_dir, 'html.dart'))
-  copyfile(join(html_src_dir, 'release', 'htmlimpl.dart'), 
+  copyfile(join(html_src_dir, 'release', 'htmlimpl.dart'),
            join(htmlimpl_dest_dir, 'htmlimpl.dart'))
-
-  # TODO(dgrove): prune the correct files in html and htmlimpl.
-  for target_dir in [html_dest_dir, htmlimpl_dest_dir]:
-    copytree(join(html_src_dir, 'src'), join(target_dir, 'src'),
-             ignore=ignore_patterns('.svn'))
-    copytree(join(html_src_dir, 'generated'), join(target_dir, 'generated'),
-             ignore=ignore_patterns('.svn'))
-
 
   #
   # Create and populate lib/dom.
@@ -251,16 +243,8 @@ def Main(argv):
   dom_dest_dir = join(LIB, 'dom')
   os.makedirs(dom_dest_dir)
 
-  for filename in os.listdir(dom_src_dir):
-    src_file = join(dom_src_dir, filename)
-    dest_file = join(dom_dest_dir, filename)
-    if filename.endswith('.dart') or filename.endswith('.js'):
-      copyfile(src_file, dest_file)
-    elif isdir(src_file):
-      if filename not in ['benchmarks', 'idl', 'scripts', 'snippets', '.svn']:
-        copytree(src_file, dest_file, 
-                 ignore=ignore_patterns('.svn', 'interface', 'wrapping', 
-                                        '*monkey*'))
+  copyfile(join(dom_src_dir, 'frog', 'dom_frog.dart'),
+           join(dom_dest_dir, 'dom_frog.dart'))
 
   # 
   # Create and populate lib/{json, uri, utf8} .
