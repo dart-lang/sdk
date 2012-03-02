@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,7 +49,7 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_NOT_NULL(length);
-  CHECK_AND_CAST(StackTrace, stack_trace, trace);
+  CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
   *length = stack_trace->Length();
   return Api::True();
 }
@@ -62,7 +62,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_NOT_NULL(frame);
-  CHECK_AND_CAST(StackTrace, stack_trace, trace);
+  CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
   if ((frame_index < 0) || (frame_index >= stack_trace->Length())) {
     return Api::NewError("argument 'frame_index' is out of range for %s",
                          CURRENT_FUNC);

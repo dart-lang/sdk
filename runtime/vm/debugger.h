@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -160,9 +160,9 @@ class ActivationFrame : public ZoneAllocated {
 
 
 // Array of function activations on the call stack.
-class StackTrace : public ZoneAllocated {
+class DebuggerStackTrace : public ZoneAllocated {
  public:
-  explicit StackTrace(int capacity) : trace_(capacity) { }
+  explicit DebuggerStackTrace(int capacity) : trace_(capacity) { }
 
   intptr_t Length() const { return trace_.length(); }
 
@@ -175,11 +175,12 @@ class StackTrace : public ZoneAllocated {
   ZoneGrowableArray<ActivationFrame*> trace_;
 
   friend class Debugger;
-  DISALLOW_COPY_AND_ASSIGN(StackTrace);
+  DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
 
 
-typedef void BreakpointHandler(SourceBreakpoint* bpt, StackTrace* stack);
+typedef void BreakpointHandler(SourceBreakpoint* bpt,
+                               DebuggerStackTrace* stack);
 
 
 class Debugger {
@@ -244,7 +245,8 @@ class Debugger {
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
                                         intptr_t token_index);
-  CodeBreakpoint* MakeCodeBreakpoint(SourceBreakpoint* src_bpt);
+  CodeBreakpoint* MakeCodeBreakpoint(const Function& func,
+                                     intptr_t token_index);
 
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -288,7 +288,7 @@ const char* ActivationFrame::ToCString() {
 }
 
 
-void StackTrace::AddActivation(ActivationFrame* frame) {
+void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   trace_.Add(frame);
 }
 
@@ -514,16 +514,15 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
 }
 
 
-CodeBreakpoint* Debugger::MakeCodeBreakpoint(SourceBreakpoint* src_bpt) {
-  Function& func = Function::Handle(src_bpt->function());
+CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
+                                             intptr_t token_index) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  intptr_t requested_token_index = src_bpt->token_index();
   for (int i = 0; i < desc.Length(); i++) {
-    if (desc.TokenIndex(i) < requested_token_index) {
+    if (desc.TokenIndex(i) < token_index) {
       continue;
     }
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
@@ -532,7 +531,6 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(SourceBreakpoint* src_bpt) {
     // is used for stepping.
     if (bpt != NULL) {
       ASSERT(bpt->src_bpt() == NULL);
-      bpt->set_src_bpt(src_bpt);
       return bpt;
     }
 
@@ -541,7 +539,6 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(SourceBreakpoint* src_bpt) {
         (kind == PcDescriptors::kFuncCall) ||
         (kind == PcDescriptors::kReturn)) {
       bpt = new CodeBreakpoint(func, i);
-      bpt->set_src_bpt(src_bpt);
       if (verbose) {
         OS::Print("Setting breakpoint in function '%s' (%s:%d)  (PC %p)\n",
                   String::Handle(func.name()).ToCString(),
@@ -580,8 +577,11 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   }
 
   if (target_function.HasCode()) {
-    CodeBreakpoint* cbpt = MakeCodeBreakpoint(bpt);
-    if (cbpt == NULL) {
+    CodeBreakpoint* cbpt = MakeCodeBreakpoint(target_function, token_index);
+    if (cbpt != NULL) {
+      ASSERT(cbpt->src_bpt() == NULL);
+      cbpt->set_src_bpt(bpt);
+    } else {
       if (verbose) {
         OS::Print("Failed to set breakpoint at '%s' line %d\n",
                   String::Handle(bpt->SourceUrl()).ToCString(),
@@ -594,6 +594,8 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
 }
 
 
+// Synchronize the enabled/disabled state of all code breakpoints
+// associated with the source breakpoint bpt.
 void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
@@ -772,7 +774,8 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-static void DefaultBreakpointHandler(SourceBreakpoint* bpt, StackTrace* stack) {
+static void DefaultBreakpointHandler(SourceBreakpoint* bpt,
+                                     DebuggerStackTrace* stack) {
   String& var_name = String::Handle();
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < stack->Length(); i++) {
@@ -812,7 +815,7 @@ void Debugger::BreakpointCallback() {
         bpt ? bpt->LineNumber() : 0,
         frame->pc());
   }
-  StackTrace* stack_trace = new StackTrace(8);
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   while (frame != NULL) {
     ASSERT(frame->IsValid());
     ASSERT(frame->IsDartFrame());
@@ -892,16 +895,30 @@ void Debugger::Initialize(Isolate* isolate) {
 }
 
 
-// TODO(hausner): handle closure functions.
 void Debugger::NotifyCompilation(const Function& func) {
+  if (src_breakpoints_ == NULL) {
+    // Return with minimal overhead if there are no breakpoints.
+    return;
+  }
+  Function& lookup_function = Function::Handle(func.raw());
+  if (func.IsClosureFunction()) {
+    // If the newly compiled function is a closure, we need to use
+    // the closure's parent function to see whether there are any
+    // breakpoints.
+    lookup_function = func.parent_function();
+  }
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
-    if (func.raw() == bpt->function()) {
+    if (lookup_function.raw() == bpt->function()) {
       if (verbose) {
         OS::Print("Enable latent breakpoint for function '%s'\n",
-                  String::Handle(func.name()).ToCString());
+                  String::Handle(lookup_function.name()).ToCString());
       }
-      MakeCodeBreakpoint(bpt);
+      // Set breakpoint in newly compiled code of function func.
+      CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
+      if (cbpt != NULL) {
+        cbpt->set_src_bpt(bpt);
+      }
       bpt->Enable();  // Enables the code breakpoint as well.
     }
     bpt = bpt->next();
