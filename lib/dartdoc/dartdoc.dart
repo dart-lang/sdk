@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -51,7 +51,7 @@ final MODE_STATIC = 0;
 final MODE_LIVE_NAV = 1;
 
 /**
- * Run this from the `utils/dartdoc` directory.
+ * Run this from the `lib/dartdoc` directory.
  */
 void main() {
   final args = new Options().arguments;
@@ -84,6 +84,9 @@ void main() {
   }
 
   final files = new VMFileSystem();
+  // TODO(rnystrom): Note that the following line gets munged by create-sdk to
+  // work with the SDK's different file layout. If you change it here, make
+  // sure SDK builds still work.
   parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
   initializeWorld(files);
 

@@ -4,11 +4,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
-# A script which will be invoked from gyp to create an SDK. 
+# A script which will be invoked from gyp to create an SDK.
 #
 # Usage: create_sdk.py sdk_directory
 #
-# The SDK will be used either from the command-line or from the editor. 
+# The SDK will be used either from the command-line or from the editor.
 # Top structure is
 #
 # ..dart-sdk/
@@ -24,19 +24,20 @@
 # ........runtime/
 # ......core/
 # ........core_{frog, runtime}.dart
-# ........{frog, runtime}/ 
+# ........{frog, runtime}/
 # ......coreimpl/
 # ........coreimpl_{frog, runtime}.dart
-# ........{frog, runtime}/ 
+# ........{frog, runtime}/
+# ......dartdoc/
 # ......isolate/
 # ........isolate_{frog, runtime}.dart
-# ........{frog, runtime}/ 
+# ........{frog, runtime}/
 # ......dom/
 # ........dom.dart
 # ......frog/
-# ......html/ 
+# ......html/
 # ........html.dart
-# ......htmlimpl/ 
+# ......htmlimpl/
 # ........htmlimpl.dart
 # ......json/
 # ........json_frog.dart
@@ -60,6 +61,18 @@ import utils
 
 from os.path import dirname, join, realpath, exists, isdir
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
+
+def ReplaceInFiles(paths, subs):
+  '''Reads a series of files, applies a series of substitutions to each, and
+     saves them back out. subs should by a list of (pattern, replace) tuples.'''
+  for path in paths:
+    contents = open(path).read()
+    for pattern, replace in subs:
+      contents = re.sub(pattern, replace, contents)
+
+    dest = open(path, 'w')
+    dest.write(contents)
+    dest.close()
 
 def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
@@ -105,7 +118,7 @@ def Main(argv):
     frogc_file_extension = '.bat'
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
-  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap', 
+  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap',
       'frogc' + frogc_file_extension)
   frogc_dest_binary = join(BIN, 'frogc' + frogc_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
@@ -190,8 +203,8 @@ def Main(argv):
       # change config from 'dev' to 'sdk' in frog_options.dart
       frog_options_contents = open(join(frog_src_dir, filename)).read()
       frog_options_dest = open(join(frog_dest_dir, filename), 'w')
-      frog_options_dest.write(re.sub("final config = \'dev\';", 
-                                     "final config = \'sdk\';", 
+      frog_options_dest.write(re.sub("final config = \'dev\';",
+                                     "final config = \'sdk\';",
                                      frog_options_contents))
       frog_options_dest.close()
     elif filename.endswith('.dart'):
@@ -209,7 +222,7 @@ def Main(argv):
       file.write(re.sub("../../lib", "../..", file_contents))
       file.close()
 
-  copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
+  copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'),
            ignore=ignore_patterns('.svn'))
 
   # Remap imports in frog/... .
@@ -246,7 +259,7 @@ def Main(argv):
   copyfile(join(dom_src_dir, 'frog', 'dom_frog.dart'),
            join(dom_dest_dir, 'dom_frog.dart'))
 
-  # 
+  #
   # Create and populate lib/{json, uri, utf8} .
   #
 
@@ -258,7 +271,33 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
-  
+
+  # Create and populate lib/dartdoc
+  dartdoc_src_dir = join(HOME, 'lib', 'dartdoc')
+  dartdoc_dest_dir = join(LIB, 'dartdoc')
+  copytree(dartdoc_src_dir, dartdoc_dest_dir,
+           ignore=ignore_patterns('.svn', 'docs'))
+  ReplaceInFiles([
+      join(LIB, 'dartdoc', 'dartdoc')
+    ], [
+      ("../../frog/minfrog", "../../bin/frogc"),
+      ("--libdir=../../frog/lib", "--libdir=../")
+    ])
+  ReplaceInFiles([
+      join(LIB, 'dartdoc', 'dartdoc.dart')
+    ], [
+      ("#import\('../../frog", "#import('../frog"),
+      ("'../../frog'", "'../frog'"),
+      ("'--libdir=../../frog/lib'", "'--libdir=../'")
+    ])
+  ReplaceInFiles([
+      join(LIB, 'dartdoc', 'classify.dart'),
+      join(LIB, 'dartdoc', 'client-live-nav.dart'),
+      join(LIB, 'dartdoc', 'client-static.dart')
+    ], [
+      ("#import\('../../frog", "#import('../frog")
+    ])
+
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
            ignore=ignore_patterns('.svn'))
@@ -270,21 +309,21 @@ def Main(argv):
   # First, copy corelib/* to lib/{frog, runtime}
   for filename in corelib_sources:
     for target_dir in ['frog', 'runtime']:
-      copyfile(join('corelib', 'src', filename), 
+      copyfile(join('corelib', 'src', filename),
                join(corelib_dest_dir, target_dir, filename))
 
   # Next, copy the frog library source on top of core/frog
   # TOOD(dgrove): move json to top-level
   for filename in corelib_frog_sources:
-    copyfile(join('frog', 'lib', filename), 
+    copyfile(join('frog', 'lib', filename),
              join(corelib_dest_dir, 'frog', filename))
 
   # Next, copy the runtime library source on top of core/runtime
   for filename in corelib_runtime_sources:
     if filename.endswith('.dart'):
-      copyfile(join('runtime', 'lib', filename), 
+      copyfile(join('runtime', 'lib', filename),
                join(corelib_dest_dir, 'runtime', filename))
-  
+
   #
   # At this point, it's time to create lib/core/core*dart .
   #
@@ -315,24 +354,24 @@ def Main(argv):
   # First, copy corelib/src/implementation to corelib/{frog, runtime}.
   for filename in coreimpl_sources:
     for target_dir in ['frog', 'runtime']:
-      copyfile(join('corelib', 'src', 'implementation', filename), 
+      copyfile(join('corelib', 'src', 'implementation', filename),
                join(coreimpl_dest_dir, target_dir, filename))
 
   for filename in coreimpl_frog_sources:
-    copyfile(join('frog', 'lib', filename), 
+    copyfile(join('frog', 'lib', filename),
              join(coreimpl_dest_dir, 'frog', filename))
 
   for filename in coreimpl_runtime_sources:
     if filename.endswith('.dart'):
-      copyfile(join('runtime', 'lib', filename), 
+      copyfile(join('runtime', 'lib', filename),
                join(coreimpl_dest_dir, 'runtime', filename))
 
-  
+
   # Create and fix up lib/coreimpl/coreimpl_frog.dart .
   src_file = join('frog', 'lib', 'corelib_impl.dart')
   dest_file = open(join(coreimpl_dest_dir, 'coreimpl_frog.dart'), 'w')
   contents = open(src_file).read()
-  contents = re.sub('source\(\"../../corelib/src/implementation/', 
+  contents = re.sub('source\(\"../../corelib/src/implementation/',
                     'source(\"', contents)
   contents = re.sub('source\(\"', 'source(\"frog/', contents)
   dest_file.write(contents)

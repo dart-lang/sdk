@@ -5,13 +5,13 @@
 /// Unit tests for doc.
 #library('dartdoc_tests');
 
-#import('../../../dartdoc/dartdoc.dart', prefix: 'dd');
-#import('../../../dartdoc/markdown.dart', prefix: 'md');
+#import('../../../lib/dartdoc/dartdoc.dart', prefix: 'dd');
+#import('../../../lib/dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../../client/testing/unittest/unittest_vm.dart');
-#import('../../../../frog/lang.dart');
-#import('../../../../frog/file_system_vm.dart');
+#import('../../../client/testing/unittest/unittest_vm.dart');
+#import('../../../frog/lang.dart');
+#import('../../../frog/file_system_vm.dart');
 
 main() {
   var files = new VMFileSystem();
@@ -126,7 +126,7 @@ main() {
   group('name reference', () {
     // TODO(rnystrom): The paths here are a bit strange. They're relative to
     // where test.dart happens to be invoked from.
-    final dummyPath = 'utils/tests/dartdoc/src/dummy.dart';
+    final dummyPath = 'tests/utils/src/dummy.dart';
 
     // TODO(rnystrom): Bail if we couldn't find the test file. The problem is
     // that loading dummy.dart is sensitive to the location that dart was

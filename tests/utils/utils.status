@@ -3,9 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == leg ]
-UriTest: Fail
+DartdocTest: Fail
 JsonTest: Fail
-
+MarkdownTest: Fail
+UriTest: Fail
 
 [ $arch == simarm ]
 *: Skip

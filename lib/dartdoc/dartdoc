@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 # To generate docs for a library, run this script with the path to an entrypoint
 # .dart file, like:
 #
@@ -39,7 +43,7 @@ compileToJs "client-live-nav"
 
 # Clean the output directory.
 if [ -d "docs" ]; then
-    rm -r docs
+  rm -r docs
 fi
 mkdir docs
 
@@ -50,12 +54,6 @@ cp -R static/* docs
 shift
 
 # Generate the user's docs.
-if [ -a "../../out/Release_ia32/dart" ]; then
-  ../../out/Release_ia32/dart dartdoc.dart "$entrypoint" $@
-elif [ -a "../../xcodebuild/Release_ia32/dart" ]; then
-  ../../xcodebuild/Release_ia32/dart dartdoc.dart "$entrypoint" $@
-else
-  echo "Could not find the Dart VM. Did you run 'tools/build.py -m release'?"
-fi
+dart dartdoc.dart "$entrypoint" $@
 
 popd >>/dev/null
