@@ -91,6 +91,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
  protected:
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
+                             intptr_t next_temp_index,
                              ZoneGrowableArray<Value*>* values);
 
   void CloseFragment() { exit_ = NULL; }
@@ -131,9 +132,13 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
   Value* value() const { return value_; }
 
+ protected:
+  // Output parameters.
+  Value* value_;
+
  private:
   // Helper to set the output state to return a Value.
-  void ReturnValue(Value* value) { value_ = value; }
+  virtual void ReturnValue(Value* value) { value_ = value; }
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and returns its temporary value (i.e., set the output
@@ -142,9 +147,22 @@ class ValueGraphVisitor : public EffectGraphVisitor {
     AddInstruction(new BindInstr(temp_index(), computation));
     value_ = new TempVal(AllocateTempIndex());
   }
+};
 
-  // Output parameters.
-  Value* value_;
+
+// Translate an AstNode to a control-flow graph fragment for both its effects
+// and value as an outgoing argument.  Implements a function from an AstNode
+// and next temporary index to a graph fragment (as in the
+// EffectGraphBuilder), an updated temporary index, and an intermediate
+// language Value.
+class ArgumentGraphVisitor : public ValueGraphVisitor {
+ public:
+  ArgumentGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
+      : ValueGraphVisitor(owner, temp_index) { }
+
+ private:
+  // Override the returning of constants to ensure they are materialized.
+  virtual void ReturnValue(Value* value);
 };
 
 

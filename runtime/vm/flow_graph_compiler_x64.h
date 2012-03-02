@@ -64,6 +64,9 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void LoadValue(Value* value);
 
   // Infrastructure copied from class CodeGenerator.
+  void GenerateCall(intptr_t token_index,
+                    const ExternalLabel* label,
+                    PcDescriptors::Kind kind);
   void GenerateCallRuntime(intptr_t node_id,
                            intptr_t token_index,
                            const RuntimeEntry& entry);

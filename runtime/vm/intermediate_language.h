@@ -18,17 +18,19 @@ class LocalVariable;
 
 // Computations and values.
 //
-// <Computation> ::= <Value>
-//                 | AssertAssignable <Value> <AbstractType>
-//                 | InstanceCall <cstring> <Value> ...
-//                 | StaticCall <Function> <Value> ...
-//                 | LoadLocal <LocalVariable>
-//                 | StoreLocal <LocalVariable> <Value>
-//                 | StrictCompare <Token::kind> <Value> <Value>
-//                 | NativeCall <String> <NativeFunction> <int> <bool>
+// <Computation> ::=
+//   <Value>
+// | AssertAssignable <Value> <AbstractType>
+// | InstanceCall <AstNode> <String> <Value> ...
+// | StaticCall <StaticCallNode> <Value> ...
+// | LoadLocal <LocalVariable>
+// | StoreLocal <LocalVariable> <Value>
+// | StrictCompare <Token::kind> <Value> <Value>
+// | NativeCall <NativeBodyNode>
 //
-// <Value> ::= Temp <int>
-//           | Constant <Instance>
+// <Value> ::=
+//   Temp <int>
+// | Constant <Instance>
 
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
@@ -145,20 +147,39 @@ class AssertAssignableComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(const char* name, ZoneGrowableArray<Value*>* arguments)
-      : name_(name), arguments_(arguments) {
+  InstanceCallComp(AstNode* node,
+                   const String& function_name,
+                   ZoneGrowableArray<Value*>* arguments,
+                   const Array& argument_names,
+                   intptr_t checked_argument_count)
+      : ast_node_(*node),
+        function_name_(function_name),
+        arguments_(arguments),
+        argument_names_(argument_names),
+        checked_argument_count_(checked_argument_count) {
+    ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
+    ASSERT(argument_names.IsZoneHandle());
   }
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  const char* name() const { return name_; }
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  const String& function_name() const { return function_name_; }
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  const Array& argument_names() const { return argument_names_; }
+  intptr_t checked_argument_count() const { return checked_argument_count_; }
 
  private:
-  const char* name_;
-  ZoneGrowableArray<Value*>* arguments_;
+  const AstNode& ast_node_;
+  const String& function_name_;
+  ZoneGrowableArray<Value*>* const arguments_;
+  const Array& argument_names_;
+  const intptr_t checked_argument_count_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
 };
@@ -188,19 +209,21 @@ class StrictCompareComp : public Computation {
 
 class StaticCallComp : public Computation {
  public:
-  StaticCallComp(const Function& function, ZoneGrowableArray<Value*>* arguments)
-      : function_(function), arguments_(arguments) {
-    ASSERT(function.IsZoneHandle());
-  }
+  StaticCallComp(StaticCallNode* node, ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node), arguments_(arguments) { }
 
   DECLARE_COMPUTATION(StaticCall)
 
-  const Function& function() const { return function_; }
+  // Accessors forwarded to the AST node.
+  const Function& function() const { return ast_node_.function(); }
+  const Array& argument_names() const { return ast_node_.arguments()->names(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
 
  private:
-  const Function& function_;
+  const StaticCallNode& ast_node_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);

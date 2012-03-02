@@ -52,12 +52,12 @@ void FlowGraphCompiler::LoadValue(Value* value) {
 
 
 void FlowGraphCompiler::VisitTemp(TempVal* val) {
-  Bailout("TempVal");
+  LoadValue(val);
 }
 
 
 void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
-  Bailout("ConstantVal");
+  LoadValue(val);
 }
 
 
@@ -66,8 +66,58 @@ void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
 }
 
 
+// True iff. the arguments to a call will be properly pushed and can
+// be popped after the call.
+template <typename T> static bool VerifyCallComputation(T* comp) {
+  // Argument values should be consecutive temps.
+  //
+  // TODO(kmillikin): implement stack height tracking so we can also assert
+  // they are on top of the stack.
+  intptr_t previous = -1;
+  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+    TempVal* temp = comp->ArgumentAt(i)->AsTemp();
+    if (temp == NULL) return false;
+    if (i != 0) {
+      if (temp->index() != previous + 1) return false;
+    }
+    previous = temp->index();
+  }
+  return true;
+}
+
+
 void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
-  Bailout("InstanceCallComp");
+  ASSERT(VerifyCallComputation(comp));
+
+  ICData& ic_data =
+      ICData::ZoneHandle(ICData::New(parsed_function_.function(),
+                                     comp->function_name(),
+                                     comp->node_id(),
+                                     comp->checked_argument_count()));
+  int argument_count = comp->ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count,
+                                         comp->argument_names());
+  __ LoadObject(RBX, ic_data);
+  __ LoadObject(R10, arguments_descriptor);
+
+  uword label_address = 0;
+  switch (comp->checked_argument_count()) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("InlineCache", label_address);
+  __ call(&target_label);
+  AddCurrentDescriptor(PcDescriptors::kIcCall,
+                       comp->node_id(),
+                       comp->token_index());
+  __ addq(RSP, Immediate(argument_count * kWordSize));
 }
 
 
@@ -78,7 +128,19 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
 
 
 void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
-  Bailout("StaticCallComp");
+  ASSERT(VerifyCallComputation(comp));
+
+  int argument_count = comp->ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count,
+                                         comp->argument_names());
+  __ LoadObject(RBX, comp->function());
+  __ LoadObject(R10, arguments_descriptor);
+
+  GenerateCall(comp->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
+  __ addq(RSP, Immediate(argument_count * kWordSize));
 }
 
 
@@ -263,6 +325,14 @@ void FlowGraphCompiler::CompileGraph() {
 
 
 // Infrastructure copied from class CodeGenerator.
+void FlowGraphCompiler::GenerateCall(intptr_t token_index,
+                                     const ExternalLabel* label,
+                                     PcDescriptors::Kind kind) {
+  __ call(label);
+  AddCurrentDescriptor(kind, AstNode::kNoId, token_index);
+}
+
+
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t node_id,
                                             intptr_t token_index,
                                             const RuntimeEntry& entry) {
