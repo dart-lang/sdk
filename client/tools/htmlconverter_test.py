@@ -27,6 +27,7 @@ TEST1_HTML = """
 
     <!-- embed source code -->
     <script type="application/dart">
+      #import('dart:dom');
       main() {
         window.alert('hi');
       }
@@ -133,7 +134,7 @@ TEST4_HTML = """
 
 TEST4_DART = """
 #import('dart:dom');
-#import('observable/observable.dart');
+#import('../samples/ui_lib/observable/observable.dart');
 
 main() {
   // use imported code
@@ -183,6 +184,7 @@ TEST5_HTML = """
 
     <!-- embed source code -->
     <script type="application/dart">
+      #import('dart:dom');
       main() {
         var element = document.getElementById("test5div");
         if (element == null) {
@@ -204,9 +206,6 @@ this is visible on DOMContentLoaded
 #EOF
 """
 
-# TODO(sigmund): integrate with testing infrastructure and mark negative tests.
-# removing the prefix on test6 should purposely fail.
-
 TEST6_HTML = """
 <html>
   <head></head>
@@ -219,7 +218,7 @@ TEST6_HTML = """
 
     <!-- embed source code -->
     <script type="application/dart">
-      #import('html/html.dart', prefix: 'html');
+      #import('dart:html', prefix: 'html');
       main() {
         html.window.alert('hi');
       }
@@ -306,7 +305,7 @@ def browserRun(message, htmlfile, test, verbose):
   printLine(message + ' [%d]' % (test + 1))
   status, out, err = execute([
       'tests/drt/DumpRenderTree',
-       '--dart-flags=--enable_type_checks --enable_asserts', htmlfile],
+      htmlfile],
       verbose)
   if status != 0:
     printLine("%sERROR%s test output [%d]" % (RED_COLOR, NO_COLOR, test + 1))
