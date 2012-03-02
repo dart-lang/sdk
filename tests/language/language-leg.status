@@ -297,6 +297,7 @@ TypeVMTest: Fail, OK # VM specific test.
 
 
 ExceptionTest: Fail # TODO(ahe): Probably a bad merge.
+DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
 # TODO(ahe): Categorize these failures.
