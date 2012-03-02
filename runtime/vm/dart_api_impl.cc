@@ -1567,7 +1567,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
-    if ((offset + length) <= array_obj.Length()) {
+    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
       Object& element = Object::Handle();
       Integer& integer  = Integer::Handle();
       for (int i = 0; i < length; i++) {
@@ -1646,7 +1646,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
     Integer& integer = Integer::Handle();
-    if ((offset + length) <= array_obj.Length()) {
+    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
       for (int i = 0; i < length; i++) {
         integer = Integer::New(native_array[i]);
         array_obj.SetAt(offset + i, integer);
