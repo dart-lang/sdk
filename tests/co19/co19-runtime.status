@@ -70,9 +70,6 @@ LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
 LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
 
 
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Issue 392
-
-
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
@@ -87,7 +84,6 @@ LibTest/core/String/split_A01_t02: Fail # Issue 429
 # Obsolete use of 'factory' keyword fixed in newer co19 revisions.
 
 # New failures
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail # Issue 430
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $component == vm ]
@@ -137,11 +133,19 @@ LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
 LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
 [ $component == vm && $checked ]
-LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
+Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A11_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.
 LibTest/core/Queue/addLast_A01_t01: Skip  # Issue 331
+LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip  # Issue 331
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
-Language/13_Types/8_Parameterized_Types_A02_t01: Fail  # Issue co19 - 82
+
+
+
+
 
 [ $component == vm && $system == win32 ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
