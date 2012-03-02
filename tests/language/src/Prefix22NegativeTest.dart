@@ -4,7 +4,7 @@
 //
 // Unresolved symbols should be reported as an static type warnings.
 // In this variant of test we turn warnings into errors.
-// VMOptions= --enable_type_errors
+// VMOptions= --enable_type_checks
 
 #library("Prefix21NegativeTest.dart");
 #import("library12.dart", prefix:"lib12");
