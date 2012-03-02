@@ -212,6 +212,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   void GenerateInlinedFinallyBlocks(SourceLabel* label);
 
+  void HandleBackwardBranch(intptr_t loop_id, intptr_t token_index);
+
   void ErrorMsg(intptr_t token_index, const char* format, ...);
 
   int generate_next_try_index() { return try_index_ += 1; }

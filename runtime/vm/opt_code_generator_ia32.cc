@@ -2637,6 +2637,7 @@ void OptimizingCodeGenerator::VisitForNode(ForNode* node) {
     }
   }
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);
@@ -2654,6 +2655,7 @@ void OptimizingCodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ Bind(label->continue_label());
   CodeGenInfo condition_info(node->condition());
   condition_info.set_false_label(label->break_label());
@@ -2693,6 +2695,7 @@ void OptimizingCodeGenerator::VisitWhileNode(WhileNode* node) {
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }

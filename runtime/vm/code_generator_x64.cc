@@ -1797,6 +1797,21 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
 }
 
 
+void CodeGenerator::HandleBackwardBranch(
+    intptr_t loop_id, intptr_t token_index) {
+  // Use stack overflow check to eventually stop execution of loops.
+  // This is necessary only if a loop does not have calls.
+  __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
+  __ cmpq(RSP, Address(TMP, 0));
+  Label no_stack_overflow;
+  __ j(ABOVE, &no_stack_overflow);
+  GenerateCallRuntime(loop_id,
+                      token_index,
+                      kStackOverflowRuntimeEntry);
+  __ Bind(&no_stack_overflow);
+}
+
+
 void CodeGenerator::VisitWhileNode(WhileNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   SourceLabel* label = node->label();
@@ -1808,6 +1823,7 @@ void CodeGenerator::VisitWhileNode(WhileNode* node) {
   __ cmpq(RAX, RDX);
   __ j(NOT_EQUAL, label->break_label());
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }
@@ -1819,6 +1835,7 @@ void CodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ Bind(label->continue_label());
   node->condition()->Visit(this);
   GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
@@ -1845,6 +1862,7 @@ void CodeGenerator::VisitForNode(ForNode* node) {
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
+  HandleBackwardBranch(node->id(), node->token_index());
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);

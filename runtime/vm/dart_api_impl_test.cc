@@ -3601,22 +3601,16 @@ static Dart_NativeFunction IsolateInterruptTestNativeLookup(
 
 
 void BusyLoop_start(uword unused) {
-  // TODO(turnidge): Get rid of call to 'function' after interrupts
-  // are checked on backward branches.
   const char* kScriptChars =
       "class Native {\n"
       "  static void markMainEntered() native 'MarkMainEntered';\n"
       "}\n"
-      "void function([foo='hi']) {\n"
-      "}\n"
       "\n"
       "void main() {\n"
       "  Native.markMainEntered();\n"
-      "  while (true) {\n"  // Infinite loop.
-      "    function();\n"
+      "  while (true) {\n"  // Infinite empty loop.
       "  }\n"
       "}\n";
-
 
   // Tell the other thread that shared_isolate is created.
   Dart_Handle lib;
