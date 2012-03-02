@@ -39,7 +39,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 [ $component == leg ]
 Language/10_Expressions/01_Constants_A16_t01: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/01_Constants_A16_t02: Crash # TODO(ahe): Investigate.
-Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Crash # TODO(ahe): Investigate.
