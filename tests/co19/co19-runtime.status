@@ -95,7 +95,6 @@ LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
 Language/13_Types/8_Parameterized_Types_A02_t01: Fail  # Issue co19 - 82
 
 [ $component == vm && $system == win32 ]
-LibTest/core/Math/pow_A07_t01: Fail
 LibTest/core/double/operator_remainder_A01_t04: Fail
 LibTest/core/double/round_A01_t01: Fail
 LibTest/core/double/remainder_A01_t04: Fail
