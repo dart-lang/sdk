@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -142,10 +142,15 @@ class _Timer implements Timer {
       _handling_callbacks = true;
       try {
         for (var timer in pending_timers) {
-          timer._callback(timer);
-          if (timer._repeating) {
-            timer._advanceWakeupTime();
-            timer._addTimerToList();
+          // One of the timers in the pending_timers list can cancel
+          // one of the later timers which will set the callback to
+          // null.
+          if (timer._callback != null) {
+            timer._callback(timer);
+            if (timer._repeating) {
+              timer._advanceWakeupTime();
+              timer._addTimerToList();
+            }
           }
         }
       } finally {

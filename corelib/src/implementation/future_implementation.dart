@@ -1,25 +1,6 @@
 // Copyright 2011 Google Inc. All Rights Reserved.
 // Dart core library.
 
-/**
- * Thrown if client tries to obtain value or exception
- * before a future has completed.
- */
-class FutureNotCompleteException implements Exception {
-  FutureNotCompleteException() {}
-  String toString() => "Exception: future has not been completed";
-}
-
-/**
- * Thrown if a completer tries to set the value on
- * a future that is already complete.
- */
-class FutureAlreadyCompleteException implements Exception {
-  FutureAlreadyCompleteException() {}
-  String toString() => "Exception: future already completed";
-}
-
-
 class FutureImpl<T> implements Future<T> {
 
   bool _isComplete;
@@ -94,8 +75,15 @@ class FutureImpl<T> implements Future<T> {
     }
   }
 
-  void handleException(void onException(Object exception)) {
-    _exceptionHandlers.add(onException);
+  void handleException(bool onException(Object exception)) {
+    if (_exceptionHandled) return;
+    if (_isComplete) {
+       if (_exception != null) {
+         _exceptionHandled = onException(_exception);
+       }
+    } else {
+      _exceptionHandlers.add(onException);
+    }
   }
 
   void _complete() {

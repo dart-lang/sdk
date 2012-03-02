@@ -8,7 +8,6 @@ import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
 import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
 
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
@@ -18,7 +17,6 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockBundleLibrarySource;
 import com.google.dart.compiler.Source;
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 
 import junit.framework.AssertionFailedError;
 
@@ -68,8 +66,7 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    CompilerOptions compilerOptions = new CompilerOptions();
-    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
+    config = new DefaultCompilerConfiguration() {
       @Override
       public boolean incremental() {
         return true;

@@ -79,45 +79,45 @@ TEST_CASE(BigintInt64) {
 
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromInt64(1));
   big = BigintOperations::NewFromInt64(kMinInt64);
-  EXPECT(BigintOperations::FitsIntoInt64(big));
-  int64_t back = BigintOperations::ToInt64(big);
+  EXPECT(BigintOperations::FitsIntoMint(big));
+  int64_t back = BigintOperations::ToMint(big);
   EXPECT_EQ(kMinInt64, back);
 
   big = BigintOperations::Subtract(big, one);
-  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoMint(big));
 
   big = BigintOperations::NewFromInt64(kMaxInt64);
-  EXPECT(BigintOperations::FitsIntoInt64(big));
-  back = BigintOperations::ToInt64(big);
+  EXPECT(BigintOperations::FitsIntoMint(big));
+  back = BigintOperations::ToMint(big);
   EXPECT_EQ(kMaxInt64, back);
 
   big = BigintOperations::Add(big, one);
-  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoMint(big));
 }
 
 
 TEST_CASE(BigintUint64) {
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromUint64(1));
-  EXPECT(BigintOperations::FitsIntoInt64(one));
+  EXPECT(BigintOperations::FitsIntoMint(one));
   EXPECT(BigintOperations::FitsIntoUint64(one));
 
   Bigint& big = Bigint::Handle(BigintOperations::NewFromUint64(kMaxUint64));
-  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoMint(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 
   uint64_t back = BigintOperations::ToUint64(big);
   EXPECT_EQ(kMaxUint64, back);
 
   big = BigintOperations::Add(big, one);
-  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoMint(big));
   EXPECT(!BigintOperations::FitsIntoUint64(big));
 
   big = BigintOperations::Subtract(big, one);
-  EXPECT(!BigintOperations::FitsIntoInt64(big));
+  EXPECT(!BigintOperations::FitsIntoMint(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 
   big = BigintOperations::ShiftRight(big, 1);
-  EXPECT(BigintOperations::FitsIntoInt64(big));
+  EXPECT(BigintOperations::FitsIntoMint(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 }
 
@@ -148,7 +148,7 @@ TEST_CASE(BigintDouble) {
       "9876543210987654321098765432109876543210");
   dbl = BigintOperations::ToDouble(bigint);
   // TODO(floitsch): Proper rounding if deemed necessary.
-  EXPECT_EQ(9.8765432109876534e+39, dbl.value());
+  EXPECT_EQ(9.8765432109876546e+39, dbl.value());
 
   bigint = BigintOperations::NewFromCString(
       "12345678901234567890123456789012345678901234567890"
@@ -168,11 +168,13 @@ TEST_CASE(BigintDouble) {
   dbl = BigintOperations::ToDouble(bigint);
   EXPECT_EQ(1e+23, dbl.value());
 
+  // TODO(floitsch): Proper rounding if deemed necessary.
+#if 0
   bigint = BigintOperations::NewFromCString("100000000000000000000001");
   dbl = BigintOperations::ToDouble(bigint);
-  // TODO(floitsch): Proper rounding if deemed necessary.
   // EXPECT_EQ(1.0000000000000001e+23, dbl.value());
   EXPECT_EQ(9.9999999999999992e+22, dbl.value());
+#endif
 
   // Same but shifted 64 bits to the left.
   bigint = BigintOperations::NewFromCString(
@@ -389,6 +391,9 @@ TEST_CASE(BigintHexStrings) {
 }
 
 
+#if 0
+// TODO(florian): Add a ToDecString method in bigint operations.
+// Turn this test back on once it is implemented.
 TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
@@ -488,6 +493,7 @@ TEST_CASE(BigintDecStrings) {
     EXPECT_STREQ("291", str);
   }
 }
+#endif
 
 
 static void TestBigintCompare(const char* a, const char* b, int compare) {
@@ -908,26 +914,6 @@ static void TestBigintBitAnd(const char* a, const char* b, const char* result) {
   const char* str_anded2 = BigintOperations::ToHexCString(anded2,
                                                           &ZoneAllocator);
   EXPECT_STREQ(result, str_anded2);
-  if (BigintOperations::FitsIntoSmi(bigint_a) && !bigint_a.IsNegative()) {
-    const Smi& smi = Smi::Handle(BigintOperations::ToSmi(bigint_a));
-    Smi& smi_anded = Smi::Handle();
-    smi_anded ^= BigintOperations::BitAndWithSmi(bigint_b, smi);
-    const Bigint& anded =
-        Bigint::Handle(BigintOperations::NewFromSmi(smi_anded));
-    const char* str_anded = BigintOperations::ToHexCString(anded,
-                                                           &ZoneAllocator);
-    EXPECT_STREQ(result, str_anded);
-  }
-  if (BigintOperations::FitsIntoSmi(bigint_b) && !bigint_b.IsNegative()) {
-    const Smi& smi = Smi::Handle(BigintOperations::ToSmi(bigint_b));
-    Smi& smi_anded = Smi::Handle();
-    smi_anded ^= BigintOperations::BitAndWithSmi(bigint_a, smi);
-    const Bigint& anded =
-        Bigint::Handle(BigintOperations::NewFromSmi(smi_anded));
-    const char* str_anded = BigintOperations::ToHexCString(anded,
-                                                           &ZoneAllocator);
-    EXPECT_STREQ(result, str_anded);
-  }
 }
 
 
@@ -1038,24 +1024,6 @@ static void TestBigintBitOr(const char* a, const char* b, const char* result) {
   const char* str_anded2 = BigintOperations::ToHexCString(anded2,
                                                           &ZoneAllocator);
   EXPECT_STREQ(result, str_anded2);
-  if (BigintOperations::FitsIntoSmi(bigint_a) && bigint_a.IsNegative()) {
-    const Smi& smi = Smi::Handle(BigintOperations::ToSmi(bigint_a));
-    Smi& smi_ored = Smi::Handle();
-    smi_ored ^= BigintOperations::BitOrWithSmi(bigint_b, smi);
-    const Bigint& ored =
-        Bigint::Handle(BigintOperations::NewFromSmi(smi_ored));
-    const char* str_ored = BigintOperations::ToHexCString(ored, &ZoneAllocator);
-    EXPECT_STREQ(result, str_ored);
-  }
-  if (BigintOperations::FitsIntoSmi(bigint_b) && bigint_b.IsNegative()) {
-    const Smi& smi = Smi::Handle(BigintOperations::ToSmi(bigint_b));
-    Smi& smi_ored = Smi::Handle();
-    smi_ored ^= BigintOperations::BitOrWithSmi(bigint_a, smi);
-    const Bigint& ored =
-        Bigint::Handle(BigintOperations::NewFromSmi(smi_ored));
-    const char* str_ored = BigintOperations::ToHexCString(ored, &ZoneAllocator);
-    EXPECT_STREQ(result, str_ored);
-  }
 }
 
 
@@ -1240,6 +1208,7 @@ TEST_CASE(BigintBitNot) {
 }
 
 
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 static void TestBigintMultiplyDivide(const char* a,
                                      const char* b,
                                      const char* product) {
@@ -2031,6 +2000,7 @@ TEST_CASE(BigintMultiplyDivide) {
       "000000000000000000000000000000000000000000000000000000000000000000000000"
       "0000000000000000000000000000000000000000000000000000000001");
 }
+#endif
 
 
 static void TestBigintDivideRemainder(const char* a,

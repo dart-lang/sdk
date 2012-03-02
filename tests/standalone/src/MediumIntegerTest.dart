@@ -130,6 +130,13 @@ class MediumIntegerTest {
     Expect.equals(4611686018427387904000000000000000000, a * b);
   }
 
+  static testMintAnd(mint) {
+    // Issue 1845.
+    final int t = 0;
+    var res = mint & (t - 1);
+    Expect.equals(mint, res);
+  }
+
   // TODO(srdjan): Add more tests.
 
   static void testMain() {
@@ -140,6 +147,8 @@ class MediumIntegerTest {
     testMintSub();
     testMintMul();
     testMintDiv();
+    testMintAnd(-1925149952);
+    testMintAnd(1925149952);
     var a = 100000000000;
     var b = 100000000001;
     checkMint(a);
@@ -150,5 +159,7 @@ class MediumIntegerTest {
 }
 
 main() {
-  MediumIntegerTest.testMain();
+  for (int i = 0; i < 1000; i++) {
+    MediumIntegerTest.testMain();
+  }
 }

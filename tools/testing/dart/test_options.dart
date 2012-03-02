@@ -64,7 +64,7 @@ is 'dart file.dart' and you specify special command
               'The component to test against',
               ['-c', '--component'],
               ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'dartium', 'chromium', 'frogium', 'webdriver'],
+               'dartium', 'chromium', 'frogium', 'legium', 'webdriver'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -184,7 +184,14 @@ is 'dart file.dart' and you specify special command
               'Path to frog library',
               ['--froglib'],
               [],
-              '')];
+              ''), 
+          new _TestOptionSpecification(
+              'noBatch',
+              'Do not run browser tests in batch mode', 
+              ['-n', '--nobatch'],
+              [],
+              false,
+              'bool')];
   }
 
 
@@ -426,6 +433,7 @@ is 'dart file.dart' and you specify special command
         case 'chromium':
         case 'dartium':
         case 'frogium':
+        case 'legium':
         case 'webdriver':
           timeout *= 4;
           break;

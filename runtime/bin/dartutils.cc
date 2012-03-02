@@ -18,6 +18,7 @@ const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kUtf8LibURL = "dart:utf8";
+const char* DartUtils::kIsolateLibURL = "dart:isolate";
 
 
 const char* DartUtils::kIdFieldName = "_id";

@@ -74,6 +74,10 @@ class _BufferList {
         result = _buffers.first().getRange(_index, count);
         _index += count;
         _length -= count;
+        if (_index == _buffers.first().length) {
+          _buffers.removeFirst();
+          _index = 0;
+        }
         return result;
       } else {
         result = new ByteArray(count);

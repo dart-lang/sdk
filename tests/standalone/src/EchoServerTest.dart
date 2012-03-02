@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -9,8 +9,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("EchoServerTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 class EchoServerTest {
@@ -56,7 +56,7 @@ class EchoServerGame {
           for (int i = 0; i < bytesRead; i++) {
             Expect.equals(FIRSTCHAR + i, bufferReceived[i]);
           }
-          _socket.dataHandler = handleRead;
+          _socket.onData = handleRead;
         } else {
           // We check every time the whole buffer to verify data integrity.
           for (int i = 0; i < MSGSIZE; i++) {
@@ -88,21 +88,21 @@ class EchoServerGame {
           bytesWritten += _socket.writeList(
               _buffer, bytesWritten, MSGSIZE - bytesWritten);
           if (bytesWritten < MSGSIZE) {
-            _socket.writeHandler = handleWrite;
+            _socket.onWrite = handleWrite;
           }
         }
 
         handleWrite();
       }
 
-      _socket.dataHandler = messageHandler;
-      _socket.errorHandler = errorHandler;
+      _socket.onData = messageHandler;
+      _socket.onError = errorHandler;
       writeMessage();
     }
 
     _socket = new Socket(TestingServer.HOST, _port);
     if (_socket !== null) {
-      _socket.connectHandler = connectHandler;
+      _socket.onConnect = connectHandler;
     } else {
       Expect.fail("Socket creation failed");
     }
@@ -132,7 +132,7 @@ class EchoServer extends TestingServer {
 
   static final msgSize = EchoServerGame.MSGSIZE;
 
-  void connectionHandler(Socket connection) {
+  void onConnection(Socket connection) {
 
     void messageHandler() {
 
@@ -148,7 +148,7 @@ class EchoServer extends TestingServer {
             for (int i = 0; i < bytesRead; i++) {
               Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
             }
-            connection.dataHandler = handleRead;
+            connection.onData = handleRead;
           } else {
             // We check every time the whole buffer to verify data integrity.
             for (int i = 0; i < msgSize; i++) {
@@ -164,7 +164,7 @@ class EchoServer extends TestingServer {
                     buffer, bytesWritten, msgSize - bytesWritten);
                 bytesWritten += written;
                 if (bytesWritten < msgSize) {
-                  connection.writeHandler = handleWrite;
+                  connection.onWrite = handleWrite;
                 } else {
                   connection.close(true);
                 }
@@ -187,9 +187,9 @@ class EchoServer extends TestingServer {
       Expect.fail("Socket error");
     }
 
-    connection.dataHandler = messageHandler;
-    connection.closeHandler = closeHandler;
-    connection.errorHandler = errorHandler;
+    connection.onData = messageHandler;
+    connection.onClosed = closeHandler;
+    connection.onError = errorHandler;
   }
 }
 

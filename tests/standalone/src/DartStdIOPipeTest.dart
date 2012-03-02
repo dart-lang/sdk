@@ -16,7 +16,7 @@
 void checkFileEmpty(String fileName) {
   RandomAccessFile pipeOut  = new File(fileName).openSync();
   Expect.equals(0, pipeOut.lengthSync());
-  pipeOut.close();
+  pipeOut.closeSync();
 }
 
 
@@ -26,7 +26,7 @@ void checkFileContent(String fileName, String content) {
   List data = new List<int>(length);
   pipeOut.readListSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
-  pipeOut.close();
+  pipeOut.closeSync();
 }
 
 
@@ -43,7 +43,7 @@ void test(String shellScript, String dartScript, String type) {
   Process process = new Process.start(shellScript, args);
 
   // Wait for the process to exit and then check result.
-  process.exitHandler = (exitCode) {
+  process.onExit = (exitCode) {
     Expect.equals(0, exitCode);
     process.close();
 
@@ -67,10 +67,10 @@ void test(String shellScript, String dartScript, String type) {
     }
 
     // Cleanup test directory.
-    dir.delete(true);
+    dir.deleteRecursivelySync();
   };
 
-  process.errorHandler = (ProcessException error) {
+  process.onError = (ProcessException error) {
     Expect.fail(error.toString());
   };
 }

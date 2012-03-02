@@ -27,7 +27,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   function.SetCode(code);
   CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
   ASSERT(code_index_table != NULL);
-  code_index_table->AddFunction(function);
+  code_index_table->AddCode(code);
   return function;
 }
 

@@ -208,54 +208,11 @@ void CodeGenerator::GeneratePreEntryCode() {
 }
 
 
-// Verify assumptions (in debug mode only).
-// - No two deopt descriptors have the same node id (deoptimization).
-// - No two ic-call descriptors have the same node id (type feedback).
-// - No two descriptors of same kind have the same PC.
-// A function without unique ids is marked as non-optimizable (e.g., because of
-// finally blocks).
-static void VerifyPcDescriptors(const PcDescriptors& descriptors,
-                                bool check_ids) {
-#if defined(DEBUG)
-  // TODO(srdjan): Implement a more efficient way to check, currently drop
-  // the check for too large number of descriptors.
-  if (descriptors.Length() > 3000) {
-    if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %d\n",
-                descriptors.Length());
-    }
-    return;
-  }
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    uword pc = descriptors.PC(i);
-    PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
-    // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    intptr_t node_id = AstNode::kNoId;
-    if (check_ids) {
-      if ((descriptors.DescriptorKind(i) == PcDescriptors::kDeopt) ||
-          (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall)) {
-        node_id = descriptors.NodeId(i);
-      }
-    }
-    for (intptr_t k = i + 1; k < descriptors.Length(); k++) {
-      if (kind == descriptors.DescriptorKind(k)) {
-        if (node_id != AstNode::kNoId) {
-          ASSERT(descriptors.NodeId(k) != node_id);
-        }
-        ASSERT(pc != descriptors.PC(k));
-      }
-    }
-  }
-#endif  // DEBUG
-}
-
-
 void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  VerifyPcDescriptors(
-      descriptors, parsed_function_.function().is_optimizable());
+  descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
 }
 
@@ -725,7 +682,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // in breakpoints during debugging.
   __ nop(1);
   AddCurrentDescriptor(PcDescriptors::kReturn,
-                       AstNode::kNoId,
+                       node->id(),
                        node->token_index());
 
 #ifdef DEBUG
@@ -833,7 +790,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
+  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
   if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
   }
@@ -853,8 +810,7 @@ void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
 
 
 void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
-  const Context& result = Context::ZoneHandle();
-  __ PushObject(result);
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushl(CTX);
   GenerateCallRuntime(node->id(),
       node->token_index(), kCloneContextRuntimeEntry);
@@ -874,7 +830,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     __ movl(EDX, Immediate(num_context_variables));
     const ExternalLabel label("alloc_context",
                               StubCode::AllocateContextEntryPoint());
-    GenerateCall(node_sequence->token_index(), &label);
+    GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
 
     // Chain the new context in EAX to its parent in CTX.
     __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
@@ -953,7 +909,9 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
   const AbstractTypeArguments& element_type = node->type_arguments();
   ASSERT(element_type.IsNull() || element_type.IsInstantiated());
   __ LoadObject(ECX, element_type);
-  GenerateCall(node->token_index(), &StubCode::AllocateArrayLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::AllocateArrayLabel(),
+               PcDescriptors::kOther);
 
   // Pop the element values from the stack into the array.
   __ leal(ECX, FieldAddress(EAX, Array::data_offset()));
@@ -1352,7 +1310,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
                                        intptr_t token_index,
                                        const AbstractType& type,
                                        bool negate_result) {
-  ASSERT(type.IsFinalized());
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
@@ -1460,8 +1418,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       }
     }
   }
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -1513,6 +1470,23 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   ASSERT(token_index >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    const Immediate location =
+        Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
+    __ pushl(location);  // Push the source location.
+    __ pushl(EAX);  // Push the source object.
+    __ PushObject(error_message);
+    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+    return;
+  }
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
@@ -1635,8 +1609,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     }
   }
   __ Bind(&runtime_call);
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
   __ pushl(location);  // Push the source location.
@@ -1702,16 +1675,13 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
-  const Object& result = Object::ZoneHandle();
-  __ PushObject(result);  // Make room for the result of the runtime call.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
   __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the source object.
   GenerateCallRuntime(node_id, token_index, kConditionTypeErrorRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ addl(ESP, Immediate(3 * kWordSize));
+  // We should never return here.
+  __ int3();
 
   __ Bind(&done);
 }
@@ -2148,7 +2118,9 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
   __ LoadObject(ECX, interpol_func);
   __ LoadObject(EDX, ArgumentsDescriptor(interpol_arg->length(),
                                          interpol_arg->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(interpol_arg->length() * kWordSize));
   // Result is in EAX.
   if (IsResultNeeded(node)) {
@@ -2185,7 +2157,9 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   __ LoadObject(ECX, node->function());
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.
   if (IsResultNeeded(node)) {
@@ -2210,7 +2184,9 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
   // NOTE: The stub accesses the closure before the parameter list.
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallClosureFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallClosureFunctionLabel(),
+               PcDescriptors::kOther);
   __ addl(ESP, Immediate((node->arguments()->length() + 1) * kWordSize));
   // Restore the context.
   __ popl(CTX);
@@ -2231,7 +2207,8 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::New(instantiator_class, type_arguments, token_index));
-    type ^= ClassFinalizer::FinalizeType(instantiator_class, type);
+    type ^= ClassFinalizer::FinalizeType(
+        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
   } else {
@@ -2314,8 +2291,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     if (node->constructor().IsFactory()) {
       // A runtime call to instantiate the type arguments is required before
       // calling the factory.
-      const Object& result = Object::ZoneHandle();
-      __ PushObject(result);  // Make room for the result of the runtime call.
+      __ PushObject(Object::ZoneHandle());  // Make room for the result.
       __ PushObject(node->type_arguments());
       __ pushl(EAX);  // Push instantiator type arguments.
       GenerateCallRuntime(node->id(),
@@ -2355,7 +2331,9 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
     __ LoadObject(ECX, node->constructor());
     __ LoadObject(EDX, ArgumentsDescriptor(num_args,
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(),
+                 &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
     // Factory constructor returns object in EAX.
     __ addl(ESP, Immediate(num_args * kWordSize));
     if (IsResultNeeded(node)) {
@@ -2372,7 +2350,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   // type arguments are on the stack.
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
+  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
   if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
     __ popl(ECX);  // Pop instantiator type arguments.
@@ -2397,7 +2375,9 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   int num_args = node->arguments()->length() + 2;
   __ LoadObject(ECX, node->constructor());
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   // Constructors do not return any value.
 
   // Pop out all the other arguments on the stack.
@@ -2491,7 +2471,9 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
   const int kNumberOfArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   // No arguments were pushed, hence nothing to pop.
 }
 
@@ -2519,7 +2501,9 @@ void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
   const int kNumberOfArguments = 1;  // value.
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(kNumberOfArguments * kWordSize));
 }
 
@@ -2552,7 +2536,9 @@ void CodeGenerator::VisitNativeBodyNode(NativeBodyNode* node) {
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(node->native_c_function())));
   __ movl(EDX, Immediate(node->argument_count()));
-  GenerateCall(node->token_index(), &StubCode::CallNativeCFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallNativeCFunctionLabel(),
+               PcDescriptors::kOther);
   // Result is on the stack.
   if (!IsResultNeeded(node)) {
     __ popl(EAX);
@@ -2639,17 +2625,12 @@ void CodeGenerator::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void CodeGenerator::VisitThrowNode(ThrowNode* node) {
-  const Object& result = Object::ZoneHandle();
   node->exception()->Visit(this);
-  __ popl(EAX);  // Exception object is now in EAX.
+  // Exception object is on TOS.
   if (node->stacktrace() != NULL) {
-    __ PushObject(result);  // Make room for the result of the runtime call.
-    __ pushl(EAX);  // Push the exception object.
     node->stacktrace()->Visit(this);
     GenerateCallRuntime(node->id(), node->token_index(), kReThrowRuntimeEntry);
   } else {
-    __ PushObject(result);  // Make room for the result of the runtime call.
-    __ pushl(EAX);  // Push the exception object.
     GenerateCallRuntime(node->id(), node->token_index(), kThrowRuntimeEntry);
   }
   // We should never return here.
@@ -2678,9 +2659,10 @@ void CodeGenerator::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 
 
 void CodeGenerator::GenerateCall(intptr_t token_index,
-                                 const ExternalLabel* ext_label) {
+                                 const ExternalLabel* ext_label,
+                                 PcDescriptors::Kind desc_kind) {
   __ call(ext_label);
-  AddCurrentDescriptor(PcDescriptors::kOther, AstNode::kNoId, token_index);
+  AddCurrentDescriptor(desc_kind, AstNode::kNoId, token_index);
 }
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,10 +7,10 @@
 class DirectoryInvalidArgumentsTest {
   static void testFailingList(Directory d, var recursive) {
     int errors = 0;
-    d.errorHandler = (error) {
+    d.onError = (error) {
       errors += 1;
     };
-    d.doneHandler = (completed) {
+    d.onDone = (completed) {
       Expect.equals(1, errors);
       Expect.isFalse(completed);
     };

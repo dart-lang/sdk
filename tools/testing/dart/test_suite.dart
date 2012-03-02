@@ -15,6 +15,7 @@
 #library("test_suite");
 
 #import("dart:io");
+#import("dart:isolate");
 #import("status_file_parser.dart");
 #import("test_runner.dart");
 #import("multitest.dart");
@@ -52,18 +53,18 @@ class CCTestListerIsolate extends Isolate {
       var p = new Process.start(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
-      stdoutStream.lineHandler = () {
+      stdoutStream.onLine = () {
         String line = stdoutStream.readLine();
         while (line != null) {
           tests.add(line);
           line = stdoutStream.readLine();
         }
       };
-      p.errorHandler = (error) {
+      p.onError = (error) {
         print("Failed to list tests: $runnerPath --list");
         replyTo.send("");
       };
-      p.exitHandler = (code) {
+      p.onExit = (code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
           replyTo.send("");
@@ -132,8 +133,7 @@ class CCTestSuite implements TestSuite {
       args.addAll(TestUtils.standardOptions(configuration));
 
       doTest(new TestCase('$suiteName/$testName',
-                          runnerPath,
-                          args,
+                          [new Command(runnerPath, args)],
                           configuration,
                           completeHandler,
                           expectations));
@@ -263,20 +263,19 @@ class StandardTestSuite implements TestSuite {
   void processDirectory() {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
-    dir.errorHandler = (s) {
+    dir.onError = (s) {
       throw s;
     };
-    dir.existsHandler = (bool exists) {
+    dir.exists((bool exists) {
       if (!exists) {
         print('Directory containing tests not found: $directoryPath');
         directoryListingDone(false);
       } else {
-        dir.fileHandler = processFile;
-        dir.doneHandler = directoryListingDone;
+        dir.onFile = processFile;
+        dir.onDone = directoryListingDone;
         dir.list(recursive: listRecursively());
       }
-    };
-    dir.exists();
+    });
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
@@ -331,6 +330,7 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         enqueueBrowserTest(filename, testName, optionsFromFile,
                            expectations, isNegative);
@@ -360,8 +360,7 @@ class StandardTestSuite implements TestSuite {
 
         for (var args in argumentLists) {
           doTest(new TestCase('$suiteName/$testName',
-                              shellPath(),
-                              args,
+                              [new Command(shellPath(), args)],
                               configuration,
                               completeHandler,
                               expectations,
@@ -396,7 +395,7 @@ class StandardTestSuite implements TestSuite {
     if (!pattern.hasMatch(filename)) return;
     if (filename.endsWith('test_config.dart')) return;
 
-    var optionsFromFile = optionsFromFile(filename);
+    var optionsFromFile = readOptionsFromFile(filename);
     Function createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
@@ -511,40 +510,38 @@ class StandardTestSuite implements TestSuite {
           filePrefix + scriptPath));
       htmlTest.closeSync();
 
-      List<String> compilerArgs = TestUtils.standardOptions(configuration);
-      String compilerExecutable = TestUtils.compilerPath(configuration);
-      switch (component) {
-        case 'chromium':
-          compilerArgs.addAll(['--work', tempDir.path]);
-          compilerArgs.addAll(vmOptions);
-          compilerArgs.add('--ignore-unrecognized-flags');
-          // TODO(zundel): remove assumption of generated code from dartc
-          compilerArgs.add('--out');
-          compilerArgs.add(compiledDartWrapperFilename);
-          compilerArgs.add(dartWrapperFilename);
-          // TODO(whesse): Add --fatal-type-errors if needed.
-          break;
-        case 'frogium':
-        case 'webdriver':
-          String libdir = configuration['froglib'];
-          if (libdir == '') {
-            libdir = '$dartDir/frog/lib';
+      // Construct the command(s) that compile all the inputs needed by the
+      // browser test. For dartium, this will be noop commands.
+      List<Command> commands = [];
+      if (component != 'dartium') {
+        commands.add(_compileCommand(
+            dartWrapperFilename, compiledDartWrapperFilename,
+            component, tempDir.path, vmOptions));
+
+        // some tests require compiling multiple input scripts.
+        List<String> otherScripts = optionsFromFile['otherScripts'];
+        for (String name in otherScripts) {
+          int end = filename.lastIndexOf('/');
+          if (end == -1) {
+            print('Warning: error processing "OtherScripts" of $filename.');
+            print('Skipping test ($testName).');
+            return;
           }
-          compilerArgs.addAll(['--libdir=$libdir',
-                               '--compile-only',
-                               '--out=$compiledDartWrapperFilename']);
-          compilerArgs.addAll(vmOptions);
-          compilerArgs.add(dartWrapperFilename);
-          break;
-        case 'dartium':
-          // No compilation phase.
-          compilerExecutable = null;
-          compilerArgs = null;
-          break;
-        default:
-          Expect.fail('unimplemented component $component');
+          String dir = filename.substring(0, end);
+          end = name.lastIndexOf('.dart');
+          if (end == -1) {
+            print('Warning: error processing "OtherScripts" in $filename.');
+            print('Skipping test ($testName).');
+            return;
+          }
+          String compiledName = '${name.substring(0, end)}.js';
+          commands.add(_compileCommand(
+              '$dir/$name', '${tempDir.path}/$compiledName',
+              component, tempDir.path, vmOptions));
+        }
       }
 
+      // Construct the command that executes the browser test
       List<String> args;
       if (component == 'webdriver') {
         args = ['$dartDir/tools/testing/run_selenium.py',
@@ -568,19 +565,48 @@ class StandardTestSuite implements TestSuite {
         }
         args.add(htmlPath);
       }
+      commands.add(new Command('python', args));
+
       // Create BrowserTestCase and queue it.
-      var testCase = new BrowserTestCase(
-          testName,
-          compilerExecutable,
-          compilerArgs,
-          'python',
-          args,
-          configuration,
-          completeHandler,
-          expectations,
-          optionsFromFile['isNegative']);
+      var testCase = new BrowserTestCase(testName, commands, configuration,
+          completeHandler, expectations, optionsFromFile['isNegative']);
       doTest(testCase);
     }
+  }
+
+  /** Helper to create a compilation command for a single input file. */
+  Command _compileCommand(String inputFile, String outputFile,
+      String component, String dir, var vmOptions) {
+    String executable = TestUtils.compilerPath(configuration);
+    List<String> args = TestUtils.standardOptions(configuration);
+    switch (component) {
+      case 'chromium':
+        args.addAll(['--work', dir]);
+        args.addAll(vmOptions);
+        args.add('--ignore-unrecognized-flags');
+        // TODO(zundel): remove assumption of generated code from dartc
+        args.add('--out');
+        args.add(outputFile);
+        args.add(inputFile);
+        // TODO(whesse): Add --fatal-type-errors if needed.
+        break;
+      case 'frogium':
+      case 'legium':
+      case 'webdriver':
+        String libdir = configuration['froglib'];
+        if (libdir == '') {
+          libdir = '$dartDir/frog/lib';
+        }
+        args.addAll(['--libdir=$libdir',
+                             '--compile-only',
+                             '--out=$outputFile']);
+        args.addAll(vmOptions);
+        args.add(inputFile);
+        break;
+      default:
+        Expect.fail('unimplemented component $component');
+    }
+    return new Command(executable, args);
   }
 
   bool get requiresCleanTemporaryDirectory() =>
@@ -662,6 +688,7 @@ class StandardTestSuite implements TestSuite {
         return 'application/dart';
       case 'chromium':
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         return 'text/javascript';
       default:
@@ -723,13 +750,13 @@ class StandardTestSuite implements TestSuite {
     if (dartOptions == null) {
       args.add(filename);
     } else {
-      var filename = dartOptions[0];
+      var executable_name = dartOptions[0];
       // TODO(ager): Get rid of this hack when the runtime checkout goes away.
-      var file = new File(filename);
+      var file = new File(executable_name);
       if (!file.existsSync()) {
-        filename = '../$filename';
-        Expect.isTrue(new File(filename).existsSync());
-        dartOptions[0] = filename;
+        executable_name = '../$executable_name';
+        Expect.isTrue(new File(executable_name).existsSync());
+        dartOptions[0] = executable_name;
       }
       args.addAll(dartOptions);
     }
@@ -745,9 +772,10 @@ class StandardTestSuite implements TestSuite {
     return result;
   }
 
-  Map optionsFromFile(String filename) {
+  Map readOptionsFromFile(String filename) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
+    RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
@@ -792,6 +820,12 @@ class StandardTestSuite implements TestSuite {
       dartOptions = match[1].split(' ').filter((e) => e != '');
     }
 
+    List<String> otherScripts = new List<String>();
+    matches = otherScriptsRegExp.allMatches(contents);
+    for (var match in matches) {
+      otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
+    }
+
     if (contents.contains("@compile-error") ||
         contents.contains("@runtime-error")) {
       isNegative = true;
@@ -809,6 +843,7 @@ class StandardTestSuite implements TestSuite {
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
+             "otherScripts": otherScripts,
              "isMultitest": isMultitest,
              "containsLeadingHash" : containsLeadingHash,
              "isolateStubs" : isolateStubs,
@@ -844,11 +879,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   String shellPath() => TestUtils.compilerPath(configuration);
 
   List<String> additionalOptions(String filename) {
-    filename = new File(filename).fullPathSync().replaceAll('\\', '/');
-    Directory tempDir = createOutputDirectory(filename, 'dartc-test');
-    return
-        [ '--fatal-warnings', '--fatal-type-errors',
-          '--out', tempDir.path];
+    return ['--fatal-warnings', '--fatal-type-errors'];
   }
 
   void processDirectory() {
@@ -859,11 +890,11 @@ class DartcCompilationTestSuite extends StandardTestSuite {
       Directory dir = new Directory("$directoryPath/$testDir");
       if (dir.existsSync()) {
         activityStarted();
-        dir.errorHandler = (s) {
+        dir.onError = (s) {
           throw s;
         };
-        dir.fileHandler = processFile;
-        dir.doneHandler = (ignore) => activityCompleted();
+        dir.onFile = processFile;
+        dir.onDone = (ignore) => activityCompleted();
         dir.list(recursive: listRecursively());
       }
     }
@@ -926,11 +957,11 @@ class JUnitTestSuite implements TestSuite {
     directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
-    dir.errorHandler = (s) {
+    dir.onError = (s) {
       throw s;
     };
-    dir.fileHandler = processFile;
-    dir.doneHandler = createTest;
+    dir.onFile = processFile;
+    dir.onDone = createTest;
     dir.list(recursive: true);
   }
 
@@ -960,8 +991,7 @@ class JUnitTestSuite implements TestSuite {
     args.addAll(testClasses);
 
     doTest(new TestCase(suiteName,
-                        'java',
-                        args,
+                        [new Command('java', args)],
                         configuration,
                         completeHandler,
                         new Set<String>.from([PASS])));
@@ -995,7 +1025,9 @@ class JUnitTestSuite implements TestSuite {
 class TestUtils {
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
-      if (component != 'frogium' && component != 'webdriver') {
+      if (component != 'frogium'
+          && component != 'legium'
+          && component != 'webdriver') {
         return '.exe';
       } else {
         return '.bat';
@@ -1028,6 +1060,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
+      case 'legium':
       case 'webdriver':
         return 'frog/bin/frog$suffix';
       default:
@@ -1058,21 +1091,21 @@ class TestUtils {
   }
 
   static String outputDir(Map configuration) {
-    var outputDir = '';
+    var result = '';
     var system = configuration['system'];
     if (system == 'linux') {
-      outputDir = 'out/';
+      result = 'out/';
     } else if (system == 'macos') {
-      outputDir = 'xcodebuild/';
+      result = 'xcodebuild/';
     }
-    return outputDir;
+    return result;
   }
 
   static String buildDir(Map configuration) {
-    var buildDir = outputDir(configuration);
-    buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    buildDir += configuration['arch'];
-    return buildDir;
+    var result = outputDir(configuration);
+    result += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    result += configuration['arch'];
+    return result;
   }
 
   static String dartDir() {
@@ -1087,7 +1120,8 @@ class TestUtils {
       args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
-    if (configuration["component"] == "leg") {
+    if (configuration["component"] == "leg"
+        || configuration["component"] == "legium") {
       args.add("--verbose");
       args.add("--leg");
     }

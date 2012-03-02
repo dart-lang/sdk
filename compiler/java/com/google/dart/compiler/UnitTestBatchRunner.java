@@ -45,6 +45,9 @@ public class UnitTestBatchRunner {
         if (!result) {
           testsFailed++;
         }
+        // Write stderr end token and flush.
+        System.err.println(">>> EOF STDERR");
+        System.err.flush();
         System.out.println(">>> TEST " + (result ? "PASS" : "FAIL") + " "
             + (System.currentTimeMillis() - testStart) + "ms");
         System.out.flush();

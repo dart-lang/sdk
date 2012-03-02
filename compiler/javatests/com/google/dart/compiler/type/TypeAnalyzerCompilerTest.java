@@ -947,6 +947,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1936
+   */
+  public void test_propertyAccess_whenExtendsUnknown() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C extends Unknown {",
+            "  foo() {",
+            "    this.elements;",
+            "  }",
+            "}");
+    assertErrors(result.getErrors(), errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 17, 7));
+  }
+
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

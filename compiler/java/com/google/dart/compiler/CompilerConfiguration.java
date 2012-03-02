@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,8 +11,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * A configuration for the Dart compiler specifying which phases
- * and backends will be executed.
+ * A configuration for the Dart compiler specifying which phases will be executed.
  */
 public interface CompilerConfiguration {
 
@@ -22,8 +21,6 @@ public interface CompilerConfiguration {
   }
 
   List<DartCompilationPhase> getPhases();
-
-  List<Backend> getBackends();
 
   /**
    * Indicates whether developer-mode runtime checks are needed. 
@@ -62,24 +59,9 @@ public interface CompilerConfiguration {
   boolean incremental();
 
   /**
-   * The first backend that runs outputs to this filename if set.
-   */
-  File getOutputFilename();
-
-  /**
    * The work directory where incremental build output is stored between invocations.
    */
   File getOutputDirectory();
-
-  /**
-   * Returns <code>true</code> if the compiler should not produce output.
-   */
-  boolean checkOnly();
-
-  /**
-   * Returns <code>true</code> if the compiler should expect an entry point to be defined.
-   */
-  boolean expectEntryPoint();
 
   /**
    * Returns the error formatting the compiler should print with

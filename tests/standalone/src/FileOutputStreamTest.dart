@@ -4,6 +4,7 @@
 // Testing file input stream, VM-only, standalone test.
 
 #import("dart:io");
+#import("dart:isolate");
 
 void testOpenOutputStreamSync() {
   Directory tempDirectory = new Directory('');
@@ -19,45 +20,12 @@ void testOpenOutputStreamSync() {
   String fileName = "${tempDirectory.path}/test";
   File file = new File(fileName);
   file.createSync();
-  OutputStream x = file.openOutputStreamSync();
+  OutputStream x = file.openOutputStream();
   x.write([65, 66, 67]);
   x.close();
-  x.closeHandler = () {
+  x.onClosed = () {
     file.deleteSync();
     done.toSendPort().send("done");
-  };
-}
-
-
-void testOpenOutputStreamAsync() {
-  Directory tempDirectory = new Directory('');
-
-  // Create a port for waiting on the final result of this test.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) {
-    tempDirectory.delete();
-    tempDirectory.deleteHandler = () {
-      done.close();
-    };
-  });
-
-  tempDirectory.createTemp();
-  tempDirectory.createTempHandler = () {
-    String fileName = "${tempDirectory.path}/test";
-    File file = new File(fileName);
-    file.create();
-    file.createHandler = () {
-      file.openOutputStream();
-      file.outputStreamHandler = (OutputStream stream) {
-        stream.close();
-        stream.closeHandler = () {
-          file.delete();
-        };
-      };
-    };
-    file.deleteHandler = () {
-      done.toSendPort().send("done");
-    };
   };
 }
 
@@ -68,29 +36,24 @@ void testOutputStreamNoPendingWrite() {
   // Create a port for waiting on the final result of this test.
   ReceivePort done = new ReceivePort();
   done.receive((message, replyTo) {
-    tempDirectory.delete();
-    tempDirectory.deleteHandler = () {
+    tempDirectory.deleteRecursively(() {
       done.close();
-    };
+    });
   });
 
-  tempDirectory.createTemp();
-  tempDirectory.createTempHandler = () {
+  tempDirectory.createTemp(() {
     String fileName = "${tempDirectory.path}/test";
     File file = new File(fileName);
-    file.create();
-    file.createHandler = () {
-      file.openOutputStream();
-      file.outputStreamHandler = (OutputStream stream) {
-        final total = 100;
-        var count = 0;
-        stream.noPendingWriteHandler = () {
-          stream.write([count++]);
-          if (count == total) {
-            stream.close();
-          }
-        };
-        stream.closeHandler = () {
+    file.create(() {
+      OutputStream stream = file.openOutputStream();
+      final total = 100;
+      var count = 0;
+      stream.onNoPendingWrites = () {
+        stream.write([count++]);
+        if (count == total) {
+          stream.close();
+        }
+        stream.onClosed = () {
           List buffer = new List<int>(total);
           File fileSync = new File(fileName);
           var openedFile = fileSync.openSync();
@@ -103,13 +66,12 @@ void testOutputStreamNoPendingWrite() {
           done.toSendPort().send("done");
         };
       };
-    };
-  };
+    });
+  });
 }
 
 
 main() {
   testOpenOutputStreamSync();
-  testOpenOutputStreamAsync();
   testOutputStreamNoPendingWrite();
 }

@@ -25,8 +25,6 @@ FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
 SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
-Prefix22Test: Fail            # Issue 575
-Prefix23Test: Fail            # Issue 575
 PseudoKWIllegalTest/03: Fail  # Issue 356
 PseudoKWIllegalTest/08: Fail  # Issue 356
 PseudoKWIllegalTest/10: Fail  # Issue 356
@@ -41,15 +39,18 @@ ImplicitThisTest/none: Fail # Issue 374
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)
 Constructor6Test: Fail          # (Discussion ongoing)
+FunctionTypeAliasNegativeTest: Fail # Spec not clear about self referencing types.
+
+# Bad tests needing to be fixed.
+Prefix23NegativeTest: Fail
+TypeVariableScopeTest/00: Fail
+TypeVariableScopeTest/03: Fail
+TypeVariableScopeTest/04: Fail
+TypeVariableScopeTest/05: Fail
 
 # Regular bugs which should be fixed.
 
 ConstInit6NegativeTest: Fail       # Issue 811
-
-# Issue 441.
-TypeVariableBoundsTest/09: Fail
-TypeVariableBoundsTest/10: Fail
-
 SuperFirstConstructorTest: Fail # Issue 1372.
 
 # Issue 1427
@@ -92,12 +93,13 @@ CompileTimeConstant6Test: Fail # Issue 1794
 
 [ ($component == vm || $component == dartium) && $unchecked ]
 
+IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
-FunctionTypeAliasNegativeTest: Fail # Bug 5231617
 
 [ ($component == vm || $component == dartium) && $checked ]
 
-WrongNumberTypeArgumentsTest: Fail # This test should be negative
+TypeVariableBounds2Test/03: Fail # Work in progress.
+Prefix22Test: Fail # This test should be negative in checked mode.
 
 [ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.
@@ -106,50 +108,34 @@ GCTest: Skip  # Takes too long.
 
 [ $component == dartc || $component == chromium ]
 AbstractSyntaxTest/01: Fail
-ConstConstructorSyntaxTest/05: Fail
-FinalSyntaxTest/none: Fail
-
-CompileTimeConstant3Test: Fail # Issue 1780
-
-# Marked failed after code generation removed from dartc
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
+AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 AssignInstanceMethodNegativeTest: Fail
 BodyLessConstructorWrongArgNegativeTest: Fail
-ClosureCallWrongArgumentCountNegativeTest: Fail
-ConstCounterNegativeTest: Fail    # issue 1655
-ConstructorCallWrongArgumentCountNegativeTest: Fail
-Field3aNegativeTest: Fail
-FieldMethod4NegativeTest: Fail
-InstanceCallWrongArgumentCountNegativeTest: Fail
-Label2NegativeTest: Fail    # issue 1658
-NamedParametersNegativeTest: Fail
-NoSuchMethodNegativeTest: Fail
-Prefix6NegativeTest: Fail
-PrivateMember3NegativeTest: Fail
-StaticCallWrongArgumentCountNegativeTest: Fail
-StaticField1aRunNegativeTest: Fail # issue 1662
-StaticField1RunNegativeTest: Fail  # issue 1662
-StaticField2aRunNegativeTest: Fail # issue 1662
-StaticField2RunNegativeTest: Fail  # issue 1662
-Switch3NegativeTest: Fail # issue 1663
-
-
-# Problems triaged before static analysis-only change
-
-AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
+ClosureCallWrongArgumentCountNegativeTest: Fail
+CompileTimeConstant3Test: Fail # Issue 1780
+ConstConstructorSyntaxTest/05: Fail
+ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
-ConstructorNamedArgumentsTest/01: Fail # Issue 1872
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 DefaultFactoryLibraryTest: Fail          # Issue 514
 DuplicateImplementsTest: Skip # Issue 976
+Field3aNegativeTest: Fail
+FieldMethod4NegativeTest: Fail
+FinalSyntaxTest/none: Fail
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
+InstanceCallWrongArgumentCountNegativeTest: Fail
+Label2NegativeTest: Fail    # issue 1658
 Library4NegativeTest: Fail   # Bug 5406175
 ListLiteral4Test: Fail       # Issue 1343
 LiteralUnaryPlusTest/01: Fail # Issue 1399
 MapLiteral4Test: Fail        # Issue 1343
+NamedParametersNegativeTest: Fail
+NoSuchMethodNegativeTest: Fail
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
@@ -164,7 +150,8 @@ Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
 Prefix3NegativeTest: Fail              # Bug 5406175
-PseudoKWTest: Fail           # Issue 356
+Prefix6NegativeTest: Fail
+PrivateMember3NegativeTest: Fail
 PseudoKWIllegalTest/01: Fail # Issue 356
 PseudoKWIllegalTest/02: Fail # Issue 356
 PseudoKWIllegalTest/03: Fail # Issue 356
@@ -181,12 +168,20 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
+PseudoKWTest: Fail           # Issue 356
 ScopeNegativeTest: Fail      # Bug 4207538.
+StaticCallWrongArgumentCountNegativeTest: Fail
+StaticField1RunNegativeTest: Fail  # issue 1662
+StaticField1aRunNegativeTest: Fail # issue 1662
+StaticField2RunNegativeTest: Fail  # issue 1662
+StaticField2aRunNegativeTest: Fail # issue 1662
 StringEscape1NegativeTest: Fail # Issue 1351.
 StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
+Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
+TypeVariableBounds2Test*: Skip  # Issue 1939.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 
@@ -213,9 +208,6 @@ GCTest: Skip # Issue 1487
 IntrinsifiedMethodsTest: Fail # Issue 1470
 ArithmeticTest: Fail # Issue 1470
 
-[ $component == frog || $component == frogium || $component == webdriver ]
-ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
-
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
 # consume frog output, so if frog is generating the incorrect code, chances are
 # it will fail on all of these components.
@@ -233,6 +225,13 @@ ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
+# Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
+# be moved to a
+# [ $component == frog || $component == frogium || $component == webdriver ]
+# section.
+DoubleToStringAsFixedTest: Fail # fails due to -0.0 and due to rounding in constant propagation.
+DoubleToStringAsPrecisionTest: Fail # fails due to -0.0.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
 FinalSyntaxTest/none: Fail
@@ -257,6 +256,7 @@ FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
+DoubleToString: Fail  # Prints "3" instead of "3.0".
 ThirdTest: Fail # Issue 1511
 TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail
@@ -359,11 +359,10 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
-TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
-TypeVariableBoundsTest/10: Fail
+TypeVariableBoundsTest/00: Fail
 TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
 TypeVariableShadowsClass: Fail # Issue 643
-WrongNumberTypeArgumentsTest: Fail
+WrongNumberTypeArgumentsTest/none: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
@@ -384,6 +383,7 @@ ResourceTest: Fail  # browser tests are #sourcing the test, causing an error tha
 StringEscape1NegativeTest: Skip
 
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+Closure3Test: Fail
 MethodInvocationTest: Fail
 Private3Test: Fail
 StackTraceTest: Fail
@@ -429,9 +429,14 @@ PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
+TypeVariableBoundsTest/10: Fail  # Should not complain in production mode.
+WrongNumberTypeArgumentsTest/00: Fail  # Should not complain in production mode.
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
+TypeVariableBoundsTest/09: Fail
+TypeVariableBounds2Test/00: Fail  # Issue 1939
+TypeVariableBounds2Test/03: Fail  # Issue 1939
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate

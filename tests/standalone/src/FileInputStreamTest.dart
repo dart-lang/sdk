@@ -4,6 +4,7 @@
 // Testing file input stream, VM-only, standalone test.
 
 #import("dart:io");
+#import("dart:isolate");
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
@@ -14,8 +15,8 @@ void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
-  StringInputStream x = new StringInputStream(file.openInputStreamSync());
-  x.lineHandler = () {
+  StringInputStream x = new StringInputStream(file.openInputStream());
+  x.onLine = () {
     // The file input stream is known (for now) to have read the whole
     // file when the data handler is called.
     String line = x.readLine();
@@ -29,13 +30,13 @@ void testInputStreamAsync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".charCodes();
-  InputStream x = (new File(fileName)).openInputStreamSync();
+  InputStream x = (new File(fileName)).openInputStream();
   var byteCount = 0;
-  x.dataHandler = () {
-    Expect.equals(expected[byteCount],  x.read(1)[0]);
+  x.onData = () {
+    Expect.equals(expected[byteCount], x.read(1)[0]);
     byteCount++;
   };
-  x.closeHandler = () {
+  x.onClosed = () {
     Expect.equals(expected.length, byteCount);
   };
 }
@@ -46,9 +47,9 @@ void testStringInputStreamAsync(String name, int length) {
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
-  StringInputStream x = new StringInputStream(file.openInputStreamSync());
+  StringInputStream x = new StringInputStream(file.openInputStream());
   int lineCount = 0;
-  x.lineHandler = () {
+  x.onLine = () {
     var line = x.readLine();
     lineCount++;
     Expect.isTrue(lineCount <= 10);
@@ -56,53 +57,37 @@ void testStringInputStreamAsync(String name, int length) {
       Expect.equals("Line $lineCount", line);
     }
   };
-  x.closeHandler = () {
+  x.onClosed = () {
     Expect.equals(10, lineCount);
   };
 }
 
 
 void testChunkedInputStream() {
+  // Force the test to timeout if it does not finish.
+  ReceivePort done = new ReceivePort.singleShot();
+  done.receive((message, replyTo) {});
+
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")
   File file = new File(fileName);
-  ChunkedInputStream x = new ChunkedInputStream(file.openInputStreamSync());
+  ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
   x.chunkSize = 9;
-  List<int> chunk = x.read();
-  Expect.equals(9, chunk.length);
-  x.chunkSize = 5;
-  chunk = x.read();
-  Expect.equals(5, chunk.length);
-  chunk = x.read();
-  Expect.equals(5, chunk.length);
-  chunk = x.read();
-  Expect.equals(null, chunk);
-}
-
-
-void testOpenInputStreamAsync() {
-  // Create a port for waiting on the final result of this test.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) {
-    done.close();
-  });
-
-  // Test using the asynchronous way of opening an input stream.
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
-  File file = new File(fileName);
-  file.exists();
-  file.existsHandler = (exists) {
-    if (exists) {
-      file.openInputStream();
-    } else {
-      Expect.fail("Test file not found");
-    }
-  };
-  file.inputStreamHandler = (InputStream stream) {
-    done.toSendPort().send("Got an InputStream");
-  };
-  file.errorHandler = (String error) {
-    Expect.fail("Error $error");
+  x.onData = () {
+    List<int> chunk = x.read();
+    Expect.equals(9, chunk.length);
+    x.chunkSize = 5;
+    x.onData = () {
+      chunk = x.read();
+      Expect.equals(5, chunk.length);
+      x.onData = () {
+        chunk = x.read();
+        Expect.equals(5, chunk.length);
+        chunk = x.read();
+        Expect.equals(null, chunk);
+        done.toSendPort().send(null);
+      };
+    };
   };
 }
 
@@ -116,5 +101,4 @@ main() {
   testStringInputStreamAsync("readline_test1.dat", 111);
   testStringInputStreamAsync("readline_test2.dat", 114);
   testChunkedInputStream();
-  testOpenInputStreamAsync();
 }

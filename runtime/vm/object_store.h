@@ -247,6 +247,14 @@ class ObjectStore {
     core_impl_library_ = value.raw();
   }
 
+  RawLibrary* isolate_library() const {
+    return isolate_library_;
+  }
+
+  void set_isolate_library(const Library& value) {
+    isolate_library_ = value.raw();
+  }
+
   RawLibrary* native_wrappers_library() const {
     return native_wrappers_library_;
   }
@@ -301,6 +309,12 @@ class ObjectStore {
   void set_out_of_memory(const Instance& value) {
     out_of_memory_ = value.raw();
   }
+
+  RawArray* keyword_symbols() const { return keyword_symbols_; }
+  void set_keyword_symbols(const Array& value) {
+    keyword_symbols_ = value.raw();
+  }
+  void InitKeywordTable();
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -358,6 +372,7 @@ class ObjectStore {
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
+  RawLibrary* isolate_library_;
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* registered_libraries_;
@@ -366,7 +381,8 @@ class ObjectStore {
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&out_of_memory_); }
+  RawArray* keyword_symbols_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 
   bool preallocate_objects_called_;
 

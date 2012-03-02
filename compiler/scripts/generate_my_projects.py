@@ -54,6 +54,12 @@ def Main():
   if exit_code:
     return exit_code
 
+  exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
+                        "isolatelib %(compiler)s/isolatelib_sources ../lib/isolate isolate_compiler.dart"
+                        % locations)
+  if exit_code:
+    return exit_code
+
   exit_code = os.system("python %(compiler)s/generate_source_list.py "
                         "compiler_corelib "
                         "%(compiler)s/compiler_corelib_sources "

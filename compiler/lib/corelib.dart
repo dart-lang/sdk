@@ -22,7 +22,6 @@
 #source("src/future.dart");
 #source("src/hashable.dart");
 #source("src/int.dart");
-#source("src/isolate.dart");
 #source("src/iterable.dart");
 #source("src/iterator.dart");
 #source("src/list.dart");

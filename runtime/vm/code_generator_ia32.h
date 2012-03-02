@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -201,7 +201,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   bool IsResultNeeded(AstNode* node) const;
 
-  void GenerateCall(intptr_t token_index, const ExternalLabel* ext_label);
+  void GenerateCall(intptr_t token_index,
+                    const ExternalLabel* ext_label,
+                    PcDescriptors::Kind desc_kind);
   void GenerateCallRuntime(intptr_t node_id,
                            intptr_t token_index,
                            const RuntimeEntry& entry);

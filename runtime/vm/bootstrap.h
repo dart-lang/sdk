@@ -19,12 +19,14 @@ class Bootstrap : public AllStatic {
  public:
   static RawScript* LoadScript();
   static RawScript* LoadImplScript();
+  static RawScript* LoadIsolateScript();
   static RawError* Compile(const Library& library, const Script& script);
   static void SetupNativeResolver();
 
  private:
   static const char corelib_source_[];
   static const char corelib_impl_source_[];
+  static const char isolate_source_[];
 };
 
 }  // namespace dart

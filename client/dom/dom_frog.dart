@@ -1068,6 +1068,7 @@
 #source('src/ReadyState.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
+#source('src/frog_DOMImplementation.dart');
 #source('src/frog_DOMType.dart');
 #source('src/frog_DOMTypeJs.dart');
 #source('src/frog_FactoryProviders.dart');

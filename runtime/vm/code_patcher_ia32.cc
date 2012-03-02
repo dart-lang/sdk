@@ -134,10 +134,6 @@ class InstanceCall : public DartCallPattern {
     return ic_data.raw();
   }
 
-  void SetIcData(const ICData& value) {
-    set_immediate_one(reinterpret_cast<int32_t>(value.raw()));
-  }
-
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };
@@ -239,7 +235,6 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
                                     int* num_arguments,
                                     int* num_named_arguments,
                                     uword* target) {
-  ASSERT(function_name != NULL);
   ASSERT(num_arguments != NULL);
   ASSERT(num_named_arguments != NULL);
   ASSERT(target != NULL);
@@ -248,7 +243,9 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
   *num_named_arguments = call.named_argument_count();
   *target = call.target();
   const ICData& ic_data = ICData::Handle(call.ic_data());
-  *function_name = ic_data.target_name();
+  if (function_name != NULL) {
+    *function_name = ic_data.target_name();
+  }
 }
 
 

@@ -14,6 +14,18 @@ class _Uint8ClampedArrayWrappingImplementation extends _Uint8ArrayWrappingImplem
   int get length() { return _get_length_Uint8ClampedArray(this); }
   static int _get_length_Uint8ClampedArray(var _this) native;
 
+  void setElements(Object array, [int offset = null]) {
+    if (offset === null) {
+      _setElements(this, array);
+      return;
+    } else {
+      _setElements_2(this, array, offset);
+      return;
+    }
+  }
+  static void _setElements(receiver, array) native;
+  static void _setElements_2(receiver, array, offset) native;
+
   Uint8ClampedArray subarray(int start, [int end = null]) {
     if (end === null) {
       return _subarray_Uint8ClampedArray(this, start);

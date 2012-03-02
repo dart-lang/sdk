@@ -14,7 +14,7 @@ main() {
 
   // Write to the stdin after the process is terminated to test
   // writing to a broken pipe.
-  process.exitHandler = (code) {
+  process.onExit = (code) {
     Expect.isFalse(process.stdin.write([0]));
     process.close();
   };

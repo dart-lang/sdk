@@ -166,6 +166,30 @@ testExceptionHandlerReturnsFalse2() {
   Expect.isTrue(reached);
 }
 
+testExceptionHandlerAfterCompleteThenNotCalled() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var ex2;
+  completer.completeException(ex);
+  future.handleException((e) { ex2 = e; return true; });
+  future.then((e) { });
+  Expect.equals(ex, ex2);
+}
+
+testExceptionHandlerAfterCompleteReturnsFalseThenThrows() {
+  final completer = new Completer<int>();
+  final future = completer.future;
+  final ex = new Exception();
+
+  var ex2;
+  completer.completeException(ex);
+  future.handleException((e) { ex2 = e; return false; });
+  Expect.throws(() { future.then((e) { }); });
+  Expect.equals(ex, ex2);
+}
+
 // Tests for Future.transform
 
 testTransformSuccess() {
@@ -263,6 +287,8 @@ main() {
   testExceptionHandlerReturnsTrue2();
   testExceptionHandlerReturnsFalse();
   testExceptionHandlerReturnsFalse2();
+  testExceptionHandlerAfterCompleteThenNotCalled();
+  testExceptionHandlerAfterCompleteReturnsFalseThenThrows();
   testTransformSuccess();
   testTransformFutureFails();
   testTransformTransformerFails();

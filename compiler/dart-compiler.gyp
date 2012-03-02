@@ -11,6 +11,7 @@
     'domlib_sources.gypi',
     'htmllib_sources.gypi',
     'jsonlib_sources.gypi',
+    'isolatelib_sources.gypi',
   ],
   'targets': [
     {
@@ -39,7 +40,6 @@
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
             '../third_party/guava/r09/guava-r09.jar',
             '../third_party/json/r2_20080312/json.jar',
-            '../third_party/rhino/1_7R3/js.jar',
             '../third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
             '../third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
@@ -95,6 +95,9 @@
             'jsonlib_sources.gypi',
             '<@(jsonlib_sources)',
             '<@(jsonlib_resources)',
+            'isolatelib_sources.gypi',
+            '<@(isolatelib_sources)',
+            '<@(isolatelib_resources)',
           ],
           'outputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/syslib.stamp',
@@ -102,6 +105,7 @@
             '<(INTERMEDIATE_DIR)/<(_target_name)/domlib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/htmllib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/jsonlib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/isolatelib.jar.stamp',
           ],
           'action': [
             '../third_party/apache_ant/v1_7_1/bin/ant',
@@ -125,11 +129,11 @@
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.deps',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.deps',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.deps',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate/isolate/isolate_compiler.dart.deps',
           ],
           'action': [
             '<(PRODUCT_DIR)/dartc', 'api.dart',
             '--fatal-warnings', '--fatal-type-errors',
-            '--deprecated-generate-code',
             '-out', '<(INTERMEDIATE_DIR)/<(_target_name)/api',
           ],
         },
@@ -191,6 +195,22 @@
           ],
           'action': [
             'jar', 'u0f', '<(PRODUCT_DIR)/compiler/lib/jsonlib.jar', '-C', '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json', 'json',
+          ],
+        },
+        {
+          'message': 'Packaging dart:isolate artifacts',
+          'action_name': 'package_isolatelib_artifacts',
+          'inputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/isolatelib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate/isolate/isolate_compiler.dart.deps',
+            'api.dart',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/compiler/lib/isolatelib.jar',
+          ],
+          'action': [
+            'jar', 'u0f', '<(PRODUCT_DIR)/compiler/lib/isolatelib.jar', '-C',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate', 'isolate',
           ],
         },
       ],

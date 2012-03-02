@@ -9,11 +9,9 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
-import com.google.common.io.Files;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.LibraryDeps.Dependency;
 import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
-import com.google.dart.compiler.ast.CoverageInstrumenter;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
@@ -30,7 +28,6 @@ import com.google.dart.compiler.metrics.JvmMetrics;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.CompileTimeConstantResolver;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
@@ -55,7 +52,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -126,13 +122,10 @@ public class DartCompiler {
     private final DartCompilerMainContext context;
     private final CompilerConfiguration config;
     private final Map<URI, LibraryUnit> libraries = new LinkedHashMap<URI, LibraryUnit>();
-    private boolean packageApp = false;
-    private final boolean checkOnly;
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
     private final boolean usePrecompiledDartLibs;
     private final List<DartCompilationPhase> phases;
-    private final List<Backend> backends;
     private final LibrarySource coreLibrarySource;
 
     private Compiler(LibrarySource app, List<LibrarySource> embedded, CompilerConfiguration config,
@@ -140,9 +133,7 @@ public class DartCompiler {
       this.app = app;
       this.config = config;
       this.phases = config.getPhases();
-      this.backends = config.getBackends();
       this.context = context;
-      checkOnly = config.checkOnly();
       for (LibrarySource library : embedded) {
         if (SystemLibraryManager.isDartSpec(library.getName())) {
           embeddedLibraries.add(context.getSystemLibraryFor(library.getName()));
@@ -164,16 +155,7 @@ public class DartCompiler {
         if (context.getErrorCount() > 0) {
           return;
         }
-        if (!context.getFilesHaveChanged()) {
-          for (Backend be : backends) {
-            if(context.isOutOfDate(app, app, be.getAppExtension())) {
-              packageApp = true;
-              break;
-            }
-          }
-        }
         compileLibraries();
-        packageApp();
       } catch (IOException e) {
         context.onError(new DartCompilationError(app, DartCompilerErrorCode.IO, e.getMessage()));
       } finally {
@@ -459,33 +441,16 @@ public class DartCompiler {
           return true;
         }
 
-        if (checkOnly) {
-          TraceEvent backendEvent =
-              Tracer.canTrace() ? Tracer.start(DartEventType.TIMESTAMP_OUTOFDATE,
-                                               "src", dartSrc.getName()) : null;
-          try {
-            if (context.isOutOfDate(dartSrc, dartSrc, EXTENSION_TIMESTAMP)) {
-              return true;
-            }
-          } finally {
-            Tracer.end(backendEvent);
-          }
-        } else {
-          // TODO(zundel): remove this case when code generation goes away
-          for (Backend backend : backends) {
-            TraceEvent backendEvent =
-                Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_OUTOFDATE, "be", backend
-                                                 .getClass().getCanonicalName(), "src", dartSrc.getName()) : null;
-                try {
-                  if (backend.isOutOfDate(dartSrc, context)) {
-                    return true;
-                  }
-                } finally {
-                  Tracer.end(backendEvent);
-                }
-          }
+        TraceEvent timestampEvent =
+            Tracer.canTrace() ? Tracer.start(
+                DartEventType.TIMESTAMP_OUTOFDATE,
+                "src",
+                dartSrc.getName()) : null;
+        try {
+          return context.isOutOfDate(dartSrc, dartSrc, EXTENSION_TIMESTAMP);
+        } finally {
+          Tracer.end(timestampEvent);
         }
-        return false;
       } finally {
         Tracer.end(logEvent);
       }
@@ -749,10 +714,6 @@ public class DartCompiler {
         // Dump the compiler parse tree if dump format is set in arguments
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
 
-        // Coverage instrumenter
-        CoverageInstrumenter coverageInstrumenter = CoverageInstrumenter.createInstance(config);
-        coverageInstrumenter.process(libraries);
-
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {
           boolean persist = false;
@@ -782,7 +743,6 @@ public class DartCompiler {
                 Tracer.end(phaseEvent);
               }
               if (context.getErrorCount() > 0) {
-                packageApp = false;
                 return;
               }
             }
@@ -790,30 +750,11 @@ public class DartCompiler {
             // To help support the IDE, notify the listener that this unit is compiled.
             context.unitCompiled(unit);
 
-            if (!checkOnly) {
-              // Run the unit through all the backends. This loop can also be
-              // parallelized.
-              for (Backend be : config.getBackends()) {
-                TraceEvent backendEvent =
-                    Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_COMPILE,
-                                                     "be", be.getClass().getSimpleName(),
-                                                     "lib", lib.getName(),
-                                                     "unit", unit.getSourceName()) : null;
-                    try {
-                      be.compileUnit(unit, unit.getSource(), context, typeProvider);
-                    } finally {
-                      Tracer.end(backendEvent);
-                    }
-              }
-            }
-
             // Update deps.
             lib.getDeps(context).update(context, unit);
 
-            // We compiled something, so remember that this means we need to
-            // persist the deps and package the app.
+            // We analyzed something, so we need to persist the deps.
             persist = true;
-            packageApp = true;
           }
 
           // Persist the DEPS file.
@@ -835,48 +776,6 @@ public class DartCompiler {
       String timestampData = String.format("%d\n", System.currentTimeMillis());
       writer.write(timestampData);
       writer.close();
-    }
-
-    private void packageApp() throws IOException {
-      TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.PACKAGE_APP) : null;
-
-      CompilerMetrics compilerMetrics = context.getCompilerMetrics();
-      if (compilerMetrics != null) {
-        compilerMetrics.startPackageAppTime();
-      }
-
-      try {
-        // Package output for each backend.
-        if (packageApp) {
-          // When there's no entry-point in the application unit,
-          // don't attempt to package it. This can happen when
-          // compileUnit() is called on a library.
-          if (context.getApplicationUnit().getEntryNode() == null) {
-            if (config.expectEntryPoint()) {
-              context.onError(new DartCompilationError(
-                  context.getApplicationUnit().getSource(), Location.NONE,
-                  DartCompilerErrorCode.NO_ENTRY_POINT));
-            }
-            return;
-          }
-
-          for (Backend be : backends) {
-            TraceEvent backendEvent =
-                Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_PACKAGE_APP, "be", be
-                    .getClass().getSimpleName()) : null;
-            try {
-              be.packageApp(app, libraries.values(), context, typeProvider);
-            } finally {
-              Tracer.end(backendEvent);
-            }
-          }
-        }
-      } finally {
-        if (compilerMetrics != null) {
-          compilerMetrics.endPackageAppTime();
-        }
-        Tracer.end(logEvent);
-      }
     }
 
     DartUnit parse(DartSource dartSrc, Set<String> libraryPrefixes, boolean diet) throws IOException {
@@ -1092,12 +991,6 @@ public class DartCompiler {
     TraceEvent logEvent =
         Tracer.canTrace() ? Tracer.start(DartEventType.COMPILE_APP, "src", sourceFile.toString())
             : null;
-    File outFile = config.getOutputFilename();
-    if (outFile != null && config.getBackends().size() > 1) {
-      // More than one backend is ambiguous.
-      throw new IllegalArgumentException("Output filename "
-          + outFile + " specified.  Only valid with a single backend.");
-    }
     try {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
@@ -1106,53 +999,7 @@ public class DartCompiler {
 
       // Compile the Dart application and its dependencies.
       LibrarySource lib = new UrlLibrarySource(sourceFile);
-      config = new DelegatingCompilerConfiguration(config) {
-        @Override
-        public boolean expectEntryPoint() {
-          return true;
-        }
-      };
-
       String errorString = compileLib(lib, config, provider, listener);
-
-      // Write out a copy of the generated JS if specified by the user
-      if (errorString == null && outFile != null && !config.getBackends().isEmpty()) {
-        File dir = outFile.getParentFile();
-        if (dir != null) {
-          if (dir != null && !dir.exists()) {
-            throw new IOException("Cannot create: " + outFile.getName()
-                                  + ".  " + dir + " does not exist");
-          }
-          if (!dir.canWrite()) {
-            throw new IOException("Cannot write " + outFile.getName() + " to "
-                + dir + ":  Permission denied.");
-          }
-        } else {
-          dir = new File (".");
-          if (!dir.canWrite()) {
-            throw new IOException("Cannot write " + outFile.getName() + " to "
-                + dir + ":  Permission denied.");
-          }
-        }
-
-        if (!config.getCompilerOptions().checkOnly()) {
-          Reader r = null;
-          try {
-            // HACK: there can be more than one backend.  Since there isn't
-            // an obvious way to tell which one the user meant, for now
-            // just restrict the option to save the output if more than
-            // one is active.
-            r = provider.getArtifactReader(lib, "",
-                                           config.getBackends().get(0).getAppExtension());
-            String js = CharStreams.toString(r);
-            if (r != null) {
-              Files.write(js, outFile, Charset.defaultCharset());
-            }
-          } finally {
-            Closeables.close(r, true);
-          }
-        }
-      }
       return errorString;
     } finally {
       Tracer.end(logEvent);
@@ -1163,12 +1010,8 @@ public class DartCompiler {
    * Compiles the given library, translating all its source files, and those
    * of its imported libraries, transitively.
    *
-   * If the specified library contains an entry-point method, then the application will be packaged
-   * by each backend. Otherwise, only library artifacts will be generated.
-   *
    * @param lib The library to be compiled (not <code>null</code>)
    * @param config The compiler configuration specifying the compilation phases
-   *     and backends
    * @param provider A mechanism for specifying where code should be generated
    * @param listener An object notified when compilation errors occur
    */
@@ -1212,7 +1055,8 @@ public class DartCompiler {
     if (!context.getFilesHaveChanged()) {
       return null;
     }
-    if (config.checkOnly()) {
+    // Write checking log.
+    {
       Writer writer = provider.getArtifactWriter(lib, "", EXTENSION_LOG);
       boolean threw = true;
       try {
@@ -1235,9 +1079,8 @@ public class DartCompiler {
    * instead of parsing the associated source from storage. Intended for
    * IDE use when modified buffers must be analyzed. AST nodes in the map may be
    * ignored if not referenced by {@code lib}. (May be null.)
-   * @param config The compiler configuration (phases and backends
-   * will not be used), but resolution and type-analysis will be
-   * invoked
+   * @param config The compiler configuration (phases will not be used), but resolution and
+   * type-analysis will be invoked
    * @param provider A mechanism for specifying where code should be generated
    * @param listener An object notified when compilation errors occur
    * @throws NullPointerException if any of the arguments except {@code parsedUnits}

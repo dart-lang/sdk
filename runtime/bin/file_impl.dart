@@ -3,21 +3,61 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
-  _FileInputStream(RandomAccessFile this._file, int this._length) {
-    _streamMarkedClosed = true;
-    _checkScheduleCallbacks();
+  _FileInputStream(String name) {
+    _file = new File(name);
+    _data = [];
+    _position = 0;
+    _file.onError = (String s) {
+      if (_clientErrorHandler != null) {
+        _clientErrorHandler();
+      }
+    };
+    _file.open(FileMode.READ, (openedFile) {
+      _readDataFromFile(openedFile);
+    });
   }
 
   _FileInputStream.fromStdio(int fd) {
     assert(fd == 0);
     _file = _File._openStdioSync(fd);
-    _length = _file.lengthSync();
-    _streamMarkedClosed = true;
-    _checkScheduleCallbacks();
+    _data = [];
+    _position = 0;
+    _readDataFromFile(_file);
+  }
+
+  void _readDataFromFile(RandomAccessFile openedFile) {
+    openedFile.onError = (String s) {
+      if (_clientErrorHandler != null) {
+        _clientErrorHandler();
+      }
+    };
+    openedFile.length((length) {
+      var contents = new ByteArray(length);
+      if (length != 0) {
+        openedFile.readList(contents, 0, length, (read) {
+          if (read != length) {
+            if (_clientErrorHandler != null) {
+              _clientErrorHandler();
+            }
+          } else {
+            _data = contents;
+          }
+          openedFile.close(() {
+            _streamMarkedClosed = true;
+            _checkScheduleCallbacks();
+          });
+        });
+      } else {
+        openedFile.close(() {
+          _streamMarkedClosed = true;
+          _checkScheduleCallbacks();
+        });
+      }
+    });
   }
 
   int available() {
-    return _closed ? 0 : _length - _file.positionSync();
+    return _closed ? 0 : _data.length - _position;
   }
 
   void pipe(OutputStream output, [bool close = true]) {
@@ -26,117 +66,122 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
   List<int> _read(int bytesToRead) {
     ByteArray result = new ByteArray(bytesToRead);
-    int bytesRead = _file.readListSync(result, 0, bytesToRead);
-    if (bytesRead < bytesToRead) {
-      ByteArray buffer = new ByteArray(bytesRead);
-      buffer.setRange(0, bytesRead, result);
-      result = buffer;
-    }
+    result.setRange(0, bytesToRead, _data, _position);
+    _position += bytesToRead;
     _checkScheduleCallbacks();
     return result;
   }
 
   int _readInto(List<int> buffer, int offset, int len) {
-    int result = _file.readListSync(buffer, offset, len);
+    buffer.setRange(offset, len, _data, _position);
+    _position += len;
     _checkScheduleCallbacks();
-    return result;
+    return len;
   }
 
   void _close() {
     if (_closed) return;
-    _file.closeSync();
     _closed = true;
   }
 
-  RandomAccessFile _file;
-  int _length;
+  File _file;
+  List<int> _data;
+  int _position;
   bool _closed = false;
 }
 
 
 class _FileOutputStream implements OutputStream {
-  _FileOutputStream(this._file);
+  _FileOutputStream(String name, FileMode mode) {
+    _pendingOperations = new List<List<int>>();
+    var f = new File(name);
+    f.open(mode, (openedFile) {
+      _file = openedFile;
+      _setupFileHandlers();
+      _processPendingOperations();
+    });
+    f.onError = (e) {
+      if (_onError != null) _onError();
+    };
+  }
 
   _FileOutputStream.fromStdio(int fd) {
     assert(1 <= fd && fd <= 2);
     _file = _File._openStdioSync(fd);
+    _setupFileHandlers();
+  }
+
+
+  void _setupFileHandlers() {
+    _file.onError = (e) {
+      if (_onError != null) _onError();
+    };
+    _file.onNoPendingWrites = () {
+      if (!_streamMarkedClosed && _onNoPendingWrites != null) {
+        _onNoPendingWrites();
+      }
+    };
   }
 
   bool write(List<int> buffer, [bool copyBuffer = false]) {
-    bool result = _write(buffer, 0, buffer.length);
-    if (result) {
-      _checkScheduleCallbacks();
+    var data = buffer;
+    if (copyBuffer) {
+      var length = buffer.length;
+      data = new ByteArray(length);
+      data.setRange(0, length, buffer, 0);
     }
-    return result;
+    if (_file == null) {
+      _pendingOperations.add(data);
+    } else {
+      _write(data, 0, data.length);
+    }
+    return false;
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
-    bool result = _write(
-        buffer, offset, (len == null) ? buffer.length - offset : len);
-    if (result) {
-      _checkScheduleCallbacks();
+    // A copy is required by the interface.
+    var length = buffer.length - offset;
+    if (len != null) {
+      if (len > length) throw new IndexOutOfRangeException(len);
+      length = len;
     }
-    return result;
+    var copy = new ByteArray(length);
+    copy.setRange(0, length, buffer, offset);
+    return write(copy);
   }
 
   void close() {
-    if (_scheduledNoPendingWriteCallback != null) {
-      _scheduledNoPendingWriteCallback.cancel();
-    }
-    if (!_streamMarkedClosed) {
-      _file.closeSync();
+    if (_file == null) {
+      _pendingOperations.add(null);
+    } else if (!_streamMarkedClosed) {
+      _file.close(() {
+        if (_onClosed != null) _onClosed();
+      });
       _streamMarkedClosed = true;
-      _checkScheduleCallbacks();
     }
   }
 
-  void set noPendingWriteHandler(void callback()) {
-    _noPendingWriteHandler = callback;
-    _checkScheduleCallbacks();
+  void set onNoPendingWrites(void callback()) {
+    _onNoPendingWrites = callback;
   }
 
-  void set closeHandler(void callback()) {
-    _closeHandler = callback;
-    _checkScheduleCallbacks();
+  void set onClosed(void callback()) {
+    _onClosed = callback;
   }
 
-  void set errorHandler(void callback()) {
-    // TODO(sgjesse): How to handle this?
+  void set onError(void callback()) {
+    _onError = callback;
   }
 
-  bool _write(List<int> buffer, int offset, int len) {
-    int bytesWritten = _file.writeListSync(buffer, offset, len);
-    if (bytesWritten == len) {
-      return true;
-    } else {
-      throw "FileOutputStream: write error";
-    }
+  void _processPendingOperations() {
+    _pendingOperations.forEach((buffer) {
+      (buffer != null) ? write(buffer) : close();
+    });
+    _pendingOperations = null;
   }
 
-  void _checkScheduleCallbacks() {
-    void issueNoPendingWriteCallback(Timer timer) {
-      _scheduledNoPendingWriteCallback = null;
-      if (_noPendingWriteHandler !== null) {
-        _noPendingWriteHandler();
-        _checkScheduleCallbacks();
-      }
-    }
-
-    void issueCloseCallback(Timer timer) {
-      if (_closeHandler !== null) _closeHandler();
-    }
-
-    // Schedule no pending write callbacks if the stream is not yet
-    // closed and close callback if it is closing.
-    if (!_closeCallbackCalled) {
-      if (_scheduledNoPendingWriteCallback == null) {
-        _scheduledNoPendingWriteCallback =
-            new Timer(issueNoPendingWriteCallback, 0);
-      }
-      if (_streamMarkedClosed && _scheduledCloseCallback == null) {
-        _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
-      }
-    }
+  void _write(List<int> buffer, int offset, int len) {
+    _file.writeList(buffer, offset, len);
   }
 
   RandomAccessFile _file;
@@ -149,10 +194,13 @@ class _FileOutputStream implements OutputStream {
   // the stream is fully closed.
   bool _closeCallbackCalled = false;
 
-  Timer _scheduledNoPendingWriteCallback;
-  Timer _scheduledCloseCallback;
-  Function _noPendingWriteHandler;
-  Function _closeHandler;
+  // List of pending writes that were issued before the underlying
+  // file was successfully opened.
+  List<List<int>> _pendingOperations;
+
+  Function _onNoPendingWrites;
+  Function _onClosed;
+  Function _onError;
 }
 
 
@@ -270,12 +318,12 @@ class _File implements File {
   // Constructor for file.
   _File(String this._name) : _asyncUsed = false;
 
-  void exists() {
+  void exists(void callback(bool exists)) {
     _ensureFileService();
     _asyncUsed = true;
     if (_name is !String) {
-      if (_errorHandler != null) {
-        _errorHandler('File name is not a string: $_name');
+      if (_onError != null) {
+        _onError('File name is not a string: $_name');
       }
       return;
     }
@@ -283,7 +331,7 @@ class _File implements File {
     request[0] = _FileUtils.kExistsRequest;
     request[1] = _name;
     _fileService.call(request).receive((exists, replyTo) {
-      if (_existsHandler != null) _existsHandler(exists);
+      callback(exists);
     });
   }
 
@@ -298,7 +346,7 @@ class _File implements File {
     return _FileUtils.exists(_name);
   }
 
-  void create() {
+  void create(void callback()) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -306,9 +354,9 @@ class _File implements File {
     request[1] = _name;
     _fileService.call(request).receive((created, replyTo) {
       if (created) {
-        if (_createHandler != null) _createHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("Cannot create file: $_name");
+        callback();
+      } else if (_onError != null) {
+        _onError("Cannot create file: $_name");
       }
     });
   }
@@ -324,7 +372,7 @@ class _File implements File {
     }
   }
 
-  void delete() {
+  void delete(void callback()) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -332,9 +380,9 @@ class _File implements File {
     request[1] = _name;
     _fileService.call(request).receive((deleted, replyTo) {
       if (deleted) {
-        if (_deleteHandler != null) _deleteHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("Cannot delete file: $_name");
+        callback();
+      } else if (_onError != null) {
+        _onError("Cannot delete file: $_name");
       }
     });
   }
@@ -350,7 +398,7 @@ class _File implements File {
     }
   }
 
-  void directory() {
+  void directory(void callback(Directory dir)) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -358,14 +406,14 @@ class _File implements File {
     request[1] = _name;
     _fileService.call(request).receive((path, replyTo) {
       if (path != null) {
-        if (_directoryHandler != null) _directoryHandler(new Directory(path));
-      } else if (_errorHandler != null) {
-        _errorHandler("Cannot get directory for: ${_name}");
+        callback(new Directory(path));
+      } else if (_onError != null) {
+        _onError("Cannot get directory for: ${_name}");
       }
     });
   }
 
-  void directorySync() {
+  Directory directorySync() {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
@@ -376,15 +424,15 @@ class _File implements File {
     return new Directory(_FileUtils.directory(_name));
   }
 
-  void open([FileMode mode = FileMode.READ]) {
+  void open(FileMode mode, void callback(RandomAccessFile file)) {
     _ensureFileService();
     _asyncUsed = true;
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      if (_errorHandler != null) {
-        _errorHandler("Unknown file mode. Use FileMode.READ, FileMode.WRITE " +
-                      "or FileMode.APPEND.");
+      if (_onError != null) {
+        _onError("Unknown file mode. Use FileMode.READ, FileMode.WRITE " +
+                 "or FileMode.APPEND.");
         return;
       }
     }
@@ -393,17 +441,10 @@ class _File implements File {
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
     _fileService.call(request).receive((id, replyTo) {
-      var handler = _openHandler;
-      if (handler === null) {
-        // If no open handler is present, close the file immediately to
-        // avoid leaking an open file descriptor.
-        handler = (file) => file.close();
-      }
       if (id != 0) {
-        var randomAccessFile = new _RandomAccessFile(id, _name);
-        handler(randomAccessFile);
-      } else if (_errorHandler != null) {
-        _errorHandler("Cannot open file: $_name");
+        callback(new _RandomAccessFile(id, _name));
+      } else if (_onError != null) {
+        _onError("Cannot open file: $_name");
       }
     });
   }
@@ -434,7 +475,7 @@ class _File implements File {
     return new _RandomAccessFile(id, "");
   }
 
-  void fullPath() {
+  void fullPath(void callback(String result)) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -442,9 +483,9 @@ class _File implements File {
     request[1] = _name;
     _fileService.call(request).receive((result, replyTo) {
       if (result != null) {
-        if (_fullPathHandler != null) _fullPathHandler(result);
-      } else if (_errorHandler != null) {
-        _errorHandler("fullPath failed");
+        callback(result);
+      } else if (_onError != null) {
+        _onError("fullPath failed");
       }
     });
   }
@@ -461,90 +502,34 @@ class _File implements File {
     return result;
   }
 
-  void openInputStream() {
-    _asyncUsed = true;
-    // Create a new file object to handle the opening of the file for
-    // creating an input stream. Currently the file input stream uses
-    // synchronous calls on the opened file so we need to open it
-    // synchronously.
-    File file = new File(this._name);
-    file.errorHandler = (String error) {
-      if (_errorHandler != null) _errorHandler(error);
-    };
-    RandomAccessFile openedFile = file.openSync();
-    InputStream stream =
-        new _FileInputStream(openedFile, openedFile.lengthSync());
-    new Timer(
-        (Timer ignore) {
-          if (_inputStreamHandler != null) _inputStreamHandler(stream);
-        }, 0);
+  InputStream openInputStream() {
+    return new _FileInputStream(_name);
   }
 
-  InputStream openInputStreamSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    RandomAccessFile openedFile = openSync();
-    return new _FileInputStream(openedFile, openedFile.lengthSync());
-  }
-
-  void openOutputStream([FileMode mode = FileMode.WRITE]) {
-    _asyncUsed = true;
+  OutputStream openOutputStream([FileMode mode = FileMode.WRITE]) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
-    // Create a new file object to handle the opening of the file for
-    // creating an input stream. Currently the file input stream uses
-    // synchronous calls on the opened file so we need to open it
-    // synchronously.
-    File file = new File(this._name);
-    file.errorHandler = (String error) {
-      if (_errorHandler != null) _errorHandler(error);
-    };
-    RandomAccessFile openedFile = file.openSync(mode);
-    OutputStream stream = new _FileOutputStream(openedFile);
-    new Timer(
-        (Timer ignore) {
-          if (_outputStreamHandler != null) _outputStreamHandler(stream);
-        }, 0);
+    return new _FileOutputStream(_name, mode);
   }
 
-  OutputStream openOutputStreamSync([FileMode mode = FileMode.WRITE]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    if (mode != FileMode.WRITE &&
-        mode != FileMode.APPEND) {
-      throw new FileIOException(
-          "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
-    }
-    RandomAccessFile openedFile = openSync(mode);
-    return new _FileOutputStream(openedFile);
-  }
-
-  void readAsBytes() {
+  void readAsBytes(void callback(List<int> bytes)) {
     _asyncUsed = true;
     var chunks = new _BufferList();
-    openInputStream();
-    inputStreamHandler = (inputStream) {
-      inputStream.closeHandler = () {
-        if (_readAsBytesHandler != null) {
-          _readAsBytesHandler(chunks.readBytes(chunks.length));
-        }
-      };
-      inputStream.dataHandler = () {
-        var chunk = inputStream.read();
-        chunks.add(chunk);
-      };
-      inputStream.errorHandler = () {
-        if (_errorHandler != null) {
-          _errorHandler("Failed to read file as bytes: $_name");
-        }
-      };
+    var stream = openInputStream();
+    stream.onClosed = () {
+      callback(chunks.readBytes(chunks.length));
+    };
+    stream.onData = () {
+      var chunk = stream.read();
+      chunks.add(chunk);
+    };
+    stream.onError = () {
+      if (_onError != null) {
+        _onError("Failed to read file as bytes: $_name");
+      }
     };
   }
 
@@ -560,6 +545,7 @@ class _File implements File {
     if (read != length) {
       throw new FileIOException("Failed reading file as bytes: $_name");
     }
+    opened.closeSync();
     return result;
   }
 
@@ -574,26 +560,23 @@ class _File implements File {
     throw new FileIOException("Unsupported encoding $_encoding");
   }
 
-  void readAsText([String encoding = "UTF-8"]) {
+  void readAsText(String encoding, void callback(String text)) {
     _asyncUsed = true;
     var decoder = _getDecoder(encoding);
-    readAsBytes();
-    readAsBytesHandler = (bytes) {
-      if (_readAsTextHandler != null) {
-        try {
-          decoder.write(bytes);
-        } catch (var e) {
-          if (_errorHandler != null) {
-            _errorHandler(e.toString());
-            return;
-          }
+    readAsBytes((bytes) {
+      try {
+        decoder.write(bytes);
+      } catch (var e) {
+        if (_onError != null) {
+          _onError(e.toString());
+          return;
         }
-        _readAsTextHandler(decoder.decoded);
       }
-    };
+      callback(decoder.decoded);
+    });
   }
 
-  String readAsTextSync([String encoding = "UTF-8"]) {
+  String readAsTextSync([String encoding = 'UTF-8']) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
@@ -620,23 +603,20 @@ class _File implements File {
     return result;
   }
 
-  void readAsLines([String encoding = "UTF-8"]) {
+  void readAsLines(String encoding, void callback(List<String> lines)) {
     _asyncUsed = true;
     var decoder = _getDecoder(encoding);
-    readAsBytes();
-    readAsBytesHandler = (bytes) {
-      if (_readAsLinesHandler != null) {
-        try {
-          decoder.write(bytes);
-        } catch (var e) {
-          if (_errorHandler != null) {
-            _errorHandler(e.toString());
-            return;
-          }
+    readAsBytes((bytes) {
+      try {
+        decoder.write(bytes);
+      } catch (var e) {
+        if (_onError != null) {
+          _onError(e.toString());
+          return;
         }
-        _readAsLinesHandler(_getDecodedLines(decoder));
       }
-    };
+      callback(_getDecodedLines(decoder));
+    });
   }
 
   List<String> readAsLinesSync([String encoding = "UTF-8"]) {
@@ -652,52 +632,8 @@ class _File implements File {
 
   String get name() => _name;
 
-  void set existsHandler(void handler(bool exists)) {
-    _existsHandler = handler;
-  }
-
-  void set createHandler(void handler()) {
-    _createHandler = handler;
-  }
-
-  void set deleteHandler(void handler()) {
-    _deleteHandler = handler;
-  }
-
-  void set directoryHandler(void handler(Directory directory)) {
-    _directoryHandler = handler;
-  }
-
-  void set openHandler(void handler(RandomAccessFile file)) {
-    _openHandler = handler;
-  }
-
-  void set inputStreamHandler(void handler(InputStream stream)) {
-    _inputStreamHandler = handler;
-  }
-
-  void set outputStreamHandler(void handler(OutputStream stream)) {
-    _outputStreamHandler = handler;
-  }
-
-  void set readAsBytesHandler(void handler(List<int> bytes)) {
-    _readAsBytesHandler = handler;
-  }
-
-  void set readAsTextHandler(void handler(String text)) {
-    _readAsTextHandler = handler;
-  }
-
-  void set readAsLinesHandler(void handler(List<String> lines)) {
-    _readAsLinesHandler = handler;
-  }
-
-  void set fullPathHandler(void handler(String)) {
-    _fullPathHandler = handler;
-  }
-
-  void set errorHandler(void handler(String error)) {
-    _errorHandler = handler;
+  void set onError(void handler(String error)) {
+    _onError = handler;
   }
 
   void _ensureFileService() {
@@ -711,25 +647,14 @@ class _File implements File {
 
   SendPort _fileService;
 
-  Function _existsHandler;
-  Function _createHandler;
-  Function _deleteHandler;
-  Function _directoryHandler;
-  Function _openHandler;
-  Function _inputStreamHandler;
-  Function _outputStreamHandler;
-  Function _readAsBytesHandler;
-  Function _readAsTextHandler;
-  Function _readAsLinesHandler;
-  Function _fullPathHandler;
-  Function _errorHandler;
+  Function _onError;
 }
 
 
 class _RandomAccessFile implements RandomAccessFile {
   _RandomAccessFile(int this._id, String this._name) : _asyncUsed = false;
 
-  void close() {
+  void close(void callback()) {
     if (_id == 0) return;
     _ensureFileService();
     _asyncUsed = true;
@@ -742,9 +667,9 @@ class _RandomAccessFile implements RandomAccessFile {
     _fileService.call(request).receive((result, replyTo) {
       if (result != -1) {
         _id = result;
-        if (_closeHandler != null) _closeHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("Cannot close file: $_name");
+        callback();
+      } else if (_onError != null) {
+        _onError("Cannot close file: $_name");
       }
     });
   }
@@ -761,7 +686,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _id = id;
   }
 
-  void readByte() {
+  void readByte(void callback(int byte)) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -769,9 +694,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).receive((result, replyTo) {
       if (result != -1) {
-        if (_readByteHandler != null) _readByteHandler(result);
-      } else if (_errorHandler != null) {
-        _errorHandler("readByte failed");
+        callback(result);
+      } else if (_onError != null) {
+        _onError("readByte failed");
       }
     });
   }
@@ -788,12 +713,13 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  void readList(List<int> buffer, int offset, int bytes) {
+  void readList(List<int> buffer, int offset, int bytes,
+                void callback(int read)) {
     _ensureFileService();
     _asyncUsed = true;
     if (buffer is !List || offset is !int || bytes is !int) {
-      if (_errorHandler != null) {
-        _errorHandler("Invalid arguments to readList");
+      if (_onError != null) {
+        _onError("Invalid arguments to readList");
       }
       return;
     };
@@ -806,10 +732,10 @@ class _RandomAccessFile implements RandomAccessFile {
         var read = result[0];
         var data = result[1];
         buffer.setRange(offset, read, data);
-        if (_readListHandler != null) _readListHandler(read);
+        callback(read);
         return;
-      } else if (_errorHandler != null) {
-        _errorHandler(result is String ? result : "readList failed");
+      } else if (_onError != null) {
+        _onError(result is String ? result : "readList failed");
       }
     });
   }
@@ -839,8 +765,8 @@ class _RandomAccessFile implements RandomAccessFile {
     _ensureFileService();
     _asyncUsed = true;
     if (value is !int) {
-      if (_errorHandler != null) {
-        _errorHandler("Invalid argument to writeByte");
+      if (_onError != null) {
+        _onError("Invalid argument to writeByte");
       }
       return;
     }
@@ -851,8 +777,8 @@ class _RandomAccessFile implements RandomAccessFile {
     _writeEnqueued();
     _fileService.call(request).receive((result, replyTo) {
       _writeCompleted();
-      if (result == -1 && _errorHandler !== null) {
-        _errorHandler("writeByte failed");
+      if (result == -1 && _onError !== null) {
+        _onError("writeByte failed");
       }
     });
   }
@@ -876,8 +802,8 @@ class _RandomAccessFile implements RandomAccessFile {
     _ensureFileService();
     _asyncUsed = true;
     if (buffer is !List || offset is !int || bytes is !int) {
-      if (_errorHandler != null) {
-        _errorHandler("Invalid arguments to writeList");
+      if (_onError != null) {
+        _onError("Invalid arguments to writeList");
       }
       return;
     }
@@ -896,8 +822,8 @@ class _RandomAccessFile implements RandomAccessFile {
     _writeEnqueued();
     _fileService.call(request).receive((result, replyTo) {
       _writeCompleted();
-      if (result == -1 && _errorHandler !== null) {
-        _errorHandler("writeList failed");
+      if (result == -1 && _onError !== null) {
+        _onError("writeList failed");
       }
     });
   }
@@ -933,8 +859,8 @@ class _RandomAccessFile implements RandomAccessFile {
     _writeEnqueued();
     _fileService.call(request).receive((result, replyTo) {
       _writeCompleted();
-      if (result == -1 && _errorHandler !== null) {
-        _errorHandler("writeString failed");
+      if (result == -1 && _onError !== null) {
+        _onError("writeString failed");
       }
     });
   }
@@ -951,7 +877,7 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  void position() {
+  void position(void callback(int position)) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -959,9 +885,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).receive((result, replyTo) {
       if (result != -1) {
-        if (_positionHandler != null) _positionHandler(result);
-      } else if (_errorHandler != null) {
-        _errorHandler("position failed");
+        callback(result);
+      } else if (_onError != null) {
+        _onError("position failed");
       }
     });
   }
@@ -978,7 +904,7 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  void setPosition(int position) {
+  void setPosition(int position, void callback()) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(3);
@@ -987,9 +913,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[2] = position;
     _fileService.call(request).receive((result, replyTo) {
       if (result) {
-        if (_setPositionHandler != null) _setPositionHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("setPosition failed");
+        callback();
+      } else if (_onError != null) {
+        _onError("setPosition failed");
       }
     });
   }
@@ -1006,7 +932,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  void truncate(int length) {
+  void truncate(int length, void callback()) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(3);
@@ -1015,9 +941,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[2] = length;
     _fileService.call(request).receive((result, replyTo) {
       if (result) {
-        if (_truncateHandler != null) _truncateHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("truncate failed");
+        callback();
+      } else if (_onError != null) {
+        _onError("truncate failed");
       }
     });
   }
@@ -1033,7 +959,7 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  void length() {
+  void length(void callback(int length)) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -1041,9 +967,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).receive((result, replyTo) {
       if (result != -1) {
-        if (_lengthHandler != null) _lengthHandler(result);
-      } else if (_errorHandler != null) {
-        _errorHandler("length failed");
+        callback(result);
+      } else if (_onError != null) {
+        _onError("length failed");
       }
     });
   }
@@ -1060,7 +986,7 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  void flush() {
+  void flush(void callback()) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(2);
@@ -1068,9 +994,9 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).receive((result, replyTo) {
       if (result != -1) {
-        if (_flushHandler != null) _flushHandler();
-      } else if (_errorHandler != null) {
-        _errorHandler("flush failed");
+        callback();
+      } else if (_onError != null) {
+        _onError("flush failed");
       }
     });
   }
@@ -1088,44 +1014,17 @@ class _RandomAccessFile implements RandomAccessFile {
 
   String get name() => _name;
 
-  void set errorHandler(void handler(String error)) {
-    _errorHandler = handler;
+  void set onError(void handler(String error)) {
+    _onError = handler;
   }
 
-  void set closeHandler(void handler()) {
-    _closeHandler = handler;
-  }
-
-  void set readByteHandler(void handler(int byte)) {
-    _readByteHandler = handler;
-  }
-
-  void set readListHandler(void handler(int read)) {
-    _readListHandler = handler;
-  }
-
-  void set noPendingWriteHandler(void handler()) {
-    _noPendingWriteHandler = handler;
-  }
-
-  void set positionHandler(void handler(int pos)) {
-    _positionHandler = handler;
-  }
-
-  void set setPositionHandler(void handler()) {
-    _setPositionHandler = handler;
-  }
-
-  void set truncateHandler(void handler()) {
-    _truncateHandler = handler;
-  }
-
-  void set lengthHandler(void handler(int length)) {
-    _lengthHandler = handler;
-  }
-
-  void set flushHandler(void handler()) {
-    _flushHandler = handler;
+  void set onNoPendingWrites(void handler()) {
+    _onNoPendingWrites = handler;
+    if (_pendingWrites == 0) {
+      _noPendingWriteTimer = new Timer((t) {
+        if (_onNoPendingWrites != null) _onNoPendingWrites();
+      }, 0);
+    }
   }
 
   void _ensureFileService() {
@@ -1134,12 +1033,18 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  void _writeEnqueued() => _pendingWrites++;
+  void _writeEnqueued() {
+    _pendingWrites++;
+    if (_noPendingWriteTimer != null) {
+      _noPendingWriteTimer.cancel();
+      _noPendingWriteTimer = null;
+    }
+  }
 
   void  _writeCompleted() {
     _pendingWrites--;
-    if (_pendingWrites == 0 && _noPendingWriteHandler != null) {
-      _noPendingWriteHandler();
+    if (_pendingWrites == 0 && _onNoPendingWrites != null) {
+      _onNoPendingWrites();
     }
   }
 
@@ -1151,14 +1056,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   SendPort _fileService;
 
-  Function _closeHandler;
-  Function _readByteHandler;
-  Function _readListHandler;
-  Function _noPendingWriteHandler;
-  Function _positionHandler;
-  Function _setPositionHandler;
-  Function _truncateHandler;
-  Function _lengthHandler;
-  Function _flushHandler;
-  Function _errorHandler;
+  Timer _noPendingWriteTimer;
+
+  Function _onNoPendingWrites;
+  Function _onError;
 }

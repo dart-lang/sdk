@@ -23,6 +23,14 @@ module default {
   // Uint8ClampedArray implements sequence<int>;
 }
 
+module core {
+  [Supplemental]
+  interface Document {
+    [Suppressed] object getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+    CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+  };
+};
+
 module dom {
   // Force NodeSelector. WebKit defines these operations directly.
   interface NodeSelector {
@@ -74,6 +82,11 @@ module html {
   [Supplemental]
   interface HTMLOptionsCollection {
     [Suppressed] void add(in optional HTMLOptionElement element, in optional long before);
+  };
+
+  [Supplemental]
+  interface ImageData {
+    readonly attribute CanvasPixelArray data;
   };
 
   [Supplemental]
@@ -133,35 +146,43 @@ module canvas {
   // TODO(dstockwell): Define these manually.
   [Supplemental]
   interface Float32Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Float64Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int16Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int32Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int8Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint16Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint32Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint8Array {
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [Suppressed] void set();
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
   };
 
   [Supplemental]
@@ -170,7 +191,12 @@ module canvas {
     [Suppressed] const unsigned int BYTES_PER_ELEMENT = 1;
 
     [Suppressed] void set();
-    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+    [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
+  };
+
+  [NumericIndexedGetter, CustomIndexedSetter]
+  interface CanvasPixelArray {
+    readonly attribute long length;
   };
 };
 

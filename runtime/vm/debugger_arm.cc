@@ -14,6 +14,23 @@ RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
   return NULL;
 }
 
+
+RawInstance* ActivationFrame::GetInstanceCallReceiver(
+                 intptr_t num_actual_args) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Breakpoint::PatchFunctionReturn() {
+  UNIMPLEMENTED();
+}
+
+
+void Breakpoint::RestoreFunctionReturn() {
+  UNIMPLEMENTED();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

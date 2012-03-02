@@ -121,8 +121,6 @@ interface List<E> extends Collection<E> default ListFactory<E> {
   /**
    * Copies [length] elements of the [from] array, starting
    * from [startFrom], into [:this:], starting at [start].
-   * Throws an [UnsupportedOperationException] if the list is
-   * not extendable.
    * If [length] is 0, this method does not do anything.
    * Throws an [IllegalArgumentException] if [length] is negative.
    * Throws an [IndexOutOfRangeException] if [start] or

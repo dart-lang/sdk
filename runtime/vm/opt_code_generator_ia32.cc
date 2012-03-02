@@ -859,7 +859,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
         Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
     const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
     __ pushl(kOperandRegister);
-    GenerateCall(node->token_index(), &label);
+    GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
     ASSERT(kResultRegister == EAX);
     __ popl(kOperandRegister);
   } else if (info.is_temp()) {
@@ -1015,8 +1015,8 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
 
 
 // Supports some mixed Smi/Mint operations.
-// For BIT_AND operation with one operand being Smi, we can throw away
-// any Mint bits above the Smi range.
+// For BIT_AND operation with right operand being Smi, we can throw away
+// any Mint bits above the Smi range as long as the right operand is positive.
 // 'allow_smi' is true if Smi and Mint classes have been encountered.
 void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
                                                    bool allow_smi) {
@@ -1031,6 +1031,8 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
     __ testl(EDX, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);  // Call operator if right is not Smi.
+    __ cmpl(EDX, Immediate(0));
+    __ j(LESS, &slow_case);  // Result will not be Smi.
 
     // Test left.
     __ testl(EAX, Immediate(kSmiTagMask));
@@ -1149,7 +1151,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
       __ pushl(kLeftRegister);
       __ pushl(kRightRegister);
-      GenerateCall(node->token_index(), &label);
+      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
       __ movl(result_register, EAX);
       __ popl(kRightRegister);
       __ popl(kLeftRegister);
@@ -2736,7 +2738,7 @@ void OptimizingCodeGenerator::GenerateDirectCall(
     intptr_t arg_count,
     const Array& optional_argument_names) {
   ASSERT(!target.IsNull());
-  const Code& code = Code::Handle(target.code());
+  const Code& code = Code::Handle(target.CurrentCode());
   ASSERT(!code.IsNull());
   ExternalLabel target_label("DirectInstanceCall", code.EntryPoint());
 
@@ -2972,7 +2974,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
       const Code& stub =
           Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
-      GenerateCall(node->token_index(), &label);
+      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
       // EAX is double object.
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, EBX, kDeoptIntegerToDouble);
@@ -3020,7 +3022,8 @@ bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
     __ Bind(&done);
     return true;
   }
@@ -3036,7 +3039,8 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
   }
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.

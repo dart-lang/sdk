@@ -34,8 +34,8 @@ static RawInteger* AsInteger(const Integer& value) {
   big_value ^= value.raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoInt64(big_value)) {
-    return Mint::New(BigintOperations::ToInt64(big_value));
+  } else if (BigintOperations::FitsIntoMint(big_value)) {
+    return Mint::New(BigintOperations::ToMint(big_value));
   } else {
     return big_value.raw();
   }
@@ -105,22 +105,6 @@ static RawInteger* IntegerBitOperation(Token::Kind kind,
       default:
         UNIMPLEMENTED();
     }
-  } else if (op1_int.IsSmi()) {
-    return IntegerBitOperation(kind, op2_int, op1_int);
-  } else if (op2_int.IsSmi()) {
-    Bigint& op1 = Bigint::Handle(AsBigint(op1_int));
-    Smi& op2 = Smi::Handle();
-    op2 ^= op2_int.raw();
-    switch (kind) {
-      case Token::kBIT_AND:
-        return BigintOperations::BitAndWithSmi(op1, op2);
-      case Token::kBIT_OR:
-        return BigintOperations::BitOrWithSmi(op1, op2);
-      case Token::kBIT_XOR:
-        return BigintOperations::BitXorWithSmi(op1, op2);
-      default:
-        UNIMPLEMENTED();
-    }
   } else {
     Bigint& op1 = Bigint::Handle(AsBigint(op1_int));
     Bigint& op2 = Bigint::Handle(AsBigint(op2_int));
@@ -146,7 +130,7 @@ static bool CheckInteger(const Integer& i) {
     Bigint& bigint = Bigint::Handle();
     bigint ^= i.raw();
     return !BigintOperations::FitsIntoSmi(bigint) &&
-        !BigintOperations::FitsIntoInt64(bigint);
+        !BigintOperations::FitsIntoMint(bigint);
   }
   if (i.IsMint()) {
     Mint& mint = Mint::Handle();

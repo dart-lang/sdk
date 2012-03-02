@@ -30,10 +30,6 @@ public class CommandLineOptions {
         usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
-    @Option(name = "--deprecated-generate-code",
-        usage = "Use deprecated code generation.\n Will be removed 1 March 2012.")
-    private boolean deprecatedGenerateCode = false;
-
     @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
@@ -49,22 +45,9 @@ public class CommandLineOptions {
         usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
 
-    @Option(name = "--generate_source_maps",
-        usage = "Generate source maps")
-    private boolean generateSourceMaps = false;
-
     @Option(name = "--dump_ast_format",
         usage = "Dump parse tree. Supported formats include console, text or dot")
     private String dumpAST = "";
-
-    @Option(name = "--coverage_type",
-        usage = "Add instrumentation probes for collecting coverage. " +
-            "Supported types include function, statement, branch and all")
-    private String coverage = "";
-
-    @Option(name = "--human-readable-output",
-        usage = "Write human readable javascript")
-    private boolean generateHumanReadableOutput = false;
 
     @Option(name = "--ignore-unrecognized-flags",
         usage = "Ignore unrecognized command line flags")
@@ -96,10 +79,6 @@ public class CommandLineOptions {
     usage = "Enable incremental compilation")
     private boolean incremental = false;
 
-    @Option(name = "--out",
-        usage = "Write generated JavaScript to a file")
-    private File outputFilename = null;
-
     // TODO(zundel): -out is for backward compatibility until scripts are updated
     @Option(name = "--work", aliases = { "-out" },
         usage = "Directory to receive compiler output\n for future incremental builds")
@@ -127,13 +106,6 @@ public class CommandLineOptions {
 
     @Argument
     private final List<String> sourceFiles = new ArrayList<String>();
-
-    /**
-     * Returns whether the only analysis should be done, without code generation.
-     */
-    public boolean checkOnly() {
-      return !deprecatedGenerateCode;
-    }
 
     /**
      * @return <code>true</code> to automatically import dart:coreimpl
@@ -182,27 +154,8 @@ public class CommandLineOptions {
       return disableTypeOptimizations;
     }
 
-    public boolean generateSourceMaps() {
-      return generateSourceMaps;
-    }
-
-    public boolean generateHumanReadableOutput() {
-      return generateHumanReadableOutput;
-    }
-
     public String dumpAST(){
       return dumpAST;
-    }
-
-    public String getCoverageType(){
-      return coverage;
-    }
-
-    /**
-     * @return the path to receive compiler output.
-     */
-    public File getOutputFilename() {
-      return outputFilename;
     }
 
     /**

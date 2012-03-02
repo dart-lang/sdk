@@ -74,24 +74,14 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   static void _importScripts(receiver) native;
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _openDatabase(this, name, version, displayName, estimatedSize);
-    } else {
-      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
-    }
+    return _openDatabase(this, name, version, displayName, estimatedSize, creationCallback);
   }
-  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
-  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _openDatabaseSync(this, name, version, displayName, estimatedSize);
-    } else {
-      return _openDatabaseSync_2(this, name, version, displayName, estimatedSize, creationCallback);
-    }
+    return _openDatabaseSync(this, name, version, displayName, estimatedSize, creationCallback);
   }
-  static DatabaseSync _openDatabaseSync(receiver, name, version, displayName, estimatedSize) native;
-  static DatabaseSync _openDatabaseSync_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+  static DatabaseSync _openDatabaseSync(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
@@ -116,25 +106,10 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   static int _setTimeout(receiver, handler, timeout) native;
 
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _webkitRequestFileSystem(this, type, size);
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _webkitRequestFileSystem_2(this, type, size, successCallback);
-        return;
-      } else {
-        _webkitRequestFileSystem_3(this, type, size, successCallback, errorCallback);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+    _webkitRequestFileSystem(this, type, size, successCallback, errorCallback);
+    return;
   }
-  static void _webkitRequestFileSystem(receiver, type, size) native;
-  static void _webkitRequestFileSystem_2(receiver, type, size, successCallback) native;
-  static void _webkitRequestFileSystem_3(receiver, type, size, successCallback, errorCallback) native;
+  static void _webkitRequestFileSystem(receiver, type, size, successCallback, errorCallback) native;
 
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) {
     return _webkitRequestFileSystemSync(this, type, size);
@@ -147,25 +122,10 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   static EntrySync _webkitResolveLocalFileSystemSyncURL(receiver, url) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _webkitResolveLocalFileSystemURL(this, url);
-        return;
-      }
-    } else {
-      if (errorCallback === null) {
-        _webkitResolveLocalFileSystemURL_2(this, url, successCallback);
-        return;
-      } else {
-        _webkitResolveLocalFileSystemURL_3(this, url, successCallback, errorCallback);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+    _webkitResolveLocalFileSystemURL(this, url, successCallback, errorCallback);
+    return;
   }
-  static void _webkitResolveLocalFileSystemURL(receiver, url) native;
-  static void _webkitResolveLocalFileSystemURL_2(receiver, url, successCallback) native;
-  static void _webkitResolveLocalFileSystemURL_3(receiver, url, successCallback, errorCallback) native;
+  static void _webkitResolveLocalFileSystemURL(receiver, url, successCallback, errorCallback) native;
 
   String get typeName() { return "WorkerContext"; }
 }

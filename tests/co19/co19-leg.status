@@ -4,6 +4,12 @@
 
 prefix co19
 
+[ $component == leg && $system == macos ]
+LibTest/core/Math/acos_A01_t01: Fail
+LibTest/core/Math/asin_A01_t01: Fail
+LibTest/core/Math/atan_A01_t01: Fail
+
+
 [ $component == leg ]
 # These classes have been removed, co19 issue 79.
 LibTest/core/Dispatcher/*: Fail, OK
@@ -13,6 +19,11 @@ LibTest/core/List/some_A03_t01: Fail, OK
 LibTest/core/Promise/*: Fail, OK
 LibTest/core/Proxy/*: Fail, OK
 
+# missing #import("dart:isolate"), co19 issue 80
+LibTest/core/Isolate/*: Fail, OK
+LibTest/core/SendPort/*: Fail, OK
+LibTest/core/ReceivePort/*: Fail, OK
+
 
 [ $component == leg && $checked ]
 # Leg does not support checked mode yet.
@@ -20,30 +31,18 @@ LibTest/core/Proxy/*: Fail, OK
 
 
 [ $component == leg && $mode == release ]
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
-Language/06_Functions/06_Functions_A01_t01: Crash
 
 
 [ $component == leg && $mode == debug ]
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
-Language/06_Functions/06_Functions_A01_t01: Fail
 
 
 [ $component == leg ]
-# Crashes and time outs.
-LibTest/core/List/sort_A01_t04: Skip # Times out.
+Language/13_Types/7_Type_Void_A01_t02: Fail # TODO(ahe): investigate.
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # TODO(ahe): investigate.
+
+# Time outs on the bots.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
-
-
-# This test should not time out. It is not that big.
-LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out. Also, issue co19 81.
-
-
-# Fail type assertion on VM, cancels otherwise.
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail, Crash
-Language/06_Functions/06_Functions_A01_t01: Fail, Crash
-LibTest/core/Queue/addAll_A01_t01: Fail, Crash
 
 
 # Issues with co19 test suite.
@@ -52,26 +51,15 @@ LibTest/core/Date/Date.fromString_A01_t03: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date.fromString_A01_t04: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
+LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
+LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
-LibTest/core/Math/acos_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/acos_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/asin_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/asin_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan2_A01_t03: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/atan_A01_t02: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/cos_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/log_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/parseInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
 LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/sqrt_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
@@ -88,155 +76,43 @@ LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
 LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail, OK # Requires big int.
+
+
 LibTest/core/int/remainder_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/remainder_A01_t02: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A08_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A09_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A12_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A14_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A15_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A16_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/pow_A17_t01: Fail, OK # VM handling of double literals.
-LibTest/core/Math/sqrt_A01_t03: Fail, OK # VM handling of double literals.
-LibTest/core/double/abs_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/ceil_A01_t07: Fail, OK # VM handling of double literals.
-LibTest/core/double/compareTo_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/floor_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/isNegative_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t02: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t07: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_division_A01_t11: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_multiplication_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t03: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_remainder_A01_t04: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_remainder_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_remainder_A01_t06: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_truncating_division_A01_t01: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_truncating_division_A01_t03: Fail, OK # VM handling of double literals.
 LibTest/core/double/operator_truncating_division_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/operator_truncating_division_A01_t08: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t03: Fail, OK # VM handling of double literals.
 LibTest/core/double/remainder_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t06: Fail, OK # VM handling of double literals.
-LibTest/core/double/remainder_A01_t07: Fail, OK # VM handling of double literals.
 LibTest/core/double/round_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t02: Fail, OK # VM handling of double literals.
 LibTest/core/double/toInt_A01_t05: Fail, OK # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t04: Fail, OK # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t07: Fail, OK # VM handling of double literals.
-LibTest/core/double/truncate_A01_t01: Fail, OK # VM handling of double literals.
 
 
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: Fail # SsaBuilder: throw without expression not implemented
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t02: Fail # SsaBuilder: throw without expression not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t04: Fail # SsaBuilder.visitContinueStatement not implemented
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail # SsaBuilder: throw without expression not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail # SsaBuilder.visitIdentifier on non-this
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t01: Fail # Cannot find value
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A03_t01: Fail # Cannot find value
-Language/06_Functions/06_Functions_A01_t02: Fail # non-empty instruction stack
 Language/06_Functions/06_Functions_A01_t04: Fail # switch cases are not implemented
-Language/06_Functions/06_Functions_A02_t01: Fail # Cannot find value
-Language/06_Functions/06_Functions_A03_t01: Fail # Cannot find value
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # CompileTimeConstantHandler non-primitive list-entries not implemented
-Language/07_Classes/7_Static_Variables_A04_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
-Language/13_Types/4_Interface_Types_A07_t03: Fail # SsaBuilder.visitContinueStatement not implemented
-Language/13_Types/4_Interface_Types_A09_t01: Fail # Cannot find value
 Language/13_Types/5_Function_Types_A02_t03: Fail # Cannot find value
-Language/13_Types/5_Function_Types_A02_t05: Fail # Cannot find value
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/Date.fromString_A05_t01: Fail # Expect.fail('Some exception is expected')
-LibTest/core/Expect/setEquals_A01_t01: Fail # Cannot find value
-LibTest/core/Expect/setEquals_A01_t02: Fail # Cannot find value
-LibTest/core/Expect/setEquals_A03_t01: Fail # Cannot find value
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
 LibTest/core/FallThroughError/toString_A01_t02: Fail # switch cases are not implemented
-LibTest/core/HashMap/HashMap.from_A02_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/HashMap/HashMap_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Cannot find value
-LibTest/core/HashSet/HashSet.from_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/HashSet/HashSet_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Isolate/port_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/spawn_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/spawn_A01_t03: Fail # Cannot find value
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
-LibTest/core/List/List.from_A02_t01: Fail # Cannot find value
-LibTest/core/List/addAll_A01_t01: Fail # Cannot find value
-LibTest/core/List/every_A01_t01: Fail # Duplicate definition.
-LibTest/core/List/every_A01_t02: Fail # Cannot find value.
-LibTest/core/List/every_A02_t01: Fail # Duplicate definition.
-LibTest/core/List/every_A02_t02: Fail # Cannot find value.
-LibTest/core/List/every_A04_t01: Fail # Cannot find value.
-LibTest/core/List/filter_A01_t01: Fail # Cannot find value.
-LibTest/core/List/filter_A01_t02: Fail # Cannot find value.
-LibTest/core/List/filter_A02_t01: Fail # Duplicate definition.
-LibTest/core/List/filter_A04_t01: Fail # Cannot find value.
-LibTest/core/List/forEach_A01_t01: Fail # Cannot find value.
-LibTest/core/List/forEach_A02_t01: Fail # TypeError: Object 123 has no method '$call$1'
-LibTest/core/List/forEach_A03_t01: Fail # Cannot find value.
-LibTest/core/List/some_A01_t01: Fail # Duplicate definition.
-LibTest/core/List/some_A01_t02: Fail # Cannot find value.
-LibTest/core/List/sort_A01_t01: Fail # visitContinueStatement not implemented
-LibTest/core/List/sort_A01_t02: Fail # non-empty instruction stack
-LibTest/core/List/sort_A01_t03: Fail # Cannot find value.
-LibTest/core/Map/Map_class_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/Map_class_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/Map_class_A01_t03: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/Map_class_A01_t04: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/clear_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/containsKey_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/containsValue_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/forEach_A01_t01: Fail # Cannot find value
-LibTest/core/Map/forEach_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/forEach_A01_t04: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/forEach_A01_t05: Fail # Cannot find value
-LibTest/core/Map/forEach_A01_t06: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/forEach_A01_t08: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/getKeys_A01_t01: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/Map/getKeys_A01_t02: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/Map/getValues_A01_t01: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/Map/getValues_A01_t02: Fail # SsaBuilder.visitContinueStatement
-LibTest/core/Map/isEmpty_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/length_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/operator_subscript_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/operator_subscripted_assignment_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/putIfAbsent_A01_t01: Fail # Cannot find value
-LibTest/core/Map/putIfAbsent_A01_t02: Fail # Cannot find value
-LibTest/core/Map/putIfAbsent_A01_t04: Fail # Cannot find value
-LibTest/core/Map/putIfAbsent_A01_t06: Fail # non-empty instruction stack
-LibTest/core/Map/putIfAbsent_A01_t07: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/putIfAbsent_A01_t08: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/putIfAbsent_A01_t09: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/putIfAbsent_A01_t10: Fail # non-empty instruction stack
-LibTest/core/Map/remove_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Map/remove_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Match/str_A01_t01: Fail # NoSuchMethodException : method not found: 'get length'
-LibTest/core/Queue/Queue.from_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # switch cases are not implemented
@@ -245,61 +121,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail #  Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-LibTest/core/Set/Set.from_A01_t01: Fail # Cannot find value
-LibTest/core/Set/Set.from_A01_t02: Fail # Cannot find value
-LibTest/core/Set/Set.from_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Set/Set_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/addAll_A01_t01: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t03: Fail # Cannot find value
-LibTest/core/Set/addAll_A01_t04: Fail # Cannot find value
-LibTest/core/Set/add_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/add_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/add_A01_t03: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/add_A01_t06: Fail # Cannot find value
-LibTest/core/Set/clear_A01_t01: Fail # Cannot find value
-LibTest/core/Set/containsAll_A01_t01: Fail # Cannot find value
-LibTest/core/Set/containsAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/containsAll_A01_t03: Fail # Cannot find value
-LibTest/core/Set/contains_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/contains_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/contains_A01_t03: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/every_A01_t01: Fail # Cannot find value
-LibTest/core/Set/every_A01_t02: Fail # Cannot find value
-LibTest/core/Set/every_A01_t03: Fail # Cannot find value
-LibTest/core/Set/filter_A01_t02: Fail # Cannot find value
-LibTest/core/Set/filter_A01_t03: Fail # Cannot find value
-LibTest/core/Set/filter_A01_t04: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t01: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t02: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t03: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t04: Fail # Cannot find value
-LibTest/core/Set/forEach_A01_t05: Fail # Cannot find value
-LibTest/core/Set/intersection_A01_t01: Fail # Cannot find value
-LibTest/core/Set/intersection_A01_t02: Fail # Cannot find value
-LibTest/core/Set/intersection_A01_t03: Fail # Cannot find value
-LibTest/core/Set/intersection_A02_t01: Fail # Cannot find value
-LibTest/core/Set/intersection_A03_t01: Fail # Cannot find value
-LibTest/core/Set/isEmpty_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/isSubsetOf_A01_t01: Fail # Cannot find value
-LibTest/core/Set/isSubsetOf_A01_t02: Fail # Cannot find value
-LibTest/core/Set/length_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/removeAll_A01_t01: Fail # Cannot find value
-LibTest/core/Set/removeAll_A01_t02: Fail # Cannot find value
-LibTest/core/Set/removeAll_A01_t03: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t01: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/remove_A01_t03: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t04: Fail # Cannot find value
-LibTest/core/Set/remove_A01_t05: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Set/some_A01_t01: Fail # Cannot find value
-LibTest/core/Set/some_A01_t02: Fail # Cannot find value
-LibTest/core/Set/some_A01_t03: Fail # Cannot find value
-LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
+LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>, <6a>) fails
 
 
-LibTest/core/Date/timeZone_A01_t01: Fail # Should throw NoSuchMethodException.
-LibTest/core/Date/value_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
 LibTest/core/Queue/iterator_A01_t01: Fail # Implement is-checks.
 
@@ -310,7 +134,6 @@ LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+100
 
 
 # TODO(floitsch): Please review these.
-LibTest/core/Expect/approxEquals_A01_t04: Fail # Unknown issue with doubles.
 LibTest/core/Expect/identical_A01_t01: Fail # Is NaN identical to NaN?
 
 
@@ -319,12 +142,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Canonicalization/02_1
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t01: Fail # Expect.isTrue(false) fails.
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Fail # Expect.isTrue(false) fails.
 LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t01: Fail # Expect.isTrue(false) fails.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # Expect.fail('NoSuchMethodException expected when calling an abstract method.')
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail # Expect.fail('NoSuchMethodException expected when calling abstract method or superclass.')
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t01: Fail # Expect.equals(expected: <1>, actual: <null>, 'Instance variable should already be initialized!') fails.
-Language/13_Types/4_Interface_Types_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
@@ -340,36 +157,6 @@ LibTest/core/int/toDouble_A01_t01: Fail # Expect.equals(expected: <Infinity>, ac
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail # ReferenceError: trace is not defined
 Language/13_Types/4_Interface_Types_A12_t10: Fail # SyntaxError: Unexpected identifier
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t01: Fail # SyntaxError: Unexpected string
-
-
-Language/05_Variables/05_Variables_A06_t01: Fail # TypeError: Cannot call method 'set$abyr' of undefined
-Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail # TypeError: Cannot call method 'someMethod$0' of undefined
-Language/07_Classes/2_Getters_A02_t01: Fail # TypeError: Cannot call method 'set$abyr' of undefined
-Language/07_Classes/7_Static_Variables_A02_t02: Fail # TypeError: Cannot call method 'nonexistent$0' of undefined
-Language/07_Classes/9_Superinterfaces_A06_t01: Fail # TypeError: Cannot call method 'set$foo' of undefined
-Language/08_Interfaces/1_Methods_A02_t01: Fail # TypeError: Cannot call method 'm1$0' of undefined
-Language/08_Interfaces/1_Methods_A02_t02: Fail # TypeError: Cannot call method 'm1$1' of undefined
-Language/08_Interfaces/1_Methods_A02_t03: Fail # TypeError: Cannot call method 'm1$1' of undefined
-Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail # TypeError: Cannot call method 'm1$0' of undefined
-Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # TypeError: Cannot call method 'm1$0' of undefined
-Language/08_Interfaces/2_Getters_and_Setters_A04_t03: Fail # TypeError: Cannot call method 'm1$0' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail # TypeError: Cannot call method 'get$foo' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t01: Fail # TypeError: Cannot call method 'get$foo' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: Fail # TypeError: Cannot call method 'foo$1' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail # TypeError: Cannot call method 'foo$2' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail # TypeError: Cannot call method 'foo$3' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail # TypeError: Cannot call method 'get$variable' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail # TypeError: Cannot call method 'm$2' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail # TypeError: Cannot call method 'get$gett0r' of undefined
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail # TypeError: Cannot call method 'set$sett0r' of undefined
-Language/13_Types/6_Type_Dynamic_A03_t01: Fail # TypeError: Cannot call method 'wakeUp$1' of undefined
-Language/13_Types/6_Type_Dynamic_A04_t01: Fail # TypeError: Cannot call method 'get$thebullshour' of undefined
-LibTest/core/Map/containsKey_A01_t02: Fail # TypeError: Cannot call method 'hashCode$0' of undefined
-LibTest/core/Map/operator_subscript_A01_t02: Fail # TypeError: Cannot call method 'hashCode$0' of undefined
-LibTest/core/Queue/every_A01_t03: Fail # TypeError: Cannot call method '$call$1' of undefined
-LibTest/core/Queue/filter_A01_t03: Fail # TypeError: Cannot call method '$call$1' of undefined
-LibTest/core/Queue/forEach_A01_t03: Fail # TypeError: Cannot call method '$call$1' of undefined
-LibTest/core/Queue/some_A01_t03: Fail # TypeError: Cannot call method '$call$1' of undefined
 
 
 LangGuideTest/02_Language_Constructs/02_8_Static_Methods/02_8_Static_Methods_A02_t02: Fail # cannot resolve foo
@@ -404,22 +191,10 @@ Language/13_Types/5_Function_Types_A01_t05: Fail # cannot resolve type returnsDy
 Language/13_Types/5_Function_Types_A01_t02: Fail # cannot resolve type t1
 Language/13_Types/5_Function_Types_A01_t03: Fail # cannot resolve type t1
 Language/13_Types/5_Function_Types_A01_t06: Fail # cannot resolve type t8
-Language/13_Types/4_Interface_Types_A08_t03: Fail # duplicate definition of D f(int i, D b, Map<int, int> m, func x, [func ox, D ob, List<int> ol, bool obool]){}
-Language/13_Types/4_Interface_Types_A10_t07: Fail # duplicate definition of I<f, num, List<Map<num, Map>>>>>> _(){}
-LibTest/core/Set/filter_A01_t01: Fail # duplicate definition of bool all(int e){return false;}
-LibTest/core/Queue/every_A01_t04: Fail # duplicate definition of bool f(int element){return element<1000;}
-LibTest/core/Queue/some_A01_t04: Fail # duplicate definition of bool f(int element){return element<1000;}
-LibTest/core/Queue/filter_A01_t04: Fail # duplicate definition of bool f(int element){return element==0;}
-LibTest/core/Queue/some_A01_t01: Fail # duplicate definition of bool f(var element){count++; return element>50;}
-LibTest/core/Queue/some_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return false;}
-LibTest/core/Queue/every_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return true;}
-LibTest/core/Queue/filter_A01_t06: Fail # duplicate definition of bool func(var element){list.removeFirst(); return true;}
 Language/13_Types/4_Interface_Types_A05_t04: Fail # duplicate definition of num f(){}
 Language/13_Types/5_Function_Types_A01_t01: Fail # duplicate definition of void f(){}
 Language/13_Types/5_Function_Types_A02_t04: Fail # duplicate definition of void f(){}
 LibTest/core/Isolate/spawn_A01_t02: Fail # duplicate definition of void func(SendPort result){result.call(2).receive(callbackB);}
-LibTest/core/Map/forEach_A01_t07: Fail # duplicate definition of void func(String key, Object value){map.remove("2"); i++;}
-LibTest/core/Queue/forEach_A01_t04: Fail # duplicate definition of void func(var element){list.removeFirst();}
 LibTest/core/SendPort/send_A03_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){message++; replyTo.send(message, sReply);}
 LibTest/core/SendPort/call_A01_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){print(message); rPort.close();}
 LibTest/core/ReceivePort/close_A01_t01: Fail # duplicate definition of void func(var message, SendPort replyTo){rPort2.close(); Expect.equals(1, x);}
@@ -442,7 +217,6 @@ LibTest/core/ReceivePort/ReceivePort.singleShot_A01_t01: Fail # factory ReceiveP
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # lib is not a type
 Language/05_Variables/05_Variables_A05_t03: Fail # map not implemented
 Language/05_Variables/05_Variables_A08_t03: Fail # map not implemented
-Language/06_Functions/06_Functions_A01_t03: Fail # map not implemented
 LibTest/core/HashMap/HashMap.from_A01_t01: Fail # map not implemented
 LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail # map not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A07_t01: Fail # map not implemented
@@ -461,6 +235,11 @@ LibTest/core/Isolate/spawn_A01_t05: Fail # TODO(ahe): Categorize failure.
 LibTest/core/Isolate/spawn_A01_t06: Fail # TODO(ahe): Categorize failure.
 
 
+LibTest/core/Map/containsValue_A01_t01: Fail # TODO(ahe): Categorize failure.
+LibTest/core/Map/forEach_A01_t07: Fail # TODO(ahe): Categorize failure.
+LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # TODO(ahe): Categorize failure.
+
+
 #
 # The following tests are all semantic tests that we can rely on dartc
 # catching for now.
@@ -473,7 +252,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A02_t01: Fail, OK # @compile-error
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A03_t01: Fail, OK # @compile-error
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail, OK # @compile-error
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A06_t01: Fail, OK # @compile-error
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A02_t01: Fail, OK # @compile-error
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A02_t02: Fail, OK # @compile-error
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A02_t03: Fail, OK # @compile-error
@@ -647,10 +425,6 @@ Language/07_Classes/3_Setters_A04_t05: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t06: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t01: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t02: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t03: Fail, OK # @compile-error
-Language/07_Classes/4_Instance_Variables_A01_t04: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail, OK # @compile-error
@@ -686,6 +460,7 @@ Language/08_Interfaces/1_Methods_A04_t04: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A04_t05: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A05_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail, OK # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail, OK # @compile-error
@@ -725,6 +500,9 @@ Language/08_Interfaces/Interfaces_A01_t02: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A01_t03: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t01: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t02: Fail, OK # @compile-error
+Language/08_Interfaces/Interfaces_A02_t03: Fail, OK # @compile-error
+Language/08_Interfaces/Interfaces_A02_t04: Fail, OK # @compile-error
+Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t05: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t08: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t10: Fail, OK # @compile-error

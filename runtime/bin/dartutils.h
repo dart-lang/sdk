@@ -95,6 +95,7 @@ class DartUtils {
   static const char* kJsonLibURL;
   static const char* kUriLibURL;
   static const char* kUtf8LibURL;
+  static const char* kIsolateLibURL;
 
   static const char* kIdFieldName;
 

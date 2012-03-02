@@ -112,7 +112,15 @@ class Double implements double {
   double toDouble() { return this; }
 
   double pow(num exponent) {
-    return _pow(exponent.toDouble());
+    if (exponent == 0) {
+      return 1.0;  // ECMA-262 15.8.2.13
+    }
+    // Throw NullPointerException if exponent is null.
+    double doubleExponent = exponent.toDouble();
+    if (isNaN() || exponent.isNaN()) {
+      return double.NAN;
+    }
+    return _pow(doubleExponent);
   }
   double _pow(double exponent) native "Double_pow";
 
@@ -150,10 +158,19 @@ class Double implements double {
     // look at the fractionDigits first.
 
     // Step 7.
-    if (fractionDigits < 0 || fractionDigits > 20) {
+    if (fractionDigits !== null &&
+        (fractionDigits < 0 || fractionDigits > 20)) {
       // TODO(antonm): should be proper RangeError or Dart counterpart.
       throw "Range error";
     }
+
+    if (isNaN()) return "NaN";
+    if (this == double.INFINITY) return "Infinity";
+    if (this == -double.INFINITY) return "-Infinity";
+
+    // The dart function prints the shortest representation when fractionDigits
+    // equals null. The native function wants -1 instead.
+    fractionDigits = (fractionDigits === null) ? -1 : fractionDigits;
 
     return _toStringAsExponential(fractionDigits);
   }
@@ -172,6 +189,10 @@ class Double implements double {
       // TODO(antonm): should be proper RangeError or Dart counterpart.
       throw "Range error";
     }
+
+    if (isNaN()) return "NaN";
+    if (this == double.INFINITY) return "Infinity";
+    if (this == -double.INFINITY) return "-Infinity";
 
     return _toStringAsPrecision(precision);
   }
