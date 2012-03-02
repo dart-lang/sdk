@@ -670,15 +670,8 @@ class StandardTestSuite implements TestSuite {
         tempDir.createSync();
       }
     }
-    tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
-
-    for (String subdirectory in generatedTestPath) {
-      tempDirPath = '$tempDirPath/$subdirectory';
-      tempDir = new Directory(tempDirPath);
-      if (!tempDir.existsSync()) {
-        tempDir.createSync();
-      }
-    }
+    TestUtils.mkdirRecursive(tempDirPath, 
+      Strings.join(generatedTestPath, '/'));
     return tempDir;
   }
 
@@ -1023,6 +1016,39 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
+  
+  /** 
+   * Creates a directory using a [relativePath] to an existing 
+   * [base] directory if that [relativePath] does not already exist.
+   */
+  static void mkdirRecursive(String base, String relativePath) {
+    Directory baseDir = new Directory(base);
+    Expect.isTrue(baseDir.existsSync(),
+      "This method expects ${base} to already exist"); 
+    String pathSep = new Platform().pathSeparator();
+    if (pathSep != '/') {
+      relativePath = relativePath.replaceAll(pathSep, '/');
+    }   
+    for (String dir in relativePath.split('/')) {
+      var tempDir = new Directory('$base/$dir');
+      if (!tempDir.existsSync()) {
+          tempDir.createSync();
+      }
+      base = "$base/$dir";
+    }
+  }
+
+  /**
+   * Copy a [source] file to a new place.
+   * Assumes that the directory for [dest] already exists.
+   */
+  static void copyFile(File source, File dest) {
+    List contents = source.readAsBytesSync();
+    RandomAccessFile handle = dest.openSync(FileMode.WRITE);
+    handle.writeListSync(contents, 0, contents.length);
+    handle.closeSync();
+  }
+  
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
       if (component != 'frogium'
