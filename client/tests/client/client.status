@@ -36,6 +36,8 @@ dom/WindowOpenTest: Fail
 [ $component == webdriver ]
 dom/ImplementationTest: Fail
 dom/HistoryTest: Fail
+html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
+
 
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 html/html_tests: Fail
