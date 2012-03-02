@@ -411,7 +411,7 @@ class IDLParser(object):
       includePaths -- an array of path strings.
     """
     # FIXME: Handle gcc not found, or any other processing errors
-    gcc = '/usr/bin/gcc'
+    gcc = 'gcc'
     cmd = [gcc, '-E', '-P', '-C', '-x', 'c++'];
     for define in defines:
       cmd.append('-D%s' % define)
