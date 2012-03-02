@@ -17,6 +17,11 @@ typedef unsigned __int8 uint8_t;
 #include <stdio.h>
 #include <sys/types.h>
 
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
+#include "platform/globals.h"
+#include "platform/thread.h"
+
 // Forward declaration.
 class FileHandle;
 
@@ -123,6 +128,8 @@ class File {
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 
+  static Dart_Port GetServicePort();
+
  private:
   File(const char* name, FileHandle* handle) : name_(name), handle_(handle) { }
   void Close();
@@ -137,6 +144,11 @@ class File {
   // DISALLOW_COPY_AND_ASSIGN(File).
   File(const File&);
   void operator=(const File&);
+
+  static dart::Mutex mutex_;
+  static int service_ports_size_;
+  static Dart_Port* service_ports_;
+  static int service_ports_index_;
 };
 
 #endif  // BIN_FILE_H_
