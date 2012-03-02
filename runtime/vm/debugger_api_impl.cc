@@ -144,16 +144,11 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
   *breakpoint = NULL;
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
-  Error& error = Error::Handle();
-  Breakpoint* bpt = debugger->SetBreakpointAtLine(script_url, line, &error);
+  SourceBreakpoint* bpt =
+      debugger->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
-    if (!error.IsNull()) {
-      // If SetBreakpointAtLine provided an error message, use it.
-      result =  Api::NewLocalHandle(error);
-    } else {
-      result = Api::NewError("%s: could not set breakpoint at line %d of '%s'",
+    result = Api::NewError("%s: could not set breakpoint at line %d of '%s'",
                              CURRENT_FUNC, line, script_url.ToCString());
-    }
   } else {
     *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
   }
@@ -198,11 +193,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
   Dart_Handle result = Api::True();
   *breakpoint = NULL;
 
-  Error& error = Error::Handle();
-  Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target, &error);
-  if (!error.IsNull()) {
-    return Api::NewLocalHandle(error);
-  }
+  SourceBreakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
   if (bpt == NULL) {
     const char* target_name = Debugger::QualifiedFunctionName(bp_target);
     result = Api::NewError("%s: no breakpoint location found in '%s'",
@@ -219,7 +210,7 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
 
-  CHECK_AND_CAST(Breakpoint, breakpoint, breakpoint_in);
+  CHECK_AND_CAST(SourceBreakpoint, breakpoint, breakpoint_in);
   isolate->debugger()->RemoveBreakpoint(breakpoint);
   return Api::True();
 }

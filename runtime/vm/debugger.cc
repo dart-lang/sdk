@@ -25,53 +25,61 @@ namespace dart {
 static const bool verbose = false;
 
 
-Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
+SourceBreakpoint::SourceBreakpoint(const Function& func, intptr_t token_index)
     : function_(func.raw()),
-      pc_desc_index_(pc_desc_index),
-      pc_(0),
+      token_index_(token_index),
       line_number_(-1),
-      is_temporary_(false),
-      is_patched_(false),
+      is_enabled_(false),
       next_(NULL) {
-  ASSERT(!func.HasOptimizedCode());
-  Code& code = Code::Handle(func.unoptimized_code());
-  ASSERT(!code.IsNull());  // Function must be compiled.
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  ASSERT(pc_desc_index < desc.Length());
-  this->token_index_ = desc.TokenIndex(pc_desc_index);
-  ASSERT(this->token_index_ > 0);
-  this->pc_ = desc.PC(pc_desc_index);
-  ASSERT(this->pc_ != 0);
-  this->breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
+  ASSERT(!func.IsNull());
+  ASSERT((func.token_index() <= token_index_) &&
+         (token_index_ < func.end_token_index()));
 }
 
 
-RawScript* Breakpoint::SourceCode() {
-  const Function& func = Function::Handle(this->function_);
+void SourceBreakpoint::Enable() {
+  is_enabled_ = true;
+  Isolate::Current()->debugger()->SyncBreakpoint(this);
+}
+
+
+void SourceBreakpoint::Disable() {
+  is_enabled_ = false;
+  Isolate::Current()->debugger()->SyncBreakpoint(this);
+}
+
+
+RawScript* SourceBreakpoint::SourceCode() {
+  const Function& func = Function::Handle(function_);
   const Class& cls = Class::Handle(func.owner());
   return cls.script();
 }
 
 
-RawString* Breakpoint::SourceUrl() {
-  const Script& script = Script::Handle(this->SourceCode());
+RawString* SourceBreakpoint::SourceUrl() {
+  const Script& script = Script::Handle(SourceCode());
   return script.url();
 }
 
 
-intptr_t Breakpoint::LineNumber() {
+intptr_t SourceBreakpoint::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if (this->line_number_ < 0) {
-    const Script& script = Script::Handle(this->SourceCode());
+  if (line_number_ < 0) {
+    const Script& script = Script::Handle(SourceCode());
     intptr_t ignore_column;
-    script.GetTokenLocation(this->token_index_,
-                            &this->line_number_, &ignore_column);
+    script.GetTokenLocation(token_index_, &line_number_, &ignore_column);
   }
-  return this->line_number_;
+  return line_number_;
 }
 
 
-void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
+}
+
+
+
+void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
 
@@ -281,12 +289,63 @@ const char* ActivationFrame::ToCString() {
 
 
 void StackTrace::AddActivation(ActivationFrame* frame) {
-  this->trace_.Add(frame);
+  trace_.Add(frame);
 }
 
 
-void Breakpoint::PatchCode() {
-  ASSERT(!is_patched_);
+CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
+    : function_(func.raw()),
+      pc_desc_index_(pc_desc_index),
+      pc_(0),
+      line_number_(-1),
+      is_enabled_(false),
+      src_bpt_(NULL),
+      next_(NULL) {
+  ASSERT(!func.HasOptimizedCode());
+  Code& code = Code::Handle(func.unoptimized_code());
+  ASSERT(!code.IsNull());  // Function must be compiled.
+  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  ASSERT(pc_desc_index < desc.Length());
+  token_index_ = desc.TokenIndex(pc_desc_index);
+  ASSERT(token_index_ > 0);
+  pc_ = desc.PC(pc_desc_index);
+  ASSERT(pc_ != 0);
+  breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
+}
+
+
+CodeBreakpoint::~CodeBreakpoint() {
+  // Make sure we don't leave patched code behind.
+  ASSERT(!IsEnabled());
+}
+
+
+RawScript* CodeBreakpoint::SourceCode() {
+  const Function& func = Function::Handle(function_);
+  const Class& cls = Class::Handle(func.owner());
+  return cls.script();
+}
+
+
+RawString* CodeBreakpoint::SourceUrl() {
+  const Script& script = Script::Handle(SourceCode());
+  return script.url();
+}
+
+
+intptr_t CodeBreakpoint::LineNumber() {
+  // Compute line number lazily since it causes scanning of the script.
+  if (line_number_ < 0) {
+    const Script& script = Script::Handle(SourceCode());
+    intptr_t ignore_column;
+    script.GetTokenLocation(token_index_, &line_number_, &ignore_column);
+  }
+  return line_number_;
+}
+
+
+void CodeBreakpoint::PatchCode() {
+  ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
     case PcDescriptors::kIcCall: {
       int num_args, num_named_args;
@@ -310,12 +369,12 @@ void Breakpoint::PatchCode() {
     default:
       UNREACHABLE();
   }
-  is_patched_ = true;
+  is_enabled_ = true;
 }
 
 
-void Breakpoint::RestoreCode() {
-  ASSERT(is_patched_);
+void CodeBreakpoint::RestoreCode() {
+  ASSERT(is_enabled_);
   switch (breakpoint_kind_) {
     case PcDescriptors::kIcCall:
       CodePatcher::PatchInstanceCallAt(pc_, saved_bytes_.target_address_);
@@ -329,22 +388,23 @@ void Breakpoint::RestoreCode() {
     default:
       UNREACHABLE();
   }
-  is_patched_ = false;
+  is_enabled_ = false;
 }
 
-void Breakpoint::SetActive(bool value) {
-  if (value && !is_patched_) {
+
+void CodeBreakpoint::Enable() {
+  if (!is_enabled_) {
     PatchCode();
-    return;
   }
-  if (!value && is_patched_) {
+  ASSERT(is_enabled_);
+}
+
+
+void CodeBreakpoint::Disable() {
+  if (is_enabled_) {
     RestoreCode();
   }
-}
-
-
-bool Breakpoint::IsActive() {
-  return is_patched_;
+  ASSERT(!is_enabled_);
 }
 
 
@@ -352,21 +412,28 @@ Debugger::Debugger()
     : isolate_(NULL),
       initialized_(false),
       bp_handler_(NULL),
-      breakpoints_(NULL),
+      src_breakpoints_(NULL),
+      code_breakpoints_(NULL),
       resume_action_(kContinue) {
 }
 
 
 Debugger::~Debugger() {
-  ASSERT(breakpoints_ == NULL);
+  ASSERT(src_breakpoints_ == NULL);
+  ASSERT(code_breakpoints_ == NULL);
 }
 
 
 void Debugger::Shutdown() {
-  while (breakpoints_ != NULL) {
-    Breakpoint* bpt = breakpoints_;
-    breakpoints_ = breakpoints_->next();
-    UnsetBreakpoint(bpt);
+  while (src_breakpoints_ != NULL) {
+    SourceBreakpoint* bpt = src_breakpoints_;
+    src_breakpoints_ = src_breakpoints_->next();
+    delete bpt;
+  }
+  while (code_breakpoints_ != NULL) {
+    CodeBreakpoint* bpt = code_breakpoints_;
+    code_breakpoints_ = code_breakpoints_->next();
+    bpt->Disable();
     delete bpt;
   }
 }
@@ -378,7 +445,7 @@ bool Debugger::IsActive() {
   // This is probably not conservative enough (we could set the first
   // breakpoint after optimized code has already been produced).
   // Long-term, we need to be able to de-optimize code.
-  return breakpoints_ != NULL;
+  return (src_breakpoints_ != NULL) || (code_breakpoints_ != NULL);
 }
 
 
@@ -430,7 +497,7 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (int i = 0; i < desc.Length(); i++) {
-    Breakpoint* bpt = GetBreakpoint(desc.PC(i));
+    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
     if (bpt != NULL) {
       // There is already a breakpoint for this address. Leave it alone.
       continue;
@@ -439,57 +506,50 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
         (kind == PcDescriptors::kReturn)) {
-      bpt = new Breakpoint(target_function, i);
-      bpt->set_temporary(true);
-      bpt->PatchCode();
-      RegisterBreakpoint(bpt);
+      bpt = new CodeBreakpoint(target_function, i);
+      RegisterCodeBreakpoint(bpt);
+      bpt->Enable();
     }
   }
 }
 
 
-// TODO(hausner): Distinguish between newly created breakpoints and
-// returning a breakpoint that already exists?
-Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
-                                    intptr_t token_index,
-                                    Error* error) {
-  if ((token_index < target_function.token_index()) ||
-      (target_function.end_token_index() <= token_index)) {
-    // The given token position is not within the target function.
-    return NULL;
-  }
-  if (!target_function.HasCode()) {
-    *error = Compiler::CompileFunction(target_function);
-    if (!error->IsNull()) {
-      return NULL;
-    }
-  }
-  ASSERT(!target_function.HasOptimizedCode());
-  Code& code = Code::Handle(target_function.unoptimized_code());
+CodeBreakpoint* Debugger::MakeCodeBreakpoint(SourceBreakpoint* src_bpt) {
+  Function& func = Function::Handle(src_bpt->function());
+  ASSERT(func.HasCode());
+  ASSERT(!func.HasOptimizedCode());
+  Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  intptr_t requested_token_index = src_bpt->token_index();
   for (int i = 0; i < desc.Length(); i++) {
-    if (desc.TokenIndex(i) < token_index) {
+    if (desc.TokenIndex(i) < requested_token_index) {
       continue;
     }
-    Breakpoint* bpt = GetBreakpoint(desc.PC(i));
+    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
+    // We should only ever have one code breakpoint at the same address.
+    // If we find an existing breakpoint, it must be an internal one which
+    // is used for stepping.
     if (bpt != NULL) {
-      // Found existing breakpoint.
+      ASSERT(bpt->src_bpt() == NULL);
+      bpt->set_src_bpt(src_bpt);
       return bpt;
     }
+
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
         (kind == PcDescriptors::kReturn)) {
-      bpt = new Breakpoint(target_function, i);
-      bpt->PatchCode();
-      RegisterBreakpoint(bpt);
+      bpt = new CodeBreakpoint(func, i);
+      bpt->set_src_bpt(src_bpt);
       if (verbose) {
-        OS::Print("Setting breakpoint at '%s' line %d  (PC %p)\n",
+        OS::Print("Setting breakpoint in function '%s' (%s:%d)  (PC %p)\n",
+                  String::Handle(func.name()).ToCString(),
                   String::Handle(bpt->SourceUrl()).ToCString(),
                   bpt->LineNumber(),
                   bpt->pc());
       }
+      RegisterCodeBreakpoint(bpt);
       return bpt;
     }
   }
@@ -497,21 +557,67 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
 }
 
 
-void Debugger::UnsetBreakpoint(Breakpoint* bpt) {
-  bpt->SetActive(false);
+SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
+                                          intptr_t token_index) {
+  if ((token_index < target_function.token_index()) ||
+      (target_function.end_token_index() <= token_index)) {
+    // The given token position is not within the target function.
+    return NULL;
+  }
+  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_index);
+  if (bpt != NULL) {
+    // A breakpoint for this location already exists, return it.
+    return bpt;
+  }
+  bpt = new SourceBreakpoint(target_function, token_index);
+  RegisterSourceBreakpoint(bpt);
+  if (verbose && !target_function.HasCode()) {
+    OS::Print("Registering breakpoint for uncompiled function '%s'"
+              " (%s:%d)\n",
+              String::Handle(target_function.name()).ToCString(),
+              String::Handle(bpt->SourceUrl()).ToCString(),
+              bpt->LineNumber());
+  }
+
+  if (target_function.HasCode()) {
+    CodeBreakpoint* cbpt = MakeCodeBreakpoint(bpt);
+    if (cbpt == NULL) {
+      if (verbose) {
+        OS::Print("Failed to set breakpoint at '%s' line %d\n",
+                  String::Handle(bpt->SourceUrl()).ToCString(),
+                  bpt->LineNumber());
+      }
+    }
+  }
+  bpt->Enable();
+  return bpt;
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
-                                           Error* error) {
+void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (bpt == cbpt->src_bpt()) {
+      if (bpt->IsEnabled()) {
+        cbpt->Enable();
+      } else {
+        cbpt->Disable();
+      }
+    }
+    cbpt = cbpt->next();
+  }
+}
+
+
+SourceBreakpoint* Debugger::SetBreakpointAtEntry(
+      const Function& target_function) {
   ASSERT(!target_function.IsNull());
-  return SetBreakpoint(target_function, target_function.token_index(), error);
+  return SetBreakpoint(target_function, target_function.token_index());
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number,
-                                          Error* error) {
+SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
+                                          intptr_t line_number) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
   lib = isolate_->object_store()->registered_libraries();
@@ -523,19 +629,31 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     lib = lib.next_registered();
   }
   if (script.IsNull()) {
+    if (verbose) {
+      OS::Print("Failed to find script with url '%s'\n",
+                script_url.ToCString());
+    }
     return NULL;
   }
   intptr_t token_index_at_line = script.TokenIndexAtLine(line_number);
   if (token_index_at_line < 0) {
     // Script does not contain the given line number.
+    if (verbose) {
+      OS::Print("Script '%s' does not contain line number %d\n",
+                script_url.ToCString(), line_number);
+    }
     return NULL;
   }
   const Function& func =
       Function::Handle(lib.LookupFunctionInScript(script, token_index_at_line));
   if (func.IsNull()) {
+    if (verbose) {
+      OS::Print("No executable code at line %d in '%s'\n",
+                line_number, script_url.ToCString());
+    }
     return NULL;
   }
-  return SetBreakpoint(func, token_index_at_line, error);
+  return SetBreakpoint(func, token_index_at_line);
 }
 
 
@@ -641,15 +759,20 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
 
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  Breakpoint* bpt = this->breakpoints_;
+  SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     bpt->VisitObjectPointers(visitor);
     bpt = bpt->next();
   }
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    cbpt->VisitObjectPointers(visitor);
+    cbpt = cbpt->next();
+  }
 }
 
 
-static void DefaultBreakpointHandler(Breakpoint* bpt, StackTrace* stack) {
+static void DefaultBreakpointHandler(SourceBreakpoint* bpt, StackTrace* stack) {
   String& var_name = String::Handle();
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < stack->Length(); i++) {
@@ -680,11 +803,11 @@ void Debugger::BreakpointCallback() {
   DartFrameIterator iterator;
   DartFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
-  Breakpoint* bpt = GetBreakpoint(frame->pc());
+  CodeBreakpoint* bpt = GetCodeBreakpoint(frame->pc());
   ASSERT(bpt != NULL);
   if (verbose) {
     OS::Print(">>> %s breakpoint at %s:%d (Address %p)\n",
-        bpt->is_temporary() ? "hit temp" : "hit user",
+        bpt->IsInternal() ? "hit internal" : "hit user",
         bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
         bpt ? bpt->LineNumber() : 0,
         frame->pc());
@@ -701,11 +824,12 @@ void Debugger::BreakpointCallback() {
 
   resume_action_ = kContinue;
   if (bp_handler_ != NULL) {
-    (*bp_handler_)(bpt, stack_trace);
+    SourceBreakpoint* src_bpt = bpt->src_bpt();
+    (*bp_handler_)(src_bpt, stack_trace);
   }
 
   if (resume_action_ == kContinue) {
-    RemoveTemporaryBreakpoints();
+    RemoveInternalBreakpoints();
   } else if (resume_action_ == kStepOver) {
     Function& func = Function::Handle(bpt->function());
     if (bpt->breakpoint_kind_ == PcDescriptors::kReturn) {
@@ -713,12 +837,12 @@ void Debugger::BreakpointCallback() {
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
         func = caller->DartFunction().raw();
-        RemoveTemporaryBreakpoints();
+        RemoveInternalBreakpoints();
       }
     }
     InstrumentForStepping(func);
   } else if (resume_action_ == kStepInto) {
-    RemoveTemporaryBreakpoints();
+    RemoveInternalBreakpoints();
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       int num_args, num_named_args;
       uword target;
@@ -748,8 +872,8 @@ void Debugger::BreakpointCallback() {
     }
   } else {
     ASSERT(resume_action_ == kStepOut);
-    // Set temporary breakpoints in the caller.
-    RemoveTemporaryBreakpoints();
+    // Set stepping breakpoints in the caller.
+    RemoveInternalBreakpoints();
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
       InstrumentForStepping(caller->DartFunction());
@@ -768,8 +892,25 @@ void Debugger::Initialize(Isolate* isolate) {
 }
 
 
-Breakpoint* Debugger::GetBreakpoint(uword breakpoint_address) {
-  Breakpoint* bpt = this->breakpoints_;
+// TODO(hausner): handle closure functions.
+void Debugger::NotifyCompilation(const Function& func) {
+  SourceBreakpoint* bpt = src_breakpoints_;
+  while (bpt != NULL) {
+    if (func.raw() == bpt->function()) {
+      if (verbose) {
+        OS::Print("Enable latent breakpoint for function '%s'\n",
+                  String::Handle(func.name()).ToCString());
+      }
+      CodeBreakpoint* cbpt = MakeCodeBreakpoint(bpt);
+      bpt->Enable();
+    }
+    bpt = bpt->next();
+  }
+}
+
+
+CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
+  CodeBreakpoint* bpt = code_breakpoints_;
   while (bpt != NULL) {
     if (bpt->pc() == breakpoint_address) {
       return bpt;
@@ -780,18 +921,21 @@ Breakpoint* Debugger::GetBreakpoint(uword breakpoint_address) {
 }
 
 
-void Debugger::RemoveBreakpoint(Breakpoint* bpt) {
-  ASSERT(breakpoints_ != NULL);
-  Breakpoint* prev_bpt = NULL;
-  Breakpoint* curr_bpt = breakpoints_;
+// Remove and delete the source breakpoint bpt and its associated
+// code breakpoints.
+void Debugger::RemoveBreakpoint(SourceBreakpoint* bpt) {
+  ASSERT(src_breakpoints_ != NULL);
+  SourceBreakpoint* prev_bpt = NULL;
+  SourceBreakpoint* curr_bpt = src_breakpoints_;
   while (curr_bpt != NULL) {
     if (bpt == curr_bpt) {
       if (prev_bpt == NULL) {
-        breakpoints_ = breakpoints_->next();
+        src_breakpoints_ = src_breakpoints_->next();
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
-      UnsetBreakpoint(bpt);
+      // Remove the code breakpoints associated with the source breakpoint.
+      RemoveCodeBreakpoints(bpt);
       delete bpt;
       return;
     }
@@ -802,19 +946,21 @@ void Debugger::RemoveBreakpoint(Breakpoint* bpt) {
 }
 
 
-void Debugger::RemoveTemporaryBreakpoints() {
-  Breakpoint* prev_bpt = NULL;
-  Breakpoint* curr_bpt = breakpoints_;
+// Remove and delete the code breakpoints that are associated with given
+// source breakpoint bpt. If bpt is null, remove the internal breakpoints.
+void Debugger::RemoveCodeBreakpoints(SourceBreakpoint* src_bpt) {
+  CodeBreakpoint* prev_bpt = NULL;
+  CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
-    if (curr_bpt->is_temporary()) {
+    if (curr_bpt->src_bpt() == src_bpt) {
       if (prev_bpt == NULL) {
-        breakpoints_ = breakpoints_->next();
+        code_breakpoints_ = code_breakpoints_->next();
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
-      Breakpoint* temp_bpt = curr_bpt;
+      CodeBreakpoint* temp_bpt = curr_bpt;
       curr_bpt = curr_bpt->next();
-      UnsetBreakpoint(temp_bpt);
+      temp_bpt->Disable();
       delete temp_bpt;
     } else {
       prev_bpt = curr_bpt;
@@ -824,9 +970,16 @@ void Debugger::RemoveTemporaryBreakpoints() {
 }
 
 
-Breakpoint* Debugger::GetBreakpointByFunction(const Function& func,
-                                              intptr_t token_index) {
-  Breakpoint* bpt = this->breakpoints_;
+// Remove and delete all breakpoints that are not associated with a
+// user-defined source breakpoint.
+void Debugger::RemoveInternalBreakpoints() {
+  RemoveCodeBreakpoints(NULL);
+}
+
+
+SourceBreakpoint* Debugger::GetSourceBreakpoint(const Function& func,
+                                                intptr_t token_index) {
+  SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     if ((bpt->function() == func.raw()) &&
         (bpt->token_index() == token_index)) {
@@ -838,11 +991,17 @@ Breakpoint* Debugger::GetBreakpointByFunction(const Function& func,
 }
 
 
-void Debugger::RegisterBreakpoint(Breakpoint* bpt) {
+void Debugger::RegisterSourceBreakpoint(SourceBreakpoint* bpt) {
   ASSERT(bpt->next() == NULL);
-  bpt->set_next(this->breakpoints_);
-  this->breakpoints_ = bpt;
+  bpt->set_next(src_breakpoints_);
+  src_breakpoints_ = bpt;
 }
 
+
+void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
+  ASSERT(bpt->next() == NULL);
+  bpt->set_next(code_breakpoints_);
+  code_breakpoints_ = bpt;
+}
 
 }  // namespace dart

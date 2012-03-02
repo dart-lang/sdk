@@ -10,6 +10,7 @@
 #include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -233,6 +234,9 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("--> '%s' entry: 0x%x\n",
                 function_fullname,
                 Code::Handle(function.CurrentCode()).EntryPoint());
+    }
+    if (Isolate::Current()->debugger()->IsActive()) {
+      Isolate::Current()->debugger()->NotifyCompilation(function);
     }
     if (FLAG_disassemble) {
       OS::Print("Code for %sfunction '%s' {\n",

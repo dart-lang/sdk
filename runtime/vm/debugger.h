@@ -9,36 +9,78 @@
 
 namespace dart {
 
-class Breakpoint;
+class SourceBreakpoint;
+class CodeBreakpoint;
 class Isolate;
 class ObjectPointerVisitor;
 class ActiveVariables;
 
 
-// Breakpoint represents a location in Dart source and the corresponding
-// address in compiled code.
-class Breakpoint {
+// SourceBreakpoint represents a user-specified breakpoint location in
+// Dart source. There may be more than one CodeBreakpoint object per
+// SourceBreakpoint.
+class SourceBreakpoint {
  public:
-  Breakpoint(const Function& func, intptr_t pc_desc_index);
+  SourceBreakpoint(const Function& func, intptr_t token_index);
 
   RawFunction* function() const { return function_; }
-  uword pc() const { return pc_; }
   intptr_t token_index() const { return token_index_; }
-  bool is_temporary() const { return is_temporary_; }
-  void set_temporary(bool value) { is_temporary_ = value; }
 
   RawScript* SourceCode();
   RawString* SourceUrl();
   intptr_t LineNumber();
 
-  void SetActive(bool value);
-  bool IsActive();
+  void Enable();
+  void Disable();
+  bool IsEnabled() const { return is_enabled_; }
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  void set_next(Breakpoint* value) { next_ = value; }
-  Breakpoint* next() const { return this->next_; }
+  void set_next(SourceBreakpoint* value) { next_ = value; }
+  SourceBreakpoint* next() const { return this->next_; }
+
+  RawFunction* function_;
+  intptr_t token_index_;
+  intptr_t line_number_;
+  bool is_enabled_;
+
+  SourceBreakpoint* next_;
+
+  friend class Debugger;
+  DISALLOW_COPY_AND_ASSIGN(SourceBreakpoint);
+};
+
+
+// CodeBreakpoint represents a location in compiled code. There may be
+// more than one CodeBreakpoint for one SourceBreakpoint, e.g. when a
+// function gets compiled as a regular function and as a closure.
+class CodeBreakpoint {
+ public:
+  CodeBreakpoint(const Function& func, intptr_t pc_desc_index);
+  ~CodeBreakpoint();
+
+  RawFunction* function() const { return function_; }
+  uword pc() const { return pc_; }
+  intptr_t token_index() const { return token_index_; }
+  bool IsInternal() const { return src_bpt_ == NULL; }
+
+  RawScript* SourceCode();
+  RawString* SourceUrl();
+  intptr_t LineNumber();
+
+  void Enable();
+  void Disable();
+  bool IsEnabled() const { return is_enabled_; }
+
+ private:
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  SourceBreakpoint* src_bpt() const { return src_bpt_; }
+  void set_src_bpt(SourceBreakpoint* value) { src_bpt_ = value; }
+
+  void set_next(CodeBreakpoint* value) { next_ = value; }
+  CodeBreakpoint* next() const { return this->next_; }
   intptr_t pc_desc_index() const { return pc_desc_index_; }
 
   void PatchCode();
@@ -51,20 +93,22 @@ class Breakpoint {
   intptr_t token_index_;
   uword pc_;
   intptr_t line_number_;
-  bool is_temporary_;
+  bool is_enabled_;
 
-  bool is_patched_;
+  SourceBreakpoint* src_bpt_;
+  CodeBreakpoint* next_;
+
   PcDescriptors::Kind breakpoint_kind_;
   union {
     uword target_address_;
     uint8_t raw[2 * sizeof(uword)];
   } saved_bytes_;
 
-  Breakpoint* next_;
-
   friend class Debugger;
-  DISALLOW_COPY_AND_ASSIGN(Breakpoint);
+  DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
 };
+
+
 
 
 // ActivationFrame represents one dart function activation frame
@@ -135,7 +179,7 @@ class StackTrace : public ZoneAllocated {
 };
 
 
-typedef void BreakpointHandler(Breakpoint* bpt, StackTrace* stack);
+typedef void BreakpointHandler(SourceBreakpoint* bpt, StackTrace* stack);
 
 
 class Debugger {
@@ -147,6 +191,8 @@ class Debugger {
   void Shutdown();
   bool IsActive();
 
+  void NotifyCompilation(const Function& func);
+
   void SetBreakpointHandler(BreakpointHandler* handler);
 
   RawFunction* ResolveFunction(const Library& library,
@@ -154,22 +200,17 @@ class Debugger {
                                const String& function_name);
 
   // Set breakpoint at closest location to function entry.
-  Breakpoint* SetBreakpointAtEntry(const Function& target_function,
-                                   Error* error);
-  Breakpoint* SetBreakpointAtLine(const String& script_url,
-                                  intptr_t line_number,
-                                  Error* error);
+  SourceBreakpoint* SetBreakpointAtEntry(const Function& target_function);
+  SourceBreakpoint* SetBreakpointAtLine(const String& script_url,
+                                        intptr_t line_number);
 
-  void RemoveBreakpoint(Breakpoint* bpt);
+  void RemoveBreakpoint(SourceBreakpoint* bpt);
 
   void SetStepOver() { resume_action_ = kStepOver; }
   void SetStepInto() { resume_action_ = kStepInto; }
   void SetStepOut() { resume_action_ = kStepOut; }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
-  // Returns NULL if no breakpoint exists for the given address.
-  Breakpoint* GetBreakpoint(uword breakpoint_address);
 
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
@@ -195,24 +236,31 @@ class Debugger {
   };
 
   void InstrumentForStepping(const Function &target_function);
-  Breakpoint* SetBreakpoint(const Function& target_function,
-                            intptr_t token_index,
-                            Error* error);
-  void UnsetBreakpoint(Breakpoint* bpt);
-  void RemoveTemporaryBreakpoints();
-  Breakpoint* NewBreakpoint(const Function& func, intptr_t pc_desc_index);
-  void RegisterBreakpoint(Breakpoint* bpt);
-  Breakpoint* GetBreakpointByFunction(const Function& func,
-                                      intptr_t token_index);
+  SourceBreakpoint* SetBreakpoint(const Function& target_function,
+                                  intptr_t token_index);
+  void RemoveInternalBreakpoints();
+  void RemoveCodeBreakpoints(SourceBreakpoint* src_bpt);
+  void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
+  void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
+  SourceBreakpoint* GetSourceBreakpoint(const Function& func,
+                                        intptr_t token_index);
+  CodeBreakpoint* MakeCodeBreakpoint(SourceBreakpoint* src_bpt);
+
+  // Returns NULL if no breakpoint exists for the given address.
+  CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
+
+  void SyncBreakpoint(SourceBreakpoint* bpt);
 
   Isolate* isolate_;
   bool initialized_;
   BreakpointHandler* bp_handler_;
-  Breakpoint* breakpoints_;
+  SourceBreakpoint* src_breakpoints_;
+  CodeBreakpoint* code_breakpoints_;
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
 
+  friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
 };
 
