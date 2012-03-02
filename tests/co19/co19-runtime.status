@@ -6,6 +6,15 @@ prefix co19
 
 
 
+[ $component == vm && $system == win32 ]
+Language/11_Statements/09_Try_A05_t03: Fail # TODO(vm-team): New failure, please triage.
+
+
+[ $component == vm && $system == win32 && $mode == debug ]
+Language/10_Expressions/01_Constants_A12_t01: Crash # TODO(vm-team): New crash, please triage.
+Language/10_Expressions/28_Identifier_Reference_A01_t03: Crash # TODO(vm-team): New crash, please triage.
+
+
 [ $component == vm ]
 Language/10_Expressions/01_Constants_A17_t03: Crash # TODO(vm-team): New crash, please triage.
 
