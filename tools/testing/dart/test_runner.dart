@@ -32,6 +32,8 @@ class Command {
   Command(this.executable, this.arguments) {
     commandLine = "$executable ${Strings.join(arguments, ' ')}";
   }
+  
+  String toString() => commandLine;
 }
 
 /**
@@ -65,13 +67,15 @@ class TestCase {
   bool isNegative;
   Set<String> expectedOutcomes;
   Function completedHandler;
+  TestInformation info;
 
   TestCase(this.displayName,
            this.commands,
            this.configuration,
            this.completedHandler,
            this.expectedOutcomes,
-           [this.isNegative = false]) {
+           [this.isNegative = false,
+            this.info = null]) {
     if (!isNegative) {
       this.isNegative = displayName.contains("NegativeTest");
     }
@@ -165,7 +169,24 @@ class BrowserTestCase extends TestCase {
  * the time the process took to run.  It also contains a pointer to the
  * [TestCase] this is the output of.
  */
-class TestOutput {
+interface TestOutput default TestOutputImpl { 
+  TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
+    List<String> stdout, List<String> stderr, Duration time);
+  
+  String get result();
+  
+  bool get unexpectedOutput();
+  
+  bool get hasCrashed();
+  
+  bool get hasTimedOut(); 
+  
+  bool get didFail();
+  
+  List<String> get diagnostics();
+}
+
+class TestOutputImpl implements TestOutput {
   TestCase testCase;
   int exitCode;
   bool timedOut;
@@ -173,18 +194,35 @@ class TestOutput {
   List<String> stdout;
   List<String> stderr;
   Duration time;
+  List<String> diagnostics;
+  
   /**
    * Set to true if we encounter a condition in the output that indicates we
    * need to rerun this test.
    */
-  bool requestRetry;
+  bool requestRetry = false;
 
-  TestOutput(this.testCase, this.exitCode, this.timedOut, this.stdout,
+  // Don't call  this constructor, call TestOutput.fromCase() to 
+  // get anew TestOutput instance.
+  TestOutputImpl(this.testCase, this.exitCode, this.timedOut, this.stdout,
              this.stderr, this.time) {
     testCase.output = this;
-    requestRetry = false;
+    diagnostics = [];
   }
 
+  factory TestOutputImpl.fromCase (testCase, exitCode, timedOut, stdout, stderr, 
+    time) {
+    if (testCase is BrowserTestCase) {
+      return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
+        stdout, stderr, time);
+    } else if (testCase.configuration['component'] == 'dartc') {
+      return new AnalysisTestOutputImpl(testCase, exitCode, timedOut,
+        stdout, stderr, time);
+    }
+    return new TestOutputImpl(testCase, exitCode, timedOut,
+      stdout, stderr, time);
+  }
+  
   String get result() =>
       hasCrashed ? CRASH : (hasTimedOut ? TIMEOUT : (hasFailed ? FAIL : PASS));
 
@@ -207,8 +245,19 @@ class TestOutput {
   bool get hasTimedOut() => timedOut;
 
   bool get didFail() {
-    if (testCase is !BrowserTestCase) return (exitCode != 0 && !hasCrashed);
+    return (exitCode != 0 && !hasCrashed);
+  }
+  
+  // Reverse result of a negative test.
+  bool get hasFailed() => (testCase.isNegative ? !didFail : didFail);
 
+}
+
+class BrowserTestOutputImpl extends TestOutputImpl {
+  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+    super(testCase, exitCode, timedOut, stdout, stderr, time);
+    
+  bool get didFail() {
     // Browser case:
     // If the browser test failed, it may have been because DumpRenderTree
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
@@ -235,12 +284,157 @@ class TestOutput {
       }
       previous_line = line;
     }
-
     return true;
   }
+}
 
-  // Reverse result of a negative test.
-  bool get hasFailed() => (testCase.isNegative ? !didFail : didFail);
+// The static analyzer does not actaully execute code, so 
+// the criteria for success now depend on the text sent
+// to stderr.
+class AnalysisTestOutputImpl extends TestOutputImpl {
+  boolean alreadyComputed = false;
+  boolean failResult;
+  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+    super(testCase, exitCode, timedOut, stdout, stderr, time) {
+  }
+  
+  bool get didFail() {
+    if (!alreadyComputed) {
+      failResult = _didFail();
+      alreadyComputed = true;
+    }
+    return failResult;
+  }
+  
+  bool _didFail() {
+    if (hasCrashed) return false;
+
+    List<String> errors = [];
+    List<String> staticWarnings = [];
+    
+    // Read the returned list of errors and stuff them away.
+    for (String line in stderr) {
+      if (line.length == 0) continue;
+      List<String> fields = splitMachineError(line);
+      if (fields[0] == 'ERROR') {
+        errors.add(fields);
+      } else if (fields[0] == 'WARNING') {
+        // We only care about testing Static type warnings
+        // ignore all others
+        if (fields[1] == 'STATIC_TYPE') {
+          staticWarnings.add(fields);
+        } 
+      }
+      // OK to Skip error output that doesn't match the machine format
+    }
+    if (testCase.info != null 
+        && testCase.info.optionsFromFile['isMultitest']) {
+      return _didMultitestFail(errors, staticWarnings);
+    }
+    return _didStandardTestFail(errors, staticWarnings);
+  }
+  
+  bool _didMultitestFail(List errors, List staticWarnings) {
+    String outcome = testCase.info.multitestOutcome;
+    if ((outcome == '' || outcome == 'compile-time error') && errors.length > 0) {
+      return true;
+    } else if (outcome == 'static type error' && staticWarnings.length > 0) {
+      return true;
+    }
+    return false;
+  }
+  
+  bool _didStandardTestFail(List errors, List staticWarnings) {
+    bool hasFatalTypeErrors = false;
+    int numStaticTypeAnnotations = 0;
+    int numCompileTimeAnnotations = 0;
+    var isStaticClean = false;
+    if (testCase.info != null) {
+      var optionsFromFile = testCase.info.optionsFromFile;
+      hasFatalTypeErrors = optionsFromFile['hasFatalTypeErrors'];
+      for (Command c in testCase.commands) {
+        for (String arg in c.arguments) {
+          if (arg == '--fatal-type-errors') {
+            hasFatalTypeErrors = true;
+            break;
+          }
+        }
+      }
+      numStaticTypeAnnotations = optionsFromFile['numStaticTypeAnnotations'];
+      numCompileTimeAnnotations = optionsFromFile['numCompileTimeAnnotations'];
+      isStaticClean = optionsFromFile['isStaticClean'];
+    }
+    
+    if (errors.length == 0) {
+      if (!hasFatalTypeErrors && exitCode != 0) {
+        diagnostics.add("EXIT CODE MISMATCH: Expected error message:");
+        diagnostics.add("  command[0]:${testCase.commands[0]}");
+        diagnostics.add("  exitCode:${exitCode}");
+        return true;
+      }
+    } else if (exitCode == 0) {
+      diagnostics.add("EXIT CODE MISMATCH: Unexpected error message:");
+      diagnostics.add("  errors[0]:${errors[0]}");
+      diagnostics.add("  command[0]:${testCase.commands[0]}");
+      diagnostics.add("  exitCode:${exitCode}");
+      return true;
+    }
+    if (numStaticTypeAnnotations > 0 && isStaticClean) {
+      diagnostics.add("Cannot have both @static-clean and /// static type warning annotations.");
+      return true;
+    }
+    
+    if (isStaticClean && staticWarnings.length > 0) {
+      diagnostics.add("@static-clean annotation found but analyzer returned warnings.");
+      return true;
+    }
+    
+    if (numCompileTimeAnnotations > 0 
+        && numCompileTimeAnnotations < errors.length) {
+      
+      // Expected compile-time errors were not returned.  The test did not 'fail' in the way
+      // intended so don't return failed.
+      diagnostics.add("Fewer compile time errors than annotated: ${numCompileTimeAnnotations}");
+      return false;
+    }
+    
+    if (numStaticTypeAnnotations > 0 || hasFatalTypeErrors) {
+      // TODO(zundel): match up the annotation line numbers
+      // with the reported error line numbers
+      if (staticWarnings.length < numStaticTypeAnnotations) {
+        diagnostics.add("Fewer static type warnings than annotated: ${numStaticTypeAnnotations}");
+        return true;
+      }
+      return false;
+    } else if (errors.length != 0) {
+      return true;
+    } 
+    return false;
+  }
+  
+  // Parse a line delimited by the | character using \ as an escape charager
+  // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
+  List<String> splitMachineError(String line) {
+    StringBuffer field = new StringBuffer();
+    List<String> result = [];
+    bool escaped = false;
+    for (var i = 0 ; i < line.length; i++) {
+      var c = line[i];
+      if (!escaped && c == '\\') {
+        escaped = true;
+        continue;
+      }
+      escaped = false;
+      if (c == '|') {
+        result.add(field.toString());
+        field.clear();
+        continue;
+      }
+      field.add(c);
+    }
+    result.add(field.toString());
+    return result;
+  }
 }
 
 /**
@@ -277,8 +471,8 @@ class RunningProcess {
    * command.
    */
   void testComplete(int exitCode) {
-    new TestOutput(testCase, exitCode, timedOut, stdout,
-                   stderr, new Date.now().difference(startTime));
+    new TestOutput.fromCase(testCase, exitCode, timedOut, stdout,
+                            stderr, new Date.now().difference(startTime));
     timeoutTimer.cancel();
     if (testCase.output.unexpectedOutput && testCase.configuration['verbose']) {
       print(testCase.displayName);
@@ -295,8 +489,7 @@ class RunningProcess {
       testCase.output.requestRetry = false;
       this.timedOut = false;
       testCase.dynamic.numRetries--;
-      print("Potential flake. " +
-          "Re-running ${testCase.displayName} " +
+      print("Potential flake. Re-running ${testCase.displayName} " +
           "(${testCase.dynamic.numRetries} attempt(s) remains)");
       this.start();
     } else {
@@ -454,8 +647,8 @@ class BatchRunnerProcess {
 
   void doStartTest(TestCase testCase) {
     _startTime = new Date.now();
-    _testStdout = new List<String>();
-    _testStderr = new List<String>();
+    _testStdout = [];
+    _testStderr = [];
     _stdoutDrained = false;
     _stderrDrained = false;
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
@@ -482,8 +675,8 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput(_currentTest, exitCode, outcome == "TIMEOUT", _testStdout,
-                   _testStderr, new Date.now().difference(_startTime));
+    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT", 
+                   _testStdout, _testStderr, new Date.now().difference(_startTime));
     // Move on when both stdout and stderr has been drained.
     if (_stderrDrained) _testCompleted();
   }

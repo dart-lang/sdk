@@ -105,7 +105,6 @@ class CCTestSuite implements TestSuite {
               List<String> this.statusFilePaths)
       : dartDir = TestUtils.dartDir() {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
-
   }
 
   void testNameHandler(String testName, ignore) {
@@ -178,12 +177,13 @@ class TestInformation {
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
   bool hasRuntimeErrors;
+  // expected outcome from multi-test  "static type error", "compile-time error", etc
+  String multitestOutcome;
 
   TestInformation(this.filename, this.optionsFromFile, this.isNegative,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
-                  this.hasRuntimeErrors);
+                  this.hasRuntimeErrors, this.multitestOutcome);
 }
-
 
 /**
  * A standard [TestSuite] implementation that searches for tests in a
@@ -338,16 +338,11 @@ class StandardTestSuite implements TestSuite {
       default:
         isNegative = isNegative ||
             (configuration['checked'] && info.isNegativeIfChecked);
-        bool enableFatalTypeErrors = false;
 
         if (configuration['component'] == 'dartc') {
-          // Only dartc supports fatal type errors. Enable fatal type
-          // errors with a flag and treat tests that have fatal type
-          // errors as negative.
-          // Also, tests that have runtime errors are not negative
-          // tests for dartc because dartc does not execute the test.
+          // dartc can detect static type errors by the
+          // format of the error line
           if (info.hasFatalTypeErrors) {
-            enableFatalTypeErrors = true;
             isNegative = true;
           } else if (info.hasRuntimeErrors) {
             isNegative = false;
@@ -355,8 +350,7 @@ class StandardTestSuite implements TestSuite {
         }
 
         var argumentLists = argumentListsFromFile(filename,
-                                                  optionsFromFile,
-                                                  enableFatalTypeErrors);
+                                                  optionsFromFile);
 
         for (var args in argumentLists) {
           doTest(new TestCase('$suiteName/$testName',
@@ -364,7 +358,8 @@ class StandardTestSuite implements TestSuite {
                               configuration,
                               completeHandler,
                               expectations,
-                              isNegative));
+                              isNegative,
+                              info));
         }
     }
   }
@@ -374,14 +369,16 @@ class StandardTestSuite implements TestSuite {
             bool isNegative,
             [bool isNegativeIfChecked = false,
              bool hasFatalTypeErrors = false,
-             bool hasRuntimeErrors = false]) {
+             bool hasRuntimeErrors = false,
+             String multitestOutcome = null]) {
       // Cache the test information for each test case.
       var info = new TestInformation(filename,
                                      optionsFromFile,
                                      isNegative,
                                      isNegativeIfChecked,
                                      hasFatalTypeErrors,
-                                     hasRuntimeErrors);
+                                     hasRuntimeErrors,
+                                     multitestOutcome);
       cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);
     };
@@ -735,12 +732,12 @@ class StandardTestSuite implements TestSuite {
   }
 
   List<List<String>> argumentListsFromFile(String filename,
-                                           Map optionsFromFile,
-                                           bool enableFatalTypeErrors) {
+                                           Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions(filename));
-    if (enableFatalTypeErrors && configuration['component'] == 'dartc') {
-      args.add('--fatal-type-errors');
+    if (configuration['component'] == 'dartc') {
+      args.add('--error_format');
+      args.add('machine');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];
@@ -777,6 +774,9 @@ class StandardTestSuite implements TestSuite {
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
+    RegExp staticTypeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type error");
+    RegExp compileTimeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticCleanRegExp = const RegExp(@"// @static-clean");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
     RegExp domImportRegExp =
@@ -804,6 +804,7 @@ class StandardTestSuite implements TestSuite {
     List<List> result = new List<List>();
     List<String> dartOptions;
     bool isNegative = false;
+    bool isStaticClean = false;
 
     Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -820,6 +821,15 @@ class StandardTestSuite implements TestSuite {
       dartOptions = match[1].split(' ').filter((e) => e != '');
     }
 
+    matches = staticCleanRegExp.allMatches(contents);
+    for (var match in matches) {
+      if (isStaticClean) {
+        throw new Exception(
+            'More than one "// @static-clean=" line in test $filename');
+      }
+      isStaticClean = true;
+    }
+    
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -830,7 +840,7 @@ class StandardTestSuite implements TestSuite {
         contents.contains("@runtime-error")) {
       isNegative = true;
     }
-
+    
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -838,18 +848,28 @@ class StandardTestSuite implements TestSuite {
     bool containsDomImport = domImportRegExp.hasMatch(contents);
     bool isLibraryDefinition = libraryDefinitionRegExp.hasMatch(contents);
     bool containsSourceOrImport = sourceOrImportRegExp.hasMatch(contents);
-
+    int numStaticTypeAnnotations = 0;
+    for (var i in staticTypeRegExp.allMatches(contents)) {
+      numStaticTypeAnnotations++;
+    }
+    int numCompileTimeAnnotations = 0;
+    for (var i in compileTimeRegExp.allMatches(contents)) {
+      numCompileTimeAnnotations++;
+    }
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
+             "isStaticClean" : isStaticClean,
              "otherScripts": otherScripts,
              "isMultitest": isMultitest,
-             "containsLeadingHash" : containsLeadingHash,
-             "isolateStubs" : isolateStubs,
+             "containsLeadingHash": containsLeadingHash,
+             "isolateStubs": isolateStubs,
              "containsDomImport": containsDomImport,
              "isLibraryDefinition": isLibraryDefinition,
-             "containsSourceOrImport": containsSourceOrImport };
+             "containsSourceOrImport": containsSourceOrImport,
+             "numStaticTypeAnnotations": numStaticTypeAnnotations,
+             "numCompileTimeAnnotations": numCompileTimeAnnotations};
   }
 }
 

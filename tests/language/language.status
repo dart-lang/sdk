@@ -125,7 +125,7 @@ DefaultFactoryLibraryTest: Fail          # Issue 514
 DuplicateImplementsTest: Skip # Issue 976
 Field3aNegativeTest: Fail
 FieldMethod4NegativeTest: Fail
-FinalSyntaxTest/none: Fail
+FinalSyntaxTest/*: Skip  # can't handle base case
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 InstanceCallWrongArgumentCountNegativeTest: Fail
@@ -149,6 +149,8 @@ Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
+Prefix22NegativeTest: Fail   # Needs to be re-written as multitest
+Prefix23NegativeTest: Fail   # Needs to be re-written as multitest
 Prefix3NegativeTest: Fail              # Bug 5406175
 Prefix6NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
@@ -184,6 +186,7 @@ SwitchLabelTest: Fail        # Bug 4208467.
 TypeVariableBounds2Test*: Skip  # Issue 1939.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
+TypeVariableBoundsTest/01: Fail  # issue 1900
 
 #
 # Add new dartc annotations above in alphabetical order
