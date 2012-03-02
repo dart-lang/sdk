@@ -184,14 +184,7 @@ is 'dart file.dart' and you specify special command
               'Path to frog library',
               ['--froglib'],
               [],
-              ''), 
-          new _TestOptionSpecification(
-              'noBatch',
-              'Do not run browser tests in batch mode', 
-              ['-n', '--nobatch'],
-              [],
-              false,
-              'bool')];
+              '')];
   }
 
 

@@ -128,8 +128,6 @@ class TestCase {
   List<String> get batchTestArguments() => commands.last().arguments;
 
   void completed() { completedHandler(this); }
-
-  bool get usesWebDriver() => configuration['component'] == 'webdriver';
 }
 
 
@@ -288,8 +286,8 @@ class RunningProcess {
       for (var line in testCase.output.stdout) print(line);
     }
     if (allowRetries != null && allowRetries
-        && testCase.usesWebDriver && testCase.output.unexpectedOutput 
-        && testCase.numRetries > 0) {
+        && testCase.configuration['component'] == 'webdriver' &&
+        testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
@@ -323,8 +321,8 @@ class RunningProcess {
     } else {
       stderr.add('test.dart: Compilion finished $suffix\n');
       stdout.add('test.dart: Compilion finished $suffix\n');
-      if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
-          !testCase.configuration['noBatch']) {
+      if (currentStep == totalSteps - 1
+          && testCase.configuration['component'] == 'webdriver') {
         // Note: processQueue will always be non-null for component == webdriver
         // (It is only null for component == vm)
         processQueue._getBatchRunner(testCase).startTest(testCase);
@@ -402,7 +400,7 @@ class BatchRunnerProcess {
   BatchRunnerProcess(TestCase testCase) {
     _executable = testCase.commands.last().executable;
     _batchArguments = testCase.batchRunnerArguments;
-    _isWebDriver = testCase.usesWebDriver;
+    _isWebDriver = testCase.configuration['component'] == 'webdriver';
   }
 
   bool get active() => _currentTest != null;
@@ -607,14 +605,7 @@ class ProcessQueue {
    * String indicating the browser used to run the tests. Empty if no browser
    * used.
    */
-  String browserUsed = '';
-  /** 
-   * Process running the selenium server .jar (only used for Safari and Opera
-   * tests.)
-   */
-  Process _seleniumServer = null;
-  /** True if we are in the process of starting the server. */
-  bool _startingServer = false;
+  String browserUsed;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
@@ -631,6 +622,7 @@ class ProcessQueue {
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
+    browserUsed = '';
   }
 
   /**
@@ -706,9 +698,6 @@ class ProcessQueue {
   void _cleanupAndMarkDone() {
     if (browserUsed != '') {
       killZombieBrowsers();
-      if (_isSeleniumAvailable) {
-        _seleniumServer.kill();
-      }
     } else {
       _progress.allDone();
     }
@@ -747,90 +736,14 @@ class ProcessQueue {
       }
     }
   }
- 
-  /** 
-   * True if we are using a browser + platform combination that needs the
-   * Selenium server jar. 
-   */
-  bool get _needsSelenium() => new Platform().operatingSystem() == 'macos' &&
-      browserUsed == 'safari';
-
-  /** True if the Selenium Server is ready to be used. */
-  bool get _isSeleniumAvailable() => _seleniumServer != null;
-
-  /** Start the Selenium Server jar, if appropriate for this platform. */
-  void _ensureSeleniumServerRunning() {
-    if (!_isSeleniumAvailable && _startingServer == false) {
-      _startingServer = true;
-      _startSeleniumServer();
-    }
-  }
 
   void _runTest(TestCase test) {
-    if (test.usesWebDriver) {
+    if (test.configuration['component'] == 'webdriver') {
       browserUsed = test.configuration['browser'];
-      if (_needsSelenium) _ensureSeleniumServerRunning();
     }
     _progress.testAdded();
     _tests.add(test);
     _tryRunTest();
-  }
-
-  /** 
-   * Monitor the output of the Selenium server, to know when we are ready to
-   * begin running tests.
-   * source: Output(Stream) from the Java server.
-   */
-  Function makeSeleniumServerHandler(StringInputStream source) {
-    return () {
-      if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
-      var line = source.readLine();
-      while (null != line) {
-        if (const RegExp(@".*Started.*Server.*").hasMatch(line) ||
-            const RegExp(@"Exception.*Selenium is already running.*").hasMatch(
-            line)) {
-          for (int i = 0; i < _maxProcesses; i++) {
-            // Restart all the processes that have been waiting/stopped for
-            // the server to start up. If we just call this once we end up
-            // with a single-"threaded" run.
-            _tryRunTest();
-          }
-        }
-        line = source.readLine();
-      }
-    };
-  }
-
-  /** 
-   * For browser tests using Safari or Opera, we need to use the Selenium 1.0
-   * Java server.
-   */
-  void _startSeleniumServer() {
-    // Get the absolute path to the Selenium jar.
-    String filePath = new Options().script;
-    String pathSep = new Platform().pathSeparator();
-    int index = filePath.lastIndexOf(pathSep);
-    filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
-    var dir = new Directory(filePath);
-    dir.onFile = (String file) {
-      if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
-          && _seleniumServer == null) {
-        _seleniumServer = new Process.start('java', ['-jar', file]);
-        // Heads up: there seems to an obscure data race of some form in
-        // the VM between launching the server process and launching the test
-        // tasks that disappears when you read IO (which is convenient, since
-        // that is our condition for knowing that the server is ready). 
-        StringInputStream stdoutStringStream =
-            new StringInputStream(_seleniumServer.stdout);
-        StringInputStream stderrStringStream =
-            new StringInputStream(_seleniumServer.stderr);
-        stdoutStringStream.onLine =
-            makeSeleniumServerHandler(stdoutStringStream);
-        stderrStringStream.onLine =
-            makeSeleniumServerHandler(stderrStringStream);
-      }
-    };
-    dir.list();
   }
 
   void _terminateBatchRunners() {
@@ -870,12 +783,6 @@ class ProcessQueue {
             Strings.join(new List.from(test.expectedOutcomes), ',');
         print(test.displayName + tab + outcomes + tab + test.isNegative +
               tab + Strings.join(test.commands.last().arguments, tab));
-        return;
-      }
-      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable) {
-        // The server is not ready to run Selenium tests. Put them back in the
-        // queue.
-        _tests.addFirst(test);
         return;
       }
       _progress.start(test);
