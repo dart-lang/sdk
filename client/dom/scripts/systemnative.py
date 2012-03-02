@@ -121,14 +121,14 @@ class NativeImplementationSystem(System):
         'dom_public.darttemplate',
         os.path.join(self._output_dir, 'dom_public.dart'),
         self._dom_public_files,
-        AUXILIARY_DIR=auxiliary_dir);
+        AUXILIARY_DIR=MassagePath(auxiliary_dir));
 
     # Generate dom_impl.dart.
     self._GenerateLibFile(
         'dom_impl.darttemplate',
         os.path.join(self._output_dir, 'dom_impl.dart'),
         self._dom_impl_files,
-        AUXILIARY_DIR=auxiliary_dir);
+        AUXILIARY_DIR=MassagePath(auxiliary_dir));
 
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
