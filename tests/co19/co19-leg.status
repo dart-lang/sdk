@@ -37,12 +37,179 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $component == leg ]
+Language/10_Expressions/01_Constants_A16_t01: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/01_Constants_A16_t02: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Crash # TODO(ahe): Investigate.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Crash # TODO(ahe): Investigate.
+Language/11_Statements/11_Labels_A01_t01: Crash # TODO(ahe): Investigate.
+Language/11_Statements/15_Assert_A02_t01: Crash # TODO(ahe): Investigate.
+
+
+Language/05_Variables/05_Variables_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/05_Variables/05_Variables_A03_t09: Fail # TODO(ahe): New co19 failure, please triage.
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/09_Generics/09_Generics_A04_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A09_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A10_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A11_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A12_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/03_Numbers_A01_t06: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/03_Numbers_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/04_Booleans/1_Boolean_Conversion_A01_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/06_Lists_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/06_Lists_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A04_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A06_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A07_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A07_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A07_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A08_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A09_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/07_Maps_A10_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/08_Function_Expressions_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/08_Function_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/08_Function_Expressions_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A10_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/1_New_A13_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/2_Const_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/2_Const_A08_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/10_Instance_Creation/2_Const_A08_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/16_Assignment_A05_t06: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A05_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A08_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/20_Equality_A09_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/21_Relational_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/22_Shift_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/22_Shift_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/23_Additive_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/24_Multiplicative_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/29_Type_Test_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/10_Expressions/29_Type_Test_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/02_Expression_Statements_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/02_Expression_Statements_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/05_For/1_For_Loop_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/05_For/1_For_Loop_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/05_For/1_For_Loop_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/05_For_A01_t11: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/06_While_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/06_While_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/06_While_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/06_While_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/06_While_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/07_Do_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/07_Do_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A01_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/08_Switch_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/09_Try_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/09_Try_A02_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/09_Try_A05_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/11_Labels_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/11_Labels_A03_t06: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/12_Break_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A02_t12: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A02_t13: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t06: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/13_Continue_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/14_Throw_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/14_Throw_A02_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/14_Throw_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/14_Throw_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/11_Statements/15_Assert_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/13_Types/5_Function_Types_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
+Language/13_Types/5_Function_Types_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
+Language/13_Types/5_Function_Types_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
+Language/13_Types/5_Function_Types_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
+LibTest/core/double/toStringAsFixed_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
+
+
 Language/13_Types/7_Type_Void_A01_t02: Fail # TODO(ahe): investigate.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # TODO(ahe): investigate.
 
 # Time outs on the bots.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
+
+
+Language/10_Expressions/01_Constants_A17_t02: Skip # Times out.
+Language/10_Expressions/01_Constants_A17_t01: Skip # Times out.
 
 
 # Issues with co19 test suite.
@@ -310,11 +477,14 @@ Language/05_Variables/05_Variables_A03_t01: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t02: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t03: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A03_t04: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A03_t05: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A03_t06: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A03_t07: Fail, OK # @compile-error
+Language/05_Variables/05_Variables_A03_t08: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A05_t01: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A05_t04: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A07_t01: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A07_t02: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t02: Fail, OK # @compile-error
 Language/06_Functions/06_Functions_A01_t23: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail, OK # @compile-error
 Language/06_Functions/1_Function_Declaration_A02_t02: Fail, OK # @compile-error
@@ -382,6 +552,10 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail, OK # @compile-
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t03: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t04: Fail, OK # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail, OK # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail, OK # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail, OK # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods_A01_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods_A01_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods_A01_t03: Fail, OK # @compile-error
@@ -426,6 +600,8 @@ Language/07_Classes/3_Setters_A04_t06: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail, OK # @compile-error
@@ -507,6 +683,97 @@ Language/09_Generics/09_Generics_A01_t05: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t08: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t10: Fail, OK # @compile-error
 Language/09_Generics/09_Generics_A01_t11: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A04_t05: Fail, OK # @compile-error
+Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A02_t02: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A02_t03: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A03_t02: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A03_t03: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A04_t02: Fail, OK # @compile-error
+Language/10_Expressions/03_Numbers_A04_t03: Fail, OK # @compile-error
+Language/10_Expressions/04_Booleans_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/04_Booleans_A03_t02: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings_A02_t20: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings_A02_t24: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings_A17_t01: Fail, OK # @compile-error
+Language/10_Expressions/05_Strings_A17_t02: Fail, OK # @compile-error
+Language/10_Expressions/06_Lists_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/06_Lists_A04_t01: Fail, OK # @compile-error
+Language/10_Expressions/07_Maps_A02_t02: Fail, OK # @compile-error
+Language/10_Expressions/07_Maps_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/1_New_A05_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A07_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A02_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A02_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A03_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A04_t01: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A04_t02: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A04_t03: Fail, OK # @compile-error
+Language/10_Expressions/10_Instance_Creation_A04_t04: Fail, OK # @compile-error
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t02: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t02: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t03: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t02: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t03: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t02: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t03: Fail, OK # @compile-error
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A05_t05: Fail, OK # @compile-error
+Language/10_Expressions/17_Conditional_A01_t14: Fail, OK # @compile-error
+Language/10_Expressions/17_Conditional_A01_t15: Fail, OK # @compile-error
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t14: Fail, OK # @compile-error
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t15: Fail, OK # @compile-error
+Language/10_Expressions/19_Bitwise_Expressions_A01_t16: Fail, OK # @compile-error
+Language/10_Expressions/19_Bitwise_Expressions_A01_t17: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t15: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t16: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t17: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t18: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t23: Fail, OK # @compile-error
+Language/10_Expressions/20_Equality_A01_t24: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail, OK # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail, OK # @compile-error
+Language/10_Expressions/22_Shift_A01_t13: Fail, OK # @compile-error
+Language/10_Expressions/22_Shift_A01_t14: Fail, OK # @compile-error
+Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail, OK # @compile-error
+Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail, OK # @compile-error
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail, OK # @compile-error
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail, OK # @compile-error
+Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail, OK # @compile-error
+Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail, OK # @compile-error
+Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail, OK # @compile-error
+Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail, OK # @compile-error
+Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail, OK # @compile-error
+Language/10_Expressions/27_Assignable_Expressions_A01_t06: Fail, OK # @compile-error
+Language/10_Expressions/27_Assignable_Expressions_A01_t07: Fail, OK # @compile-error
+Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail, OK # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail, OK # @compile-error
+Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
+Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
+Language/11_Statements/09_Try_A01_t14: Fail, OK # @compile-error
+Language/11_Statements/09_Try_A01_t18: Fail, OK # @compile-error
+Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
+Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
+Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
+Language/11_Statements/11_Labels_A03_t05: Fail, OK # @compile-error
+Language/11_Statements/12_Break_A02_t03: Fail, OK # @compile-error
+Language/11_Statements/12_Break_A02_t04: Fail, OK # @compile-error
+Language/11_Statements/13_Continue_A02_t07: Fail, OK # @compile-error
+Language/11_Statements/13_Continue_A02_t16: Fail, OK # @compile-error
+Language/11_Statements/15_Assert_A01_t05: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
 Language/13_Types/7_Type_Void_A01_t09: Fail, OK # @compile-error
