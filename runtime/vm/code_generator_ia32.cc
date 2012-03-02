@@ -973,10 +973,7 @@ void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
   }
   __ popl(EDX);  // Instance.
   __ StoreIntoObject(EDX, FieldAddress(EDX, node->field().Offset()), EAX);
-  if (IsResultNeeded(node)) {
-    // The result is the input value.
-    __ pushl(EAX);
-  }
+  ASSERT(!IsResultNeeded(node));
 }
 
 

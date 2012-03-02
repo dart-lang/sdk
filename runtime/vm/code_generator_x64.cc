@@ -961,10 +961,7 @@ void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
   }
   __ popq(R10);  // Instance.
   __ StoreIntoObject(R10, FieldAddress(R10, node->field().Offset()), RAX);
-  if (IsResultNeeded(node)) {
-    // The result is the input value.
-    __ pushq(RAX);
-  }
+  ASSERT(!IsResultNeeded(node));
 }
 
 

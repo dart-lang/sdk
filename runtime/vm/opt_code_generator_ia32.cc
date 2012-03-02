@@ -565,7 +565,7 @@ void OptimizingCodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
 
 
 void OptimizingCodeGenerator::HandleResult(AstNode* node, Register result_reg) {
-  if (CodeGenerator::IsResultNeeded(node)) {
+  if (IsResultNeeded(node)) {
     if (IsResultInEaxRequested(node)) {
       if (result_reg != EAX) {
         __ movl(EAX, result_reg);
@@ -873,7 +873,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
   ASSERT(node->kind() == Token::kSUB);
   __ DoubleNegate(XMM0);
   __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM0);
-  if (CodeGenerator::IsResultNeeded(node)) {
+  if (IsResultNeeded(node)) {
     if (node->info() != NULL) {
       node->info()->set_is_temp(using_temp);
       node->info()->set_is_class(&double_class_);
@@ -1246,7 +1246,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
       default: UNREACHABLE();
     }
     __ movsd(FieldAddress(result_register, Double::value_offset()), XMM0);
-    if (CodeGenerator::IsResultNeeded(node)) {
+    if (IsResultNeeded(node)) {
       if (node->info() != NULL) {
         node->info()->set_is_temp(using_temp);
         node->info()->set_is_class(&double_class_);
@@ -2006,7 +2006,7 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
   CodeGenInfo left_info(node->left());
   CodeGenInfo right_info(node->right());
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
-  if (!CodeGenerator::IsResultNeeded(node)) {
+  if (!IsResultNeeded(node)) {
     return;
   }
   const Immediate raw_null =
@@ -2099,7 +2099,7 @@ bool OptimizingCodeGenerator::GenerateSmiComparison(ComparisonNode* node) {
   CodeGenInfo left_info(node->left());
   CodeGenInfo right_info(node->right());
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
-  if (!CodeGenerator::IsResultNeeded(node)) {
+  if (!IsResultNeeded(node)) {
     return true;
   }
   if (left_info.IsClass(smi_class_) && right_info.IsClass(smi_class_)) {
@@ -2205,7 +2205,7 @@ bool OptimizingCodeGenerator::GenerateEqualityComparison(ComparisonNode* node) {
 
   // All targets are Object.==, i.e., '==='. Smi is not among the classes.
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
-  if (!CodeGenerator::IsResultNeeded(node)) {
+  if (!IsResultNeeded(node)) {
     return true;
   }
   Label compare;
@@ -2299,12 +2299,12 @@ bool OptimizingCodeGenerator::GenerateDoubleComparison(ComparisonNode* node) {
     __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
     __ j(true_condition, &is_true, Assembler::kNearJump);
     __ Bind(&is_false);
-    if (CodeGenerator::IsResultNeeded(node)) {
+    if (IsResultNeeded(node)) {
       __ PushObject(bool_false);
     }
     __ jmp(&done);
     __ Bind(&is_true);
-    if (CodeGenerator::IsResultNeeded(node)) {
+    if (IsResultNeeded(node)) {
       __ PushObject(bool_true);
     }
     __ Bind(&done);
@@ -2328,7 +2328,7 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
       VisitLoadTwo(node->left(), node->right(), EAX, EDX);
       __ cmpl(EAX, EDX);
     }
-    if (!CodeGenerator::IsResultNeeded(node)) {
+    if (!IsResultNeeded(node)) {
       return;
     }
     Condition condition = node->kind() == Token::kEQ_STRICT ? EQUAL : NOT_EQUAL;
@@ -3097,8 +3097,7 @@ void OptimizingCodeGenerator::VisitStoreInstanceFieldNode(
   }
   VisitLoadTwo(node->instance(), node->value(), EDX, EAX);
   __ StoreIntoObject(EDX, FieldAddress(EDX, node->field().Offset()), EAX);
-  // The result is the input value.
-  HandleResult(node, EAX);
+  ASSERT(!IsResultNeeded(node));
 }
 
 
