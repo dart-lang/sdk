@@ -646,7 +646,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Message::Priority priority = Message::kNormalPriority;
   do {
     DARTSCOPE(isolate);
-    message = isolate->message_handler()->DequeueNoWait();
+    message = isolate->message_handler()->queue()->DequeueNoWait();
     if (message == NULL) {
       break;
     }

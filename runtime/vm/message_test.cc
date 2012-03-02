@@ -15,25 +15,17 @@ class MessageQueueTestPeer {
   explicit MessageQueueTestPeer(MessageQueue* queue) : queue_(queue) {}
 
   bool HasMessage() const {
+    // We don't really need to grab the monitor during the unit test,
+    // but it doesn't hurt.
+    queue_->monitor_.Enter();
     bool result = (queue_->head_[Message::kNormalPriority] != NULL ||
                    queue_->head_[Message::kOOBPriority] != NULL);
+    queue_->monitor_.Exit();
     return result;
   }
 
  private:
   MessageQueue* queue_;
-};
-
-
-class MessageHandlerTestPeer {
- public:
-  explicit MessageHandlerTestPeer(MessageHandler* handler)
-      : handler_(handler) {}
-
-  MessageQueue* queue() { return handler_->queue_; }
-
- private:
-  MessageHandler* handler_;
 };
 
 
@@ -62,12 +54,12 @@ TEST_CASE(MessageQueue_BasicOperations) {
   EXPECT(queue_peer.HasMessage());
 
   // Remove two messages.
-  Message* msg = queue.Dequeue();
+  Message* msg = queue.Dequeue(0);
   EXPECT(msg != NULL);
   EXPECT_STREQ("msg1", reinterpret_cast<char*>(msg->data()));
   EXPECT(queue_peer.HasMessage());
 
-  msg = queue.Dequeue();
+  msg = queue.Dequeue(0);
   EXPECT(msg != NULL);
   EXPECT_STREQ("msg2", reinterpret_cast<char*>(msg->data()));
   EXPECT(!queue_peer.HasMessage());
@@ -97,12 +89,12 @@ TEST_CASE(MessageQueue_Priorities) {
   EXPECT(queue_peer.HasMessage());
 
   // The higher priority message is delivered first.
-  Message* msg = queue.Dequeue();
+  Message* msg = queue.Dequeue(0);
   EXPECT(msg != NULL);
   EXPECT_STREQ("msg2", reinterpret_cast<char*>(msg->data()));
   EXPECT(queue_peer.HasMessage());
 
-  msg = queue.Dequeue();
+  msg = queue.Dequeue(0);
   EXPECT(msg != NULL);
   EXPECT_STREQ("msg1", reinterpret_cast<char*>(msg->data()));
   EXPECT(!queue_peer.HasMessage());
@@ -114,18 +106,17 @@ TEST_CASE(MessageQueue_Priorities) {
 
 // A thread which receives an expected sequence of messages.
 static Monitor* sync = NULL;
-static MessageHandler* shared_handler = NULL;
+static MessageQueue* shared_queue = NULL;
 void MessageReceiver_start(uword unused) {
   // We only need an isolate here because the MonitorLocker in the
   // MessageQueue expects it, we don't need to initialize the isolate
   // as it does not run any dart code.
   Dart::CreateIsolate(NULL);
 
-  // Create a message handler and share it.
-  MessageHandler* handler = new MessageHandler();
-  MessageHandlerTestPeer handler_peer(handler);
-  MessageQueueTestPeer queue_peer(handler_peer.queue());
-  shared_handler = handler;
+  // Create a message queue and share it.
+  MessageQueue* queue = new MessageQueue();
+  MessageQueueTestPeer peer(queue);
+  shared_queue = queue;
 
   // Tell the other thread that the shared queue is ready.
   {
@@ -134,13 +125,13 @@ void MessageReceiver_start(uword unused) {
   }
 
   // Wait for the other thread to fill the queue a bit.
-  while (!queue_peer.HasMessage()) {
+  while (!peer.HasMessage()) {
     MonitorLocker ml(sync);
     ml.Wait(5);
   }
 
   for (int i = 0; i < 3; i++) {
-    Message* msg = handler->Dequeue(0);
+    Message* msg = queue->Dequeue(0);
     EXPECT(msg != NULL);
     EXPECT_EQ(i + 10, msg->dest_port());
     EXPECT_EQ(i + 100, msg->reply_port());
@@ -148,31 +139,31 @@ void MessageReceiver_start(uword unused) {
     delete msg;
   }
   for (int i = 0; i < 3; i++) {
-    Message* msg = handler->Dequeue(0);
+    Message* msg = queue->Dequeue(0);
     EXPECT(msg != NULL);
     EXPECT_EQ(i + 20, msg->dest_port());
     EXPECT_EQ(i + 200, msg->reply_port());
     EXPECT_EQ(i + 2000, *(reinterpret_cast<int*>(msg->data())));
     delete msg;
   }
-  shared_handler = NULL;
-  delete handler;
+  shared_queue = NULL;
+  delete queue;
   Dart::ShutdownIsolate();
 }
 
 
-TEST_CASE(MessageHandler_WaitNotify) {
+TEST_CASE(MessageQueue_WaitNotify) {
   sync = new Monitor();
 
   int result = Thread::Start(MessageReceiver_start, 0);
   EXPECT_EQ(0, result);
 
-  // Wait for the shared handler to be created.
-  while (shared_handler == NULL) {
+  // Wait for the shared queue to be created.
+  while (shared_queue == NULL) {
     MonitorLocker ml(sync);
     ml.Wait(5);
   }
-  ASSERT(shared_handler != NULL);
+  ASSERT(shared_queue != NULL);
 
   // Pile up three messages before the other thread runs.
   for (int i = 0; i < 3; i++) {
@@ -181,7 +172,7 @@ TEST_CASE(MessageHandler_WaitNotify) {
     Message* msg =
         new Message(i + 10, i + 100, reinterpret_cast<uint8_t*>(data),
                     Message::kNormalPriority);
-    shared_handler->PostMessage(msg);
+    shared_queue->Enqueue(msg);
   }
 
   // Wake the other thread and have it start consuming messages.
@@ -199,7 +190,7 @@ TEST_CASE(MessageHandler_WaitNotify) {
     Message* msg =
         new Message(i + 20, i + 200, reinterpret_cast<uint8_t*>(data),
                     Message::kNormalPriority);
-    shared_handler->PostMessage(msg);
+    shared_queue->Enqueue(msg);
   }
 
   sync = NULL;
@@ -251,7 +242,7 @@ TEST_CASE(MessageQueue_Flush) {
 
   // One message is left in the queue.
   EXPECT(queue_peer.HasMessage());
-  Message* msg = queue.Dequeue();
+  Message* msg = queue.Dequeue(0);
   EXPECT(msg != NULL);
   EXPECT_STREQ("msg2", reinterpret_cast<char*>(msg->data()));
 

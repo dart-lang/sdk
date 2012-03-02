@@ -54,46 +54,21 @@ void MessageHandler::PostMessage(Message* message) {
   }
 
   Message::Priority priority = message->priority();
-  {
-    MonitorLocker ml(&monitor_);
-    queue_->Enqueue(message);
-    monitor_.Notify();
-    message = NULL;  // Do not access message.  May have been deleted.
-  }
+  queue()->Enqueue(message);
+  message = NULL;  // Do not access message.  May have been deleted.
 
   // Invoke any custom message notification.
   MessageNotify(priority);
 }
 
 
-Message* MessageHandler::DequeueNoWait() {
-  MonitorLocker ml(&monitor_);
-  return queue_->Dequeue();
-}
-
-
-Message* MessageHandler::Dequeue(int64_t millis) {
-  ASSERT(millis >= 0);
-  MonitorLocker ml(&monitor_);
-  Message* result = queue_->Dequeue();
-  if (result == NULL) {
-    // No message available at any priority.
-    monitor_.Wait(millis);
-    result = queue_->Dequeue();
-  }
-  return result;
-}
-
-
 void MessageHandler::ClosePort(Dart_Port port) {
-  MonitorLocker ml(&monitor_);
-  queue_->Flush(port);
+  queue()->Flush(port);
 }
 
 
 void MessageHandler::CloseAllPorts() {
-  MonitorLocker ml(&monitor_);
-  queue_->FlushAll();
+  queue()->FlushAll();
 }
 
 
@@ -116,6 +91,7 @@ MessageQueue::~MessageQueue() {
 
 
 void MessageQueue::Enqueue(Message* msg) {
+  MonitorLocker ml(&monitor_);
   Message::Priority p = msg->priority();
   // Make sure messages are not reused.
   ASSERT(msg->next_ == NULL);
@@ -123,6 +99,9 @@ void MessageQueue::Enqueue(Message* msg) {
     // Only element in the queue.
     head_[p] = msg;
     tail_[p] = msg;
+
+    // We only need to notify if the queue was empty.
+    monitor_.Notify();
   } else {
     ASSERT(tail_[p] != NULL);
     // Append at the tail.
@@ -131,8 +110,12 @@ void MessageQueue::Enqueue(Message* msg) {
   }
 }
 
+Message* MessageQueue::DequeueNoWait() {
+  MonitorLocker ml(&monitor_);
+  return DequeueNoWaitHoldsLock();
+}
 
-Message* MessageQueue::Dequeue() {
+Message* MessageQueue::DequeueNoWaitHoldsLock() {
   // Look for the highest priority available message.
   for (int p = Message::kNumPriorities-1; p >= Message::kFirstPriority; p--) {
     Message* result = head_[p];
@@ -152,7 +135,21 @@ Message* MessageQueue::Dequeue() {
 }
 
 
+Message* MessageQueue::Dequeue(int64_t millis) {
+  ASSERT(millis >= 0);
+  MonitorLocker ml(&monitor_);
+  Message* result = DequeueNoWaitHoldsLock();
+  if (result == NULL) {
+    // No message available at any priority.
+    monitor_.Wait(millis);
+    result = DequeueNoWaitHoldsLock();
+  }
+  return result;
+}
+
+
 void MessageQueue::Flush(Dart_Port port) {
+  MonitorLocker ml(&monitor_);
   for (int p = Message::kFirstPriority; p < Message::kNumPriorities; p++) {
     Message* cur = head_[p];
     Message* prev = NULL;
@@ -179,6 +176,7 @@ void MessageQueue::Flush(Dart_Port port) {
 
 
 void MessageQueue::FlushAll() {
+  MonitorLocker ml(&monitor_);
   for (int p = Message::kFirstPriority; p < Message::kNumPriorities; p++) {
     Message* cur = head_[p];
     head_[p] = NULL;

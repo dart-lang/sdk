@@ -394,7 +394,7 @@ RawError* Isolate::StandardRunLoop() {
     Zone zone(this);
     HandleScope handle_scope(this);
 
-    Message* message = message_handler()->Dequeue(0);
+    Message* message = message_handler()->queue()->Dequeue(0);
     if (message != NULL) {
       if (message->priority() >= Message::kOOBPriority) {
         // TODO(turnidge): Out of band messages will not go through the

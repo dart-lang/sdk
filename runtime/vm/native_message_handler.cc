@@ -49,7 +49,7 @@ static void RunWorker(uword parameter) {
 #endif
 
   while (handler->HasLivePorts()) {
-    Message* message = handler->Dequeue(0);
+    Message* message = handler->queue()->Dequeue(0);
     if (message != NULL) {
       if (message->priority() >= Message::kOOBPriority) {
         // TODO(turnidge): Out of band messages will not go through

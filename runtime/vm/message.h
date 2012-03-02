@@ -67,9 +67,16 @@ class MessageQueue {
 
   void Enqueue(Message* msg);
 
-  // Gets the next message from the message queue if available.
-  // Returns NULL if no message is available.
-  Message* Dequeue();
+  // Gets the next message from the message queue, possibly blocking
+  // if no message is available. 'millis' is a timeout in
+  // milliseconds. If 'millis' is 0, then this means to block
+  // indefinitely. May block if no message is available. May return
+  // NULL even if 'millis' is 0 due to spurious wakeups.
+  Message* Dequeue(int64_t millis);
+
+  // Gets the next message from the message queue if available.  Will
+  // not block.
+  Message* DequeueNoWait();
 
   void Flush(Dart_Port port);
   void FlushAll();
@@ -77,6 +84,9 @@ class MessageQueue {
  private:
   friend class MessageQueueTestPeer;
 
+  Message* DequeueNoWaitHoldsLock();
+
+  Monitor monitor_;
   Message* head_[Message::kNumPriorities];
   Message* tail_[Message::kNumPriorities];
 
@@ -86,11 +96,12 @@ class MessageQueue {
 // A MessageHandler is an entity capable of accepting messages.
 class MessageHandler {
  protected:
+  MessageHandler();
+
   // Allows subclasses to provide custom message notification.
   virtual void MessageNotify(Message::Priority priority);
 
  public:
-  MessageHandler();
   virtual ~MessageHandler();
 
   // Allow subclasses to provide a handler name.
@@ -108,17 +119,6 @@ class MessageHandler {
   void PostMessage(Message* message);
   void ClosePort(Dart_Port port);
   void CloseAllPorts();
-
-  // Gets the next message from the message queue, possibly blocking
-  // if no message is available. 'millis' is a timeout in
-  // milliseconds. If 'millis' is 0, then this means to block
-  // indefinitely. May block if no message is available. May return
-  // NULL even if 'millis' is 0 due to spurious wakeups.
-  Message* Dequeue(int64_t millis);
-
-  // Gets the next message from the message queue if available.  Will
-  // not block.
-  Message* DequeueNoWait();
 
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > 0; }
@@ -140,10 +140,9 @@ class MessageHandler {
   // This is used to delete handlers when their last live port is closed.
   virtual bool OwnedByPortMap() const { return false; }
 
- private:
-  friend class MessageHandlerTestPeer;
+  MessageQueue* queue() const { return queue_; }
 
-  Monitor monitor_;
+ private:
   intptr_t live_ports_;
   MessageQueue* queue_;
 };
