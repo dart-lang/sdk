@@ -9,7 +9,6 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-#library("ProcessStderrTest");
 #import("dart:io");
 #source("ProcessTestUtil.dart");
 
@@ -19,7 +18,7 @@ void test(Process process, int expectedExitCode) {
     List<int> data = "ABCDEFGHI\n".charCodes();
     final int dataSize = data.length;
 
-    InputStream input = process.stderr;
+    InputStream input = process.stdout;
     OutputStream output = process.stdin;
 
     int received = 0;
@@ -59,14 +58,14 @@ void test(Process process, int expectedExitCode) {
 main() {
   // Run the test using the process_test binary.
   test(new Process.start(getProcessTestFileName(),
-                         const ["1", "1", "99", "0"]), 99);
+                         const ["0", "1", "99", "0"]), 99);
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
-  var scriptFile = new File("tests/standalone/src/ProcessStdIOScript.dart");
+  var scriptFile = new File("tests/standalone/src/io/ProcessStdIOScript.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile = new File("../tests/standalone/src/ProcessStdIOScript.dart");
+    scriptFile = new File("../tests/standalone/src/io/ProcessStdIOScript.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(new Process.start(getDartFileName(), [scriptFile.name, "1"]), 0);
+  test(new Process.start(getDartFileName(), [scriptFile.name, "0"]), 0);
 }

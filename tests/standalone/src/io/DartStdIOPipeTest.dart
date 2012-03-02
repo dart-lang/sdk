@@ -84,14 +84,14 @@ main() {
 
   // Get the shell script for testing the Standalone Dart VM with
   // piping and redirections of stdio.
-  var shellScript = new File("tests/standalone/src/DartStdIOPipeTest.sh");
+  var shellScript = new File("tests/standalone/src/io/DartStdIOPipeTest.sh");
   if (!shellScript.existsSync()) {
-    shellScript = new File("../tests/standalone/src/DartStdIOPipeTest.sh");
+    shellScript = new File("../tests/standalone/src/io/DartStdIOPipeTest.sh");
   }
   // Get the Dart script file which echoes stdin to stdout or stderr or both.
-  var scriptFile = new File("tests/standalone/src/ProcessStdIOScript.dart");
+  var scriptFile = new File("tests/standalone/src/io/ProcessStdIOScript.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile = new File("../tests/standalone/src/ProcessStdIOScript.dart");
+    scriptFile = new File("../tests/standalone/src/io/ProcessStdIOScript.dart");
   }
 
   // Run the shell script.

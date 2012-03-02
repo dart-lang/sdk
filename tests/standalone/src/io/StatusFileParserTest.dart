@@ -5,7 +5,7 @@
 #library("StatusFileParserTest");
 
 #import("dart:io");
-#import("../../../tools/testing/dart/status_file_parser.dart");
+#import("../../../../tools/testing/dart/status_file_parser.dart");
 
 
 void main() {

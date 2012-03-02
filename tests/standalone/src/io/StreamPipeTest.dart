@@ -78,7 +78,7 @@ class PipeServerGame {
 
     void connectHandler() {
       String srcFileName =
-          getDataFilename("tests/standalone/src/readline_test1.dat");
+          getDataFilename("tests/standalone/src/io/readline_test1.dat");
 
       SocketOutputStream socketOutput = _socket.outputStream;
       InputStream fileInput = new File(srcFileName).openInputStream();
@@ -167,7 +167,7 @@ testFileToFilePipe1() {
   donePort.receive((message, ignore) {});
 
   String srcFileName =
-      getDataFilename("tests/standalone/src/readline_test1.dat");
+      getDataFilename("tests/standalone/src/io/readline_test1.dat");
   var srcStream = new File(srcFileName).openInputStream();
 
   var tempDir = new Directory('');
@@ -197,7 +197,7 @@ testFileToFilePipe2() {
   donePort.receive((message, ignore) {});
 
   String srcFileName =
-      getDataFilename("tests/standalone/src/readline_test1.dat");
+      getDataFilename("tests/standalone/src/io/readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openInputStream();
 
@@ -244,7 +244,7 @@ testFileToFilePipe3() {
   donePort.receive((message, ignore) {});
 
   String srcFileName =
-      getDataFilename("tests/standalone/src/readline_test1.dat");
+      getDataFilename("tests/standalone/src/io/readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openInputStream();
 

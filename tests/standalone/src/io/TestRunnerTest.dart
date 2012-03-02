@@ -1,12 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("TestRunnerTest");
-
 #import("dart:io");
-#import("../../../tools/testing/dart/test_runner.dart");
-#import("../../../tools/testing/dart/status_file_parser.dart");
+#import("../../../../tools/testing/dart/test_runner.dart");
+#import("../../../../tools/testing/dart/status_file_parser.dart");
 #source("ProcessTestUtil.dart");
 
 class TestController {
@@ -74,4 +72,3 @@ void main() {
   // Throw must be from body of start() function for this test to work.
   Expect.throws(new RunningProcess(MakeTestCase("PassTest", [SKIP])).start);
 }
-

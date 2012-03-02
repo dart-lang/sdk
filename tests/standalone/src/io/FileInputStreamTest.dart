@@ -12,7 +12,7 @@ String getFilename(String path) =>
     new File(path).existsSync() ? path : '../' + path;
 
 void testStringInputStreamSync() {
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  String fileName = getFilename("tests/standalone/src/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   StringInputStream x = new StringInputStream(file.openInputStream());
@@ -27,7 +27,7 @@ void testStringInputStreamSync() {
 }
 
 void testInputStreamAsync() {
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  String fileName = getFilename("tests/standalone/src/io/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".charCodes();
   InputStream x = (new File(fileName)).openInputStream();
@@ -43,7 +43,7 @@ void testInputStreamAsync() {
 
 
 void testStringInputStreamAsync(String name, int length) {
-  String fileName = getFilename("tests/standalone/src/$name");
+  String fileName = getFilename("tests/standalone/src/io/$name");
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
@@ -68,7 +68,7 @@ void testChunkedInputStream() {
   ReceivePort done = new ReceivePort.singleShot();
   done.receive((message, replyTo) {});
 
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  String fileName = getFilename("tests/standalone/src/io/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")
   File file = new File(fileName);
   ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());

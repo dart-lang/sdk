@@ -1,8 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Stress test isolate generation.
-// DartOptions=tests/standalone/src/OptionsTest.dart 10 OptionsTest 20
+// DartOptions=tests/standalone/src/io/OptionsTest.dart 10 OptionsTest 20
 
 main() {
   var opts = new Options();
@@ -13,7 +13,7 @@ main() {
   Expect.equals("OptionsTest", opts.arguments[1]);
   Expect.equals(20, Math.parseInt(opts.arguments[2]));
   Expect.isTrue(opts.script.replaceAll('\\', '/').
-                endsWith('tests/standalone/src/OptionsTest.dart'));
+                endsWith('tests/standalone/src/io/OptionsTest.dart'));
 
   // Now add an additional argument.
   opts.arguments.add("Fourth");

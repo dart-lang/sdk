@@ -888,7 +888,7 @@ class FileTest {
     f.readAsText('UTF-8', (text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
-      var name = getDataFilename("tests/standalone/src/read_as_text.dat");
+      var name = getDataFilename("tests/standalone/src/io/read_as_text.dat");
       var f = new File(name);
       f.onError = (e) => Expect.fail("No errors expected");
       f.readAsText('UTF-8', (text) {
@@ -918,7 +918,7 @@ class FileTest {
     var text = new File(name).readAsTextSync();
     Expect.isTrue(text.endsWith("42 bytes."));
     Expect.equals(42, text.length);
-    name = getDataFilename("tests/standalone/src/read_as_text.dat");
+    name = getDataFilename("tests/standalone/src/io/read_as_text.dat");
     text = new File(name).readAsTextSync();
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
@@ -955,7 +955,7 @@ class FileTest {
     var line = lines[0];
     Expect.isTrue(line.endsWith("42 bytes."));
     Expect.equals(42, line.length);
-    name = getDataFilename("tests/standalone/src/readline_test1.dat");
+    name = getDataFilename("tests/standalone/src/io/readline_test1.dat");
     lines = new File(name).readAsLinesSync();
     Expect.equals(10, lines.length);
   }
