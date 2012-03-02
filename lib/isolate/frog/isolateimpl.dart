@@ -11,17 +11,17 @@
  * been forced to implement more code (including the top-level event loop) in
  * JavaScript itself.
  */
-GlobalState get globalState() native "return \$globalState;";
-set globalState(GlobalState val) native "\$globalState = val;";
+_GlobalState get _globalState() native "return \$globalState;";
+set _globalState(_GlobalState val) native "\$globalState = val;";
 
-void fillStatics(context) native @"""
+void _fillStatics(context) native @"""
   $globals = context.isolateStatics;
   $static_init();
 """;
 
 /** Global state associated with the current worker. See [globalState]. */
 // TODO(sigmund): split in multiple classes: global, thread, main-worker states?
-class GlobalState {
+class _GlobalState {
 
   /** Next available isolate id. */
   int nextIsolateId = 0;
@@ -36,13 +36,13 @@ class GlobalState {
   int nextWorkerId = 1;
 
   /** Context for the currently running [Isolate]. */
-  IsolateContext currentContext = null;
+  _IsolateContext currentContext = null;
 
   /** Context for the root [Isolate] that first run in this worker. */
-  IsolateContext rootContext = null;
+  _IsolateContext rootContext = null;
 
   /** The top-level event loop. */
-  EventLoop topEventLoop;
+  _EventLoop topEventLoop;
 
   /** Whether this program is running in a background worker. */
   bool isWorker;
@@ -71,19 +71,19 @@ class GlobalState {
    * ports are alive.  Normally no open receive-ports means that the isolate is
    * dead, but DOM callbacks could resurrect it.
    */
-  Map<int, IsolateContext> isolates;
+  Map<int, _IsolateContext> isolates;
 
   /** Reference to the main worker. */
-  MainWorker mainWorker;
+  _MainWorker mainWorker;
 
   /** Registry of active workers. Only used in the main worker. */
   Map<int, Dynamic> workers;
 
-  GlobalState() {
-    topEventLoop = new EventLoop();
+  _GlobalState() {
+    topEventLoop = new _EventLoop();
     isolates = {};
     workers = {};
-    mainWorker = new MainWorker();
+    mainWorker = new _MainWorker();
     _nativeInit();
   }
 
@@ -92,10 +92,8 @@ class GlobalState {
     this.inWindow = typeof(window) !== 'undefined';
     this.supportsWorkers = this.isWorker ||
         ((typeof $globalThis['Worker']) != 'undefined');
-
-    // if workers are supported, treat this as a main worker:
-    if (this.supportsWorkers) {
-      $globalThis.onmessage = function(e) {
+    if (this.isWorker) {
+      $globalThis.onmessage = function (e) {
         _IsolateNatives._processWorkerMessage(this.mainWorker, e);
       };
     }
@@ -124,7 +122,7 @@ class GlobalState {
 }
 
 /** Context information tracked for each isolate. */
-class IsolateContext {
+class _IsolateContext {
   /** Current isolate id. */
   int id;
 
@@ -134,8 +132,8 @@ class IsolateContext {
   /** Holds isolate globals (statics and top-level properties). */
   var isolateStatics; // native object containing all globals of an isolate.
 
-  IsolateContext() {
-    id = globalState.nextIsolateId++;
+  _IsolateContext() {
+    id = _globalState.nextIsolateId++;
     ports = {};
     initGlobals();
   }
@@ -148,14 +146,14 @@ class IsolateContext {
    * is called from JavaScript (see $wrap_call in corejs.dart).
    */
   void eval(Function code) {
-    var old = globalState.currentContext;
-    globalState.currentContext = this;
+    var old = _globalState.currentContext;
+    _globalState.currentContext = this;
     this._setGlobals();
     var result = null;
     try {
       result = code();
     } finally {
-      globalState.currentContext = old;
+      _globalState.currentContext = old;
       if (old != null) old._setGlobals();
     }
     return result;
@@ -172,30 +170,30 @@ class IsolateContext {
       throw new Exception("Registry: ports must be registered only once.");
     }
     ports[portId] = port;
-    globalState.isolates[id] = this; // indicate this isolate is active
+    _globalState.isolates[id] = this; // indicate this isolate is active
   }
 
   /** Unregister a port on this isolate. */
   void unregister(int portId) {
     ports.remove(portId);
     if (ports.isEmpty()) {
-      globalState.isolates.remove(id); // indicate this isolate is not active
+      _globalState.isolates.remove(id); // indicate this isolate is not active
     }
   }
 }
 
 
 /** Represent the event loop on a javascript thread (DOM or worker). */
-class EventLoop {
-  Queue<IsolateEvent> events;
+class _EventLoop {
+  Queue<_IsolateEvent> events;
 
-  EventLoop() : events = new Queue<IsolateEvent>();
+  _EventLoop() : events = new Queue<_IsolateEvent>();
 
   void enqueue(isolate, fn, msg) {
-    events.addLast(new IsolateEvent(isolate, fn, msg));
+    events.addLast(new _IsolateEvent(isolate, fn, msg));
   }
 
-  IsolateEvent dequeue() {
+  _IsolateEvent dequeue() {
     if (events.isEmpty()) return null;
     return events.removeFirst();
   }
@@ -204,7 +202,7 @@ class EventLoop {
   bool runIteration() {
     final event = dequeue();
     if (event == null) {
-      globalState.closeWorker();
+      _globalState.closeWorker();
       return false;
     }
     event.process();
@@ -241,13 +239,13 @@ class EventLoop {
    * this is called from JavaScript (see $wrap_call in corejs.dart).
    */
   void run() {
-    if (!globalState.isWorker) {
+    if (!_globalState.isWorker) {
       _runHelper();
     } else {
       try {
         _runHelper();
       } catch(var e, var trace) {
-        globalState.mainWorker.postMessage(_serializeMessage(
+        _globalState.mainWorker.postMessage(_serializeMessage(
             {'command': 'error', 'msg': '$e\n$trace' }));
       }
     }
@@ -255,12 +253,12 @@ class EventLoop {
 }
 
 /** An event in the top-level event queue. */
-class IsolateEvent {
-  IsolateContext isolate;
+class _IsolateEvent {
+  _IsolateContext isolate;
   Function fn;
   String message;
 
-  IsolateEvent(this.isolate, this.fn, this.message);
+  _IsolateEvent(this.isolate, this.fn, this.message);
 
   void process() {
     isolate.eval(fn);
@@ -269,10 +267,9 @@ class IsolateEvent {
 
 
 /** Default worker. */
-class MainWorker {
+class _MainWorker {
   int id = 0;
-  void postMessage(msg) native "return \$globalThis.postMessage(msg);";
-  void set onmessage(f) native "\$globalThis.onmessage = f;";
+  void postMessage(msg) native @"$globalThis.postMessage(msg);";
   void terminate() {}
 }
 
@@ -304,7 +301,7 @@ class _IsolateNatives {
 
     // TODO(floitsch): throw exception if isolate's class doesn't have a
     // default constructor.
-    if (globalState.useWorkers && !isLight) {
+    if (_globalState.useWorkers && !isLight) {
       _startWorker(isolate, port.toSendPort());
     } else {
       _startNonWorker(isolate, port.toSendPort());
@@ -315,8 +312,8 @@ class _IsolateNatives {
 
   static SendPort _startWorker(Isolate runnable, SendPort replyPort) {
     var factoryName = _getJSConstructorName(runnable);
-    if (globalState.isWorker) {
-      globalState.mainWorker.postMessage(_serializeMessage({
+    if (_globalState.isWorker) {
+      _globalState.mainWorker.postMessage(_serializeMessage({
           'command': 'spawn-worker',
           'factoryName': factoryName,
           'replyPort': _serializeMessage(replyPort)}));
@@ -368,10 +365,10 @@ class _IsolateNatives {
   static void _spawnWorker(factoryName, serializedReplyPort) {
     final worker = _newWorker(_thisScript);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
-    var workerId = globalState.nextWorkerId++;
+    var workerId = _globalState.nextWorkerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
-    globalState.workers[workerId] = worker;
+    _globalState.workers[workerId] = worker;
     worker.postMessage(_serializeMessage({
       'command': 'start',
       'id': workerId,
@@ -395,24 +392,24 @@ class _IsolateNatives {
     switch (msg['command']) {
       // TODO(sigmund): delete after we migrate to the new API
       case 'start':
-        globalState.currentWorkerId = msg['id'];
+        _globalState.currentWorkerId = msg['id'];
         var runnerObject =
             _allocate(_getJSConstructorFromName(msg['factoryName']));
         var serializedReplyTo = msg['replyTo'];
-        globalState.topEventLoop.enqueue(new IsolateContext(), function() {
+        _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
           var replyTo = _deserializeMessage(serializedReplyTo);
           _startIsolate(runnerObject, replyTo);
         }, 'worker-start');
-        globalState.topEventLoop.run();
+        _globalState.topEventLoop.run();
         break;
       case 'start2':
-        globalState.currentWorkerId = msg['id'];
+        _globalState.currentWorkerId = msg['id'];
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
-        globalState.topEventLoop.enqueue(new IsolateContext(), function() {
+        _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
           _startIsolate2(entryPoint, replyTo);
         }, 'worker-start');
-        globalState.topEventLoop.run();
+        _globalState.topEventLoop.run();
         break;
       // TODO(sigmund): delete after we migrate to the new API
       case 'spawn-worker':
@@ -423,20 +420,20 @@ class _IsolateNatives {
         break;
       case 'message':
         msg['port'].send(msg['msg'], msg['replyTo']);
-        globalState.topEventLoop.run();
+        _globalState.topEventLoop.run();
         break;
       case 'close':
         _log("Closing Worker");
-        globalState.workers.remove(sender.id);
+        _globalState.workers.remove(sender.id);
         sender.terminate();
-        globalState.topEventLoop.run();
+        _globalState.topEventLoop.run();
         break;
       case 'log':
         _log(msg['msg']);
         break;
       case 'print':
-        if (globalState.isWorker) {
-          globalState.mainWorker.postMessage(
+        if (_globalState.isWorker) {
+          _globalState.mainWorker.postMessage(
               _serializeMessage({'command': 'print', 'msg': msg}));
         } else {
           print(msg['msg']);
@@ -449,8 +446,8 @@ class _IsolateNatives {
 
   /** Log a message, forwarding to the main worker if appropriate. */
   static _log(msg) {
-    if (globalState.isWorker) {
-      globalState.mainWorker.postMessage(
+    if (_globalState.isWorker) {
+      _globalState.mainWorker.postMessage(
           _serializeMessage({'command': 'log', 'msg': msg }));
     } else {
       try {
@@ -522,21 +519,21 @@ class _IsolateNatives {
   /** Starts a non-worker isolate. */
   static SendPort _startNonWorker(Isolate runnable, SendPort replyTo) {
     // Spawn a new isolate and create the receive port in it.
-    final spawned = new IsolateContext();
+    final spawned = new _IsolateContext();
 
     // Instead of just running the provided runnable, we create a
     // new cloned instance of it with a fresh state in the spawned
     // isolate. This way, we do not get cross-isolate references
     // through the runnable.
     final ctor = _getJSConstructor(runnable);
-    globalState.topEventLoop.enqueue(spawned, function() {
+    _globalState.topEventLoop.enqueue(spawned, function() {
       _startIsolate(_allocate(ctor), replyTo);
     }, 'nonworker start');
   }
 
   /** Given a ready-to-start runnable, start running it. */
   static void _startIsolate(Isolate isolate, SendPort replyTo) {
-    fillStatics(globalState.currentContext);
+    _fillStatics(_globalState.currentContext);
     ReceivePort port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     isolate._run(port);
@@ -554,19 +551,19 @@ class _IsolateNatives {
 
     SendPort signalReply = port.toSendPort();
 
-    if (globalState.useWorkers && !isLight) {
+    if (_globalState.useWorkers && !isLight) {
       _startWorker2(functionName, uri, signalReply);
     } else {
       _startNonWorker2(functionName, uri, signalReply);
     }
     return new _BufferingSendPort(
-        globalState.currentContext.id, completer.future);
+        _globalState.currentContext.id, completer.future);
   }
 
   static SendPort _startWorker2(
       String functionName, String uri, SendPort replyPort) {
-    if (globalState.isWorker) {
-      globalState.mainWorker.postMessage(_serializeMessage({
+    if (_globalState.isWorker) {
+      _globalState.mainWorker.postMessage(_serializeMessage({
           'command': 'spawn-worker2',
           'functionName': functionName,
           'uri': uri,
@@ -581,14 +578,14 @@ class _IsolateNatives {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) throw new UnsupportedOperationException(
             "Currently spawnUri is not supported without web workers.");
-    globalState.topEventLoop.enqueue(new IsolateContext(), function() {
+    _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate2(func, replyPort);
     }, 'nonworker start');
   }
 
   static void _startIsolate2(Function topLevel, SendPort replyTo) {
-    fillStatics(globalState.currentContext);
+    _fillStatics(_globalState.currentContext);
     _port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     topLevel();
@@ -609,10 +606,10 @@ class _IsolateNatives {
     }
     final worker = _newWorker(uri);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
-    var workerId = globalState.nextWorkerId++;
+    var workerId = _globalState.nextWorkerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
-    globalState.workers[workerId] = worker;
+    _globalState.workers[workerId] = worker;
     worker.postMessage(_serializeMessage({
       'command': 'start2',
       'id': workerId,

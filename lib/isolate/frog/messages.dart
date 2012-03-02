@@ -6,7 +6,7 @@
 
 /** Serialize [message] (or simulate serialization). */
 _serializeMessage(message) {
-  if (globalState.needSerialization) {
+  if (_globalState.needSerialization) {
     return new _Serializer().traverse(message);
   } else {
     return new _Copier().traverse(message);
@@ -15,7 +15,7 @@ _serializeMessage(message) {
 
 /** Deserialize [message] (or simulate deserialization). */
 _deserializeMessage(message) {
-  if (globalState.needSerialization) {
+  if (_globalState.needSerialization) {
     return new _Deserializer().deserialize(message);
   } else {
     // Nothing more to do.
@@ -200,7 +200,7 @@ class _Serializer extends _MessageTraverser {
   }
 
   visitNativeJsSendPort(_NativeJsSendPort port) {
-    return ['sendport', globalState.currentWorkerId,
+    return ['sendport', _globalState.currentWorkerId,
         port._isolateId, port._receivePort._id];
   }
 
@@ -307,8 +307,8 @@ class _Deserializer {
     int receivePortId = x[3];
     // If two isolates are in the same worker, we use NativeJsSendPorts to
     // deliver messages directly without using postMessage.
-    if (workerId == globalState.currentWorkerId) {
-      var isolate = globalState.isolates[isolateId];
+    if (workerId == _globalState.currentWorkerId) {
+      var isolate = _globalState.isolates[isolateId];
       if (isolate == null) return null; // Isolate has been closed.
       var receivePort = isolate.lookup(receivePortId);
       return new _NativeJsSendPort(receivePort, isolateId);
