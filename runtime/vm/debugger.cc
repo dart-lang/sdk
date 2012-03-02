@@ -901,8 +901,8 @@ void Debugger::NotifyCompilation(const Function& func) {
         OS::Print("Enable latent breakpoint for function '%s'\n",
                   String::Handle(func.name()).ToCString());
       }
-      CodeBreakpoint* cbpt = MakeCodeBreakpoint(bpt);
-      bpt->Enable();
+      MakeCodeBreakpoint(bpt);
+      bpt->Enable();  // Enables the code breakpoint as well.
     }
     bpt = bpt->next();
   }
