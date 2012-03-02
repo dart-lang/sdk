@@ -25,6 +25,7 @@ class LocalVariable;
 // | StaticCall <StaticCallNode> <Value> ...
 // | LoadLocal <LocalVariable>
 // | StoreLocal <LocalVariable> <Value>
+// | StoreIndexed <Value> <Value> <Value> <Value>
 // | StrictCompare <Token::kind> <Value> <Value>
 // | NativeCall <NativeBodyNode>
 //
@@ -36,7 +37,8 @@ class LocalVariable;
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
   M(Temp, TempVal)                                                             \
-  M(Constant, ConstantVal)
+  M(Constant, ConstantVal)                                                     \
+
 
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
@@ -49,6 +51,8 @@ class LocalVariable;
   M(StoreLocal, StoreLocalComp)                                                \
   M(StrictCompare, StrictCompareComp)                                          \
   M(NativeCall, NativeCallComp)                                                \
+  M(StoreIndexed, StoreIndexedComp)                                            \
+  M(InstanceSetter, InstanceSetterComp)                                        \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -278,6 +282,80 @@ class NativeCallComp : public Computation {
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallComp);
 };
+
+
+// Not simply an InstanceCall because it has somewhat more complicated
+// semantics: the value operand is preserved in a placeholder (the first
+// operand is a preallocated slot that can be used).
+class StoreIndexedComp : public Computation {
+ public:
+  StoreIndexedComp(StoreIndexedNode* node,
+                   Value* placeholder,
+                   Value* array,
+                   Value* index,
+                   Value* value)
+      : ast_node_(*node),
+        placeholder_(placeholder),
+        array_(array),
+        index_(index),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(StoreIndexed)
+
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  Value* placeholder() const { return placeholder_; }
+  Value* array() const { return array_; }
+  Value* index() const { return index_; }
+  Value* value() const { return value_; }
+
+ private:
+  const StoreIndexedNode& ast_node_;
+  Value* placeholder_;
+  Value* array_;
+  Value* index_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
+};
+
+
+// Not simply an InstanceCall because it has somewhat more complicated
+// semantics: the value operand is preserved in a placeholder (the first
+// operand is a preallocate slot that can be used).
+class InstanceSetterComp : public Computation {
+ public:
+  InstanceSetterComp(InstanceSetterNode* node,
+                     Value* placeholder,
+                     Value* receiver,
+                     Value* value)
+      : ast_node_(*node),
+        placeholder_(placeholder),
+        receiver_(receiver),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(InstanceSetter)
+
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const String& field_name() const { return ast_node_.field_name(); }
+
+  Value* placeholder() const { return placeholder_; }
+  Value* receiver() const { return receiver_; }
+  Value* value() const { return value_; }
+
+ private:
+  const InstanceSetterNode& ast_node_;
+  Value* placeholder_;
+  Value* receiver_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
+};
+
 
 #undef DECLARE_COMPUTATION
 

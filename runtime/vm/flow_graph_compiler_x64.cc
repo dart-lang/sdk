@@ -86,23 +86,24 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
 }
 
 
-void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
-  ASSERT(VerifyCallComputation(comp));
-
+void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
+                                         intptr_t token_index,
+                                         const String& function_name,
+                                         intptr_t argument_count,
+                                         const Array& argument_names,
+                                         intptr_t checked_argument_count) {
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function_.function(),
-                                     comp->function_name(),
-                                     comp->node_id(),
-                                     comp->checked_argument_count()));
-  int argument_count = comp->ArgumentCount();
+                                     function_name,
+                                     node_id,
+                                     checked_argument_count));
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count,
-                                         comp->argument_names());
+      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
   __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, arguments_descriptor);
 
   uword label_address = 0;
-  switch (comp->checked_argument_count()) {
+  switch (checked_argument_count) {
     case 1:
       label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
       break;
@@ -114,10 +115,19 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
   }
   ExternalLabel target_label("InlineCache", label_address);
   __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall,
-                       comp->node_id(),
-                       comp->token_index());
+  AddCurrentDescriptor(PcDescriptors::kIcCall, node_id, token_index);
   __ addq(RSP, Immediate(argument_count * kWordSize));
+}
+
+
+void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
+  ASSERT(VerifyCallComputation(comp));
+  EmitInstanceCall(comp->node_id(),
+                   comp->token_index(),
+                   comp->function_name(),
+                   comp->ArgumentCount(),
+                   comp->argument_names(),
+                   comp->checked_argument_count());
 }
 
 
@@ -163,6 +173,36 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
 
 void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
   Bailout("NativeCallComp");
+}
+
+
+void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
+  // Call operator []= but preserve the third argument value under the
+  // arguments as the result of the computation.
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+  // Placeholder is under value, index, and receiver.
+  const int kPlaceholderOffset = 3 * kWordSize;
+  __ movq(RAX, Address(RSP, 0));  // Value.
+  __ movq(Address(RSP, kPlaceholderOffset), RAX);
+  EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 3,
+                   Array::ZoneHandle(), 1);
+  __ popq(RAX);
+}
+
+
+void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
+  // Preserve the second argument under the arguments as the result of the
+  // computation, then call the getter.
+  const String& function_name =
+      String::ZoneHandle(Field::SetterSymbol(comp->field_name()));
+  // Placeholder is under value and receiver.
+  const int kPlaceholderOffset = 2 * kWordSize;
+  __ movq(RAX, Address(RSP, 0));  // Value.
+  __ movq(Address(RSP, kPlaceholderOffset), RAX);
+  EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 2,
+                   Array::ZoneHandle(), 1);
+  __ popq(RAX);
 }
 
 

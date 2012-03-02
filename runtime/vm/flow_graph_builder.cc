@@ -457,12 +457,35 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 
 void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  Bailout("EffectGraphVisitor::VisitInstanceGetterNode");
+  ArgumentGraphVisitor for_receiver(owner(), temp_index());
+  node->receiver()->Visit(&for_receiver);
+  Append(for_receiver);
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
+  arguments->Add(for_receiver.value());
+  const String& name =
+      String::ZoneHandle(Field::GetterSymbol(node->field_name()));
+  InstanceCallComp* call =
+      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 1);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Bailout("EffectGraphVisitor::VisitInstanceSetterNode");
+  // We preallocate a temporary to overlap with the value of the assignment.
+  const Smi& zero = Smi::ZoneHandle(Smi::New(0));
+  AddInstruction(new BindInstr(temp_index(), new ConstantVal(zero)));
+  TempVal* placeholder = new TempVal(temp_index());
+  ArgumentGraphVisitor for_receiver(owner(), temp_index() + 1);
+  node->receiver()->Visit(&for_receiver);
+  Append(for_receiver);
+  ArgumentGraphVisitor for_value(owner(), for_receiver.temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  InstanceSetterComp* setter = new InstanceSetterComp(node,
+                                                      placeholder,
+                                                      for_receiver.value(),
+                                                      for_value.value());
+  ReturnComputation(setter);
 }
 
 
@@ -509,7 +532,16 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  StoreLocalComp* store = new StoreLocalComp(node->local(), for_value.value());
+
+  Value* value = for_value.value();
+  if (FLAG_enable_type_checks) {
+    AssertAssignableComp* assert =
+        new AssertAssignableComp(value, node->local().type());
+    AddInstruction(new BindInstr(temp_index(), assert));
+    value = new TempVal(temp_index());
+  }
+
+  StoreLocalComp* store = new StoreLocalComp(node->local(), value);
   ReturnComputation(store);
 }
 
@@ -537,12 +569,49 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 
 
 void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  Bailout("EffectGraphVisitor::VisitLoadIndexedNode");
+  ArgumentGraphVisitor for_array(owner(), temp_index());
+  node->array()->Visit(&for_array);
+  Append(for_array);
+  ArgumentGraphVisitor for_index(owner(), for_array.temp_index());
+  node->index_expr()->Visit(&for_index);
+  Append(for_index);
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
+  arguments->Add(for_array.value());
+  arguments->Add(for_index.value());
+  const String& name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+  InstanceCallComp* call =
+      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 1);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  Bailout("EffectGraphVisitor::VisitStoreIndexedNode");
+  // This is not a straight instance call to e0.[]=(e1, e2), it is a
+  // call to
+  //
+  // (a, i, v) { a.[]=(i, v); return v; }(e0, e1, e2)
+  //
+  // Without constructing that function, we simulate it at the IL
+  // level by preallocating a slot for the return value.
+  const Smi& zero = Smi::ZoneHandle(Smi::New(0));
+  AddInstruction(new BindInstr(temp_index(), new ConstantVal(zero)));
+  TempVal* placeholder = new TempVal(temp_index());
+  ArgumentGraphVisitor for_array(owner(), temp_index() + 1);
+  node->array()->Visit(&for_array);
+  Append(for_array);
+  ArgumentGraphVisitor for_index(owner(), for_array.temp_index());
+  node->index_expr()->Visit(&for_index);
+  Append(for_index);
+  ArgumentGraphVisitor for_value(owner(), for_index.temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  StoreIndexedComp* store = new StoreIndexedComp(node,
+                                                 placeholder,
+                                                 for_array.value(),
+                                                 for_index.value(),
+                                                 for_value.value());
+  ReturnComputation(store);
 }
 
 
@@ -700,6 +769,30 @@ void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
 
 void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
   OS::Print("NativeCall(%s)", comp->native_name().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitStoreIndexed(StoreIndexedComp* comp) {
+  OS::Print("StoreIndexed(");
+  comp->placeholder()->Accept(this);
+  OS::Print(", ");
+  comp->array()->Accept(this);
+  OS::Print(", ");
+  comp->index()->Accept(this);
+  OS::Print(", ");
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
+  OS::Print("InstanceSetter(");
+  comp->placeholder()->Accept(this);
+  OS::Print(", ");
+  comp->receiver()->Accept(this);
+  OS::Print(", ");
+  comp->value()->Accept(this);
+  OS::Print(")");
 }
 
 

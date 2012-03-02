@@ -63,6 +63,14 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   // Emit code to load a Value into register RAX.
   void LoadValue(Value* value);
 
+  // Emit an instance call.
+  void EmitInstanceCall(intptr_t node_id,
+                        intptr_t token_index,
+                        const String& function_name,
+                        intptr_t argument_count,
+                        const Array& argument_names,
+                        intptr_t checked_argument_count);
+
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
                     const ExternalLabel* label,
