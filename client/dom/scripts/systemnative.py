@@ -647,7 +647,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._cpp_impl_includes.add(include_name)
     flags = ''
     if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
-        ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
+        'RequiredCppParameter' in idl_argument.ext_attrs):
       flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(
         '\n'
