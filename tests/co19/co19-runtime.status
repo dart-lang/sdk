@@ -69,13 +69,11 @@ LibTest/core/Math/asin_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/atan_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/cos_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/exp_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/pow_A18_t01: Fail # Isses 449
 LibTest/core/Math/sin_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/tan_A01_t01: Fail  # Issue co19 - 44
 
 [ $component == vm && $system == linux ]
 LibTest/core/Math/exp_A01_t01: Fail
-LibTest/core/Math/pow_A18_t01: Fail
 
 [ $component == vm && $system == linux && $arch == ia32 ]
 LibTest/core/Math/sin_A01_t01: Fail

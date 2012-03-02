@@ -112,7 +112,15 @@ class Double implements double {
   double toDouble() { return this; }
 
   double pow(num exponent) {
-    return _pow(exponent.toDouble());
+    if (exponent == 0) {
+      return 1.0;  // ECMA-262 15.8.2.13
+    }
+    // Throw NullPointerException if exponent is null.
+    double doubleExponent = exponent.toDouble();
+    if (isNaN() || exponent.isNaN()) {
+      return double.NAN;
+    }
+    return _pow(doubleExponent);
   }
   double _pow(double exponent) native "Double_pow";
 
