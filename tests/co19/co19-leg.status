@@ -44,7 +44,7 @@ Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Crash #
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Crash # TODO(ahe): Investigate.
-Language/11_Statements/11_Labels_A01_t01: Crash # TODO(ahe): Investigate.
+Language/11_Statements/11_Labels_A01_t01: Fail # Internal error in resolution of break targets.
 Language/11_Statements/15_Assert_A02_t01: Crash # TODO(ahe): Investigate.
 
 
@@ -205,6 +205,7 @@ Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 # Time outs on the bots.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
+LibTest/core/List/sort_A01_t04: Skip # Times out.
 
 
 Language/10_Expressions/01_Constants_A17_t02: Skip # Times out.
