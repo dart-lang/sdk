@@ -11,7 +11,12 @@ UriTest: Fail
 [ $arch == simarm ]
 *: Skip
 
-[ $component == vm || $component == dartc ]
+[ $component == frog || $component == frogsh ]
+# Dartdoc only runs on the VM.
+DartdocTest: Skip
+MarkdownTest: Skip
+
+[ $component == vm || $component == dartc || $component == dartium ]
 # TODO(rnystrom): Right now, the VM tests can't access frog/ and client/ which
 # dartdoc uses, so disable for now. Once the deps files are unified this should
 # be fixed.
