@@ -41,7 +41,7 @@ def BuildOptions():
 
 def ProcessOptions(options):
   if options.arch == 'all':
-    options.arch = 'ia32,x64,simarm'
+    options.arch = 'ia32,x64'
   if options.mode == 'all':
     options.mode = 'release,debug'
   options.mode = options.mode.split(',')
