@@ -188,6 +188,17 @@ class MarkingVisitor : public ObjectPointerVisitor {
 };
 
 
+bool IsUnreachable(const RawObject* raw_obj) {
+  if (!raw_obj->IsHeapObject()) {
+    return false;
+  }
+  if (!raw_obj->IsOldObject()) {
+    return false;
+  }
+  return !raw_obj->IsMarked();
+}
+
+
 class MarkingWeakVisitor : public HandleVisitor {
  public:
   MarkingWeakVisitor() {
@@ -197,8 +208,7 @@ class MarkingWeakVisitor : public HandleVisitor {
     WeakPersistentHandle* handle =
         reinterpret_cast<WeakPersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
-    if (!raw_obj->IsHeapObject()) return;
-    if (!raw_obj->IsMarked() && raw_obj->IsOldObject()) {
+    if (IsUnreachable(raw_obj)) {
       WeakPersistentHandle::Finalize(handle);
     }
   }
@@ -226,6 +236,57 @@ void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 }
 
 
+void GCMarker::IterateWeakReferences(Isolate* isolate,
+                                     MarkingVisitor* visitor) {
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  for (;;) {
+    WeakReference* queue = state->delayed_weak_references();
+    if (queue == NULL) {
+      break;
+    }
+    state->set_delayed_weak_references(NULL);
+    while (queue != NULL) {
+      WeakReference* reference = WeakReference::Pop(&queue);
+      ASSERT(reference != NULL);
+      bool is_unreachable = true;
+      // Test each key object for reachability.  If a key object is
+      // reachable, all value objects should be marked.
+      for (intptr_t k = 0; k < reference->num_keys(); ++k) {
+        if (!IsUnreachable(*reference->get_key(k))) {
+          for (intptr_t v = 0; v < reference->num_values(); ++v) {
+            visitor->VisitPointer(reference->get_value(v));
+          }
+          is_unreachable = false;
+          delete reference;
+          break;
+        }
+      }
+      // If all key objects are unreachable put the reference on a
+      // delay queue.  This reference will be revisited if another
+      // reference is marked.
+      if (is_unreachable) {
+        state->DelayWeakReference(reference);
+      }
+    }
+    if (!visitor->marking_stack()->IsEmpty()) {
+      DrainMarkingStack(isolate, visitor);
+    } else {
+      // Break out of the loop if there has been no forward process.
+      break;
+    }
+  }
+  // Deallocate any unmarked references on the delay queue.
+  if (state->delayed_weak_references() != NULL) {
+    WeakReference* queue = state->delayed_weak_references();
+    state->set_delayed_weak_references(NULL);
+    while (queue != NULL) {
+      delete WeakReference::Pop(&queue);
+    }
+  }
+}
+
+
 void GCMarker::DrainMarkingStack(Isolate* isolate,
                                  MarkingVisitor* visitor) {
   while (!visitor->marking_stack()->IsEmpty()) {
@@ -241,6 +302,7 @@ void GCMarker::MarkObjects(Isolate* isolate, PageSpace* page_space) {
   MarkingVisitor mark(heap_, page_space, &marking_stack);
   IterateRoots(isolate, &mark);
   DrainMarkingStack(isolate, &mark);
+  IterateWeakReferences(isolate, &mark);
   MarkingWeakVisitor mark_weak;
   IterateWeakRoots(isolate, &mark_weak);
 }

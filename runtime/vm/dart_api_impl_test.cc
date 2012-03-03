@@ -1371,6 +1371,281 @@ TEST_CASE(WeakPersistentHandleCallback) {
   Dart_DeletePersistentHandle(weak_ref);
 }
 
+
+TEST_CASE(ObjectGroups) {
+  Dart_Handle strong = Dart_Null();
+  EXPECT(Dart_IsNull(strong));
+
+  Dart_Handle weak1 = Dart_Null();
+  EXPECT(Dart_IsNull(weak1));
+
+  Dart_Handle weak2 = Dart_Null();
+  EXPECT(Dart_IsNull(weak2));
+
+  Dart_Handle weak3 = Dart_Null();
+  EXPECT(Dart_IsNull(weak3));
+
+  Dart_Handle weak4 = Dart_Null();
+  EXPECT(Dart_IsNull(weak4));
+
+  Dart_EnterScope();
+  {
+    DARTSCOPE(Isolate::Current());
+    String& str = String::Handle();
+
+    str ^= String::New("strongly reachable", Heap::kOld);
+    strong = Dart_NewPersistentHandle(Api::NewLocalHandle(str));
+    EXPECT_VALID(strong);
+    EXPECT(!Dart_IsNull(strong));
+
+    str ^= String::New("weakly reachable 1", Heap::kOld);
+    weak1 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT_VALID(weak1);
+    EXPECT(!Dart_IsNull(weak1));
+
+    str ^= String::New("weakly reachable 2", Heap::kOld);
+    weak2 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT_VALID(weak2);
+    EXPECT(!Dart_IsNull(weak2));
+
+    str ^= String::New("weakly reachable 3", Heap::kOld);
+    weak3 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT_VALID(weak3);
+    EXPECT(!Dart_IsNull(weak3));
+
+    str ^= String::New("weakly reachable 4", Heap::kOld);
+    weak4 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT_VALID(weak4);
+    EXPECT(!Dart_IsNull(weak4));
+  }
+  Dart_ExitScope();
+
+  EXPECT_VALID(strong);
+
+  EXPECT_VALID(weak1);
+  EXPECT_VALID(weak2);
+  EXPECT_VALID(weak3);
+  EXPECT_VALID(weak4);
+
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+  // New space collection should not affect old space objects
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+  EXPECT(!Dart_IsNull(weak4));
+
+  {
+    Dart_Handle array1[] = { weak1, strong };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
+                                          array1, ARRAY_SIZE(array1)));
+
+    Dart_Handle array2[] = { weak2, weak1 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
+                                          array2, ARRAY_SIZE(array2)));
+
+    Dart_Handle array3[] = { weak3, weak2 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
+                                          array3, ARRAY_SIZE(array3)));
+
+    Dart_Handle array4[] = { weak4, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
+                                          array4, ARRAY_SIZE(array4)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // All weak references should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+  EXPECT(!Dart_IsNull(weak4));
+
+  {
+    Dart_Handle array1[] = { weak1, strong };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
+                                          array1, ARRAY_SIZE(array1)));
+
+    Dart_Handle array2[] = { weak2, weak1 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
+                                          array2, ARRAY_SIZE(array2)));
+
+    Dart_Handle array3[] = { weak2 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
+                                          array3, ARRAY_SIZE(array3)));
+
+    // Strong reference to weak3 to retain weak3 and weak4.
+    Dart_Handle weak3_strong_ref = Dart_NewPersistentHandle(weak3);
+    EXPECT_VALID(weak3_strong_ref);
+
+    Dart_Handle array4[] = { weak4, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
+                                          array4, ARRAY_SIZE(array4)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+    // Delete strong reference to weak3.
+    Dart_DeletePersistentHandle(weak3_strong_ref);
+  }
+
+  // All weak references should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+  EXPECT(!Dart_IsNull(weak4));
+
+  {
+    Dart_Handle array1[] = { weak1, strong };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
+                                          array1, ARRAY_SIZE(array1)));
+
+    Dart_Handle array2[] = { weak2, weak1 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
+                                          array2, ARRAY_SIZE(array2)));
+
+    Dart_Handle array3[] = { weak2 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array3, ARRAY_SIZE(array3),
+                                          array3, ARRAY_SIZE(array3)));
+
+    Dart_Handle array4[] = { weak4, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array4, ARRAY_SIZE(array4),
+                                          array4, ARRAY_SIZE(array4)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // Only weak1 and weak2 should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(Dart_IsNull(weak3));
+  EXPECT(Dart_IsNull(weak4));
+
+  {
+    Dart_Handle array1[] = { weak1, strong };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
+                                          array1, ARRAY_SIZE(array1)));
+
+    // weak3 is cleared so weak2 is unreferenced and should be cleared
+    Dart_Handle array2[] = { weak2, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
+                                          array2, ARRAY_SIZE(array2)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // Only weak1 should be preserved, weak3 should not preserve weak2.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(Dart_IsNull(weak2));
+  EXPECT(Dart_IsNull(weak3));  // was cleared, should remain cleared
+  EXPECT(Dart_IsNull(weak4));  // was cleared, should remain cleared
+
+  {
+    // weak{2,3,4} are cleared and should have no effect on weak1
+    Dart_Handle array1[] = { strong, weak2, weak3, weak4 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array1, ARRAY_SIZE(array1),
+                                          array1, ARRAY_SIZE(array1)));
+
+    // weak1 is weakly reachable and should be cleared
+    Dart_Handle array2[] = { weak1 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(array2, ARRAY_SIZE(array2),
+                                          array2, ARRAY_SIZE(array2)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // All weak references should now be cleared.
+  EXPECT(Dart_IsNull(weak1));
+  EXPECT(Dart_IsNull(weak2));
+  EXPECT(Dart_IsNull(weak3));
+  EXPECT(Dart_IsNull(weak4));
+}
+
+
+TEST_CASE(ImplicitReferences) {
+  Dart_Handle strong = Dart_Null();
+  EXPECT(Dart_IsNull(strong));
+
+  Dart_Handle weak1 = Dart_Null();
+  EXPECT(Dart_IsNull(weak1));
+
+  Dart_Handle weak2 = Dart_Null();
+  EXPECT(Dart_IsNull(weak2));
+
+  Dart_Handle weak3 = Dart_Null();
+  EXPECT(Dart_IsNull(weak3));
+
+
+  Dart_EnterScope();
+  {
+    DARTSCOPE(Isolate::Current());
+    String& str = String::Handle();
+
+    str ^= String::New("strongly reachable", Heap::kOld);
+    strong = Dart_NewPersistentHandle(Api::NewLocalHandle(str));
+    EXPECT(!Dart_IsNull(strong));
+    EXPECT_VALID(strong);
+
+    str ^= String::New("weakly reachable 1", Heap::kOld);
+    weak1 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT(!Dart_IsNull(weak1));
+    EXPECT_VALID(weak1);
+
+    str ^= String::New("weakly reachable 2", Heap::kOld);
+    weak2 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT(!Dart_IsNull(weak2));
+    EXPECT_VALID(weak2);
+
+    str ^= String::New("weakly reachable 3", Heap::kOld);
+    weak3 = Dart_NewWeakPersistentHandle(Api::NewLocalHandle(str), NULL, NULL);
+    EXPECT(!Dart_IsNull(weak3));
+    EXPECT_VALID(weak3);
+  }
+  Dart_ExitScope();
+
+  EXPECT_VALID(strong);
+
+  EXPECT_VALID(weak1);
+  EXPECT_VALID(weak2);
+  EXPECT_VALID(weak3);
+
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+  // New space collection should not affect old space objects
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+
+  // A strongly referenced key should preserve all the values.
+  {
+    Dart_Handle keys[] = { strong };
+    Dart_Handle values[] = { weak1, weak2, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
+                                          values, ARRAY_SIZE(values)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // All weak references should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+
+  // Key membership does not imply a strong reference.
+  {
+    Dart_Handle keys[] = { strong, weak3 };
+    Dart_Handle values[] = { weak1, weak2 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
+                                          values, ARRAY_SIZE(values)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
+
+  // All weak references except weak3 should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(Dart_IsNull(weak3));
+}
+
 #endif
 
 

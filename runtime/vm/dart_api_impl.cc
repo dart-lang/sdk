@@ -457,6 +457,39 @@ DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
+                                                 intptr_t num_keys,
+                                                 Dart_Handle* values,
+                                                 intptr_t num_values) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  if (keys == NULL) {
+    return Api::NewError("%s expects argument 'keys' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (num_keys <= 0) {
+    return Api::NewError(
+        "%s expects argument 'num_keys' to be greater than 0.",
+        CURRENT_FUNC);
+  }
+  if (values == NULL) {
+    return Api::NewError("%s expects argument 'values' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (num_values <= 0) {
+    return Api::NewError(
+        "%s expects argument 'num_values' to be greater than 0.",
+        CURRENT_FUNC);
+  }
+
+  WeakReference* reference = new WeakReference(keys, num_keys,
+                                               values, num_values);
+  state->DelayWeakReference(reference);
+  return Api::Success();
+}
+
 // --- Initialization and Globals ---
 
 
