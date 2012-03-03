@@ -494,6 +494,13 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
     return;
   }
 
+  // Check if it is a code object in that case just write a Null object
+  // as we do not want code objects in the snapshot.
+  if (rawobj->ptr()->class_ == Object::code_class()) {
+    WriteIndexedObject(Object::kNullObject);
+    return;
+  }
+
   // Check if classes are not being serialized and it is preinitialized type.
   if (kind_ != Snapshot::kFull) {
     RawType* raw_type = reinterpret_cast<RawType*>(rawobj);

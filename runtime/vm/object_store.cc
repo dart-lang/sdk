@@ -54,8 +54,7 @@ ObjectStore::ObjectStore()
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
-    keyword_symbols_(Array::null()),
-    preallocate_objects_called_(false) {
+    keyword_symbols_(Array::null()) {
 }
 
 
@@ -77,11 +76,14 @@ void ObjectStore::Init(Isolate* isolate) {
 
 
 bool ObjectStore::PreallocateObjects() {
-  if (preallocate_objects_called_) {
-    return true;
-  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL && isolate->object_store() == this);
+  if (this->stack_overflow() != Instance::null() &&
+      this->out_of_memory() != Instance::null()) {
+    return true;
+  }
+  ASSERT(this->stack_overflow() == Instance::null());
+  ASSERT(this->out_of_memory() == Instance::null());
   GrowableArray<const Object*> args;
   Object& result = Object::Handle();
   Instance& exception = Instance::Handle();
@@ -99,8 +101,6 @@ bool ObjectStore::PreallocateObjects() {
   }
   exception ^= result.raw();
   set_out_of_memory(exception);
-
-  preallocate_objects_called_ = true;
   return true;
 }
 
