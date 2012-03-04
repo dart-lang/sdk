@@ -96,7 +96,10 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $component == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
+LibTest/core/Date/Date.fromString_A01_t02: Fail # Issue co19 - 88
+LibTest/core/Date/Date.fromString_A01_t04: Fail # Issue co19 - 88
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
+LibTest/core/Date/toString_A02_t01: Fail # Issue co19 - 86.
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Match/pattern_A01_t01: Fail

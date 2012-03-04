@@ -39,9 +39,11 @@ class DateImplementation implements Date {
                                   int milliseconds,
                                   TimeZoneImplementation timeZone)
   : timeZone = timeZone,
-    value = brokenDownDateToMillisecondsSinceEpoch_(
+    value = _brokenDownDateToMillisecondsSinceEpoch(
                years, month, day, hours, minutes, seconds, milliseconds,
-               timeZone.isUtc) {}
+               timeZone.isUtc) {
+    if (value === null) throw new IllegalArgumentException();
+  }
 
   DateImplementation.now()
   : timeZone = new TimeZone.local(),
@@ -49,57 +51,67 @@ class DateImplementation implements Date {
   }
 
   factory DateImplementation.fromString(String formattedString) {
-    int substringToNumber(String str, int from, int to) {
-      int result = 0;
-      for (int i = from; i < to; i++) {
-        result = result * 10 + str.charCodeAt(i) - "0".charCodeAt(0);
+    // Read in (a subset of) ISO 8601.
+    // Examples:
+    //    - "2012-02-27 13:27:00"
+    //    - "2012-02-27 13:27:00.423z"
+    //    - "20120227 13:27:00"
+    //    - "20120227T132700"
+    //    - "20120227"
+    //    - "2012-02-27T14Z"
+    //    - "-123450101 00:00:00 Z"  // In the year -12345.
+    final RegExp re = const RegExp(
+        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' +  // The day part.
+        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:.(\d{1,5}))?)?)? ?([zZ])?)?$');
+    Match match = re.firstMatch(formattedString);
+    if (match !== null) {
+      int parseIntOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0;
+        return Math.parseInt(matched);
       }
-      return result;
+
+      int years = Math.parseInt(match[1]);
+      int month = Math.parseInt(match[2]);
+      int day = Math.parseInt(match[3]);
+      int hours = parseIntOrZero(match[4]);
+      int minutes = parseIntOrZero(match[5]);
+      int seconds = parseIntOrZero(match[6]);
+      bool addOneMillisecond = false;
+      int milliseconds = parseIntOrZero(match[7]);
+      if (milliseconds != 0) {
+        if (match[7].length == 1) {
+          milliseconds *= 100;
+        } else if (match[7].length == 2) {
+          milliseconds *= 10;
+        } else if (match[7].length == 3) {
+          // Do nothing.
+        } else if (match[7].length == 4) {
+          addOneMillisecond = ((milliseconds % 10) >= 5);
+          milliseconds ~/= 10;
+        } else {
+          assert(match[7].length == 5);
+          addOneMillisecond = ((milliseconds %100) >= 50);
+          milliseconds ~/= 100;
+        }
+        if (addOneMillisecond && milliseconds < 999) {
+          addOneMillisecond = false;
+          milliseconds++;
+        }
+      }
+      // TODO(floitsch): we should not need to test against the empty string.
+      bool isUtc = (match[8] !== null) && (match[8] != "");
+      TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
+      int epochValue = _brokenDownDateToMillisecondsSinceEpoch(
+          years, month, day, hours, minutes, seconds, milliseconds, isUtc);
+      if (epochValue === null) {
+        throw new IllegalArgumentException(formattedString);
+      }
+      if (addOneMillisecond) epochValue++;
+      return new DateImplementation.fromEpoch(epochValue, timezone);
+    } else {
+      throw new IllegalArgumentException(formattedString);
     }
-
-    // TODO(floitsch): improve DateImplementation parsing.
-    // Parse ISO 8601: "2011-05-14 00:37:18.231Z".
-    int yearMonthSeparator = formattedString.indexOf("-", 0);
-    if (yearMonthSeparator < 0) throw "UNIMPLEMENTED";
-    int monthDaySeparator =
-      formattedString.indexOf("-", yearMonthSeparator + 1);
-    if (monthDaySeparator < 0) throw "UNIMPLEMENTED";
-    int dateTimeSeparator = formattedString.indexOf(" ", monthDaySeparator + 1);
-    if (dateTimeSeparator < 0) throw "UNIMPLEMENTED";
-    int hoursMinutesSeparator =
-        formattedString.indexOf(":", dateTimeSeparator + 1);
-    if (hoursMinutesSeparator < 0) throw "UNIMPLEMENTED";
-    int minutesSecondsSeparator =
-        formattedString.indexOf(":", hoursMinutesSeparator + 1);
-    if (minutesSecondsSeparator < 0) throw "UNIMPLEMENTED";
-    int secondsMillisecondsSeparator =
-        formattedString.indexOf(".", minutesSecondsSeparator + 1);
-    bool isUtc = formattedString.endsWith("Z");
-    int end = formattedString.length - (isUtc ? 1 : 0);
-    if (secondsMillisecondsSeparator < 0) secondsMillisecondsSeparator = end;
-
-    int year = substringToNumber(formattedString, 0, yearMonthSeparator);
-    int month = substringToNumber(formattedString,
-                                  yearMonthSeparator + 1,
-                                  monthDaySeparator);
-    int day = substringToNumber(formattedString,
-                                monthDaySeparator + 1,
-                                dateTimeSeparator);
-    int hours = substringToNumber(formattedString,
-                                  dateTimeSeparator + 1,
-                                  hoursMinutesSeparator);
-    int minutes = substringToNumber(formattedString,
-                                    hoursMinutesSeparator + 1,
-                                    minutesSecondsSeparator);
-    int seconds = substringToNumber(formattedString,
-                                    minutesSecondsSeparator + 1,
-                                    secondsMillisecondsSeparator);
-    int milliseconds = substringToNumber(formattedString,
-                                         secondsMillisecondsSeparator + 1,
-                                         end);
-    TimeZone timeZone = (isUtc ? const TimeZone.utc() : new TimeZone.local());
-    return new DateImplementation.withTimeZone(
-        year, month, day, hours, minutes, seconds, milliseconds, timeZone);
   }
 
   const DateImplementation.fromEpoch(int this.value,
@@ -198,6 +210,14 @@ class DateImplementation implements Date {
   }
 
   String toString() {
+    String fourDigits(int n) {
+      int absN = n.abs();
+      String sign = n < 0 ? "-" : "";
+      if (absN >= 1000) return "$n";
+      if (absN >= 100) return "${sign}0$absN";
+      if (absN >= 10) return "${sign}00$absN";
+      if (absN >= 1) return "${sign}000$absN";
+    }
     String threeDigits(int n) {
       if (n >= 100) return "${n}";
       if (n > 10) return "0${n}";
@@ -208,6 +228,7 @@ class DateImplementation implements Date {
       return "0${n}";
     }
 
+    String y = fourDigits(year);
     String m = twoDigits(month);
     String d = twoDigits(day);
     String h = twoDigits(hours);
@@ -215,9 +236,9 @@ class DateImplementation implements Date {
     String sec = twoDigits(seconds);
     String ms = threeDigits(milliseconds);
     if (timeZone.isUtc) {
-      return "$year-$m-$d $h:$min:$sec.${ms}Z";
+      return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
-      return "$year-$m-$d $h:$min:$sec.$ms";
+      return "$y-$m-$d $h:$min:$sec.$ms";
     }
   }
 
@@ -341,32 +362,19 @@ class DateImplementation implements Date {
     return 2008 + (recentYear - 2008) % 28;
   }
 
-  static brokenDownDateToMillisecondsSinceEpoch_(
+  static _brokenDownDateToMillisecondsSinceEpoch(
       int years, int month, int day,
       int hours, int minutes, int seconds, int milliseconds,
       bool isUtc) {
-    if ((month < 1) || (month > 12)) {
-      throw new IllegalArgumentException();
-    }
-    if ((day < 1) || (day > 31)) {
-      throw new IllegalArgumentException();
-    }
+    if ((month < 1) || (month > 12)) return null;
+    if ((day < 1) || (day > 31)) return null;
     // Leap seconds can lead to hours == 24.
-    if ((hours < 0) || (hours > 24)) {
-      throw new IllegalArgumentException();
-    }
-    if ((hours == 24) && ((minutes != 0) || (seconds != 0))) {
-      throw new IllegalArgumentException();
-    }
-    if ((minutes < 0) || (minutes > 59)) {
-      throw new IllegalArgumentException();
-    }
-    if ((seconds < 0) || (seconds > 59)) {
-      throw new IllegalArgumentException();
-    }
-    if ((milliseconds < 0) || (milliseconds > 999)) {
-      throw new IllegalArgumentException();
-    }
+    if ((hours < 0) || (hours > 24)) return null;
+    if ((hours == 24) && ((minutes != 0) || (seconds != 0))) return null;
+    if ((minutes < 0) || (minutes > 59)) return null;
+    if ((seconds < 0) || (seconds > 59)) return null;
+    if ((milliseconds < 0) || (milliseconds > 999)) return null;
+
     int equivalentYear;
     int offsetInSeconds;
     // According to V8 some library calls have troubles with negative values.
@@ -383,14 +391,14 @@ class DateImplementation implements Date {
       equivalentYear = years;
       offsetInSeconds = 0;
     }
-    int secondsSinceEpoch = brokenDownDateToSecondsSinceEpoch_(
+    int secondsSinceEpoch = _brokenDownDateToSecondsSinceEpoch(
         equivalentYear, month, day, hours, minutes, seconds, isUtc);
     int adjustedSeconds = secondsSinceEpoch + offsetInSeconds;
     return adjustedSeconds * Duration.MILLISECONDS_PER_SECOND + milliseconds;
   }
 
   // Natives
-  static brokenDownDateToSecondsSinceEpoch_(
+  static _brokenDownDateToSecondsSinceEpoch(
       int years, int month, int day, int hours, int minutes, int seconds,
       bool isUtc) native "DateNatives_brokenDownToSecondsSinceEpoch";
 
