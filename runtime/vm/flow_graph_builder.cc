@@ -543,23 +543,56 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void EffectGraphVisitor::VisitLoadInstanceFieldNode(
     LoadInstanceFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitLoadInstanceFieldNode");
+  ValueGraphVisitor for_instance(owner(), temp_index());
+  node->instance()->Visit(&for_instance);
+  Append(for_instance);
+  LoadInstanceFieldComp* load =
+      new LoadInstanceFieldComp(node, for_instance.value());
+  ReturnComputation(load);
 }
 
 
 void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     StoreInstanceFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitStoreInstanceFieldNode");
+  ValueGraphVisitor for_instance(owner(), temp_index());
+  node->instance()->Visit(&for_instance);
+  Append(for_instance);
+  ValueGraphVisitor for_value(owner(), for_instance.temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  Value* store_value = for_value.value();
+  if (FLAG_enable_type_checks) {
+    const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
+    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
+    AddInstruction(new BindInstr(temp_index(), assert));
+    store_value = new TempVal(temp_index());
+  }
+  StoreInstanceFieldComp* store =
+      new StoreInstanceFieldComp(node, for_instance.value(), store_value);
+  ReturnComputation(store);
 }
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitLoadStaticFieldNode");
+  LoadStaticFieldComp* load = new LoadStaticFieldComp(node->field());
+  ReturnComputation(load);
 }
 
 
 void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitStoreStaticFieldNode");
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  Value* store_value = for_value.value();
+  if (FLAG_enable_type_checks) {
+    const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
+    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
+    AddInstruction(new BindInstr(temp_index(), assert));
+    store_value = new TempVal(temp_index());
+  }
+  StoreStaticFieldComp* store =
+      new StoreStaticFieldComp(node, store_value);
+  ReturnComputation(store);
 }
 
 
@@ -753,6 +786,38 @@ void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
 
 void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
   OS::Print("NativeCall(%s)", comp->native_name().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
+  OS::Print("LoadInstanceField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->instance()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
+  OS::Print("StoreInstanceField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->instance()->Accept(this);
+  OS::Print(", ");
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitLoadStaticField(LoadStaticFieldComp* comp) {
+  OS::Print("LoadStaticField(%s)",
+      String::Handle(comp->field().name()).ToCString());
+}
+
+
+void FlowGraphPrinter::VisitStoreStaticField(StoreStaticFieldComp* comp) {
+  OS::Print("StoreStaticField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->value()->Accept(this);
+  OS::Print(")");
 }
 
 

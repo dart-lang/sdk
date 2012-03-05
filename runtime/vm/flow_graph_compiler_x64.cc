@@ -32,8 +32,16 @@ void FlowGraphCompiler::Bailout(const char* reason) {
   Isolate::Current()->long_jump_base()->Jump(1, error);
 }
 
-
 #define __ assembler_->
+
+
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
+                                                 intptr_t token_index,
+                                                 const AbstractType& dst_type,
+                                                 const String& dst_name) {
+  Bailout("GenerateAssertAssignable");
+}
+
 
 void FlowGraphCompiler::LoadValue(Value* value) {
   if (value->IsConstant()) {
@@ -81,6 +89,15 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
       if (temp->index() != previous + 1) return false;
     }
     previous = temp->index();
+  }
+  return true;
+}
+
+
+// Truee iff. the v2 is above v1 on stack, or one of them is constant.
+static bool VerifyValues(Value* v1, Value* v2) {
+  if (v1->IsTemp() && v2->IsTemp()) {
+    return (v1->AsTemp()->index() + 1) == v2->AsTemp()->index();
   }
   return true;
 }
@@ -173,6 +190,35 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
 
 void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
   Bailout("NativeCallComp");
+}
+
+
+void FlowGraphCompiler::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
+  LoadValue(comp->instance());  // -> RAX.
+  __ movq(RAX, FieldAddress(RAX, comp->field().Offset()));
+}
+
+
+void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
+  VerifyValues(comp->instance(), comp->value());
+  LoadValue(comp->value());
+  __ movq(R10, RAX);
+  LoadValue(comp->instance());  // -> RAX.
+  __ StoreIntoObject(RAX, FieldAddress(RAX, comp->field().Offset()), R10);
+}
+
+
+
+void FlowGraphCompiler::VisitLoadStaticField(LoadStaticFieldComp* comp) {
+  __ LoadObject(RDX, comp->field());
+  __ movq(RAX, FieldAddress(RDX, Field::value_offset()));
+}
+
+
+void FlowGraphCompiler::VisitStoreStaticField(StoreStaticFieldComp* comp) {
+  LoadValue(comp->value());
+  __ LoadObject(RDX, comp->field());
+  __ StoreIntoObject(RDX, FieldAddress(RDX, Field::value_offset()), RAX);
 }
 
 

@@ -82,6 +82,11 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t node_id,
                             intptr_t token_index);
 
+  void GenerateAssertAssignable(intptr_t node_id,
+                                intptr_t token_index,
+                                const AbstractType& dst_type,
+                                const String& dst_name);
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>* blocks_;
