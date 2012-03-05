@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,8 +18,8 @@ class TimerCancel1Test {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer = new Timer(cancelHandler, 1);
-    canceleeTimer = new Timer(timeoutHandlerUnreachable, 1000);
+    cancelerTimer = new Timer(1, cancelHandler);
+    canceleeTimer = new Timer(1000, timeoutHandlerUnreachable);
   }
 
   static void testMain() {

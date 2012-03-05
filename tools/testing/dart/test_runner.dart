@@ -565,7 +565,7 @@ class RunningProcess {
         makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.onLine =
         makeReadHandler(stderrStringStream, stderr);
-    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
+    timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
   }
 
   void timeoutHandler(Timer unusedTimer) {
@@ -640,7 +640,7 @@ class BatchRunnerProcess {
 
         // In case the run_selenium process didn't close, kill it after 30s
         bool shutdownMillisecs = 30000;
-        new Timer((e) { if (!closed) _process.kill(); }, shutdownMillisecs);
+        new Timer(shutdownMillisecs, (e) { if (!closed) _process.kill(); });
       } else {
         _process.kill();
       }
@@ -655,7 +655,7 @@ class BatchRunnerProcess {
     _stderrDrained = false;
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
-    _timer = new Timer(_timeoutHandler, testCase.timeout * 1000);
+    _timer = new Timer(testCase.timeout * 1000, _timeoutHandler);
     var line = _createArgumentsLine(testCase.batchTestArguments);
     _process.stdin.write(line.charCodes());
   }

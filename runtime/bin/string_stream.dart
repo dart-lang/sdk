@@ -363,7 +363,7 @@ class _StringInputStream implements StringInputStream {
         if (_scheduledLineCallback != null) {
           _scheduledLineCallback.cancel();
         }
-        _scheduledDataCallback = new Timer(issueDataCallback, 0);
+        _scheduledDataCallback = new Timer(0, issueDataCallback);
       }
 
       // Schedule line callback if a line is available.
@@ -373,14 +373,14 @@ class _StringInputStream implements StringInputStream {
         if (_scheduledDataCallback != null) {
           _scheduledDataCallback.cancel();
         }
-        _scheduledLineCallback = new Timer(issueLineCallback, 0);
+        _scheduledLineCallback = new Timer(0, issueLineCallback);
       }
 
       // Schedule close callback if no more data and input is closed.
       if (_decoder.isEmpty() &&
           _inputClosed &&
           _scheduledCloseCallback == null) {
-        _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
+        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
       }
     }
   }

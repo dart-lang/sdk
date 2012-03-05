@@ -109,12 +109,12 @@ class _ListOutputStream implements ListOutputStream {
         if (_clientNoPendingWriteHandler != null &&
             _scheduledNoPendingWriteCallback == null) {
           _scheduledNoPendingWriteCallback =
-              new Timer(issueNoPendingWriteCallback, 0);
+              new Timer(0, issueNoPendingWriteCallback);
         }
       } else if (_clientCloseHandler != null &&
                  _streamMarkedClosed &&
                  !_closeCallbackCalled) {
-        _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
+        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
         _closeCallbackCalled = true;
       }
     }

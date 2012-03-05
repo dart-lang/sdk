@@ -110,12 +110,12 @@ class _BaseDataInputStream {
     if (!_closeCallbackCalled) {
       if (available() > 0) {
         if (_scheduledDataCallback == null) {
-          _scheduledDataCallback = new Timer(issueDataCallback, 0);
+          _scheduledDataCallback = new Timer(0, issueDataCallback);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
         _cancelScheduledDataCallback();
         _close();
-        _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
+        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
         _closeCallbackCalled = true;
       }
     }

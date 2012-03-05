@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -49,13 +49,13 @@ class MultipleTimerTest {
     _message = 0;
 
     _startTime1 = (new Date.now()).value;
-    new Timer(timeoutHandler1, TIMEOUT1);
+    new Timer(TIMEOUT1, timeoutHandler1);
     _startTime2 = (new Date.now()).value;
-    new Timer(timeoutHandler2, TIMEOUT2);
+    new Timer(TIMEOUT2, timeoutHandler2);
     _startTime3 = (new Date.now()).value;
-    new Timer(timeoutHandler3, TIMEOUT3);
+    new Timer(TIMEOUT3, timeoutHandler3);
     _startTime4 = (new Date.now()).value;
-    new Timer(timeoutHandler4, TIMEOUT4);
+    new Timer(TIMEOUT4, timeoutHandler4);
   }
 
   static void testMain() {

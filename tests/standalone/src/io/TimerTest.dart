@@ -19,14 +19,14 @@ class TimerTest {
         _iteration++;
         _timeout = _timeout - _DECREASE;
         _startTime = (new Date.now()).value;
-        new Timer(timeoutHandler, _timeout);
+        new Timer(_timeout, timeoutHandler);
       }
     }
 
     _iteration = 0;
     _timeout = _STARTTIMEOUT;
     _startTime = (new Date.now()).value;
-     new Timer(timeoutHandler, _timeout);
+    new Timer(_timeout, timeoutHandler);
   }
 
   static void testMain() {

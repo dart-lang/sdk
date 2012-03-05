@@ -245,7 +245,7 @@ class StandardTestSuite implements TestSuite {
             }
             doDone();
           }
-          new Timer(enqueueCachedTests, 0);
+          new Timer(0, enqueueCachedTests);
         }
       }
     }
@@ -956,12 +956,12 @@ class JUnitTestSuite implements TestSuite {
 
     if (configuration['component'] != 'dartc') {
       // Do nothing.  Asynchronously report that the suite is enqueued.
-      new Timer((timerUnused){ doDone(); }, 0);
+      new Timer(0, (timerUnused){ doDone(); });
       return;
     }
     RegExp pattern = configuration['selectors']['dartc'];
     if (!pattern.hasMatch('junit_tests')) {
-      new Timer((timerUnused){ doDone(); }, 0);
+      new Timer(0, (timerUnused){ doDone(); });
       return;
     }
 

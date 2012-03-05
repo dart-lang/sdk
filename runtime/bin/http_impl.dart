@@ -1062,7 +1062,7 @@ class _HttpClient implements HttpClient {
     } else {
       _SocketConnection socketConn = socketConnections.removeFirst();
       _activeSockets.add(socketConn);
-      new Timer((ignored) => _connectionOpened(socketConn, connection), 0);
+      new Timer(0, (ignored) => _connectionOpened(socketConn, connection));
 
       // Get rid of eviction timer if there are no more active connections.
       if (socketConnections.isEmpty()) {
@@ -1109,7 +1109,7 @@ class _HttpClient implements HttpClient {
               }
             });
       }
-      _evictionTimer = new Timer.repeating(_handleEviction, 10000);
+      _evictionTimer = new Timer.repeating(10000, _handleEviction);
     }
 
     // Return connection.

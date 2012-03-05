@@ -1021,9 +1021,9 @@ class _RandomAccessFile implements RandomAccessFile {
   void set onNoPendingWrites(void handler()) {
     _onNoPendingWrites = handler;
     if (_pendingWrites == 0) {
-      _noPendingWriteTimer = new Timer((t) {
+      _noPendingWriteTimer = new Timer(0, (t) {
         if (_onNoPendingWrites != null) _onNoPendingWrites();
-      }, 0);
+      });
     }
   }
 

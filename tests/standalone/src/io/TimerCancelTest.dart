@@ -22,18 +22,18 @@ void testSimpleTimer() {
     Expect.equals(true, repeatTimer == 1);
   }
 
-  cancelTimer = new Timer(timeoutHandlerUnreachable, 1000);
+  cancelTimer = new Timer(1000, timeoutHandlerUnreachable);
   cancelTimer.cancel();
-  new Timer(timeoutHandler, 1000);
-  cancelTimer = new Timer(timeoutHandlerUnreachable, 2000);
+  new Timer(1000, timeoutHandler);
+  cancelTimer = new Timer(2000, timeoutHandlerUnreachable);
   repeatTimer = 0;
-  new Timer.repeating(timeoutHandlerRepeat, 1500);
+  new Timer.repeating(1500, timeoutHandlerRepeat);
 }
 
 void testCancelTimerWithSameTime() {
   var t2;
-  var t1 = new Timer((t) => t2.cancel(), 0);
-  t2 = new Timer((t) => t1.cancel(), 0);
+  var t1 = new Timer(0, (t) => t2.cancel());
+  t2 = new Timer(0, (t) => t1.cancel());
 }
 
 main() {
