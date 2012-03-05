@@ -52,7 +52,6 @@
             '<(PRODUCT_DIR)/compiler/lib/dartc.jar',
             '<(PRODUCT_DIR)/compiler/lib/guava/r09/guava-r09.jar',
             '<(PRODUCT_DIR)/compiler/lib/json/r2_20080312/json.jar',
-            '<(PRODUCT_DIR)/compiler/lib/rhino/1_7R3/js.jar',
           ],
           'action' : [
             '../third_party/apache_ant/v1_7_1/bin/ant',
