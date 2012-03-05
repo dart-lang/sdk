@@ -25,9 +25,10 @@ class LocalVariable;
 // | StaticCall <StaticCallNode> <Value> ...
 // | LoadLocal <LocalVariable>
 // | StoreLocal <LocalVariable> <Value>
-// | StoreIndexed <Value> <Value> <Value> <Value>
 // | StrictCompare <Token::kind> <Value> <Value>
 // | NativeCall <NativeBodyNode>
+// | StoreIndexed <StoreIndexedNode> <Value> <Value> <Value>
+// | InstanceSetter <InstanceSetterNode> <Value> <Value>
 //
 // <Value> ::=
 //   Temp <int>
@@ -285,17 +286,14 @@ class NativeCallComp : public Computation {
 
 
 // Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved in a placeholder (the first
-// operand is a preallocated slot that can be used).
+// semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public Computation {
  public:
   StoreIndexedComp(StoreIndexedNode* node,
-                   Value* placeholder,
                    Value* array,
                    Value* index,
                    Value* value)
       : ast_node_(*node),
-        placeholder_(placeholder),
         array_(array),
         index_(index),
         value_(value) { }
@@ -306,14 +304,12 @@ class StoreIndexedComp : public Computation {
   intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
 
-  Value* placeholder() const { return placeholder_; }
   Value* array() const { return array_; }
   Value* index() const { return index_; }
   Value* value() const { return value_; }
 
  private:
   const StoreIndexedNode& ast_node_;
-  Value* placeholder_;
   Value* array_;
   Value* index_;
   Value* value_;
@@ -323,16 +319,13 @@ class StoreIndexedComp : public Computation {
 
 
 // Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved in a placeholder (the first
-// operand is a preallocate slot that can be used).
+// semantics: the value operand is preserved before the call.
 class InstanceSetterComp : public Computation {
  public:
   InstanceSetterComp(InstanceSetterNode* node,
-                     Value* placeholder,
                      Value* receiver,
                      Value* value)
       : ast_node_(*node),
-        placeholder_(placeholder),
         receiver_(receiver),
         value_(value) { }
 
@@ -343,13 +336,11 @@ class InstanceSetterComp : public Computation {
   intptr_t token_index() const { return ast_node_.token_index(); }
   const String& field_name() const { return ast_node_.field_name(); }
 
-  Value* placeholder() const { return placeholder_; }
   Value* receiver() const { return receiver_; }
   Value* value() const { return value_; }
 
  private:
   const InstanceSetterNode& ast_node_;
-  Value* placeholder_;
   Value* receiver_;
   Value* value_;
 

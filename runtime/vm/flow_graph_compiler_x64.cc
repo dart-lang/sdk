@@ -181,10 +181,15 @@ void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
   // arguments as the result of the computation.
   const String& function_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
-  // Placeholder is under value, index, and receiver.
-  const int kPlaceholderOffset = 3 * kWordSize;
-  __ movq(RAX, Address(RSP, 0));  // Value.
-  __ movq(Address(RSP, kPlaceholderOffset), RAX);
+
+  // Insert a copy of the third (last) argument under the arguments.
+  __ popq(RAX);  // Value.
+  __ popq(RBX);  // Index.
+  __ popq(RCX);  // Receiver.
+  __ pushq(RAX);
+  __ pushq(RCX);
+  __ pushq(RBX);
+  __ pushq(RAX);
   EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 3,
                    Array::ZoneHandle(), 1);
   __ popq(RAX);
@@ -196,10 +201,13 @@ void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
   // computation, then call the getter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(comp->field_name()));
-  // Placeholder is under value and receiver.
-  const int kPlaceholderOffset = 2 * kWordSize;
-  __ movq(RAX, Address(RSP, 0));  // Value.
-  __ movq(Address(RSP, kPlaceholderOffset), RAX);
+
+  // Insert a copy of the second (last) argument under the arguments.
+  __ popq(RAX);  // Value.
+  __ popq(RBX);  // Reciever.
+  __ pushq(RAX);
+  __ pushq(RBX);
+  __ pushq(RAX);
   EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 2,
                    Array::ZoneHandle(), 1);
   __ popq(RAX);
