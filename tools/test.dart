@@ -3,6 +3,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * This file is the entrypoint of the dart test suite.  This suite is used
+ * to test:
+ *
+ *     1. the dart vm
+ *     2. the frog compiler (compiles dart to js)
+ *     3. the leg compiler (also compiles dart to js)
+ *     4. the dartc static analyzer
+ *     5. the dart core library
+ *     6. other standard dart libraries (DOM bindings, ui libraries,
+ *            io libraries etc.)
+ *
+ * This script is normally invoked by test.py.  (test.py finds the dart vm
+ * and passses along all command line arguments to this script.)
+ *
+ * The command line args of this script are documented in
+ * "tools/testing/test_options.dart".
+ *
+ */
+
 #library("test");
 
 #import("testing/dart/test_runner.dart");
