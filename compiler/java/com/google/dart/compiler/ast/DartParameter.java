@@ -20,7 +20,6 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
   private DartTypeNode typeNode;
   private List<DartParameter> functionParameters;
   private DartExpression defaultExpr;
-  private DartParameter normalizedNode = this;
   private final Modifiers modifiers;
 
   public DartParameter(DartExpression name,
@@ -71,16 +70,6 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
       return ((DartPropertyAccess)getName()).getQualifier();
     }
     return null;
-  }
-
-  public void setNormalizedNode(DartParameter normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartParameter getNormalizedNode() {
-    return normalizedNode;
   }
 
   @Override

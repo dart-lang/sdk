@@ -13,8 +13,6 @@ public class DartForInStatement extends DartStatement {
   private DartExpression iterable;
   private DartStatement body;
 
-  private DartStatement normalizedNode = this;
-
   public DartForInStatement(DartStatement setup,
                             DartExpression iterable,
                             DartStatement body) {
@@ -29,15 +27,6 @@ public class DartForInStatement extends DartStatement {
 
   public DartExpression getIterable() {
     return iterable;
-  }
-
-  public void setNormalizedNode(DartStatement statement) {
-    normalizedNode = statement;
-  }
-
-  @Override
-  public DartStatement getNormalizedNode() {
-    return normalizedNode;
   }
 
   public boolean introducesVariable() {

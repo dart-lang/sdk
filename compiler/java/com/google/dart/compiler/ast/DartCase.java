@@ -12,7 +12,6 @@ import java.util.List;
 public class DartCase extends DartSwitchMember {
 
   private DartExpression expr;
-  private DartCase normalizedNode = this;
 
   public DartCase(DartExpression expr, DartLabel label, List<DartStatement> statements) {
     super(label, statements);
@@ -21,16 +20,6 @@ public class DartCase extends DartSwitchMember {
 
   public DartExpression getExpr() {
     return expr;
-  }
-
-  public void setNormalizedNode(DartCase normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartCase getNormalizedNode() {
-    return normalizedNode;
   }
 
   @Override

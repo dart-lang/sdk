@@ -15,7 +15,6 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
   private final Token operator;
   private DartExpression arg;
   private final boolean isPrefix;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
 
   public DartUnaryExpression(Token operator, DartExpression arg, boolean isPrefix) {
@@ -36,16 +35,6 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
 
   public boolean isPrefix() {
     return isPrefix;
-  }
-
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
   }
 
   @Override

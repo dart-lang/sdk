@@ -17,7 +17,6 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
 
   protected DartFunction function;
   private MethodElement element;
-  private DartMethodDefinition normalizedNode = this;
 
   public static DartMethodDefinition create(DartExpression name,
                                             DartFunction function,
@@ -48,16 +47,6 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
   @Override
   public void setSymbol(Symbol symbol) {
     element = (MethodElement) symbol;
-  }
-
-  public void setNormalizedNode(DartMethodDefinition normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartMethodDefinition getNormalizedNode() {
-    return normalizedNode;
   }
 
   public List<DartInitializer> getInitializers() {

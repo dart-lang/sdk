@@ -14,7 +14,6 @@ public class DartIdentifier extends DartExpression implements ElementReference {
 
   private final String targetName;
   private Element targetSymbol;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
 
   public DartIdentifier(String targetName) {
@@ -24,16 +23,6 @@ public class DartIdentifier extends DartExpression implements ElementReference {
 
   public DartIdentifier(DartIdentifier original) {
     this.targetName = original.targetName;
-  }
-
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
   }
 
   @Override

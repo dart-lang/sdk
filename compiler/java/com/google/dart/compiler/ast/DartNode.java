@@ -37,10 +37,6 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
     throw new UnsupportedOperationException(getClass().getSimpleName());
   }
 
-  public DartNode getNormalizedNode() {
-    return this;
-  }
-
   public Type getType() {
     return Types.newDynamicType();
   }
@@ -147,7 +143,7 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
     // TODO (fabiomfv) - Implement proper cloning when strictly needed.
     return this;
   }
-  
+
   public String getObjectIdentifier(){
     return super.toString();
   }

@@ -15,7 +15,6 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
   private final Token op;
   private DartExpression arg1;
   private DartExpression arg2;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
 
   public DartBinaryExpression(Token op, DartExpression arg1, DartExpression arg2) {
@@ -36,16 +35,6 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
 
   public Token getOperator() {
     return op;
-  }
-
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
   }
 
   @Override

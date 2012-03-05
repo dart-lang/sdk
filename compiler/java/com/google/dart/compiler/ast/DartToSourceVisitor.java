@@ -4,11 +4,8 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.common.collect.Lists;
-import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.util.TextOutput;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
