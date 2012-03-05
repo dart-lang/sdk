@@ -10,7 +10,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeKind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
       new AtomicReference<List<InterfaceType>>();
 
   // declared volatile for thread-safety
+  @SuppressWarnings("unused")
   private volatile Set<InterfaceType> subtypes;
 
   private final List<ConstructorElement> constructors;

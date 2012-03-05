@@ -14,7 +14,6 @@ import com.google.dart.compiler.type.Types;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Dummy element corresponding to {@link DynamicType}.
