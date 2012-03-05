@@ -143,7 +143,7 @@ def start_browser(browser, html_out):
       return sel
     except socket.error:
       print 'ERROR: Could not connect to Selenium RC server. Are you running' +\
-          ' java -jar selenium-server-standalone-2.15.0.jar? If not, start ' + \
+          ' java -jar selenium-server-standalone-*.jar? If not, start ' + \
           'it before running this test.'
       sys.exit(1)
   else:
