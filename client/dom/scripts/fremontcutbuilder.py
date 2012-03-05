@@ -141,7 +141,7 @@ def main():
 
   optional_argument_whitelist = [
       ('CSSStyleDeclaration', 'setProperty', 'priority'),
-      # TODO(sra): Issue 1812 ('IDBDatabase', 'transaction', 'mode'),
+      ('IDBDatabase', 'transaction', 'mode'),
       ]
 
   for dir_name in webkit_dirs:

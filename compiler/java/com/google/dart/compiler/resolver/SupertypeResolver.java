@@ -147,7 +147,16 @@ public class SupertypeResolver {
    *         implementation.
    */
   static boolean isCoreLibrarySource(Source source) {
+    
+    // TODO (danrubel) remove these when dartc libraries are removed
+    // Old core library file names
     return Elements.isLibrarySource(source, "corelib.dart")
-        || Elements.isLibrarySource(source, "corelib_impl.dart");
+        || Elements.isLibrarySource(source, "corelib_impl.dart")
+        
+        // New core library file names
+        || Elements.isLibrarySource(source, "core_frog.dart")
+        || Elements.isLibrarySource(source, "coreimpl_frog.dart")
+        || Elements.isLibrarySource(source, "core_runtime.dart")
+        || Elements.isLibrarySource(source, "coreimpl_runtime.dart");
   }
 }

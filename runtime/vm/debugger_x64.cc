@@ -28,7 +28,7 @@ RawInstance* ActivationFrame::GetInstanceCallReceiver(
 }
 
 
-void Breakpoint::PatchFunctionReturn() {
+void CodeBreakpoint::PatchFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
   // movq %rbp,%rsp
   ASSERT((code[0] == 0x48) && (code[1] == 0x8b) && (code[2] == 0xe5));
@@ -51,7 +51,7 @@ void Breakpoint::PatchFunctionReturn() {
 }
 
 
-void Breakpoint::RestoreFunctionReturn() {
+void CodeBreakpoint::RestoreFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
   ASSERT((code[0] == 0x49) && (code[1] == 0xbb));
   code[0] = 0x48;  // movq %rbp,%rsp

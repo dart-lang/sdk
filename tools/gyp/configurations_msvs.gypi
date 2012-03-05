@@ -8,10 +8,11 @@
       'Dart_Debug': {
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'Optimization': '0',
+            'Optimization': '2',
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
+            'OmitFramePointers': 'false',
           },
           'VCLinkerTool': {
             'LinkIncremental': '2',

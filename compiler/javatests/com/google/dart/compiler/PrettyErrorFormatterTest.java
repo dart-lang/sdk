@@ -223,7 +223,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, true);
     assertEquals(
         Joiner.on("\n").join(
-            "WARNING:STATIC_TYPE:NO_SUCH_TYPE:my/path/Test.dart:2:3:4: no such type \"Foo\"",
+            "WARNING|STATIC_TYPE|NO_SUCH_TYPE|my/path/Test.dart|2|3|4|no such type \"Foo\"",
             "     1: lineAAA",
             "     2: lineBBB",
             "          ~~~~",
@@ -242,7 +242,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             WARNING_BOLD_COLOR
-                + "WARNING:STATIC_TYPE:NO_SUCH_TYPE:my/path/Test.dart:2:3:4: no such type \"Foo\""
+                + "WARNING|STATIC_TYPE|NO_SUCH_TYPE|my/path/Test.dart|2|3|4|no such type \"Foo\""
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + WARNING_COLOR + "neBB" + NO_COLOR + "B",
@@ -254,7 +254,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     assertEquals(
         Joiner.on("\n").join(
             ERROR_BOLD_COLOR
-                + "ERROR:RESOLVER:NO_SUCH_TYPE:my/path/Test.dart:2:3:4: no such type \"Foo\""
+                + "ERROR|RESOLVER|NO_SUCH_TYPE|my/path/Test.dart|2|3|4|no such type \"Foo\""
                 + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + ERROR_COLOR + "neBB" + NO_COLOR + "B",

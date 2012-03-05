@@ -18,23 +18,28 @@ class LocalVariable;
 
 // Computations and values.
 //
-// <Computation> ::= <Value>
-//                 | AssertAssignable <Value> <AbstractType>
-//                 | InstanceCall <cstring> <Value> ...
-//                 | StaticCall <Function> <Value> ...
-//                 | LoadLocal <LocalVariable>
-//                 | StoreLocal <LocalVariable> <Value>
-//                 | StrictCompare <Token::kind> <Value> <Value>
-//                 | NativeCall <String> <NativeFunction> <int> <bool>
+// <Computation> ::=
+//   <Value>
+// | AssertAssignable <Value> <AbstractType>
+// | InstanceCall <AstNode> <String> <Value> ...
+// | StaticCall <StaticCallNode> <Value> ...
+// | LoadLocal <LocalVariable>
+// | StoreLocal <LocalVariable> <Value>
+// | StrictCompare <Token::kind> <Value> <Value>
+// | NativeCall <NativeBodyNode>
+// | StoreIndexed <StoreIndexedNode> <Value> <Value> <Value>
+// | InstanceSetter <InstanceSetterNode> <Value> <Value>
 //
-// <Value> ::= Temp <int>
-//           | Constant <Instance>
+// <Value> ::=
+//   Temp <int>
+// | Constant <Instance>
 
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
   M(Temp, TempVal)                                                             \
-  M(Constant, ConstantVal)
+  M(Constant, ConstantVal)                                                     \
+
 
 // M is a two argument macro.  It is applied to each concrete instruction's
 // (including the values) typename and classname.
@@ -47,6 +52,8 @@ class LocalVariable;
   M(StoreLocal, StoreLocalComp)                                                \
   M(StrictCompare, StrictCompareComp)                                          \
   M(NativeCall, NativeCallComp)                                                \
+  M(StoreIndexed, StoreIndexedComp)                                            \
+  M(InstanceSetter, InstanceSetterComp)                                        \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -145,20 +152,39 @@ class AssertAssignableComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(const char* name, ZoneGrowableArray<Value*>* arguments)
-      : name_(name), arguments_(arguments) {
+  InstanceCallComp(AstNode* node,
+                   const String& function_name,
+                   ZoneGrowableArray<Value*>* arguments,
+                   const Array& argument_names,
+                   intptr_t checked_argument_count)
+      : ast_node_(*node),
+        function_name_(function_name),
+        arguments_(arguments),
+        argument_names_(argument_names),
+        checked_argument_count_(checked_argument_count) {
+    ASSERT(function_name.IsZoneHandle());
     ASSERT(!arguments->is_empty());
+    ASSERT(argument_names.IsZoneHandle());
   }
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  const char* name() const { return name_; }
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  const String& function_name() const { return function_name_; }
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  const Array& argument_names() const { return argument_names_; }
+  intptr_t checked_argument_count() const { return checked_argument_count_; }
 
  private:
-  const char* name_;
-  ZoneGrowableArray<Value*>* arguments_;
+  const AstNode& ast_node_;
+  const String& function_name_;
+  ZoneGrowableArray<Value*>* const arguments_;
+  const Array& argument_names_;
+  const intptr_t checked_argument_count_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
 };
@@ -188,19 +214,21 @@ class StrictCompareComp : public Computation {
 
 class StaticCallComp : public Computation {
  public:
-  StaticCallComp(const Function& function, ZoneGrowableArray<Value*>* arguments)
-      : function_(function), arguments_(arguments) {
-    ASSERT(function.IsZoneHandle());
-  }
+  StaticCallComp(StaticCallNode* node, ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node), arguments_(arguments) { }
 
   DECLARE_COMPUTATION(StaticCall)
 
-  const Function& function() const { return function_; }
+  // Accessors forwarded to the AST node.
+  const Function& function() const { return ast_node_.function(); }
+  const Array& argument_names() const { return ast_node_.arguments()->names(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
 
  private:
-  const Function& function_;
+  const StaticCallNode& ast_node_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
@@ -255,6 +283,70 @@ class NativeCallComp : public Computation {
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallComp);
 };
+
+
+// Not simply an InstanceCall because it has somewhat more complicated
+// semantics: the value operand is preserved before the call.
+class StoreIndexedComp : public Computation {
+ public:
+  StoreIndexedComp(StoreIndexedNode* node,
+                   Value* array,
+                   Value* index,
+                   Value* value)
+      : ast_node_(*node),
+        array_(array),
+        index_(index),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(StoreIndexed)
+
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  Value* array() const { return array_; }
+  Value* index() const { return index_; }
+  Value* value() const { return value_; }
+
+ private:
+  const StoreIndexedNode& ast_node_;
+  Value* array_;
+  Value* index_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
+};
+
+
+// Not simply an InstanceCall because it has somewhat more complicated
+// semantics: the value operand is preserved before the call.
+class InstanceSetterComp : public Computation {
+ public:
+  InstanceSetterComp(InstanceSetterNode* node,
+                     Value* receiver,
+                     Value* value)
+      : ast_node_(*node),
+        receiver_(receiver),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(InstanceSetter)
+
+  // Accessors forwarded to the AST node.
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const String& field_name() const { return ast_node_.field_name(); }
+
+  Value* receiver() const { return receiver_; }
+  Value* value() const { return value_; }
+
+ private:
+  const InstanceSetterNode& ast_node_;
+  Value* receiver_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
+};
+
 
 #undef DECLARE_COMPUTATION
 

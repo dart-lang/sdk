@@ -866,12 +866,9 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
 void RawCode::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
-  // Currently we do not serialize any code and hence we write
-  // out a null object for it.
-  ASSERT(writer != NULL);
-  ASSERT(kind != Snapshot::kMessage);
-
-  writer->WriteIndexedObject(Object::kNullObject);
+  // We have already checked for this and written a NULL object, hence we
+  // should not reach here.
+  UNREACHABLE();
 }
 
 
@@ -1909,7 +1906,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
                             Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return NULL;
 }
 
@@ -1917,7 +1914,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
 void RawICData::WriteTo(SnapshotWriter* writer,
                         intptr_t object_id,
                         Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
 }
 
 

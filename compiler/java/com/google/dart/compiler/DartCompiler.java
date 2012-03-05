@@ -1149,6 +1149,9 @@ public class DartCompiler {
       return null;
     }
     seen.add(libraryUnit.getElement());
+    if (uri.equals(libraryUnit.getName())) {
+      return libraryUnit;
+    }
     for (LibraryNode src : libraryUnit.getSourcePaths()) {
       if (src.getText().equals(uri)) {
         return libraryUnit;
@@ -1164,6 +1167,6 @@ public class DartCompiler {
   }
 
   public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
-    return findLibrary(libraryUnit, "corelib.dart", new HashSet<LibraryElement>());
+    return findLibrary(libraryUnit, "dart:core", new HashSet<LibraryElement>());
   }
 }

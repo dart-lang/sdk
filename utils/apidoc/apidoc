@@ -20,10 +20,11 @@
 pushd `dirname "$0"` >>/dev/null
 
 compileToJs() {
-  if [ "../dartdoc/$1.dart" -nt "../dartdoc/static/$1.js" ]
+  if [ "../../lib/dartdoc/$1.dart" -nt "../../lib/dartdoc/static/$1.js" ]
     then
     ../../frog/minfrog --libdir=../../frog/lib \
-      --out=../dartdoc/static/$1.js --compile-only ../dartdoc/$1.dart
+      --out=../../lib/dartdoc/static/$1.js --compile-only \
+      ../../lib/dartdoc/$1.dart
     echo "Compiled $1.dart."
   fi
 }
@@ -45,7 +46,7 @@ grep "'*.dart'" ../../runtime/bin/io_sources.gypi | sed s/\',//g | \
     sed s,\',../../runtime/bin/,g | xargs cat > io_libs.dart
 
 # Copy the static files over.
-cp ../dartdoc/static/* docs
+cp ../../lib/dartdoc/static/* docs
 # Overlay any apidoc-specific ones.
 cp static/* docs
 
@@ -55,12 +56,6 @@ shift
 # Figure out where the dart VM executable is.
 
 # Generate the user's docs.
-if [ -a "../../out/Release_ia32/dart" ]; then
-  ../../out/Release_ia32/dart ../apidoc/apidoc.dart
-elif [ -a "../../xcodebuild/Release_ia32/dart" ]; then
-  ../../xcodebuild/Release_ia32/dart ../apidoc/apidoc.dart
-else
-  echo "Could not find the Dart VM. Did you run 'tools/build.py -m release'?"
-fi
+dart ../apidoc/apidoc.dart $@
 
 popd >>/dev/null

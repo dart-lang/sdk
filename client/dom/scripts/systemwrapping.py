@@ -443,35 +443,37 @@ class WrappingInterfaceGenerator(object):
     def TypeCheck(name, type):
       return '%s is %s' % (name, type)
 
-    if position == len(info.arg_infos):
-      if len(overloads) > 1:
-        raise Exception('Duplicate operations ' + str(overloads))
-      operation = overloads[0]
-      self.GenerateSingleOperation(emitter, info, indent, operation)
+    def ShouldGenerateSingleOperation():
+      if position == len(info.arg_infos):
+        if len(overloads) > 1:
+          raise Exception('Duplicate operations ' + str(overloads))
+        return True
+
+      # Check if we dispatch on RequiredCppParameter arguments.  In this
+      # case all trailing arguments must be RequiredCppParameter and there
+      # is no need in dispatch.
+      # TODO(antonm): better diagnositics.
+      if position >= len(overloads[0].arguments):
+        def IsRequiredCppParameter(arg):
+          return 'RequiredCppParameter' in arg.ext_attrs
+        last_overload = overloads[-1]
+        if (len(last_overload.arguments) > position and
+            IsRequiredCppParameter(last_overload.arguments[position])):
+          for overload in overloads:
+            args = overload.arguments[position:]
+            if not all([IsRequiredCppParameter(arg) for arg in args]):
+              raise Exception('Invalid overload for RequiredCppParameter')
+          return True
+
+      return False
+
+    if ShouldGenerateSingleOperation():
+      self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
       return False
 
     # FIXME: Consider a simpler dispatch that iterates over the
     # overloads and generates an overload specific check.  Revisit
     # when we move to named optional arguments.
-
-    if position == 0:
-      # Optional callback arguments are special.  C++ counterparts do not have proper optional
-      # arguments (as in some cases C++ counterparts require ec) and thus 0 ref ptrs are passed
-      # instead of missing arguments.  That means the only allowed form is a list of
-      # arguments with trailing optional callbacks and we don't need any dispatch at all.
-      def IsOptionalCallback(arg): return arg.is_optional and 'Callback' in arg.ext_attrs
-      first_optional_callback = None
-      for (i, arg) in enumerate(overloads[-1].arguments):
-        if IsOptionalCallback(arg):
-          first_optional_callback = i
-          break
-      if first_optional_callback is not None:
-        for overload in overloads:
-          for arg in overload.arguments[first_optional_callback:]:
-            if not IsOptionalCallback(arg):
-              raise Exception('Invalid overloading with optional callbacks')
-        self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
-        return False
 
     # Partition the overloads to divide and conquer on the dispatch.
     positive = []

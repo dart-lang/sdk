@@ -10,6 +10,10 @@ import os
 #import re
 import generator
 
+def MassagePath(path):
+  # The most robust way to emit path separators is to use / always.
+  return path.replace('\\', '/')
+
 class System(object):
   """A System generates all the files for one implementation.
 
@@ -81,7 +85,7 @@ class System(object):
     lib_file_dir = os.path.dirname(lib_file_path)
     for path in sorted(file_paths):
       relpath = os.path.relpath(path, lib_file_dir)
-      list_emitter.Emit("#source('$PATH');\n", PATH=relpath)
+      list_emitter.Emit("#source('$PATH');\n", PATH=MassagePath(relpath))
 
 
   def _BaseDefines(self, interface):

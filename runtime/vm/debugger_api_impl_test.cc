@@ -306,10 +306,68 @@ TEST_CASE(Debug_SingleStep) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke(lib, "main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_NOT_ERROR(retval);
   EXPECT(breakpoint_hit == true);
 }
 
+
+static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
+                                     Dart_StackTrace trace) {
+  const char* expected_trace[] = {"callback", "main"};
+  const intptr_t expected_trace_length = 2;
+  breakpoint_hit_counter++;
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT_EQ(expected_trace_length, trace_len);
+  for (int i = 0; i < trace_len; i++) {
+    Dart_ActivationFrame frame;
+    res = Dart_GetActivationFrame(trace, i, &frame);
+    EXPECT_NOT_ERROR(res);
+    Dart_Handle func_name;
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    EXPECT_NOT_ERROR(res);
+    EXPECT(Dart_IsString(func_name));
+    const char* name_chars;
+    Dart_StringToCString(func_name, &name_chars);
+    EXPECT_STREQ(expected_trace[i], name_chars);
+    if (verbose) printf("  >> %d: %s\n", i, name_chars);
+  }
+}
+
+
+TEST_CASE(Debug_ClosureBreakpoint) {
+  const char* kScriptChars =
+      "callback(s) {          \n"
+      "  return 111;          \n"
+      "}                      \n"
+      "                       \n"
+      "main() {               \n"
+      "  var h = callback;    \n"
+      "  h('bla');            \n"
+      "  callback('jada');    \n"
+      "  return 442;          \n"
+      "}                      \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&ClosureBreakpointHandler);
+
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("callback");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT_NOT_ERROR(retval);
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(442, int_value);
+  EXPECT_EQ(2, breakpoint_hit_counter);
+}
 
 
 static void DeleteBreakpointHandler(Dart_Breakpoint bpt,

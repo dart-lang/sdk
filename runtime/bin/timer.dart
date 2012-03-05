@@ -7,13 +7,13 @@ interface Timer default _Timer{
    * Creates a new timer. The [callback] callback is invoked after
    * [milliSeconds] milliseconds.
    */
-  Timer(void callback(Timer timer), int milliSeconds);
+  Timer(int milliSeconds, void callback(Timer timer));
 
   /**
    * Creates a new repeating timer. The [callback] is invoked every
    * [milliSeconds] millisecond until cancelled.
    */
-  Timer.repeating(void callback(Timer timer), int milliSeconds);
+  Timer.repeating(int milliSeconds, void callback(Timer timer));
 
   /**
    * Cancels the timer.

@@ -21,14 +21,14 @@ class NamedParametersTypeTest {
     acceptFunNumOptBool(funNum);  // No error.
     acceptFunNumOptBool(funNumOptBool);  // No error.
     try {
-      acceptFunNumOptBool(funNumBool);  // Throws an error.
+      acceptFunNumOptBool(funNumBool);  /// static type error
     } catch (TypeError error) {
       result += 1;
       Expect.stringEquals("(num, [b: bool]) => void", error.dstType);
       Expect.stringEquals("(num, bool) => void", error.srcType);
     }
     try {
-      acceptFunNumOptBool(funNumOptBoolX);  // Throws an error.
+      acceptFunNumOptBool(funNumOptBoolX);  /// static type error
     } catch (TypeError error) {
       result += 10;
       Expect.stringEquals("(num, [b: bool]) => void", error.dstType);

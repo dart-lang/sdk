@@ -251,6 +251,28 @@ DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
  */
 DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
 
+
+/**
+ * Constructs a set of weak references from the Cartesian product of
+ * the objects in the key set and the objects in values set.
+ *
+ * \param keys A set of object references.  These references will be
+ *   considered weak by the garbage collector.
+ * \param num_keys the number of objects in the keys set.
+ * \param values A set of object references.  These references will be
+ *   considered weak by garbage collector unless any object reference
+ *   in 'keys' is found to be strong.
+ * \param num_values the size of the values set
+ *
+ * \return Success if the weak reference set could be created.
+ *   Otherwise, returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
+                                                 intptr_t num_keys,
+                                                 Dart_Handle* values,
+                                                 intptr_t num_values);
+
+
 // --- Initialization and Globals ---
 
 /**

@@ -11,5 +11,7 @@ import com.google.common.collect.Lists;
 public class DartReturnBlock extends DartBlock {
   public DartReturnBlock(DartExpression returnVal) {
     super(Lists.<DartStatement>newArrayList(new DartReturnStatement(returnVal)));
+    // Set the source information for the synthesized node.
+    getStatements().get(0).setSourceInfo(returnVal.getSourceInfo());
   }
 }

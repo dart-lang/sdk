@@ -328,7 +328,7 @@ is 'dart file.dart' and you specify special command
 
     // Expand the pseudo-values such as 'all'.
     if (configuration['arch'] == 'all') {
-      configuration['arch'] = 'ia32,x64,simarm';
+      configuration['arch'] = 'ia32,x64';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';

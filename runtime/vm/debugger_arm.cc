@@ -22,12 +22,12 @@ RawInstance* ActivationFrame::GetInstanceCallReceiver(
 }
 
 
-void Breakpoint::PatchFunctionReturn() {
+void CodeBreakpoint::PatchFunctionReturn() {
   UNIMPLEMENTED();
 }
 
 
-void Breakpoint::RestoreFunctionReturn() {
+void CodeBreakpoint::RestoreFunctionReturn() {
   UNIMPLEMENTED();
 }
 

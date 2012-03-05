@@ -39,6 +39,8 @@ class _SocketBase {
     _canActivateHandlers = true;
     _id = -1;
     _EventHandler._start();
+    _hashCode = _nextHashCode;
+    _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
   }
 
   // Multiplexes socket events to the socket handlers.
@@ -178,6 +180,8 @@ class _SocketBase {
     _EventHandler._sendData(_id, _handler, data);
   }
 
+  int hashCode() => _hashCode;
+
   abstract bool _isListenSocket();
   abstract bool _isPipe();
 
@@ -198,6 +202,10 @@ class _SocketBase {
 
   // Holds the port of the socket, null if not known.
   int _port;
+
+  // Hash code for the socket. Currently this is just a counter.
+  int _hashCode;
+  static int _nextHashCode = 0;
 }
 
 

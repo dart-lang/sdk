@@ -384,8 +384,6 @@ class ObjectStore {
   RawArray* keyword_symbols_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&keyword_symbols_); }
 
-  bool preallocate_objects_called_;
-
   friend class SnapshotReader;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);

@@ -123,11 +123,14 @@ void ExtractTestsFromMultitest(String filename,
 void DoMultitest(String filename,
                  String outputDir,
                  String testDir,
+                 // TODO(zundel): Are the boolean flags now redundant 
+                 // with the 'multitestOutcome' field?
                  Function doTest(String filename,
                                  bool isNegative,
                                  [bool isNegativeIfChecked,
                                   bool hasFatalTypeErrors,
-                                  bool hasRuntimeErrors]),
+                                  bool hasRuntimeErrors,
+                                  String multitestOutcome]),
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
@@ -158,7 +161,8 @@ void DoMultitest(String filename,
            isNegative,
            isNegativeIfChecked,
            enableFatalTypeErrors,
-           hasRuntimeErrors);
+           hasRuntimeErrors,
+           outcome);
   }
   multitestDone();
 }

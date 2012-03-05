@@ -20,6 +20,8 @@
     'file_impl.dart',
     'http.dart',
     'http_impl.dart',
+    'http_parser.dart',
+    'http_utils.dart',
     'input_stream.dart',
     'list_stream.dart',
     'list_stream_impl.dart',

@@ -47,7 +47,7 @@ class _Process implements Process {
     _onExit = null;
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
-    new Timer((Timer ignore) => start(), 0);
+    new Timer(0, (Timer ignore) => start());
   }
 
   int _intFromBytes(List<int> bytes, int offset) {

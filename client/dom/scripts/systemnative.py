@@ -121,14 +121,14 @@ class NativeImplementationSystem(System):
         'dom_public.darttemplate',
         os.path.join(self._output_dir, 'dom_public.dart'),
         self._dom_public_files,
-        AUXILIARY_DIR=auxiliary_dir);
+        AUXILIARY_DIR=MassagePath(auxiliary_dir));
 
     # Generate dom_impl.dart.
     self._GenerateLibFile(
         'dom_impl.darttemplate',
         os.path.join(self._output_dir, 'dom_impl.dart'),
         self._dom_impl_files,
-        AUXILIARY_DIR=auxiliary_dir);
+        AUXILIARY_DIR=MassagePath(auxiliary_dir));
 
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
@@ -647,7 +647,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._cpp_impl_includes.add(include_name)
     flags = ''
     if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
-        ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
+        'RequiredCppParameter' in idl_argument.ext_attrs):
       flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(
         '\n'

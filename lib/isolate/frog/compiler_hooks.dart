@@ -12,20 +12,20 @@
  * applications (e.g. hello world), this call is not emitted.
  */
 void startRootIsolate(entry) {
-  globalState = new GlobalState();
+  _globalState = new _GlobalState();
 
   // Don't start the main loop again, if we are in a worker.
-  if (globalState.isWorker) return;
-  final rootContext = new IsolateContext();
-  globalState.rootContext = rootContext;
-  fillStatics(rootContext);
+  if (_globalState.isWorker) return;
+  final rootContext = new _IsolateContext();
+  _globalState.rootContext = rootContext;
+  _fillStatics(rootContext);
 
   // BUG(5151491): Setting currentContext should not be necessary, but
   // because closures passed to the DOM as event handlers do not bind their
   // isolate automatically we try to give them a reasonable context to live in
   // by having a "default" isolate (the first one created).
-  globalState.currentContext = rootContext;
+  _globalState.currentContext = rootContext;
 
   rootContext.eval(entry);
-  globalState.topEventLoop.run();
+  _globalState.topEventLoop.run();
 }

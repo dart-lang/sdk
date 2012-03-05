@@ -114,7 +114,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
          (_bufferList.length > 0 && _inputClosed)) &&
         _clientDataHandler !== null &&
         _scheduledDataCallback == null) {
-      _scheduledDataCallback = new Timer(issueDataCallback, 0);
+      _scheduledDataCallback = new Timer(0, issueDataCallback);
     }
 
     // Schedule close callback if no more data and input is closed.
@@ -125,7 +125,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
       if (_scheduledDataCallback != null) {
         _scheduledDataCallback.cancel();
       }
-      _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
+      _scheduledCloseCallback = new Timer(0, issueCloseCallback);
     }
   }
 

@@ -30,6 +30,7 @@ class GCMarker : public ValueObject {
   void Prologue(Isolate* isolate);
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
 
   Heap* heap_;

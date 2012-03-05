@@ -54,7 +54,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
     _waitForPendingPorts([message, replyTo], () {
       checkReplyTo(replyTo);
       // Check that the isolate still runs and the port is still open
-      final isolate = globalState.isolates[_isolateId];
+      final isolate = _globalState.isolates[_isolateId];
       if (isolate == null) return;
       if (_receivePort._callback == null) return;
 
@@ -64,16 +64,16 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
       // from the same worker and messages from other workers. In particular,
       // messages sent from a worker via a [_WorkerSendPort] are received at
       // [_processWorkerMessage] and forwarded to a native port. In such cases,
-      // here we'll see [globalState.currentContext == null].
-      final shouldSerialize = globalState.currentContext != null
-          && globalState.currentContext.id != _isolateId;
+      // here we'll see [_globalState.currentContext == null].
+      final shouldSerialize = _globalState.currentContext != null
+          && _globalState.currentContext.id != _isolateId;
       var msg = message;
       var reply = replyTo;
       if (shouldSerialize) {
         msg = _serializeMessage(msg);
         reply = _serializeMessage(reply);
       }
-      globalState.topEventLoop.enqueue(isolate, () {
+      _globalState.topEventLoop.enqueue(isolate, () {
         if (_receivePort._callback != null) {
           if (shouldSerialize) {
             msg = _deserializeMessage(msg);
@@ -108,11 +108,11 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
           'msg': message,
           'replyTo': replyTo});
 
-      if (globalState.isWorker) {
+      if (_globalState.isWorker) {
         // communication from one worker to another go through the main worker:
-        globalState.mainWorker.postMessage(workerMessage);
+        _globalState.mainWorker.postMessage(workerMessage);
       } else {
-        globalState.workers[_workerId].postMessage(workerMessage);
+        _globalState.workers[_workerId].postMessage(workerMessage);
       }
     });
   }
@@ -200,7 +200,7 @@ class _ReceivePortImpl implements ReceivePort {
 
   _ReceivePortImpl()
       : _id = _nextFreeId++ {
-    globalState.currentContext.register(_id, this);
+    _globalState.currentContext.register(_id, this);
   }
 
   void receive(void onMessage(var message, SendPort replyTo)) {
@@ -209,11 +209,11 @@ class _ReceivePortImpl implements ReceivePort {
 
   void close() {
     _callback = null;
-    globalState.currentContext.unregister(_id);
+    _globalState.currentContext.unregister(_id);
   }
 
   SendPort toSendPort() {
-    return new _NativeJsSendPort(this, globalState.currentContext.id);
+    return new _NativeJsSendPort(this, _globalState.currentContext.id);
   }
 }
 

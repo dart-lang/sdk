@@ -87,15 +87,15 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
       }
       if (errorFormat == ErrorFormat.MACHINE) {
         buf.append(String.format(
-            "%s:%s:%s:%s:%d:%d:%d: %s",
-            event.getErrorCode().getErrorSeverity(),
-            event.getErrorCode().getSubSystem(),
-            event.getErrorCode(),
-            sourceFile.getName(),
+            "%s|%s|%s|%s|%d|%d|%d|%s",
+            escapePipe(event.getErrorCode().getErrorSeverity().toString()),
+            escapePipe(event.getErrorCode().getSubSystem().toString()),
+            escapePipe(event.getErrorCode().toString()),
+            escapePipe(sourceFile.getName()),
             event.getLineNumber(),
             1 + col,
             length,
-            event.getMessage()));
+            escapePipe(event.getMessage())));
       } else {
         String sourceName = sourceFile.getUri().toString();
         String includeFrom = getImportString(sourceFile);
@@ -152,6 +152,17 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         Closeables.closeQuietly(reader);
       }
     }
+  }
+
+  private String escapePipe(String input) {
+    StringBuilder result = new StringBuilder();
+    for (char c : input.toCharArray()) {
+      if (c == '\\' || c == '|') {
+        result.append('\\');
+      }
+      result.append(c);
+    }
+    return result.toString();
   }
 
   private String getLineAt(BufferedReader reader, int line) throws IOException {

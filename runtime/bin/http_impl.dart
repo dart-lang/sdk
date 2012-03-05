@@ -2,419 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Global constants.
-class _Const {
-  // Bytes for "HTTP/1.0".
-  static final HTTP10 = const [72, 84, 84, 80, 47, 49, 46, 48];
-  // Bytes for "HTTP/1.1".
-  static final HTTP11 = const [72, 84, 84, 80, 47, 49, 46, 49];
-
-  static final END_CHUNKED = const [0x30, 13, 10, 13, 10];
-}
-
-// Frequently used character codes.
-class _CharCode {
-  static final int HT = 9;
-  static final int LF = 10;
-  static final int CR = 13;
-  static final int SP = 32;
-  static final int COLON = 58;
-}
-
-
-// States of the HTTP parser state machine.
-class _State {
-  static final int START = 0;
-  static final int METHOD_OR_HTTP_VERSION = 1;
-  static final int REQUEST_LINE_METHOD = 2;
-  static final int REQUEST_LINE_URI = 3;
-  static final int REQUEST_LINE_HTTP_VERSION = 4;
-  static final int REQUEST_LINE_ENDING = 5;
-  static final int RESPONSE_LINE_STATUS_CODE = 6;
-  static final int RESPONSE_LINE_REASON_PHRASE = 7;
-  static final int RESPONSE_LINE_ENDING = 8;
-  static final int HEADER_START = 9;
-  static final int HEADER_FIELD = 10;
-  static final int HEADER_VALUE_START = 11;
-  static final int HEADER_VALUE = 12;
-  static final int HEADER_VALUE_FOLDING_OR_ENDING = 13;
-  static final int HEADER_VALUE_FOLD_OR_END = 14;
-  static final int HEADER_ENDING = 15;
-  static final int CHUNK_SIZE_STARTING_CR = 16;
-  static final int CHUNK_SIZE_STARTING_LF = 17;
-  static final int CHUNK_SIZE = 18;
-  static final int CHUNK_SIZE_ENDING = 19;
-  static final int CHUNKED_BODY_DONE_CR = 20;
-  static final int CHUNKED_BODY_DONE_LF = 21;
-  static final int BODY = 22;
-}
-
-
-/**
- * HTTP parser which parses the HTTP stream as data is supplied
- * through the writeList method. As the data is parsed the events
- *   RequestStart
- *   UriReceived
- *   HeaderReceived
- *   HeadersComplete
- *   DataReceived
- *   DataEnd
- * are generated.
- * Currently only HTTP requests with Content-Length header are supported.
- */
-class HttpParser {
-  HttpParser()
-      : _state = _State.START,
-        _failure = false,
-        _headerField = new StringBuffer(),
-        _headerValue = new StringBuffer(),
-        _method_or_status_code = new StringBuffer(),
-        _uri_or_reason_phrase = new StringBuffer();
-
-  // From RFC 2616.
-  // generic-message = start-line
-  //                   *(message-header CRLF)
-  //                   CRLF
-  //                   [ message-body ]
-  // start-line      = Request-Line | Status-Line
-  // Request-Line    = Method SP Request-URI SP HTTP-Version CRLF
-  // Status-Line     = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
-  // message-header  = field-name ":" [ field-value ]
-  int writeList(List<int> buffer, int offset, int count) {
-    int index = offset;
-    int lastIndex = offset + count;
-    while ((index < lastIndex) && !_failure) {
-      int byte = buffer[index];
-      switch (_state) {
-        case _State.START:
-          _contentLength = 0;
-          _keepAlive = false;
-          _chunked = false;
-
-          if (byte == _Const.HTTP11[0]) {
-            // Start parsing HTTP method.
-            _httpVersionIndex = 1;
-            _state = _State.METHOD_OR_HTTP_VERSION;
-          } else {
-            // Start parsing method.
-            _method_or_status_code.addCharCode(byte);
-            _state = _State.REQUEST_LINE_METHOD;
-          }
-          break;
-
-        case _State.METHOD_OR_HTTP_VERSION:
-          if (_httpVersionIndex < _Const.HTTP11.length &&
-              byte == _Const.HTTP11[_httpVersionIndex]) {
-            // Continue parsing HTTP version.
-            _httpVersionIndex++;
-          } else if (_httpVersionIndex == _Const.HTTP11.length &&
-                     byte == _CharCode.SP) {
-            // HTTP version parsed.
-            _state = _State.RESPONSE_LINE_STATUS_CODE;
-          } else {
-            // Did not parse HTTP version. Expect method instead.
-            for (int i = 0; i < _httpVersionIndex; i++) {
-              _method_or_status_code.addCharCode(_Const.HTTP11[i]);
-            }
-            _state = _State.REQUEST_LINE_URI;
-          }
-          break;
-
-        case _State.REQUEST_LINE_METHOD:
-          if (byte == _CharCode.SP) {
-            _state = _State.REQUEST_LINE_URI;
-          } else {
-            _method_or_status_code.addCharCode(byte);
-          }
-          break;
-
-        case _State.REQUEST_LINE_URI:
-          if (byte == _CharCode.SP) {
-            _state = _State.REQUEST_LINE_HTTP_VERSION;
-            _httpVersionIndex = 0;
-          } else {
-            _uri_or_reason_phrase.addCharCode(byte);
-          }
-          break;
-
-        case _State.REQUEST_LINE_HTTP_VERSION:
-          if (_httpVersionIndex < _Const.HTTP11.length) {
-            _expect(byte, _Const.HTTP11[_httpVersionIndex]);
-            _httpVersionIndex++;
-          } else {
-            _expect(byte, _CharCode.CR);
-            _state = _State.REQUEST_LINE_ENDING;
-          }
-          break;
-
-        case _State.REQUEST_LINE_ENDING:
-          _expect(byte, _CharCode.LF);
-          if (requestStart != null) {
-            requestStart(_method_or_status_code.toString(),
-                         _uri_or_reason_phrase.toString());
-          }
-          _method_or_status_code.clear();
-          _uri_or_reason_phrase.clear();
-          _state = _State.HEADER_START;
-          break;
-
-        case _State.RESPONSE_LINE_STATUS_CODE:
-          if (byte == _CharCode.SP) {
-            _state = _State.RESPONSE_LINE_REASON_PHRASE;
-          } else {
-            if (byte < 0x30 && 0x39 < byte) {
-              _failure = true;
-            } else {
-              _method_or_status_code.addCharCode(byte);
-            }
-          }
-          break;
-
-        case _State.RESPONSE_LINE_REASON_PHRASE:
-          if (byte == _CharCode.CR) {
-            _state = _State.RESPONSE_LINE_ENDING;
-          } else {
-            _uri_or_reason_phrase.addCharCode(byte);
-          }
-          break;
-
-        case _State.RESPONSE_LINE_ENDING:
-          _expect(byte, _CharCode.LF);
-          // TODO(sgjesse): Check for valid status code.
-          if (responseStart != null) {
-            responseStart(Math.parseInt(_method_or_status_code.toString()),
-                          _uri_or_reason_phrase.toString());
-          }
-          _method_or_status_code.clear();
-          _uri_or_reason_phrase.clear();
-          _state = _State.HEADER_START;
-          break;
-
-        case _State.HEADER_START:
-          if (byte == _CharCode.CR) {
-            _state = _State.HEADER_ENDING;
-          } else {
-            // Start of new header field.
-            _headerField.addCharCode(_toLowerCase(byte));
-            _state = _State.HEADER_FIELD;
-          }
-          break;
-
-        case _State.HEADER_FIELD:
-          if (byte == _CharCode.COLON) {
-            _state = _State.HEADER_VALUE_START;
-          } else {
-            _headerField.addCharCode(_toLowerCase(byte));
-          }
-          break;
-
-        case _State.HEADER_VALUE_START:
-          if (byte != _CharCode.SP && byte != _CharCode.HT) {
-            // Start of new header value.
-            _headerValue.addCharCode(byte);
-            _state = _State.HEADER_VALUE;
-          }
-          break;
-
-        case _State.HEADER_VALUE:
-          if (byte == _CharCode.CR) {
-            _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
-          } else {
-            _headerValue.addCharCode(byte);
-          }
-          break;
-
-        case _State.HEADER_VALUE_FOLDING_OR_ENDING:
-          _expect(byte, _CharCode.LF);
-          _state = _State.HEADER_VALUE_FOLD_OR_END;
-          break;
-
-        case _State.HEADER_VALUE_FOLD_OR_END:
-          if (byte == _CharCode.SP || byte == _CharCode.HT) {
-            _state = _State.HEADER_VALUE_START;
-          } else {
-            String headerField = _headerField.toString();
-            String headerValue =_headerValue.toString();
-            // Ignore the Content-Length header if Transfer-Encoding
-            // is chunked (RFC 2616 section 4.4)
-            if (headerField == "content-length" && !_chunked) {
-              _contentLength = Math.parseInt(headerValue);
-            } else if (headerField == "connection" &&
-                       headerValue == "keep-alive") {
-              _keepAlive = true;
-            } else if (headerField == "transfer-encoding" &&
-                       headerValue == "chunked") {
-              _chunked = true;
-              _contentLength = -1;
-            }
-            if (headerReceived != null) {
-              headerReceived(headerField, headerValue);
-            }
-            _headerField.clear();
-            _headerValue.clear();
-
-            if (byte == _CharCode.CR) {
-              _state = _State.HEADER_ENDING;
-            } else {
-              // Start of new header field.
-              _headerField.addCharCode(_toLowerCase(byte));
-              _state = _State.HEADER_FIELD;
-            }
-          }
-          break;
-
-        case _State.HEADER_ENDING:
-          _expect(byte, _CharCode.LF);
-          if (headersComplete != null) headersComplete();
-
-          // If there is no data get ready to process the next request.
-          if (_chunked) {
-            _state = _State.CHUNK_SIZE;
-            _remainingContent = 0;
-          } else if (_contentLength == 0) {
-            if (dataEnd != null) dataEnd();
-            _state = _State.START;
-          } else if (_contentLength > 0) {
-            _remainingContent = _contentLength;
-            _state = _State.BODY;
-          } else {
-            // TODO(sgjesse): Error handling.
-          }
-          break;
-
-        case _State.CHUNK_SIZE_STARTING_CR:
-          _expect(byte, _CharCode.CR);
-          _state = _State.CHUNK_SIZE_STARTING_LF;
-          break;
-
-        case _State.CHUNK_SIZE_STARTING_LF:
-          _expect(byte, _CharCode.LF);
-          _state = _State.CHUNK_SIZE;
-          break;
-
-        case _State.CHUNK_SIZE:
-          if (byte == _CharCode.CR) {
-            _state = _State.CHUNK_SIZE_ENDING;
-          } else {
-            int value = _expectHexDigit(byte);
-            _remainingContent = _remainingContent * 16 + value;
-          }
-          break;
-
-        case _State.CHUNK_SIZE_ENDING:
-          _expect(byte, _CharCode.LF);
-          if (_remainingContent > 0) {
-            _state = _State.BODY;
-          } else {
-            _state = _State.CHUNKED_BODY_DONE_CR;
-          }
-          break;
-
-        case _State.CHUNKED_BODY_DONE_CR:
-          _expect(byte, _CharCode.CR);
-          _state = _State.CHUNKED_BODY_DONE_LF;
-          break;
-
-        case _State.CHUNKED_BODY_DONE_LF:
-          _expect(byte, _CharCode.LF);
-          if (dataEnd != null) dataEnd();
-          _state = _State.START;
-          break;
-
-        case _State.BODY:
-          // The body is not handled one byte at the time but in blocks.
-          int dataAvailable = lastIndex - index;
-          ByteArray data;
-          if (dataAvailable <= _remainingContent) {
-            data = new ByteArray(dataAvailable);
-            data.setRange(0, dataAvailable, buffer, index);
-          } else {
-            data = new ByteArray(_remainingContent);
-            data.setRange(0, _remainingContent, buffer, index);
-          }
-
-          if (dataReceived != null) dataReceived(data);
-          _remainingContent -= data.length;
-          index += data.length;
-          if (_remainingContent == 0) {
-            if (!_chunked) {
-              if (dataEnd != null) dataEnd();
-              _state = _State.START;
-            } else {
-              _state = _State.CHUNK_SIZE_STARTING_CR;
-            }
-          }
-
-          // Hack - as we always do index++ below.
-          index--;
-          break;
-
-        default:
-          // Should be unreachable.
-          assert(false);
-      }
-
-      // Move to the next byte.
-      index++;
-    }
-
-    // Return the number of bytes parsed.
-    return index - offset;
-  }
-
-  int get contentLength() => _contentLength;
-  bool get keepAlive() => _keepAlive;
-
-  int _toLowerCase(int byte) {
-    final int aCode = "A".charCodeAt(0);
-    final int zCode = "Z".charCodeAt(0);
-    final int delta = "a".charCodeAt(0) - aCode;
-    return (aCode <= byte && byte <= zCode) ? byte + delta : byte;
-  }
-
-  int _expect(int val1, int val2) {
-    if (val1 != val2) {
-      _failure = true;
-    }
-  }
-
-  int _expectHexDigit(int byte) {
-    if (0x30 <= byte && byte <= 0x39) {
-      return byte - 0x30;  // 0 - 9
-    } else if (0x41 <= byte && byte <= 0x46) {
-      return byte - 0x41 + 10;  // A - F
-    } else if (0x61 <= byte && byte <= 0x66) {
-      return byte - 0x61 + 10;  // a - f
-    } else {
-      _failure = true;
-      return 0;
-    }
-  }
-
-  int _state;
-  bool _failure;
-  int _httpVersionIndex;
-  StringBuffer _method_or_status_code;
-  StringBuffer _uri_or_reason_phrase;
-  StringBuffer _headerField;
-  StringBuffer _headerValue;
-
-  int _contentLength;
-  bool _keepAlive;
-  bool _chunked;
-
-  int _remainingContent;
-
-  // Callbacks.
-  Function requestStart;
-  Function responseStart;
-  Function headerReceived;
-  Function headersComplete;
-  Function dataReceived;
-  Function dataEnd;
-}
-
-
 // Utility class for encoding a string into UTF-8 byte stream.
 class _UTF8Encoder {
   static List<int> encodeString(String string) {
@@ -626,13 +213,13 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     int position;
     position = uri.indexOf("?", 0);
     if (position == -1) {
-      _path = HttpUtil.decodeUrlEncodedString(_uri);
+      _path = _HttpUtils.decodeUrlEncodedString(_uri);
       _queryString = null;
       _queryParameters = new Map();
     } else {
-      _path = HttpUtil.decodeUrlEncodedString(_uri.substring(0, position));
+      _path = _HttpUtils.decodeUrlEncodedString(_uri.substring(0, position));
       _queryString = _uri.substring(position + 1);
-      _queryParameters = HttpUtil.splitQueryString(_queryString);
+      _queryParameters = _HttpUtils.splitQueryString(_queryString);
     }
   }
 
@@ -688,7 +275,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   String get reasonPhrase() => _findReasonPhrase(_statusCode);
-  void set reasonPhrase(String reasonPhrase) => _reasonPhrase = reasonPhrase;
+  void set reasonPhrase(String reasonPhrase) {
+    if (_outputStream != null) return new HttpException("Header already sent");
+    _reasonPhrase = reasonPhrase;
+  }
 
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
@@ -725,6 +315,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _streamClose() {
+    _httpConnection._phase = _HttpConnectionBase.PHASE_IDLE;
     _state = DONE;
     // Stop tracking no pending write events.
     _httpConnection.outputStream.onNoPendingWrites = null;
@@ -917,9 +508,14 @@ class _HttpOutputStream implements OutputStream {
 }
 
 
-class _HttpConnectionBase {
-  _HttpConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new HttpParser();
+class _HttpConnectionBase implements Hashable {
+  static final int PHASE_IDLE = 0;
+  static final int PHASE_REQUEST = 1;
+  static final int PHASE_RESPONSE = 2;
+
+  _HttpConnectionBase() : _phase = PHASE_IDLE,
+                          _sendBuffers = new Queue(),
+                          _httpParser = new _HttpParser();
 
   void _connectionEstablished(Socket socket) {
     _socket = socket;
@@ -951,9 +547,14 @@ class _HttpConnectionBase {
   }
 
   void _onClosed() {
-    // Client closed socket for writing. Socket should still be open
-    // for writing the response.
-    _closing = true;
+    if (_phase != PHASE_IDLE) {
+      // Client closed socket for writing. Socket should still be open
+      // for writing the response.
+      _closing = true;
+    } else {
+      // The connection is currently not used by any request just close it.
+      _socket.close();
+    }
     if (_onDisconnectCallback != null) _onDisconnectCallback();
   }
 
@@ -973,9 +574,12 @@ class _HttpConnectionBase {
     _onErrorCallback = callback;
   }
 
+  int hashCode() => _socket.hashCode();
+
+  int _phase;
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
-  HttpParser _httpParser;
+  _HttpParser _httpParser;
 
   Queue _sendBuffers;
 
@@ -1002,6 +606,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onRequestStart(String method, String uri) {
     // Create new request and response objects for this request.
+    _phase = PHASE_REQUEST;
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
     _request._onRequestStart(method, uri);
@@ -1028,6 +633,11 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _onDataEnd() {
+    // Phase might already have gone to PHASE_IDLE if the response is
+    // sent without waiting for request body.
+    if (_phase == PHASE_REQUEST) {
+      _phase = PHASE_RESPONSE;
+    }
     _request._onDataEnd();
   }
 
@@ -1051,12 +661,7 @@ class _HttpServer implements HttpServer {
       connection.requestReceived = _onRequest;
       _connections.add(connection);
       void onDisconnect() {
-        for (int i = 0; i < _connections.length; i++) {
-          if (_connections[i] == connection) {
-            _connections.removeRange(i, 1);
-            break;
-          }
-        }
+        _connections.remove(connection);
       }
       connection.onDisconnect = onDisconnect;
       void onError(String errorMessage) {
@@ -1065,8 +670,7 @@ class _HttpServer implements HttpServer {
       connection.onError = onError;
     }
 
-    // TODO(ajohnsen): Use Set once Socket is Hashable.
-    _connections = new List<_HttpConnection>();
+    _connections = new Set<_HttpConnection>();
     _server = new ServerSocket(host, port, backlog);
     _server.onConnection = onConnection;
   }
@@ -1083,7 +687,7 @@ class _HttpServer implements HttpServer {
   }
 
   ServerSocket _server;  // The server listen socket.
-  List<_HttpConnection> _connections;  // List of currently connected clients.
+  Set<_HttpConnection> _connections;  // Set of currently connected clients.
   Function _onRequest;
   Function _onError;
 }
@@ -1372,6 +976,8 @@ class _SocketConnection {
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
+  int hashCode() => _socket.hashCode();
+
   String _host;
   int _port;
   Socket _socket;
@@ -1382,7 +988,9 @@ class _SocketConnection {
 class _HttpClient implements HttpClient {
   static final int DEFAULT_EVICTION_TIMEOUT = 60000;
 
-  _HttpClient() : _openSockets = new Map(), _shutdown = false;
+  _HttpClient() : _openSockets = new Map(),
+                  _activeSockets = new Set(),
+                  _shutdown = false;
 
   HttpClientConnection open(
       String method, String host, int port, String path) {
@@ -1399,13 +1007,15 @@ class _HttpClient implements HttpClient {
   }
 
   void shutdown() {
-     _openSockets.forEach(
-         void _(String key, Queue<_SocketConnection> connections) {
-           while (!connections.isEmpty()) {
-             var socketConn = connections.removeFirst();
-             socketConn._socket.close();
-           }
-         });
+     _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
+       while (!connections.isEmpty()) {
+         _SocketConnection socketConn = connections.removeFirst();
+         socketConn._socket.close();
+       }
+     });
+     _activeSockets.forEach((_SocketConnection socketConn) {
+       socketConn._socket.close();
+     });
      if (_evictionTimer != null) {
        _evictionTimer.cancel();
      }
@@ -1441,6 +1051,7 @@ class _HttpClient implements HttpClient {
         socket.onError = null;
         _SocketConnection socketConn =
             new _SocketConnection(host, port, socket);
+        _activeSockets.add(socketConn);
         _connectionOpened(socketConn, connection);
       };
       socket.onError = () {
@@ -1450,7 +1061,8 @@ class _HttpClient implements HttpClient {
       };
     } else {
       _SocketConnection socketConn = socketConnections.removeFirst();
-      new Timer((ignored) => _connectionOpened(socketConn, connection), 0);
+      _activeSockets.add(socketConn);
+      new Timer(0, (ignored) => _connectionOpened(socketConn, connection));
 
       // Get rid of eviction timer if there are no more active connections.
       if (socketConnections.isEmpty()) {
@@ -1497,10 +1109,11 @@ class _HttpClient implements HttpClient {
               }
             });
       }
-      _evictionTimer = new Timer.repeating(_handleEviction, 10000);
+      _evictionTimer = new Timer.repeating(10000, _handleEviction);
     }
 
     // Return connection.
+    _activeSockets.remove(socketConn);
     sockets.addFirst(socketConn);
     socketConn._markReturned();
   }
@@ -1512,66 +1125,7 @@ class _HttpClient implements HttpClient {
   Function _onOpen;
   Function _onError;
   Map<String, Queue<_SocketConnection>> _openSockets;
+  Set<_SocketConnection> _activeSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?
-}
-
-
-class HttpUtil {
-  static String decodeUrlEncodedString(String urlEncoded) {
-    void invalidEscape() {
-      // TODO(sgjesse): Handle the error.
-    }
-
-    StringBuffer result = new StringBuffer();
-    for (int ii = 0; urlEncoded.length > ii; ++ii) {
-      if ('+' == urlEncoded[ii]) {
-        result.add(' ');
-      } else if ('%' == urlEncoded[ii] &&
-                 urlEncoded.length - 2 > ii) {
-        try {
-          int charCode =
-            Math.parseInt('0x' + urlEncoded.substring(ii + 1, ii + 3));
-          if (charCode <= 0x7f) {
-            result.add(new String.fromCharCodes([charCode]));
-            ii += 2;
-          } else {
-            invalidEscape();
-            return '';
-          }
-        } catch (BadNumberFormatException ignored) {
-          invalidEscape();
-          return '';
-        }
-      } else {
-        result.add(urlEncoded[ii]);
-      }
-    }
-    return result.toString();
-  }
-
-  static Map<String, String> splitQueryString(String queryString) {
-    Map<String, String> result = new Map<String, String>();
-    int currentPosition = 0;
-    while (currentPosition < queryString.length) {
-      int position = queryString.indexOf("=", currentPosition);
-      if (position == -1) {
-        break;
-      }
-      String name = queryString.substring(currentPosition, position);
-      currentPosition = position + 1;
-      position = queryString.indexOf("&", currentPosition);
-      String value;
-      if (position == -1) {
-        value = queryString.substring(currentPosition);
-        currentPosition = queryString.length;
-      } else {
-        value = queryString.substring(currentPosition, position);
-        currentPosition = position + 1;
-      }
-      result[HttpUtil.decodeUrlEncodedString(name)] =
-        HttpUtil.decodeUrlEncodedString(value);
-    }
-    return result;
-  }
 }

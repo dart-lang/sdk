@@ -383,7 +383,7 @@ void Scanner::ScanLibraryTag() {
     SkipLine();
     return;
   }
-  if (!IsIdentStartChar(c0_)) {
+  if (!IsLetter(c0_)) {
     ErrorMsg("Unrecognized library tag");
     SkipLine();
     return;

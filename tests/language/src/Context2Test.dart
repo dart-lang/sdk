@@ -7,6 +7,8 @@
 
 class V {
 
+  notCalled(Function x) { return x(); }
+
   foofoo(x) { return x; }
 
   hoop(input, n) {
@@ -16,7 +18,7 @@ class V {
       switch (input) {
         case 3:
           var values = foofoo;
-          readPacked(() => values(input));
+          notCalled(() => values(input));
       }
     }
   }

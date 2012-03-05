@@ -26,11 +26,11 @@ class _Timer implements Timer {
     return timer;
   }
 
-  factory _Timer(void callback(Timer timer), int milliSeconds) {
+  factory _Timer(int milliSeconds, void callback(Timer timer)) {
     return _createTimer(callback, milliSeconds, false);
   }
 
-  factory _Timer.repeating(void callback(Timer timer), int milliSeconds) {
+  factory _Timer.repeating(int milliSeconds, void callback(Timer timer)) {
     return _createTimer(callback, milliSeconds, true);
   }
 
