@@ -761,9 +761,6 @@ Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
 Language/11_Statements/11_Labels_A03_t05: Fail, OK # @compile-error
-Language/11_Statements/12_Break_A02_t03: Fail, OK # @compile-error
-Language/11_Statements/12_Break_A02_t04: Fail, OK # @compile-error
-Language/11_Statements/13_Continue_A02_t07: Fail, OK # @compile-error
 Language/11_Statements/13_Continue_A02_t16: Fail, OK # @compile-error
 Language/11_Statements/15_Assert_A01_t05: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
