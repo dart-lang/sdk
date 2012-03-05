@@ -7488,37 +7488,74 @@ AstNode* Parser::ParseNewOperator() {
 }
 
 
+String& Parser::Interpolate(ArrayNode* values) {
+  const String& class_name =
+      String::Handle(String::NewSymbol(kStringClassName));
+  const Class& cls = Class::Handle(LookupImplClass(class_name));
+  ASSERT(!cls.IsNull());
+  const String& func_name = String::Handle(String::NewSymbol(kInterpolateName));
+  const Function& func =
+      Function::Handle(cls.LookupStaticFunction(func_name));
+  ASSERT(!func.IsNull());
+
+  // Build the array of literal values to interpolate.
+  const Array& value_arr = Array::Handle(Array::New(values->length()));
+  for (int i = 0; i < values->length(); i++) {
+    ASSERT(values->ElementAt(i)->IsLiteralNode());
+    value_arr.SetAt(i, values->ElementAt(i)->AsLiteralNode()->literal());
+  }
+
+  // Build argument array to pass to the interpolation function.
+  GrowableArray<const Object*> interpolate_arg;
+  interpolate_arg.Add(&value_arr);
+  const Array& kNoArgumentNames = Array::Handle();
+
+  // Call interpolation function.
+  String& concatenated = String::ZoneHandle();
+  concatenated ^= DartEntry::InvokeStatic(func,
+                                          interpolate_arg,
+                                          kNoArgumentNames);
+  if (concatenated.IsUnhandledException()) {
+    ErrorMsg("Exception thrown in Parser::Interpolate");
+  }
+  concatenated = String::NewSymbol(concatenated);
+  return concatenated;
+}
+
+
 // A string literal consists of the concatenation of the next n tokens
 // that satisfy the EBNF grammar:
-// literal = kSTRING {{ interpol }+ kSTRING }
+// literal = kSTRING {{ interpol } kSTRING }
 // interpol = kINTERPOL_VAR | (kINTERPOL_START expression kINTERPOL_END)
 // In other words, the scanner breaks down interpolated strings so that
-// a string literal always begins and ends with a kSTRING token, and
-// there are never two kSTRING tokens next to each other.
+// a string literal always begins and ends with a kSTRING token.
 AstNode* Parser::ParseStringLiteral() {
   TRACE_PARSER("ParseStringLiteral");
   AstNode* primary = NULL;
   const intptr_t literal_start = token_index_;
-  if ((CurrentToken() == Token::kSTRING) &&
-      (LookaheadToken(1) != Token::kINTERPOL_VAR) &&
-      (LookaheadToken(1) != Token::kINTERPOL_START)) {
+  ASSERT(CurrentToken() == Token::kSTRING);
+  Token::Kind l1_token = LookaheadToken(1);
+  if ((l1_token != Token::kSTRING) &&
+      (l1_token != Token::kINTERPOL_VAR) &&
+      (l1_token != Token::kINTERPOL_START)) {
     // Common case: no interpolation.
     primary = new LiteralNode(literal_start, *CurrentLiteral());
     ConsumeToken();
     return primary;
   }
   // String interpolation needed.
+  bool is_compiletime_const = true;
   ArrayNode* values = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(token_index_, *CurrentLiteral()));
     ConsumeToken();
-    if ((CurrentToken() != Token::kINTERPOL_VAR) &&
-        (CurrentToken() != Token::kINTERPOL_START)) {
-      break;
-    }
     while ((CurrentToken() == Token::kINTERPOL_VAR) ||
         (CurrentToken() == Token::kINTERPOL_START)) {
       AstNode* expr = NULL;
+      const intptr_t expr_pos = token_index_;
+      // TODO(hausner): Remove the statement below when we allow interpolated
+      // strings to be compile time constants.
+      is_compiletime_const = false;
       if (CurrentToken() == Token::kINTERPOL_VAR) {
         expr = ResolveVarOrField(token_index_, *CurrentLiteral());
         ASSERT(!expr->IsPrimaryNode());
@@ -7529,17 +7566,31 @@ AstNode* Parser::ParseStringLiteral() {
         expr = ParseExpr(kAllowConst);
         ExpectToken(Token::kINTERPOL_END);
       }
+      // Check if this interpolated string is still considered a compile time
+      // constant. If it is we need to evaluate if the current string part is
+      // a constant or not.
+      if (is_compiletime_const) {
+        const Object* const_expr = expr->EvalConstExpr();
+        if (const_expr != NULL) {
+          // Change expr into a literal.
+          expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr));
+        } else {
+          is_compiletime_const = false;
+        }
+      }
       values->AddElement(expr);
     }
-    // A string literal always ends with a kSTRING token.
-    ASSERT(CurrentToken() == Token::kSTRING);
   }
-  ArgumentListNode* interpolate_arg =
-      new ArgumentListNode(values->token_index());
-  interpolate_arg->Add(values);
-  primary = MakeStaticCall(kStringClassName,
-                           kInterpolateName,
-                           interpolate_arg);
+  if (is_compiletime_const) {
+    primary = new LiteralNode(literal_start, Interpolate(values));
+  } else {
+    ArgumentListNode* interpolate_arg =
+        new ArgumentListNode(values->token_index());
+    interpolate_arg->Add(values);
+    primary = MakeStaticCall(kStringClassName,
+                             kInterpolateName,
+                             interpolate_arg);
+  }
   return primary;
 }
 
@@ -7857,10 +7908,6 @@ void Parser::SkipStringLiteral() {
   ASSERT(CurrentToken() == Token::kSTRING);
   while (CurrentToken() == Token::kSTRING) {
     ConsumeToken();
-    if ((CurrentToken() != Token::kINTERPOL_VAR) &&
-        (CurrentToken() != Token::kINTERPOL_START)) {
-      break;
-    }
     while (true) {
       if (CurrentToken() == Token::kINTERPOL_VAR) {
         ConsumeToken();

@@ -436,6 +436,7 @@ class Parser : ValueObject {
   AstNode* MakeStaticCall(const char* class_name,
                           const char* function_name,
                           ArgumentListNode* arguments);
+  String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
 

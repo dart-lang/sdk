@@ -27,6 +27,8 @@ Language/10_Expressions/03_Numbers_A01_t06: Fail # TODO(vm-team): New failure, p
 Language/10_Expressions/03_Numbers_A01_t09: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/10_Expressions/05_Strings_A02_t24: Fail # co19 issue 89
+Language/10_Expressions/05_Strings_A02_t20: Fail # co19 issue 89
 Language/10_Expressions/07_Maps_A01_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): New failure, please triage.
