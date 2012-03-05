@@ -48,7 +48,7 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -160,7 +160,7 @@ public abstract class BaseASTWriter {
     return false;
   }
 
-  class ASTNodeTraverser extends DartNodeTraverser<Object> {
+  class ASTNodeTraverser extends ASTVisitor<Object> {
 
     @Override
     public void visit(List<? extends DartNode> nodes) {

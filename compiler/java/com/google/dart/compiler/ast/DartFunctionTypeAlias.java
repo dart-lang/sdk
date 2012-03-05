@@ -56,19 +56,7 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (returnTypeNode != null) {
-        returnTypeNode = becomeParentOf(v.accept(returnTypeNode));
-      }
-      v.acceptWithInsertRemove(this, parameters);
-      v.acceptWithInsertRemove(this, typeParameters);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (returnTypeNode != null) {
       returnTypeNode.accept(visitor);
     }
@@ -77,7 +65,7 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFunctionTypeAlias(this);
   }
 }

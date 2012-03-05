@@ -35,19 +35,7 @@ public class DartTryStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      tryBlock = becomeParentOf(v.accept(tryBlock));
-      v.acceptWithInsertRemove(this, catchBlocks);
-      if (finallyBlock != null) {
-        finallyBlock = becomeParentOf(v.accept(finallyBlock));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     tryBlock.accept(visitor);
     visitor.visit(catchBlocks);
     if (finallyBlock != null) {
@@ -56,7 +44,7 @@ public class DartTryStatement extends DartStatement {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitTryStatement(this);
   }
 }

@@ -11,7 +11,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -347,7 +347,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     context.onError(new DartCompilationError(node, errorCode, arguments));
   }
 
-  class Selector extends DartNodeTraverser<Element> {
+  class Selector extends ASTVisitor<Element> {
     @Override
     public Element visitNode(DartNode node) {
       throw internalError(node, "Unexpected node: %s", node);

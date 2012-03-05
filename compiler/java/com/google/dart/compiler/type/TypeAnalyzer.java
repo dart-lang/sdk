@@ -62,12 +62,11 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
@@ -176,7 +175,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
   }
 
   @VisibleForTesting
-  static class Analyzer implements DartPlainVisitor<Type> {
+  static class Analyzer extends ASTVisitor<Type> {
     private final DynamicType dynamicType;
     private final Type stringType;
     private final InterfaceType defaultLiteralMapType;
@@ -1163,7 +1162,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void analyzeFactory(DartExpression name, final ConstructorElement methodElement) {
-      DartNodeTraverser<Void> visitor = new DartNodeTraverser<Void>() {
+      ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
         @Override
         public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
           DartExpression expression = node.getExpression();
@@ -1801,7 +1800,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return typeAsVoid(node);
     }
 
-    private class AbstractMethodFinder extends DartNodeTraverser<Void> {
+    private class AbstractMethodFinder extends ASTVisitor<Void> {
       private final InterfaceType currentClass;
       private final Multimap<String, Element> superMembers;
       private final List<Element> unimplementedElements;

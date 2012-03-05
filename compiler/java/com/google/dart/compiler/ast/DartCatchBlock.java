@@ -33,19 +33,7 @@ public class DartCatchBlock extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      exception = becomeParentOf(v.accept(exception));
-      if (stackTrace != null) {
-        stackTrace = becomeParentOf(v.accept(stackTrace));
-      }
-      block = becomeParentOf(v.accept(block));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     exception.accept(visitor);
     if (stackTrace != null) {
       stackTrace.accept(visitor);
@@ -54,7 +42,7 @@ public class DartCatchBlock extends DartStatement {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitCatchBlock(this);
   }
 }

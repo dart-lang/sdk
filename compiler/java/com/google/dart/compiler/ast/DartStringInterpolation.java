@@ -43,22 +43,13 @@ public class DartStringInterpolation extends DartLiteral {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      v.acceptWithInsertRemove(this, strings);
-      v.acceptWithInsertRemove(this, expressions);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     visitor.visit(strings);
     visitor.visit(expressions);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitStringInterpolation(this);
   }
 }

@@ -13,7 +13,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -137,7 +137,7 @@ abstract class ResolverTestCase extends TestCase {
    * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
    * be resolved, or marked as an unresolved element.
    */
-  static class ResolverAuditVisitor extends DartNodeTraverser<Void> {
+  static class ResolverAuditVisitor extends ASTVisitor<Void> {
     private List<String> failures = Lists.newArrayList();
 
     @Override

@@ -32,19 +32,7 @@ public class DartIfStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      condition = becomeParentOf(v.accept(condition));
-      thenStmt = becomeParentOf(v.accept(thenStmt));
-      if (elseStmt != null) {
-        elseStmt = becomeParentOf(v.accept(elseStmt));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     condition.accept(visitor);
     thenStmt.accept(visitor);
     if (elseStmt != null) {
@@ -53,7 +41,7 @@ public class DartIfStatement extends DartStatement {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitIfStatement(this);
   }
 }

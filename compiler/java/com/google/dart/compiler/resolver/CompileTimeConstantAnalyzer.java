@@ -29,7 +29,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -63,7 +63,7 @@ import java.util.Set;
  */
 public class CompileTimeConstantAnalyzer {
 
-  private class ExpressionVisitor extends DartNodeTraverser<Void> {
+  private class ExpressionVisitor extends ASTVisitor<Void> {
     private ExpressionVisitor() {
     }
 
@@ -514,7 +514,7 @@ public class CompileTimeConstantAnalyzer {
     }
   }
 
-  private class FindCompileTimeConstantExpressionsVisitor extends DartNodeTraverser<Void> {
+  private class FindCompileTimeConstantExpressionsVisitor extends ASTVisitor<Void> {
 
     @Override
     public Void visitField(DartField node) {

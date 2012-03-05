@@ -46,22 +46,13 @@ public class DartTypeNode extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      identifier = becomeParentOf(v.accept(identifier));
-      v.acceptWithInsertRemove(this, typeArguments);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     identifier.accept(visitor);
     visitor.visit(typeArguments);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitTypeNode(this);
   }
 }

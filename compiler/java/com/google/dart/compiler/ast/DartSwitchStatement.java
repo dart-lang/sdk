@@ -28,22 +28,13 @@ public class DartSwitchStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      expression = becomeParentOf(v.accept(expression));
-      v.acceptWithInsertRemove(this, members);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     expression.accept(visitor);
     visitor.visit(members);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitSwitchStatement(this);
   }
 }

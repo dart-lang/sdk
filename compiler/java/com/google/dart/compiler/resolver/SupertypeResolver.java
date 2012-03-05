@@ -9,7 +9,7 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
@@ -49,7 +49,7 @@ public class SupertypeResolver {
   }
 
   // Resolves super class, interfaces and default class of all classes.
-  private class ClassElementResolver extends DartNodeTraverser<Void> {
+  private class ClassElementResolver extends ASTVisitor<Void> {
     @Override
     public Void visitClass(DartClass node) {
       ClassElement classElement = node.getSymbol();

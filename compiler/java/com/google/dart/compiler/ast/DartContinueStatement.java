@@ -19,16 +19,7 @@ public class DartContinueStatement extends DartGotoStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    DartIdentifier label = getLabel();
-    if (v.visit(this, ctx) && label != null) {
-      label = becomeParentOf(v.accept(label));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitContinueStatement(this);
   }
 }

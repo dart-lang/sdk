@@ -9,7 +9,7 @@ import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Shared visitor between Resolver and MemberBuilder.
  */
-abstract class ResolveVisitor extends DartNodeTraverser<Element> {
+abstract class ResolveVisitor extends ASTVisitor<Element> {
   private final CoreTypeProvider typeProvider;
 
   ResolveVisitor(CoreTypeProvider typeProvider) {

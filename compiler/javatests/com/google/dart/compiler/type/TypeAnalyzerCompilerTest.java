@@ -29,7 +29,7 @@ import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -163,7 +163,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   private static DartInvocation findInvocationSimple(DartNode rootNode,
       final String invocationString) {
     final DartInvocation invocationRef[] = new DartInvocation[1];
-    rootNode.accept(new DartNodeTraverser<Void>() {
+    rootNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitInvocation(DartInvocation node) {
         if (node.toSource().equals(invocationString)) {

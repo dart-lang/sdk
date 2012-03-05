@@ -49,14 +49,7 @@ public abstract class DartTypedLiteral extends DartExpression {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (typeArguments.size() > 0) {
-      v.acceptWithInsertRemove(this, typeArguments);
-    }
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (typeArguments.size() > 0) {
       visitor.visit(getTypeArguments());
     }

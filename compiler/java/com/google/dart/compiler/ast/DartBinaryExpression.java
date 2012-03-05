@@ -38,26 +38,13 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (op.isAssignmentOperator()) {
-        arg1 = becomeParentOf(v.acceptLvalue(arg1));
-      } else {
-        arg1 = becomeParentOf(v.accept(arg1));
-      }
-      arg2 = becomeParentOf(v.accept(arg2));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     arg1.accept(visitor);
     arg2.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitBinaryExpression(this);
   }
 

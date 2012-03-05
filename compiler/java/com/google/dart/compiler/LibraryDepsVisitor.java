@@ -6,7 +6,7 @@ package com.google.dart.compiler;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -23,7 +23,7 @@ import java.net.URI;
 /**
  * A visitor that fills in {@link LibraryDeps} for a compilation unit.
  */
-public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
+public class LibraryDepsVisitor extends ASTVisitor<Void> {
   /**
    * Fill in {@link LibraryDeps} from a {@link DartUnit}.
    */

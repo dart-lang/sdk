@@ -20,7 +20,7 @@ public class DartParameterizedTypeNode extends DartExpression {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitParameterizedTypeNode(this);
   }
 
@@ -54,16 +54,7 @@ public class DartParameterizedTypeNode extends DartExpression {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      setExpression(v.accept(getExpression()));
-      setTypeParameters(v.acceptWithInsertRemove(this, getTypeParameters()));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     getExpression().accept(visitor);
     visitor.visit(getTypeParameters());
   }

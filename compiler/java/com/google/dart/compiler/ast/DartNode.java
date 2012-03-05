@@ -15,13 +15,13 @@ import java.util.List;
 /**
  * Base class for all Dart AST nodes.
  */
-public abstract class DartNode extends AbstractNode implements DartVisitable {
+public abstract class DartNode extends AbstractNode {
 
   private DartNode parent;
 
   public final String toSource() {
     DefaultTextOutput out = new DefaultTextOutput(false);
-    new DartToSourceVisitor(out).accept(this);
+    accept(new DartToSourceVisitor(out));
     return out.toString();
   }
 
@@ -134,9 +134,9 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
     parent = newParent;
   }
 
-  public abstract void visitChildren(DartPlainVisitor<?> visitor);
+  public abstract void visitChildren(ASTVisitor<?> visitor);
 
-  public abstract <R> R accept(DartPlainVisitor<R> visitor);
+  public abstract <R> R accept(ASTVisitor<R> visitor);
 
   @Override
   public DartNode clone() {

@@ -10,7 +10,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.util.DartSourceString;
@@ -149,7 +149,7 @@ public class CommentPreservingParser extends DartParser {
   private void assignDartComments(DartUnit unit, List<DartComment> comments) {
     // Collect the AST nodes in a list.
     final List<DartNode> astNodes = new ArrayList<DartNode>();
-    unit.accept(new DartNodeTraverser<DartNode>() {
+    unit.accept(new ASTVisitor<DartNode>() {
       @Override
       public DartNode visitDeclaration(DartDeclaration<?> node) {
         astNodes.add(node);
@@ -208,7 +208,7 @@ public class CommentPreservingParser extends DartParser {
   private List<DartNode> getChildren(DartNode parent) {
     final List<DartNode> children = new ArrayList<DartNode>();
 
-    parent.visitChildren(new DartNodeTraverser<DartNode>() {
+    parent.visitChildren(new ASTVisitor<DartNode>() {
       @Override
       public DartNode visitNode(DartNode node) {
         children.add(node);

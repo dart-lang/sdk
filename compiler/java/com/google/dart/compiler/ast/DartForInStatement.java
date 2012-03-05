@@ -44,24 +44,14 @@ public class DartForInStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      setup = becomeParentOf(v.accept(setup));
-      iterable = becomeParentOf(v.accept(iterable));
-      body = becomeParentOf(v.accept(body));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     setup.accept(visitor);
     iterable.accept(visitor);
     body.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitForInStatement(this);
   }
 }

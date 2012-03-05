@@ -64,22 +64,13 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      qualifier = becomeParentOf(v.accept(qualifier));
-      name = becomeParentOf(v.accept(name));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     qualifier.accept(visitor);
     name.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitPropertyAccess(this);
   }
 

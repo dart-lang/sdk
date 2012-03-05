@@ -15,7 +15,7 @@ import com.google.dart.compiler.ast.DartInitializer;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -37,7 +37,7 @@ import java.util.List;
 public class CompileTimeConstantResolver {
 
   private class ConstResolveVisitor extends ResolveVisitor {
-    private class ConstExpressionVisitor extends DartNodeTraverser<Void> {
+    private class ConstExpressionVisitor extends ASTVisitor<Void> {
 
       @Override
       public Void visitPropertyAccess(DartPropertyAccess x) {

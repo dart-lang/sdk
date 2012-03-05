@@ -38,24 +38,12 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (operator.isCountOperator()) {
-        arg = becomeParentOf(v.acceptLvalue(getArg()));
-      } else {
-        arg = becomeParentOf(v.accept(getArg()));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     arg.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitUnaryExpression(this);
   }
 

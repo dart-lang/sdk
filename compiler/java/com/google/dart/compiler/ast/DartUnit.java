@@ -7,7 +7,6 @@ package com.google.dart.compiler.ast;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
-import com.google.dart.compiler.util.DefaultTextOutput;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +27,6 @@ public class DartUnit extends DartNode {
   private final boolean isDiet;
   /** A list of comments. May be null. */
   private List<DartComment> comments;
-  private String dietParse;
 
   public DartUnit(DartSource source, boolean isDiet) {
     this.source = source;
@@ -76,21 +74,7 @@ public class DartUnit extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (directives != null) {
-        v.acceptWithInsertRemove(this, directives);
-      }
-      v.acceptWithInsertRemove(this, topLevelNodes);
-      if (comments != null) {
-        v.acceptWithInsertRemove(this, comments);
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (directives != null) {
       visitor.visit(directives);
     }
@@ -101,7 +85,7 @@ public class DartUnit extends DartNode {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitUnit(this);
   }
 
@@ -110,18 +94,6 @@ public class DartUnit extends DartNode {
    */
   public boolean isDiet() {
     return isDiet;
-  }
-
-  /**
-   * Generates a diet version of this unit, which contains no method bodies.
-   */
-  public final String toDietSource() {
-    if (dietParse == null) {
-      DefaultTextOutput out = new DefaultTextOutput(false);
-      new DartToSourceVisitor(out, true).accept(this);
-      dietParse = out.toString();
-    }
-    return dietParse;
   }
 
   /**
@@ -180,7 +152,7 @@ public class DartUnit extends DartNode {
    */
   public Set<String> getDeclarationNames() {
     final Set<String> symbols = Sets.newHashSet();
-    accept(new DartNodeTraverser<Void>() {
+    accept(new ASTVisitor<Void>() {
       @Override
       public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
         symbols.add(node.getName().getTargetName());

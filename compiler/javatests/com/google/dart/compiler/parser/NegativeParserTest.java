@@ -223,7 +223,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "",
             "class D<X extends A, Y extends A> {",
             "}");
-    String actual = dartUnit.toDietSource().trim();
+    String actual = dartUnit.toSource().trim();
     if (!expected.equals(actual)) {
       System.err.println("Expected:\n" + expected);
       System.err.println("\nActual:\n" + actual);
@@ -261,7 +261,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "",
             "class C {",
             "}"),
-        dartUnit.toDietSource().trim());
+        dartUnit.toSource().trim());
   }
 
   /**
@@ -290,7 +290,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "",
             "class C {",
             "}"),
-        dartUnit.toDietSource().trim());
+        dartUnit.toSource().trim());
   }
 
   /**

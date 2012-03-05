@@ -45,11 +45,11 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
@@ -74,14 +74,13 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
-import com.google.dart.compiler.type.Type;
 
 import junit.framework.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DartASTValidator implements DartPlainVisitor<Object> {
+public class DartASTValidator extends ASTVisitor<Void> {
 
   private ArrayList<String> errors = new ArrayList<String>();
 
@@ -114,70 +113,70 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitArrayAccess(DartArrayAccess node) {
+  public Void visitArrayAccess(DartArrayAccess node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitArrayLiteral(DartArrayLiteral node) {
+  public Void visitArrayLiteral(DartArrayLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitAssertion(DartAssertion node) {
+  public Void visitAssertion(DartAssertion node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitBinaryExpression(DartBinaryExpression node) {
+  public Void visitBinaryExpression(DartBinaryExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitBlock(DartBlock node) {
+  public Void visitBlock(DartBlock node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitBooleanLiteral(DartBooleanLiteral node) {
+  public Void visitBooleanLiteral(DartBooleanLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitBreakStatement(DartBreakStatement node) {
+  public Void visitBreakStatement(DartBreakStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitCase(DartCase node) {
+  public Void visitCase(DartCase node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitCatchBlock(DartCatchBlock node) {
+  public Void visitCatchBlock(DartCatchBlock node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitClass(DartClass node) {
+  public Void visitClass(DartClass node) {
     validate(node);
     node.getName().accept(this);
     node.visitChildren(this);
@@ -185,63 +184,63 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitConditional(DartConditional node) {
+  public Void visitConditional(DartConditional node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitContinueStatement(DartContinueStatement node) {
+  public Void visitContinueStatement(DartContinueStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitDefault(DartDefault node) {
+  public Void visitDefault(DartDefault node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitDoubleLiteral(DartDoubleLiteral node) {
+  public Void visitDoubleLiteral(DartDoubleLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitDoWhileStatement(DartDoWhileStatement node) {
+  public Void visitDoWhileStatement(DartDoWhileStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitEmptyStatement(DartEmptyStatement node) {
+  public Void visitEmptyStatement(DartEmptyStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitExprStmt(DartExprStmt node) {
+  public Void visitExprStmt(DartExprStmt node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitFieldDefinition(DartFieldDefinition node) {
+  public Void visitFieldDefinition(DartFieldDefinition node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitField(DartField node) {
+  public Void visitField(DartField node) {
     validate(node);
     node.visitChildren(this);
     node.getName().accept(this);
@@ -249,28 +248,28 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitForInStatement(DartForInStatement node) {
+  public Void visitForInStatement(DartForInStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitForStatement(DartForStatement node) {
+  public Void visitForStatement(DartForStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitFunction(DartFunction node) {
+  public Void visitFunction(DartFunction node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitFunctionExpression(DartFunctionExpression node) {
+  public Void visitFunctionExpression(DartFunctionExpression node) {
     validate(node);
     DartIdentifier name = node.getName();
     if (name != null) {
@@ -281,14 +280,14 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
+  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+  public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
     validate(node);
     node.getName().accept(this);
     node.visitChildren(this);
@@ -296,42 +295,42 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitIdentifier(DartIdentifier node) {
+  public Void visitIdentifier(DartIdentifier node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitIfStatement(DartIfStatement node) {
+  public Void visitIfStatement(DartIfStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitImportDirective(DartImportDirective node) {
+  public Void visitImportDirective(DartImportDirective node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitInitializer(DartInitializer node) {
+  public Void visitInitializer(DartInitializer node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitIntegerLiteral(DartIntegerLiteral node) {
+  public Void visitIntegerLiteral(DartIntegerLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitLabel(DartLabel node) {
+  public Void visitLabel(DartLabel node) {
     validate(node);
     node.getLabel().accept(this);
     node.visitChildren(this);
@@ -339,71 +338,28 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitLibraryDirective(DartLibraryDirective node) {
+  public Void visitLibraryDirective(DartLibraryDirective node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitMapLiteral(DartMapLiteral node) {
+  public Void visitMapLiteral(DartMapLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitMapLiteralEntry(DartMapLiteralEntry node) {
+  public Void visitMapLiteralEntry(DartMapLiteralEntry node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitMethodDefinition(DartMethodDefinition node) {
-    validate(node);
-    node.getName().accept(this);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitMethodInvocation(DartMethodInvocation node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitNativeBlock(DartNativeBlock node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitNativeDirective(DartNativeDirective node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitNewExpression(DartNewExpression node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitNullLiteral(DartNullLiteral node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitParameter(DartParameter node) {
+  public Void visitMethodDefinition(DartMethodDefinition node) {
     validate(node);
     node.getName().accept(this);
     node.visitChildren(this);
@@ -411,63 +367,106 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitParenthesizedExpression(DartParenthesizedExpression node) {
+  public Void visitMethodInvocation(DartMethodInvocation node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitPropertyAccess(DartPropertyAccess node) {
+  public Void visitNativeBlock(DartNativeBlock node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitResourceDirective(DartResourceDirective node) {
+  public Void visitNativeDirective(DartNativeDirective node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitReturnStatement(DartReturnStatement node) {
+  public Void visitNewExpression(DartNewExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitSourceDirective(DartSourceDirective node) {
+  public Void visitNullLiteral(DartNullLiteral node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitNamedExpression(DartNamedExpression node) {
+  public Void visitParameter(DartParameter node) {
+    validate(node);
+    node.getName().accept(this);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitParenthesizedExpression(DartParenthesizedExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitStringInterpolation(DartStringInterpolation node) {
+  public Void visitPropertyAccess(DartPropertyAccess node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitStringLiteral(DartStringLiteral node) {
+  public Void visitResourceDirective(DartResourceDirective node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitSuperConstructorInvocation(
+  public Void visitReturnStatement(DartReturnStatement node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitSourceDirective(DartSourceDirective node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitNamedExpression(DartNamedExpression node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitStringInterpolation(DartStringInterpolation node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitStringLiteral(DartStringLiteral node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(
       DartSuperConstructorInvocation node) {
     validate(node);
     node.visitChildren(this);
@@ -475,98 +474,70 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitSuperExpression(DartSuperExpression node) {
+  public Void visitSuperExpression(DartSuperExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitSwitchStatement(DartSwitchStatement node) {
+  public Void visitSwitchStatement(DartSwitchStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Type visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
+  public Void visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Type visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
+  public Void visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitThisExpression(DartThisExpression node) {
+  public Void visitThisExpression(DartThisExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitThrowStatement(DartThrowStatement node) {
+  public Void visitThrowStatement(DartThrowStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitTryStatement(DartTryStatement node) {
+  public Void visitTryStatement(DartTryStatement node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitTypeExpression(DartTypeExpression node) {
+  public Void visitTypeExpression(DartTypeExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitTypeNode(DartTypeNode node) {
+  public Void visitTypeNode(DartTypeNode node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitTypeParameter(DartTypeParameter node) {
-    validate(node);
-    node.getName().accept(this);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitUnaryExpression(DartUnaryExpression node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitUnit(DartUnit node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Object visitVariable(DartVariable node) {
+  public Void visitTypeParameter(DartTypeParameter node) {
     validate(node);
     node.getName().accept(this);
     node.visitChildren(this);
@@ -574,21 +545,49 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitVariableStatement(DartVariableStatement node) {
+  public Void visitUnaryExpression(DartUnaryExpression node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitWhileStatement(DartWhileStatement node) {
+  public Void visitUnit(DartUnit node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
     validate(node);
     node.visitChildren(this);
     return null;
   }
 
   @Override
-  public Object visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+  public Void visitVariable(DartVariable node) {
+    validate(node);
+    node.getName().accept(this);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitVariableStatement(DartVariableStatement node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitWhileStatement(DartWhileStatement node) {
+    validate(node);
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
     validate(node);
     node.visitChildren(this);
     return null;
@@ -629,7 +628,7 @@ public class DartASTValidator implements DartPlainVisitor<Object> {
   }
 
   @Override
-  public Object visitParameterizedTypeNode(DartParameterizedTypeNode node) {
+  public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
     validate(node);
     node.visitChildren(this);
     return null;

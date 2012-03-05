@@ -23,22 +23,13 @@ public class DartCase extends DartSwitchMember {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      expr = becomeParentOf(v.accept(expr));
-      v.acceptWithInsertRemove(this, getStatements());
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     expr.accept(visitor);
     super.visitChildren(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitCase(this);
   }
 }

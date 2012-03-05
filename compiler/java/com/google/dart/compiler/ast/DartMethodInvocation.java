@@ -55,25 +55,14 @@ public class DartMethodInvocation extends DartInvocation {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      target = becomeParentOf(v.accept(target));
-      functionName = becomeParentOf(v.accept(functionName));
-      functionName.getClass(); // Quick null-check.
-      v.acceptWithInsertRemove(this, getArgs());
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     target.accept(visitor);
     functionName.accept(visitor);
     visitor.visit(getArgs());
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitMethodInvocation(this);
   }
 }

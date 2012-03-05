@@ -24,22 +24,13 @@ public class DartMapLiteral extends DartTypedLiteral {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      super.traverse(v, ctx);
-      v.acceptWithInsertRemove(this, entries);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     visitor.visit(entries);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitMapLiteral(this);
   }
 }

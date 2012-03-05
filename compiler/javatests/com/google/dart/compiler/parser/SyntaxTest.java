@@ -42,6 +42,8 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(
         Joiner.on("\n").join(
             "// unit QualifiedReturnTypeB.dart",
+            "#library(\"test\");",
+            "#import(\"QualifiedReturnTypeA.dart\", prefix : \"pref\");",
             "class A {",
             "",
             "  pref.A foo() {",

@@ -37,21 +37,8 @@ public class DartFunction extends DartNode {
     return returnTypeNode;
   }
 
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      v.acceptWithInsertRemove(this, params);
-      if (body != null) {
-        body = becomeParentOf(v.accept(body));
-      }
-      if (returnTypeNode != null) {
-        returnTypeNode = becomeParentOf(v.accept(returnTypeNode));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     visitor.visit(params);
     if (body != null) {
       body.accept(visitor);
@@ -62,7 +49,7 @@ public class DartFunction extends DartNode {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFunction(this);
   }
 }

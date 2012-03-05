@@ -50,20 +50,7 @@ public class DartField extends DartClassMember<DartIdentifier> {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (getValue() != null) {
-        setValue(v.accept(getValue()));
-      }
-      if (getAccessor() != null) {
-        setAccessor(v.accept(getAccessor()));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     if (getAccessor() != null) {
       getAccessor().accept(visitor);
@@ -74,7 +61,7 @@ public class DartField extends DartClassMember<DartIdentifier> {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitField(this);
   }
 }

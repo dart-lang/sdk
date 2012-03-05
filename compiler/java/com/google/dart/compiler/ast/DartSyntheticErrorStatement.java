@@ -19,7 +19,7 @@ public class DartSyntheticErrorStatement extends DartStatement {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitSyntheticErrorStatement(this);
   }
 
@@ -28,12 +28,6 @@ public class DartSyntheticErrorStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    v.visit(this, ctx);
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
   }
 }

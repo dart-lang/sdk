@@ -12,32 +12,35 @@ import java.util.List;
 /**
  * Used by {@link DartNode} to generate Dart source from an AST subtree.
  */
-public class DartToSourceVisitor extends DartVisitor {
+public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   private final TextOutput out;
-  private final boolean isDiet;
 
   public DartToSourceVisitor(TextOutput out) {
-    this(out, false);
-  }
-
-  public DartToSourceVisitor(TextOutput out, boolean isDiet) {
     this.out = out;
-    this.isDiet = isDiet;
   }
 
   @Override
-  public boolean visit(DartUnit x, DartContext ctx) {
+  public Void visitUnit(DartUnit x) {
     p("// unit " + x.getSourceName());
     nl();
-    acceptList(x.getTopLevelNodes());
-    return false;
+    return super.visitUnit(x);
   }
 
   @Override
-  public boolean visit(DartNativeBlock x, DartContext ctx) {
+  public Void visitNativeBlock(DartNativeBlock x) {
     p("native;");
-    return false;
+    return null;
+  }
+
+  private void accept(DartNode x) {
+    x.accept(this);
+  }
+
+  private void acceptList(List<? extends DartNode> xs) {
+    for (DartNode x : xs) {
+      x.accept(this);
+    }
   }
 
   private void pTypeParameters(List<DartTypeParameter> typeParameters) {
@@ -56,7 +59,29 @@ public class DartToSourceVisitor extends DartVisitor {
   }
 
   @Override
-  public boolean visit(DartFunctionTypeAlias x, DartContext ctx) {
+  public Void visitLibraryDirective(DartLibraryDirective node) {
+    p("#library(");
+    accept(node.getName());
+    p(");");
+    nl();
+    return null;
+  }
+
+  @Override
+  public Void visitImportDirective(DartImportDirective node) {
+    p("#import(");
+    accept(node.getLibraryUri());
+    if (node.getPrefix() != null) {
+      p(", prefix : ");
+      accept(node.getPrefix());
+    }
+    p(");");
+    nl();
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionTypeAlias(DartFunctionTypeAlias x) {
     p("typedef ");
 
     if (x.getReturnTypeNode() != null) {
@@ -74,11 +99,11 @@ public class DartToSourceVisitor extends DartVisitor {
     p(";");
     nl();
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartClass x, DartContext ctx) {
+  public Void visitClass(DartClass x) {
     if (x.isInterface()) {
       p("interface ");
     } else {
@@ -129,11 +154,11 @@ public class DartToSourceVisitor extends DartVisitor {
     p("}");
     nl();
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartTypeNode x, DartContext ctx) {
+  public Void visitTypeNode(DartTypeNode x) {
     accept(x.getIdentifier());
     List<DartTypeNode> arguments = x.getTypeArguments();
     if (arguments != null && !arguments.isEmpty()) {
@@ -141,25 +166,25 @@ public class DartToSourceVisitor extends DartVisitor {
       printSeparatedByComma(arguments);
       p(">");
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartTypeParameter x, DartContext ctx) {
+  public Void visitTypeParameter(DartTypeParameter x) {
     accept(x.getName());
     DartTypeNode bound = x.getBound();
     if (bound != null) {
       p(" extends ");
       accept(bound);
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartFieldDefinition x, DartContext ctx) {
+  public Void visitFieldDefinition(DartFieldDefinition x) {
     Modifiers modifiers = x.getFields().get(0).getModifiers();
     if (modifiers.isAbstractField()) {
-      pAbstractField(x, ctx);
+      pAbstractField(x);
     } else {
       pFieldModifiers(x);
       if (x.getTypeNode() != null) {
@@ -176,21 +201,21 @@ public class DartToSourceVisitor extends DartVisitor {
 
     nl();
 
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartField x, DartContext ctx) {
+  public Void visitField(DartField x) {
     accept(x.getName());
     if (x.getValue() != null) {
       p(" = ");
       accept(x.getValue());
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartParameter x, DartContext ctx) {
+  public Void visitParameter(DartParameter x) {
     if (x.getModifiers().isFinal()) {
       p("final ");
     }
@@ -208,18 +233,20 @@ public class DartToSourceVisitor extends DartVisitor {
       p(" = ");
       accept(x.getDefaultExpr());
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartMethodDefinition x, DartContext ctx) {
+  public Void visitMethodDefinition(DartMethodDefinition x) {
     nl();
     pMethodModifiers(x);
+    // return type
     DartFunction func = x.getFunction();
     if (func.getReturnTypeNode() != null) {
       accept(func.getReturnTypeNode());
       p(" ");
     }
+    // special methods
     if (x.getModifiers().isOperator()) {
       p("operator ");
     } else if (x.getModifiers().isGetter()) {
@@ -227,42 +254,40 @@ public class DartToSourceVisitor extends DartVisitor {
     } else if (x.getModifiers().isSetter()) {
       p("set ");
     }
+    // name
     pFunctionDeclaration(x.getName(), func);
     p(" ");
-    if (!isDiet) {
-      List<DartInitializer> inits = x.getInitializers();
-      if (!inits.isEmpty()) {
-        p(": ");
-        for (int i = 0; i < inits.size(); ++i) {
-          accept(inits.get(i));
-          if (i < inits.size() - 1) {
-            p(", ");
-          }
+    // initializers
+    List<DartInitializer> inits = x.getInitializers();
+    if (!inits.isEmpty()) {
+      p(": ");
+      for (int i = 0; i < inits.size(); ++i) {
+        accept(inits.get(i));
+        if (i < inits.size() - 1) {
+          p(", ");
         }
       }
     }
+    // body
     if (x.getFunction().getBody() != null) {
       accept(x.getFunction().getBody());
     } else {
-      if (isDiet && x.getModifiers().isRedirectedConstructor() && !x.getModifiers().isConstant()) {
-        p("{ }");
-      } else {
-        p(";");
-      }
+      p(";");
       nl();
     }
-    return false;
+    // done
+    return null;
   }
 
   @Override
-  public boolean visit(DartInitializer x, DartContext ctx) {
+  public Void visitInitializer(DartInitializer x) {
     if (!x.isInvocation()) {
       p("this.");
       p(x.getInitializerName());
       p(" = ");
     }
     accept(x.getValue());
-    return false;
+    return null;
   }
 
   private void pBlock(DartBlock x, boolean newline) {
@@ -307,28 +332,22 @@ public class DartToSourceVisitor extends DartVisitor {
   }
 
   @Override
-  public boolean visit(DartBlock x, DartContext ctx) {
-    if (isDiet) {
-      p("{ }");
-      nl();
-      return false;
-    }
-
+  public Void visitBlock(DartBlock x) {
     pBlock(x, true);
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartAssertion x, DartContext ctx) {
+  public Void visitAssertion(DartAssertion x) {
     p("assert(");
     accept(x.getExpression());
     p(");");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartIfStatement x, DartContext ctx) {
+  public Void visitIfStatement(DartIfStatement x) {
     p("if (");
     accept(x.getCondition());
     p(") ");
@@ -337,11 +356,11 @@ public class DartToSourceVisitor extends DartVisitor {
       p(" else ");
       pIfBlock(x.getElseStatement(), true);
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartSwitchStatement x, DartContext ctx) {
+  public Void visitSwitchStatement(DartSwitchStatement x) {
     p("switch (");
     accept(x.getExpression());
     p(") {");
@@ -353,11 +372,11 @@ public class DartToSourceVisitor extends DartVisitor {
 
     p("}");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartCase x, DartContext ctx) {
+  public Void visitCase(DartCase x) {
     p("case ");
     accept(x.getExpr());
     p(":");
@@ -365,41 +384,41 @@ public class DartToSourceVisitor extends DartVisitor {
     indent();
     acceptList(x.getStatements());
     outdent();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartDefault x, DartContext ctx) {
+  public Void visitDefault(DartDefault x) {
     p("default:");
     nl();
     indent();
     acceptList(x.getStatements());
     outdent();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartWhileStatement x, DartContext ctx) {
+  public Void visitWhileStatement(DartWhileStatement x) {
     p("while (");
     accept(x.getCondition());
     p(") ");
     pIfBlock(x.getBody(), true);
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartDoWhileStatement x, DartContext ctx) {
+  public Void visitDoWhileStatement(DartDoWhileStatement x) {
     p("do ");
     pIfBlock(x.getBody(), false);
     p(" while (");
     accept(x.getCondition());
     p(");");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartForStatement x, DartContext ctx) {
+  public Void visitForStatement(DartForStatement x) {
     p("for (");
 
     // Setup
@@ -433,11 +452,11 @@ public class DartToSourceVisitor extends DartVisitor {
     // Body
     accept(x.getBody());
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartForInStatement x, DartContext ctx) {
+  public Void visitForInStatement(DartForInStatement x) {
     p("for (");
     if (x.introducesVariable()) {
       DartTypeNode type = x.getVariableStatement().getTypeNode();
@@ -461,33 +480,33 @@ public class DartToSourceVisitor extends DartVisitor {
     // Body
     accept(x.getBody());
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartContinueStatement x, DartContext ctx) {
+  public Void visitContinueStatement(DartContinueStatement x) {
     p("continue");
     if (x.getTargetName() != null) {
       p(" " + x.getTargetName());
     }
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartBreakStatement x, DartContext ctx) {
+  public Void visitBreakStatement(DartBreakStatement x) {
     p("break");
     if (x.getTargetName() != null) {
       p(" " + x.getTargetName());
     }
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartReturnStatement x, DartContext ctx) {
+  public Void visitReturnStatement(DartReturnStatement x) {
     p("return");
     if (x.getValue() != null) {
       p(" ");
@@ -495,11 +514,11 @@ public class DartToSourceVisitor extends DartVisitor {
     }
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartTryStatement x, DartContext ctx) {
+  public Void visitTryStatement(DartTryStatement x) {
     p("try ");
     accept(x.getTryBlock());
     acceptList(x.getCatchBlocks());
@@ -507,7 +526,7 @@ public class DartToSourceVisitor extends DartVisitor {
       p("finally ");
       accept(x.getFinallyBlock());
     }
-    return false;
+    return null;
   }
 
   private void visitCatchParameter(DartParameter x) {
@@ -518,7 +537,7 @@ public class DartToSourceVisitor extends DartVisitor {
   }
 
   @Override
-  public boolean visit(DartCatchBlock x, DartContext ctx) {
+  public Void visitCatchBlock(DartCatchBlock x) {
     p("catch (");
     visitCatchParameter(x.getException());
     if (x.getStackTrace() != null) {
@@ -527,11 +546,11 @@ public class DartToSourceVisitor extends DartVisitor {
     }
     p(") ");
     accept(x.getBlock());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartThrowStatement x, DartContext ctx) {
+  public Void visitThrowStatement(DartThrowStatement x) {
     p("throw");
     if (x.getException() != null) {
       p(" ");
@@ -539,11 +558,11 @@ public class DartToSourceVisitor extends DartVisitor {
     }
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartVariableStatement x, DartContext ctx) {
+  public Void visitVariableStatement(DartVariableStatement x) {
     if (x.getTypeNode() != null) {
       accept(x.getTypeNode());
       p(" ");
@@ -553,64 +572,64 @@ public class DartToSourceVisitor extends DartVisitor {
     printSeparatedByComma(x.getVariables());
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartVariable x, DartContext ctx) {
+  public Void visitVariable(DartVariable x) {
     accept(x.getName());
     if (x.getValue() != null) {
       p(" = ");
       accept(x.getValue());
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartEmptyStatement x, DartContext ctx) {
+  public Void visitEmptyStatement(DartEmptyStatement x) {
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartLabel x, DartContext ctx) {
+  public Void visitLabel(DartLabel x) {
     p(x.getName());
     p(": ");
     accept(x.getStatement());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartExprStmt x, DartContext ctx) {
+  public Void visitExprStmt(DartExprStmt x) {
     accept(x.getExpression());
     p(";");
     nl();
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartBinaryExpression x, DartContext ctx) {
+  public Void visitBinaryExpression(DartBinaryExpression x) {
     accept(x.getArg1());
     p(" ");
     p(x.getOperator().getSyntax());
     p(" ");
     accept(x.getArg2());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartConditional x, DartContext ctx) {
+  public Void visitConditional(DartConditional x) {
     accept(x.getCondition());
     p(" ? ");
     accept(x.getThenExpression());
     p(" : ");
     accept(x.getElseExpression());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartUnaryExpression x, DartContext ctx) {
+  public Void visitUnaryExpression(DartUnaryExpression x) {
     if (x.isPrefix()) {
       p(x.getOperator().getSyntax());
     }
@@ -618,24 +637,24 @@ public class DartToSourceVisitor extends DartVisitor {
     if (!x.isPrefix()) {
       p(x.getOperator().getSyntax());
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartPropertyAccess x, DartContext ctx) {
+  public Void visitPropertyAccess(DartPropertyAccess x) {
     accept(x.getQualifier());
     p(".");
     p(x.getPropertyName());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartArrayAccess x, DartContext ctx) {
+  public Void visitArrayAccess(DartArrayAccess x) {
     accept(x.getTarget());
     p("[");
     accept(x.getKey());
     p("]");
-    return false;
+    return null;
   }
 
   private void pArgs(List<? extends DartNode> args) {
@@ -645,73 +664,73 @@ public class DartToSourceVisitor extends DartVisitor {
   }
 
   @Override
-  public boolean visit(DartUnqualifiedInvocation x, DartContext ctx) {
+  public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
     accept(x.getTarget());
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunctionObjectInvocation x, DartContext ctx) {
+  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
     accept(x.getTarget());
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartMethodInvocation x, DartContext ctx) {
+  public Void visitMethodInvocation(DartMethodInvocation x) {
     accept(x.getTarget());
     p(".");
     accept(x.getFunctionName());
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartSyntheticErrorExpression node, DartContext ctx) {
+  public Void visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
     p("[error: " + node.getTokenString() + "]");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartSyntheticErrorStatement node, DartContext ctx) {
+  public Void visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
     p("[error: " + node.getTokenString() + "]");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartThisExpression x, DartContext ctx) {
+  public Void visitThisExpression(DartThisExpression x) {
     p("this");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartSuperExpression x, DartContext ctx) {
+  public Void visitSuperExpression(DartSuperExpression x) {
     p("super");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartSuperConstructorInvocation x, DartContext ctx) {
+  public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
     p("super");
     if (x.getName() != null) {
       p(".");
       accept(x.getName());
     }
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartNewExpression x, DartContext ctx) {
+  public Void visitNewExpression(DartNewExpression x) {
     p("new ");
     accept(x.getConstructor());
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartFunctionExpression x, DartContext ctx) {
+  public Void visitFunctionExpression(DartFunctionExpression x) {
     DartFunction func = x.getFunction();
     if (func.getReturnTypeNode() != null) {
       accept(func.getReturnTypeNode());
@@ -723,39 +742,39 @@ public class DartToSourceVisitor extends DartVisitor {
     if (x.getFunction().getBody() != null) {
       pBlock(x.getFunction().getBody(), false);
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartIdentifier x, DartContext ctx) {
+  public Void visitIdentifier(DartIdentifier x) {
     p(x.getTargetName());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartNullLiteral x, DartContext ctx) {
+  public Void visitNullLiteral(DartNullLiteral x) {
     p("null");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartRedirectConstructorInvocation x, DartContext ctx) {
+  public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
     p("this");
     if (x.getName() != null) {
       p(".");
       accept(x.getName());
     }
     pArgs(x.getArgs());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartStringLiteral x, DartContext ctx) {
+  public Void visitStringLiteral(DartStringLiteral x) {
     p("\"");
     // 'replaceAll' takes regular expressions as first argument and parses the second argument
     // for captured groups. We must escape backslashes twice: once to escape them in the source
     // code and once for the regular expression parser.
-    String escaped =  x.getValue().replaceAll("\\\\", "\\\\\\\\");
+    String escaped = x.getValue().replaceAll("\\\\", "\\\\\\\\");
     escaped = escaped.replaceAll("\"", "\\\\\"");
     escaped = escaped.replaceAll("'", "\\\\'");
     escaped = escaped.replaceAll("\\n", "\\\\n");
@@ -764,11 +783,11 @@ public class DartToSourceVisitor extends DartVisitor {
     escaped = escaped.replaceAll("\\$", "\\\\\\$");
     p(escaped);
     p("\"");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartStringInterpolation x, DartContext ctx) {
+  public Void visitStringInterpolation(DartStringInterpolation x) {
     p("\"");
     // do not use the default visitor recursion, instead alternate strings and
     // expressions:
@@ -786,29 +805,29 @@ public class DartToSourceVisitor extends DartVisitor {
       p(lit.getValue().replaceAll("\"", "\\\""));
     }
     p("\"");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartBooleanLiteral x, DartContext ctx) {
+  public Void visitBooleanLiteral(DartBooleanLiteral x) {
     p(Boolean.toString(x.getValue()));
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartIntegerLiteral x, DartContext ctx) {
+  public Void visitIntegerLiteral(DartIntegerLiteral x) {
     p(x.getValue().toString());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartDoubleLiteral x, DartContext ctx) {
+  public Void visitDoubleLiteral(DartDoubleLiteral x) {
     p(Double.toString(x.getValue()));
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartArrayLiteral x, DartContext ctx) {
+  public Void visitArrayLiteral(DartArrayLiteral x) {
     List<DartTypeNode> typeArguments = x.getTypeArguments();
     if (typeArguments != null && typeArguments.size() > 0) {
       p("<");
@@ -818,11 +837,11 @@ public class DartToSourceVisitor extends DartVisitor {
     p("[");
     printSeparatedByComma(x.getExpressions());
     p("]");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartMapLiteral x, DartContext ctx) {
+  public Void visitMapLiteral(DartMapLiteral x) {
     List<DartTypeNode> typeArguments = x.getTypeArguments();
     if (typeArguments != null && typeArguments.size() > 0) {
       p("<");
@@ -839,47 +858,47 @@ public class DartToSourceVisitor extends DartVisitor {
       }
     }
     p("}");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartMapLiteralEntry x, DartContext ctx) {
+  public Void visitMapLiteralEntry(DartMapLiteralEntry x) {
     // Always quote keys just to be safe. This could be optimized to only quote
     // unsafe identifiers.
     accept(x.getKey());
     p(" : ");
     accept(x.getValue());
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartParameterizedTypeNode x, DartContext ctx) {
+  public Void visitParameterizedTypeNode(DartParameterizedTypeNode x) {
     accept(x.getExpression());
     if (!x.getTypeParameters().isEmpty()) {
       p("<");
       printSeparatedByComma(x.getTypeParameters());
       p(">");
     }
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartParenthesizedExpression x, DartContext ctx) {
+  public Void visitParenthesizedExpression(DartParenthesizedExpression x) {
     p("(");
     accept(x.getExpression());
     p(")");
-    return false;
+    return null;
   }
 
   @Override
-  public boolean visit(DartNamedExpression x, DartContext ctx) {
+  public Void visitNamedExpression(DartNamedExpression x) {
     accept(x.getName());
     p(":");
     accept(x.getExpression());
-    return false;
+    return null;
   }
 
-  private void pAbstractField(DartFieldDefinition x, DartContext ctx) {
+  private void pAbstractField(DartFieldDefinition x) {
     accept(x.getFields().get(0).getAccessor());
   }
 
