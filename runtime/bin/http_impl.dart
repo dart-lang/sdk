@@ -688,7 +688,10 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   String get reasonPhrase() => _findReasonPhrase(_statusCode);
-  void set reasonPhrase(String reasonPhrase) => _reasonPhrase = reasonPhrase;
+  void set reasonPhrase(String reasonPhrase) {
+    if (_outputStream != null) return new HttpException("Header already sent");
+    _reasonPhrase = reasonPhrase;
+  }
 
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
@@ -725,6 +728,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _streamClose() {
+    _httpConnection._phase = _HttpConnectionBase.PHASE_IDLE;
     _state = DONE;
     // Stop tracking no pending write events.
     _httpConnection.outputStream.onNoPendingWrites = null;
@@ -917,8 +921,13 @@ class _HttpOutputStream implements OutputStream {
 }
 
 
-class _HttpConnectionBase {
-  _HttpConnectionBase() : _sendBuffers = new Queue(),
+class _HttpConnectionBase implements Hashable {
+  static final int PHASE_IDLE = 0;
+  static final int PHASE_REQUEST = 1;
+  static final int PHASE_RESPONSE = 2;
+
+  _HttpConnectionBase() : _phase = PHASE_IDLE,
+                          _sendBuffers = new Queue(),
                           _httpParser = new HttpParser();
 
   void _connectionEstablished(Socket socket) {
@@ -951,9 +960,14 @@ class _HttpConnectionBase {
   }
 
   void _onClosed() {
-    // Client closed socket for writing. Socket should still be open
-    // for writing the response.
-    _closing = true;
+    if (_phase != PHASE_IDLE) {
+      // Client closed socket for writing. Socket should still be open
+      // for writing the response.
+      _closing = true;
+    } else {
+      // The connection is currently not used by any request just close it.
+      _socket.close();
+    }
     if (_onDisconnectCallback != null) _onDisconnectCallback();
   }
 
@@ -973,6 +987,9 @@ class _HttpConnectionBase {
     _onErrorCallback = callback;
   }
 
+  int hashCode() => _socket.hashCode();
+
+  int _phase;
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
   HttpParser _httpParser;
@@ -1002,6 +1019,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onRequestStart(String method, String uri) {
     // Create new request and response objects for this request.
+    _phase = PHASE_REQUEST;
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
     _request._onRequestStart(method, uri);
@@ -1028,6 +1046,11 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _onDataEnd() {
+    // Phase might already have gone to PHASE_IDLE if the response is
+    // sent without waiting for request body.
+    if (_phase == PHASE_REQUEST) {
+      _phase = PHASE_RESPONSE;
+    }
     _request._onDataEnd();
   }
 
@@ -1051,12 +1074,7 @@ class _HttpServer implements HttpServer {
       connection.requestReceived = _onRequest;
       _connections.add(connection);
       void onDisconnect() {
-        for (int i = 0; i < _connections.length; i++) {
-          if (_connections[i] == connection) {
-            _connections.removeRange(i, 1);
-            break;
-          }
-        }
+        _connections.remove(connection);
       }
       connection.onDisconnect = onDisconnect;
       void onError(String errorMessage) {
@@ -1065,8 +1083,7 @@ class _HttpServer implements HttpServer {
       connection.onError = onError;
     }
 
-    // TODO(ajohnsen): Use Set once Socket is Hashable.
-    _connections = new List<_HttpConnection>();
+    _connections = new Set<_HttpConnection>();
     _server = new ServerSocket(host, port, backlog);
     _server.onConnection = onConnection;
   }
@@ -1083,7 +1100,7 @@ class _HttpServer implements HttpServer {
   }
 
   ServerSocket _server;  // The server listen socket.
-  List<_HttpConnection> _connections;  // List of currently connected clients.
+  Set<_HttpConnection> _connections;  // Set of currently connected clients.
   Function _onRequest;
   Function _onError;
 }
@@ -1372,6 +1389,8 @@ class _SocketConnection {
 
   Duration _idleTime(Date now) => now.difference(_returnTime);
 
+  int hashCode() => _socket.hashCode();
+
   String _host;
   int _port;
   Socket _socket;
@@ -1382,7 +1401,9 @@ class _SocketConnection {
 class _HttpClient implements HttpClient {
   static final int DEFAULT_EVICTION_TIMEOUT = 60000;
 
-  _HttpClient() : _openSockets = new Map(), _shutdown = false;
+  _HttpClient() : _openSockets = new Map(),
+                  _activeSockets = new Set(),
+                  _shutdown = false;
 
   HttpClientConnection open(
       String method, String host, int port, String path) {
@@ -1399,13 +1420,15 @@ class _HttpClient implements HttpClient {
   }
 
   void shutdown() {
-     _openSockets.forEach(
-         void _(String key, Queue<_SocketConnection> connections) {
-           while (!connections.isEmpty()) {
-             var socketConn = connections.removeFirst();
-             socketConn._socket.close();
-           }
-         });
+     _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
+       while (!connections.isEmpty()) {
+         _SocketConnection socketConn = connections.removeFirst();
+         socketConn._socket.close();
+       }
+     });
+     _activeSockets.forEach((_SocketConnection socketConn) {
+       socketConn._socket.close();
+     });
      if (_evictionTimer != null) {
        _evictionTimer.cancel();
      }
@@ -1441,6 +1464,7 @@ class _HttpClient implements HttpClient {
         socket.onError = null;
         _SocketConnection socketConn =
             new _SocketConnection(host, port, socket);
+        _activeSockets.add(socketConn);
         _connectionOpened(socketConn, connection);
       };
       socket.onError = () {
@@ -1450,6 +1474,7 @@ class _HttpClient implements HttpClient {
       };
     } else {
       _SocketConnection socketConn = socketConnections.removeFirst();
+      _activeSockets.add(socketConn);
       new Timer((ignored) => _connectionOpened(socketConn, connection), 0);
 
       // Get rid of eviction timer if there are no more active connections.
@@ -1501,6 +1526,7 @@ class _HttpClient implements HttpClient {
     }
 
     // Return connection.
+    _activeSockets.remove(socketConn);
     sockets.addFirst(socketConn);
     socketConn._markReturned();
   }
@@ -1512,6 +1538,7 @@ class _HttpClient implements HttpClient {
   Function _onOpen;
   Function _onError;
   Map<String, Queue<_SocketConnection>> _openSockets;
+  Set<_SocketConnection> _activeSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?
 }

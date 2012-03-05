@@ -32,7 +32,7 @@ interface ServerSocket default _ServerSocket {
 }
 
 
-interface Socket default _Socket {
+interface Socket extends Hashable default _Socket {
   /**
    * Constructs a new socket and connects it to the given host on the given
    * port.
@@ -113,6 +113,11 @@ interface Socket default _Socket {
    * [onClosed].
    */
   void close([bool halfClose]);
+
+  /**
+   * Socket is hashable.
+   */
+  int hashCode();
 }
 
 
