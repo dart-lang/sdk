@@ -905,7 +905,7 @@ class ProcessQueue {
    * and notify our progress indicator that we are done.
    */
   void _cleanupAndMarkDone() {
-    if (browserUsed != '') {
+    if (browserUsed != '' && _progress is BuildbotProgressIndicator) {
       killZombieBrowsers();
       if (_seleniumServer != null) {
         _seleniumServer.kill();
