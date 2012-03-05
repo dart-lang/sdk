@@ -728,7 +728,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "class B extends A native 'N' {",
             "}",
             ""),
-        errEx(ParserErrorCode.NATIVE_MUST_NOT_EXTEND, 4, 19, 6));
+        errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 4, 19, 6));
   }
 
   /**
