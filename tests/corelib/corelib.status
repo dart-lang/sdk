@@ -28,7 +28,7 @@ CoreRuntimeTypesTest: Fail
 ForInTest: Fail
 ListTest: Fail
 MapsTest: Fail
-MathTest: Fail
+MathParseDoubleTest: Fail
 RegExpAllMatchesTest: Fail
 RegExp4Test: Fail # New test added on 10/28.
 StringPatternTest: Fail

@@ -221,7 +221,6 @@ LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
 LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Math/parseInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
 LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.

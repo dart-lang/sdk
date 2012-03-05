@@ -488,6 +488,15 @@ class DateTest {
     Expect.equals(0, dt1.seconds);
     Expect.equals(0, dt1.milliseconds);
     Expect.equals(true, dt1.isUtc());
+    dt1 = new Date.fromString("0009-09-09 09:09:09.009Z");
+    Expect.equals(9, dt1.year);
+    Expect.equals(9, dt1.month);
+    Expect.equals(9, dt1.day);
+    Expect.equals(9, dt1.hours);
+    Expect.equals(9, dt1.minutes);
+    Expect.equals(9, dt1.seconds);
+    Expect.equals(9, dt1.milliseconds);
+    Expect.equals(true, dt1.isUtc());
   }
 
   static void testWeekday() {
