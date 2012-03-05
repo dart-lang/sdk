@@ -122,6 +122,7 @@ ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
 ConstructorCallWrongArgumentCountNegativeTest: Fail
 DefaultFactoryLibraryTest: Fail          # Issue 514
+DisableLibraryPrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DuplicateImplementsTest: Skip # Issue 976
 Field3aNegativeTest: Fail
 FieldMethod4NegativeTest: Fail
@@ -228,6 +229,7 @@ ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+DisableLibraryPrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
 # be moved to a
