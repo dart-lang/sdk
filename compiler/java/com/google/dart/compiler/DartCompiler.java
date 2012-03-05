@@ -55,10 +55,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -147,6 +149,14 @@ public class DartCompiler {
       incremental = config.incremental();
       usePrecompiledDartLibs = true;
     }
+    
+    void addResolvedLibraries(Map<URI, LibraryUnit> resolvedLibraries) {
+      libraries.putAll(resolvedLibraries);
+    }
+    
+    Map<URI, LibraryUnit> getLibraries() {
+      return libraries;
+    }
 
     private void compile() {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.COMPILE) : null;
@@ -216,7 +226,7 @@ public class DartCompiler {
 
       try {
         final Set<String> topLevelSymbolsDiff = Sets.newHashSet();
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
           LibrarySource libSrc = lib.getSource();
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
           boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
@@ -302,7 +312,7 @@ public class DartCompiler {
         // Parse units, which potentially depend on the difference in top-level symbols.
         if (!topLevelSymbolsDiff.isEmpty()) {
           context.setFilesHaveChanged();
-          for (LibraryUnit lib : libraries.values()) {
+          for (LibraryUnit lib : getLibrariesToProcess()) {
             LibrarySource libSrc = lib.getSource();
             LibraryNode selfSourcePath = lib.getSelfSourcePath();
             LibraryDeps deps = lib.getDeps(context);
@@ -341,6 +351,10 @@ public class DartCompiler {
       }
     }
 
+    Collection<LibraryUnit> getLibrariesToProcess() {
+      return libraries.values();
+    }
+
     /**
      * This method reads the embedded library sources, making sure they are added
      * to the list of libraries to compile. It then adds the libraries as imports
@@ -354,7 +368,7 @@ public class DartCompiler {
           updateLibraries(embedded);
         }
 
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
           for (LibrarySource embedded : embeddedLibraries) {
             LibraryUnit imp = libraries.get(embedded.getUri());
             // Check that the current library is not the embedded library, and
@@ -463,7 +477,7 @@ public class DartCompiler {
       TraceEvent logEvent =
           Tracer.canTrace() ? Tracer.start(DartEventType.BUILD_LIB_SCOPES) : null;
       try {
-        Collection<LibraryUnit> libs = libraries.values();
+        Collection<LibraryUnit> libs = getLibrariesToProcess();
 
         // Build the class elements declared in the sources of a library.
         // Loop can be parallelized.
@@ -489,7 +503,7 @@ public class DartCompiler {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ADD_OUTOFDATE) : null;
       try {
         boolean filesHaveChanged = false;
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
 
           if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
             // embedded dart libs are always up to date
@@ -573,7 +587,7 @@ public class DartCompiler {
         // Resolve super class chain, and build the member elements. Both passes
         // need the library scope to be setup. Each for loop can be
         // parallelized.
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
           for (DartUnit unit : lib.getUnits()) {
             // These two method calls can be parallelized.
             new SupertypeResolver().exec(unit, context, getTypeProvider());
@@ -582,7 +596,7 @@ public class DartCompiler {
         }
 
         // Perform resolution on compile-time constant expressions.
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
           for (DartUnit unit : lib.getUnits()) {
             new CompileTimeConstantResolver().exec(unit, context, getTypeProvider());
           }
@@ -593,7 +607,7 @@ public class DartCompiler {
     }
 
     private void validateLibraryDirectives() {
-      for (LibraryUnit lib : libraries.values()) {
+      for (LibraryUnit lib : getLibrariesToProcess()) {
         // don't need to validate system libraries
         if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
           continue;
@@ -715,7 +729,7 @@ public class DartCompiler {
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
 
         // The two following for loops can be parallelized.
-        for (LibraryUnit lib : libraries.values()) {
+        for (LibraryUnit lib : getLibrariesToProcess()) {
           boolean persist = false;
 
           // Compile all the units in this library.
@@ -831,18 +845,33 @@ public class DartCompiler {
   }
 
   /**
-   * Selectively compile a library. Use supplied ASTs when available. This allows programming
-   * tools to provide customized ASTs for code that is currently being edited, and may not
-   * compile correctly.
+   * Selectively compile a library. Use supplied libraries and ASTs when available. 
+   * This allows programming tools to provide customized ASTs for code that is currently being 
+   * edited, and may not compile correctly.
    */
   private static class SelectiveCompiler extends Compiler {
     /** Map from source URI to AST representing the source */
+    private final Map<URI, LibraryUnit> resolvedLibraries;
     private final Map<URI,DartUnit> parsedUnits;
+    private Collection<LibraryUnit> librariesToProcess;
 
-    private SelectiveCompiler(LibrarySource app, Map<URI,DartUnit> suppliedUnits,
-        CompilerConfiguration config, DartCompilerMainContext context) {
+    private SelectiveCompiler(LibrarySource app, Map<URI, LibraryUnit> resolvedLibraries,
+        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config, 
+        DartCompilerMainContext context) {
       super(app, Collections.<LibrarySource>emptyList(), config, context);
-      parsedUnits = suppliedUnits;
+      this.resolvedLibraries = resolvedLibraries;
+      this.parsedUnits = parsedUnits;
+      addResolvedLibraries(resolvedLibraries);
+    }
+    
+    @Override
+    Collection<LibraryUnit> getLibrariesToProcess() {
+      if (librariesToProcess == null) {
+        librariesToProcess = new ArrayList<LibraryUnit>();
+        librariesToProcess.addAll(super.getLibrariesToProcess());
+        librariesToProcess.removeAll(resolvedLibraries.values());
+      }
+      return librariesToProcess;
     }
 
     @Override
@@ -1075,7 +1104,7 @@ public class DartCompiler {
    * Analyzes the given library and all its transitive dependencies.
    *
    * @param lib The library to be analyzed
-   * @param parsedUnits A collection of ASTs that should be used
+   * @param parsedUnits A collection of unresolved ASTs that should be used
    * instead of parsing the associated source from storage. Intended for
    * IDE use when modified buffers must be analyzed. AST nodes in the map may be
    * ignored if not referenced by {@code lib}. (May be null.)
@@ -1090,11 +1119,39 @@ public class DartCompiler {
   public static LibraryUnit analyzeLibrary(LibrarySource lib, Map<URI, DartUnit> parsedUnits,
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
+    HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
+    return analyzeLibraries(lib, resolvedLibs, parsedUnits, config, provider, listener).get(lib.getUri());
+  }
+
+  /**
+   * Analyzes the given library and all its transitive dependencies.
+   *
+   * @param lib The library to be analyzed
+   * @param resolvedLibs A collection of library units that should be used
+   * instead of parsing and resolving the associated source from storage.
+   * @param parsedUnits A collection of unresolved ASTs that should be used
+   * instead of parsing the associated source from storage. Intended for
+   * IDE use when modified buffers must be analyzed. AST nodes in the map may be
+   * ignored if not referenced by {@code lib}. (May be null.)
+   * @param config The compiler configuration (phases and backends
+   * will not be used), but resolution and type-analysis will be
+   * invoked
+   * @param provider A mechanism for specifying where code should be generated
+   * @param listener An object notified when compilation errors occur
+   * @throws NullPointerException if any of the arguments except {@code parsedUnits}
+   * are {@code null}
+   * @throws IOException on IO errors, which are not logged
+   */
+  public static Map<URI, LibraryUnit> analyzeLibraries(LibrarySource lib,
+      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
+      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
+      throws IOException {
     lib.getClass(); // Quick null check.
     provider.getClass(); // Quick null check.
     listener.getClass(); // Quick null check.
+    resolvedLibs.getClass(); // Quick null check.
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
-    Compiler compiler = new SelectiveCompiler(lib, parsedUnits, config, context);
+    Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context);
     LibraryUnit libraryUnit = compiler.updateAndResolve();
     if (libraryUnit != null) {
       // Ignore errors. Resolver should be able to cope with
@@ -1116,7 +1173,14 @@ public class DartCompiler {
         }
       }
     }
-    return libraryUnit;
+    Map<URI,LibraryUnit> newLibraries = new HashMap<URI, LibraryUnit>();
+    for (Entry<URI, LibraryUnit> entry : compiler.getLibraries().entrySet()) {
+      if (!resolvedLibs.containsKey(entry.getKey())) {
+        newLibraries.put(entry.getKey(), entry.getValue());
+      }
+    }
+    newLibraries.put(lib.getUri(), libraryUnit);
+    return newLibraries;
   }
 
   /**
