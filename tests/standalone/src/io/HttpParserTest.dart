@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("dart:io");
+#source("../../../../runtime/bin/http_parser.dart");
 
 class HttpParserTest {
   static void runAllTests() {
@@ -17,7 +17,7 @@ class HttpParserTest {
                                  int expectedBytesReceived = 0,
                                  Map expectedHeaders = null,
                                  bool chunked = false]) {
-    HttpParser httpParser;
+    _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     String method;
@@ -27,7 +27,7 @@ class HttpParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new HttpParser();
+      httpParser = new _HttpParser();
       httpParser.requestStart = (m, u) { method = m; uri = u; };
       httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
       httpParser.headerReceived = (f, v) {
@@ -102,7 +102,7 @@ class HttpParserTest {
                                   int expectedBytesReceived = 0,
                                   Map expectedHeaders = null,
                                   bool chunked = false]) {
-    HttpParser httpParser;
+    _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     int statusCode;
@@ -112,7 +112,7 @@ class HttpParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new HttpParser();
+      httpParser = new _HttpParser();
       httpParser.requestStart = (m, u) => Expect.fail("Expected response");
       httpParser.responseStart = (s, r) {
         statusCode = s;
