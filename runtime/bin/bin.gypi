@@ -216,9 +216,19 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
-        ['OS=="win"', {'sources/' : [
-          ['exclude', 'fdutils.h'],
-        ]}],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'fdutils.h'],
+          ],
+          # TODO(antonm): fix the implementation.
+          # Current implementation accepts char* strings
+          # and therefore fails to compile once _UNICODE is
+          # enabled.  That should be addressed using -A
+          # versions of functions and adding necessary conversions.
+          'msvs_configuration_attributes': {
+            'CharacterSet': '0',
+          },
+        }],
         ['OS=="linux"', {
           'link_settings': {
             'libraries': [
