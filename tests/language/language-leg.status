@@ -19,12 +19,14 @@ GetSyntaxTest/none: Fail # TODO(ahe): investigate.
 GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
 SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
 FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
-SyntaxTest/28: Fail # TODO(ahe): investigate.
-SyntaxTest/30: Fail # TODO(ahe): investigate.
-SyntaxTest/31: Fail # TODO(ahe): investigate.
-SyntaxTest/32: Fail # TODO(ahe): investigate.
-SyntaxTest/33: Fail # TODO(ahe): investigate.
-SyntaxTest/47: Fail # TODO(ahe): investigate.
+# TODO(ngeoffray): disallow native keyword.
+SyntaxTest/28: Fail
+SyntaxTest/29: Fail
+SyntaxTest/30: Fail
+SyntaxTest/31: Fail
+SyntaxTest/32: Fail
+SyntaxTest/33: Fail
+SyntaxTest/47: Fail
 
 # Compilation errors.
 Arithmetic2Test: Fail # map not implemented
