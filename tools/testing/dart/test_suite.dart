@@ -485,10 +485,10 @@ class StandardTestSuite implements TestSuite {
         // than 260 characters, and without this hack, we were running past the
         // the limit.
         String htmlFilename = getHtmlName(filename);
-        while ('${tempDir.path}/../../$htmlFilename'.length >= 260) {
+        while ('${tempDir.path}/../$htmlFilename'.length >= 260) {
           htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
         }
-        htmlPath = '${tempDir.path}/../../$htmlFilename';
+        htmlPath = '${tempDir.path}/../$htmlFilename';
       }
       final String scriptPath = (component == 'dartium') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -577,13 +577,11 @@ class StandardTestSuite implements TestSuite {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
     switch (component) {
+      // TODO(zundel): Remove chromium now that dartc doesn't generate code?
       case 'chromium':
         args.addAll(['--work', dir]);
         args.addAll(vmOptions);
         args.add('--ignore-unrecognized-flags');
-        // TODO(zundel): remove assumption of generated code from dartc
-        args.add('--out');
-        args.add(outputFile);
         args.add(inputFile);
         // TODO(whesse): Add --fatal-type-errors if needed.
         break;
@@ -637,16 +635,17 @@ class StandardTestSuite implements TestSuite {
 
     // Create '[build dir]/generated_tests/$component/$testUniqueName',
       // including any intermediate directories that don't exist.
-    String debugMode =
-        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    var generatedTestPath = [debugMode + configuration["arch"],
-                             'generated_tests',
+    var generatedTestPath = ['generated_tests',
                              configuration['component'],
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
     if (requiresCleanTemporaryDirectory) {
       tempDirPath = globalTemporaryDirectory();
+      String debugMode = 
+          (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+      generatedTestPath = ['${debugMode}_${configuration["arch"]}']
+          .addAll(generatedTestPath);
     }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
