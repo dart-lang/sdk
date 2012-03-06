@@ -18,16 +18,16 @@ Language/10_Expressions/01_Constants_A12_t01: Crash # TODO(vm-team): New crash, 
 Language/10_Expressions/01_Constants_A17_t03: Crash # TODO(vm-team): New crash, please triage.
 
 
-Language/07_Classes/07_Classes_A01_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A10_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/03_Numbers_A01_t06: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/03_Numbers_A01_t09: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(vm-team): New failure, please triage.
-Language/10_Expressions/07_Maps_A01_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/07_Classes/07_Classes_A01_t01: Fail # issue 1603 (abstract not supported for classes
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # issue 1986 (call operator not implemented)
+Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1986 (call operator not implemented)
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1986 (call operator not implemented)
+Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
+Language/10_Expressions/03_Numbers_A01_t06: Fail # issue 1989 (toString must produce decimal format).
+Language/10_Expressions/03_Numbers_A01_t09: Fail # issue 1989 (toString must produce decimal format).
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # issue 1991.
+Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
+Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # TODO(vm-team): New failure, please triage.
