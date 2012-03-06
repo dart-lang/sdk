@@ -118,7 +118,6 @@ SuperFieldTest: Fail # no method named city in class B
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperTest: Fail # cannot find tokens to produce error message for i++.
-Switch6Test: Fail # switch cases are not implemented
 SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchScopeTest: Fail # switch cases are not implemented
@@ -282,6 +281,8 @@ StaticTopLevelTest/03: Fail, OK # Negative language test.
 StaticTopLevelTest/04: Fail, OK # Negative language test.
 StaticTopLevelTest/05: Fail, OK # Negative language test.
 StringInterpolation7NegativeTest: Fail, OK # Negative language test.
+Switch3NegativeTest: Fail, OK # Negative language test.
+Switch7NegativeTest: Fail, OK # Negative language test.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
