@@ -300,7 +300,6 @@ TypeVariableScopeTest/05: Fail, OK # Negative language test.
 TypeVMTest: Fail, OK # VM specific test.
 
 
-ExceptionTest: Fail # TODO(ahe): Probably a bad merge.
 DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
