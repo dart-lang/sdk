@@ -162,7 +162,7 @@ public class DartCompiler {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.COMPILE) : null;
       try {
         updateAndResolve();
-        if (context.getErrorCount() > 0) {
+        if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
           return;
         }
         compileLibraries();
@@ -756,7 +756,7 @@ public class DartCompiler {
               } finally {
                 Tracer.end(phaseEvent);
               }
-              if (context.getErrorCount() > 0) {
+              if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
                 return;
               }
             }
