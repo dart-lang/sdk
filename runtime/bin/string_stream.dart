@@ -111,6 +111,8 @@ class _StringDecoderBase implements _StringDecoder {
     _lastCharCode = charCode;
   }
 
+  int available() => _result.length - _resultOffset;
+
   void _recordLineBreakEnd(int charPos) {
     _lineBreakEnds.add(charPos);
     _lineBreaks++;
@@ -132,7 +134,7 @@ class _StringDecoderBase implements _StringDecoder {
   // character positions from the begining of the decoded data.
   Queue<int> _lineBreakEnds;  // Character position of known line breaks.
   int _charOffset = 0;  // Character number of the first character in the list.
-  int _charCount = 0;  // Total number of characters decodes.
+  int _charCount = 0;  // Total number of characters decoded.
   int _lastCharCode = -1;
 
   final int LF = 10;
@@ -252,6 +254,8 @@ class _StringInputStream implements StringInputStream {
     _checkInstallDataHandler();
     return decodedLine;
   }
+
+  int available() => _decoder.available();
 
   String get encoding() => _encoding;
 

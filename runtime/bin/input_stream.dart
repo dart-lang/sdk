@@ -125,6 +125,16 @@ interface StringInputStream default _StringInputStream {
   String readLine();
 
   /**
+   * Returns the number of characters available for immediate
+   * reading. Note that this includes all characters that will be in
+   * the String returned from [read] this includes line breaking
+   * characters. If [readLine] is used for reading one can observe
+   * less characters being returned as the line breaking characters
+   * are discarded.
+   */
+  int available();
+
+  /**
    * Returns whether the stream has been closed. There might still be
    * more data to read.
    */
