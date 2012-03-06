@@ -33,7 +33,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 [ $component == leg ]
 Language/10_Expressions/01_Constants_A16_t01: Crash # TODO(ahe): Investigate.
-Language/10_Expressions/01_Constants_A16_t02: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Crash # TODO(ahe): Investigate.
@@ -93,7 +92,6 @@ Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07:
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
@@ -293,7 +291,6 @@ LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeExcepti
 
 
 Language/13_Types/4_Interface_Types_A12_t10: Fail # SyntaxError: Unexpected identifier
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t01: Fail # SyntaxError: Unexpected string
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # Operator 'call' is not supported on closures.
 
 
