@@ -205,6 +205,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   }
   if (S_ISCHR(buf.st_mode)) return kTerminal;
   if (S_ISFIFO(buf.st_mode)) return kPipe;
+  if (S_ISSOCK(buf.st_mode)) return kSocket;
   if (S_ISREG(buf.st_mode)) return kFile;
   return kOther;
 }

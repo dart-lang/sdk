@@ -5,7 +5,8 @@
 final int _STDIO_HANDLE_TYPE_TERMINAL = 0;
 final int _STDIO_HANDLE_TYPE_PIPE = 1;
 final int _STDIO_HANDLE_TYPE_FILE = 2;
-final int _STDIO_HANDLE_TYPE_OTHER = 3;
+final int _STDIO_HANDLE_TYPE_SOCKET = 3;
+final int _STDIO_HANDLE_TYPE_OTHER = -1;
 
 
 InputStream _stdin;
@@ -17,6 +18,7 @@ InputStream _getStdioInputStream() {
   switch (_getStdioHandleType(0)) {
     case _STDIO_HANDLE_TYPE_TERMINAL:
     case _STDIO_HANDLE_TYPE_PIPE:
+    case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalReadOnly();
       _getStdioHandle(s, 0);
       return s.inputStream;
@@ -33,6 +35,7 @@ OutputStream _getStdioOutputStream(int fd) {
   switch (_getStdioHandleType(fd)) {
     case _STDIO_HANDLE_TYPE_TERMINAL:
     case _STDIO_HANDLE_TYPE_PIPE:
+    case _STDIO_HANDLE_TYPE_SOCKET:
       Socket s = new _Socket._internalWriteOnly();
       _getStdioHandle(s, fd);
       return s.outputStream;
