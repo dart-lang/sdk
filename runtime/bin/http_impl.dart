@@ -61,7 +61,7 @@ class _HttpRequestResponseBase {
   Map get headers() => _headers;
 
   void _setHeader(String name, String value) {
-    _headers[name] = value;
+    _headers[name.toLowerCase()] = value;
   }
 
   bool _write(List<int> data, bool copyBuffer) {
@@ -280,11 +280,25 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _reasonPhrase = reasonPhrase;
   }
 
+  Date get expires() => _expires;
+  void set expires(Date expires) {
+    if (_outputStream != null) throw new HttpException("Header already sent");
+    _expires = expires;
+    // Format "Expires" header with date in Greenwich Mean Time (GMT).
+    String formatted =
+        _HttpUtils.formatDate(_expires.changeTimeZone(new TimeZone.utc()));
+    _setHeader("Expires", formatted);
+  }
+
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
   void setHeader(String name, String value) {
     if (_outputStream != null) return new HttpException("Header already sent");
-    _setHeader(name, value);
+    if (name.toLowerCase() == "expires") {
+      expires = _HttpUtils.parseDate(value);
+    } else {
+      _setHeader(name, value);
+    }
   }
 
   OutputStream get outputStream() {
@@ -431,6 +445,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   // Response status code.
   int _statusCode;
   String _reasonPhrase;
+  Date _expires;
   _HttpOutputStream _outputStream;
   int _state;
 }
@@ -766,7 +781,7 @@ class _HttpClientRequest
 
   _updateHostHeader() {
     String portPart = _port == HttpClient.DEFAULT_HTTP_PORT ? "" : ":$_port";
-    _setHeader("host", "$host$portPart");
+    _setHeader("Host", "$host$portPart");
   }
 
   // Delegate functions for the HttpOutputStream implementation.
@@ -854,6 +869,14 @@ class _HttpClientResponse
 
   int get statusCode() => _statusCode;
   String get reasonPhrase() => _reasonPhrase;
+
+  Date get expires() {
+    String str = _headers["expires"];
+    if (str == null) return null;
+    return _HttpUtils.parseDate(str);
+  }
+
+  Map get headers() => _headers;
 
   InputStream get inputStream() {
     if (_inputStream == null) {

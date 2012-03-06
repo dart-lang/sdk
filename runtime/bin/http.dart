@@ -177,6 +177,12 @@ interface HttpResponse default _HttpResponse {
   String reasonPhrase;
 
   /**
+   * Gets and sets the expiry date. The value of this property will
+   * reflect the "Expires" header
+   */
+  Date expires;
+
+  /**
    * Sets a header on the response. NOTE: If the same header name is
    * set more than once only the last value will be part of the
    * response.
@@ -364,6 +370,14 @@ interface HttpClientResponse default _HttpClientResponse {
    * Returns the keep alive state of the connection.
    */
   bool get keepAlive();
+
+  /**
+   * Returns the date value for the "Expires" header. Returns null if
+   * the response has no "Expires" header. Throws a HttpException if
+   * the response has an "Expires" header which is not formatted as a
+   * valid HTTP date.
+   */
+  Date get expires();
 
   /**
    * Returns the response headers.

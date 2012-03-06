@@ -124,10 +124,30 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
-  // Return a 301 with a custom reason phrase.
+  // Check the "Host" header.
   void _hostHandler(HttpRequest request, HttpResponse response) {
     Expect.equals("www.dartlang.org:1234", request.headers["host"]);
     response.statusCode = HttpStatus.OK;
+    response.outputStream.close();
+  }
+
+  // Set the "Expires" header using the expires property.
+  void _expires1Handler(HttpRequest request, HttpResponse response) {
+    Date date =
+        new Date.withTimeZone(
+            1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+    response.expires = date;
+    Expect.equals(date, response.expires);
+    response.outputStream.close();
+  }
+
+  // Set the "Expires" header.
+  void _expires2Handler(HttpRequest request, HttpResponse response) {
+    response.setHeader("Expires", "Fri, 11 Jun 1999 18:46:53 GMT");
+    Date date =
+        new Date.withTimeZone(
+            1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+    Expect.equals(date, response.expires);
     response.outputStream.close();
   }
 
@@ -148,6 +168,14 @@ class TestServer extends Isolate {
     _requestHandlers["/host"] =
         (HttpRequest request, HttpResponse response) {
           _hostHandler(request, response);
+        };
+    _requestHandlers["/expires1"] =
+        (HttpRequest request, HttpResponse response) {
+          _expires1Handler(request, response);
+        };
+    _requestHandlers["/expires2"] =
+        (HttpRequest request, HttpResponse response) {
+          _expires2Handler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
@@ -445,6 +473,39 @@ void testHost() {
   testServerMain.start();
 }
 
+void testExpires() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    int responses = 0;
+    HttpClient httpClient = new HttpClient();
+
+    void processResponse(HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      Expect.equals("Fri, 11 Jun 1999 18:46:53 GMT",
+                    response.headers["expires"]);
+      Expect.equals(
+          new Date.withTimeZone(
+              1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc()),
+          response.expires);
+      responses++;
+      if (responses == 2) {
+        httpClient.shutdown();
+        testServerMain.shutdown();
+      }
+    }
+
+    HttpClientConnection conn1 = httpClient.get("127.0.0.1", port, "/expires1");
+    conn1.onResponse = (HttpClientResponse response) {
+      processResponse(response);
+    };
+    HttpClientConnection conn2 = httpClient.get("127.0.0.1", port, "/expires2");
+    conn2.onResponse = (HttpClientResponse response) {
+      processResponse(response);
+    };
+  });
+  testServerMain.start();
+}
+
 
 void main() {
   testStartStop();
@@ -458,4 +519,5 @@ void main() {
   test404();
   testReasonPhrase();
   testHost();
+  testExpires();
 }
