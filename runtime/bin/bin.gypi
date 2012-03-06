@@ -225,8 +225,12 @@
           # and therefore fails to compile once _UNICODE is
           # enabled.  That should be addressed using -A
           # versions of functions and adding necessary conversions.
-          'msvs_configuration_attributes': {
-            'CharacterSet': '0',
+          'configurations': {
+            'Common_Base': {
+              'msvs_configuration_attributes': {
+                'CharacterSet': '0',
+              },
+            },
           },
         }],
         ['OS=="linux"', {
