@@ -167,10 +167,6 @@ Language/11_Statements/09_Try_A02_t02: Fail # TODO(ahe): New co19 failure, pleas
 Language/11_Statements/09_Try_A02_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/09_Try_A05_t03: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/11_Labels_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/12_Break_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/12_Break_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/13_Continue_A02_t12: Fail # TODO(ahe): New co19 failure, please triage.
