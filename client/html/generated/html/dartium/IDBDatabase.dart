@@ -62,12 +62,20 @@ class _IDBDatabaseImpl extends _DOMTypeBase implements IDBDatabase {
     return _wrap(_ptr.setVersion(_unwrap(version)));
   }
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode) {
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode = null]) {
     if (storeName_OR_storeNames is List<String>) {
-      return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+      if (mode === null) {
+        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
+      } else {
+        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+      }
     } else {
       if (storeName_OR_storeNames is String) {
-        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+        if (mode === null) {
+          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
+        } else {
+          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+        }
       }
     }
     throw "Incorrect number or type of arguments";

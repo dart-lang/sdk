@@ -67,7 +67,7 @@ interface Document extends HtmlElement {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   bool queryCommandEnabled(String command);
 

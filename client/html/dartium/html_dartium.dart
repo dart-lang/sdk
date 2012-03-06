@@ -5589,7 +5589,7 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
 
   DataTransferItemList get items() => _wrap(_ptr.items);
 
-  List get types() => _wrap(_ptr.types);
+  List<String> get types() => _wrap(_ptr.types);
 
   void clearData([String type = null]) {
     if (type === null) {
@@ -6179,9 +6179,14 @@ class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
     return _wrap(_ptr.getAsFile());
   }
 
-  void getAsString(StringCallback callback) {
-    _ptr.getAsString(_unwrap(callback));
-    return;
+  void getAsString([StringCallback callback = null]) {
+    if (callback === null) {
+      _ptr.getAsString();
+      return;
+    } else {
+      _ptr.getAsString(_unwrap(callback));
+      return;
+    }
   }
 }
 
@@ -6741,7 +6746,7 @@ class _DocumentImpl extends _ElementImpl
     return _wrap(_documentPtr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
   }
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) {
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
     return _wrap(_documentPtr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
   }
 
@@ -7580,6 +7585,10 @@ class _ElementImpl extends _NodeImpl implements Element {
   String get title() => _wrap(_ptr.title);
 
   void set title(String value) { _ptr.title = _unwrap(value); }
+
+  bool get translate() => _wrap(_ptr.translate);
+
+  void set translate(bool value) { _ptr.translate = _unwrap(value); }
 
   String get webkitRegionOverflow() => _wrap(_ptr.webkitRegionOverflow);
 
@@ -9381,12 +9390,20 @@ class _IDBDatabaseImpl extends _DOMTypeBase implements IDBDatabase {
     return _wrap(_ptr.setVersion(_unwrap(version)));
   }
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode) {
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode = null]) {
     if (storeName_OR_storeNames is List<String>) {
-      return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+      if (mode === null) {
+        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
+      } else {
+        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+      }
     } else {
       if (storeName_OR_storeNames is String) {
-        return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+        if (mode === null) {
+          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames)));
+        } else {
+          return _wrap(_ptr.transaction(_unwrap(storeName_OR_storeNames), _unwrap(mode)));
+        }
       }
     }
     throw "Incorrect number or type of arguments";
@@ -9585,8 +9602,15 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
   }
 
-  IDBRequest delete(IDBKey key) {
-    return _wrap(_ptr.delete(_unwrap(key)));
+  IDBRequest delete(var key_OR_keyRange) {
+    if (key_OR_keyRange is IDBKeyRange) {
+      return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
+    } else {
+      if (key_OR_keyRange is IDBKey) {
+        return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void deleteIndex(String name) {
@@ -18662,6 +18686,16 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   int get length() => _wrap(_ptr.length);
 
+  void setElements(Object array, [int offset = null]) {
+    if (offset === null) {
+      _ptr.setElements(_unwrap(array));
+      return;
+    } else {
+      _ptr.setElements(_unwrap(array), _unwrap(offset));
+      return;
+    }
+  }
+
   Uint8ClampedArray subarray(int start, [int end = null]) {
     if (end === null) {
       return _wrap(_ptr.subarray(_unwrap(start)));
@@ -19621,6 +19655,8 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 
 class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
   _WebKitNamedFlowImpl._wrap(ptr) : super._wrap(ptr);
+
+  bool get overflow() => _wrap(_ptr.overflow);
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
@@ -24139,7 +24175,7 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type]);
 
@@ -24686,7 +24722,7 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback);
+  void getAsString([StringCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24988,7 +25024,7 @@ interface Document extends HtmlElement {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   bool queryCommandEnabled(String command);
 
@@ -25514,6 +25550,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final String tagName;
 
   String title;
+
+  bool translate;
 
   final String webkitRegionOverflow;
 
@@ -26734,7 +26772,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26890,7 +26928,7 @@ interface IDBObjectStore {
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 
@@ -32953,6 +32991,8 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   final int length;
 
+  void setElements(Object array, [int offset]);
+
   Uint8ClampedArray subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34089,6 +34129,8 @@ interface WebKitCSSRegionRule extends CSSRule {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final bool overflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

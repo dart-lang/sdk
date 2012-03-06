@@ -635,6 +635,10 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set title(String value) { _ptr.title = _unwrap(value); }
 
+  bool get translate() => _wrap(_ptr.translate);
+
+  void set translate(bool value) { _ptr.translate = _unwrap(value); }
+
   String get webkitRegionOverflow() => _wrap(_ptr.webkitRegionOverflow);
 
   String get webkitdropzone() => _wrap(_ptr.webkitdropzone);

@@ -79,7 +79,7 @@ class _DocumentImpl extends _ElementImpl
 
   bool execCommand(String command, bool userInterface, String value) native "return this.parentNode.execCommand(command, userInterface, value);";
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
+  _CanvasRenderingContextImpl getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
 
   bool queryCommandEnabled(String command) native "return this.parentNode.queryCommandEnabled(command);";
 

@@ -371,6 +371,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String title;
 
+  bool translate;
+
   final String webkitRegionOverflow;
 
   String webkitdropzone;

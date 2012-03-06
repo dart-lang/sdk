@@ -616,6 +616,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   String title;
 
+  bool translate;
+
   final String webkitRegionOverflow;
 
   String webkitdropzone;

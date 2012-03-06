@@ -4036,7 +4036,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListImpl items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type = null]) native;
 
@@ -4463,7 +4463,7 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 
   _BlobImpl getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -4695,7 +4695,7 @@ class _DocumentImpl extends _ElementImpl
 
   bool execCommand(String command, bool userInterface, String value) native "return this.parentNode.execCommand(command, userInterface, value);";
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
+  _CanvasRenderingContextImpl getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
 
   bool queryCommandEnabled(String command) native "return this.parentNode.queryCommandEnabled(command);";
 
@@ -5477,6 +5477,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final String tagName;
 
   String title;
+
+  bool translate;
 
   final String webkitRegionOverflow;
 
@@ -6698,7 +6700,7 @@ class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(var storeName_OR_storeNames, int mode) native;
+  _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseErrorImpl implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -6819,7 +6821,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestImpl delete(_IDBKeyImpl key) native;
+  _IDBRequestImpl delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
@@ -13712,6 +13714,8 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
   // Use implementation from Uint8Array.
   // final int length;
 
+  void setElements(Object array, [int offset = null]) native;
+
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }
 
@@ -14731,6 +14735,8 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final bool overflow;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -18803,7 +18809,7 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type]);
 
@@ -19350,7 +19356,7 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback);
+  void getAsString([StringCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19652,7 +19658,7 @@ interface Document extends HtmlElement {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   bool queryCommandEnabled(String command);
 
@@ -20178,6 +20184,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final String tagName;
 
   String title;
+
+  bool translate;
 
   final String webkitRegionOverflow;
 
@@ -21398,7 +21406,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21554,7 +21562,7 @@ interface IDBObjectStore {
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 
@@ -27617,6 +27625,8 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   final int length;
 
+  void setElements(Object array, [int offset]);
+
   Uint8ClampedArray subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28753,6 +28763,8 @@ interface WebKitCSSRegionRule extends CSSRule {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final bool overflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

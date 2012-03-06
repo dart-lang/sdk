@@ -17,7 +17,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestImpl delete(_IDBKeyImpl key) native;
+  _IDBRequestImpl delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 

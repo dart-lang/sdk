@@ -5,4 +5,6 @@
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final bool overflow;
 }

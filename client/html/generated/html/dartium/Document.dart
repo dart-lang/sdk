@@ -102,7 +102,7 @@ class _DocumentImpl extends _ElementImpl
     return _wrap(_documentPtr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
   }
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) {
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
     return _wrap(_documentPtr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
   }
 

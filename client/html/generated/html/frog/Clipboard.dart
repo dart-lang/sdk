@@ -9,7 +9,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListImpl items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type = null]) native;
 
