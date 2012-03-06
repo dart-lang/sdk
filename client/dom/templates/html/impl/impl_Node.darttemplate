@@ -12,9 +12,10 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void set nodes(Collection<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
-    List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
+    text = '';
+    for (Node node in value) {
+      _appendChild(node);
+    }
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?

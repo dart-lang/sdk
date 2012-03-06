@@ -85,7 +85,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 public abstract class BaseASTWriter {
 
   private static final String[] ignoredLibs = {"corelib", "corelib_impl",
-    "dom", "html", "htmlimpl", "base", "touch", "view", "utilslib",
+    "dom", "html", "base", "touch", "view", "utilslib",
     "observable", "layout.dart", "unittest", "dartest"};
   protected final String outputDir;
   private final ASTNodeTraverser visitor;

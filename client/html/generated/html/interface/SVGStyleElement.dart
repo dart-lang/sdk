@@ -10,5 +10,7 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
   String media;
 
+  String title;
+
   String type;
 }

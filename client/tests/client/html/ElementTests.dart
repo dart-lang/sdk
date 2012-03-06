@@ -276,98 +276,141 @@ void testElement() {
   test('eventListeners', () {
     final element = new Element.tag('div');
     final on = element.on;
-    final rawElement = unwrapDomObject(element);
 
     testEventHelper(on.abort, 'abort',
-        (listener) => rawElement.addEventListener('abort', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'abort', listener, true));
     testEventHelper(on.beforeCopy, 'beforecopy',
-        (listener) => rawElement.addEventListener('beforecopy', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'beforecopy', listener, true));
     testEventHelper(on.beforeCut, 'beforecut',
-        (listener) => rawElement.addEventListener('beforecut', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'beforecut', listener, true));
     testEventHelper(on.beforePaste, 'beforepaste',
-        (listener) => rawElement.addEventListener('beforepaste', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'beforepaste', listener, true));
     testEventHelper(on.blur, 'blur',
-        (listener) => rawElement.addEventListener('blur', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'blur', listener, true));
     testEventHelper(on.change, 'change',
-        (listener) => rawElement.addEventListener('change', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'change', listener, true));
     testEventHelper(on.click, 'click',
-        (listener) => rawElement.addEventListener('click', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'click', listener, true));
     testEventHelper(on.contextMenu, 'contextmenu',
-        (listener) => rawElement.addEventListener('contextmenu', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'contextmenu', listener, true));
     testEventHelper(on.copy, 'copy',
-        (listener) => rawElement.addEventListener('copy', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'copy', listener, true));
     testEventHelper(on.cut, 'cut',
-        (listener) => rawElement.addEventListener('cut', listener, true));
-    testEventHelper(on.dblClick, 'dblclick',
-        (listener) => rawElement.addEventListener('dblclick', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'cut', listener, true));
+    testEventHelper(on.doubleClick, 'dblclick',
+        (listener) => Testing.addEventListener(
+            element, 'dblclick', listener, true));
     testEventHelper(on.drag, 'drag',
-        (listener) => rawElement.addEventListener('drag', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'drag', listener, true));
     testEventHelper(on.dragEnd, 'dragend',
-        (listener) => rawElement.addEventListener('dragend', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'dragend', listener, true));
     testEventHelper(on.dragEnter, 'dragenter',
-        (listener) => rawElement.addEventListener('dragenter', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'dragenter', listener, true));
     testEventHelper(on.dragLeave, 'dragleave',
-        (listener) => rawElement.addEventListener('dragleave', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'dragleave', listener, true));
     testEventHelper(on.dragOver, 'dragover',
-        (listener) => rawElement.addEventListener('dragover', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'dragover', listener, true));
     testEventHelper(on.dragStart, 'dragstart',
-        (listener) => rawElement.addEventListener('dragstart', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'dragstart', listener, true));
     testEventHelper(on.drop, 'drop',
-        (listener) => rawElement.addEventListener('drop', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'drop', listener, true));
     testEventHelper(on.error, 'error',
-        (listener) => rawElement.addEventListener('error', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'error', listener, true));
     testEventHelper(on.focus, 'focus',
-        (listener) => rawElement.addEventListener('focus', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'focus', listener, true));
     testEventHelper(on.input, 'input',
-        (listener) => rawElement.addEventListener('input', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'input', listener, true));
     testEventHelper(on.invalid, 'invalid',
-        (listener) => rawElement.addEventListener('invalid', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'invalid', listener, true));
     testEventHelper(on.keyDown, 'keydown',
-        (listener) => rawElement.addEventListener('keydown', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'keydown', listener, true));
     testEventHelper(on.keyPress, 'keypress',
-        (listener) => rawElement.addEventListener('keypress', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'keypress', listener, true));
     testEventHelper(on.keyUp, 'keyup',
-        (listener) => rawElement.addEventListener('keyup', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'keyup', listener, true));
     testEventHelper(on.load, 'load',
-        (listener) => rawElement.addEventListener('load', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'load', listener, true));
     testEventHelper(on.mouseDown, 'mousedown',
-        (listener) => rawElement.addEventListener('mousedown', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mousedown', listener, true));
     testEventHelper(on.mouseMove, 'mousemove',
-        (listener) => rawElement.addEventListener('mousemove', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mousemove', listener, true));
     testEventHelper(on.mouseOut, 'mouseout',
-        (listener) => rawElement.addEventListener('mouseout', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mouseout', listener, true));
     testEventHelper(on.mouseOver, 'mouseover',
-        (listener) => rawElement.addEventListener('mouseover', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mouseover', listener, true));
     testEventHelper(on.mouseUp, 'mouseup',
-        (listener) => rawElement.addEventListener('mouseup', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mouseup', listener, true));
     testEventHelper(on.mouseWheel, 'mousewheel',
-        (listener) => rawElement.addEventListener('mousewheel', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'mousewheel', listener, true));
     testEventHelper(on.paste, 'paste',
-        (listener) => rawElement.addEventListener('paste', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'paste', listener, true));
     testEventHelper(on.reset, 'reset',
-        (listener) => rawElement.addEventListener('reset', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'reset', listener, true));
     testEventHelper(on.scroll, 'scroll',
-        (listener) => rawElement.addEventListener('scroll', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'scroll', listener, true));
     testEventHelper(on.search, 'search',
-        (listener) => rawElement.addEventListener('search', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'search', listener, true));
     testEventHelper(on.select, 'select',
-        (listener) => rawElement.addEventListener('select', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'select', listener, true));
     testEventHelper(on.selectStart, 'selectstart',
-        (listener) => rawElement.addEventListener('selectstart', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'selectstart', listener, true));
     testEventHelper(on.submit, 'submit',
-        (listener) => rawElement.addEventListener('submit', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'submit', listener, true));
     testEventHelper(on.touchCancel, 'touchcancel',
-        (listener) => rawElement.addEventListener('touchcancel', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'touchcancel', listener, true));
     testEventHelper(on.touchEnd, 'touchend',
-        (listener) => rawElement.addEventListener('touchend', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'touchend', listener, true));
     testEventHelper(on.touchLeave, 'touchleave');
     testEventHelper(on.touchMove, 'touchmove',
-        (listener) => rawElement.addEventListener('touchmove', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'touchmove', listener, true));
     testEventHelper(on.touchStart, 'touchstart',
-        (listener) => rawElement.addEventListener('touchstart', listener, true));
+        (listener) => Testing.addEventListener(
+            element, 'touchstart', listener, true));
     testEventHelper(on.transitionEnd, 'webkitTransitionEnd');
     testEventHelper(on.fullscreenChange, 'webkitfullscreenchange',
-        (listener) => rawElement.addEventListener('webkitfullscreenchange', listener, true));
+        (listener) => Testing.addEventListener(element,
+            'webkitfullscreenchange', listener, true));
   });
 
   test('attributes', () {
@@ -671,8 +714,7 @@ void testElement() {
   });
 
   group('_ElementList', () {
-    ElementList makeElList() =>
-      makeElementWithChildren().elements.filter((_) => true);
+    ElementList makeElList() => makeElementWithChildren().elements;
 
     test('first', () {
       var els = makeElList();

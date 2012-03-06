@@ -51,6 +51,9 @@ Document get document() {
 
 _DocumentImpl get _document() native "return window.document.documentElement;";
 
+// Workaround for classes like <site> that lack their own Element subclass.
+class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
+}
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
 
   _AbstractWorkerEventsImpl get on() =>
@@ -4652,6 +4655,10 @@ class _DocumentImpl extends _ElementImpl
 
   _StyleSheetListImpl get styleSheets() native "return this.parentNode.styleSheets;";
 
+  String get title() native "return this.parentNode.title;";
+
+  void set title(String value) native "this.parentNode.title = value;";
+
   _ElementImpl get webkitCurrentFullScreenElement() native "return this.parentNode.webkitCurrentFullScreenElement;";
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.parentNode.webkitFullScreenKeyboardInputAllowed;";
@@ -4702,13 +4709,6 @@ class _DocumentImpl extends _ElementImpl
   void webkitCancelFullScreen() native "this.parentNode.webkitCancelFullScreen();";
 
   _WebKitNamedFlowImpl webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
-
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() native "return this.parentNode.title;";
-  void set title(String value) native "this.parentNode.title = value;";
 
 
   // For efficiency and simplicity, we always use the HtmlElement as the
@@ -4839,7 +4839,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
 
   _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListImpl queryAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 }
 
 class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*DocumentType" {
@@ -4918,6 +4918,14 @@ class _ChildrenElementList implements ElementList {
       }
     };
     return false;
+  }
+
+  Collection map(f(Element element)) {
+    final out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
   }
 
   bool isEmpty() {
@@ -5017,7 +5025,7 @@ class _FrozenElementList implements ElementList {
   _FrozenElementList._wrap(this._nodeList);
 
   Element get first() {
-    return _nodeList.first;
+    return _nodeList[0];
   }
 
   void forEach(void f(Element element)) {
@@ -5466,6 +5474,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   int tabIndex;
 
   final String tagName;
+
+  String title;
 
   final String webkitRegionOverflow;
 
@@ -6623,10 +6633,6 @@ class _HistoryImpl implements History native "*History" {
 
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement
     native "*IntentionallyInvalid" {
-
-  String manifest;
-
-  String version;
 
 }
 
@@ -8214,8 +8220,10 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
+    text = '';
+    for (Node node in copy) {
+      _appendChild(node);
+    }
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?
@@ -8541,9 +8549,9 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
 class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementImpl querySelector(String selectors) native;
+  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListImpl querySelectorAll(String selectors) native;
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -9195,7 +9203,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9424,7 +9432,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9476,7 +9484,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9601,7 +9609,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9637,7 +9645,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9817,7 +9825,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9899,7 +9907,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9939,7 +9947,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9965,7 +9973,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10017,7 +10025,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10073,7 +10081,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10107,7 +10115,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10151,7 +10159,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10194,7 +10202,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10218,7 +10226,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10262,7 +10270,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10302,7 +10310,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10326,7 +10334,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10371,7 +10379,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10401,7 +10409,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10442,7 +10450,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10487,7 +10495,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10535,7 +10543,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10579,7 +10587,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10657,7 +10665,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10707,7 +10715,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10756,7 +10764,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10790,7 +10798,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10839,7 +10847,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10960,7 +10968,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11067,7 +11075,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11117,7 +11125,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11301,7 +11309,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11608,7 +11616,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11678,7 +11686,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11732,7 +11740,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11853,7 +11861,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11992,7 +12000,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12046,7 +12054,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12075,7 +12083,7 @@ class _SVGStringListImpl implements SVGStringList native "*SVGStringList" {
 
 class _SVGStylableImpl implements SVGStylable native "*SVGStylable" {
 
-  final _SVGAnimatedStringImpl className;
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   final _CSSStyleDeclarationImpl style;
 
@@ -12087,6 +12095,11 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   bool disabled;
 
   String media;
+
+  // Shadowing definition.
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
 
   String type;
 
@@ -12121,7 +12134,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12161,7 +12174,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12248,7 +12261,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12325,7 +12338,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12450,7 +12463,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -19575,12 +19588,6 @@ interface DivElement extends Element {
 
 interface Document extends HtmlElement {
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
 
   final Element activeElement;
 
@@ -19607,6 +19614,8 @@ interface Document extends HtmlElement {
   String selectedStylesheetSet;
 
   final StyleSheetList styleSheets;
+
+  String title;
 
   final Element webkitCurrentFullScreenElement;
 
@@ -19766,7 +19775,7 @@ interface DocumentFragment extends Node, NodeSelector {
 
   Element query(String selectors);
 
-  NodeList queryAll(String selectors);
+  NodeList _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20061,12 +20070,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList queryAll(String selectors);
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
@@ -20172,6 +20175,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int tabIndex;
 
   final String tagName;
+
+  String title;
 
   final String webkitRegionOverflow;
 
@@ -21309,10 +21314,6 @@ interface History {
 // WARNING: Do not edit - generated code.
 
 interface HtmlElement extends Element {
-
-  String manifest;
-
-  String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23011,7 +23012,7 @@ interface NodeList extends List<Node> {
   final int length;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23019,9 +23020,14 @@ interface NodeList extends List<Node> {
 
 interface NodeSelector {
 
-  Element querySelector(String selectors);
+  // TODO(nweiz): add this back once DocumentFragment is ported. 
+  // ElementList queryAll(String selectors);
 
-  NodeList querySelectorAll(String selectors);
+
+  Element query(String selectors);
+
+  NodeList _querySelectorAll(String selectors);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26177,7 +26183,7 @@ interface SVGStringList {
 
 interface SVGStylable {
 
-  final SVGAnimatedString className;
+  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -26194,6 +26200,8 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
   bool disabled;
 
   String media;
+
+  String title;
 
   String type;
 }
@@ -30351,7 +30359,7 @@ void _completeMeasurementFutures() {
 
 class _TextFactoryProvider {
 
-  factory Text(data) => document._createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
@@ -30396,7 +30404,6 @@ class _ElementFactoryProvider {
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
-    'tbody': 'table',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',

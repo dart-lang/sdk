@@ -59,6 +59,14 @@ class _ChildrenElementList implements ElementList {
     return false;
   }
 
+  Collection map(f(Element element)) {
+    final out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
+  }
+
   bool isEmpty() {
     return _element._firstElementChild == null;
   }
@@ -156,7 +164,7 @@ class _FrozenElementList implements ElementList {
   _FrozenElementList._wrap(this._nodeList);
 
   Element get first() {
-    return _nodeList.first;
+    return _nodeList[0];
   }
 
   void forEach(void f(Element element)) {
@@ -605,6 +613,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   int tabIndex;
 
   final String tagName;
+
+  String title;
 
   final String webkitRegionOverflow;
 

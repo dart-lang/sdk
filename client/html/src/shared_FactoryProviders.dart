@@ -4,7 +4,7 @@
 
 class _TextFactoryProvider {
 
-  factory Text(data) => document._createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
@@ -49,7 +49,6 @@ class _ElementFactoryProvider {
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
-    'tbody': 'table',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',

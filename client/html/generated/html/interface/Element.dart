@@ -263,12 +263,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList queryAll(String selectors);
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
@@ -374,6 +368,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int tabIndex;
 
   final String tagName;
+
+  String title;
 
   final String webkitRegionOverflow;
 

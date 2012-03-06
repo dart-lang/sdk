@@ -20,16 +20,16 @@
  *
  *   1. Auto-detected wrappers. Most `dart:html` types correspond
  *      straightforwardly to a single `dart:dom` type, and have the same name.
- *      In addition, most `dart:htmlimpl` methods just call a single `dart:dom`
+ *      In addition, most `dart:html` methods just call a single `dart:dom`
  *      method. This class detects these simple correspondences automatically.
  *
  *   2. Manual annotations. When it's not clear which `dart:dom` items a given
- *      `dart:html` item corresponds to, the `dart:htmlimpl` item can be
+ *      `dart:html` item corresponds to, the `dart:html` item can be
  *      annotated in the documentation comments using the `@domName` annotation.
  *
  * The `@domName` annotations for types and members are of the form `@domName
  * NAME(, NAME)*`, where the `NAME`s refer to the `dart:dom` types/members that
- * correspond to the annotated `dart:htmlimpl` type/member. `NAME`s on member
+ * correspond to the annotated `dart:html` type/member. `NAME`s on member
  * annotations can refer to either fully-qualified member names (e.g.
  * `Document.createElement`) or unqualified member names (e.g. `createElement`).
  * Unqualified member names are assumed to refer to members of one of the
@@ -57,7 +57,7 @@ class HtmlDiff {
    * calling [HtmlDiff.run].
    */
   static void initialize() {
-    world.processDartScript('dart:htmlimpl');
+    world.processDartScript('dart:html');
     world.resolveAll();
     dom = world.libraries['dart:dom'];
   }
@@ -76,7 +76,7 @@ class HtmlDiff {
    * [initializeWorld]) and [HtmlDiff.initialize] should be called.
    */
   void run() {
-    final htmlLib = world.libraries['dart:htmlimpl'];
+    final htmlLib = world.libraries['dart:html'];
     for (var implType in htmlLib.types.getValues()) {
       final domTypes = htmlToDomTypes(implType);
       final htmlType = htmlImplToHtmlType(implType);
@@ -117,7 +117,7 @@ class HtmlDiff {
 
   /**
    * Records the `dart:dom` to `dart:html` mapping for [implMember] (from
-   * `dart:htmlimpl`). [domTypes] are the `dart:dom` [Type]s that correspond to
+   * `dart:html`). [domTypes] are the `dart:dom` [Type]s that correspond to
    * [implMember]'s defining [Type].
    */
   void _addMemberDiff(Member implMember, List<Type> domTypes) {
@@ -129,7 +129,7 @@ class HtmlDiff {
     var domMembers = htmlToDomMembers(implMember, domTypes);
     var htmlMember = htmlImplToHtmlMember(implMember);
     if (htmlMember == null && !domMembers.isEmpty()) {
-      print('Warning: dart:htmlimpl member ${implMember.declaringType.name}.' +
+      print('Warning: dart:html member ${implMember.declaringType.name}.' +
           '${implMember.name} has no corresponding dart:html member.');
     }
 
@@ -141,7 +141,7 @@ class HtmlDiff {
 
   /**
    * Returns the `dart:html` [Type] that corresponds to [implType] from
-   * `dart:htmlimpl`, or `null` if there is no such correspondence.
+   * `dart:html`, or `null` if there is no such correspondence.
    */
   Type htmlImplToHtmlType(Type implType) {
     if (implType == null || implType.isTop || implType.interfaces.isEmpty() ||
@@ -154,7 +154,7 @@ class HtmlDiff {
 
   /**
    * Returns the `dart:html` [Member] that corresponds to [implMember] from
-   * `dart:htmlimpl`, or `null` if there is no such correspondence.
+   * `dart:html`, or `null` if there is no such correspondence.
    */
   Member htmlImplToHtmlMember(Member implMember) {
     var htmlType = htmlImplToHtmlType(implMember.declaringType);
@@ -184,7 +184,7 @@ class HtmlDiff {
 
   /**
    * Returns the `dart:dom` [Type]s that correspond to [htmlType] from
-   * `dart:htmlimpl`. This can be the empty list if no correspondence is found.
+   * `dart:html`. This can be the empty list if no correspondence is found.
    */
   List<Type> htmlToDomTypes(Type htmlType) {
     if (htmlType.name == null) return [];
@@ -209,7 +209,7 @@ class HtmlDiff {
       }
       if (domType == null) domType = dom.types['WebKit$domName'];
       if (domType == null) {
-        print('Warning: no dart:dom type matches dart:htmlimpl ' +
+        print('Warning: no dart:dom type matches dart:html ' +
             htmlType.name);
         return [];
       }
@@ -219,7 +219,7 @@ class HtmlDiff {
 
   /**
    * Returns the `dart:dom` [Member]s that correspond to [htmlMember] from
-   * `dart:htmlimpl`. This can be the empty set if no correspondence is found.
+   * `dart:html`. This can be the empty set if no correspondence is found.
    * [domTypes] are the `dart:dom` [Type]s that correspond to [implMember]'s
    * defining [Type].
    */

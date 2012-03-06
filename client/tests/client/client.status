@@ -24,6 +24,7 @@ dom/TypedArrays1Test: Skip
 
 [ $component == frogium || $component == webdriver ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
+dom/HiddenDom2Test: Fail # Issue 1912, frog exposes natives not defined in the class
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # TODO(vsm): Triage DOM tests.
@@ -43,6 +44,11 @@ html/html_tests: Pass, Fail   # "Measurement measurement is async but before" Se
 html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
+
+# TODO(nweiz): enable this test again once the functionality being tested
+# is supported.
+[ $component == frogium || ($component == webdriver && ($browser == safari || $browser == ie))]
+html/frog_html_tests: Skip # Issue 1884
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip

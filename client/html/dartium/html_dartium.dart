@@ -6678,6 +6678,10 @@ class _DocumentImpl extends _ElementImpl
 
   StyleSheetList get styleSheets() => _wrap(_documentPtr.styleSheets);
 
+  String get title() => _wrap(_documentPtr.title);
+
+  void set title(String value) { _documentPtr.title = _unwrap(value); }
+
   Element get webkitCurrentFullScreenElement() => _wrap(_documentPtr.webkitCurrentFullScreenElement);
 
   bool get webkitFullScreenKeyboardInputAllowed() => _wrap(_documentPtr.webkitFullScreenKeyboardInputAllowed);
@@ -6771,7 +6775,7 @@ class _DocumentImpl extends _ElementImpl
   }
 
 
-  final dom.Document _documentPtr;
+  final dom.HTMLDocument _documentPtr;
   final _NodeImpl _wrappedDocumentPtr;
  
 _DocumentImpl._wrap(ptr) :
@@ -6779,12 +6783,6 @@ _DocumentImpl._wrap(ptr) :
   _documentPtr = ptr.parentNode,
   _wrappedDocumentPtr = ptr.parentNode != null ?
       new _SecretHtmlDocumentImpl._wrap(ptr.parentNode) : null;
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() => _documentPtr.title;
-  void set title(String value) => _documentPtr.title = title;
 
   // For efficiency and simplicity, we always use the HtmlElement as the
   // Document but sometimes internally we need the real JS document object.
@@ -6922,7 +6920,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList queryAll(String selectors) {
+  NodeList _querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 }
@@ -7005,6 +7003,14 @@ class _ChildrenElementList implements ElementList {
       }
     };
     return false;
+  }
+
+  Collection map(f(Element element)) {
+    final out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
   }
 
   bool isEmpty() {
@@ -7104,7 +7110,7 @@ class _FrozenElementList implements ElementList {
   _FrozenElementList._wrap(this._nodeList);
 
   Element get first() {
-    return _nodeList.first;
+    return _nodeList[0];
   }
 
   void forEach(void f(Element element)) {
@@ -7570,6 +7576,10 @@ class _ElementImpl extends _NodeImpl implements Element {
   void set tabIndex(int value) { _ptr.tabIndex = _unwrap(value); }
 
   String get tagName() => _wrap(_ptr.tagName);
+
+  String get title() => _wrap(_ptr.title);
+
+  void set title(String value) { _ptr.title = _unwrap(value); }
 
   String get webkitRegionOverflow() => _wrap(_ptr.webkitRegionOverflow);
 
@@ -9266,14 +9276,6 @@ class _HistoryImpl extends _DOMTypeBase implements History {
 
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement {
   _HtmlElementImpl._wrap(ptr) : super._wrap(ptr);
-
-  String get manifest() => _wrap(_ptr.manifest);
-
-  void set manifest(String value) { _ptr.manifest = _unwrap(value); }
-
-  String get version() => _wrap(_ptr.version);
-
-  void set version(String value) { _ptr.version = _unwrap(value); }
 }
 
 class _IDBAnyImpl extends _DOMTypeBase implements IDBAny {
@@ -11681,8 +11683,10 @@ class _NodeImpl extends _EventTargetImpl implements Node {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
+    text = '';
+    for (Node node in copy) {
+      _appendChild(node);
+    }
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?
@@ -11967,11 +11971,11 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
 class _NodeSelectorImpl extends _DOMTypeBase implements NodeSelector {
   _NodeSelectorImpl._wrap(ptr) : super._wrap(ptr);
 
-  Element querySelector(String selectors) {
+  Element query(String selectors) {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList querySelectorAll(String selectors) {
+  NodeList _querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 }
@@ -12845,7 +12849,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13147,7 +13151,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13215,7 +13219,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13350,7 +13354,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13400,7 +13404,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13617,7 +13621,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13695,7 +13699,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13727,7 +13731,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13755,7 +13759,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13795,7 +13799,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13845,7 +13849,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13881,7 +13885,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13917,7 +13921,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13966,7 +13970,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13992,7 +13996,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14045,7 +14049,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14091,7 +14095,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14117,7 +14121,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14162,7 +14166,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14194,7 +14198,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14238,7 +14242,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14286,7 +14290,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14324,7 +14328,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14377,7 +14381,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14471,7 +14475,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14537,7 +14541,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14609,7 +14613,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14637,7 +14641,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14695,7 +14699,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14844,7 +14848,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14970,7 +14974,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15028,7 +15032,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15307,7 +15311,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15742,7 +15746,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15843,7 +15847,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15913,7 +15917,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16037,7 +16041,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16242,7 +16246,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16312,7 +16316,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16359,7 +16363,7 @@ class _SVGStringListImpl extends _DOMTypeBase implements SVGStringList {
 class _SVGStylableImpl extends _DOMTypeBase implements SVGStylable {
   _SVGStylableImpl._wrap(ptr) : super._wrap(ptr);
 
-  SVGAnimatedString get className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16378,6 +16382,10 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
   String get media() => _wrap(_ptr.media);
 
   void set media(String value) { _ptr.media = _unwrap(value); }
+
+  String get title() => _wrap(_ptr.title);
+
+  void set title(String value) { _ptr.title = _unwrap(value); }
 
   String get type() => _wrap(_ptr.type);
 
@@ -16425,7 +16433,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16479,7 +16487,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16592,7 +16600,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16674,7 +16682,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16829,7 +16837,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -24917,12 +24925,6 @@ interface DivElement extends Element {
 
 interface Document extends HtmlElement {
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
 
   final Element activeElement;
 
@@ -24949,6 +24951,8 @@ interface Document extends HtmlElement {
   String selectedStylesheetSet;
 
   final StyleSheetList styleSheets;
+
+  String title;
 
   final Element webkitCurrentFullScreenElement;
 
@@ -25108,7 +25112,7 @@ interface DocumentFragment extends Node, NodeSelector {
 
   Element query(String selectors);
 
-  NodeList queryAll(String selectors);
+  NodeList _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25403,12 +25407,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList queryAll(String selectors);
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
@@ -25514,6 +25512,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int tabIndex;
 
   final String tagName;
+
+  String title;
 
   final String webkitRegionOverflow;
 
@@ -26651,10 +26651,6 @@ interface History {
 // WARNING: Do not edit - generated code.
 
 interface HtmlElement extends Element {
-
-  String manifest;
-
-  String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28353,7 +28349,7 @@ interface NodeList extends List<Node> {
   final int length;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -28361,9 +28357,14 @@ interface NodeList extends List<Node> {
 
 interface NodeSelector {
 
-  Element querySelector(String selectors);
+  // TODO(nweiz): add this back once DocumentFragment is ported. 
+  // ElementList queryAll(String selectors);
 
-  NodeList querySelectorAll(String selectors);
+
+  Element query(String selectors);
+
+  NodeList _querySelectorAll(String selectors);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31519,7 +31520,7 @@ interface SVGStringList {
 
 interface SVGStylable {
 
-  final SVGAnimatedString className;
+  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -31536,6 +31537,8 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
   bool disabled;
 
   String media;
+
+  String title;
 
   String type;
 }
@@ -35573,7 +35576,7 @@ class _Collections {
 
 class _TextFactoryProvider {
 
-  factory Text(data) => document._createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
@@ -35618,7 +35621,6 @@ class _ElementFactoryProvider {
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
-    'tbody': 'table',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',

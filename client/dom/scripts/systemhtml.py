@@ -34,7 +34,9 @@ _private_html_members = set([
   'Element.className',
   'Element.children',
   'Element.querySelectorAll',
+  'NodeSelector.querySelectorAll',
   'Document.querySelectorAll',
+  'DocumentFragment.querySelectorAll',
   'Element.getBoundingClientRect',
   'Element.getClientRects',
   'Node.appendChild',
@@ -59,18 +61,20 @@ _private_html_members = set([
 _html_library_renames = {
     'Document.defaultView': 'window',
     'DocumentFragment.querySelector': 'query',
+    'NodeSelector.querySelector': 'query',
     'Element.querySelector': 'query',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Document.querySelector': 'query',
-    'DocumentFragment.querySelectorAll': 'queryAll',
-    'DocumentFragment.querySelectorAll': 'queryAll',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
     'Node.parentNode': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
+    'SVGElement.className': '_svgClassName',
+    'SVGAnimatedString.className': '_svgClassName',
+    'SVGStylable.className': '_svgClassName',
 }
 
 #TODO(jacobr): inject annotations into the interfaces based on this table and
@@ -95,11 +99,6 @@ _html_library_remove = set([
 #    "CDATASection.*",
 #    "Comment.*",
 #    "DOMImplementation.*",
-    # TODO(jacobr): listing title here is a temporary hack due to a frog bug
-    # involving when an interface inherits from another interface and defines
-    # the same field. BUG(1633)
-    "Document.title",
-    "Element.title",
     "Document.get:documentElement",
     "Document.get:forms",
 #    "Document.get:selectedStylesheetSet",
@@ -201,7 +200,10 @@ _html_library_remove = set([
     "FormElement.get:elements",
     "HTMLFrameElement.*",
     "HTMLFrameSetElement.*",
-    "HTMLHtmlElement.version",
+    "HtmlElement.version",
+    "HtmlElement.manifest",
+    "Document.version",
+    "Document.manifest",
 #    "IFrameElement.getSVGDocument",  #TODO(jacobr): should this be removed
     "InputElement.dirName",
     "HTMLIsIndexElement.*",
@@ -410,8 +412,7 @@ class HtmlSystemShared(object):
         _html_library_remove)
 
   def _Matches(self, interface, member, member_prefix, candidates):
-    for interface_name in ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface)):
+    for interface_name in self._AllAncestorInterfaces(interface):
       if (DartType(interface_name) + '.' + member in candidates or
           DartType(interface_name) + '.' + member_prefix + member in candidates):
         return True
@@ -431,6 +432,11 @@ class HtmlSystemShared(object):
     return (DartType(return_type) == 'EventTarget' or
         DartType(return_type) == 'Document')
 
+  def _AllAncestorInterfaces(self, interface):
+    interfaces = ([interface.id] +
+        self._generator._AllImplementedInterfaces(interface))
+    return interfaces
+
   def RenameInHtmlLibrary(self, interface, member, member_prefix=''):
     """
     Returns the name of the member in the HTML library or None if the member is
@@ -439,9 +445,8 @@ class HtmlSystemShared(object):
     if not self._AllowInHtmlLibrary(interface, member, member_prefix):
       return None
 
-    for interface_name in ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface)):
-      name = interface.id + '.' + member
+    for interface_name in self._AllAncestorInterfaces(interface):
+      name = interface_name + '.' + member
       if name in _html_library_renames:
         return _html_library_renames[name]
       name = interface.id + '.' + member_prefix + member

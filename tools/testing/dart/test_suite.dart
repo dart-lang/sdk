@@ -449,8 +449,7 @@ class StandardTestSuite implements TestSuite {
 
       String dartWrapperFilename = '${tempDir.path}/test.dart';
       String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-      String domLibraryImport = (component == 'chromium') ?
-          '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
+      String domLibraryImport = 'dart:dom';
 
       String htmlPath = '${tempDir.path}/test.html';
       if (!isWebTest) {

@@ -128,8 +128,7 @@ DART_LIBRARIES = {
     "core": "lib/corelib.dart",
     "coreimpl": "lib/corelib_impl.dart",
     "dom": "../client/dom/frog/dom_frog.dart",
-    "html": "../client/html/release/html.dart",
-    "htmlimpl": "../client/html/release/htmlimpl.dart",
+    "html": "../client/html/frog/html_frog.dart",
     "json": "../lib/json/json_frog.dart"
 }
 

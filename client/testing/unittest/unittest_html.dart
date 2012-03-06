@@ -7,7 +7,7 @@
  */
 #library("unittest");
 
-#import("dart:dom");
+#import("dart:html");
 
 #source("shared.dart");
 
@@ -41,11 +41,11 @@ _platformStartTests() {
   window.postMessage('unittest-suite-wait-for-done', '*');
 
   // Listen for uncaught errors.
-  window.addEventListener('error', _onErrorClosure, true);
+  window.on.error.add(_onErrorClosure);
 }
 
 _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
-  window.removeEventListener('error', _onErrorClosure);
+  window.on.error.remove(_onErrorClosure);
 
   if (_isLayoutTest && testsPassed == _tests.length) {
     document.body.innerHTML = "PASS";
@@ -61,8 +61,10 @@ _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
     }
 
     if (testsPassed == _tests.length) {
-      newBody.add("<tr><td colspan='3' class='unittest-pass'>All "
-          + testsPassed + " tests passed</td></tr>");
+      newBody.add("""
+          <tr><td colspan='3' class='unittest-pass'>
+            All ${testsPassed} tests passed
+          </td></tr>""");
     } else {
       newBody.add("""
           <tr><td colspan='3'>Total

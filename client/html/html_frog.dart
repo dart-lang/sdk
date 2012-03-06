@@ -1091,3 +1091,7 @@ Document get document() {
 }
 
 _DocumentImpl get _document() native "return window.document.documentElement;";
+
+// Workaround for classes like <site> that lack their own Element subclass.
+class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
+}

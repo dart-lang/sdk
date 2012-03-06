@@ -40,6 +40,10 @@ class _DocumentImpl extends _ElementImpl
 
   _StyleSheetListImpl get styleSheets() native "return this.parentNode.styleSheets;";
 
+  String get title() native "return this.parentNode.title;";
+
+  void set title(String value) native "this.parentNode.title = value;";
+
   _ElementImpl get webkitCurrentFullScreenElement() native "return this.parentNode.webkitCurrentFullScreenElement;";
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.parentNode.webkitFullScreenKeyboardInputAllowed;";
@@ -90,13 +94,6 @@ class _DocumentImpl extends _ElementImpl
   void webkitCancelFullScreen() native "this.parentNode.webkitCancelFullScreen();";
 
   _WebKitNamedFlowImpl webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
-
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() native "return this.parentNode.title;";
-  void set title(String value) native "this.parentNode.title = value;";
 
 
   // For efficiency and simplicity, we always use the HtmlElement as the

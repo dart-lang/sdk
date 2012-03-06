@@ -5,8 +5,4 @@
 // WARNING: Do not edit - generated code.
 
 interface HtmlElement extends Element {
-
-  String manifest;
-
-  String version;
 }

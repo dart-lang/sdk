@@ -35,10 +35,9 @@
 # ......dom/
 # ........dom.dart
 # ......frog/
-# ......html/
-# ........html.dart
-# ......htmlimpl/
-# ........htmlimpl.dart
+# ......html/ 
+# ........html_frog.dart
+# ........html_dartium.dart
 # ......json/
 # ........json_frog.dart
 #.........json.dart
@@ -236,18 +235,16 @@ def Main(argv):
           file.close()
 
   #
-  # Create and populate lib/html and lib/htmlimpl.
+  # Create and populate lib/html.
   #
   html_src_dir = join(HOME, 'client', 'html')
   html_dest_dir = join(LIB, 'html')
   os.makedirs(html_dest_dir)
-  htmlimpl_dest_dir = join(LIB, 'htmlimpl')
-  os.makedirs(htmlimpl_dest_dir)
 
-  copyfile(join(html_src_dir, 'release', 'html.dart'),
-           join(html_dest_dir, 'html.dart'))
-  copyfile(join(html_src_dir, 'release', 'htmlimpl.dart'),
-           join(htmlimpl_dest_dir, 'htmlimpl.dart'))
+  copyfile(join(html_src_dir, 'frog', 'html_frog.dart'),
+           join(html_dest_dir, 'html_frog.dart'))
+  copyfile(join(html_src_dir, 'dartium', 'html_dartium.dart'),
+           join(html_dest_dir, 'html_dartium.dart'))
 
   #
   # Create and populate lib/dom.

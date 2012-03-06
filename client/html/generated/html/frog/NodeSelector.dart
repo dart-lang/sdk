@@ -1,7 +1,7 @@
 
 class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementImpl querySelector(String selectors) native;
+  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListImpl querySelectorAll(String selectors) native;
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 }

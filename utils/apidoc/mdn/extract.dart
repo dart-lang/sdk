@@ -1,5 +1,4 @@
 #import ("dart:html");
-#import ("dart:htmlimpl");
 #import ("dart:dom", prefix:"dom");
 #import ("dart:json");
 

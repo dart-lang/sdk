@@ -11,7 +11,7 @@ UriTest: Fail
 [ $arch == simarm ]
 *: Skip
 
-[ $component == frog || $component == frogsh ]
+[ $component == frog || $component == frogsh || $component == frogium ]
 # Dartdoc only runs on the VM.
 DartdocTest: Skip
 MarkdownTest: Skip
