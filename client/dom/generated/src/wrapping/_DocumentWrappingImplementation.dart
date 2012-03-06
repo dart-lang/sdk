@@ -264,10 +264,10 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static bool _execCommand(receiver, command, userInterface, value) native;
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) {
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
     return _getCSSCanvasContext(this, contextId, name, width, height);
   }
-  static Object _getCSSCanvasContext(receiver, contextId, name, width, height) native;
+  static CanvasRenderingContext _getCSSCanvasContext(receiver, contextId, name, width, height) native;
 
   Element getElementById(String elementId) {
     return _getElementById(this, elementId);

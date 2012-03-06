@@ -1387,7 +1387,7 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
 
   _BlobJs getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }
 
 class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
@@ -1644,7 +1644,7 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   bool execCommand(String command, bool userInterface, String value) native;
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native;
+  _CanvasRenderingContextJs getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
   _ElementJs getElementById(String elementId) native;
 
@@ -4061,7 +4061,7 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(var storeName_OR_storeNames, int mode) native;
+  _IDBTransactionJs transaction(var storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseErrorJs extends _DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -13371,7 +13371,7 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback);
+  void getAsString([StringCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13703,7 +13703,7 @@ interface Document extends Node, NodeSelector {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   Element getElementById(String elementId);
 
@@ -16491,7 +16491,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

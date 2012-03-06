@@ -22,7 +22,7 @@ class _DataTransferItemWrappingImplementation extends DOMWrapperBase implements 
   }
   static Blob _getAsFile(receiver) native;
 
-  void getAsString(StringCallback callback) {
+  void getAsString([StringCallback callback = null]) {
     _getAsString(this, callback);
     return;
   }

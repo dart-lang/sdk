@@ -124,7 +124,7 @@ interface Document extends Node, NodeSelector {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   Element getElementById(String elementId);
 

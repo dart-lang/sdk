@@ -7,5 +7,5 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
 
   _BlobJs getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }
