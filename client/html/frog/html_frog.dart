@@ -51,7 +51,8 @@ Document get document() {
 
 _DocumentImpl get _document() native "return window.document.documentElement;";
 
-// Workaround for classes like <site> that lack their own Element subclass.
+// Workaround for tags like <cite> that lack their own Element subclass --
+// Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
@@ -23020,7 +23021,7 @@ interface NodeList extends List<Node> {
 
 interface NodeSelector {
 
-  // TODO(nweiz): add this back once DocumentFragment is ported. 
+  // TODO(nweiz): add this back once DocumentFragment is ported.
   // ElementList queryAll(String selectors);
 
 

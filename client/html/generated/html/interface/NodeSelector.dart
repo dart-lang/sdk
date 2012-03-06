@@ -6,7 +6,7 @@
 
 interface NodeSelector {
 
-  // TODO(nweiz): add this back once DocumentFragment is ported. 
+  // TODO(nweiz): add this back once DocumentFragment is ported.
   // ElementList queryAll(String selectors);
 
 
