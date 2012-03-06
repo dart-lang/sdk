@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -29,7 +30,6 @@ import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -768,7 +768,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartExprStmt stmt = (DartExprStmt) methodBar.getFunction().getBody().getStatements().get(0);
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
-    // Check that unqualified foo() invocation is resolved to the top-level (library) function. 
+    // Check that unqualified foo() invocation is resolved to the top-level (library) function.
     Symbol symbol = invocation.getTarget().getSymbol();
     assertNotNull(symbol);
     assertSame(unit, symbol.getNode().getParent());
@@ -963,6 +963,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 17, 7));
   }
 
+  public void test_typeVariableBoundsMismatch() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I<T extends num> { }",
+            "class A<T extends num> implements I<T> { }",
+            "class B<T> implements I<T> { }"); // static type error B.T not assignable to num
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
+  }
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));

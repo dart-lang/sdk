@@ -184,7 +184,6 @@ SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
-TypeVariableBounds2Test*: Skip  # Issue 1939.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 TypeVariableBoundsTest/01: Fail  # issue 1900

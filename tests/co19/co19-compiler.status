@@ -25,7 +25,6 @@ Language/10_Expressions/07_Maps_A02_t02: Fail # TODO(dartc-team): New failure, p
 Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/1_New_A06_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # TODO(dartc-team): New failure, please triage.
