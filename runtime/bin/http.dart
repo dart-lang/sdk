@@ -184,6 +184,11 @@ interface HttpResponse default _HttpResponse {
   void setHeader(String name, String value);
 
   /**
+   * Returns the response headers.
+   */
+  Map<String, String> get headers();
+
+  /**
    * Returns the output stream for the response. This is used to write
    * the response data. When all response data has been written close
    * the stream to indicate the end of the response.
@@ -208,22 +213,28 @@ interface HttpResponse default _HttpResponse {
  * HTTP client factory.
  */
 interface HttpClient default _HttpClient {
+  static final int DEFAULT_HTTP_PORT = 80;
+
   HttpClient();
 
   /**
    * Opens a HTTP connection. The returned [HttpClientConnection] is
-   * used to register handlers for asynchronous events on a Http
-   * connection.
+   * used to register callbacks for asynchronous events on the HTTP
+   * connection. The "Host" header for the request will be set to the
+   * value [host]:[port]. This can be overridden through the
+   * HttpClientRequest interface before the request is sent. NOTE if
+   * [host] is an IP address this will still be set in the "Host"
+   * header.
    */
   HttpClientConnection open(String method, String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the GET method.
+   * Opens a HTTP connection using the GET method. See [open] for details.
    */
   HttpClientConnection get(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the POST method.
+   * Opens a HTTP connection using the POST method. See [open] for details.
    */
   HttpClientConnection post(String host, int port, String path);
 
@@ -283,11 +294,30 @@ interface HttpClientRequest default _HttpClientRequest {
   bool keepAlive;
 
   /**
+   * Gets and sets the " host part of the "Host" header for the
+   * connection. By default this will be set to the value of the host
+   * used when initiating the connection.
+   */
+  String host;
+
+  /**
+   * Gets and sets the port part of the "Host" header for the
+   * connection. By default this will be set to the value of the port
+   * used when initiating the connection.
+   */
+  int port;
+
+  /**
    * Sets a header on the request. NOTE: If the same header name is
    * set more than once only the last value set will be part of the
    * request.
    */
   void setHeader(String name, String value);
+
+  /**
+   * Returns the request headers.
+   */
+  Map<String, String> get headers();
 
   /**
    * Returns the output stream for the request. This is used to write
@@ -338,7 +368,7 @@ interface HttpClientResponse default _HttpClientResponse {
   /**
    * Returns the response headers.
    */
-  Map get headers();
+  Map<String, String> get headers();
 
   /**
    * Returns the input stream for the response. This is used to read

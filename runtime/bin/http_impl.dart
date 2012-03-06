@@ -58,6 +58,7 @@ class _HttpRequestResponseBase {
 
   int get contentLength() => _contentLength;
   bool get keepAlive() => _keepAlive;
+  Map get headers() => _headers;
 
   void _setHeader(String name, String value) {
     _headers[name] = value;
@@ -173,7 +174,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   String get method() => _method;
   String get uri() => _uri;
   String get path() => _path;
-  Map get headers() => _headers;
   String get queryString() => _queryString;
   Map get queryParameters() => _queryParameters;
 
@@ -259,24 +259,24 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
         _state = START;
 
   void set contentLength(int contentLength) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _contentLength = contentLength;
   }
 
   void set keepAlive(bool keepAlive) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _keepAlive = keepAlive;
   }
 
   int get statusCode() => _statusCode;
   void set statusCode(int statusCode) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _statusCode = statusCode;
   }
 
   String get reasonPhrase() => _findReasonPhrase(_statusCode);
   void set reasonPhrase(String reasonPhrase) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _reasonPhrase = reasonPhrase;
   }
 
@@ -714,7 +714,36 @@ class _HttpClientRequest
   void set contentLength(int contentLength) => _contentLength = contentLength;
   void set keepAlive(bool keepAlive) => _keepAlive = keepAlive;
 
+  String get host() => _host;
+  void set host(String host) {
+    _host = host;
+    _updateHostHeader();
+  }
+
+  int get port() => _port;
+  void set port(int port) {
+    _port = port;
+    _updateHostHeader();
+  }
+
   void setHeader(String name, String value) {
+    if (_state != START) throw new HttpException("Header already sent");
+    if (name.toLowerCase() == "host") {
+      int pos = value.indexOf(":");
+      if (pos == -1) {
+        _host = value;
+        _port = HttpClient.DEFAULT_HTTP_PORT;
+      } else {
+        _host = value.substring(0, pos);
+        if (pos + 1 == value.length) {
+          _port = HttpClient.DEFAULT_HTTP_PORT;
+        } else {
+          _port = Math.parseInt(value.substring(pos + 1));
+        }
+      }
+      _updateHostHeader();
+      return;
+    }
     _setHeader(name, value);
   }
 
@@ -733,6 +762,11 @@ class _HttpClientRequest
       _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
+  }
+
+  _updateHostHeader() {
+    String portPart = _port == HttpClient.DEFAULT_HTTP_PORT ? "" : ":$_port";
+    _setHeader("host", "$host$portPart");
   }
 
   // Delegate functions for the HttpOutputStream implementation.
@@ -803,6 +837,8 @@ class _HttpClientRequest
 
   String _method;
   String _uri;
+  String _host;
+  int _port;
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
   int _state;
@@ -818,7 +854,6 @@ class _HttpClientResponse
 
   int get statusCode() => _statusCode;
   String get reasonPhrase() => _reasonPhrase;
-  Map get headers() => _headers;
 
   InputStream get inputStream() {
     if (_inputStream == null) {
@@ -1033,6 +1068,8 @@ class _HttpClient implements HttpClient {
                            _HttpClientConnection connection) {
       connection._connectionEstablished(socketConn);
       HttpClientRequest request = connection.open(method, path);
+      request.host = host;
+      request.port = port;
       if (connection._onRequest != null) {
         connection._onRequest(request);
       } else {

@@ -124,6 +124,13 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
+  // Return a 301 with a custom reason phrase.
+  void _hostHandler(HttpRequest request, HttpResponse response) {
+    Expect.equals("www.dartlang.org:1234", request.headers["host"]);
+    response.statusCode = HttpStatus.OK;
+    response.outputStream.close();
+  }
+
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
@@ -137,6 +144,10 @@ class TestServer extends Isolate {
     _requestHandlers["/reasonformoving"] =
         (HttpRequest request, HttpResponse response) {
           _reasonForMovingHandler(request, response);
+        };
+    _requestHandlers["/host"] =
+        (HttpRequest request, HttpResponse response) {
+          _hostHandler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
@@ -400,6 +411,41 @@ void testReasonPhrase() {
 }
 
 
+void testHost() {
+  TestServerMain testServerMain = new TestServerMain();
+  testServerMain.setServerStartedHandler((int port) {
+    HttpClient httpClient = new HttpClient();
+    HttpClientConnection conn =
+        httpClient.get("127.0.0.1", port, "/host");
+    conn.onRequest = (HttpClientRequest request) {
+      Expect.equals("127.0.0.1:$port", request.headers["host"]);
+      request.host = "www.dartlang.com";
+      Expect.equals("www.dartlang.com:$port", request.headers["host"]);
+      request.port = 1234;
+      Expect.equals("www.dartlang.com:1234", request.headers["host"]);
+      request.port = HttpClient.DEFAULT_HTTP_PORT;
+      Expect.equals("www.dartlang.com", request.headers["host"]);
+      request.setHeader("Host", "www.dartlang.org");
+      Expect.equals("www.dartlang.org", request.host);
+      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.port);
+      request.setHeader("Host", "www.dartlang.org:");
+      Expect.equals("www.dartlang.org", request.host);
+      Expect.equals(HttpClient.DEFAULT_HTTP_PORT, request.port);
+      request.setHeader("Host", "www.dartlang.org:1234");
+      Expect.equals("www.dartlang.org", request.host);
+      Expect.equals(1234, request.port);
+      request.outputStream.close();
+    };
+    conn.onResponse = (HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
+      httpClient.shutdown();
+      testServerMain.shutdown();
+    };
+  });
+  testServerMain.start();
+}
+
+
 void main() {
   testStartStop();
   testGET();
@@ -411,4 +457,5 @@ void main() {
   testReadShort(false);
   test404();
   testReasonPhrase();
+  testHost();
 }
