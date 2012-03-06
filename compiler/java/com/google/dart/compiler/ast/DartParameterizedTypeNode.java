@@ -6,17 +6,16 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.type.Type;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DartParameterizedTypeNode extends DartExpression {
   private DartExpression expression;
-  private List<DartTypeParameter> typeParameters;
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
   private Type type;
 
   public DartParameterizedTypeNode(DartExpression expression, List<DartTypeParameter> typeParameters) {
     setExpression(expression);
-    setTypeParameters(typeParameters);
+    this.typeParameters.addAll(typeParameters);
   }
 
   @Override
@@ -46,16 +45,9 @@ public class DartParameterizedTypeNode extends DartExpression {
     this.type = type;
   }
 
-  public void setTypeParameters(List<DartTypeParameter> typeParameters) {
-    if (typeParameters == null) {
-      typeParameters = Collections.emptyList();
-    }
-    this.typeParameters = becomeParentOf(typeParameters);
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     getExpression().accept(visitor);
-    visitor.visit(getTypeParameters());
+    typeParameters.accept(visitor);
   }
 }

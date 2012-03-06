@@ -42,7 +42,7 @@ public class DartRedirectConstructorInvocation extends DartInvocation implements
     if (name != null) {
       name.accept(visitor);
     }
-    visitor.visit(getArgs());
+    visitor.visit(getArguments());
   }
 
   @Override

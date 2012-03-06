@@ -187,7 +187,7 @@ public class CompileTimeConstantResolver {
       ResolutionContext previousContext = context;
       context = context.extend(member.getName());
       DartFunction functionNode = node.getFunction();
-      List<DartParameter> parameters = functionNode.getParams();
+      List<DartParameter> parameters = functionNode.getParameters();
       for (DartParameter parameter : parameters) {
         getContext().declare(parameter.getSymbol(), null, null);
         // Then resolve the default values.
@@ -208,7 +208,7 @@ public class CompileTimeConstantResolver {
     @Override
     public Element visitNewExpression(DartNewExpression node) {
       if (node.isConst()) {
-        for (DartExpression arg : node.getArgs()) {
+        for (DartExpression arg : node.getArguments()) {
           resolveConstantExpression(arg);
         }
       }

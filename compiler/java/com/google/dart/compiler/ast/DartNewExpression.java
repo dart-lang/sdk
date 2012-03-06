@@ -56,7 +56,7 @@ public class DartNewExpression extends DartInvocation implements HasSymbol {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     constructor.accept(visitor);
-    visitor.visit(getArgs());
+    visitor.visit(getArguments());
   }
 
   @Override

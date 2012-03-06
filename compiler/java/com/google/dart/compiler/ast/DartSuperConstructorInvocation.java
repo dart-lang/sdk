@@ -53,7 +53,7 @@ public class DartSuperConstructorInvocation extends DartInvocation implements Ha
     if (name != null) {
       name.accept(visitor);
     }
-    visitor.visit(getArgs());
+    visitor.visit(getArguments());
   }
 
   @Override

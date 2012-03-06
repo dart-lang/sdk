@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DartVariableStatement extends DartStatement {
 
-  private final List<DartVariable> vars;
+  private final NodeList<DartVariable> vars = NodeList.create(this);
   private DartTypeNode typeNode;
   private final Modifiers modifiers;
 
@@ -20,7 +20,7 @@ public class DartVariableStatement extends DartStatement {
   }
 
   public DartVariableStatement(List<DartVariable> vars, DartTypeNode type, Modifiers modifiers) {
-    this.vars = becomeParentOf(vars);
+    this.vars.addAll(vars);
     this.typeNode = becomeParentOf(type);
     this.modifiers = modifiers;
   }
@@ -42,7 +42,7 @@ public class DartVariableStatement extends DartStatement {
     if (typeNode != null) {
       typeNode.accept(visitor);
     }
-    visitor.visit(vars);
+    vars.accept(visitor);
   }
 
   @Override

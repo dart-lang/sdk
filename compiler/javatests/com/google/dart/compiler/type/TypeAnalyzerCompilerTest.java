@@ -244,7 +244,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
       DartClass classF = (DartClass) unit.getTopLevelNodes().get(1);
       DartMethodDefinition methodF = (DartMethodDefinition) classF.getMembers().get(1);
-      DartParameter parameter = methodF.getFunction().getParams().get(0);
+      DartParameter parameter = methodF.getFunction().getParameters().get(0);
       assertEquals("int", parameter.getSymbol().getType().toString());
     }
     // No errors or type warnings.

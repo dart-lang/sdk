@@ -35,7 +35,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
   abstract ResolutionContext getContext();
 
   final MethodElement resolveFunction(DartFunction node, MethodElement element) {
-    for (DartParameter parameter : node.getParams()) {
+    for (DartParameter parameter : node.getParameters()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
     Type returnType =

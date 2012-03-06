@@ -12,13 +12,13 @@ import java.util.List;
 public class DartTryStatement extends DartStatement {
 
   private DartBlock tryBlock;
-  private List<DartCatchBlock> catchBlocks;
+  private final NodeList<DartCatchBlock> catchBlocks = NodeList.create(this);
   private DartBlock finallyBlock;
 
   public DartTryStatement(DartBlock tryBlock, List<DartCatchBlock> catchBlocks,
       DartBlock finallyBlock) {
     this.tryBlock = becomeParentOf(tryBlock);
-    this.catchBlocks = becomeParentOf(catchBlocks);
+    this.catchBlocks.addAll(catchBlocks);
     this.finallyBlock = becomeParentOf(finallyBlock);
   }
 
@@ -37,7 +37,7 @@ public class DartTryStatement extends DartStatement {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     tryBlock.accept(visitor);
-    visitor.visit(catchBlocks);
+    catchBlocks.accept(visitor);
     if (finallyBlock != null) {
       finallyBlock.accept(visitor);
     }

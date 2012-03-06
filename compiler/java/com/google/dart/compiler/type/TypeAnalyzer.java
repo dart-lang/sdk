@@ -804,7 +804,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return checkInvocation(node, node, name, element.getType());
       }
       Type receiver = nonVoidTypeOf(node.getTarget());
-      List<DartExpression> arguments = node.getArgs();
+      List<DartExpression> arguments = node.getArguments();
       Member member = lookupMember(receiver, name, node);
       if (member != null) {
         node.setReferencedElement(member.getElement());
@@ -821,7 +821,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkConstructorForwarding(DartInvocation node, ConstructorElement element) {
       if (element == null) {
-        visit(node.getArgs());
+        visit(node.getArguments());
         return voidType;
       } else {
         node.setReferencedElement(element);
@@ -1026,7 +1026,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitFunction(DartFunction node) {
       Type previous = expected;
-      visit(node.getParams());
+      visit(node.getParameters());
       expected = typeOf(node.getReturnTypeNode());
       typeOf(node.getBody());
       expected = previous;
@@ -1213,7 +1213,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartNode typeName = typeNode.getIdentifier();
 
       if (constructorElement == null) {
-        visit(node.getArgs());
+        visit(node.getArguments());
       } else {
         ClassElement cls = (ClassElement) constructorElement.getEnclosingElement();
         // Add warning for instantiating abstract class.
@@ -1609,7 +1609,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
                                  Type type) {
-      List<DartExpression> argumentNodes = node.getArgs();
+      List<DartExpression> argumentNodes = node.getArguments();
       List<Type> argumentTypes = new ArrayList<Type>(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
         argumentTypes.add(nonVoidTypeOf(argumentNode));

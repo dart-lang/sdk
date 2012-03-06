@@ -19,9 +19,9 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
 
   private DartTypeNode superclass;
 
-  private final List<DartNode> members;
-  private final List<DartTypeParameter> typeParameters;
-  private final List<DartTypeNode> interfaces;
+  private final NodeList<DartNode> members = NodeList.create(this);
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
+  private final NodeList<DartTypeNode> interfaces = NodeList.create(this);
 
   private boolean isInterface;
   private DartParameterizedTypeNode defaultClass;
@@ -64,9 +64,9 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     super(name);
     this.nativeName = nativeName;
     this.superclass = becomeParentOf(superclass);
-    this.members = becomeParentOf(members);
-    this.typeParameters = becomeParentOf(typeParameters);
-    this.interfaces = becomeParentOf(interfaces);
+    this.members.addAll(members);
+    this.typeParameters.addAll(typeParameters);
+    this.interfaces.addAll(interfaces);
     this.defaultClass = becomeParentOf(defaultClass);
     this.isInterface = isInterface;
     this.modifiers = modifiers;
@@ -170,15 +170,15 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    visitor.visit(typeParameters);
+    typeParameters.accept(visitor);
     if (superclass != null) {
       superclass.accept(visitor);
     }
-    visitor.visit(interfaces);
+    interfaces.accept(visitor);
     if (defaultClass != null) {
       defaultClass.accept(visitor);
     }
-    visitor.visit(members);
+    members.accept(visitor);
   }
 
   @Override

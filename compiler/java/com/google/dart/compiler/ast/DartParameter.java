@@ -18,7 +18,7 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
 
   private VariableElement symbol;
   private DartTypeNode typeNode;
-  private List<DartParameter> functionParameters;
+  private final NodeList<DartParameter> functionParameters;
   private DartExpression defaultExpr;
   private final Modifiers modifiers;
 
@@ -31,7 +31,12 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
     Preconditions.checkArgument((name instanceof DartIdentifier)
       || (name instanceof DartPropertyAccess), "name");
     this.typeNode = becomeParentOf(typeNode);
-    this.functionParameters = becomeParentOf(functionParameters);
+    if (functionParameters != null) {
+      this.functionParameters = NodeList.create(this);
+      this.functionParameters.addAll(functionParameters);
+    } else {
+      this.functionParameters = null;
+    }
     this.defaultExpr = becomeParentOf(defaultExpr);
     this.modifiers = modifiers;
   }
@@ -89,7 +94,9 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
     if (defaultExpr != null) {
       defaultExpr.accept(visitor);
     }
-    visitor.visit(functionParameters);
+    if (functionParameters != null) {
+      functionParameters.accept(visitor);
+    }
   }
 
   @Override

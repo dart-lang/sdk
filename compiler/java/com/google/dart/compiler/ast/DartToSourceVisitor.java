@@ -309,7 +309,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       accept(name);
     }
     p("(");
-    pFormalParameters(x.getParams());
+    pFormalParameters(x.getParameters());
     p(")");
   }
 
@@ -666,14 +666,14 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   @Override
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
     accept(x.getTarget());
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 
   @Override
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
     accept(x.getTarget());
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 
@@ -682,7 +682,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
     accept(x.getTarget());
     p(".");
     accept(x.getFunctionName());
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 
@@ -717,7 +717,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p(".");
       accept(x.getName());
     }
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 
@@ -725,7 +725,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
   public Void visitNewExpression(DartNewExpression x) {
     p("new ");
     accept(x.getConstructor());
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 
@@ -764,7 +764,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
       p(".");
       accept(x.getName());
     }
-    pArgs(x.getArgs());
+    pArgs(x.getArguments());
     return null;
   }
 

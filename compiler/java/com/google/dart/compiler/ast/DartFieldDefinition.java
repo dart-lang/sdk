@@ -12,11 +12,11 @@ import java.util.List;
 public class DartFieldDefinition extends DartNode {
 
   private DartTypeNode typeNode;
-  private final List<DartField> fields;
+  private final NodeList<DartField> fields = NodeList.create(this);
 
   public DartFieldDefinition(DartTypeNode typeNode, List<DartField> fields) {
     this.setTypeNode(typeNode);
-    this.fields = becomeParentOf(fields);
+    this.fields.addAll(fields);
   }
 
   public DartTypeNode getTypeNode() {
@@ -36,7 +36,7 @@ public class DartFieldDefinition extends DartNode {
     if (getTypeNode() != null) {
       getTypeNode().accept(visitor);
     }
-    visitor.visit(getFields());
+    fields.accept(visitor);
   }
 
   @Override

@@ -16,17 +16,17 @@ import java.util.List;
 public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> implements HasSymbol {
 
   private DartTypeNode returnTypeNode;
-  private final List<DartParameter> parameters;
+  private final NodeList<DartParameter> parameters = NodeList.create(this);
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
   private FunctionAliasElement element;
-  private final List<DartTypeParameter> typeParameters;
 
   public DartFunctionTypeAlias(DartIdentifier name, DartTypeNode returnTypeNode,
                                List<DartParameter> parameters,
                                List<DartTypeParameter> typeParameters) {
     super(name);
     this.returnTypeNode = becomeParentOf(returnTypeNode);
-    this.parameters = becomeParentOf(parameters);
-    this.typeParameters = becomeParentOf(typeParameters);
+    this.parameters.addAll(parameters);
+    this.typeParameters.addAll(typeParameters);
   }
 
   public List<DartParameter> getParameters() {
@@ -60,8 +60,8 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
     if (returnTypeNode != null) {
       returnTypeNode.accept(visitor);
     }
-    visitor.visit(parameters);
-    visitor.visit(typeParameters);
+    parameters.accept(visitor);
+    typeParameters.accept(visitor);
   }
 
   @Override

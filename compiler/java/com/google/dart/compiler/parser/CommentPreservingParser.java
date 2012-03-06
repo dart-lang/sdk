@@ -133,7 +133,7 @@ public class CommentPreservingParser extends DartParser {
     for (int[] loc : context.getCommentLocs()) {
       DartComment.Style style = getCommentStyle(sourceString, loc[0]);
       if (!onlyDartDoc || style == DartComment.Style.DART_DOC) {
-        unit.addComment(new DartComment(source, loc[0], loc[1] - loc[0], loc[2], loc[3], style));
+        unit.getComments().add(new DartComment(source, loc[0], loc[1] - loc[0], loc[2], loc[3], style));
       }
     }
 

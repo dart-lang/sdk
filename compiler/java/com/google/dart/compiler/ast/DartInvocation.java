@@ -34,19 +34,19 @@ import java.util.List;
  */
 public abstract class DartInvocation extends DartExpression implements ElementReference {
 
-  private List<DartExpression> args;
+  private final NodeList<DartExpression> arguments = NodeList.create(this);
   private Element referencedElement;
 
-  public DartInvocation(List<DartExpression> args) {
-    this.args = becomeParentOf(args);
+  public DartInvocation(List<DartExpression> arguments) {
+    this.arguments.addAll(arguments);
   }
 
   public DartExpression getTarget() {
     return null;
   }
 
-  public List<DartExpression> getArgs() {
-    return args;
+  public List<DartExpression> getArguments() {
+    return arguments;
   }
 
   public Element getReferencedElement() {

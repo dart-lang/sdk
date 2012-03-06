@@ -11,12 +11,12 @@ import java.util.List;
  */
 public class DartMapLiteral extends DartTypedLiteral {
 
-  private final List<DartMapLiteralEntry> entries;
+  private final NodeList<DartMapLiteralEntry> entries = NodeList.create(this);
 
   public DartMapLiteral(boolean isConst, List<DartTypeNode> typeArguments,
       List<DartMapLiteralEntry> entries) {
     super(isConst, typeArguments);
-    this.entries = becomeParentOf(entries);
+    this.entries.addAll(entries);
   }
 
   public List<DartMapLiteralEntry> getEntries() {
@@ -26,7 +26,7 @@ public class DartMapLiteral extends DartTypedLiteral {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    visitor.visit(entries);
+    entries.accept(visitor);
   }
 
   @Override

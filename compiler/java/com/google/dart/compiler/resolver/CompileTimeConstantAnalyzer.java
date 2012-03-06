@@ -395,7 +395,7 @@ public class CompileTimeConstantAnalyzer {
       if (!x.isConst()) {
         expectedConstant(x);
       } else {
-        for (DartExpression arg : x.getArgs()) {
+        for (DartExpression arg : x.getArguments()) {
           arg.accept(this);
         }
       }
@@ -525,7 +525,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       DartFunction functionNode = node.getFunction();
-      List<DartParameter> parameters = functionNode.getParams();
+      List<DartParameter> parameters = functionNode.getParameters();
       for (DartParameter parameter : parameters) {
         // Then resolve the default values.
         checkConstantExpression(parameter.getDefaultExpr());
@@ -536,7 +536,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitNewExpression(DartNewExpression node) {
       if (node.isConst()) {
-        for (DartExpression arg : node.getArgs()) {
+        for (DartExpression arg : node.getArguments()) {
           checkConstantExpression(arg);
         }
       }

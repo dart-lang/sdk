@@ -6,7 +6,6 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.type.Type;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,16 +14,16 @@ import java.util.List;
 public class DartTypeNode extends DartNode {
 
   private DartNode identifier;
-  private List<DartTypeNode> typeArguments = new ArrayList<DartTypeNode>();
+  private NodeList<DartTypeNode> typeArguments = NodeList.create(this);
   private Type type;
 
   public DartTypeNode(DartNode identifier) {
-   this(identifier, new ArrayList<DartTypeNode>());
+    this(identifier, null);
   }
 
   public DartTypeNode(DartNode identifier, List<DartTypeNode> typeArguments) {
     this.identifier = becomeParentOf(identifier);
-    this.typeArguments = becomeParentOf(typeArguments);
+    this.typeArguments.addAll(typeArguments);
   }
 
   public DartNode getIdentifier() {
@@ -48,7 +47,7 @@ public class DartTypeNode extends DartNode {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     identifier.accept(visitor);
-    visitor.visit(typeArguments);
+    typeArguments.accept(visitor);
   }
 
   @Override

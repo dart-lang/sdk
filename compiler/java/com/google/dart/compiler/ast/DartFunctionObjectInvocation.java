@@ -27,7 +27,7 @@ public class DartFunctionObjectInvocation extends DartInvocation {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     target.accept(visitor);
-    visitor.visit(getArgs());
+    visitor.visit(getArguments());
   }
 
   @Override

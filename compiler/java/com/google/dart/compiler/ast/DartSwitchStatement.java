@@ -12,11 +12,11 @@ import java.util.List;
 public class DartSwitchStatement extends DartStatement {
 
   private DartExpression expression;
-  private final List<DartSwitchMember> members;
+  private final NodeList<DartSwitchMember> members = NodeList.create(this);
 
   public DartSwitchStatement(DartExpression expression, List<DartSwitchMember> members) {
     this.expression = becomeParentOf(expression);
-    this.members = becomeParentOf(members);
+    this.members.addAll(members);
   }
 
   public DartExpression getExpression() {
@@ -30,7 +30,7 @@ public class DartSwitchStatement extends DartStatement {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     expression.accept(visitor);
-    visitor.visit(members);
+    members.accept(visitor);
   }
 
   @Override

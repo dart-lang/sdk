@@ -287,7 +287,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         // Parsing was successful, add node.
         if (node != null) {
-          unit.addTopLevelNode(node);
+          unit.getTopLevelNodes().add(node);
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
             Position abstractPositionEnd =
@@ -385,23 +385,23 @@ public class DartParser extends CompletionHooksParserBase {
   private void parseDirectives(DartUnit unit) {
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      unit.addDirective(done(parseLibraryDirective()));
+      unit.getDirectives().add(done(parseLibraryDirective()));
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
-      unit.addDirective(done(parseImportDirective()));
+      unit.getDirectives().add(done(parseImportDirective()));
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
-      unit.addDirective(done(parseSourceDirective()));
+      unit.getDirectives().add(done(parseSourceDirective()));
     }
     while (peek(0) == Token.RESOURCE) {
       beginResourceDirective();
-      unit.addDirective(done(parseResourceDirective()));
+      unit.getDirectives().add(done(parseResourceDirective()));
     }
     while (peek(0) == Token.NATIVE) {
       beginResourceDirective();
-      unit.addDirective(done(parseNativeDirective()));
+      unit.getDirectives().add(done(parseNativeDirective()));
     }
   }
 

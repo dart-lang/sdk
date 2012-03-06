@@ -11,12 +11,12 @@ import java.util.List;
  */
 public class DartArrayLiteral extends DartTypedLiteral {
 
-  private final List<DartExpression> expressions;
+  private final NodeList<DartExpression> expressions = NodeList.create(this);
 
   public DartArrayLiteral(boolean isConst, List<DartTypeNode> typeArguments,
                           List<DartExpression> expressions) {
     super(isConst, typeArguments);
-    this.expressions = becomeParentOf(expressions);
+    this.expressions.addAll(expressions);
   }
 
   public List<DartExpression> getExpressions() {
@@ -26,7 +26,7 @@ public class DartArrayLiteral extends DartTypedLiteral {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    visitor.visit(expressions);
+    expressions.accept(visitor);
   }
 
   @Override

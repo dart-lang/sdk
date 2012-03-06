@@ -330,7 +330,7 @@ abstract class ResolverTestCase extends TestCase {
   protected static DartUnit makeUnit(DartNode... topLevelElements) {
     DartUnit unit = new DartUnit(null, false);
     for (DartNode topLevelElement : topLevelElements) {
-      unit.addTopLevelNode(topLevelElement);
+      unit.getTopLevelNodes().add(topLevelElement);
     }
     return unit;
   }

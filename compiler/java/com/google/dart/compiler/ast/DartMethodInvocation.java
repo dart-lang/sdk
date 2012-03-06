@@ -58,7 +58,7 @@ public class DartMethodInvocation extends DartInvocation {
   public void visitChildren(ASTVisitor<?> visitor) {
     target.accept(visitor);
     functionName.accept(visitor);
-    visitor.visit(getArgs());
+    visitor.visit(getArguments());
   }
 
   @Override
