@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_builder.h"
 
+#include "vm/ast_printer.h"
 #include "vm/flags.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
@@ -14,6 +15,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, print_ast);
 
 void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
   ASSERT(is_open());
@@ -217,6 +219,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded therefore do not call
   // operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    // Implement short-circuit logic: do not evaluate right if evaluation
+    // of left is sufficient.
     Bailout("EffectGraphVisitor::VisitBinaryOpNode AND/OR");
   }
   ArgumentGraphVisitor for_left_value(owner(), temp_index());
@@ -439,7 +443,26 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 
 
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  Bailout("EffectGraphVisitor::VisitDoWhileNode");
+  EffectGraphVisitor for_body(owner(), temp_index());
+  node->body()->Visit(&for_body);
+  TestGraphVisitor for_test(owner(), temp_index());
+  node->condition()->Visit(&for_test);
+  ASSERT(is_open());
+
+  // Tie do-while loop (test is after the body).
+  JoinEntryInstr* join = new JoinEntryInstr();
+  AddInstruction(join);
+  join->SetSuccessor(for_body.entry());
+  Instruction* body_exit = for_body.is_empty() ? join : for_body.exit();
+
+  if (body_exit != NULL) {
+    TargetEntryInstr* target_entry = new TargetEntryInstr();
+    target_entry->SetSuccessor(for_test.entry());
+    body_exit->SetSuccessor(target_entry);
+  }
+
+  *for_test.true_successor_address() = join;
+  exit_ = *for_test.false_successor_address() = new TargetEntryInstr();
 }
 
 
@@ -960,6 +983,10 @@ void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
 
 
 void FlowGraphBuilder::BuildGraph() {
+  if (FLAG_print_ast) {
+    // Print the function ast before IL generation.
+    AstPrinter::PrintFunctionNodes(parsed_function_);
+  }
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);

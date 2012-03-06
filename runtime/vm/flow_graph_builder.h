@@ -209,11 +209,11 @@ class TestGraphVisitor : public EffectGraphVisitor {
     return false_successor_address_ != NULL;
   }
 
-  TargetEntryInstr** true_successor_address() const {
+  BlockEntryInstr** true_successor_address() const {
     ASSERT(can_be_true());
     return true_successor_address_;
   }
-  TargetEntryInstr** false_successor_address() const {
+  BlockEntryInstr** false_successor_address() const {
     ASSERT(can_be_false());
     return false_successor_address_;
   }
@@ -231,8 +231,8 @@ class TestGraphVisitor : public EffectGraphVisitor {
   }
 
   // Output parameters.
-  TargetEntryInstr** true_successor_address_;
-  TargetEntryInstr** false_successor_address_;
+  BlockEntryInstr** true_successor_address_;
+  BlockEntryInstr** false_successor_address_;
 };
 
 }  // namespace dart
