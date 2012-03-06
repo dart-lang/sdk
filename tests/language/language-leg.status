@@ -29,7 +29,6 @@ SyntaxTest/33: Fail
 SyntaxTest/47: Fail
 
 # Compilation errors.
-Arithmetic2Test: Fail # map not implemented
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
@@ -76,7 +75,6 @@ ListTest: Fail # named constructors with type arguments are not implemented
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
-MapLiteral3Test: Fail # map not implemented
 MapLiteral4Test: Fail # map not implemented
 MapLiteralTest: Fail # Unexpected token ','
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
@@ -92,8 +90,6 @@ NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 NonParameterizedFactory2Test: Fail # named constructors with type arguments are not implemented
 NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
-ObjectDynamicMethodTest: Fail # map not implemented
-OrderedMapsTest: Fail # map not implemented
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
 Prefix10Test: Fail # lib11 is not a type
@@ -110,7 +106,6 @@ ResourceTest: Fail # #resource tag not recognized - issue 1807
 StatementTest: Fail # switch cases are not implemented
 StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
-StringInterpolate2Test: Fail # map not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
@@ -231,6 +226,8 @@ Library5NegativeTest: Fail, OK # Negative language test.
 Library6NegativeTest: Fail, OK # Negative language test.
 ListLiteral1NegativeTest: Fail, OK # Negative language test.
 ListLiteral2NegativeTest: Fail, OK # Negative language test.
+MapLiteral1NegativeTest: Fail, OK # Negative language test.
+MapLiteral2NegativeTest: Fail, OK # Negative language test.
 NewExpressionTypeArgsFrogTest/02: Fail, OK # Negative language test.
 NonConstSuperNegativeTest: Fail, OK # Negative language test.
 NumberIdentifierNegativeTest: Fail, OK # Negative language test.
