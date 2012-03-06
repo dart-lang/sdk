@@ -69,6 +69,21 @@ void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
 }
 
 
+void FlowGraphCompiler::VisitCopyTemp(CopyTempComp* comp) {
+  // Index is a stack index.  Semantics is to produce a duplicate of the
+  // temp at index.
+  __ movq(RAX, Address(RSP, comp->index() * (-kWordSize)));
+}
+
+
+void FlowGraphCompiler::VisitSetTemp(SetTempComp* comp) {
+  // Index is a stack index.  Semantics is to store a (copy of) the TOS in
+  // the temp at index.
+  __ movq(RAX, Address(RSP, 0));
+  __ movq(Address(RSP, comp->index() * (-kWordSize)), RAX);
+}
+
+
 void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
   Bailout("AssertAssignableComp");
 }

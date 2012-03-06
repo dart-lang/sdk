@@ -98,6 +98,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
  private:
+  // Specify a value as the final result.  Does nothing in an effect context
+  // but is normally overridden by subclasses.
+  virtual void ReturnValue(Value* value) { }
+
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.
   virtual void ReturnComputation(Computation* computation) {
@@ -217,13 +221,13 @@ class TestGraphVisitor : public EffectGraphVisitor {
  private:
   // Construct and concatenate a Branch instruction to this graph fragment.
   // Closes the fragment and sets the output parameters.
-  void BranchOnValue(Value* value);
+  void ReturnValue(Value* value);
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and branches on its value.
   virtual void ReturnComputation(Computation* computation) {
     AddInstruction(new BindInstr(temp_index(), computation));
-    BranchOnValue(new TempVal(temp_index()));
+    ReturnValue(new TempVal(temp_index()));
   }
 
   // Output parameters.

@@ -20,6 +20,8 @@ class LocalVariable;
 //
 // <Computation> ::=
 //   <Value>
+// | CopyTemp <int>
+// | SetTemp <int>
 // | AssertAssignable <Value> <AbstractType>
 // | InstanceCall <AstNode> <String> <Value> ...
 // | StaticCall <StaticCallNode> <Value> ...
@@ -49,6 +51,8 @@ class LocalVariable;
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
   FOR_EACH_VALUE(M)                                                            \
+  M(CopyTemp, CopyTempComp)                                                    \
+  M(SetTemp, SetTempComp)                                                      \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(InstanceCall, InstanceCallComp)                                            \
   M(StaticCall, StaticCallComp)                                                \
@@ -140,6 +144,46 @@ class ConstantVal: public Value {
 #undef DECLARE_VALUE
 
 
+// A computation that produces a copy of a (random-access) temporary.  The
+// index is relative to the last temporary allocated (e.g., the last
+// temporary is index 0, the one before that is -1, etc.).  This instruction
+// is used in the non-optimizing backend and compiled away in the optimizing
+// backend.
+class CopyTempComp : public Computation {
+ public:
+  explicit CopyTempComp(intptr_t index) : index_(index) { }
+
+  DECLARE_COMPUTATION(CopyTemp)
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CopyTempComp);
+};
+
+
+// A computation that assigns (a duplicate of) the last allocated temporary
+// to a random-access already allocated temporary.  The index is relative to
+// the last temporary allocated (e.g., the last temporary is index 0, the
+// one before that is -1, etc.).  This instruction is used in the
+// non-optimizing backend and compiled away in the optimizing backend.
+class SetTempComp : public Computation {
+ public:
+  explicit SetTempComp(intptr_t index) : index_(index) { }
+
+  DECLARE_COMPUTATION(SetTemp)
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetTempComp);
+};
+
+
 class AssertAssignableComp : public Computation {
  public:
   AssertAssignableComp(Value* value, const AbstractType& type)
@@ -160,12 +204,14 @@ class AssertAssignableComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(AstNode* node,
+  InstanceCallComp(intptr_t node_id,
+                   intptr_t token_index,
                    const String& function_name,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
         function_name_(function_name),
         arguments_(arguments),
         argument_names_(argument_names),
@@ -177,10 +223,8 @@ class InstanceCallComp : public Computation {
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
   const String& function_name() const { return function_name_; }
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
@@ -188,7 +232,8 @@ class InstanceCallComp : public Computation {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
  private:
-  const AstNode& ast_node_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
   const String& function_name_;
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
