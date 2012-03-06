@@ -202,6 +202,7 @@ TypeVariableBoundsTest/01: Fail  # issue 1900
 
 [ $component == dartium ]
 # TODO: These need to be retriaged.
+DisablePrivacyTest: Skip
 RichardsTest: Fail
 TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
