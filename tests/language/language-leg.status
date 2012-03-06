@@ -107,7 +107,6 @@ Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 RegExpTest: Fail # named constructors with type arguments are not implemented
 ResourceTest: Fail # #resource tag not recognized - issue 1807
-StackTraceTest: Fail # SsaBuilder: throw without expression not implemented
 StatementTest: Fail # switch cases are not implemented
 StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
@@ -125,7 +124,6 @@ SwitchTest: Fail # switch cases are not implemented
 TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
 ToplevelCollision2Test/none: Fail # duplicate definition
-TryCatch3Test: Fail # Internal Error: Cannot find value
 TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
