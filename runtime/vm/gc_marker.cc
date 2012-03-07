@@ -240,10 +240,11 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
                                      MarkingVisitor* visitor) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  for (;;) {
+  while (true) {
     WeakReference* queue = state->delayed_weak_references();
     if (queue == NULL) {
-      break;
+      // The delay queue is empty therefore no clean-up is required.
+      return;
     }
     state->set_delayed_weak_references(NULL);
     while (queue != NULL) {
