@@ -7,10 +7,6 @@
 dom/HTMLElementTest: Fail # named constructors with type arguments are not implemented
 dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
 dom/WrapperTest: Fail # Expect.stringEquals(expected: <HTMLCanvasElement>", <null>) fails
-
-# Bad generated code due to unnamed closure
-dom/TypingTest: Fail # CONSOLE MESSAGE: line 2708: Uncaught SyntaxError: Unexpected token =
-dom/NativeGCTest: Fail # CONSOLE MESSAGE: line 3010: Uncaught SyntaxError: Unexpected token =
 dom/EventsTest: Fail # CONSOLE MESSAGE: line 7608: Uncaught TypeError: Cannot read property 'is$ExpectException' of undefined
 
 # DOM can return null or undefined
