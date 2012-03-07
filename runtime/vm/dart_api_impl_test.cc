@@ -2170,7 +2170,6 @@ TEST_CASE(FieldAccess) {
       "}\n";
 
   // Shared setup.
-  Dart_Handle result;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Fields"));
   EXPECT_VALID(cls);
@@ -2181,7 +2180,6 @@ TEST_CASE(FieldAccess) {
                                            NULL);
   EXPECT_VALID(instance);
   Dart_Handle name;
-  int64_t value = 0;
 
   // Instance field.
   name = Dart_NewString("instance_fld");
