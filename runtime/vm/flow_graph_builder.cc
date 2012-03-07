@@ -327,21 +327,29 @@ void EffectGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
     //   t1 <- ... receiver ...
     //   t2 <- ... index ...
     const Smi& placeholder = Smi::ZoneHandle(Smi::New(0));
-    AddInstruction(new BindInstr(temp_index(), new ConstantVal(placeholder)));
+    const int placeholder_index = temp_index();
+    AddInstruction(new BindInstr(placeholder_index,
+                                 new ConstantVal(placeholder)));
+
     ArgumentGraphVisitor for_array(owner(), temp_index() + 1);
     node->array()->Visit(&for_array);
     Append(for_array);
+    ASSERT(for_array.value()->IsTemp());
+    const int array_index = for_array.value()->AsTemp()->index();
+
     ArgumentGraphVisitor for_index(owner(), for_array.temp_index());
     node->index()->Visit(&for_index);
     Append(for_index);
+    ASSERT(for_index.value()->IsTemp());
+    const int index_index = for_index.value()->AsTemp()->index();
 
     // Duplicate the receiver and index values, load the value.
-    //   t3 <- Copy(t1)
-    //   t4 <- Copy(t2)
+    //   t3 <- Pick(t1)
+    //   t4 <- Pick(t2)
     //   t3 <- InstanceCall([], t3, t4)
     int next_index = for_index.temp_index();
-    AddInstruction(new BindInstr(next_index, new CopyTempComp(-1)));
-    AddInstruction(new BindInstr(next_index + 1, new CopyTempComp(-1)));
+    AddInstruction(new PickTempInstr(next_index, array_index));
+    AddInstruction(new PickTempInstr(next_index + 1, index_index));
     ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
     arguments->Add(new TempVal(next_index));
     arguments->Add(new TempVal(next_index + 1));
@@ -356,7 +364,7 @@ void EffectGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
     //   t0 := t3
     //   t4 <- #1
     //   t3 <- InstanceCall(op, t3, t4)
-    AddInstruction(new DoInstr(new SetTempComp(-3)));
+    AddInstruction(new TuckTempInstr(placeholder_index, next_index));
     const Smi& one = Smi::ZoneHandle(Smi::New(1));
     AddInstruction(new BindInstr(next_index + 1, new ConstantVal(one)));
     arguments = new ZoneGrowableArray<Value*>(2);
@@ -823,16 +831,6 @@ void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
 }
 
 
-void FlowGraphPrinter::VisitCopyTemp(CopyTempComp* comp) {
-  OS::Print("CopyTemp(%d)", comp->index());
-}
-
-
-void FlowGraphPrinter::VisitSetTemp(SetTempComp* comp) {
-  OS::Print("SetTemp(%d)", comp->index());
-}
-
-
 void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
   OS::Print("AssertAssignable(");
   comp->value()->Accept(this);
@@ -947,6 +945,16 @@ void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
 
 void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
   OS::Print("%2d: [target]", instr->block_number());
+}
+
+
+void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
+  OS::Print("    t%d <- Pick(t%d)", instr->destination(), instr->source());
+}
+
+
+void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
+  OS::Print("    t%d := t%d", instr->destination(), instr->source());
 }
 
 

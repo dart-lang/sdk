@@ -20,8 +20,6 @@ class LocalVariable;
 //
 // <Computation> ::=
 //   <Value>
-// | CopyTemp <int>
-// | SetTemp <int>
 // | AssertAssignable <Value> <AbstractType>
 // | InstanceCall <AstNode> <String> <Value> ...
 // | StaticCall <StaticCallNode> <Value> ...
@@ -51,8 +49,6 @@ class LocalVariable;
 // (including the values) typename and classname.
 #define FOR_EACH_COMPUTATION(M)                                                \
   FOR_EACH_VALUE(M)                                                            \
-  M(CopyTemp, CopyTempComp)                                                    \
-  M(SetTemp, SetTempComp)                                                      \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(InstanceCall, InstanceCallComp)                                            \
   M(StaticCall, StaticCallComp)                                                \
@@ -142,46 +138,6 @@ class ConstantVal: public Value {
 };
 
 #undef DECLARE_VALUE
-
-
-// A computation that produces a copy of a (random-access) temporary.  The
-// index is relative to the last temporary allocated (e.g., the last
-// temporary is index 0, the one before that is -1, etc.).  This instruction
-// is used in the non-optimizing backend and compiled away in the optimizing
-// backend.
-class CopyTempComp : public Computation {
- public:
-  explicit CopyTempComp(intptr_t index) : index_(index) { }
-
-  DECLARE_COMPUTATION(CopyTemp)
-
-  intptr_t index() const { return index_; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(CopyTempComp);
-};
-
-
-// A computation that assigns (a duplicate of) the last allocated temporary
-// to a random-access already allocated temporary.  The index is relative to
-// the last temporary allocated (e.g., the last temporary is index 0, the
-// one before that is -1, etc.).  This instruction is used in the
-// non-optimizing backend and compiled away in the optimizing backend.
-class SetTempComp : public Computation {
- public:
-  explicit SetTempComp(intptr_t index) : index_(index) { }
-
-  DECLARE_COMPUTATION(SetTemp)
-
-  intptr_t index() const { return index_; }
-
- private:
-  const intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetTempComp);
-};
 
 
 class AssertAssignableComp : public Computation {
@@ -492,11 +448,14 @@ class InstanceSetterComp : public Computation {
 
 // Instructions.
 //
-// <Instruction> ::= Do <Computation> <Instruction>
+// <Instruction> ::= JoinEntry <Instruction>
+//                 | TargetEntry <Instruction>
+//                 | PickTemp <int> <int> <Instruction>
+//                 | TuckTemp <int> <int> <Instruction>
+//                 | Do <Computation> <Instruction>
 //                 | Bind <int> <Computation> <Instruction>
 //                 | Return <Value>
 //                 | Branch <Value> <Instruction> <Instruction>
-//                 | Empty <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -504,10 +463,12 @@ class InstanceSetterComp : public Computation {
 #define FOR_EACH_INSTRUCTION(M)                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
+  M(PickTemp)                                                                  \
+  M(TuckTemp)                                                                  \
   M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Return)                                                                    \
-  M(Branch)
+  M(Branch)                                                                    \
 
 
 // Forward declarations for Instruction classes.
@@ -622,6 +583,74 @@ class TargetEntryInstr : public BlockEntryInstr {
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+// The non-optimizing compiler assumes that there is exactly one use of
+// every temporary so they can be deallocated at their use.  Some AST nodes,
+// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
+// of the values expr0 and expr1).
+//
+// PickTemp is used to name (with 'destination') a copy of a live temporary
+// (named 'source') without counting as the use of the source.
+class PickTempInstr : public Instruction {
+ public:
+  PickTempInstr(intptr_t dst, intptr_t src)
+      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(PickTemp)
+
+  intptr_t destination() const { return destination_; }
+  intptr_t source() const { return source_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  const intptr_t destination_;
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
+};
+
+
+// The non-optimizing compiler assumes that temporary definitions and uses
+// obey a stack discipline, so they can be allocated and deallocated with
+// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
+// (the value expr+1 is produced after the value of expr, and also consumed
+// after it).
+//
+// We 'preallocate' temporaries (named with 'destination') such as the one
+// for expr+1 and use TuckTemp to mutate them by overwriting them with a
+// copy of a temporary (named with 'source').
+class TuckTempInstr : public Instruction {
+ public:
+  TuckTempInstr(intptr_t dst, intptr_t src)
+      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(TuckTemp)
+
+  intptr_t destination() const { return destination_; }
+  intptr_t source() const { return source_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  const intptr_t destination_;
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
 };
 
 

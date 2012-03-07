@@ -69,21 +69,6 @@ void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
 }
 
 
-void FlowGraphCompiler::VisitCopyTemp(CopyTempComp* comp) {
-  // Index is a stack index.  Semantics is to produce a duplicate of the
-  // temp at index.
-  __ movq(RAX, Address(RSP, comp->index() * (-kWordSize)));
-}
-
-
-void FlowGraphCompiler::VisitSetTemp(SetTempComp* comp) {
-  // Index is a stack index.  Semantics is to store a (copy of) the TOS in
-  // the temp at index.
-  __ movq(RAX, Address(RSP, 0));
-  __ movq(Address(RSP, comp->index() * (-kWordSize)), RAX);
-}
-
-
 void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
   Bailout("AssertAssignableComp");
 }
@@ -282,6 +267,28 @@ void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
 
 void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
   // Since we don't handle branching control flow yet, there is nothing to do.
+}
+
+
+void FlowGraphCompiler::VisitPickTemp(PickTempInstr* instr) {
+  // Semantics is to copy a stack-allocated temporary to the top of stack.
+  // Destination index d is assumed the new top of stack after the
+  // operation, so d-1 is the current top of stack and so d-s-1 is the
+  // offset to source index s.
+  intptr_t offset = instr->destination() - instr->source() - 1;
+  ASSERT(offset >= 0);
+  __ pushq(Address(RSP, offset * kWordSize));
+}
+
+
+void FlowGraphCompiler::VisitTuckTemp(TuckTempInstr* instr) {
+  // Semantics is to assign to a stack-allocated temporary a copy of the top
+  // of stack.  Source index s is assumed the top of stack, s-d is the
+  // offset to destination index d.
+  intptr_t offset = instr->source() - instr->destination();
+  ASSERT(offset >= 0);
+  __ movq(RAX, Address(RSP, 0));
+  __ movq(Address(RSP, offset * kWordSize), RAX);
 }
 
 
