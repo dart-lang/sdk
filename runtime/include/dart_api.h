@@ -1768,7 +1768,7 @@ typedef enum {
   kLibraryTag = 0,
   kImportTag,
   kSourceTag,
-  kCanonicalizeUrl,
+  kCanonicalizeUrl
 } Dart_LibraryTag;
 
 // TODO(turnidge): Document.
