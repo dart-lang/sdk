@@ -390,8 +390,10 @@ const char* BigintOperations::ToDecimalCString(
   Bigint& remainder = Bigint::Handle();
   while (!rest.IsZero()) {
     DivideRemainder(rest, divisor, &quotient, &remainder);
-    ASSERT(remainder.Length() == 1);
-    intptr_t part = static_cast<intptr_t>(remainder.GetChunkAt(0));
+    ASSERT(remainder.Length() <= 1);
+    intptr_t part = (remainder.Length() == 1)
+        ? static_cast<intptr_t>(remainder.GetChunkAt(0))
+        : 0;
     for (int i = 0; i < kPowerOfTen; i++) {
       result[result_pos++] = '0' + (part % 10);
       part /= 10;

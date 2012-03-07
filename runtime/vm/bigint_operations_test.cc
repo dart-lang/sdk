@@ -500,6 +500,14 @@ TEST_CASE(BigintDecStrings) {
         BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("291", str);
   }
+
+  {
+    const Bigint& bigint = Bigint::Handle(
+        BigintOperations::NewFromCString("100000000000000000000000000000000"));
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
+    EXPECT_STREQ("100000000000000000000000000000000", str);
+  }
 }
 
 
