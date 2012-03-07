@@ -14,7 +14,7 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
 
   DataTransferItemList get items() => _wrap(_ptr.items);
 
-  List get types() => _wrap(_ptr.types);
+  List<String> get types() => _wrap(_ptr.types);
 
   void clearData([String type = null]) {
     if (type === null) {
@@ -26,8 +26,9 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
     }
   }
 
-  String getData(String type) {
-    return _wrap(_ptr.getData(_unwrap(type)));
+  void getData(String type) {
+    _ptr.getData(_unwrap(type));
+    return;
   }
 
   bool setData(String type, String data) {

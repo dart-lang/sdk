@@ -55,12 +55,8 @@ class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
     return _wrap(_ptr.createConvolver());
   }
 
-  DelayNode createDelayNode([num maxDelayTime = null]) {
-    if (maxDelayTime === null) {
-      return _wrap(_ptr.createDelayNode());
-    } else {
-      return _wrap(_ptr.createDelayNode(_unwrap(maxDelayTime)));
-    }
+  DelayNode createDelayNode() {
+    return _wrap(_ptr.createDelayNode());
   }
 
   DynamicsCompressorNode createDynamicsCompressor() {

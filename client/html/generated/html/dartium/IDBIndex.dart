@@ -12,19 +12,12 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
 
   bool get unique() => _wrap(_ptr.unique);
 
-  IDBRequest count([var key_OR_range = null]) {
-    if (key_OR_range === null) {
+  IDBRequest count([IDBKeyRange range = null]) {
+    if (range === null) {
       return _wrap(_ptr.count());
     } else {
-      if (key_OR_range is IDBKeyRange) {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      } else {
-        if (key_OR_range is IDBKey) {
-          return _wrap(_ptr.count(_unwrap(key_OR_range)));
-        }
-      }
+      return _wrap(_ptr.count(_unwrap(range)));
     }
-    throw "Incorrect number or type of arguments";
   }
 
   IDBRequest getObject(IDBKey key) {

@@ -8,21 +8,21 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String align;
+  String alignment;
+
+  String direction;
 
   num endTime;
 
   String id;
 
-  int line;
+  int linePosition;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
-
-  int position;
 
   int size;
 
@@ -32,9 +32,9 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   String text;
 
-  final TextTrack track;
+  int textPosition;
 
-  String vertical;
+  final TextTrack track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

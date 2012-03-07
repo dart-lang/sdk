@@ -4,10 +4,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   Element get host() => _wrap(_ptr.host);
 
-  String get innerHTML() => _wrap(_ptr.innerHTML);
-
-  void set innerHTML(String value) { _ptr.innerHTML = _unwrap(value); }
-
   Element getElementById(String elementId) {
     return _wrap(_ptr.getElementById(_unwrap(elementId)));
   }

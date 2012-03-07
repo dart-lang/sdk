@@ -14,11 +14,11 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type]);
 
-  String getData(String type);
+  void getData(String type);
 
   bool setData(String type, String data);
 

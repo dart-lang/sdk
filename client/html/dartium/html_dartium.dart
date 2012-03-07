@@ -999,12 +999,8 @@ class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
     return _wrap(_ptr.createConvolver());
   }
 
-  DelayNode createDelayNode([num maxDelayTime = null]) {
-    if (maxDelayTime === null) {
-      return _wrap(_ptr.createDelayNode());
-    } else {
-      return _wrap(_ptr.createDelayNode(_unwrap(maxDelayTime)));
-    }
+  DelayNode createDelayNode() {
+    return _wrap(_ptr.createDelayNode());
   }
 
   DynamicsCompressorNode createDynamicsCompressor() {
@@ -5593,7 +5589,7 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
 
   DataTransferItemList get items() => _wrap(_ptr.items);
 
-  List get types() => _wrap(_ptr.types);
+  List<String> get types() => _wrap(_ptr.types);
 
   void clearData([String type = null]) {
     if (type === null) {
@@ -5605,8 +5601,9 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
     }
   }
 
-  String getData(String type) {
-    return _wrap(_ptr.getData(_unwrap(type)));
+  void getData(String type) {
+    _ptr.getData(_unwrap(type));
+    return;
   }
 
   bool setData(String type, String data) {
@@ -6169,22 +6166,6 @@ class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
 
 class _DOMURLImpl extends _DOMTypeBase implements DOMURL {
   _DOMURLImpl._wrap(ptr) : super._wrap(ptr);
-
-  String createObjectURL(var blob_OR_stream) {
-    if (blob_OR_stream is MediaStream) {
-      return _wrap(_ptr.createObjectURL(_unwrap(blob_OR_stream)));
-    } else {
-      if (blob_OR_stream is Blob) {
-        return _wrap(_ptr.createObjectURL(_unwrap(blob_OR_stream)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  void revokeObjectURL(String url) {
-    _ptr.revokeObjectURL(_unwrap(url));
-    return;
-  }
 }
 
 class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
@@ -6967,14 +6948,6 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode {
   _DynamicsCompressorNodeImpl._wrap(ptr) : super._wrap(ptr);
-
-  AudioParam get knee() => _wrap(_ptr.knee);
-
-  AudioParam get ratio() => _wrap(_ptr.ratio);
-
-  AudioParam get reduction() => _wrap(_ptr.reduction);
-
-  AudioParam get threshold() => _wrap(_ptr.threshold);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9496,19 +9469,12 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
 
   bool get unique() => _wrap(_ptr.unique);
 
-  IDBRequest count([var key_OR_range = null]) {
-    if (key_OR_range === null) {
+  IDBRequest count([IDBKeyRange range = null]) {
+    if (range === null) {
       return _wrap(_ptr.count());
     } else {
-      if (key_OR_range is IDBKeyRange) {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      } else {
-        if (key_OR_range is IDBKey) {
-          return _wrap(_ptr.count(_unwrap(key_OR_range)));
-        }
-      }
+      return _wrap(_ptr.count(_unwrap(range)));
     }
-    throw "Incorrect number or type of arguments";
   }
 
   IDBRequest getObject(IDBKey key) {
@@ -9624,19 +9590,12 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return _wrap(_ptr.clear());
   }
 
-  IDBRequest count([var key_OR_range = null]) {
-    if (key_OR_range === null) {
+  IDBRequest count([IDBKeyRange range = null]) {
+    if (range === null) {
       return _wrap(_ptr.count());
     } else {
-      if (key_OR_range is IDBKeyRange) {
-        return _wrap(_ptr.count(_unwrap(key_OR_range)));
-      } else {
-        if (key_OR_range is IDBKey) {
-          return _wrap(_ptr.count(_unwrap(key_OR_range)));
-        }
-      }
+      return _wrap(_ptr.count(_unwrap(range)));
     }
-    throw "Incorrect number or type of arguments";
   }
 
   IDBIndex createIndex(String name, String keyPath) {
@@ -11436,8 +11395,6 @@ class _MetadataImpl extends _DOMTypeBase implements Metadata {
   _MetadataImpl._wrap(ptr) : super._wrap(ptr);
 
   Date get modificationTime() => _wrap(_ptr.modificationTime);
-
-  int get size() => _wrap(_ptr.size);
 }
 
 class _MeterElementImpl extends _ElementImpl implements MeterElement {
@@ -17178,10 +17135,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   Element get host() => _wrap(_ptr.host);
 
-  String get innerHTML() => _wrap(_ptr.innerHTML);
-
-  void set innerHTML(String value) { _ptr.innerHTML = _unwrap(value); }
-
   Element getElementById(String elementId) {
     return _wrap(_ptr.getElementById(_unwrap(elementId)));
   }
@@ -17949,9 +17902,13 @@ class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
 class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
   _TextTrackCueImpl._wrap(ptr) : super._wrap(ptr);
 
-  String get align() => _wrap(_ptr.align);
+  String get alignment() => _wrap(_ptr.alignment);
 
-  void set align(String value) { _ptr.align = _unwrap(value); }
+  void set alignment(String value) { _ptr.alignment = _unwrap(value); }
+
+  String get direction() => _wrap(_ptr.direction);
+
+  void set direction(String value) { _ptr.direction = _unwrap(value); }
 
   num get endTime() => _wrap(_ptr.endTime);
 
@@ -17961,9 +17918,9 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
 
   void set id(String value) { _ptr.id = _unwrap(value); }
 
-  int get line() => _wrap(_ptr.line);
+  int get linePosition() => _wrap(_ptr.linePosition);
 
-  void set line(int value) { _ptr.line = _unwrap(value); }
+  void set linePosition(int value) { _ptr.linePosition = _unwrap(value); }
 
   EventListener get onenter() => _wrap(_ptr.onenter);
 
@@ -17976,10 +17933,6 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
   bool get pauseOnExit() => _wrap(_ptr.pauseOnExit);
 
   void set pauseOnExit(bool value) { _ptr.pauseOnExit = _unwrap(value); }
-
-  int get position() => _wrap(_ptr.position);
-
-  void set position(int value) { _ptr.position = _unwrap(value); }
 
   int get size() => _wrap(_ptr.size);
 
@@ -17997,11 +17950,11 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
 
   void set text(String value) { _ptr.text = _unwrap(value); }
 
+  int get textPosition() => _wrap(_ptr.textPosition);
+
+  void set textPosition(int value) { _ptr.textPosition = _unwrap(value); }
+
   TextTrack get track() => _wrap(_ptr.track);
-
-  String get vertical() => _wrap(_ptr.vertical);
-
-  void set vertical(String value) { _ptr.vertical = _unwrap(value); }
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
@@ -19704,10 +19657,6 @@ class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
   _WebKitNamedFlowImpl._wrap(ptr) : super._wrap(ptr);
 
   bool get overflow() => _wrap(_ptr.overflow);
-
-  NodeList getRegionsByContentNode(Node contentNode) {
-    return _wrap(_ptr.getRegionsByContentNode(_unwrap(contentNode)));
-  }
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
@@ -21446,7 +21395,7 @@ interface AudioContext {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode([num maxDelayTime]);
+  DelayNode createDelayNode();
 
   DynamicsCompressorNode createDynamicsCompressor();
 
@@ -22082,12 +22031,6 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
-
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -24409,11 +24352,11 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type]);
 
-  String getData(String type);
+  void getData(String type);
 
   bool setData(String type, String data);
 
@@ -24945,10 +24888,6 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
-
-  String createObjectURL(var blob_OR_stream);
-
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25419,14 +25358,6 @@ interface DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
-
-  final AudioParam knee;
-
-  final AudioParam ratio;
-
-  final AudioParam reduction;
-
-  final AudioParam threshold;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27118,7 +27049,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([IDBKeyRange range]);
 
   IDBRequest getObject(IDBKey key);
 
@@ -27180,7 +27111,7 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([IDBKeyRange range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
@@ -27889,6 +27820,12 @@ interface MediaController default _MediaControllerFactoryProvider {
 
 interface MediaElement extends Element {
 
+  static final int EOS_DECODE_ERR = 2;
+
+  static final int EOS_NETWORK_ERR = 1;
+
+  static final int EOS_NO_ERROR = 0;
+
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -27906,6 +27843,12 @@ interface MediaElement extends Element {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
+
+  static final int SOURCE_CLOSED = 0;
+
+  static final int SOURCE_ENDED = 2;
+
+  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -28253,8 +28196,6 @@ interface MetaElement extends Element {
 interface Metadata {
 
   final Date modificationTime;
-
-  final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32330,8 +32271,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   final Element host;
 
-  String innerHTML;
-
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -32889,21 +32828,21 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String align;
+  String alignment;
+
+  String direction;
 
   num endTime;
 
   String id;
 
-  int line;
+  int linePosition;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
-
-  int position;
 
   int size;
 
@@ -32913,9 +32852,9 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   String text;
 
-  final TextTrack track;
+  int textPosition;
 
-  String vertical;
+  final TextTrack track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -33056,6 +32995,8 @@ interface TouchList extends List<Touch> {
 // WARNING: Do not edit - generated code.
 
 interface TrackElement extends Element {
+
+  static final int ERROR = 3;
 
   static final int LOADED = 2;
 
@@ -34393,8 +34334,6 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitNamedFlow {
 
   final bool overflow;
-
-  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

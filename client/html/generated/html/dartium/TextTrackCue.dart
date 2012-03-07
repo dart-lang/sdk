@@ -2,9 +2,13 @@
 class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
   _TextTrackCueImpl._wrap(ptr) : super._wrap(ptr);
 
-  String get align() => _wrap(_ptr.align);
+  String get alignment() => _wrap(_ptr.alignment);
 
-  void set align(String value) { _ptr.align = _unwrap(value); }
+  void set alignment(String value) { _ptr.alignment = _unwrap(value); }
+
+  String get direction() => _wrap(_ptr.direction);
+
+  void set direction(String value) { _ptr.direction = _unwrap(value); }
 
   num get endTime() => _wrap(_ptr.endTime);
 
@@ -14,9 +18,9 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
 
   void set id(String value) { _ptr.id = _unwrap(value); }
 
-  int get line() => _wrap(_ptr.line);
+  int get linePosition() => _wrap(_ptr.linePosition);
 
-  void set line(int value) { _ptr.line = _unwrap(value); }
+  void set linePosition(int value) { _ptr.linePosition = _unwrap(value); }
 
   EventListener get onenter() => _wrap(_ptr.onenter);
 
@@ -29,10 +33,6 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
   bool get pauseOnExit() => _wrap(_ptr.pauseOnExit);
 
   void set pauseOnExit(bool value) { _ptr.pauseOnExit = _unwrap(value); }
-
-  int get position() => _wrap(_ptr.position);
-
-  void set position(int value) { _ptr.position = _unwrap(value); }
 
   int get size() => _wrap(_ptr.size);
 
@@ -50,11 +50,11 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
 
   void set text(String value) { _ptr.text = _unwrap(value); }
 
+  int get textPosition() => _wrap(_ptr.textPosition);
+
+  void set textPosition(int value) { _ptr.textPosition = _unwrap(value); }
+
   TextTrack get track() => _wrap(_ptr.track);
-
-  String get vertical() => _wrap(_ptr.vertical);
-
-  void set vertical(String value) { _ptr.vertical = _unwrap(value); }
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
