@@ -11,7 +11,8 @@ class ClientTestSuite extends StandardTestSuite {
       : super(configuration,
               "client",
               "client/tests/client",
-              ["client/tests/client/client.status"]);
+              ["client/tests/client/client.status",
+               "client/tests/client/client-leg.status"]);
 
   bool isTestFile(String filename) => filename.endsWith("_tests.dart") ||
       filename.endsWith("Test.dart");

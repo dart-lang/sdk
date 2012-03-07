@@ -1,0 +1,36 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix client
+
+[ $component == legium ]
+
+dom/HTMLElementTest: Fail # named constructors with type arguments are not implemented
+dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
+dom/WrapperTest: Fail # Expect.stringEquals(expected: <HTMLCanvasElement>", <null>) fails
+
+# Bad generated code due to unnamed closure
+dom/TypingTest: Fail # CONSOLE MESSAGE: line 2708: Uncaught SyntaxError: Unexpected token =
+dom/NativeGCTest: Fail # CONSOLE MESSAGE: line 3010: Uncaught SyntaxError: Unexpected token =
+dom/EventsTest: Fail # CONSOLE MESSAGE: line 7608: Uncaught TypeError: Cannot read property 'is$ExpectException' of undefined
+
+# DOM can return null or undefined
+dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
+dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
+dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
+
+# Missing constant map support
+dom/HiddenDom1Test: Fail # CompileTimeConstantEvaluator map not implemented
+dom/HiddenDom2Test: Fail # CompileTimeConstantEvaluator map not implemented
+html/html_tests: Fail # CompileTimeConstantEvaluator map not implemented
+
+# Missing JSON support
+samples/smoketest/dartWebBase_tests: Fail # cannot read dart:json
+dom/WindowOpenTest: Fail # cannot read dart:json
+dom/IsolatesTest: Fail # cannot read dart:json
+dom/IsolateLightTest: Fail # cannot read dart:json
+json/json_tests: Fail # cannot read dart:json
+
+# Missing Isolate support
+dom/DOMIsolatesTest: Fail # cannot read dart:isolate
