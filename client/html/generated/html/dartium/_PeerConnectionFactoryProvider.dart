@@ -4,5 +4,5 @@
 
 class _PeerConnectionFactoryProvider {
   factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
-      _wrap(new dom.PeerConnection(serverConfiguration, signalingCallback));
+      _wrap(new dom.PeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
 }

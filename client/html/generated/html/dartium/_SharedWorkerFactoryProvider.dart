@@ -4,5 +4,5 @@
 
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name = null]) =>
-      _wrap(new dom.SharedWorker(scriptURL, name));
+      _wrap(new dom.SharedWorker(_unwrap(scriptURL), _unwrap(name)));
 }

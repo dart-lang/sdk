@@ -4,5 +4,5 @@
 
 class _OptionElementFactoryProvider {
   factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
-      _wrap(new dom.OptionElement(data, value, defaultSelected, selected));
+      _wrap(new dom.HTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
 }

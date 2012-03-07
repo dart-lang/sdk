@@ -4,5 +4,5 @@
 
 class _AudioElementFactoryProvider {
   factory AudioElement([String src = null]) =>
-      _wrap(new dom.AudioElement(src));
+      _wrap(new dom.HTMLAudioElement(_unwrap(src)));
 }

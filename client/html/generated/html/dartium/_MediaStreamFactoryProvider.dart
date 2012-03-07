@@ -4,5 +4,5 @@
 
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
-      _wrap(new dom.MediaStream(audioTracks, videoTracks));
+      _wrap(new dom.MediaStream(_unwrap(audioTracks), _unwrap(videoTracks)));
 }

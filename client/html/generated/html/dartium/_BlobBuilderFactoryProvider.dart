@@ -4,5 +4,5 @@
 
 class _BlobBuilderFactoryProvider {
   factory BlobBuilder() =>
-      _wrap(new dom.BlobBuilder());
+      _wrap(new dom.WebKitBlobBuilder());
 }

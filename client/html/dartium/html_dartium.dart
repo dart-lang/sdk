@@ -20884,7 +20884,7 @@ class _XSLTProcessorImpl extends _DOMTypeBase implements XSLTProcessor {
 
 class _AudioElementFactoryProvider {
   factory AudioElement([String src = null]) =>
-      _wrap(new dom.AudioElement(src));
+      _wrap(new dom.HTMLAudioElement(_unwrap(src)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20892,7 +20892,7 @@ class _AudioElementFactoryProvider {
 
 class _BlobBuilderFactoryProvider {
   factory BlobBuilder() =>
-      _wrap(new dom.BlobBuilder());
+      _wrap(new dom.WebKitBlobBuilder());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20924,7 +20924,7 @@ class _DOMURLFactoryProvider {
 
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) =>
-      _wrap(new dom.EventSource(scriptUrl));
+      _wrap(new dom.EventSource(_unwrap(scriptUrl)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20956,7 +20956,7 @@ class _MediaControllerFactoryProvider {
 
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
-      _wrap(new dom.MediaStream(audioTracks, videoTracks));
+      _wrap(new dom.MediaStream(_unwrap(audioTracks), _unwrap(videoTracks)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20972,7 +20972,7 @@ class _MessageChannelFactoryProvider {
 
 class _OptionElementFactoryProvider {
   factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
-      _wrap(new dom.OptionElement(data, value, defaultSelected, selected));
+      _wrap(new dom.HTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20980,7 +20980,7 @@ class _OptionElementFactoryProvider {
 
 class _PeerConnectionFactoryProvider {
   factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
-      _wrap(new dom.PeerConnection(serverConfiguration, signalingCallback));
+      _wrap(new dom.PeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20988,7 +20988,7 @@ class _PeerConnectionFactoryProvider {
 
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) =>
-      _wrap(new dom.ShadowRoot(host));
+      _wrap(new dom.ShadowRoot(_unwrap(host)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20996,7 +20996,7 @@ class _ShadowRootFactoryProvider {
 
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name = null]) =>
-      _wrap(new dom.SharedWorker(scriptURL, name));
+      _wrap(new dom.SharedWorker(_unwrap(scriptURL), _unwrap(name)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21004,7 +21004,7 @@ class _SharedWorkerFactoryProvider {
 
 class _TextTrackCueFactoryProvider {
   factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) =>
-      _wrap(new dom.TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit));
+      _wrap(new dom.TextTrackCue(_unwrap(id), _unwrap(startTime), _unwrap(endTime), _unwrap(text), _unwrap(settings), _unwrap(pauseOnExit)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21012,7 +21012,7 @@ class _TextTrackCueFactoryProvider {
 
 class _WorkerFactoryProvider {
   factory Worker(String scriptUrl) =>
-      _wrap(new dom.Worker(scriptUrl));
+      _wrap(new dom.Worker(_unwrap(scriptUrl)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

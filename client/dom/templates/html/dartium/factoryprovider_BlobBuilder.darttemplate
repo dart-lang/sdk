@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _ShadowRootFactoryProvider {
-  factory ShadowRoot(Element host) =>
-      _wrap(new dom.ShadowRoot(_unwrap(host)));
+class $FACTORYPROVIDER {
+  factory $CONSTRUCTOR($PARAMETERS) =>
+      _wrap(new dom.WebKit$CONSTRUCTOR($ARGUMENTS));
 }

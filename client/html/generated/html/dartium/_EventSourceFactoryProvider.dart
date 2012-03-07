@@ -4,5 +4,5 @@
 
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) =>
-      _wrap(new dom.EventSource(scriptUrl));
+      _wrap(new dom.EventSource(_unwrap(scriptUrl)));
 }

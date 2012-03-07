@@ -1251,7 +1251,18 @@ class HtmlDartiumInterfaceGenerator(object):
         CONSTRUCTOR=interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
         NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
-        ARGUMENTS=constructor_info.ParametersAsArgumentList())
+        ARGUMENTS=self._UnwrappedParameters(constructor_info,
+                                            len(constructor_info.arg_infos)))
+
+  def _UnwrappedParameters(self, operation_info, length):
+    """Returns string for an argument list that unwraps first |length|
+    parameters."""
+    def UnwrapArgInfo(arg_info):
+      (name, type, value) = arg_info
+      # TODO(sra): Type dependent unwrapping.
+      return '_unwrap(%s)' % name
+
+    return ', '.join(map(UnwrapArgInfo, operation_info.arg_infos[:length]))
 
   def _BaseClassName(self, interface):
     if not interface.parents:
@@ -1585,22 +1596,10 @@ class HtmlDartiumInterfaceGenerator(object):
       indent: an indentation string for generated code.
       operation: the IDLOperation to call.
     """
-    # TODO(sra): Do we need to distinguish calling with missing optional
-    # arguments from passing 'null' which is represented as 'undefined'?
-    def UnwrapArgExpression(name, type):
-      # TODO: Type specific unwrapping.
-      return '_unwrap(%s)' % (name)
+    argument_expressions = self._UnwrappedParameters(
+        info,
+        len(operation.arguments))  # Just the parameters this far.
 
-    def ArgNameAndUnwrapper(arg_info, overload_arg):
-      (name, type, value) = arg_info
-      return (name, UnwrapArgExpression(name, type))
-
-    names_and_unwrappers = [ArgNameAndUnwrapper(info.arg_infos[i], arg)
-                            for (i, arg) in enumerate(operation.arguments)]
-    unwrap_args = [unwrap_arg for (_, unwrap_arg) in names_and_unwrappers]
-    arg_names = ['_unwrap(%s)' % name for (name, _) in names_and_unwrappers]
-
-    argument_expressions = ', '.join(arg_names)
     if info.type_name != 'void':
       # We could place the logic for handling Document directly in _wrap
       # but we chose to place it here so that bugs in the wrapper and

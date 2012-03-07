@@ -4,5 +4,5 @@
 
 class _TextTrackCueFactoryProvider {
   factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) =>
-      _wrap(new dom.TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit));
+      _wrap(new dom.TextTrackCue(_unwrap(id), _unwrap(startTime), _unwrap(endTime), _unwrap(text), _unwrap(settings), _unwrap(pauseOnExit)));
 }

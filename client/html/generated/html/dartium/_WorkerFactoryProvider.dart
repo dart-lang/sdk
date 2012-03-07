@@ -4,5 +4,5 @@
 
 class _WorkerFactoryProvider {
   factory Worker(String scriptUrl) =>
-      _wrap(new dom.Worker(scriptUrl));
+      _wrap(new dom.Worker(_unwrap(scriptUrl)));
 }
