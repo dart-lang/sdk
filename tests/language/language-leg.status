@@ -214,8 +214,6 @@ InterfaceCycleNegativeTest: Fail, OK # Negative language test.
 InterfaceFactory3NegativeTest: Fail, OK # Negative language test.
 InterfaceFactoryConstructorNegativeTest: Fail, OK # Negative language test.
 InterfaceStaticMethodNegativeTest: Fail, OK # Negative language test.
-Library5NegativeTest: Fail, OK # Negative language test.
-Library6NegativeTest: Fail, OK # Negative language test.
 ListLiteral1NegativeTest: Fail, OK # Negative language test.
 ListLiteral2NegativeTest: Fail, OK # Negative language test.
 MapLiteral1NegativeTest: Fail, OK # Negative language test.
