@@ -1684,6 +1684,53 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
                                            Dart_Handle* arguments);
 
 /**
+ * Gets the value of a field.
+ *
+ * The 'container' parameter may actually be an object, class, or
+ * library.  If 'container' is an object, then this function will
+ * access an instance field.  If 'container' is a class, then this
+ * function will access a static field.  If 'container' is a library,
+ * then this function will access a top-level variable.
+ *
+ * This function ignores field visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param container An object, class, or library.
+ * \param name A field name
+ *
+ * \return If no error occurs, then the value of the field is
+ *   returned. Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container,
+                                      Dart_Handle name);
+
+/**
+ * Sets the value of a field.
+ *
+ * The 'container' parameter may actually be an object, class, or
+ * library.  If 'container' is an object, then this function will
+ * access an instance field.  If 'container' is a class, then this
+ * function will access a static field.  If 'container' is a library,
+ * then this function will access a top-level variable.
+ *
+ * This function ignores field visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param container An object, class, or library.
+ * \param name A field name
+ * \param value The new field value
+ *
+ * \return A valid handle if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
+                                      Dart_Handle name,
+                                      Dart_Handle value);
+
+/**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Gets the value of a static field.
  *
  * May generate an unhandled exception error.
@@ -1691,9 +1738,11 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
  * \return If no error occurs, then the value of the field is
  *   returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls, Dart_Handle name);
-
+DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
+                                            Dart_Handle name);
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Sets the value of a static field.
  *
  * May generate an unhandled exception error.
@@ -1705,6 +1754,8 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
                                             Dart_Handle value);
 
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Gets the value of an instance field.
  *
  * May generate an unhandled exception error.
@@ -1715,6 +1766,8 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
 DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
                                               Dart_Handle name);
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Sets the value of an instance field.
  *
  * May generate an unhandled exception error.

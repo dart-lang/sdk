@@ -576,13 +576,16 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<InternalByteArray>();
   object_store->set_internal_byte_array_class(cls);
-  cls.set_name(String::Handle(core_lib.PrivateName("_InternalByteArray")));
+  String& public_class_name = String::Handle();
+  public_class_name = String::New("_InternalByteArray");
+  cls.set_name(String::Handle(core_lib.PrivateName(public_class_name)));
   cls.set_script(script);
   core_lib.AddClass(cls);
 
   cls = Class::New<ExternalByteArray>();
   object_store->set_external_byte_array_class(cls);
-  cls.set_name(String::Handle(core_lib.PrivateName("_ExternalByteArray")));
+  public_class_name = String::New("_ExternalByteArray");
+  cls.set_name(String::Handle(core_lib.PrivateName(public_class_name)));
   cls.set_script(script);
   core_lib.AddClass(cls);
 
@@ -4548,6 +4551,61 @@ RawObject* Library::LookupLocalObject(const String& name) const {
 }
 
 
+static bool ShouldBePrivate(const String& name) {
+  return
+      (name.Length() >= 1 &&
+       name.CharAt(0) == '_') ||
+      (name.Length() >= 5 &&
+       (name.CharAt(4) == '_' &&
+        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' &&
+        name.CharAt(2) == 't' &&
+        name.CharAt(3) == ':'));
+}
+
+
+RawField* Library::LookupLocalField(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  Field& field = Field::Handle(isolate, Field::null());
+  Object& obj = Object::Handle(isolate, Object::null());
+  obj = LookupLocalObject(name);
+  if (obj.IsNull() && ShouldBePrivate(name)) {
+    String& private_name = String::Handle(isolate, PrivateName(name));
+    obj = LookupLocalObject(private_name);
+  }
+  if (!obj.IsNull()) {
+    if (obj.IsField()) {
+      field ^= obj.raw();
+      return field.raw();
+    }
+  }
+
+  // No field found.
+  return Field::null();
+}
+
+
+RawFunction* Library::LookupLocalFunction(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  Function& function = Function::Handle(isolate, Function::null());
+  Object& obj = Object::Handle(isolate, Object::null());
+  obj = LookupLocalObject(name);
+  if (obj.IsNull() && ShouldBePrivate(name)) {
+    String& private_name = String::Handle(isolate, PrivateName(name));
+    obj = LookupLocalObject(private_name);
+  }
+  if (!obj.IsNull()) {
+    if (obj.IsFunction()) {
+      function ^= obj.raw();
+      return function.raw();
+    }
+  }
+
+  // No function found.
+  return Function::null();
+}
+
+
 RawObject* Library::LookupObjectFiltered(const String& name,
                                          const Library& filter_lib) const {
   // First check if name is found in the local scope of the library.
@@ -4963,11 +5021,11 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
-RawString* Library::PrivateName(const char* name) {
-  ASSERT(name[0] == '_');
-  ASSERT(strchr(name, '@') == NULL);
+RawString* Library::PrivateName(const String& name) const {
+  ASSERT(ShouldBePrivate(name));
+  // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
-  str = String::New(name);
+  str ^= name.raw();
   str = String::Concat(str, String::Handle(this->private_key()));
   str = String::NewSymbol(str);
   return str.raw();

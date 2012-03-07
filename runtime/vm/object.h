@@ -1770,6 +1770,8 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawField* LookupLocalField(const String& name) const;
+  RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
@@ -1794,7 +1796,7 @@ class Library : public Object {
     raw_ptr()->native_entry_resolver_ = value;
   }
 
-  RawString* PrivateName(const char* name);
+  RawString* PrivateName(const String& name) const;
 
   void Register() const;
 

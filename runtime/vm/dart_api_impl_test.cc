@@ -2052,7 +2052,260 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
+
+static void TestFieldOk(Dart_Handle container,
+                        Dart_Handle name,
+                        bool final,
+                        const char* initial_value) {
+  Dart_Handle result;
+
+  // Make sure we have the right initial value.
+  result = Dart_GetField(container, name);
+  EXPECT_VALID(result);
+  const char* value = "";
+  EXPECT_VALID(Dart_StringToCString(result, &value));
+  EXPECT_STREQ(initial_value, value);
+
+  // Use a unique expected value.
+  static int counter = 0;
+  char buffer[256];
+  OS::SNPrint(buffer, 256, "Expected%d", ++counter);
+
+  // Try to change the field value.
+  result = Dart_SetField(container, name, Dart_NewString(buffer));
+  if (final) {
+    EXPECT(Dart_IsError(result));
+  } else {
+    EXPECT_VALID(result);
+  }
+
+  // Make sure we have the right final value.
+  result = Dart_GetField(container, name);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_StringToCString(result, &value));
+  if (final) {
+    EXPECT_STREQ(initial_value, value);
+  } else {
+    EXPECT_STREQ(buffer, value);
+  }
+}
+
+
+static void TestFieldNotFound(Dart_Handle container,
+                              Dart_Handle name) {
+  EXPECT(Dart_IsError(Dart_GetField(container, name)));
+  EXPECT(Dart_IsError(Dart_SetField(container, name, Dart_Null())));
+}
+
+
 TEST_CASE(FieldAccess) {
+  const char* kScriptChars =
+      "class BaseFields {\n"
+      "  BaseFields()\n"
+      "    : this.inherited_fld = 'inherited' {\n"
+      "  }\n"
+      "  var inherited_fld;\n"
+      "  static var non_inherited_fld;\n"
+      "}\n"
+      "\n"
+      "class Fields extends BaseFields {\n"
+      "  Fields()\n"
+      "    : this.instance_fld = 'instance',\n"
+      "      this._instance_fld = 'hidden instance',\n"
+      "      this.final_instance_fld = 'final instance',\n"
+      "      this._final_instance_fld = 'hidden final instance' {\n"
+      "    instance_getset_fld = 'instance getset';\n"
+      "    _instance_getset_fld = 'hidden instance getset';\n"
+      "  }\n"
+      "\n"
+      "  static Init() {\n"
+      "    static_fld = 'static';\n"
+      "    _static_fld = 'hidden static';\n"
+      "    static_getset_fld = 'static getset';\n"
+      "    _static_getset_fld = 'hidden static getset';\n"
+      "  }\n"
+      "\n"
+      "  var instance_fld;\n"
+      "  var _instance_fld;\n"
+      "  final final_instance_fld;\n"
+      "  final _final_instance_fld;\n"
+      "  static var static_fld;\n"
+      "  static var _static_fld;\n"
+      "  static final final_static_fld = 'final static';\n"
+      "  static final _final_static_fld = 'hidden final static';\n"
+      "\n"
+      "  get instance_getset_fld() { return _gs_fld1; }\n"
+      "  void set instance_getset_fld(var value) { _gs_fld1 = value; }\n"
+      "  get _instance_getset_fld() { return _gs_fld2; }\n"
+      "  void set _instance_getset_fld(var value) { _gs_fld2 = value; }\n"
+      "  var _gs_fld1;\n"
+      "  var _gs_fld2;\n"
+      "\n"
+      "  static get static_getset_fld() { return _gs_fld3; }\n"
+      "  static void set static_getset_fld(var value) { _gs_fld3 = value; }\n"
+      "  static get _static_getset_fld() { return _gs_fld4; }\n"
+      "  static void set _static_getset_fld(var value) { _gs_fld4 = value; }\n"
+      "  static var _gs_fld3;\n"
+      "  static var _gs_fld4;\n"
+      "}\n"
+      "var top_fld;\n"
+      "var _top_fld;\n"
+      "final final_top_fld = 'final top';\n"
+      "final _final_top_fld = 'hidden final top';\n"
+      "\n"
+      "get top_getset_fld() { return _gs_fld5; }\n"
+      "void set top_getset_fld(var value) { _gs_fld5 = value; }\n"
+      "get _top_getset_fld() { return _gs_fld6; }\n"
+      "void set _top_getset_fld(var value) { _gs_fld6 = value; }\n"
+      "var _gs_fld5;\n"
+      "var _gs_fld6;\n"
+      "\n"
+      "Fields test() {\n"
+      "  Fields.Init();\n"
+      "  top_fld = 'top';\n"
+      "  _top_fld = 'hidden top';\n"
+      "  top_getset_fld = 'top getset';\n"
+      "  _top_getset_fld = 'hidden top getset';\n"
+      "  return new Fields();\n"
+      "}\n";
+
+  // Shared setup.
+  Dart_Handle result;
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Fields"));
+  EXPECT_VALID(cls);
+  Dart_Handle instance = Dart_InvokeStatic(lib,
+                                           Dart_Null(),
+                                           Dart_NewString("test"),
+                                           0,
+                                           NULL);
+  EXPECT_VALID(instance);
+  Dart_Handle name;
+  int64_t value = 0;
+
+  // Instance field.
+  name = Dart_NewString("instance_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, false, "instance");
+
+  // Hidden instance field.
+  name = Dart_NewString("_instance_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, false, "hidden instance");
+
+  // Final instance field.
+  name = Dart_NewString("final_instance_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, true, "final instance");
+
+  // Hidden final instance field.
+  name = Dart_NewString("_final_instance_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, true, "hidden final instance");
+
+  // Inherited field.
+  name = Dart_NewString("inherited_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, false, "inherited");
+
+  // Instance get/set field.
+  name = Dart_NewString("instance_getset_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, false, "instance getset");
+
+  // Hidden instance get/set field.
+  name = Dart_NewString("_instance_getset_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(cls, name);
+  TestFieldOk(instance, name, false, "hidden instance getset");
+
+  // Static field.
+  name = Dart_NewString("static_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, false, "static");
+
+  // Hidden static field.
+  name = Dart_NewString("_static_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, false, "hidden static");
+
+  // Static final field.
+  name = Dart_NewString("final_static_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, true, "final static");
+
+  // Hidden static final field.
+  name = Dart_NewString("_final_static_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, true, "hidden final static");
+
+  // Static non-inherited field.  Not found at any level.
+  name = Dart_NewString("non_inherited_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldNotFound(cls, name);
+
+  // Static get/set field.
+  name = Dart_NewString("static_getset_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, false, "static getset");
+
+  // Hidden static get/set field.
+  name = Dart_NewString("_static_getset_fld");
+  TestFieldNotFound(lib, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(cls, name, false, "hidden static getset");
+
+  // Top-Level field.
+  name = Dart_NewString("top_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, false, "top");
+
+  // Hidden top-level field.
+  name = Dart_NewString("_top_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, false, "hidden top");
+
+  // Top-Level final field.
+  name = Dart_NewString("final_top_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, true, "final top");
+
+  // Hidden top-level final field.
+  name = Dart_NewString("_final_top_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, true, "hidden final top");
+
+  // Top-Level get/set field.
+  name = Dart_NewString("top_getset_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, false, "top getset");
+
+  // Hidden top-level get/set field.
+  name = Dart_NewString("_top_getset_fld");
+  TestFieldNotFound(cls, name);
+  TestFieldNotFound(instance, name);
+  TestFieldOk(lib, name, false, "hidden top getset");
+}
+
+
+TEST_CASE(FieldAccessOld) {
   const char* kScriptChars =
       "class Fields  {\n"
       "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"

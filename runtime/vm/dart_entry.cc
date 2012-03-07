@@ -195,8 +195,10 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
                                            const Instance& message) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::NewSymbol("_ReceivePortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name =
       String::Handle(String::NewSymbol("_handleMessage"));
   const int kNumArguments = 3;
