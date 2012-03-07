@@ -121,7 +121,7 @@ class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioC
 
   _ConvolverNodeJs createConvolver() native;
 
-  _DelayNodeJs createDelayNode() native;
+  _DelayNodeJs createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeJs createDynamicsCompressor() native;
 
@@ -402,6 +402,12 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -795,11 +801,11 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 
@@ -1179,6 +1185,10 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 }
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
+
+  String createObjectURL(var blob_OR_stream) native;
+
+  void revokeObjectURL(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1704,6 +1714,14 @@ class _DocumentTypeJs extends _NodeJs implements DocumentType native "*DocumentT
 }
 
 class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
+
+  final _AudioParamJs knee;
+
+  final _AudioParamJs ratio;
+
+  final _AudioParamJs reduction;
+
+  final _AudioParamJs threshold;
 }
 
 class _ElementJs extends _NodeJs implements Element native "*Element" {
@@ -3284,12 +3302,6 @@ class _HTMLMarqueeElementJs extends _HTMLElementJs implements HTMLMarqueeElement
 
 class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement native "*HTMLMediaElement" {
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -3307,12 +3319,6 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -3902,8 +3908,6 @@ class _HTMLTitleElementJs extends _HTMLElementJs implements HTMLTitleElement nat
 
 class _HTMLTrackElementJs extends _HTMLElementJs implements HTMLTrackElement native "*HTMLTrackElement" {
 
-  static final int ERROR = 3;
-
   static final int LOADED = 2;
 
   static final int LOADING = 1;
@@ -4131,7 +4135,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([var key_OR_range = null]) native;
 
   _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 
@@ -4178,7 +4182,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBRequestJs clear() native;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([var key_OR_range = null]) native;
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
@@ -4905,6 +4909,8 @@ class _MessagePortJs extends _EventTargetJs implements MessagePort native "*Mess
 class _MetadataJs extends _DOMTypeJs implements Metadata native "*Metadata" {
 
   final Date modificationTime;
+
+  final int size;
 }
 
 class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent" {
@@ -9153,6 +9159,8 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
 
   final _ElementJs host;
 
+  String innerHTML;
+
   _ElementJs getElementById(String elementId) native;
 
   _NodeListJs getElementsByClassName(String className) native;
@@ -9420,21 +9428,21 @@ class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
 
 class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -9444,9 +9452,9 @@ class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTr
 
   String text;
 
-  int textPosition;
-
   final _TextTrackJs track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11145,6 +11153,8 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final bool overflow;
+
+  _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -11860,7 +11870,7 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode();
+  DelayNode createDelayNode([num maxDelayTime]);
 
   DynamicsCompressorNode createDynamicsCompressor();
 
@@ -12244,6 +12254,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -12651,11 +12667,11 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type]);
 
-  void getData(String type);
+  String getData(String type);
 
   bool setData(String type, String data);
 
@@ -13155,6 +13171,10 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13778,6 +13798,14 @@ interface DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
+
+  final AudioParam knee;
+
+  final AudioParam ratio;
+
+  final AudioParam reduction;
+
+  final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15517,12 +15545,6 @@ interface HTMLMarqueeElement extends HTMLElement {
 
 interface HTMLMediaElement extends HTMLElement {
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -15540,12 +15562,6 @@ interface HTMLMediaElement extends HTMLElement {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -16285,8 +16301,6 @@ interface HTMLTitleElement extends HTMLElement {
 
 interface HTMLTrackElement extends HTMLElement {
 
-  static final int ERROR = 3;
-
   static final int LOADED = 2;
 
   static final int LOADING = 1;
@@ -16581,7 +16595,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBRequest getObject(IDBKey key);
 
@@ -16643,7 +16657,7 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
@@ -17228,6 +17242,8 @@ interface MessagePort extends EventTarget {
 interface Metadata {
 
   final Date modificationTime;
+
+  final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20892,6 +20908,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   final Element host;
 
+  String innerHTML;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -21182,21 +21200,21 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -21206,9 +21224,9 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   String text;
 
-  int textPosition;
-
   final TextTrack track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -22820,6 +22838,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

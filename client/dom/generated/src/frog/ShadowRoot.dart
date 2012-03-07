@@ -3,6 +3,8 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
 
   final _ElementJs host;
 
+  String innerHTML;
+
   _ElementJs getElementById(String elementId) native;
 
   _NodeListJs getElementsByClassName(String className) native;

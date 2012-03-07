@@ -38,15 +38,23 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   }
   static IDBRequest _clear(receiver) native;
 
-  IDBRequest count([IDBKeyRange range = null]) {
-    if (range === null) {
+  IDBRequest count([var key_OR_range = null]) {
+    if (key_OR_range === null) {
       return _count(this);
     } else {
-      return _count_2(this, range);
+      if (key_OR_range is IDBKeyRange) {
+        return _count_2(this, key_OR_range);
+      } else {
+        if (key_OR_range is IDBKey) {
+          return _count_3(this, key_OR_range);
+        }
+      }
     }
+    throw "Incorrect number or type of arguments";
   }
   static IDBRequest _count(receiver) native;
-  static IDBRequest _count_2(receiver, range) native;
+  static IDBRequest _count_2(receiver, key_OR_range) native;
+  static IDBRequest _count_3(receiver, key_OR_range) native;
 
   IDBIndex createIndex(String name, String keyPath) {
     return _createIndex(this, name, keyPath);

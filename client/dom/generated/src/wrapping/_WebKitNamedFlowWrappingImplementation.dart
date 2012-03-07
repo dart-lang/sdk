@@ -14,5 +14,10 @@ class _WebKitNamedFlowWrappingImplementation extends DOMWrapperBase implements W
   bool get overflow() { return _get_overflow(this); }
   static bool _get_overflow(var _this) native;
 
+  NodeList getRegionsByContentNode(Node contentNode) {
+    return _getRegionsByContentNode(this, contentNode);
+  }
+  static NodeList _getRegionsByContentNode(receiver, contentNode) native;
+
   String get typeName() { return "WebKitNamedFlow"; }
 }

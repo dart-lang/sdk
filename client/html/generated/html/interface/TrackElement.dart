@@ -6,8 +6,6 @@
 
 interface TrackElement extends Element {
 
-  static final int ERROR = 3;
-
   static final int LOADED = 2;
 
   static final int LOADING = 1;

@@ -16,7 +16,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBRequest getObject(IDBKey key);
 

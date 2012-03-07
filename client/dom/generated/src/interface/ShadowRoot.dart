@@ -10,6 +10,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   final Element host;
 
+  String innerHTML;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);

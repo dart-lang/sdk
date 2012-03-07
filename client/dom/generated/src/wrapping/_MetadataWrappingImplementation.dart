@@ -14,5 +14,8 @@ class _MetadataWrappingImplementation extends DOMWrapperBase implements Metadata
   Date get modificationTime() { return _get_modificationTime(this); }
   static Date _get_modificationTime(var _this) native;
 
+  int get size() { return _get_size(this); }
+  static int _get_size(var _this) native;
+
   String get typeName() { return "Metadata"; }
 }

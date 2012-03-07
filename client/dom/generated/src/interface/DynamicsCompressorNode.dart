@@ -5,4 +5,12 @@
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
+
+  final AudioParam knee;
+
+  final AudioParam ratio;
+
+  final AudioParam reduction;
+
+  final AudioParam threshold;
 }

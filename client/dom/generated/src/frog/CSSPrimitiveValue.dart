@@ -53,6 +53,12 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
 
   static final int CSS_URI = 20;
 
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
+
   final int primitiveType;
 
   _CounterJs getCounterValue() native;

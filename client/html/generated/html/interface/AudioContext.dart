@@ -30,7 +30,7 @@ interface AudioContext {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode();
+  DelayNode createDelayNode([num maxDelayTime]);
 
   DynamicsCompressorNode createDynamicsCompressor();
 

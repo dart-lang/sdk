@@ -7,4 +7,6 @@
 interface Metadata {
 
   final Date modificationTime;
+
+  final int size;
 }

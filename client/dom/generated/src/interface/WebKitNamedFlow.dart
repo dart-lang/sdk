@@ -7,4 +7,6 @@
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
