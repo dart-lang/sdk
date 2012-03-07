@@ -297,3 +297,6 @@ ExecuteFinally9Test: Fail
 
 [ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
+
+[ $component == legium ]
+*: Skip

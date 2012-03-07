@@ -22,3 +22,6 @@ MarkdownTest: Skip
 # be fixed.
 DartdocTest: Skip
 MarkdownTest: Skip
+
+[ $component == legium ]
+*: Skip

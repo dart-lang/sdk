@@ -71,6 +71,9 @@ APIv2*: Skip
 # TODO(ahe): Enable when leg matures.
 *: Skip
 
+[ $component == legium ]
+*: Skip
+
 [ $arch == simarm ]
 *: Skip
 

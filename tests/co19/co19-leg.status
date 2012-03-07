@@ -31,6 +31,10 @@ LibTest/core/ReceivePort/*: Fail, OK
 *: Skip
 
 
+[ $component == legium ]
+*: Skip
+
+
 [ $component == leg ]
 Language/10_Expressions/01_Constants_A16_t01: Crash # TODO(ahe): Investigate.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Crash # TODO(ahe): Investigate.

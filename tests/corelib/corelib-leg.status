@@ -38,3 +38,7 @@ BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.
 GrowableObjectArrayVMTest: Fail, OK # VM specific test.
 StringBaseVMTest: Fail, OK # VM specific test.
+
+
+[ $component == legium ]
+*: Skip
