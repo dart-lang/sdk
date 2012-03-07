@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-prefix dartc/client
-
 dom/scripts/idlparser.dart: Skip        # Bogus dartc error; references dart/utils/peg
 dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/utils/peg
 dom/dom_frog.dart: Skip                 # Frog-only
