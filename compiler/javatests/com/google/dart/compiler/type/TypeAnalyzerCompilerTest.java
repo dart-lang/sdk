@@ -974,6 +974,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                  errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
   }
 
+  public void test_typeVariableBoundsMismatch2() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C<T extends num> { }",
+            "class A<T extends num> extends C<T> { }",
+            "class B<T> extends C<T> { }"); // static type error B.T not assignable to num
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
+  }
+
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));
   }

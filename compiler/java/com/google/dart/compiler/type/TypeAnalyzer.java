@@ -845,7 +845,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
-        validateTypeNode(node.getSuperclass(), true);
+        validateTypeNode(node.getSuperclass(), false);
       }
       if (node.getInterfaces() != null) {
         for (DartTypeNode interfaceNode : node.getInterfaces()) {
