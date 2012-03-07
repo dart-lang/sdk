@@ -8,10 +8,8 @@
 
 [ $component == leg ]
 Constructor6Test: Crash
-FunctionTest: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
-FunctionLiterals2Test: Crash # TODO(floitsch): investigate.
 
 GetSyntaxTest/none: Fail # TODO(ahe): investigate.
 GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
@@ -79,12 +77,8 @@ NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
-Prefix10Test: Fail # lib11 is not a type
-Prefix11Test: Fail # lib11 is not a type
-Prefix12Test: Fail # lib11 is not a type.
 Prefix14Test: Fail # prefixes not implemented
 Prefix15Test: Fail # lib12 is not a type
-Prefix17Test: Fail # lib12 is not a type
 Prefix21Test: Fail # Internal Error: Element.computeType.
 Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
@@ -121,6 +115,7 @@ Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-
 ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+FunctionTest: Fail # continue not implemented
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
@@ -167,7 +162,7 @@ ConstConstructorSyntaxTest/02: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/03: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/04: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/05: Fail, OK # Negative language test.
-ConstCounterNegativeTest: Crash # Assertion failed: nestedClosureData !== null
+ConstCounterNegativeTest: Fail, OK # Negative language test.
 ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
@@ -229,6 +224,7 @@ OverrideFieldMethod6NegativeTest: Fail, OK # Negative language test.
 OverrideFieldTest/01: Fail, OK # Negative language test.
 OverrideFieldTest/04: Fail, OK # Negative language test.
 OverrideMethodWithFieldTest/01: Fail, OK # Negative language test.
+Prefix10NegativeTest: Fail, OK # Negative language test.
 Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
