@@ -379,7 +379,7 @@ const char* BigintOperations::ToDecimalCString(
   // handled.
   const intptr_t kDivisorValue = 100000000;
   const int kPowerOfTen = 8;
-  ASSERT(pow(10, kPowerOfTen) == kDivisorValue);
+  ASSERT(pow(10.0, kPowerOfTen) == kDivisorValue);
   ASSERT(static_cast<Chunk>(kDivisorValue) < kDigitMaxValue);
   ASSERT(Smi::IsValid(kDivisorValue));
   const Bigint& divisor = Bigint::Handle(NewFromInt64(kDivisorValue));
