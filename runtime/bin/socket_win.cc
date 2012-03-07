@@ -73,20 +73,29 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
     FATAL("Failed setting SO_LINGER on socket");
   }
 
-  struct hostent* server = gethostbyname(host);
-  if (server == NULL) {
-    fprintf(stderr, "Error CreateConnect: %d\n", WSAGetLastError());
-    closesocket(s);
+  // Perform a name lookup for an IPv4 address.
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
+  struct addrinfo* result = NULL;
+  status = getaddrinfo(host, 0, &hints, &result);
+  if (status != NO_ERROR) {
+    fprintf(stderr, "getaddrinfo failed with error: %d\n", status);
     return -1;
   }
 
+  // Copy IPv4 address and set the port.
   struct sockaddr_in server_address;
-  server_address.sin_family = AF_INET;
+  memcpy(&server_address,
+         reinterpret_cast<sockaddr_in *>(result->ai_addr),
+         sizeof(server_address));
   server_address.sin_port = htons(port);
-  server_address.sin_addr.s_addr = inet_addr(host);
+  freeaddrinfo(result);  // Free data allocated by getaddrinfo.
   status = connect(
       s,
-      reinterpret_cast<struct sockaddr *>(&server_address),
+      reinterpret_cast<struct sockaddr*>(&server_address),
       sizeof(server_address));
   if (status == SOCKET_ERROR) {
     fprintf(stderr, "Error CreateConnect: %d\n", WSAGetLastError());
