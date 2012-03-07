@@ -60,8 +60,9 @@ class ClassFinalizer : public AllStatic {
 
   // Replace the malformed type with Dynamic and, depending on the given type
   // finalization mode and execution mode, mark the type as malformed or report
-  // a compile time error.
-  static void FinalizeMalformedType(const Class& cls,
+  // a compile time error. Prepend prev_error if not null.
+  static void FinalizeMalformedType(const Error& prev_error,
+                                    const Class& cls,
                                     const Type& type,
                                     FinalizationKind finalization,
                                     const char* format, ...);

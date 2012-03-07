@@ -42,8 +42,9 @@ Constructor6Test: Fail          # (Discussion ongoing)
 FunctionTypeAliasNegativeTest: Fail # Spec not clear about self referencing types.
 
 # Bad tests needing to be fixed.
-Prefix23NegativeTest: Fail
 TypeVariableScopeTest/00: Fail
+TypeVariableScopeTest/01: Fail
+TypeVariableScopeTest/02: Fail
 TypeVariableScopeTest/03: Fail
 TypeVariableScopeTest/04: Fail
 TypeVariableScopeTest/05: Fail
@@ -96,11 +97,6 @@ CompileTimeConstant6Test: Fail # Issue 1794
 IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
 
-[ ($component == vm || $component == dartium) && $checked ]
-
-TypeVariableBounds2Test/03: Fail # Work in progress.
-Prefix22Test: Fail # This test should be negative in checked mode.
-
 [ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
@@ -150,8 +146,6 @@ Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
-Prefix22NegativeTest: Fail   # Needs to be re-written as multitest
-Prefix23NegativeTest: Fail   # Needs to be re-written as multitest
 Prefix3NegativeTest: Fail              # Bug 5406175
 Prefix6NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
@@ -186,7 +180,8 @@ Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-TypeVariableBoundsTest/01: Fail  # issue 1900
+TypeVariableBoundsTest*: Skip  # issue 1900 and multiple error annotations are required
+TypeVariableBounds2Test*: Skip  # multiple error annotations are required
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -351,8 +346,6 @@ Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
-Prefix22NegativeTest: Fail
-Prefix23NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail

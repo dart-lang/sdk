@@ -33,11 +33,14 @@ class TypeError extends AssertionError {
                    String malformed_error)
       native "TypeError_throwNew";
   String toString() {
-    if (malformedError != null) {
-      return malformedError;
+    String str = (malformedError != null) ? malformedError : "";
+    if ((dstName != null) && (dstName.length > 0)) {
+      str = str +
+          "type '$srcType' is not assignable to type '$dstType' of '$dstName'.";
+    } else {
+      str = str + "malformed type used in type test.";
     }
-    return "'$url': Failed type check: line $line pos $column: " +
-        "type '$srcType' is not assignable to type '$dstType' of '$dstName'.";
+    return str;
   }
   final String srcType;
   final String dstType;

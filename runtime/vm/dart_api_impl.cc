@@ -946,7 +946,10 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     return Api::NewError(msg);
   }
   const Type& type = Type::Handle(Type::NewNonParameterizedType(cls));
-  *value = instance.IsInstanceOf(type, TypeArguments::Handle());
+  Error& malformed_type_error = Error::Handle();
+  *value = instance.IsInstanceOf(
+      type, TypeArguments::Handle(), &malformed_type_error);
+  ASSERT(malformed_type_error.IsNull());  // Type was created here from a class.
   return Api::Success();
 }
 
@@ -1420,7 +1423,11 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
     Instance& instance = Instance::Handle();
     instance ^= obj.raw();
     const Type& type = Type::Handle(isolate->object_store()->list_interface());
-    if (instance.IsInstanceOf(type, TypeArguments::Handle())) {
+    Error& malformed_type_error = Error::Handle();
+    if (instance.IsInstanceOf(type,
+                              TypeArguments::Handle(),
+                              &malformed_type_error)) {
+      ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
       return instance.raw();
     }
   }

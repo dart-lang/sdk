@@ -5,6 +5,6 @@
 Map<String> foo;  // Static type warning: Map takes 2 type arguments.
 
 main() {
-  foo = null;  /// 00: dynamic type error
+  foo = null;  /// 00: static type error
   var bar = new Map<String>();  /// 01: compile-time error
 }

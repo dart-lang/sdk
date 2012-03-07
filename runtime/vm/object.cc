@@ -1413,7 +1413,8 @@ bool Class::IsCanonicalSignatureClass() const {
 bool Class::IsMoreSpecificThan(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   // Check for DynamicType.
   // The DynamicType on the lefthand side is replaced by the bottom type, which
   // is more specific than any type.
@@ -1436,7 +1437,9 @@ bool Class::IsMoreSpecificThan(
         other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
-    return type_arguments.IsMoreSpecificThan(other_type_arguments, len);
+    return type_arguments.IsMoreSpecificThan(other_type_arguments,
+                                             len,
+                                             malformed_error);
   }
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
@@ -1444,7 +1447,8 @@ bool Class::IsMoreSpecificThan(
     const Function& other_fun = Function::Handle(other.signature_function());
     return fun.IsSubtypeOf(type_arguments,
                            other_fun,
-                           other_type_arguments);
+                           other_type_arguments,
+                           malformed_error);
   }
   // Check for 'direct super type' in the case of an interface and check for
   // transitivity at the same time.
@@ -1474,23 +1478,18 @@ bool Class::IsMoreSpecificThan(
         // dynamic type error, but it will never change the result of the type
         // check from true in production mode to false in checked mode.
         if (FLAG_enable_type_checks && !interface_args.IsNull()) {
-          AbstractTypeArguments& interface_bounds =
-              AbstractTypeArguments::Handle(
-                  interface_class.type_parameter_bounds());
-          ASSERT(!interface_bounds.IsNull());
-          if (!interface_bounds.IsInstantiated()) {
-            interface_bounds = interface_bounds.InstantiateFrom(type_arguments);
-          }
-          const intptr_t len = interface_args.Length();
-          if (!interface_args.IsMoreSpecificThan(interface_bounds, len)) {
-            // TODO(regis): Handle malformed type error.
+          // Pass type_arguments as bounds instantiator.
+          if (!interface_args.IsWithinBoundsOf(interface_class,
+                                               type_arguments,
+                                               malformed_error)) {
             continue;
           }
         }
       }
       if (interface_class.IsMoreSpecificThan(interface_args,
                                              other,
-                                             other_type_arguments)) {
+                                             other_type_arguments,
+                                             malformed_error)) {
         return true;
       }
     }
@@ -1513,7 +1512,8 @@ bool Class::IsMoreSpecificThan(
   // is longer than necessary.
   return super_class.IsMoreSpecificThan(type_arguments,
                                         other,
-                                        other_type_arguments);
+                                        other_type_arguments,
+                                        malformed_error);
 }
 
 
@@ -1525,7 +1525,8 @@ bool Class::IsTopLevel() const {
 bool Class::TestType(TypeTestKind test,
                      const AbstractTypeArguments& type_arguments,
                      const Class& other,
-                     const AbstractTypeArguments& other_type_arguments) const {
+                     const AbstractTypeArguments& other_type_arguments,
+                     Error* malformed_error) const {
   ASSERT(is_finalized() || !ClassFinalizer::AllClassesFinalized());
   ASSERT(other.is_finalized() || !ClassFinalizer::AllClassesFinalized());
   if (test == kIsAssignableTo) {
@@ -1541,7 +1542,8 @@ bool Class::TestType(TypeTestKind test,
       const Function& dst_fun = Function::Handle(other.signature_function());
       return src_fun.IsAssignableTo(type_arguments,
                                     dst_fun,
-                                    other_type_arguments);
+                                    other_type_arguments,
+                                    malformed_error);
     }
     // Continue with a subtype test.
     test = kIsSubtypeOf;
@@ -1549,7 +1551,8 @@ bool Class::TestType(TypeTestKind test,
   ASSERT(test == kIsSubtypeOf);
 
   // Check for "more specific" relation.
-  return IsMoreSpecificThan(type_arguments, other, other_type_arguments);
+  return IsMoreSpecificThan(type_arguments, other, other_type_arguments,
+                            malformed_error);
 }
 
 
@@ -2106,7 +2109,8 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsMoreSpecificThan(const AbstractType& other) const {
+bool AbstractType::IsMoreSpecificThan(const AbstractType& other,
+                                      Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // AbstractType parameters cannot be handled by Class::IsMoreSpecificThan().
@@ -2118,11 +2122,14 @@ bool AbstractType::IsMoreSpecificThan(const AbstractType& other) const {
   return cls.IsMoreSpecificThan(
       AbstractTypeArguments::Handle(arguments()),
       Class::Handle(other.type_class()),
-      AbstractTypeArguments::Handle(other.arguments()));
+      AbstractTypeArguments::Handle(other.arguments()),
+      malformed_error);
 }
 
 
-bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
+bool AbstractType::Test(TypeTestKind test,
+                        const AbstractType& other,
+                        Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // AbstractType parameters cannot be handled by Class::TestType().
@@ -2133,13 +2140,15 @@ bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
     return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                            Class::Handle(other.type_class()),
-                            AbstractTypeArguments::Handle(other.arguments()));
+                           Class::Handle(other.type_class()),
+                           AbstractTypeArguments::Handle(other.arguments()),
+                           malformed_error);
   } else {
     ASSERT(test == kIsAssignableTo);
     return cls.IsAssignableTo(AbstractTypeArguments::Handle(arguments()),
                               Class::Handle(other.type_class()),
-                              AbstractTypeArguments::Handle(other.arguments()));
+                              AbstractTypeArguments::Handle(other.arguments()),
+                              malformed_error);
   }
 }
 
@@ -2730,9 +2739,75 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
 }
 
 
+static RawError* FormatError(const Script& script,
+                             intptr_t token_index,
+                             const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  return Parser::FormatError(script, token_index, "Error", format, args);
+}
+
+
+bool AbstractTypeArguments::IsWithinBoundsOf(
+    const Class& cls,
+    const AbstractTypeArguments& bounds_instantiator,
+    Error* malformed_error) const {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(IsInstantiated());
+  ASSERT(Length() >= cls.NumTypeArguments());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& bound = AbstractType::Handle();
+  const TypeArguments& bounds =
+      TypeArguments::Handle(cls.type_parameter_bounds());
+  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
+         (bounds.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    bound = bounds.TypeAt(i);
+    if (!bound.IsDynamicType()) {
+      type = TypeAt(offset + i);
+      if (!bound.IsInstantiated()) {
+        bound = bound.InstantiateFrom(bounds_instantiator);
+      }
+      if (!type.IsSubtypeOf(bound, malformed_error)) {
+        if (malformed_error->IsNull()) {
+          const String& type_argument_name = String::Handle(type.Name());
+          const String& class_name = String::Handle(cls.Name());
+          const String& bound_name = String::Handle(bound.Name());
+          const Script& script = Script::Handle(cls.script());
+          // Since the bound was canonicalized, its token index was lost,
+          // therefore, use the token index of the corresponding type parameter.
+          const TypeArguments& type_parameters =
+              TypeArguments::Handle(cls.type_parameters());
+          type = type_parameters.TypeAt(i);
+          *malformed_error ^= FormatError(script, type.token_index(),
+                                          "type argument '%s' does not "
+                                          "extend bound '%s' of '%s'\n",
+                                          type_argument_name.ToCString(),
+                                          bound_name.ToCString(),
+                                          class_name.ToCString());
+        }
+        return false;
+      }
+    }
+  }
+  const Type& super_type = Type::Handle(cls.super_type());
+  if (!super_type.IsNull()) {
+    ASSERT(super_type.IsFinalized());
+    const Class& super_class = Class::Handle(super_type.type_class());
+    if (!IsWithinBoundsOf(super_class, bounds_instantiator, malformed_error)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool AbstractTypeArguments::IsMoreSpecificThan(
     const AbstractTypeArguments& other,
-    intptr_t len) const {
+    intptr_t len,
+    Error* malformed_error) const {
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
@@ -2743,7 +2818,7 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsMoreSpecificThan(other_type)) {
+    if (!type.IsMoreSpecificThan(other_type, malformed_error)) {
       return false;
     }
   }
@@ -3293,7 +3368,8 @@ bool Function::TestParameterType(
     intptr_t parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
@@ -3310,8 +3386,8 @@ bool Function::TestParameterType(
   if (other_param_type.IsDynamicType()) {
     return true;
   }
-  if (!param_type.IsSubtypeOf(other_param_type) &&
-      !other_param_type.IsSubtypeOf(param_type)) {
+  if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
+      !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
     return false;
   }
   return true;
@@ -3322,7 +3398,8 @@ bool Function::TestType(
     TypeTestKind test,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -3344,14 +3421,15 @@ bool Function::TestType(
     }
     if (!res_type.IsDynamicType() &&
         (res_type.IsVoidType() ||
-         !(res_type.IsSubtypeOf(other_res_type) ||
-           other_res_type.IsSubtypeOf(res_type)))) {
+         !(res_type.IsSubtypeOf(other_res_type, malformed_error) ||
+           other_res_type.IsSubtypeOf(res_type, malformed_error)))) {
       return false;
     }
   }
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    if (!TestParameterType(i, type_arguments, other, other_type_arguments)) {
+    if (!TestParameterType(i, type_arguments, other, other_type_arguments,
+                           malformed_error)) {
       return false;
     }
   }
@@ -3369,7 +3447,8 @@ bool Function::TestType(
     for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
       other_param_name = other.ParameterNameAt(i);
       if ((ParameterNameAt(i) != other_param_name.raw()) ||
-          !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+          !TestParameterType(i, type_arguments, other, other_type_arguments,
+                             malformed_error)) {
         return false;
       }
     }
@@ -3389,7 +3468,8 @@ bool Function::TestType(
   for (intptr_t i = num_fixed_params; i < num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+        !TestParameterType(i, type_arguments, other, other_type_arguments,
+                           malformed_error)) {
       return false;
     }
   }
@@ -5956,7 +6036,8 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 
 bool Instance::TestType(TypeTestKind test,
                         const AbstractType& other,
-                        const AbstractTypeArguments& other_instantiator) const {
+                        const AbstractTypeArguments& other_instantiator,
+                        Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
@@ -6020,7 +6101,8 @@ bool Instance::TestType(TypeTestKind test,
           other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
-  return cls.TestType(test, type_arguments, other_class, other_type_arguments);
+  return cls.TestType(test, type_arguments, other_class, other_type_arguments,
+                      malformed_error);
 }
 
 

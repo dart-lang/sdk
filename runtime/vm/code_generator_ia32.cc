@@ -1269,7 +1269,9 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   // All instances are of a subtype of the Object type.
   const Type& object_type =
       Type::Handle(Isolate::Current()->object_store()->object_type());
-  if (type.IsInstantiated() && object_type.IsSubtypeOf(type)) {
+  Error& malformed_error = Error::Handle();
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, &malformed_error)) {
     __ PushObject(negate_result ? bool_false : bool_true);
     return;
   }
@@ -1338,9 +1340,11 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       // Object is Smi.
       const Class& smi_class = Class::Handle(Smi::Class());
       // TODO(regis): We should introduce a SmiType.
+      Error& malformed_error = Error::Handle();
       if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                                 type_class,
-                                TypeArguments::Handle())) {
+                                TypeArguments::Handle(),
+                                &malformed_error)) {
         __ PushObject(negate_result ? bool_false : bool_true);
       } else {
         __ PushObject(negate_result ? bool_true : bool_false);
@@ -1371,6 +1375,9 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     }
   }
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Immediate location =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
+  __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -1381,7 +1388,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addl(ESP, Immediate(3 * kWordSize));
+  __ addl(ESP, Immediate(4 * kWordSize));
   if (negate_result) {
     Label negate_done;
     __ popl(EDX);
@@ -1423,23 +1430,6 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
-  // Generate throw new TypeError() if the type is malformed.
-  if (dst_type.IsMalformed()) {
-    const Error& error = Error::Handle(dst_type.malformed_error());
-    const String& error_message = String::ZoneHandle(
-        String::NewSymbol(error.ToErrorCString()));
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    const Immediate location =
-        Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
-    __ pushl(location);  // Push the source location.
-    __ pushl(EAX);  // Push the source object.
-    __ PushObject(error_message);
-    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
-    // We should never return here.
-    __ int3();
-    return;
-  }
-
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
   if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
@@ -1455,12 +1445,30 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     return;
   }
 
-  // A NULL object is always assignable and is returned as result.
+  // A null object is always assignable and is returned as result.
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label done, runtime_call;
   __ cmpl(EAX, raw_null);
   __ j(EQUAL, &done, Assembler::kNearJump);
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    const Immediate location =
+        Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
+    __ pushl(location);  // Push the source location.
+    __ pushl(EAX);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+    return;
+  }
 
   // If dst_type is instantiated and non-parameterized, we can inline code
   // checking whether the assigned instance is a Smi.
@@ -1499,9 +1507,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // Object is Smi.
       const Class& smi_class = Class::Handle(Smi::Class());
       // TODO(regis): We should introduce a SmiType.
+      Error& malformed_error = Error::Handle();
       if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                                 dst_type_class,
-                                TypeArguments::Handle())) {
+                                TypeArguments::Handle(),
+                                &malformed_error)) {
         // Successful assignable type check: return object in EAX.
         __ jmp(&done, Assembler::kNearJump);
       } else {
@@ -1518,13 +1528,14 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
+        Error& malformed_error = Error::Handle();
         if (dst_type.IsBoolInterface()) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           const Class& bool_class = Class::ZoneHandle(
               Isolate::Current()->object_store()->bool_class());
           TestClassAndJump(bool_class, &done);
         } else if (dst_type.IsSubtypeOf(
-              Type::Handle(Type::NumberInterface()))) {
+              Type::Handle(Type::NumberInterface()), &malformed_error)) {
           __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
           if (dst_type.IsIntInterface() || dst_type.IsNumberInterface()) {
             // We already checked for Smi above.

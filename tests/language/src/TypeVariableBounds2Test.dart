@@ -28,7 +28,10 @@ main() {
     Expect.isTrue(a is J);  /// 04: static type error
 
     // In both production and checked modes, A<String> is not a subtype of K.
-    Expect.isTrue(a is !K);  /// 05: static type error
+    // However, while unsuccessfully trying to prove that A<String> is a K,
+    // a malformed type is encountered in checked mode, resulting in a dynamic
+    // type error.
+    Expect.isTrue(a is !K);  /// 05: dynamic type error
   }
 
   a = new A<int>();

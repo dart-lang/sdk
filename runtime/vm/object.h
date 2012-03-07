@@ -575,26 +575,31 @@ class Class : public Object {
   bool IsMoreSpecificThan(
       const AbstractTypeArguments& type_arguments,
       const Class& other,
-      const AbstractTypeArguments& other_type_arguments) const;
+      const AbstractTypeArguments& other_type_arguments,
+      Error* malformed_error) const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
-                   const AbstractTypeArguments& other_type_arguments) const {
+                   const AbstractTypeArguments& other_type_arguments,
+                   Error* malformed_error) const {
     return TestType(kIsSubtypeOf,
                     type_arguments,
                     other,
-                    other_type_arguments);
+                    other_type_arguments,
+                    malformed_error);
   }
 
   // Check the assignability relationship.
   bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
                       const Class& dst,
-                      const AbstractTypeArguments& dst_type_arguments) const {
+                      const AbstractTypeArguments& dst_type_arguments,
+                      Error* malformed_error) const {
     return TestType(kIsAssignableTo,
                     type_arguments,
                     dst,
-                    dst_type_arguments);
+                    dst_type_arguments,
+                    malformed_error);
   }
 
   // Check if this is the top level class.
@@ -717,7 +722,8 @@ class Class : public Object {
   bool TestType(TypeTestKind test,
                 const AbstractTypeArguments& type_arguments,
                 const Class& other,
-                const AbstractTypeArguments& other_type_arguments) const;
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -857,16 +863,18 @@ class AbstractType : public Object {
   }
 
   // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(const AbstractType& other) const;
+  bool IsMoreSpecificThan(const AbstractType& other,
+                          Error* malformed_error) const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other) const {
-    return Test(kIsSubtypeOf, other);
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
+    return Test(kIsSubtypeOf, other, malformed_error);
   }
 
   // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractType& dst) const {
-    return Test(kIsAssignableTo, dst);
+  bool IsAssignableTo(const AbstractType& dst,
+                      Error* malformed_error) const {
+    return Test(kIsAssignableTo, dst, malformed_error);
   }
 
   static RawAbstractType* NewTypeParameter(intptr_t index,
@@ -879,7 +887,9 @@ class AbstractType : public Object {
 
  protected:
   // Check the subtype or assignability relationship.
-  bool Test(TypeTestKind test, const AbstractType& other) const;
+  bool Test(TypeTestKind test,
+            const AbstractType& other,
+            Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
@@ -1085,10 +1095,17 @@ class AbstractTypeArguments : public Object {
   // considering only a prefix of length 'len'.
   bool IsDynamicTypes(intptr_t len) const;
 
+  // Check that this type argument vector is within the declared bounds of the
+  // given class or interface. If not, set malformed_error (if not yet set).
+  bool IsWithinBoundsOf(const Class& cls,
+                        const AbstractTypeArguments& bounds_instantiator,
+                        Error* malformed_error) const;
+
   // Check the "more specific than" relationship, considering only a prefix of
   // length 'len'.
-  bool IsMoreSpecificThan(
-      const AbstractTypeArguments& other, intptr_t len) const;
+  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t len,
+                          Error* malformed_error) const;
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1393,22 +1410,26 @@ class Function : public Object {
   // the other function.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
-                   const AbstractTypeArguments& other_type_arguments) const {
+                   const AbstractTypeArguments& other_type_arguments,
+                   Error* malformed_error) const {
     return TestType(kIsSubtypeOf,
                     type_arguments,
                     other,
-                    other_type_arguments);
+                    other_type_arguments,
+                    malformed_error);
   }
 
   // Returns true if the type of this function can be assigned to the type of
   // the destination function.
   bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
                       const Function& dst,
-                      const AbstractTypeArguments& dst_type_arguments) const {
+                      const AbstractTypeArguments& dst_type_arguments,
+                      Error* malformed_error) const {
     return TestType(kIsAssignableTo,
                     type_arguments,
                     dst,
-                    dst_type_arguments);
+                    dst_type_arguments,
+                    malformed_error);
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -1488,7 +1509,8 @@ class Function : public Object {
   bool TestType(TypeTestKind test,
                 const AbstractTypeArguments& type_arguments,
                 const Function& other,
-                const AbstractTypeArguments& other_type_arguments) const;
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
 
   // Checks the type of the formal parameter at the given position for
   // assignability relationship between the type of this function and the type
@@ -1497,7 +1519,8 @@ class Function : public Object {
       intptr_t parameter_position,
       const AbstractTypeArguments& type_arguments,
       const Function& other,
-      const AbstractTypeArguments& other_type_arguments) const;
+      const AbstractTypeArguments& other_type_arguments,
+      Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -2460,14 +2483,16 @@ class Instance : public Object {
 
   // Check if this instance is an instance of the given type.
   bool IsInstanceOf(const AbstractType& type,
-                    const AbstractTypeArguments& type_instantiator) const {
-    return TestType(kIsSubtypeOf, type, type_instantiator);
+                    const AbstractTypeArguments& type_instantiator,
+                    Error* malformed_error) const {
+    return TestType(kIsSubtypeOf, type, type_instantiator, malformed_error);
   }
 
   // Check if this instance is assignable to the given type.
   bool IsAssignableTo(const AbstractType& type,
-                      const AbstractTypeArguments& type_instantiator) const {
-    return TestType(kIsAssignableTo, type, type_instantiator);
+                      const AbstractTypeArguments& type_instantiator,
+                      Error* malformed_error) const {
+    return TestType(kIsAssignableTo, type, type_instantiator, malformed_error);
   }
 
   bool IsValidNativeIndex(int index) const;
@@ -2509,7 +2534,8 @@ class Instance : public Object {
   // instance and the given type.
   bool TestType(TypeTestKind test,
                 const AbstractType& type,
-                const AbstractTypeArguments& type_instantiator) const;
+                const AbstractTypeArguments& type_instantiator,
+                Error* malformed_error) const;
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);

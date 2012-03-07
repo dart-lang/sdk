@@ -5,11 +5,11 @@
 // Unresolved symbols should be reported as an static type warnings.
 // This should not prevent execution.
 
-#library("Prefix22NegativeTest.dart");
+#library("Prefix23Test.dart");
 #import("library12.dart", prefix:"lib12");
 
 class myClass {
-  lib12.Library13 fld; // static type warning
+  lib12.Library13 fld;  /// static type warning
 }
 
 main() {
