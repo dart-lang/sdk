@@ -94,6 +94,7 @@ main() {
     }
     if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
+      queue.addTestSuite(new VMDartTestSuite(conf));
     }
     if (selectors.containsKey('frog')) {
       queue.addTestSuite(new FrogTestSuite(conf));
