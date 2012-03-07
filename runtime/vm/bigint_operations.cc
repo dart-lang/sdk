@@ -6,6 +6,7 @@
 
 #include "vm/double_internals.h"
 #include "vm/exceptions.h"
+#include "vm/object_store.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -333,6 +334,92 @@ const char* BigintOperations::ToHexCString(const Bigint& bigint,
                       bigint.IsNegative(),
                       length ? bigint.ChunkAddr(0) : NULL,
                       allocator);
+}
+
+
+const char* BigintOperations::ToDecimalCString(
+    const Bigint& bigint, uword (*allocator)(intptr_t size)) {
+  // log10(2) ~= 0.30102999566398114.
+  const intptr_t kLog2Dividend = 30103;
+  const intptr_t kLog2Divisor = 100000;
+  // We remove a small constant for rounding imprecision, the \0 character and
+  // the negative sign.
+  const intptr_t kMaxAllowedDigitLength =
+      (kIntptrMax - 10) / kLog2Dividend / kDigitBitSize * kLog2Divisor;
+
+  intptr_t length = bigint.Length();
+  if (length >= kMaxAllowedDigitLength) {
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
+
+  // Approximate the size of the resulting string. We prefer overestimating
+  // to not allocating enough.
+  int64_t bit_length = length * kDigitBitSize;
+  ASSERT(bit_length > length);
+  int64_t decimal_length = (bit_length * kLog2Dividend / kLog2Divisor) + 1;
+  // Add one byte for the trailing \0 character.
+  int64_t required_size = decimal_length + 1;
+  if (bigint.IsNegative()) {
+    required_size++;
+  }
+  ASSERT(required_size == static_cast<intptr_t>(required_size));
+  // We will fill the result in the inverse order and then exchange at the end.
+  char* result =
+      reinterpret_cast<char*>(allocator(static_cast<intptr_t>(required_size)));
+  ASSERT(result != NULL);
+  int result_pos = 0;
+
+  // We divide the input into pieces of ~27 bits which can be efficiently
+  // handled.
+  const intptr_t kDivisorValue = 100000000;
+  const int kPowerOfTen = 8;
+  ASSERT(pow(10, kPowerOfTen) == kDivisorValue);
+  ASSERT(static_cast<Chunk>(kDivisorValue) < kDigitMaxValue);
+  ASSERT(Smi::IsValid(kDivisorValue));
+  const Bigint& divisor = Bigint::Handle(NewFromInt64(kDivisorValue));
+
+  // Rest contains the remaining bigint that needs to be printed.
+  Bigint& rest = Bigint::Handle(bigint.raw());
+  Bigint& quotient = Bigint::Handle();
+  Bigint& remainder = Bigint::Handle();
+  while (!rest.IsZero()) {
+    DivideRemainder(rest, divisor, &quotient, &remainder);
+    ASSERT(remainder.Length() == 1);
+    intptr_t part = static_cast<intptr_t>(remainder.GetChunkAt(0));
+    for (int i = 0; i < kPowerOfTen; i++) {
+      result[result_pos++] = '0' + (part % 10);
+      part /= 10;
+    }
+    ASSERT(part == 0);
+    rest = quotient.raw();
+  }
+  // Move the resulting position back until we don't have any zeroes anymore.
+  // This is done so that we can remove all leading zeroes.
+  while (result_pos > 1 && result[result_pos - 1] == '0') {
+    result_pos--;
+  }
+  if (bigint.IsNegative()) {
+    result[result_pos++] = '-';
+  }
+  // Reverse the string.
+  int i = 0;
+  int j = result_pos - 1;
+  while (i < j) {
+    char tmp = result[i];
+    result[i] = result[j];
+    result[j] = tmp;
+    i++;
+    j--;
+  }
+  ASSERT(result_pos >= 0);
+  result[result_pos] = '\0';
+  return result;
 }
 
 

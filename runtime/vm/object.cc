@@ -6637,9 +6637,7 @@ static uword ZoneAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  // TODO(florian): Add a BigintOperations::ToDecCString method and use that
-  // here.
-  return BigintOperations::ToHexCString(*this, &ZoneAllocator);
+  return BigintOperations::ToDecimalCString(*this, &ZoneAllocator);
 }
 
 

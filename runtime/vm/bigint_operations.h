@@ -43,6 +43,9 @@ class BigintOperations : public AllStatic {
   static const char* ToHexCString(const Bigint& bigint,
                                   uword (*allocator)(intptr_t size));
 
+  static const char* ToDecimalCString(const Bigint& bigint,
+                                      uword (*allocator)(intptr_t size));
+
   static bool FitsIntoSmi(const Bigint& bigint);
   static RawSmi* ToSmi(const Bigint& bigint);
 
