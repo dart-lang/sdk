@@ -22,12 +22,6 @@ void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
 
 
 Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
-  UNREACHABLE();
-  return Dart_Null();
-}
-
-
-void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
   Dart_Handle url;
   switch (id) {
     case kBuiltinLibrary:
@@ -46,11 +40,19 @@ void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
       url = Dart_NewString(DartUtils::kUtf8LibURL);
       break;
     default:
-      url = Dart_Error("Unknown builtin library requested.");
-      UNREACHABLE();
+      return Dart_Error("Unknown builtin library requested.");
   }
-  Dart_Handle imported_library = Dart_LookupLibrary(url);
-  // Import the builtin library into current library.
-  DART_CHECK_VALID(imported_library);
+  Dart_Handle library = Dart_LookupLibrary(url);
+  if (Dart_IsError(library)) {
+    UNREACHABLE();
+  }
+  DART_CHECK_VALID(library);
+  return library;
+}
+
+
+void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
+  Dart_Handle imported_library = LoadLibrary(id);
+  // Import the library into current library.
   DART_CHECK_VALID(Dart_LibraryImportLibrary(library, imported_library));
 }

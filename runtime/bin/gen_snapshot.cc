@@ -182,7 +182,8 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
     if (tag == kCanonicalizeUrl) {
       return url;
     }
-    return Dart_Error("unsupported url encountered %s", url_string);
+    // TODO(iposva): Make sure only the known libraries are being added.
+    return Dart_True();
   }
   return Dart_Error("unexpected tag encountered %d", tag);
 }
@@ -195,19 +196,9 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
     return source;  // source contains the error string.
   }
   Dart_Handle lib;
-  if (id == Builtin::kBuiltinLibrary) {
-    // Load the dart:builtin library as the script.
-    Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
-    Dart_Handle import_map = Dart_NewList(0);
-    lib = Dart_LoadScript(url,
-                          source,
-                          BuiltinLibraryTagHandler,
-                          import_map);
-  } else {
-    // Load the builtin library to make it available in the snapshot
-    // for importing.
-    lib = Builtin::LoadLibrary(id);
-  }
+  // Load the builtin library to make it available in the snapshot
+  // for importing.
+  lib = Builtin::LoadLibrary(id);
   if (!Dart_IsError(lib)) {
     Builtin::SetupLibrary(lib, id);
   }
@@ -281,6 +272,13 @@ int main(int argc, char** argv) {
     library = LoadSnapshotCreationScript(app_script_name);
     VerifyLoaded(library);
   } else {
+    // Load a dummy script as the script to setup the tag handler.
+    Dart_Handle empty_string = Dart_NewString("");
+    Dart_Handle import_map = Dart_NewList(0);
+    Dart_Handle lib = Dart_LoadScript(empty_string,
+                                      empty_string,
+                                      BuiltinLibraryTagHandler,
+                                      import_map);
     // This is a generic dart snapshot which needs builtin library setup.
     library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
     VerifyLoaded(library);

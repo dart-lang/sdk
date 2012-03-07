@@ -48,6 +48,7 @@ ObjectStore::ObjectStore()
     core_library_(Library::null()),
     core_impl_library_(Library::null()),
     native_wrappers_library_(Library::null()),
+    builtin_library_(Library::null()),
     root_library_(Library::null()),
     registered_libraries_(Library::null()),
     pending_classes_(GrowableObjectArray::null()),

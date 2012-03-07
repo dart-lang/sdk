@@ -11,6 +11,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
@@ -24,17 +25,14 @@ extern const uint8_t* snapshot_buffer;
 
 
 // Global state that stores a pointer to the application script file.
-static char* canonical_script_name = NULL;
+static const char* original_script_name = NULL;
+static const char* original_working_directory = NULL;
+static const char* original_script_url = NULL;
 
 
 // Global state that stores the import URL map specified on the
 // command line.
 static CommandLineOptions* import_map_options = NULL;
-
-
-// Global state that stores a pointer to the application script snapshot.
-static bool use_script_snapshot = false;
-static uint8_t* script_snapshot_buffer = NULL;
 
 
 // Global state that indicates whether pprof symbol information is
@@ -80,12 +78,6 @@ static void ProcessPprofOption(const char* filename) {
 }
 
 
-static void ProcessSnapshotOption(const char* snapshot) {
-  ASSERT(snapshot != NULL);
-  use_script_snapshot = true;
-}
-
-
 static void ProcessImportMapOption(const char* map) {
   ASSERT(map != NULL);
   import_map_options->AddArgument(map);
@@ -99,7 +91,6 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
-  { "--use_script_snapshot", ProcessSnapshotOption },
   { "--import_map=", ProcessImportMapOption },
   { NULL, NULL }
 };
@@ -166,7 +157,7 @@ static int ParseArguments(int argc,
 
 
 static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
-                                       char* script_name) {
+                                       const char* script_name) {
   int options_count = options->count();
   Dart_Handle dart_script = Dart_NewString(script_name);
   if (Dart_IsError(dart_script)) {
@@ -265,8 +256,18 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (is_dart_scheme_url || is_dart_extension_url) {
       return url;
     }
-    // Create a canonical path based on the including library and current url.
-    return DartUtils::CanonicalizeURL(NULL, library, url_string);
+    // Resolve the url within the context of the library's URL.
+    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle library_url = Dart_LibraryUrl(library);
+    if (Dart_IsError(library_url)) {
+      return Dart_Error("accessing library url failed");
+    }
+    Dart_Handle dart_args[2];
+    dart_args[0] = library_url;
+    dart_args[1] = url;
+    return Dart_InvokeStatic(builtin_lib,
+                             Dart_NewString(""), Dart_NewString("resolveUri"),
+                             2, dart_args);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
@@ -287,6 +288,19 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_Error("Dart extensions must use import: '%s'", url_string);
     }
     return Extensions::LoadExtension(url_string, library);
+  } else {
+    // Get the file path out of the url.
+    Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+    Dart_Handle dart_args[1];
+    dart_args[0] = url;
+    Dart_Handle file_path = Dart_InvokeStatic(builtin_lib,
+                                              Dart_NewString(""),
+                                              Dart_NewString("filePathFromUri"),
+                                              1, dart_args);
+    if (Dart_IsError(file_path)) {
+      return file_path;
+    }
+    Dart_StringToCString(file_path, &url_string);
   }
   result = DartUtils::LoadSource(NULL,
                                  library,
@@ -301,13 +315,38 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-static Dart_Handle LoadScript(const char* script_name,
+static Dart_Handle LoadScript(Dart_Handle builtin_lib,
                               CommandLineOptions* map) {
-  Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
+  Dart_Handle dart_args[2];
+  dart_args[0] = Dart_NewString(original_working_directory);
+  dart_args[1] = Dart_NewString(original_script_name);
+  Dart_Handle script_url = Dart_InvokeStatic(builtin_lib,
+                                             Dart_NewString(""),
+                                             Dart_NewString("resolveScriptUri"),
+                                             2, dart_args);
+  if (Dart_IsError(script_url)) {
+    fprintf(stderr, "%s", Dart_GetError(script_url));
+    return false;
+  }
+  if (original_script_url == NULL) {
+    const char* script_url_cstr;
+    Dart_StringToCString(script_url, &script_url_cstr);
+    original_script_url = strdup(script_url_cstr);
+  }
+  dart_args[0] = script_url;
+  Dart_Handle script_path = Dart_InvokeStatic(builtin_lib,
+                                              Dart_NewString(""),
+                                              Dart_NewString("filePathFromUri"),
+                                              1, dart_args);
+  if (Dart_IsError(script_path)) {
+    return script_path;
+  }
+  const char* script_path_cstr;
+  Dart_StringToCString(script_path, &script_path_cstr);
+  Dart_Handle source = DartUtils::ReadStringFromFile(script_path_cstr);
   if (Dart_IsError(source)) {
     return source;
   }
-  Dart_Handle url = Dart_NewString(script_name);
   intptr_t length =  (map == NULL) ? 0 : map->count();
   Dart_Handle import_map = Dart_NewList(length * 2);
   for (intptr_t i = 0; i < length; i++) {
@@ -327,7 +366,7 @@ static Dart_Handle LoadScript(const char* script_name,
     }
     free(name);
   }
-  return Dart_LoadScript(url, source, LibraryTagHandler, import_map);
+  return Dart_LoadScript(script_url, source, LibraryTagHandler, import_map);
 }
 
 
@@ -339,15 +378,21 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     return false;
   }
 
-  Dart_Handle library;
   Dart_EnterScope();
 
-  // Load the specified application script into the newly created isolate.
-  if (script_snapshot_buffer != NULL) {
-    library = Dart_LoadScriptFromSnapshot(script_snapshot_buffer);
-  } else {
-    library = LoadScript(canonical_script_name, import_map_options);
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
+    Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
+
+  // Prepare builtin for use to resolve URIs.
+  Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
+  Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
+  Builtin::ImportLibrary(builtin_lib, Builtin::kUriLibrary);
+
+  // Load the specified application script into the newly created isolate.
+  Dart_Handle library = LoadScript(builtin_lib, import_map_options);
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     Dart_ExitScope();
@@ -358,72 +403,15 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     char errbuf[256];
     snprintf(errbuf, sizeof(errbuf),
              "Expected a library when loading script: %s",
-             canonical_script_name);
+             original_script_name);
     *error = strdup(errbuf);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     return false;
   }
-  if (script_snapshot_buffer == NULL) {
-    // Implicitly import builtin into app.
-    Builtin::ImportLibrary(library, Builtin::kBuiltinLibrary);
-  }
-  if (snapshot_buffer != NULL) {
-    // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-    Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  }
+  // Implicitly import builtin into app.
+  Builtin::ImportLibrary(library, Builtin::kBuiltinLibrary);
   Dart_ExitScope();
-  return true;
-}
-
-
-static bool CaptureScriptSnapshot() {
-  char* error = NULL;
-  Dart_Handle result;
-
-  // First create an isolate and load up the specified script in it.
-  if (!CreateIsolateAndSetup(NULL, NULL, &error)) {
-    fprintf(stderr, "%s\n", error);
-    free(canonical_script_name);
-    free(error);
-    return false;  // Indicates we encountered an error.
-  }
-
-  Dart_EnterScope();
-
-#if 0
-  // Lookup the library of the main script.
-  Dart_Handle script_url = Dart_NewString(canonical_script_name);
-  Dart_Handle library = Dart_LookupLibrary(script_url);
-  if (Dart_IsError(library)) {
-    fprintf(stderr, "%s\n", Dart_GetError(library));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    free(canonical_script_name);
-    return false;  // Indicates we encountered an error.
-  }
-#endif
-
-  // Now create the script snapshot and save into a buffer.
-  uint8_t* buffer;
-  intptr_t size;
-  result = Dart_CreateScriptSnapshot(&buffer, &size);
-  if (Dart_IsError(result)) {
-    fprintf(stderr, "%s\n", Dart_GetError(result));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    return false;  // Indicates we encountered an error.
-  }
-
-  // Save the script snapshot as we are about to shutdown the isolate.
-  script_snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
-  ASSERT(script_snapshot_buffer != NULL);
-  memmove(script_snapshot_buffer, buffer, size);
-
-  // Shutdown this isolate.
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
   return true;
 }
 
@@ -486,6 +474,26 @@ char* BuildIsolateName(const char* script_name,
 }
 
 
+static const int kErrorExitCode = 255;  // Indicates we encountered an error.
+
+
+static int ErrorExit(const char* format, ...) {
+  va_list arguments;
+  va_start(arguments, format);
+  vfprintf(stderr, format, arguments);
+  va_end(arguments);
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+
+  free(const_cast<char*>(original_script_name));
+  free(const_cast<char*>(original_working_directory));
+  free(const_cast<char*>(original_script_url));
+
+  return kErrorExitCode;
+}
+
+
 int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
@@ -505,7 +513,7 @@ int main(int argc, char** argv) {
                      &script_name,
                      &dart_options) < 0) {
     PrintUsage();
-    return 255;
+    return kErrorExitCode;
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
@@ -516,34 +524,21 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   Dart_Initialize(CreateIsolateAndSetup, NULL);
 
-  canonical_script_name = File::GetCanonicalPath(script_name);
-  if (canonical_script_name == NULL) {
-    fprintf(stderr, "Unable to find '%s'\n", script_name);
-    return 255;  // Indicates we encountered an error.
-  }
-
-  // If application snapshot option is specified, first create the
-  // application snapshot and then load the script using the snapshot
-  // created.
-  if (use_script_snapshot) {
-    if (!CaptureScriptSnapshot()) {
-      return 255;  // Error capturing script snapshot, error already reported.
-    }
-  }
+  original_script_name = strdup(script_name);
+  original_working_directory = Directory::Current();
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
-  char* isolate_name = BuildIsolateName(canonical_script_name, "main");
+  char* isolate_name = BuildIsolateName(original_script_name, "main");
   if (!CreateIsolateAndSetup(isolate_name, NULL, &error)) {
     fprintf(stderr, "%s\n", error);
-    free(canonical_script_name);
+    free(const_cast<char*>(original_script_name));
+    free(const_cast<char*>(original_working_directory));
     free(error);
-    free(script_snapshot_buffer);
     delete [] isolate_name;
     return 255;  // Indicates we encountered an error.
   }
-  free(script_snapshot_buffer);  // Don't need it anymore.
   delete [] isolate_name;
 
   Dart_Isolate isolate = Dart_CurrentIsolate();
@@ -555,45 +550,29 @@ int main(int argc, char** argv) {
   if (has_compile_all) {
     result = Dart_CompileAll();
     if (Dart_IsError(result)) {
-      fprintf(stderr, "%s\n", Dart_GetError(result));
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      free(canonical_script_name);
-      return 255;  // Indicates we encountered an error.
+      return ErrorExit("%s\n", Dart_GetError(result));
     }
   }
 
   // Create a dart options object that can be accessed from dart code.
   Dart_Handle options_result =
-      SetupRuntimeOptions(&dart_options, canonical_script_name);
+      SetupRuntimeOptions(&dart_options, original_script_name);
   if (Dart_IsError(options_result)) {
-    fprintf(stderr, "%s\n", Dart_GetError(options_result));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    free(canonical_script_name);
-    return 255;  // Indicates we encountered an error.
+    return ErrorExit("%s\n", Dart_GetError(options_result));
   }
   // Lookup the library of the main script.
-  Dart_Handle script_url = Dart_NewString(canonical_script_name);
+  Dart_Handle script_url = Dart_NewString(original_script_url);
   Dart_Handle library = Dart_LookupLibrary(script_url);
   if (Dart_IsError(library)) {
-    fprintf(stderr, "%s\n", Dart_GetError(library));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    free(canonical_script_name);
-    return 255;  // Indicates we encountered an error.
+    return ErrorExit("%s\n", Dart_GetError(library));
   }
   // Set debug breakpoint if specified on the command line.
   if (breakpoint_at != NULL) {
     result = SetBreakpoint(breakpoint_at, library);
     if (Dart_IsError(result)) {
-      fprintf(stderr, "Error setting breakpoint at '%s': %s\n",
+      return ErrorExit("Error setting breakpoint at '%s': %s\n",
           breakpoint_at,
           Dart_GetError(result));
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      free(canonical_script_name);
-      return 255;  // Indicates we encountered an error.
     }
   }
   // Lookup and invoke the top level main function.
@@ -603,22 +582,14 @@ int main(int argc, char** argv) {
                              0,
                              NULL);
   if (Dart_IsError(result)) {
-    fprintf(stderr, "%s\n", Dart_GetError(result));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    free(canonical_script_name);
-    return 255;  // Indicates we encountered an error.
+    return ErrorExit("%s\n", Dart_GetError(result));
   }
   // Keep handling messages until the last active receive port is closed.
   result = Dart_RunLoop();
   if (Dart_IsError(result)) {
-    fprintf(stderr, "%s\n", Dart_GetError(result));
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    free(canonical_script_name);
-    return 255;  // Indicates we encountered an error.
+    return ErrorExit("%s\n", Dart_GetError(result));
   }
-  free(canonical_script_name);
+
   Dart_ExitScope();
   // Dump symbol information for the profiler.
   DumpPprofSymbolInfo();
@@ -628,6 +599,10 @@ int main(int argc, char** argv) {
   EventHandler::Terminate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
+
+  free(const_cast<char*>(original_script_name));
+  free(const_cast<char*>(original_working_directory));
+  free(const_cast<char*>(original_script_url));
 
   return 0;
 }

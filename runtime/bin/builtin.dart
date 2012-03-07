@@ -1,10 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("builtin");
-#import("dart:nativewrappers");
-#import("dart:coreimpl");
 
 void print(arg) {
   _Logger._printString(arg.toString());
@@ -21,4 +19,43 @@ _exit(int status) native "Exit";
 
 class _Logger {
   static void _printString(String s) native "Logger_PrintString";
+}
+
+
+// Code to deal with URI resolution for the standalone binary.
+void _logResolution(String msg) {
+  final enabled = false;
+  if (enabled) {
+    _Logger._printString(msg);
+  }
+}
+
+// TODO(iposva): Make these private once the Dart API is fixed.
+String resolveScriptUri(String cwd, String scriptName) {
+  _logResolution("# Current working directory: $cwd");
+  _logResolution("# ScriptName: $scriptName");
+  var base = new Uri(scheme: "file", path: cwd.endsWith("/") ? cwd : "$cwd/");
+  var resolved = base.resolve(scriptName);
+  _logResolution("# Resolved to: $resolved");
+  return resolved.toString();
+}
+
+String resolveUri(String base, String userString) {
+  var baseUri = new Uri.fromString(base);
+  _logResolution("# Resolving: $userString from $base");
+  var resolved = baseUri.resolve(userString);
+  _logResolution("# Resolved to: $resolved");
+  return resolved.toString(); 
+}
+
+String filePathFromUri(String userUri) {
+  var uri = new Uri.fromString(userUri);
+  _logResolution("# Getting file path from: $uri");
+  if ("file" != uri.scheme) {
+    // Only handling file URIs in standalone binary.
+    _logResolution("# Not a file URI.");
+    throw "Not a file uri: $uri";
+  }
+  _logResolution("# Path: ${uri.path}");
+  return uri.path;
 }

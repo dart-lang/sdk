@@ -2088,18 +2088,31 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
                                           Dart_Handle* arguments) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError(msg);
-  }
-
-  // Now try to resolve and invoke the static function.
+  // Check whether class finalization is needed.
+  bool finalize_classes = true;
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   if (library.IsNull()) {
     return Api::NewError("No library specified");
   }
+
+  // When calling functions in the dart:builtin library do not finalize as it
+  // should have been prefinalized.
+  Library& builtin =
+      Library::Handle(isolate->object_store()->builtin_library());
+  if (builtin.raw() == library.raw()) {
+    finalize_classes = false;
+  }
+
+  // Finalize all classes if needed.
+  if (finalize_classes) {
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
+  }
+
+  // Now try to resolve and invoke the static function.
   const String& class_name =
       String::CheckedHandle(Api::UnwrapHandle(class_name_in));
   const String& function_name =
@@ -2971,6 +2984,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
       library.set_import_map(mapping_array);
     }
     library.Register();
+    // If this is the dart:builtin library register it with the VM.
+    if (url_str.Equals("dart:builtin")) {
+      isolate->object_store()->set_builtin_library(library);
+      const char* msg = CheckIsolateState(isolate);
+      if (msg != NULL) {
+        return Api::NewError(msg);
+      }
+    }
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.

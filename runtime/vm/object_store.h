@@ -273,6 +273,13 @@ class ObjectStore {
     native_wrappers_library_ = value.raw();
   }
 
+  RawLibrary* builtin_library() const {
+    return builtin_library_;
+  }
+  void set_builtin_library(const Library& value) {
+    builtin_library_ = value.raw();
+  }
+
   RawLibrary* root_library() const { return root_library_; }
   void set_root_library(const Library& value) {
     root_library_ = value.raw();
@@ -386,6 +393,7 @@ class ObjectStore {
   RawLibrary* core_impl_library_;
   RawLibrary* isolate_library_;
   RawLibrary* native_wrappers_library_;
+  RawLibrary* builtin_library_;
   RawLibrary* root_library_;
   RawLibrary* registered_libraries_;
   RawGrowableObjectArray* pending_classes_;
