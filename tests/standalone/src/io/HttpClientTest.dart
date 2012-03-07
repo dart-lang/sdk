@@ -14,7 +14,7 @@ void testGoogle() {
   };
   conn.onResponse = (HttpClientResponse response) {
     Expect.isTrue(response.statusCode < 500);
-    response.inputStream.onClosed = () {
+    response.inputStream.onData = () {
       response.inputStream.read();
     };
     response.inputStream.onClosed = () {
