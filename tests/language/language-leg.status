@@ -19,14 +19,6 @@ GetSyntaxTest/none: Fail # TODO(ahe): investigate.
 GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
 SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
 FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
-# TODO(ngeoffray): disallow native keyword.
-SyntaxTest/28: Fail
-SyntaxTest/29: Fail
-SyntaxTest/30: Fail
-SyntaxTest/31: Fail
-SyntaxTest/32: Fail
-SyntaxTest/33: Fail
-SyntaxTest/47: Fail
 
 # Compilation errors.
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
@@ -277,6 +269,7 @@ StaticTopLevelTest/05: Fail, OK # Negative language test.
 StringInterpolation7NegativeTest: Fail, OK # Negative language test.
 Switch3NegativeTest: Fail, OK # Negative language test.
 Switch7NegativeTest: Fail, OK # Negative language test.
+SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest*: Skip # multiple error annotations are required
