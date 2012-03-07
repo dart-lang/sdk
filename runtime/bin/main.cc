@@ -387,7 +387,6 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
   }
 
   // Prepare builtin for use to resolve URIs.
-  Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
   Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
   Builtin::ImportLibrary(builtin_lib, Builtin::kUriLibrary);
 

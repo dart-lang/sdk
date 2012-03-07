@@ -279,6 +279,7 @@ int main(int argc, char** argv) {
                                       empty_string,
                                       BuiltinLibraryTagHandler,
                                       import_map);
+    USE(lib);
     // This is a generic dart snapshot which needs builtin library setup.
     library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
     VerifyLoaded(library);
