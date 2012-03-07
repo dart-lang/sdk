@@ -198,7 +198,6 @@ TypeVariableBounds2Test*: Skip  # multiple error annotations are required
 # TODO: These need to be retriaged.
 DisablePrivacyTest: Skip
 RichardsTest: Fail
-TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
 

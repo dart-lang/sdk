@@ -12,7 +12,6 @@ dom/AudioContextTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-dom/TypingTest: Fail    # StyleSheetList.item not implemented
 html/frog_html_tests: Skip
 
 [ $component == dartium && $mode == debug ]
