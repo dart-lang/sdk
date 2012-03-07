@@ -4,5 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface AudioElement extends MediaElement {
+interface AudioElement extends MediaElement default _AudioElementFactoryProvider {
+
+  AudioElement([String src]);
 }

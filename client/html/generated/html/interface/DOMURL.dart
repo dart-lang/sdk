@@ -4,5 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface DOMURL default _DOMURLFactoryProvider {
+
+  DOMURL();
 }

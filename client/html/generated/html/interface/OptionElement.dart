@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface OptionElement extends Element {
+interface OptionElement extends Element default _OptionElementFactoryProvider {
+
+  OptionElement([String data, String value, bool defaultSelected, bool selected]);
 
   bool defaultSelected;
 

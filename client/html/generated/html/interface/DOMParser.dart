@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMParser {
+interface DOMParser default _DOMParserFactoryProvider {
+
+  DOMParser();
 
   Document parseFromString(String str, String contentType);
 }

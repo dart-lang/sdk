@@ -20882,6 +20882,177 @@ class _XSLTProcessorImpl extends _DOMTypeBase implements XSLTProcessor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _AudioElementFactoryProvider {
+  factory AudioElement([String src = null]) =>
+      _wrap(new dom.AudioElement(src));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _BlobBuilderFactoryProvider {
+  factory BlobBuilder() =>
+      _wrap(new dom.BlobBuilder());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _CSSMatrixFactoryProvider {
+  factory CSSMatrix([String cssValue = '']) =>
+      _wrap(new dom.WebKitCSSMatrix(cssValue));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMParserFactoryProvider {
+  factory DOMParser() =>
+      _wrap(new dom.DOMParser());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMURLFactoryProvider {
+  factory DOMURL() =>
+      _wrap(new dom.DOMURL());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _EventSourceFactoryProvider {
+  factory EventSource(String scriptUrl) =>
+      _wrap(new dom.EventSource(scriptUrl));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _FileReaderFactoryProvider {
+  factory FileReader() =>
+      _wrap(new dom.FileReader());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _FileReaderSyncFactoryProvider {
+  factory FileReaderSync() =>
+      _wrap(new dom.FileReaderSync());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MediaControllerFactoryProvider {
+  factory MediaController() =>
+      _wrap(new dom.MediaController());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MediaStreamFactoryProvider {
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) =>
+      _wrap(new dom.MediaStream(audioTracks, videoTracks));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MessageChannelFactoryProvider {
+  factory MessageChannel() =>
+      _wrap(new dom.MessageChannel());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _OptionElementFactoryProvider {
+  factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
+      _wrap(new dom.OptionElement(data, value, defaultSelected, selected));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _PeerConnectionFactoryProvider {
+  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
+      _wrap(new dom.PeerConnection(serverConfiguration, signalingCallback));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _ShadowRootFactoryProvider {
+  factory ShadowRoot(Element host) =>
+      _wrap(new dom.ShadowRoot(host));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SharedWorkerFactoryProvider {
+  factory SharedWorker(String scriptURL, [String name = null]) =>
+      _wrap(new dom.SharedWorker(scriptURL, name));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _TextTrackCueFactoryProvider {
+  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) =>
+      _wrap(new dom.TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _WorkerFactoryProvider {
+  factory Worker(String scriptUrl) =>
+      _wrap(new dom.Worker(scriptUrl));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XMLHttpRequestFactoryProvider {
+  factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
+
+  factory XMLHttpRequest.getTEMPNAME(String url,
+                                     onSuccess(XMLHttpRequest request)) =>
+      _XMLHttpRequestUtils.getTEMPNAME(url, onSuccess);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XMLSerializerFactoryProvider {
+  factory XMLSerializer() =>
+      _wrap(new dom.XMLSerializer());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XPathEvaluatorFactoryProvider {
+  factory XPathEvaluator() =>
+      _wrap(new dom.XPathEvaluator());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XSLTProcessorFactoryProvider {
+  factory XSLTProcessor() =>
+      _wrap(new dom.XSLTProcessor());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 interface AbstractWorker extends EventTarget {
@@ -21262,7 +21433,9 @@ interface AudioDestinationNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface AudioElement extends MediaElement {
+interface AudioElement extends MediaElement default _AudioElementFactoryProvider {
+
+  AudioElement([String src]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21526,7 +21699,9 @@ interface Blob {
 
 // WARNING: Do not edit - generated code.
 
-interface BlobBuilder {
+interface BlobBuilder default _BlobBuilderFactoryProvider {
+
+  BlobBuilder();
 
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 
@@ -21701,7 +21876,9 @@ interface CSSKeyframesRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix {
+interface CSSMatrix default _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String cssValue]);
 
   num a;
 
@@ -24568,7 +24745,9 @@ interface DOMMimeTypeArray {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMParser {
+interface DOMParser default _DOMParserFactoryProvider {
+
+  DOMParser();
 
   Document parseFromString(String str, String contentType);
 }
@@ -24706,7 +24885,9 @@ interface DOMTokenList {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface DOMURL default _DOMURLFactoryProvider {
+
+  DOMURL();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26002,7 +26183,9 @@ interface EventException {
 
 // WARNING: Do not edit - generated code.
 
-interface EventSource extends EventTarget {
+interface EventSource extends EventTarget default _EventSourceFactoryProvider {
+
+  EventSource(String scriptUrl);
 
   static final int CLOSED = 2;
 
@@ -26225,7 +26408,9 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader {
+interface FileReader default _FileReaderFactoryProvider {
+
+  FileReader();
 
   static final int DONE = 2;
 
@@ -26273,7 +26458,9 @@ interface FileReader {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReaderSync {
+interface FileReaderSync default _FileReaderSyncFactoryProvider {
+
+  FileReaderSync();
 
   ArrayBuffer readAsArrayBuffer(Blob blob);
 
@@ -27591,7 +27778,9 @@ interface MarqueeElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaController {
+interface MediaController default _MediaControllerFactoryProvider {
+
+  MediaController();
 
   final TimeRanges buffered;
 
@@ -27821,7 +28010,9 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStream {
+interface MediaStream default _MediaStreamFactoryProvider {
+
+  MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
   static final int ENDED = 2;
 
@@ -27921,7 +28112,9 @@ interface MenuElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface MessageChannel {
+interface MessageChannel default _MessageChannelFactoryProvider {
+
+  MessageChannel();
 
   final MessagePort port1;
 
@@ -28615,7 +28808,9 @@ interface OptGroupElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface OptionElement extends Element {
+interface OptionElement extends Element default _OptionElementFactoryProvider {
+
+  OptionElement([String data, String value, bool defaultSelected, bool selected]);
 
   bool defaultSelected;
 
@@ -28725,7 +28920,9 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection {
+interface PeerConnection default _PeerConnectionFactoryProvider {
+
+  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
 
   static final int ACTIVE = 2;
 
@@ -32068,7 +32265,9 @@ interface ShadowElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface ShadowRoot extends DocumentFragment {
+interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
+
+  ShadowRoot(Element host);
 
   final Element host;
 
@@ -32086,7 +32285,9 @@ interface ShadowRoot extends DocumentFragment {
 
 // WARNING: Do not edit - generated code.
 
-interface SharedWorker extends AbstractWorker {
+interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
+
+  SharedWorker(String scriptURL, [String name]);
 
   final MessagePort port;
 }
@@ -32623,7 +32824,9 @@ interface TextTrack {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackCue {
+interface TextTrackCue default _TextTrackCueFactoryProvider {
+
+  TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
   String alignment;
 
@@ -34593,7 +34796,9 @@ interface WindowEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
-interface Worker extends AbstractWorker {
+interface Worker extends AbstractWorker default _WorkerFactoryProvider {
+
+  Worker(String scriptUrl);
 
   WorkerEvents get on();
 
@@ -34713,12 +34918,11 @@ interface WorkerNavigator {
 // WARNING: Do not edit - generated code.
 
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-
-  XMLHttpRequest();
-
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
   XMLHttpRequest.getTEMPNAME(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest();
 
   static final int DONE = 4;
 
@@ -34860,7 +35064,9 @@ interface XMLHttpRequestUploadEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
-interface XMLSerializer {
+interface XMLSerializer default _XMLSerializerFactoryProvider {
+
+  XMLSerializer();
 
   String serializeToString(Node node);
 }
@@ -34870,7 +35076,9 @@ interface XMLSerializer {
 
 // WARNING: Do not edit - generated code.
 
-interface XPathEvaluator {
+interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
+
+  XPathEvaluator();
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver);
 
@@ -34970,7 +35178,9 @@ interface XPathResult {
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor {
+interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+
+  XSLTProcessor();
 
   void clearParameters();
 
@@ -35616,6 +35826,35 @@ class _Collections {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _XMLHttpRequestUtils {
+
+  // Helper for factory XMLHttpRequest.getTEMPNAME
+  static XMLHttpRequest getTEMPNAME(String url,
+                                    onSuccess(XMLHttpRequest request)) {
+    final request = new XMLHttpRequest();
+    request.open('GET', url, true);
+
+    // TODO(terry): Validate after client login added if necessary to forward
+    //              cookies to server.
+    request.withCredentials = true;
+
+    // Status 0 is for local XHR request.
+    request.on.readyStateChange.add((e) {
+      if (request.readyState == XMLHttpRequest.DONE &&
+          (request.status == 200 || request.status == 0)) {
+        onSuccess(request);
+      }
+    });
+
+    request.send();
+
+    return request;
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _TextFactoryProvider {
 
   factory Text(String data) => document._createTextNode(data);
@@ -35722,14 +35961,6 @@ class _AudioContextFactoryProvider {
   factory AudioContext() => _wrap(new dom.AudioContext());
 }
 
-class _DOMParserFactoryProvider {
-  factory DOMParser() => _wrap(new dom.DOMParser());
-}
-
-class _FileReaderFactoryProvider {
-  factory FileReader() => _wrap(new dom.FileReader());
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
@@ -35781,46 +36012,9 @@ class _TypedArrayFactoryProvider {
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
-class _CSSMatrixFactoryProvider {
-
-  factory CSSMatrix([String spec = '']) =>
-      _wrap(new dom.WebKitCSSMatrix(spec));
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
-}
-
-class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
-}
-
-class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
-
-  factory XMLHttpRequest.getTEMPNAME(String url,
-      onSuccess(XMLHttpRequest request)) {
-    final request = new XMLHttpRequest();
-    request.open('GET', url, true);
-
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
-
-    // Status 0 is for local XHR request.
-    request.on.readyStateChange.add((e) {
-      if (request.readyState == XMLHttpRequest.DONE &&
-          (request.status == 200 || request.status == 0)) {
-        onSuccess(request);
-      }
-    });
-
-    request.send();
-
-    return request;
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -4,10 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface $ID$EXTENDS default _$(ID)FactoryProvider {
-
-  $ID();
-
+interface $ID$EXTENDS {
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
   $ID.getTEMPNAME(String url, onSuccess($ID request));

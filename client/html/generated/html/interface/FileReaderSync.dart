@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileReaderSync {
+interface FileReaderSync default _FileReaderSyncFactoryProvider {
+
+  FileReaderSync();
 
   ArrayBuffer readAsArrayBuffer(Blob blob);
 

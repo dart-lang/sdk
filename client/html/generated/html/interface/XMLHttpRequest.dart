@@ -5,12 +5,11 @@
 // WARNING: Do not edit - generated code.
 
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-
-  XMLHttpRequest();
-
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
   XMLHttpRequest.getTEMPNAME(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest();
 
   static final int DONE = 4;
 
