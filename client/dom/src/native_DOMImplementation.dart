@@ -15,8 +15,8 @@ class Utils {
     return const NotImplementedException();
   }
 
-  static window() native "TopLevel_Window";
-
+  static window() native "Utils_window";
+  static print(String message) native "Utils_print";
   static SendPort spawnDomIsolate(Window window, String entryPoint) native "Utils_spawnDomIsolate";
 }
 
