@@ -35,7 +35,7 @@ def main():
       'inspector',
       'loader',
       'loader/appcache',
-      'mediastream',
+      'Modules/mediastream',
       'Modules/geolocation',
       'notifications',
       'page',
@@ -43,7 +43,7 @@ def main():
       'storage',
       'svg',
       'webaudio',
-      'websockets',
+      'Modules/websockets',
       'workers',
       'xml',
       ]
