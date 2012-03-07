@@ -61,6 +61,7 @@ namespace dart {
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
+    V(GrowableObjectArray)                                                     \
     V(ByteArray)                                                               \
       V(InternalByteArray)                                                     \
       V(ExternalByteArray)                                                     \
@@ -986,11 +987,28 @@ class RawArray : public RawInstance {
 
   friend class RawImmutableArray;
   friend class SnapshotReader;
+  friend class GrowableObjectArray;
 };
 
 
 class RawImmutableArray : public RawArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
+
+  friend class SnapshotReader;
+};
+
+
+class RawGrowableObjectArray : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
+  RawSmi* length_;
+  RawArray* data_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
 
   friend class SnapshotReader;
 };

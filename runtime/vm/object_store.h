@@ -50,6 +50,7 @@ class ObjectStore {
     kBoolClass,
     kArrayClass,
     kImmutableArrayClass,
+    kGrowableObjectArrayClass,
     kInternalByteArrayClass,
     kExternalByteArrayClass,
     kStacktraceClass,
@@ -193,6 +194,16 @@ class ObjectStore {
     immutable_array_class_ = value.raw();
   }
 
+  RawClass* growable_object_array_class() const {
+    return growable_object_array_class_;
+  }
+  void set_growable_object_array_class(const Class& value) {
+    growable_object_array_class_ = value.raw();
+  }
+  static intptr_t growable_object_array_class_offset() {
+    return OFFSET_OF(ObjectStore, growable_object_array_class_);
+  }
+
   RawClass* internal_byte_array_class() const {
     return internal_byte_array_class_;
   }
@@ -273,8 +284,8 @@ class ObjectStore {
     registered_libraries_ = value.raw();
   }
 
-  RawArray* pending_classes() const { return pending_classes_; }
-  void set_pending_classes(const Array& value) {
+  RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
+  void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
     pending_classes_ = value.raw();
   }
@@ -360,6 +371,7 @@ class ObjectStore {
   RawType* list_interface_;
   RawClass* array_class_;
   RawClass* immutable_array_class_;
+  RawClass* growable_object_array_class_;
   RawType* byte_array_interface_;
   RawClass* internal_byte_array_class_;
   RawClass* external_byte_array_class_;
@@ -376,7 +388,7 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* registered_libraries_;
-  RawArray* pending_classes_;
+  RawGrowableObjectArray* pending_classes_;
   RawError* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;

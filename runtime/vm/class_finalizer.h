@@ -15,6 +15,7 @@ class AbstractTypeArguments;
 class Class;
 class Error;
 class Function;
+class GrowableObjectArray;
 class RawAbstractType;
 class RawClass;
 class RawType;
@@ -37,8 +38,8 @@ class ClassFinalizer : public AllStatic {
   // Return false if 'interface' conflicts with an interface already in the list
   // with the same class, but different type arguments.
   // In the case of a conflict, set 'conflicting' to the existing interface.
-  static bool AddInterfaceIfUnique(GrowableArray<AbstractType*>* interface_list,
-                                   AbstractType* interface,
+  static bool AddInterfaceIfUnique(const GrowableObjectArray& interface_list,
+                                   const AbstractType& interface,
                                    AbstractType* conflicting);
 
   // Modes for type resolution and finalization. The ordering is relevant.
@@ -66,9 +67,6 @@ class ClassFinalizer : public AllStatic {
                                     const Type& type,
                                     FinalizationKind finalization,
                                     const char* format, ...);
-
-  // Pending classes are classes that need to be finalized.
-  static void AddPendingClasses(const GrowableArray<const Class*>& classes);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -98,7 +96,7 @@ class ClassFinalizer : public AllStatic {
   static void ResolveSuperType(const Class& cls);
   static void ResolveDefaultClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
-                                GrowableArray<const Class*>* visited);
+                                const GrowableObjectArray& visited);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,
                                     FinalizationKind finalization);
@@ -112,7 +110,7 @@ class ClassFinalizer : public AllStatic {
   static void PrintClassInformation(const Class& cls);
   static void VerifyClassImplements(const Class& cls);
   static void CollectInterfaces(const Class& cls,
-                                GrowableArray<const Class*>* interfaces);
+                                const GrowableObjectArray& interfaces);
   static void ReportError(const Error& error);
   static void ReportError(const Script& script,
                           intptr_t token_index,

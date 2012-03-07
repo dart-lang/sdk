@@ -219,9 +219,9 @@ class Parser : ValueObject {
 
   // Support for parsing of scripts.
   void ParseTopLevel();
-  void ParseClassDefinition(GrowableArray<const Class*>* classes);
-  void ParseInterfaceDefinition(GrowableArray<const Class*>* classes);
-  void ParseFunctionTypeAlias(GrowableArray<const Class*>* classes);
+  void ParseClassDefinition(const GrowableObjectArray& pending_classes);
+  void ParseInterfaceDefinition(const GrowableObjectArray& pending_classes);
+  void ParseFunctionTypeAlias(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);
   void ParseTopLevelFunction(TopLevel* top_level);
   void ParseTopLevelAccessor(TopLevel* top_level);

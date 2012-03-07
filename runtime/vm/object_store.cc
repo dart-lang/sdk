@@ -34,6 +34,7 @@ ObjectStore::ObjectStore()
     list_interface_(Type::null()),
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
+    growable_object_array_class_(Class::null()),
     byte_array_interface_(Type::null()),
     internal_byte_array_class_(Class::null()),
     external_byte_array_class_(Class::null()),
@@ -49,7 +50,7 @@ ObjectStore::ObjectStore()
     native_wrappers_library_(Library::null()),
     root_library_(Library::null()),
     registered_libraries_(Library::null()),
-    pending_classes_(Array::null()),
+    pending_classes_(GrowableObjectArray::null()),
     sticky_error_(Error::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
@@ -131,6 +132,7 @@ RawClass* ObjectStore::GetClass(int index) {
     case kBoolClass: return bool_class_;
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
+    case kGrowableObjectArrayClass: return growable_object_array_class_;
     case kInternalByteArrayClass: return internal_byte_array_class_;
     case kExternalByteArrayClass: return external_byte_array_class_;
     case kStacktraceClass: return stacktrace_class_;
@@ -172,6 +174,8 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kArrayClass;
   } else if (raw_class == immutable_array_class_) {
     return kImmutableArrayClass;
+  } else if (raw_class == growable_object_array_class_) {
+    return kGrowableObjectArrayClass;
   } else if (raw_class == internal_byte_array_class_) {
     return kInternalByteArrayClass;
   } else if (raw_class == external_byte_array_class_) {

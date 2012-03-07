@@ -23,15 +23,23 @@ static RawClass* CreateTestClass(const char* name) {
 
 
 TEST_CASE(ClassFinalizer) {
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const GrowableObjectArray& pending_classes =
+      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
   GrowableArray<const Class*> classes_1;
-  classes_1.Add(&Class::ZoneHandle(CreateTestClass("BMW")));
-  classes_1.Add(&Class::ZoneHandle(CreateTestClass("Porsche")));
-  ClassFinalizer::AddPendingClasses(classes_1);
+  classes_1.Add(&Class::Handle(CreateTestClass("BMW")));
+  pending_classes.Add(*classes_1[0]);
+  classes_1.Add(&Class::Handle(CreateTestClass("Porsche")));
+  pending_classes.Add(*classes_1[1]);
+
   GrowableArray<const Class*> classes_2;
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Ferrari")));
+  pending_classes.Add(*classes_2[0]);
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Fiat")));
+  pending_classes.Add(*classes_2[1]);
   classes_2.Add(&Class::ZoneHandle(CreateTestClass("Alfa")));
-  ClassFinalizer::AddPendingClasses(classes_2);
+  pending_classes.Add(*classes_2[2]);
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   for (int i = 0; i < classes_1.length(); i++) {
     EXPECT(classes_1[i]->is_finalized());
@@ -44,15 +52,20 @@ TEST_CASE(ClassFinalizer) {
 
 
 TEST_CASE(ClassFinalize_Cycles) {
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const GrowableObjectArray& pending_classes =
+      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
   GrowableArray<const Class*> classes;
-  classes.Add(&Class::ZoneHandle(CreateTestClass("Jungfrau")));
-  classes.Add(&Class::ZoneHandle(CreateTestClass("Eiger")));
+  classes.Add(&Class::Handle(CreateTestClass("Jungfrau")));
+  pending_classes.Add(*classes[0]);
+  classes.Add(&Class::Handle(CreateTestClass("Eiger")));
+  pending_classes.Add(*classes[1]);
   // Create a cycle.
   classes[0]->set_super_type(
       Type::Handle(Type::NewNonParameterizedType(*classes[1])));
   classes[1]->set_super_type(
       Type::Handle(Type::NewNonParameterizedType(*classes[0])));
-  ClassFinalizer::AddPendingClasses(classes);
   EXPECT(!ClassFinalizer::FinalizePendingClasses());
 }
 
@@ -64,12 +77,15 @@ static RawLibrary* NewLib(const char* url_chars) {
 
 
 TEST_CASE(ClassFinalize_Resolve) {
-  GrowableArray<const Class*> classes;
-  Class& rhb = Class::ZoneHandle(CreateTestClass("RhB"));
-  Class& sbb = Class::ZoneHandle(CreateTestClass("SBB"));
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const GrowableObjectArray& pending_classes =
+      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
+  Class& rhb = Class::Handle(CreateTestClass("RhB"));
+  pending_classes.Add(rhb);
+  Class& sbb = Class::Handle(CreateTestClass("SBB"));
+  pending_classes.Add(sbb);
   Library& lib = Library::Handle(NewLib("TestLib"));
-  classes.Add(&rhb);
-  classes.Add(&sbb);
   lib.AddClass(rhb);
   lib.AddClass(sbb);
   const String& superclass_name = String::Handle(sbb.Name());
@@ -82,7 +98,6 @@ TEST_CASE(ClassFinalize_Resolve) {
       Type::New(Object::Handle(unresolved.raw()),
                 type_arguments,
                 Scanner::kDummyTokenIndex)));
-  ClassFinalizer::AddPendingClasses(classes);
   EXPECT(ClassFinalizer::FinalizePendingClasses());
 }
 

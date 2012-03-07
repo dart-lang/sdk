@@ -1739,6 +1739,107 @@ TEST_CASE(Array) {
 }
 
 
+TEST_CASE(GrowableObjectArray) {
+  const int kArrayLen = 5;
+  Smi& value = Smi::Handle();
+  Smi& expected_value = Smi::Handle();
+  GrowableObjectArray& array = GrowableObjectArray::Handle();
+
+  // Test basic growing functionality.
+  array = GrowableObjectArray::New(kArrayLen);
+  EXPECT_EQ(kArrayLen, array.Capacity());
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 10; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  EXPECT_EQ(10, array.Length());
+  for (intptr_t i = 0; i < 10; i++) {
+    expected_value = Smi::New(i);
+    value ^= array.At(i);
+    EXPECT(value.Equals(expected_value));
+  }
+  for (intptr_t i = 0; i < 10; i++) {
+    value = Smi::New(i * 10);
+    array.SetAt(i, value);
+  }
+  EXPECT_EQ(10, array.Length());
+  for (intptr_t i = 0; i < 10; i++) {
+    expected_value = Smi::New(i * 10);
+    value ^= array.At(i);
+    EXPECT(value.Equals(expected_value));
+  }
+
+  // Test the MakeArray functionality to make sure the resulting array
+  // object is properly setup.
+  // 1. Should produce an array of length 2 and a remainder array of length 0.
+  Array& new_array = Array::Handle();
+  Object& obj = Object::Handle();
+  uword addr = 0;
+  intptr_t used_size = 0;
+
+  array = GrowableObjectArray::New(kArrayLen);
+  EXPECT_EQ(kArrayLen, array.Capacity());
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 2; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  used_size = Array::InstanceSize(array.Length());
+  new_array = Array::MakeArray(array);
+  addr = RawObject::ToAddr(new_array.raw());
+  obj = RawObject::FromAddr(addr);
+  EXPECT(obj.IsArray());
+  new_array ^= obj.raw();
+  EXPECT_EQ(2, new_array.Length());
+  addr += used_size;
+  obj = RawObject::FromAddr(addr);
+  EXPECT(obj.IsArray());
+  new_array ^= obj.raw();
+  EXPECT_EQ(0, new_array.Length());
+
+  // 2. Should produce an array of length 3 and a remainder object.
+  array = GrowableObjectArray::New(kArrayLen);
+  EXPECT_EQ(kArrayLen, array.Capacity());
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 3; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  used_size = Array::InstanceSize(array.Length());
+  new_array = Array::MakeArray(array);
+  addr = RawObject::ToAddr(new_array.raw());
+  obj = RawObject::FromAddr(addr);
+  EXPECT(obj.IsArray());
+  new_array ^= obj.raw();
+  EXPECT_EQ(3, new_array.Length());
+  addr += used_size;
+  obj = RawObject::FromAddr(addr);
+  EXPECT(!obj.IsArray());
+
+  // 3. Should produce an array of length 1 and a remainder array of length 2.
+  array = GrowableObjectArray::New(kArrayLen + 3);
+  EXPECT_EQ((kArrayLen + 3), array.Capacity());
+  EXPECT_EQ(0, array.Length());
+  for (intptr_t i = 0; i < 1; i++) {
+    value = Smi::New(i);
+    array.Add(value);
+  }
+  used_size = Array::InstanceSize(array.Length());
+  new_array = Array::MakeArray(array);
+  addr = RawObject::ToAddr(new_array.raw());
+  obj = RawObject::FromAddr(addr);
+  EXPECT(obj.IsArray());
+  new_array ^= obj.raw();
+  EXPECT_EQ(1, new_array.Length());
+  addr += used_size;
+  obj = RawObject::FromAddr(addr);
+  EXPECT(obj.IsArray());
+  new_array ^= obj.raw();
+  EXPECT_EQ(2, new_array.Length());
+}
+
+
 TEST_CASE(ExternalByteArray) {
   uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
   intptr_t data_length = ARRAY_SIZE(data);

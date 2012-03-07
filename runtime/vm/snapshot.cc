@@ -307,6 +307,12 @@ RawLiteralToken* SnapshotReader::NewLiteralToken() {
 }
 
 
+RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
+  ALLOC_NEW_OBJECT(GrowableObjectArray,
+                   object_store()->growable_object_array_class());
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
 

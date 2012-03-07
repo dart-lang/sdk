@@ -77,22 +77,13 @@ int TraceParser::indent_ = 0;
 #endif  // DEBUG
 
 
-template<typename T>
-static RawArray* NewArray(const GrowableArray<T*>& objs) {
-  Array& a = Array::Handle(Array::New(objs.length(), Heap::kOld));
-  for (int i = 0; i < objs.length(); i++) {
-    a.SetAt(i, *objs[i]);
-  }
-  return a.raw();
-}
-
-
-static RawTypeArguments* NewTypeArguments(
-    const GrowableArray<AbstractType*>& objs) {
+static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
   const TypeArguments& a =
-      TypeArguments::Handle(TypeArguments::New(objs.length()));
-  for (int i = 0; i < objs.length(); i++) {
-    a.SetTypeAt(i, *objs[i]);
+      TypeArguments::Handle(TypeArguments::New(objs.Length()));
+  AbstractType& type = AbstractType::Handle();
+  for (int i = 0; i < objs.Length(); i++) {
+    type ^= objs.At(i);
+    a.SetTypeAt(i, type);
   }
   // Cannot canonicalize TypeArgument yet as its types may not have been
   // finalized yet.
@@ -420,8 +411,8 @@ class ClassDesc : public ValueObject {
         class_name_(cls_name),
         is_interface_(is_interface),
         token_pos_(token_pos),
-        functions_(4),
-        fields_(4) {
+        functions_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+        fields_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
   }
 
   bool FunctionNameExists(const String& name, RawFunction::Kind kind) const {
@@ -464,21 +455,21 @@ class ClassDesc : public ValueObject {
     return false;
   }
 
-  void AddFunction(Function* function) {
-    ASSERT(!NameExists<Function>(functions_, String::Handle(function->name())));
+  void AddFunction(const Function& function) {
+    ASSERT(!NameExists<Function>(functions_, String::Handle(function.name())));
     functions_.Add(function);
   }
 
-  const GrowableArray<Function*>& functions() const {
+  const GrowableObjectArray& functions() const {
     return functions_;
   }
 
-  void AddField(Field* field) {
-    ASSERT(!NameExists<Field>(fields_, String::Handle(field->name())));
+  void AddField(const Field& field) {
+    ASSERT(!NameExists<Field>(fields_, String::Handle(field.name())));
     fields_.Add(field);
   }
 
-  const GrowableArray<Field*>& fields() const {
+  const GrowableObjectArray& fields() const {
     return fields_;
   }
 
@@ -495,8 +486,10 @@ class ClassDesc : public ValueObject {
   }
 
   bool has_constructor() const {
-    for (int i = 0; i < functions_.length(); i++) {
-      if (functions_[i]->kind() == RawFunction::kConstructor) {
+    Function& func = Function::Handle();
+    for (int i = 0; i < functions_.Length(); i++) {
+      func ^= functions_.At(i);
+      if (func.kind() == RawFunction::kConstructor) {
         return true;
       }
     }
@@ -526,10 +519,12 @@ class ClassDesc : public ValueObject {
 
  private:
   template<typename T>
-  bool NameExists(const GrowableArray<T*>& list, const String& name) const {
+  bool NameExists(const GrowableObjectArray& list, const String& name) const {
     String& test_name = String::Handle();
-    for (int i = 0; i < list.length(); i++) {
-      test_name = list[i]->name();
+    T& obj = T::Handle();
+    for (int i = 0; i < list.Length(); i++) {
+      obj ^= list.At(i);
+      test_name = obj.name();
       if (name.Equals(test_name)) {
         return true;
       }
@@ -541,17 +536,19 @@ class ClassDesc : public ValueObject {
   const String& class_name_;
   const bool is_interface_;
   intptr_t token_pos_;   // Token index of "class" keyword.
-  GrowableArray<Function*> functions_;
-  GrowableArray<Field*> fields_;
+  GrowableObjectArray& functions_;
+  GrowableObjectArray& fields_;
   GrowableArray<MemberDesc> members_;
 };
 
 
 struct TopLevel {
-  TopLevel() : fields(4), functions(4) { }
+  TopLevel() :
+      fields(GrowableObjectArray::Handle(GrowableObjectArray::New())),
+      functions(GrowableObjectArray::Handle(GrowableObjectArray::New())) { }
 
-  GrowableArray<Field*> fields;
-  GrowableArray<Function*> functions;
+  GrowableObjectArray& fields;
+  GrowableObjectArray& functions;
 };
 
 
@@ -2154,7 +2151,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else {
     function_kind = RawFunction::kFunction;
   }
-  Function& func = Function::ZoneHandle(
+  Function& func = Function::Handle(
       Function::New(*method->name,
                     function_kind,
                     method->has_static,
@@ -2166,7 +2163,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // No need to resolve parameter types yet, or add parameters to local scope.
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
-  members->AddFunction(&func);
+  members->AddFunction(func);
 }
 
 
@@ -2194,6 +2191,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     ErrorMsg(field->name_pos,
              "'%s' field/method already defined\n", field->name->ToCString());
   }
+  Function& getter = Function::Handle();
+  Function& setter = Function::Handle();
+  Field& class_field = Field::Handle();
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
     if (has_initializer) {
@@ -2213,56 +2213,49 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     }
 
     // Create the field object.
-    Field& class_field = Field::ZoneHandle(
-         Field::New(*field->name,
-                    field->has_static,
-                    field->has_final,
-                    field->name_pos));
+    class_field = Field::New(*field->name,
+                             field->has_static,
+                             field->has_final,
+                             field->name_pos);
     class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
-    members->AddField(&class_field);
+    members->AddField(class_field);
 
     // For static final fields, set value to "uninitialized" and
     // create a kConstImplicitGetter getter method.
     if (field->has_static && has_initializer) {
       class_field.set_value(Instance::Handle(Object::sentinel()));
-      String& getter_name =
-          String::ZoneHandle(Field::GetterSymbol(*field->name));
-      Function& getter = Function::ZoneHandle(
-          Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                        field->has_static, field->has_final,
-                        field->name_pos));
+      String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
+      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                             field->has_static, field->has_final,
+                             field->name_pos);
       getter.set_result_type(*field->type);
-      members->AddFunction(&getter);
+      members->AddFunction(getter);
     }
 
     // For instance fields, we create implicit getter and setter methods.
     if (!field->has_static) {
-      String& getter_name =
-          String::ZoneHandle(Field::GetterSymbol(*field->name));
-      Function& getter = Function::ZoneHandle(
-          Function::New(getter_name, RawFunction::kImplicitGetter,
-                        field->has_static, field->has_final,
-                        field->name_pos));
+      String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
+      getter = Function::New(getter_name, RawFunction::kImplicitGetter,
+                             field->has_static, field->has_final,
+                             field->name_pos);
       ParamList params;
       params.AddReceiver(token_index_);
       getter.set_result_type(*field->type);
       AddFormalParamsToFunction(&params, getter);
-      members->AddFunction(&getter);
+      members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
-        String& setter_name = String::ZoneHandle(
-            Field::SetterSymbol(*field->name));
-        Function& setter = Function::ZoneHandle(
-            Function::New(setter_name, RawFunction::kImplicitSetter,
-                         field->has_static, field->has_final,
-                         field->name_pos));
+        String& setter_name = String::Handle(Field::SetterSymbol(*field->name));
+        setter = Function::New(setter_name, RawFunction::kImplicitSetter,
+                               field->has_static, field->has_final,
+                               field->name_pos);
         ParamList params;
         params.AddReceiver(token_index_);
         params.AddFinalParameter(token_index_, "value", field->type);
         setter.set_result_type(Type::Handle(Type::VoidType()));
         AddFormalParamsToFunction(&params, setter);
-        members->AddFunction(&setter);
+        members->AddFunction(setter);
       }
     }
 
@@ -2513,7 +2506,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 }
 
 
-void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
+void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseClassDefinition");
   const intptr_t class_pos = token_index_;
   ExpectToken(Token::kCLASS);
@@ -2522,7 +2515,7 @@ void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
-  Class& cls = Class::ZoneHandle();
+  Class& cls = Class::Handle();
   Object& obj = Object::Handle(library_.LookupObject(class_name));
   if (obj.IsNull()) {
     cls = Class::New(class_name, script_, classname_pos);
@@ -2586,10 +2579,16 @@ void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
   ExpectToken(Token::kRBRACE);
 
   CheckConstructors(&members);
-  cls.SetFields(Array::Handle(NewArray<Field>(members.fields())));
+
+  Array& array = Array::Handle();
+  array = Array::MakeArray(members.fields());
+  cls.SetFields(array);
+
   // Creating a new array for functions marks the class as parsed.
-  cls.SetFunctions(Array::Handle(NewArray<Function>(members.functions())));
-  classes->Add(&cls);
+  array = Array::MakeArray(members.functions());
+  cls.SetFunctions(array);
+
+  pending_classes.Add(cls, Heap::kOld);
 }
 
 
@@ -2606,7 +2605,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
     ctor_name = String::NewSymbol(ctor_name);
     // The token position for the implicit constructor is the 'class'
     // keyword of the constructor's class.
-    Function& ctor = Function::ZoneHandle(
+    Function& ctor = Function::Handle(
         Function::New(ctor_name,
                       RawFunction::kConstructor,
                       /* is_static = */ false,
@@ -2627,7 +2626,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
     // Therefore, there is no need to set the result type to be checked.
     const AbstractType& result_type = Type::ZoneHandle(Type::DynamicType());
     ctor.set_result_type(result_type);
-    class_desc->AddFunction(&ctor);
+    class_desc->AddFunction(ctor);
   }
 
   // Check for cycles in constructor redirection.
@@ -2677,7 +2676,8 @@ bool Parser::IsFunctionTypeAliasName() {
 }
 
 
-void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
+void Parser::ParseFunctionTypeAlias(
+    const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
@@ -2764,17 +2764,18 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
 
   // Create the function type alias, but share the signature function of the
   // canonical signature class.
-  Class& function_type_alias = Class::ZoneHandle(
+  Class& function_type_alias = Class::Handle(
       Class::NewSignatureClass(*alias_name,
                                signature_function,
                                script_));
   library_.AddClass(function_type_alias);
   ExpectSemicolon();
-  classes->Add(&function_type_alias);
+  pending_classes.Add(function_type_alias, Heap::kOld);
 }
 
 
-void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
+void Parser::ParseInterfaceDefinition(
+    const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseInterfaceDefinition");
   const intptr_t interface_pos = token_index_;
   ExpectToken(Token::kINTERFACE);
@@ -2783,7 +2784,7 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing interface '%s'\n", interface_name.ToCString());
   }
-  Class& interface = Class::ZoneHandle();
+  Class& interface = Class::Handle();
   Object& obj = Object::Handle(library_.LookupObject(interface_name));
   if (obj.IsNull()) {
     interface = Class::NewInterface(interface_name, script_, interfacename_pos);
@@ -2867,12 +2868,16 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
   }
   ExpectToken(Token::kRBRACE);
 
-  interface.SetFields(Array::Handle(NewArray<Field>(members.fields())));
+  Array& array = Array::Handle();
+  array = Array::MakeArray(members.fields());
+  interface.SetFields(array);
+
   // Creating a new array for functions marks the interface as parsed.
-  interface.SetFunctions(
-      Array::Handle(NewArray<Function>(members.functions())));
+  array = Array::MakeArray(members.functions());
+  interface.SetFunctions(array);
   ASSERT(interface.is_interface());
-  classes->Add(&interface);
+
+  pending_classes.Add(interface, Heap::kOld);
 }
 
 
@@ -2927,25 +2932,30 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
-    GrowableArray<AbstractType*> type_parameters_array;
-    GrowableArray<AbstractType*> bounds_array;
+    const GrowableObjectArray& type_parameters_array =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    const GrowableObjectArray& bounds_array =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
+    AbstractType& type_parameter = TypeParameter::Handle();
+    AbstractType& bound = Type::Handle();
     do {
       ConsumeToken();
       if (CurrentToken() != Token::kIDENT) {
         ErrorMsg("type parameter name expected");
       }
       String& type_parameter_name = *CurrentLiteral();
-      AbstractType& type_parameter = TypeParameter::ZoneHandle(
-          TypeParameter::New(index, type_parameter_name, token_index_));
+      type_parameter = TypeParameter::New(index,
+                                          type_parameter_name,
+                                          token_index_);
       ConsumeToken();
-      AbstractType& bound = Type::ZoneHandle(Type::DynamicType());
+      bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         bound = ParseType(ClassFinalizer::kTryResolve);
       }
-      type_parameters_array.Add(&type_parameter);
-      bounds_array.Add(&bound);
+      type_parameters_array.Add(type_parameter);
+      bounds_array.Add(bound);
       index++;
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
@@ -2962,7 +2972,6 @@ void Parser::ParseTypeParameters(const Class& cls) {
     cls.set_type_parameter_bounds(bounds);
     // Try to resolve the upper bounds, which will at least resolve the
     // referenced type parameters.
-    AbstractType& bound = AbstractType::Handle();
     const intptr_t num_types = bounds.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       bound = bounds.TypeAt(i);
@@ -2978,11 +2987,13 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseTypeArguments");
   if (CurrentToken() == Token::kLT) {
-    GrowableArray<AbstractType*> types;
+    const GrowableObjectArray& types =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
     do {
       ConsumeToken();
-      AbstractType& type = AbstractType::ZoneHandle(ParseType(finalization));
-      types.Add(&type);
+      type = ParseType(finalization);
+      types.Add(type);
       // Only keep the error for the first malformed type argument.
       if (malformed_error->IsNull() && type.IsMalformed()) {
         *malformed_error = type.malformed_error();
@@ -3007,37 +3018,42 @@ RawArray* Parser::ParseInterfaceList() {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT((CurrentToken() == Token::kIMPLEMENTS) ||
          (CurrentToken() == Token::kEXTENDS));
-  GrowableArray<AbstractType*> interfaces;
+  const GrowableObjectArray& interfaces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   String& interface_name = String::Handle();
+  AbstractType& interface = AbstractType::Handle();
+  String& other_name = String::Handle();
+  AbstractType& other_interface = AbstractType::Handle();
   do {
     ConsumeToken();
     intptr_t supertype_pos = token_index_;
-    AbstractType& interface = AbstractType::ZoneHandle(
-        ParseType(ClassFinalizer::kTryResolve));
+    interface = ParseType(ClassFinalizer::kTryResolve);
     interface_name = interface.Name();
-    for (int i = 0; i < interfaces.length(); i++) {
-      String& other_name = String::Handle(interfaces[i]->Name());
+    for (int i = 0; i < interfaces.Length(); i++) {
+      other_interface ^= interfaces.At(i);
+      other_name = other_interface.Name();
       if (interface_name.Equals(other_name)) {
         ErrorMsg(supertype_pos, "Duplicate supertype '%s'",
                  interface_name.ToCString());
       }
     }
-    interfaces.Add(&interface);
+    interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);
-  return NewArray<AbstractType>(interfaces);
+  return Array::MakeArray(interfaces);
 }
 
 
 void Parser::AddInterfaces(intptr_t interfaces_pos,
                            const Class& cls,
                            const Array& interfaces) {
-  GrowableArray<AbstractType*> all_interfaces;
+  const GrowableObjectArray& all_interfaces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  AbstractType& interface = AbstractType::Handle();
   // First get all the interfaces already implemented by class.
   Array& cls_interfaces = Array::Handle(cls.interfaces());
   for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
-    AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= cls_interfaces.At(i);
-    all_interfaces.Add(&interface);
+    all_interfaces.Add(interface);
   }
   // Now add the new interfaces.
   AbstractType& conflicting = AbstractType::Handle();
@@ -3057,8 +3073,8 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
                  String::Handle(interface.Name()).ToCString());
       }
     }
-    if (!ClassFinalizer::AddInterfaceIfUnique(&all_interfaces,
-                                              &interface,
+    if (!ClassFinalizer::AddInterfaceIfUnique(all_interfaces,
+                                              interface,
                                               &conflicting)) {
       ASSERT(!conflicting.IsNull());
       ErrorMsg(interfaces_pos,
@@ -3067,7 +3083,7 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
                String::Handle(conflicting.Name()).ToCString());
     }
   }
-  cls_interfaces = NewArray<AbstractType>(all_interfaces);
+  cls_interfaces = Array::MakeArray(all_interfaces);
   cls.set_interfaces(cls_interfaces);
 }
 
@@ -3079,6 +3095,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
   const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
       FLAG_enable_type_checks ? ClassFinalizer::kTryResolve :
                                 ClassFinalizer::kIgnore));
+  Field& field = Field::Handle();
+  Function& getter = Function::Handle();
   while (true) {
     const intptr_t name_pos = token_index_;
     String& var_name = *ExpectIdentifier("variable name expected");
@@ -3097,11 +3115,10 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                var_name.ToCString());
     }
 
-    Field& field = Field::ZoneHandle(
-        Field::New(var_name, is_static, is_final, name_pos));
+    field = Field::New(var_name, is_static, is_final, name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Instance::null()));
-    top_level->fields.Add(&field);
+    top_level->fields.Add(field);
     library_.AddObject(field, var_name);
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
@@ -3109,11 +3126,10 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       field.set_value(Instance::Handle(Object::sentinel()));
       // Create a static const getter.
       String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
-      Function& getter = Function::ZoneHandle(
-          Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                        is_static, is_final, name_pos));
+      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                             is_static, is_final, name_pos);
       getter.set_result_type(type);
-      top_level->functions.Add(&getter);
+      top_level->functions.Add(getter);
     } else if (is_final) {
       ErrorMsg(name_pos, "missing initializer for final variable");
     }
@@ -3183,13 +3199,13 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   } else {
     ErrorMsg("function block expected");
   }
-  Function& func = Function::ZoneHandle(
+  Function& func = Function::Handle(
       Function::New(func_name, RawFunction::kFunction,
                     is_static, false, function_pos));
   func.set_result_type(result_type);
   func.set_end_token_index(function_end_pos);
   AddFormalParamsToFunction(&params, func);
-  top_level->functions.Add(&func);
+  top_level->functions.Add(func);
   library_.AddObject(func, func_name);
 }
 
@@ -3263,14 +3279,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   } else {
     ErrorMsg("function block expected");
   }
-  Function& func = Function::ZoneHandle(
+  Function& func = Function::Handle(
       Function::New(accessor_name,
                     is_getter? RawFunction::kGetterFunction :
                                RawFunction::kSetterFunction,
                     is_static, false, accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
-  top_level->functions.Add(&func);
+  top_level->functions.Add(func);
   library_.AddObject(func, accessor_name);
 }
 
@@ -3444,11 +3460,14 @@ void Parser::ParseTopLevel() {
   // Collect the classes found at the top level in this growable array.
   // They need to be registered with class finalization after parsing
   // has been completed.
-  GrowableArray<const Class*> classes;
+  Isolate* isolate = Isolate::Current();
+  ObjectStore* object_store = isolate->object_store();
+  const GrowableObjectArray& pending_classes =
+      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
   SetPosition(0);
   is_top_level_ = true;
   TopLevel top_level;
-  Class& toplevel_class = Class::ZoneHandle(
+  Class& toplevel_class = Class::Handle(
       Class::New(String::ZoneHandle(String::NewSymbol("::")),
                  script_,
                  token_index_));
@@ -3461,12 +3480,12 @@ void Parser::ParseTopLevel() {
   while (true) {
     set_current_class(Class::Handle());  // No current class.
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDefinition(&classes);
+      ParseClassDefinition(pending_classes);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
-      ParseFunctionTypeAlias(&classes);
+      ParseFunctionTypeAlias(pending_classes);
     } else if (CurrentToken() == Token::kINTERFACE) {
-      ParseInterfaceDefinition(&classes);
+      ParseInterfaceDefinition(pending_classes);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
@@ -3482,15 +3501,18 @@ void Parser::ParseTopLevel() {
       }
     }
   }
-  if ((top_level.fields.length() > 0) || (top_level.functions.length() > 0)) {
-    toplevel_class.SetFields(
-        Array::Handle(NewArray<Field>(top_level.fields)));
-    toplevel_class.SetFunctions(
-        Array::Handle(NewArray<Function>(top_level.functions)));
+  if ((top_level.fields.Length() > 0) || (top_level.functions.Length() > 0)) {
+    Array& array = Array::Handle();
+
+    array = Array::MakeArray(top_level.fields);
+    toplevel_class.SetFields(array);
+
+    array = Array::MakeArray(top_level.functions);
+    toplevel_class.SetFunctions(array);
+
     library_.AddAnonymousClass(toplevel_class);
-    classes.Add(&toplevel_class);
+    pending_classes.Add(toplevel_class, Heap::kOld);
   }
-  ClassFinalizer::AddPendingClasses(classes);
 }
 
 
@@ -5900,9 +5922,11 @@ ArgumentListNode* Parser::ParseActualParameters(
   } else {
     arguments = implicit_arguments;
   }
-  GrowableArray<const String*> names;
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   bool named_argument_seen = false;
   if (LookaheadToken(1) != Token::kRPAREN) {
+    String& arg_name = String::Handle();
     do {
       ASSERT((CurrentToken() == Token::kLPAREN) ||
              (CurrentToken() == Token::kCOMMA));
@@ -5913,12 +5937,13 @@ ArgumentListNode* Parser::ParseActualParameters(
         // code generator requires that the names are symbols, i.e.
         // canonicalized strings.
         ASSERT(CurrentLiteral()->IsSymbol());
-        for (int i = 0; i < names.length(); i++) {
-          if (CurrentLiteral()->Equals(*names[i])) {
+        for (int i = 0; i < names.Length(); i++) {
+          arg_name ^= names.At(i);
+          if (CurrentLiteral()->Equals(arg_name)) {
             ErrorMsg("duplicate named argument");
           }
         }
-        names.Add(CurrentLiteral());
+        names.Add(*CurrentLiteral());
         ConsumeToken();  // ident.
         ConsumeToken();  // colon.
       } else if (named_argument_seen) {
@@ -5932,7 +5957,7 @@ ArgumentListNode* Parser::ParseActualParameters(
   ExpectToken(Token::kRPAREN);
   SetAllowFunctionLiterals(saved_mode);
   if (named_argument_seen) {
-    arguments->set_names(Array::Handle(NewArray<const String>(names)));
+    arguments->set_names(Array::Handle(Array::MakeArray(names)));
   }
   return arguments;
 }

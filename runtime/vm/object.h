@@ -3325,6 +3325,16 @@ class Array : public Instance {
   // Returns the preallocated empty array, used to initialize array fields.
   static RawArray* Empty();
 
+  // Return an Array object that contains all the elements currently present
+  // in the specified Growable Object Array. This is done by first truncating
+  // the Growable Object Array's backing array to the currently used size and
+  // returning the truncated backing array.
+  // The remaining unused part of the backing array is marked as an Array
+  // object or a regular Object so that it can be traversed during garbage
+  // collection. The backing array of the original Growable Object Array is
+  // set to an empty array.
+  static RawArray* MakeArray(const GrowableObjectArray& growable_array);
+
  protected:
   static RawArray* New(const Class& cls,
                        intptr_t len,
@@ -3358,6 +3368,86 @@ class ImmutableArray : public Array {
  private:
   HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
   friend class Class;
+};
+
+
+class GrowableObjectArray : public Instance {
+ public:
+  intptr_t Capacity() const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    return Smi::Value(DataArray()->length_);
+  }
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  RawObject* At(intptr_t index) const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    ASSERT(index < Length());
+    return *ObjectAddr(index);
+  }
+  void SetAt(intptr_t index, const Object& value) const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    ASSERT(index < Length());
+    StorePointer(ObjectAddr(index), value.raw());
+  }
+
+  void Add(const Object& value, Heap::Space space = Heap::kNew) const;
+  RawObject* RemoveLast() const;
+
+  virtual RawAbstractTypeArguments* GetTypeArguments() const {
+    const Array& contents = Array::Handle(data());
+    return contents.GetTypeArguments();
+  }
+  virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    const Array& contents = Array::Handle(data());
+    contents.SetTypeArguments(value);
+  }
+
+  virtual bool Equals(const Instance& other) const;
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawGrowableObjectArray, length_);
+  }
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawGrowableObjectArray, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawGrowableObjectArray));
+  }
+
+  static RawGrowableObjectArray* New(Heap::Space space = Heap::kNew) {
+    return New(kDefaultInitialCapacity, space);
+  }
+  static RawGrowableObjectArray* New(intptr_t capacity,
+                                     Heap::Space space = Heap::kNew);
+
+ private:
+  RawArray* data() const { return raw_ptr()->data_; }
+  void SetLength(intptr_t value) const {
+    // This is only safe because we create a new Smi, which does not cause
+    // heap allocation.
+    raw_ptr()->length_ = Smi::New(value);
+  }
+  void SetData(const Array& value) const {
+    StorePointer(&raw_ptr()->data_, value.raw());
+  }
+  RawArray* DataArray() const { return data()->ptr(); }
+  RawObject** ObjectAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return &(DataArray()->data()[index]);
+  }
+
+  static const int kDefaultInitialCapacity = 4;
+
+  HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
+  friend class Class;
+  friend class Array;
 };
 
 

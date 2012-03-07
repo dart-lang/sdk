@@ -30,6 +30,7 @@ class RawDouble;
 class RawField;
 class RawFourByteString;
 class RawFunction;
+class RawGrowableObjectArray;
 class RawImmutableArray;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -374,6 +375,7 @@ class SnapshotReader : public BaseReader {
   RawLibraryPrefix* NewLibraryPrefix();
   RawScript* NewScript();
   RawLiteralToken* NewLiteralToken();
+  RawGrowableObjectArray* NewGrowableObjectArray();
 
  private:
   // Allocate uninitialized objects, this is used when reading a full snapshot.

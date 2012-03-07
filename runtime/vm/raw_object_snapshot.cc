@@ -1710,6 +1710,45 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
+                                                      intptr_t object_id,
+                                                      intptr_t tags,
+                                                      Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Read the length so that we can determine instance size to allocate.
+  GrowableObjectArray& array = GrowableObjectArray::ZoneHandle(
+      reader->isolate(), reader->NewGrowableObjectArray());
+  reader->AddBackwardReference(object_id, &array);
+  intptr_t length = reader->ReadSmiValue();
+  array.SetLength(length);
+  Array& contents = Array::Handle();
+  contents ^= reader->ReadObject();
+  array.SetData(contents);
+  return array.raw();
+}
+
+
+void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
+                                     intptr_t object_id,
+                                     Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteSerializationMarker(kInlined, object_id);
+
+  // Write out the class and tags information.
+  writer->WriteObjectHeader(ObjectStore::kGrowableObjectArrayClass,
+                            ptr()->tags_);
+
+  // Write out the used length field.
+  writer->Write<RawObject*>(ptr()->length_);
+
+  // Write out the Array object.
+  writer->WriteObject(ptr()->data_);
+}
+
+
 RawByteArray* ByteArray::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
