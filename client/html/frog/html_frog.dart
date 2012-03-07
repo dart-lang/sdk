@@ -321,7 +321,7 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode() native;
+  _DelayNodeImpl createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
@@ -803,6 +803,12 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -4037,11 +4043,11 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListImpl items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 
@@ -4454,6 +4460,10 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
+
+  String createObjectURL(var blob_OR_stream) native;
+
+  void revokeObjectURL(String url) native;
 }
 
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
@@ -4860,6 +4870,14 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*Docum
 }
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
+
+  final _AudioParamImpl knee;
+
+  final _AudioParamImpl ratio;
+
+  final _AudioParamImpl reduction;
+
+  final _AudioParamImpl threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6771,7 +6789,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBRequestImpl getObject(_IDBKeyImpl key) native;
 
@@ -6818,7 +6836,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
@@ -7980,6 +7998,8 @@ class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTML
 class _MetadataImpl implements Metadata native "*Metadata" {
 
   final Date modificationTime;
+
+  final int size;
 }
 
 class _MeterElementImpl extends _ElementImpl implements MeterElement native "*HTMLMeterElement" {
@@ -12678,6 +12698,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   final _ElementImpl host;
 
+  String innerHTML;
+
   _ElementImpl getElementById(String elementId) native;
 
   _NodeListImpl getElementsByClassName(String className) native;
@@ -13137,21 +13159,21 @@ class _TextTrackImpl implements TextTrack native "*TextTrack" {
 
 class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -13161,9 +13183,9 @@ class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
   String text;
 
-  int textPosition;
-
   final _TextTrackImpl track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -14738,6 +14760,8 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final bool overflow;
+
+  _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -16047,7 +16071,7 @@ interface AudioContext {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode();
+  DelayNode createDelayNode([num maxDelayTime]);
 
   DynamicsCompressorNode createDynamicsCompressor();
 
@@ -16683,6 +16707,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -19004,11 +19034,11 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type]);
 
-  void getData(String type);
+  String getData(String type);
 
   bool setData(String type, String data);
 
@@ -19540,6 +19570,10 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20010,6 +20044,14 @@ interface DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
+
+  final AudioParam knee;
+
+  final AudioParam ratio;
+
+  final AudioParam reduction;
+
+  final AudioParam threshold;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21701,7 +21743,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBRequest getObject(IDBKey key);
 
@@ -21763,7 +21805,7 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
@@ -22848,6 +22890,8 @@ interface MetaElement extends Element {
 interface Metadata {
 
   final Date modificationTime;
+
+  final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26923,6 +26967,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   final Element host;
 
+  String innerHTML;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -27480,21 +27526,21 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -27504,9 +27550,9 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   String text;
 
-  int textPosition;
-
   final TextTrack track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -28986,6 +29032,8 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

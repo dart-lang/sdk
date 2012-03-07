@@ -7,4 +7,8 @@
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }

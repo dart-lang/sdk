@@ -11,7 +11,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBRequestImpl getObject(_IDBKeyImpl key) native;
 
