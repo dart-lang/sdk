@@ -317,12 +317,6 @@ void EffectGraphVisitor::VisitIncrOpInstanceFieldNode(
 }
 
 
-void EffectGraphVisitor::VisitIncrOpStaticFieldNode(
-    IncrOpStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitIncrOpStaticFieldNode");
-}
-
-
 void EffectGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
   if (node->prefix()) {

@@ -1207,51 +1207,6 @@ void CodeGenerator::VisitIncrOpInstanceFieldNode(
 }
 
 
-void CodeGenerator::VisitIncrOpStaticFieldNode(IncrOpStaticFieldNode* node) {
-  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  MarkDeoptPoint(node->id(), node->token_index());
-  if (node->field().IsNull()) {
-    GenerateStaticGetterCall(node->token_index(),
-                             node->field_class(),
-                             node->field_name());
-  } else {
-    __ LoadObject(EDX, node->field());
-    __ movl(EAX, FieldAddress(EDX, Field::value_offset()));
-  }
-  // Value in EAX.
-  if (!node->prefix() && IsResultNeeded(node)) {
-    // Preserve as result.
-    __ pushl(EAX);
-  }
-  const Immediate value = Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
-  const char* operator_name = (node->kind() == Token::kINCR) ? "+" : "-";
-  __ pushl(EAX);    // Left operand.
-  __ pushl(value);  // Right operand.
-  GenerateBinaryOperatorCall(node->id(), node->token_index(), operator_name);
-  // result is in EAX.
-  if (node->prefix() && IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
-  if (node->field().IsNull()) {
-    __ pushl(EAX);
-    // It is not necessary to generate a type test of the assigned value here,
-    // because the setter will check the type of its incoming arguments.
-    GenerateStaticSetterCall(node->token_index(),
-                             node->field_class(),
-                             node->field_name());
-  } else {
-    if (FLAG_enable_type_checks) {
-      GenerateAssertAssignable(node->id(),
-                               node->token_index(),
-                               AbstractType::ZoneHandle(node->field().type()),
-                               String::ZoneHandle(node->field().name()));
-    }
-    __ LoadObject(EDX, node->field());
-    __ StoreIntoObject(EDX, FieldAddress(EDX, Field::value_offset()), EAX);
-  }
-}
-
-
 void CodeGenerator::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
   node->array()->Visit(this);

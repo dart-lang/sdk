@@ -319,19 +319,6 @@ const char* IncrOpInstanceFieldNode::Name() const {
 }
 
 
-const char* IncrOpStaticFieldNode::Name() const {
-  switch (kind_) {
-    case Token::kINCR:
-      return prefix_ ? "static_field_pre_++" : "static_field_post_++";
-    case Token::kDECR:
-      return prefix_ ? "static_field_pre_--" : "static_field_post_--";
-    default:
-      UNREACHABLE();
-      return NULL;
-  }
-}
-
-
 const char* JumpNode::Name() const {
   return Token::Str(kind_);
 }
@@ -376,7 +363,8 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
 AstNode* LoadStaticFieldNode::MakeIncrOpNode(intptr_t token_index,
                                              Token::Kind kind,
                                              bool is_prefix) {
-  return new IncrOpStaticFieldNode(token_index, kind, is_prefix, field());
+  UNIMPLEMENTED();
+  return NULL;
 }
 
 
@@ -420,11 +408,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
 AstNode* StaticGetterNode::MakeIncrOpNode(intptr_t token_index,
                                           Token::Kind kind,
                                           bool is_prefix) {
-  return new IncrOpStaticFieldNode(token_index,
-                                   kind,
-                                   is_prefix,
-                                   cls(),
-                                   field_name());
+  UNIMPLEMENTED();
+  return NULL;
 }
 
 

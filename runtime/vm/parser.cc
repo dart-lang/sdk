@@ -1699,9 +1699,9 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       AstNode* arg = ctor_args->NodeAt(i);
       if (!arg->IsLoadLocalNode() && !arg->IsLiteralNode()) {
         LocalVariable* temp =
-        CreateTempConstVariable(arg->token_index(), arg->id(), "sca");
+            CreateTempConstVariable(arg->token_index(), arg->id(), "sca");
         AstNode* save_temp =
-        new StoreLocalNode(arg->token_index(), *temp, arg);
+            new StoreLocalNode(arg->token_index(), *temp, arg);
         ctor_args->SetNodeAt(i, save_temp);
       }
     }
@@ -4181,7 +4181,8 @@ void Parser::ParseStatementSequence() {
   while (CurrentToken() != Token::kRBRACE) {
     const intptr_t statement_pos = token_index_;
     AstNode* statement = ParseStatement();
-    if (statement != NULL) {
+    // Do not add statements with no effect (e.g., LoadLocalNode).
+    if (statement != NULL && !statement->IsLoadLocalNode()) {
       if (!dead_code_allowed && abrupt_completing_seen) {
         ErrorMsg(statement_pos, "dead code after abrupt completing statement");
       }
@@ -5854,12 +5855,25 @@ AstNode* Parser::ParseUnaryExpr() {
     if (!IsAssignableExpr(expr)) {
       ErrorMsg("expression is not assignable");
     }
-    // is_prefix.
-    AstNode* incr_op_node = expr->MakeIncrOpNode(op_pos, incr_op, true);
-    if (incr_op_node == NULL) {
-      Unimplemented("incr operation not implemented");
+    // TODO(srdjan): Implement transformation for all.
+    if (expr->IsLoadStaticFieldNode() || expr->IsStaticGetterNode()) {
+      Token::Kind binary_op =
+          (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
+      BinaryOpNode* add = new BinaryOpNode(
+          op_pos,
+          binary_op,
+          expr,
+          new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
+      AstNode* store = expr->MakeAssignmentNode(add);
+      expr = store;
+    } else {
+      // is_prefix.
+      AstNode* incr_op_node = expr->MakeIncrOpNode(op_pos, incr_op, true);
+      if (incr_op_node == NULL) {
+        Unimplemented("incr operation not implemented");
+      }
+      expr = incr_op_node;
     }
-    expr = incr_op_node;
   } else {
     expr = ParsePostfixExpr();
   }
@@ -6324,12 +6338,33 @@ AstNode* Parser::ParsePostfixExpr() {
     }
     ConsumeToken();
     // Not prefix.
-    AstNode* incr_op_node =
-        postfix_expr->MakeIncrOpNode(postfix_expr_pos, incr_op, false);
-    if (incr_op_node == NULL) {
-      Unimplemented("incr op not implemented");
+    if (postfix_expr->IsLoadStaticFieldNode() ||
+        postfix_expr->IsStaticGetterNode()) {
+      LocalVariable* temp = CreateTempConstVariable(
+          postfix_expr_pos, postfix_expr->id(), "incoplix");
+      AstNode* save =
+          new StoreLocalNode(postfix_expr_pos, *temp, postfix_expr);
+      current_block_->statements->Add(save);
+      LoadLocalNode* load = new LoadLocalNode(postfix_expr_pos, *temp);
+      Token::Kind binary_op =
+          (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
+      BinaryOpNode* add = new BinaryOpNode(
+          postfix_expr_pos,
+          binary_op,
+          load,
+          new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
+      AstNode* store = postfix_expr->MakeAssignmentNode(add);
+      current_block_->statements->Add(store);
+      LoadLocalNode* load_res = new LoadLocalNode(postfix_expr_pos, *temp);
+      return load_res;
+    } else {
+      AstNode* incr_op_node =
+          postfix_expr->MakeIncrOpNode(postfix_expr_pos, incr_op, false);
+      if (incr_op_node == NULL) {
+        Unimplemented("incr op not implemented");
+      }
+      postfix_expr = incr_op_node;
     }
-    postfix_expr = incr_op_node;
   }
   return postfix_expr;
 }
