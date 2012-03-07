@@ -12,16 +12,13 @@ MathParseDoubleTest: Fail
 MapTest: Skip # SplayTree gets stuck when looking up key. MUST FIX.
 
 # Compilation errors.
-CollectionFromTest: Fail # named constructors with type arguments are not implemented
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
 CoreRuntimeTypesTest: Fail # map not implemented
 DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
-FutureTest: Fail # named constructors with type arguments are not implemented
 FuturesTest: Fail # factory ReceivePort is not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
 ListTest: Fail # Internal Error: Cannot find value
-QueueTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
 SplayTreeTest: Fail # Internal Error: Cannot find value
 StringPatternTest: Fail # Bad bailout code related to for-in.

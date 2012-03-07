@@ -35,14 +35,13 @@ ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
+DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
-DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
-Factory4Test: Fail # named constructors with type arguments are not implemented
 ForTest: Fail # SsaBuilder for loop without condition not implemented
 FunctionSyntaxTest: Fail # Internal Error: Cannot find value
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
@@ -61,7 +60,6 @@ LabelTest: Fail # switch cases are not implemented
 Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
 LibrarySameNameUsedTest: Fail # lib2 is not a type
-ListTest: Fail # named constructors with type arguments are not implemented
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
@@ -77,21 +75,19 @@ NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamedParametersTypeTest: Fail # Internal Error: Cannot find value
 NamingTest: Fail # Internal Error: Cannot find value
 NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
-NonParameterizedFactory2Test: Fail # named constructors with type arguments are not implemented
 NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
 Prefix10Test: Fail # lib11 is not a type
 Prefix11Test: Fail # lib11 is not a type
-Prefix12Test: Fail # named constructors with type arguments are not implemented
+Prefix12Test: Fail # lib11 is not a type.
 Prefix14Test: Fail # prefixes not implemented
 Prefix15Test: Fail # lib12 is not a type
 Prefix17Test: Fail # lib12 is not a type
 Prefix21Test: Fail # Internal Error: Element.computeType.
 Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
-RegExpTest: Fail # named constructors with type arguments are not implemented
 ResourceTest: Fail # #resource tag not recognized - issue 1807
 StatementTest: Fail # switch cases are not implemented
 StaticFieldTest: Fail # cannot resolve setValues
@@ -109,10 +105,10 @@ SwitchTest: Fail # switch cases are not implemented
 TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
 ToplevelCollision2Test/none: Fail # duplicate definition
-TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
+
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
@@ -131,13 +127,15 @@ GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
-PrivateMemberTest: Fail # uncaught exception in toString
+ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
+LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
+PrivateMemberTest: Fail # uncaught exception in toString
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
+TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 TypedMessageTest: Fail # SyntaxError: Unexpected token this
 
 
@@ -191,6 +189,8 @@ DuplicateImplementsTest/03: Fail, OK # Negative language test.
 DuplicateImplementsTest/04: Fail, OK # Negative language test.
 EmptyBodyMemberNegativeTest: Fail, OK # Negative language test.
 Factory2NegativeTest: Fail, OK # Negative language test.
+Factory3NegativeTest: Fail, OK # Negative language test.
+FactoryNegativeTest: Fail, OK # Negative language test.
 FauxverrideTest/03: Fail, OK # Negative language test.
 FauxverrideTest/05: Fail, OK # Negative language test.
 Field1NegativeTest: Fail, OK # Negative language test.
@@ -233,6 +233,7 @@ Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
+Prefix9NegativeTest: Fail, OK # Negative language test.
 PrivateMember3NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
