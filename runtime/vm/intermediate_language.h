@@ -33,6 +33,8 @@ class LocalVariable;
 // | StoreInstanceField <StoreInstanceFieldNode> <Value> <Value>
 // | LoadStaticField <Field>
 // | StoreStaticField <StoreStaticFieldNode> <Value>
+// | BooleanNegate <Value>
+// | InstanceOf <Value> <Type>
 //
 // <Value> ::=
 //   Temp <int>
@@ -61,7 +63,9 @@ class LocalVariable;
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
-  M(StoreStaticField, StoreStaticFieldComp)
+  M(StoreStaticField, StoreStaticFieldComp)                                    \
+  M(BooleanNegate, BooleanNegateComp)                                          \
+  M(InstanceOf, InstanceOfComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -440,6 +444,52 @@ class InstanceSetterComp : public Computation {
   Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
+};
+
+
+// Note overrideable, built-in: value? false : true.
+class BooleanNegateComp : public Computation {
+ public:
+  explicit BooleanNegateComp(Value* value) : value_(value) {}
+
+  DECLARE_COMPUTATION(BooleanNegateComp)
+
+  Value* value() const { return value_; }
+
+ private:
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
+};
+
+
+class InstanceOfComp : public Computation {
+ public:
+  InstanceOfComp(intptr_t node_id,
+                 intptr_t token_index,
+                 Value* value,
+                 const AbstractType& type,
+                 bool negate_result)
+      : node_id_(node_id),
+        token_index_(token_index),
+        value_(value),
+        type_(type),
+        negate_result_(negate_result) {}
+
+  DECLARE_COMPUTATION(InstanceOfComp)
+
+  Value* value() const { return value_; }
+  bool negate_result() const { return negate_result_; }
+  const AbstractType& type() const { return type_; }
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  Value* value_;
+  const AbstractType& type_;
+  const bool negate_result_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceOfComp);
 };
 
 

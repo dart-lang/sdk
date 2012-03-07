@@ -105,8 +105,16 @@ class BoolTest {
     Expect.equals("false", false.toString());
   }
 
+  static void testNegate(isTrue, isFalse) {
+    Expect.equals(true, !false);
+    Expect.equals(false, !true);
+    Expect.equals(true, !isFalse);
+    Expect.equals(false, !isTrue);
+  }
+
   static void testMain() {
     testEquality();
+    testNegate(true, false);
     testToString();
   }
 }

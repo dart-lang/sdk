@@ -250,9 +250,17 @@ void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
 //                              right: <Expression> }
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   if (Token::IsInstanceofOperator(node->kind())) {
-    Bailout("instanceof not yet implemented");
-  } else if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
-    Bailout("'==' or '!=' comparison not yet implemented");
+    ArgumentGraphVisitor for_left_value(owner(), temp_index());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    InstanceOfComp* instance_of = new InstanceOfComp(
+        node->id(),
+        node->token_index(),
+        for_left_value.value(),
+        node->right()->AsTypeNode()->type(),
+        (node->kind() == Token::kISNOT));
+    ReturnComputation(instance_of);
+    return;
   }
   if ((node->kind() == Token::kEQ_STRICT) ||
       (node->kind() == Token::kNE_STRICT)) {
@@ -277,18 +285,42 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
-  InstanceCallComp* call =
-      new InstanceCallComp(node->id(), node->token_index(), name,
-                           arguments, Array::ZoneHandle(), 2);
-  ReturnComputation(call);
+  // 'kNE' is not overloadable, must implement as kEQ and negation.
+  // Boolean negation '!' cannot be overloaded neither.
+  if (node->kind() == Token::kNE) {
+    const String& name = String::ZoneHandle(String::NewSymbol("=="));
+    InstanceCallComp* call_equal =
+        new InstanceCallComp(node->id(), node->token_index(), name,
+                             arguments, Array::ZoneHandle(), 2);
+    AddInstruction(new BindInstr(temp_index(), call_equal));
+    Value* eq_result = new TempVal(temp_index());
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kNE");
+    }
+    BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
+    ReturnComputation(negate);
+  } else {
+    const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
+    InstanceCallComp* call =
+        new InstanceCallComp(node->id(), node->token_index(), name,
+                             arguments, Array::ZoneHandle(), 2);
+    ReturnComputation(call);
+  }
 }
 
 
 void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   // "!" cannot be overloaded, therefore do not call operator.
   if (node->kind() == Token::kNOT) {
-    Bailout("EffectGraphVisitor::VisitUnaryOpNode NOT");
+    ValueGraphVisitor for_value(owner(), temp_index());
+    node->operand()->Visit(&for_value);
+    Append(for_value);
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kNOT");
+    }
+    BooleanNegateComp* negate = new BooleanNegateComp(for_value.value());
+    ReturnComputation(negate);
+    return;
   }
   ArgumentGraphVisitor for_value(owner(), temp_index());
   node->operand()->Visit(&for_value);
@@ -937,6 +969,19 @@ void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
   OS::Print(")");
 }
 
+
+void FlowGraphPrinter::VisitBooleanNegate(BooleanNegateComp* comp) {
+  OS::Print("! ");
+  comp->value()->Accept(this);
+}
+
+
+void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
+  comp->value()->Accept(this);
+  OS::Print(" %s %s",
+      comp->negate_result() ? "ISNOT" : "IS",
+      String::Handle(comp->type().Name()).ToCString());
+}
 
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", instr->block_number());

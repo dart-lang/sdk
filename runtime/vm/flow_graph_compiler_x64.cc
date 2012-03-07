@@ -260,6 +260,25 @@ void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label done;
+  LoadValue(comp->value());
+  __ movq(RDX, RAX);
+  __ LoadObject(RAX, bool_true);
+  __ cmpq(RAX, RDX);
+  __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ Bind(&done);
+}
+
+
+void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
+  Bailout("InstanceOf");
+}
+
+
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
   Bailout("JoinEntryInstr");
 }
