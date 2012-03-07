@@ -122,7 +122,7 @@ ToplevelCollision2Test/none: Fail # duplicate definition
 TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
-WrongNumberTypeArgumentsTest/01: Fail  # Should not complain in production mode.
+WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
@@ -279,9 +279,8 @@ Switch3NegativeTest: Fail, OK # Negative language test.
 Switch7NegativeTest: Fail, OK # Negative language test.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
-TypeVariableBoundsTest/00: Fail, OK # Negative language test.
-TypeVariableBoundsTest/07: Fail, OK # Negative language test.
-TypeVariableBoundsTest/08: Fail, OK # Negative language test.
+TypeVariableBoundsTest*: Skip # multiple error annotations are required
+TypeVariableBounds2Test*: Skip # multiple error annotations are required
 TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
