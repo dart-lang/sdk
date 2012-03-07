@@ -1646,6 +1646,255 @@ TEST_CASE(ImplicitReferences) {
   EXPECT(Dart_IsNull(weak3));
 }
 
+
+static int global_prologue_callback_status;
+
+
+static void PrologueCallbackTimes2() {
+  global_prologue_callback_status *= 2;
+}
+
+
+static void PrologueCallbackTimes3() {
+  global_prologue_callback_status *= 3;
+}
+
+
+static int global_epilogue_callback_status;
+
+
+static void EpilogueCallbackTimes4() {
+  global_epilogue_callback_status *= 4;
+}
+
+
+static void EpilogueCallbackTimes5() {
+  global_epilogue_callback_status *= 5;
+}
+
+
+TEST_CASE(AddGarbageCollectionCallbacks) {
+  // Add a prologue callback.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Add the same prologue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2)));
+
+  // Add another prologue callback.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes3));
+
+  // Add the same prologue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_AddGcPrologueCallback(&PrologueCallbackTimes3)));
+
+  // Add an epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Add the same epilogue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4)));
+
+  // Add annother epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes5));
+
+  // Add the same epilogue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes5)));
+}
+
+
+TEST_CASE(RemoveGarbageCollectionCallbacks) {
+  // Remove a prologue callback that has not been added.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2)));
+
+  // Add a prologue callback.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Remove a prologue callback.
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Remove a prologue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2)));
+
+  // Add two prologue callbacks.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes3));
+
+  // Remove two prologue callbacks.
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes3));
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Remove epilogue callbacks again.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4)));
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5)));
+
+  // Remove a epilogue callback that has not been added.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5)));
+
+  // Add a epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Remove a epilogue callback.
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Remove a epilogue callback again.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4)));
+
+  // Add two epilogue callbacks.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes5));
+
+  // Remove two epilogue callbacks.
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5));
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Remove epilogue callbacks again.  This is an error.
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4)));
+  EXPECT(Dart_IsError(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5)));
+}
+
+
+TEST_CASE(SingleGarbageCollectionCallback) {
+  // Add a prologue callback.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Garbage collect new space.  This should not invoke the prologue
+  // callback.  No status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Garbage collect old space.  This should invoke the prologue
+  // callback.  The prologue status value should change.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Garbage collect old space again.  Callbacks are persistent so the
+  // prolog status value should change again.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(12, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Add an epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Garbage collect new space.  This should not invoke the prologue
+  // or the epilogue callback.  No status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Garbage collect old space.  This should invoke the prologue and
+  // the epilogue callbacks.  The prologue and epilogue status values
+  // should change.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(28, global_epilogue_callback_status);
+
+  // Garbage collect old space again.  Callbacks are persistent so the
+  // prologue and epilogue status values should change again.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(12, global_prologue_callback_status);
+  EXPECT_EQ(112, global_epilogue_callback_status);
+
+  // Remove the prologue and epilogue callbacks
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Garbage collect old space.  No callbacks should be invoked.  No
+  // status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+}
+
+TEST_CASE(MultipleGarbageCollectionCallbacks) {
+  // Add prologue callbacks.
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
+  EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes3));
+
+  // Add an epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Garbage collect new space.  This should not invoke the prologue
+  // or epilogue callbacks.  No status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Garbage collect old space.  This should invoke both prologue
+  // callbacks and the epilogue callback.  The prologue and epilogue
+  // status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(18, global_prologue_callback_status);
+  EXPECT_EQ(28, global_epilogue_callback_status);
+
+  // Add another GC epilogue callback.
+  EXPECT_VALID(Dart_AddGcEpilogueCallback(&EpilogueCallbackTimes5));
+
+  // Garbage collect old space.  This should invoke both prologue
+  // callbacks and both epilogue callbacks.  The prologue and epilogue
+  // status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(18, global_prologue_callback_status);
+  EXPECT_EQ(140, global_epilogue_callback_status);
+
+  // Remove an epilogue callback.
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes4));
+
+  // Garbage collect old space.  This should invoke both prologue
+  // callbacks and the remaining epilogue callback.  The prologue and
+  // epilogue status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(18, global_prologue_callback_status);
+  EXPECT_EQ(35, global_epilogue_callback_status);
+
+  // Remove the remaining epilogue callback.
+  EXPECT_VALID(Dart_RemoveGcEpilogueCallback(&EpilogueCallbackTimes5));
+
+  // Garbage collect old space.  This should invoke both prologue
+  // callbacks.  The prologue status value should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(18, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Remove a prologue callback.
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes3));
+
+  // Garbage collect old space.  This should invoke the remaining
+  // prologue callback.  The prologue status value should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Remove the remaining prologue callback.
+  EXPECT_VALID(Dart_RemoveGcPrologueCallback(&PrologueCallbackTimes2));
+
+  // Garbage collect old space.  No callbacks should be invoked.  No
+  // status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+}
+
 #endif
 
 

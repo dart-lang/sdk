@@ -490,6 +490,72 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
   return Api::Success();
 }
 
+
+// --- Garbage Collection Callbacks --
+
+
+DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
+    Dart_GcPrologueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
+  if (callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s permits only one instance of 'callback' to be present in the "
+        "prologue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Add(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
+    Dart_GcPrologueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
+  if (!callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s expects 'callback' to be present in the prologue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Remove(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
+  if (callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s permits only one instance of 'callback' to be present in the "
+        "epilogue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Add(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
+  if (!callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s expects 'callback' to be present in the epilogue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Remove(callback);
+  return Api::Success();
+}
+
+
 // --- Initialization and Globals ---
 
 

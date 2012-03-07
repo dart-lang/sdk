@@ -219,7 +219,14 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 
 void GCMarker::Prologue(Isolate* isolate) {
-  // Nothing to do at the moment.
+  // Always invoke the prologue callbacks.
+  isolate->gc_prologue_callbacks().Invoke();
+}
+
+
+void GCMarker::Epilogue(Isolate* isolate) {
+  // Always invoke the epilogue callbacks.
+  isolate->gc_epilogue_callbacks().Invoke();
 }
 
 
@@ -306,6 +313,7 @@ void GCMarker::MarkObjects(Isolate* isolate, PageSpace* page_space) {
   IterateWeakReferences(isolate, &mark);
   MarkingWeakVisitor mark_weak;
   IterateWeakRoots(isolate, &mark_weak);
+  Epilogue(isolate);
 }
 
 }  // namespace dart

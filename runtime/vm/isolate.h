@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/thread.h"
+#include "vm/gc_callbacks.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
 
@@ -232,6 +233,14 @@ class Isolate {
   static void SetInterruptCallback(Dart_IsolateInterruptCallback cback);
   static Dart_IsolateInterruptCallback InterruptCallback();
 
+  GcPrologueCallbacks& gc_prologue_callbacks() {
+    return gc_prologue_callbacks_;
+  }
+
+  GcEpilogueCallbacks& gc_epilogue_callbacks() {
+    return gc_epilogue_callbacks_;
+  }
+
  private:
   Isolate();
 
@@ -273,6 +282,8 @@ class Isolate {
   uword stack_limit_;
   uword saved_stack_limit_;
   MessageHandler* message_handler_;
+  GcPrologueCallbacks gc_prologue_callbacks_;
+  GcEpilogueCallbacks gc_epilogue_callbacks_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
