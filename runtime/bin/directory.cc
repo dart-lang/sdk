@@ -14,6 +14,17 @@ int Directory::service_ports_size_ = 0;
 Dart_Port* Directory::service_ports_ = NULL;
 int Directory::service_ports_index_ = 0;
 
+void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  char* current = Directory::Current();
+  if (current != NULL) {
+    Dart_SetReturnValue(args, Dart_NewString(current));
+    free(current);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kError = -1;
   static const int kExists = 1;

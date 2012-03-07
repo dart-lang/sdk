@@ -14,6 +14,12 @@ interface Directory default _Directory {
   Directory(String path);
 
   /**
+   * Creates a directory object pointing to the current working
+   * directory.
+   */
+  Directory.current();
+
+  /**
    * Check whether a directory with this name already exists. If the
    * operation completes successfully the callback is called with the
    * result. Otherwise [onError] is called.

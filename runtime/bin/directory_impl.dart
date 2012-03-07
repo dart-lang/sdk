@@ -18,7 +18,9 @@ class _Directory implements Directory {
   static final kListRequest = 4;
 
   _Directory(String this._path);
+  _Directory.current() : _path = _current();
 
+  static String _current() native "Directory_Current";
   static String _createTemp(String template,
                             _OSStatus status) native "Directory_CreateTemp";
   static int _exists(String path) native "Directory_Exists";

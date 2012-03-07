@@ -55,6 +55,8 @@ class Directory {
 
   static ExistsResult Exists(const char* path);
 
+  static char* Current();
+
   static bool Create(const char* path);
 
   static int CreateTemp(const char* const_template,
