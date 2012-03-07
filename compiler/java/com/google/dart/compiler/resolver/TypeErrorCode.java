@@ -49,6 +49,7 @@ public enum TypeErrorCode implements ErrorCode {
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
+  SETTER_TYPE_MUST_BE_ASSIGNABLE("Setter type '%s' must be assignable to getter type '%s'"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
   SUPERTYPE_HAS_FIELD("%s is a field in %s"),

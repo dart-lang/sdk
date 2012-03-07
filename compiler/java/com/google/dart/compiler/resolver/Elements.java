@@ -278,6 +278,62 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
+   * @return <code>non-null</code>  {@link MethodElement} if "holder", or one of its
+   *         interfaces, or its superclass has {@link FieldElement} with getter.
+   */
+  public static MethodElement lookupFieldElementGetter(ClassElement holder, String name) {
+    Element element = holder.lookupLocalElement(name);
+    if (element instanceof FieldElement) {
+      FieldElement fieldElement = (FieldElement) element;
+      MethodElement result = fieldElement.getGetter();
+      if (result != null) {
+        return fieldElement.getGetter();
+      }
+    }
+    for (InterfaceType interfaceType : holder.getInterfaces()) {
+      MethodElement result = lookupFieldElementGetter(interfaceType.getElement(), name);
+      if (result != null) {
+        return result;
+      }
+    }
+    if (holder.getSupertype() != null) {
+      MethodElement result = lookupFieldElementGetter(holder.getSupertype().getElement(), name);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return <code>non-null</code> {@link MethodElement} if "holder", or one of its interfaces,
+   *         or its superclass has {@link FieldElement} with setter.
+   */
+  public static MethodElement lookupFieldElementSetter(ClassElement holder, String name) {
+    Element element = holder.lookupLocalElement(name);
+    if (element instanceof FieldElement) {
+      FieldElement fieldElement = (FieldElement) element;
+      MethodElement result = fieldElement.getSetter();
+      if (result != null) {
+        return result;
+      }
+    }
+    for (InterfaceType interfaceType : holder.getInterfaces()) {
+      MethodElement result = lookupFieldElementSetter(interfaceType.getElement(), name);
+      if (result != null) {
+        return result;
+      }
+    }
+    if (holder.getSupertype() != null) {
+      MethodElement result = lookupFieldElementSetter(holder.getSupertype().getElement(), name);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  /**
    * @return <code>true</code> if {@link DartNode} of given {@link Element} if part of static
    *         {@link DartClassMember} or part of top level declaration.
    */

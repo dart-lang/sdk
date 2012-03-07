@@ -963,6 +963,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 17, 7));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=380
+   */
+  public void test_setterGetterDifferentType() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {} ",
+            "class B extends A {}",
+            "class C {",
+            "  A getterField; ",
+            "  B setterField; ",
+            "  A get field() { return getterField; }",
+            "  void set field(B arg) { setterField = arg; }",
+            "}",
+            "main() {",
+            "  C instance = new C();",
+            "  instance.field = new B();",
+            "  A resultA = instance.field;",
+            "  instance.field = new A();",
+            "  B resultB = instance.field;",
+            "}");
+
+    assertErrors(result.getErrors());
+  }
+
+  public void test_setterGetterNotAssignable() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {} ",
+            "class B {}",
+            "class C {",
+            "  A getterField; ",
+            "  B setterField; ",
+            "  A get field() { return getterField; }",
+            "  void set field(B arg) { setterField = arg; }",
+            "}");
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
+  }
+
   public void test_typeVariableBoundsMismatch() throws Exception {
     AnalyzeLibraryResult result =
         analyzeLibrary(

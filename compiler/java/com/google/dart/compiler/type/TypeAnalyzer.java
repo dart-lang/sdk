@@ -803,7 +803,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         node.setReferencedElement(element);
         return checkInvocation(node, node, name, element.getType());
       }
-      Type receiver = nonVoidTypeOf(node.getTarget());
+      DartNode target = node.getTarget();
+      Type receiver = nonVoidTypeOf(target);
       List<DartExpression> arguments = node.getArguments();
       Member member = lookupMember(receiver, name, node);
       if (member != null) {
@@ -1157,6 +1158,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (returnType != null && returnType.getType() != voidType) {
           typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
         }
+        if (methodElement.getParameters().size() > 0) {
+          Element parameterElement = methodElement.getParameters().get(0);
+          Type setterType = parameterElement.getType();
+          MethodElement getterElement = Elements.lookupFieldElementGetter(currentClass.getElement(),
+                                                                          methodElement.getName());
+          if (getterElement != null) {
+            Type getterType = getterElement.getReturnType();
+            if (!types.isAssignable(setterType, getterType)) {
+              typeError(parameterElement.getNode(), TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
+                        setterType.getElement().getName(),
+                        getterType.getElement().getName());
+            }
+          }
+        }
       }
       return typeAsVoid(node);
     }
@@ -1366,83 +1381,74 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
+          MethodElement getter = fieldElement.getGetter();
+          MethodElement setter = fieldElement.getSetter();
+          boolean inSetterContext = inSetterContext(node);
+          boolean inGetterContext = inGetterContext(node);
+          ClassElement enclosingClass = null;
+          if (fieldElement.getEnclosingElement() instanceof ClassElement) {
+            enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+          }
           // Check for cases when property has no setter or getter.
-          if (fieldElement.getModifiers().isAbstractField()
-              && fieldElement.getEnclosingElement() instanceof ClassElement) {
-            ClassElement enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+          if (fieldElement.getModifiers().isAbstractField() && enclosingClass != null) {
             // Check for using field without getter in other operation that assignment.
-            if (fieldElement.getGetter() == null && !hasFieldElementGetter(enclosingClass, name)) {
-              if (!(node.getParent() instanceof DartBinaryExpression)
-                  || ((DartBinaryExpression) node.getParent()).getOperator() != Token.ASSIGN
-                  || ((DartBinaryExpression) node.getParent()).getArg1() != node) {
+            if (inGetterContext && getter == null
+                && Elements.lookupFieldElementGetter(enclosingClass, name) == null) {
+              return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+            }
+            // Check for using field without setter in some assignment variant.
+            if (inSetterContext && setter == null
+                && Elements.lookupFieldElementSetter(enclosingClass, name) == null) {
+                return typeError(node.getName(),
+                                 TypeErrorCode.FIELD_HAS_NO_SETTER,
+                                 node.getName());
+            }
+          }
+
+          Type result = member.getType();
+          if (fieldElement.getModifiers().isAbstractField()) {
+            if (inSetterContext) {
+              result = member.getSetterType();
+              if (result == null) {
+                return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
+              }
+            }
+            if (inGetterContext) {
+              result = member.getGetterType();
+              if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
               }
             }
-            // Check for using field without setter in some assignment variant.
-            if (fieldElement.getSetter() == null && !hasFieldElementSetter(enclosingClass, name)) {
-              if (node.getParent() instanceof DartBinaryExpression) {
-                DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-                if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
-                  return typeError(
-                      node.getName(),
-                      TypeErrorCode.FIELD_HAS_NO_SETTER,
-                      node.getName());
-                }
-              }
-            }
           }
-          // Return field type.
-          return member.getType();
+          return result;
 
         default:
           throw internalError(node.getName(), "unexpected kind %s", element.getKind());
       }
     }
 
-    /**
-     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
-     *         {@link FieldElement} with getter.
-     */
-    private static boolean hasFieldElementGetter(ClassElement holder, String name) {
-      Element element = holder.lookupLocalElement(name);
-      if (element instanceof FieldElement) {
-        FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.getGetter() != null) {
+    private boolean inSetterContext(DartNode node) {
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+        if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
           return true;
         }
-      }
-      for (InterfaceType interfaceType : holder.getInterfaces()) {
-        if (hasFieldElementGetter(interfaceType.getElement(), name)) {
-          return true;
-        }
-      }
-      if (holder.getSupertype() != null) {
-        return hasFieldElementGetter(holder.getSupertype().getElement(), name);
       }
       return false;
     }
 
     /**
-     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
-     *         {@link FieldElement} with setter.
+     * An assignment of the form node = <expr> is a write-only expression.  Other types
+     * of assignments also read the value and require a getter access.
      */
-    private static boolean hasFieldElementSetter(ClassElement holder, String name) {
-      Element element = holder.lookupLocalElement(name);
-      if (element instanceof FieldElement) {
-        FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.getSetter() != null) {
-          return true;
+    private boolean inGetterContext(DartNode node) {
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+        if (Token.ASSIGN.equals(expr.getOperator()) && expr.getArg1() == node) {
+          return false;
         }
       }
-      for (InterfaceType interfaceType : holder.getInterfaces()) {
-        if (hasFieldElementSetter(interfaceType.getElement(), name)) {
-          return true;
-        }
-      }
-      if (holder.getSupertype() != null) {
-        return hasFieldElementSetter(holder.getSupertype().getElement(), name);
-      }
-      return false;
+      return true;
     }
 
     @Override
