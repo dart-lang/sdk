@@ -57,7 +57,6 @@ Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
 Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
-LibrarySameNameUsedTest: Fail # lib2 is not a type
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
@@ -78,7 +77,6 @@ NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 Prefix101Test: Fail # duplicate definition
 Prefix14Test: Fail # prefixes not implemented
-Prefix15Test: Fail # lib12 is not a type
 Prefix21Test: Fail # Internal Error: Element.computeType.
 Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
