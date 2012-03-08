@@ -4,8 +4,6 @@
 
 [ $component == legium ]
 
-dom/EventsTest: Fail # CONSOLE MESSAGE: line 7608: Uncaught TypeError: Cannot read property 'is$ExpectException' of undefined
-
 # DOM can return null or undefined
 dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
 dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
