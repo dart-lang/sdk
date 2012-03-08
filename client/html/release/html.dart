@@ -25699,14 +25699,12 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList get elements();
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value);
+  void set elements(Collection<Element> value);
 
   /** @domName className, classList */
   Set<String> get classes();
 
-  // TODO: The type of value should be Collection<String>. See http://b/5392897
-  void set classes(value);
+  void set classes(Collection<String> value);
 
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
@@ -27889,6 +27887,12 @@ interface MediaController default _MediaControllerFactoryProvider {
 
 interface MediaElement extends Element {
 
+  static final int EOS_DECODE_ERR = 2;
+
+  static final int EOS_NETWORK_ERR = 1;
+
+  static final int EOS_NO_ERROR = 0;
+
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -27906,6 +27910,12 @@ interface MediaElement extends Element {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
+
+  static final int SOURCE_CLOSED = 0;
+
+  static final int SOURCE_ENDED = 2;
+
+  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -28480,8 +28490,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 interface Node extends EventTarget {
   NodeList get nodes();
 
-  // TODO: The type of value should be Collection<Node>. See http://b/5392897
-  void set nodes(value);
+  void set nodes(Collection<Node> value);
 
   Node replaceWith(Node otherNode);
 
@@ -33056,6 +33065,8 @@ interface TouchList extends List<Touch> {
 // WARNING: Do not edit - generated code.
 
 interface TrackElement extends Element {
+
+  static final int ERROR = 3;
 
   static final int LOADED = 2;
 

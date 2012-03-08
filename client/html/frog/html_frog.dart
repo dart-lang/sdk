@@ -20324,14 +20324,12 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList get elements();
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value);
+  void set elements(Collection<Element> value);
 
   /** @domName className, classList */
   Set<String> get classes();
 
-  // TODO: The type of value should be Collection<String>. See http://b/5392897
-  void set classes(value);
+  void set classes(Collection<String> value);
 
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
@@ -23117,8 +23115,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 interface Node extends EventTarget {
   NodeList get nodes();
 
-  // TODO: The type of value should be Collection<Node>. See http://b/5392897
-  void set nodes(value);
+  void set nodes(Collection<Node> value);
 
   Node replaceWith(Node otherNode);
 
