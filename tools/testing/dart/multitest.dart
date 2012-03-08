@@ -44,10 +44,16 @@
 //   aaa
 //   ddd /// 07: static type error
 //   eee
+//
+// Note that it is possible to indicate more than one acceptable outcome
+// in the case of dynamic and static type errors
+//   aaa
+//   ddd /// 07: static type error, dynamic type error
+//   eee
 
 void ExtractTestsFromMultitest(String filename,
                                Map<String, String> tests,
-                               Map<String, String> outcomes) {
+                               Map<String, Set<String>> outcomes) {
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
@@ -70,7 +76,7 @@ void ExtractTestsFromMultitest(String filename,
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['compile-time error', 'runtime error',
-       'static type error', 'dynamic type error', '']);
+       'static type error', 'dynamic type error']);
 
   List<String> testTemplate = new List<String>();
   testTemplate.add('// Test created from multitest named $filename.');
@@ -90,9 +96,14 @@ void ExtractTestsFromMultitest(String filename,
         testsAsLines[key].add(line);
       } else {
         (testsAsLines[key] = new List<String>.from(testTemplate)).add(line);
-        outcomes[key] = rest;
-        if (!validMultitestOutcomes.contains(rest)) {
-          Expect.fail("Invalid test directive on line ${lineCount}: $rest ");
+        List<String> outcomesList = rest.split(',');
+        for (String nextOutcome in outcomesList) {
+          nextOutcome = nextOutcome.trim();
+          outcomes.putIfAbsent(key, () => new Set<String>()).add(nextOutcome);  
+          if (!validMultitestOutcomes.contains(nextOutcome)) {
+            Expect.fail(
+              "Invalid test directive '$nextOutcome' on line ${lineCount}: $rest ");
+          }
         }
       }
     } else {
@@ -102,7 +113,7 @@ void ExtractTestsFromMultitest(String filename,
   }
   // Add the template, with no multitest lines, as a test with key 'none'.
   testsAsLines['none'] = testTemplate;
-  outcomes['none'] = '';
+  outcomes['none'] = new Set<String>();
 
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.getKeys()) {
@@ -165,7 +176,7 @@ void DoMultitest(String filename,
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
-  Map<String, String> outcomes = new Map<String, String>();
+  Map<String, Set<String>> outcomes = new Map<String, Set<String>>();
   ExtractTestsFromMultitest(filename, tests, outcomes);
 
   String directory = CreateMultitestDirectory(outputDir, testDir);
@@ -197,7 +208,7 @@ void DoMultitest(String filename,
     var bytes = tests[key].charCodes();
     openedFile.writeListSync(bytes, 0, bytes.length);
     openedFile.closeSync();
-    var outcome = outcomes[key];
+    Set<String> outcome = outcomes[key];
     bool enableFatalTypeErrors = outcome.contains('static type error');
     bool hasRuntimeErrors = outcome.contains('runtime error');
     bool isNegative = hasRuntimeErrors

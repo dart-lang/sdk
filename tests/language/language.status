@@ -177,8 +177,6 @@ Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-TypeVariableBoundsTest*: Skip  # issue 1900 and multiple error annotations are required
-TypeVariableBounds2Test*: Skip  # multiple error annotations are required
 
 #
 # Add new dartc annotations above in alphabetical order

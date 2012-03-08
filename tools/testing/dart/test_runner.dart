@@ -337,10 +337,13 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
   }
 
   bool _didMultitestFail(List errors, List staticWarnings) {
-    String outcome = testCase.info.multitestOutcome;
-    if ((outcome == '' || outcome == 'compile-time error') && errors.length > 0) {
+    Set<String> outcome = testCase.info.multitestOutcome;
+    Expect.isNotNull(outcome);
+    if ((outcome.isEmpty() || outcome.contains('compile-time error')) 
+        && errors.length > 0) {
       return true;
-    } else if (outcome == 'static type error' && staticWarnings.length > 0) {
+    } else if (outcome.contains('static type error') 
+        && staticWarnings.length > 0) {
       return true;
     }
     return false;

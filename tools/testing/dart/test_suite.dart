@@ -178,7 +178,7 @@ class TestInformation {
   bool hasFatalTypeErrors;
   bool hasRuntimeErrors;
   // expected outcome from multi-test  "static type error", "compile-time error", etc
-  String multitestOutcome;
+  Set<String> multitestOutcome;
 
   TestInformation(this.filename, this.optionsFromFile, this.isNegative,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
@@ -370,7 +370,7 @@ class StandardTestSuite implements TestSuite {
             [bool isNegativeIfChecked = false,
              bool hasFatalTypeErrors = false,
              bool hasRuntimeErrors = false,
-             String multitestOutcome = null]) {
+             Set<String> multitestOutcome = null]) {
       // Cache the test information for each test case.
       var info = new TestInformation(filename,
                                      optionsFromFile,

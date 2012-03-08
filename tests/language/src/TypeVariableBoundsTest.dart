@@ -19,7 +19,7 @@ interface IFoo<T extends num> default Foo<T extends num> {
 
 // String is not assignable to num.
 class Baz
-    extends Foo<String> /// 01: dynamic type error
+    extends Foo<String> /// 01: static type error, dynamic type error
 {}
 
 class Biz extends Foo<int> {}
@@ -44,7 +44,7 @@ class Box<T> {
 
 main() {
   // String is not assignable to num.
-  var v1 = new Foo<String>(); /// 05: dynamic type error
+  var v1 = new Foo<String>(); /// 05: static type error, dynamic type error
 
   // String is not assignable to num.
   Foo<String> v2 = null; /// 06: static type error

@@ -17,12 +17,12 @@ main() {
   var a = new A<String>();
 
   {
-    I i = a;  /// 00: dynamic type error
+    I i = a;  /// 00: dynamic type error, static type error
     J j = a;  /// 01: static type error
-    K k = a;  /// 02: dynamic type error
+    K k = a;  /// 02: dynamic type error, static type error
 
     // In production mode, A<String> is subtype of I, but error in checked mode.
-    var x = a is I;  /// 03: dynamic type error
+    var x = a is I;  /// 03: dynamic type error, static type error
 
     // In both production and checked modes, A<String> is a subtype of I.
     Expect.isTrue(a is J);  /// 04: static type error
@@ -39,7 +39,7 @@ main() {
   {
     I i = a;
     J j = a;
-    K k = a;  /// 06: dynamic type error
+    K k = a;  /// 06: dynamic type error, static type error
 
     // In both production and checked modes, A<int> is a subtype of I.
     Expect.isTrue(a is I);
