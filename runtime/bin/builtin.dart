@@ -74,6 +74,12 @@ String filePathFromUri(String userUri) {
     _logResolution("# Not a file URI.");
     throw "Not a file uri: $uri";
   }
-  _logResolution("# Path: ${uri.path}");
-  return uri.path;
+  var path = uri.path;
+  _logResolution("# Path: $path");
+  if (_is_windows) {
+    // Drop the leading / before the drive letter.
+    path = path.substring(1);
+    _logResolution("# path: $path");
+  }
+  return path;
 }
