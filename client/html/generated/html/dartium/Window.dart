@@ -12,6 +12,11 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   _WindowImpl._wrap(ptr) : super._wrap(ptr);
 
+  _WindowEventsImpl get on() {
+    if (_on == null) _on = new _WindowEventsImpl(this);
+    return _on;
+  }
+
   DOMApplicationCache get applicationCache() => _wrap(_ptr.applicationCache);
 
   Navigator get clientInformation() => _wrap(_ptr.clientInformation);
@@ -119,11 +124,6 @@ class _WindowImpl extends _EventTargetImpl implements Window {
   StorageInfo get webkitStorageInfo() => _wrap(_ptr.webkitStorageInfo);
 
   Window get window() => _wrap(_ptr.window);
-
-  _WindowEventsImpl get on() {
-    if (_on == null) _on = new _WindowEventsImpl(this);
-    return _on;
-  }
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

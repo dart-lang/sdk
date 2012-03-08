@@ -2,6 +2,11 @@
 class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
   _XMLHttpRequestImpl._wrap(ptr) : super._wrap(ptr);
 
+  _XMLHttpRequestEventsImpl get on() {
+    if (_on == null) _on = new _XMLHttpRequestEventsImpl(this);
+    return _on;
+  }
+
   bool get asBlob() => _wrap(_ptr.asBlob);
 
   void set asBlob(bool value) { _ptr.asBlob = _unwrap(value); }
@@ -29,11 +34,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
   bool get withCredentials() => _wrap(_ptr.withCredentials);
 
   void set withCredentials(bool value) { _ptr.withCredentials = _unwrap(value); }
-
-  _XMLHttpRequestEventsImpl get on() {
-    if (_on == null) _on = new _XMLHttpRequestEventsImpl(this);
-    return _on;
-  }
 
   void abort() {
     _ptr.abort();

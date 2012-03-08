@@ -213,6 +213,3 @@ class DartInterfaceGenerator(object):
 
   def AddSecondaryOperation(self, interface, attr):
     pass
-
-  def AddEventAttributes(self, event_attrs):
-    pass

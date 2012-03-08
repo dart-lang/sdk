@@ -539,6 +539,11 @@ class _ElementImpl extends _NodeImpl implements Element {
   }
   _ElementImpl._wrap(ptr) : super._wrap(ptr);
 
+  _ElementEventsImpl get on() {
+    if (_on == null) _on = new _ElementEventsImpl(this);
+    return _on;
+  }
+
   int get _childElementCount() => _wrap(_ptr.childElementCount);
 
   HTMLCollection get _children() => _wrap(_ptr.children);
@@ -644,11 +649,6 @@ class _ElementImpl extends _NodeImpl implements Element {
   String get webkitdropzone() => _wrap(_ptr.webkitdropzone);
 
   void set webkitdropzone(String value) { _ptr.webkitdropzone = _unwrap(value); }
-
-  _ElementEventsImpl get on() {
-    if (_on == null) _on = new _ElementEventsImpl(this);
-    return _on;
-  }
 
   void blur() {
     _ptr.blur();

@@ -297,6 +297,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element get parent();
 
 
+  ElementEvents get on();
+
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   final int _childElementCount;
@@ -374,8 +376,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final String webkitRegionOverflow;
 
   String webkitdropzone;
-
-  ElementEvents get on();
 
   void blur();
 

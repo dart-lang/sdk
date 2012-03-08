@@ -1,6 +1,9 @@
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*EventSource" {
 
+  _EventSourceEventsImpl get on() =>
+    new _EventSourceEventsImpl(this);
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -12,9 +15,6 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
   final int readyState;
 
   final String url;
-
-  _EventSourceEventsImpl get on() =>
-    new _EventSourceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 

@@ -1,6 +1,9 @@
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance native "*SVGElementInstance" {
 
+  _SVGElementInstanceEventsImpl get on() =>
+    new _SVGElementInstanceEventsImpl(this);
+
   final _SVGElementInstanceListImpl childNodes;
 
   final _SVGElementImpl correspondingElement;
@@ -16,9 +19,6 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   final _SVGElementInstanceImpl parentNode;
 
   final _SVGElementInstanceImpl previousSibling;
-
-  _SVGElementInstanceEventsImpl get on() =>
-    new _SVGElementInstanceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 

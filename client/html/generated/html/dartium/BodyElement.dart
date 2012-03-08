@@ -2,6 +2,11 @@
 class _BodyElementImpl extends _ElementImpl implements BodyElement {
   _BodyElementImpl._wrap(ptr) : super._wrap(ptr);
 
+  _BodyElementEventsImpl get on() {
+    if (_on == null) _on = new _BodyElementEventsImpl(this);
+    return _on;
+  }
+
   String get aLink() => _wrap(_ptr.aLink);
 
   void set aLink(String value) { _ptr.aLink = _unwrap(value); }
@@ -21,11 +26,6 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement {
   String get vLink() => _wrap(_ptr.vLink);
 
   void set vLink(String value) { _ptr.vLink = _unwrap(value); }
-
-  _BodyElementEventsImpl get on() {
-    if (_on == null) _on = new _BodyElementEventsImpl(this);
-    return _on;
-  }
 }
 
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {

@@ -11,6 +11,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   }
 
 
+  _WindowEventsImpl get on() =>
+    new _WindowEventsImpl(this);
+
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
@@ -112,9 +115,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
-
-  _WindowEventsImpl get on() =>
-    new _WindowEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 

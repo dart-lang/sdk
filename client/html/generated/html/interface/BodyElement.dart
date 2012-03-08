@@ -6,6 +6,8 @@
 
 interface BodyElement extends Element {
 
+  BodyElementEvents get on();
+
   String aLink;
 
   String background;
@@ -15,8 +17,6 @@ interface BodyElement extends Element {
   String link;
 
   String vLink;
-
-  BodyElementEvents get on();
 }
 
 interface BodyElementEvents extends ElementEvents {

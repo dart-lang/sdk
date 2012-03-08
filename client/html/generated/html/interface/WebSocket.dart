@@ -6,6 +6,8 @@
 
 interface WebSocket extends EventTarget {
 
+  WebSocketEvents get on();
+
   static final int CLOSED = 3;
 
   static final int CLOSING = 2;
@@ -27,8 +29,6 @@ interface WebSocket extends EventTarget {
   final int readyState;
 
   final String url;
-
-  WebSocketEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 

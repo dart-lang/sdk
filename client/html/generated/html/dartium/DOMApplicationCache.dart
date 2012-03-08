@@ -2,12 +2,12 @@
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache {
   _DOMApplicationCacheImpl._wrap(ptr) : super._wrap(ptr);
 
-  int get status() => _wrap(_ptr.status);
-
   _DOMApplicationCacheEventsImpl get on() {
     if (_on == null) _on = new _DOMApplicationCacheEventsImpl(this);
     return _on;
   }
+
+  int get status() => _wrap(_ptr.status);
 
   void abort() {
     _ptr.abort();

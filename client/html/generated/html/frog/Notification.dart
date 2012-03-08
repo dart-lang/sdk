@@ -1,12 +1,12 @@
 
 class _NotificationImpl extends _EventTargetImpl implements Notification native "*Notification" {
 
+  _NotificationEventsImpl get on() =>
+    new _NotificationEventsImpl(this);
+
   String dir;
 
   String replaceId;
-
-  _NotificationEventsImpl get on() =>
-    new _NotificationEventsImpl(this);
 
   void cancel() native;
 

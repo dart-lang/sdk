@@ -2,6 +2,11 @@
 class _InputElementImpl extends _ElementImpl implements InputElement {
   _InputElementImpl._wrap(ptr) : super._wrap(ptr);
 
+  _InputElementEventsImpl get on() {
+    if (_on == null) _on = new _InputElementEventsImpl(this);
+    return _on;
+  }
+
   String get accept() => _wrap(_ptr.accept);
 
   void set accept(String value) { _ptr.accept = _unwrap(value); }
@@ -169,11 +174,6 @@ class _InputElementImpl extends _ElementImpl implements InputElement {
   void set webkitdirectory(bool value) { _ptr.webkitdirectory = _unwrap(value); }
 
   bool get willValidate() => _wrap(_ptr.willValidate);
-
-  _InputElementEventsImpl get on() {
-    if (_on == null) _on = new _InputElementEventsImpl(this);
-    return _on;
-  }
 
   bool checkValidity() {
     return _wrap(_ptr.checkValidity());

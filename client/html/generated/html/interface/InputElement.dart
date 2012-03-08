@@ -6,6 +6,8 @@
 
 interface InputElement extends Element {
 
+  InputElementEvents get on();
+
   String accept;
 
   String align;
@@ -95,8 +97,6 @@ interface InputElement extends Element {
   bool webkitdirectory;
 
   final bool willValidate;
-
-  InputElementEvents get on();
 
   bool checkValidity();
 

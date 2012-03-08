@@ -6,6 +6,9 @@ class _DocumentImpl extends _ElementImpl
     implements Document
     native "*HTMLHtmlElement" {
 
+  _DocumentEventsImpl get on() =>
+    new _DocumentEventsImpl(_jsDocument);
+
   _ElementImpl get activeElement() native "return this.parentNode.activeElement;";
 
   _ElementImpl get body() native "return this.parentNode.body;";
@@ -53,9 +56,6 @@ class _DocumentImpl extends _ElementImpl
   bool get webkitIsFullScreen() native "return this.parentNode.webkitIsFullScreen;";
 
   String get webkitVisibilityState() native "return this.parentNode.webkitVisibilityState;";
-
-  _DocumentEventsImpl get on() =>
-    new _DocumentEventsImpl(_jsDocument);
 
   _RangeImpl caretRangeFromPoint(int x, int y) native "return this.parentNode.caretRangeFromPoint(x, y);";
 

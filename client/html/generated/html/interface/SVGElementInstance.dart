@@ -6,6 +6,8 @@
 
 interface SVGElementInstance extends EventTarget {
 
+  SVGElementInstanceEvents get on();
+
   final SVGElementInstanceList childNodes;
 
   final SVGElement correspondingElement;
@@ -21,8 +23,6 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  SVGElementInstanceEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 

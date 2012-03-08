@@ -1,6 +1,9 @@
 
 class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest native "*XMLHttpRequest" {
 
+  _XMLHttpRequestEventsImpl get on() =>
+    new _XMLHttpRequestEventsImpl(this);
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -34,9 +37,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
   final _XMLHttpRequestUploadImpl upload;
 
   bool withCredentials;
-
-  _XMLHttpRequestEventsImpl get on() =>
-    new _XMLHttpRequestEventsImpl(this);
 
   void abort() native;
 

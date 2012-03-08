@@ -5,6 +5,11 @@
 class _DocumentImpl extends _ElementImpl
     implements Document {
 
+  _DocumentEventsImpl get on() {
+    if (_on == null) _on = new _DocumentEventsImpl(_wrappedDocumentPtr);
+    return _on;
+  }
+
   Element get activeElement() => _wrap(_documentPtr.activeElement);
 
   Element get body() => _wrap(_documentPtr.body);
@@ -52,11 +57,6 @@ class _DocumentImpl extends _ElementImpl
   bool get webkitIsFullScreen() => _wrap(_documentPtr.webkitIsFullScreen);
 
   String get webkitVisibilityState() => _wrap(_documentPtr.webkitVisibilityState);
-
-  _DocumentEventsImpl get on() {
-    if (_on == null) _on = new _DocumentEventsImpl(_wrappedDocumentPtr);
-    return _on;
-  }
 
   Range caretRangeFromPoint(int x, int y) {
     return _wrap(_documentPtr.caretRangeFromPoint(_unwrap(x), _unwrap(y)));

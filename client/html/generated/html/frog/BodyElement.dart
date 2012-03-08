@@ -1,6 +1,9 @@
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
+  _BodyElementEventsImpl get on() =>
+    new _BodyElementEventsImpl(this);
+
   String aLink;
 
   String background;
@@ -10,9 +13,6 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTML
   String link;
 
   String vLink;
-
-  _BodyElementEventsImpl get on() =>
-    new _BodyElementEventsImpl(this);
 }
 
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {

@@ -11,6 +11,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
+  XMLHttpRequestEvents get on();
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -42,8 +44,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   final XMLHttpRequestUpload upload;
 
   bool withCredentials;
-
-  XMLHttpRequestEvents get on();
 
   void abort();
 

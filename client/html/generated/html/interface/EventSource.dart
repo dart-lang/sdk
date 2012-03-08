@@ -8,6 +8,8 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   EventSource(String scriptUrl);
 
+  EventSourceEvents get on();
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -19,8 +21,6 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   final int readyState;
 
   final String url;
-
-  EventSourceEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 

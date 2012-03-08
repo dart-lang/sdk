@@ -284,9 +284,6 @@ class FrogInterfaceGenerator(object):
     self._SecondaryContext(interface)
     self.AddOperation(info)
 
-  def AddEventAttributes(self, event_attrs):
-    pass
-
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
       self._current_secondary_parent = interface

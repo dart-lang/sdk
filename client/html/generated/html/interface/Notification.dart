@@ -6,11 +6,11 @@
 
 interface Notification extends EventTarget {
 
+  NotificationEvents get on();
+
   String dir;
 
   String replaceId;
-
-  NotificationEvents get on();
 
   void cancel();
 

@@ -2,6 +2,11 @@
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement {
   _FrameSetElementImpl._wrap(ptr) : super._wrap(ptr);
 
+  _FrameSetElementEventsImpl get on() {
+    if (_on == null) _on = new _FrameSetElementEventsImpl(this);
+    return _on;
+  }
+
   String get cols() => _wrap(_ptr.cols);
 
   void set cols(String value) { _ptr.cols = _unwrap(value); }
@@ -9,11 +14,6 @@ class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement {
   String get rows() => _wrap(_ptr.rows);
 
   void set rows(String value) { _ptr.rows = _unwrap(value); }
-
-  _FrameSetElementEventsImpl get on() {
-    if (_on == null) _on = new _FrameSetElementEventsImpl(this);
-    return _on;
-  }
 }
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {

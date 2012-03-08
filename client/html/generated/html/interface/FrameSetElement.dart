@@ -6,11 +6,11 @@
 
 interface FrameSetElement extends Element {
 
+  FrameSetElementEvents get on();
+
   String cols;
 
   String rows;
-
-  FrameSetElementEvents get on();
 }
 
 interface FrameSetElementEvents extends ElementEvents {

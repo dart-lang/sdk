@@ -1,6 +1,9 @@
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
 
+  _WebSocketEventsImpl get on() =>
+    new _WebSocketEventsImpl(this);
+
   static final int CLOSED = 3;
 
   static final int CLOSING = 2;
@@ -22,9 +25,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
   final int readyState;
 
   final String url;
-
-  _WebSocketEventsImpl get on() =>
-    new _WebSocketEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 

@@ -538,6 +538,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         new Completer<CSSStyleDeclaration>());
   }
 
+  _ElementEventsImpl get on() =>
+    new _ElementEventsImpl(this);
+
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int get _childElementCount() native "return this.childElementCount;";
@@ -621,9 +624,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final String webkitRegionOverflow;
 
   String webkitdropzone;
-
-  _ElementEventsImpl get on() =>
-    new _ElementEventsImpl(this);
 
   void blur() native;
 

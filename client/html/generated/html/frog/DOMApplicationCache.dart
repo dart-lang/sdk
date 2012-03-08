@@ -1,6 +1,9 @@
 
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache native "*DOMApplicationCache" {
 
+  _DOMApplicationCacheEventsImpl get on() =>
+    new _DOMApplicationCacheEventsImpl(this);
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -14,9 +17,6 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
   static final int UPDATEREADY = 4;
 
   final int status;
-
-  _DOMApplicationCacheEventsImpl get on() =>
-    new _DOMApplicationCacheEventsImpl(this);
 
   void abort() native;
 

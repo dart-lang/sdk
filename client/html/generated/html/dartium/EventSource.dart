@@ -2,16 +2,16 @@
 class _EventSourceImpl extends _EventTargetImpl implements EventSource {
   _EventSourceImpl._wrap(ptr) : super._wrap(ptr);
 
+  _EventSourceEventsImpl get on() {
+    if (_on == null) _on = new _EventSourceEventsImpl(this);
+    return _on;
+  }
+
   String get URL() => _wrap(_ptr.URL);
 
   int get readyState() => _wrap(_ptr.readyState);
 
   String get url() => _wrap(_ptr.url);
-
-  _EventSourceEventsImpl get on() {
-    if (_on == null) _on = new _EventSourceEventsImpl(this);
-    return _on;
-  }
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

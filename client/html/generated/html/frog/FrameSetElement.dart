@@ -1,12 +1,12 @@
 
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement native "*HTMLFrameSetElement" {
 
+  _FrameSetElementEventsImpl get on() =>
+    new _FrameSetElementEventsImpl(this);
+
   String cols;
 
   String rows;
-
-  _FrameSetElementEventsImpl get on() =>
-    new _FrameSetElementEventsImpl(this);
 }
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {

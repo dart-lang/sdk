@@ -5,6 +5,8 @@
 interface Document extends HtmlElement {
 
 
+  DocumentEvents get on();
+
   final Element activeElement;
 
   Element body;
@@ -42,8 +44,6 @@ interface Document extends HtmlElement {
   final bool webkitIsFullScreen;
 
   final String webkitVisibilityState;
-
-  DocumentEvents get on();
 
   Range caretRangeFromPoint(int x, int y);
 

@@ -6,6 +6,8 @@
 
 interface DOMApplicationCache extends EventTarget {
 
+  DOMApplicationCacheEvents get on();
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -19,8 +21,6 @@ interface DOMApplicationCache extends EventTarget {
   static final int UPDATEREADY = 4;
 
   final int status;
-
-  DOMApplicationCacheEvents get on();
 
   void abort();
 

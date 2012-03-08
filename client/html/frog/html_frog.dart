@@ -542,6 +542,9 @@ class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
+  _BodyElementEventsImpl get on() =>
+    new _BodyElementEventsImpl(this);
+
   String aLink;
 
   String background;
@@ -551,9 +554,6 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTML
   String link;
 
   String vLink;
-
-  _BodyElementEventsImpl get on() =>
-    new _BodyElementEventsImpl(this);
 }
 
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
@@ -4182,6 +4182,9 @@ class _DListElementImpl extends _ElementImpl implements DListElement native "*HT
 
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache native "*DOMApplicationCache" {
 
+  _DOMApplicationCacheEventsImpl get on() =>
+    new _DOMApplicationCacheEventsImpl(this);
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -4195,9 +4198,6 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
   static final int UPDATEREADY = 4;
 
   final int status;
-
-  _DOMApplicationCacheEventsImpl get on() =>
-    new _DOMApplicationCacheEventsImpl(this);
 
   void abort() native;
 
@@ -4633,6 +4633,9 @@ class _DocumentImpl extends _ElementImpl
     implements Document
     native "*HTMLHtmlElement" {
 
+  _DocumentEventsImpl get on() =>
+    new _DocumentEventsImpl(_jsDocument);
+
   _ElementImpl get activeElement() native "return this.parentNode.activeElement;";
 
   _ElementImpl get body() native "return this.parentNode.body;";
@@ -4680,9 +4683,6 @@ class _DocumentImpl extends _ElementImpl
   bool get webkitIsFullScreen() native "return this.parentNode.webkitIsFullScreen;";
 
   String get webkitVisibilityState() native "return this.parentNode.webkitVisibilityState;";
-
-  _DocumentEventsImpl get on() =>
-    new _DocumentEventsImpl(_jsDocument);
 
   _RangeImpl caretRangeFromPoint(int x, int y) native "return this.parentNode.caretRangeFromPoint(x, y);";
 
@@ -4848,6 +4848,9 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 }
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
+
+  ElementEvents get on() =>
+    new ElementEvents(this);
 
   _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
@@ -5419,6 +5422,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         new Completer<CSSStyleDeclaration>());
   }
 
+  _ElementEventsImpl get on() =>
+    new _ElementEventsImpl(this);
+
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int get _childElementCount() native "return this.childElementCount;";
@@ -5502,9 +5508,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final String webkitRegionOverflow;
 
   String webkitdropzone;
-
-  _ElementEventsImpl get on() =>
-    new _ElementEventsImpl(this);
 
   void blur() native;
 
@@ -5864,6 +5867,9 @@ class _EventExceptionImpl implements EventException native "*EventException" {
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*EventSource" {
 
+  _EventSourceEventsImpl get on() =>
+    new _EventSourceEventsImpl(this);
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -5875,9 +5881,6 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
   final int readyState;
 
   final String url;
-
-  _EventSourceEventsImpl get on() =>
-    new _EventSourceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -6437,12 +6440,12 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
 
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement native "*HTMLFrameSetElement" {
 
+  _FrameSetElementEventsImpl get on() =>
+    new _FrameSetElementEventsImpl(this);
+
   String cols;
 
   String rows;
-
-  _FrameSetElementEventsImpl get on() =>
-    new _FrameSetElementEventsImpl(this);
 }
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
@@ -7006,6 +7009,9 @@ class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HT
 
 class _InputElementImpl extends _ElementImpl implements InputElement native "*HTMLInputElement" {
 
+  _InputElementEventsImpl get on() =>
+    new _InputElementEventsImpl(this);
+
   String accept;
 
   String align;
@@ -7095,9 +7101,6 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool webkitdirectory;
 
   final bool willValidate;
-
-  _InputElementEventsImpl get on() =>
-    new _InputElementEventsImpl(this);
 
   bool checkValidity() native;
 
@@ -8587,12 +8590,12 @@ class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
 
 class _NotificationImpl extends _EventTargetImpl implements Notification native "*Notification" {
 
+  _NotificationEventsImpl get on() =>
+    new _NotificationEventsImpl(this);
+
   String dir;
 
   String replaceId;
-
-  _NotificationEventsImpl get on() =>
-    new _NotificationEventsImpl(this);
 
   void cancel() native;
 
@@ -9700,6 +9703,9 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance native "*SVGElementInstance" {
 
+  _SVGElementInstanceEventsImpl get on() =>
+    new _SVGElementInstanceEventsImpl(this);
+
   final _SVGElementInstanceListImpl childNodes;
 
   final _SVGElementImpl correspondingElement;
@@ -9715,9 +9721,6 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   final _SVGElementInstanceImpl parentNode;
 
   final _SVGElementInstanceImpl previousSibling;
-
-  _SVGElementInstanceEventsImpl get on() =>
-    new _SVGElementInstanceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -14766,6 +14769,9 @@ class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" 
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
 
+  _WebSocketEventsImpl get on() =>
+    new _WebSocketEventsImpl(this);
+
   static final int CLOSED = 3;
 
   static final int CLOSING = 2;
@@ -14787,9 +14793,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
   final int readyState;
 
   final String url;
-
-  _WebSocketEventsImpl get on() =>
-    new _WebSocketEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -14862,6 +14865,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     _addMeasurementFrameCallback(callback);
   }
 
+
+  _WindowEventsImpl get on() =>
+    new _WindowEventsImpl(this);
 
   static final int PERSISTENT = 1;
 
@@ -14964,9 +14970,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
-
-  _WindowEventsImpl get on() =>
-    new _WindowEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -15311,6 +15314,9 @@ class _WorkerNavigatorImpl implements WorkerNavigator native "*WorkerNavigator" 
 
 class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest native "*XMLHttpRequest" {
 
+  _XMLHttpRequestEventsImpl get on() =>
+    new _XMLHttpRequestEventsImpl(this);
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -15344,9 +15350,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
   final _XMLHttpRequestUploadImpl upload;
 
   bool withCredentials;
-
-  _XMLHttpRequestEventsImpl get on() =>
-    new _XMLHttpRequestEventsImpl(this);
 
   void abort() native;
 
@@ -16391,6 +16394,8 @@ interface BlobBuilder default _BlobBuilderFactoryProvider {
 
 interface BodyElement extends Element {
 
+  BodyElementEvents get on();
+
   String aLink;
 
   String background;
@@ -16400,8 +16405,6 @@ interface BodyElement extends Element {
   String link;
 
   String vLink;
-
-  BodyElementEvents get on();
 }
 
 interface BodyElementEvents extends ElementEvents {
@@ -19226,6 +19229,8 @@ interface DListElement extends Element {
 
 interface DOMApplicationCache extends EventTarget {
 
+  DOMApplicationCacheEvents get on();
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -19239,8 +19244,6 @@ interface DOMApplicationCache extends EventTarget {
   static final int UPDATEREADY = 4;
 
   final int status;
-
-  DOMApplicationCacheEvents get on();
 
   void abort();
 
@@ -19829,6 +19832,8 @@ interface DivElement extends Element {
 interface Document extends HtmlElement {
 
 
+  DocumentEvents get on();
+
   final Element activeElement;
 
   Element body;
@@ -19866,8 +19871,6 @@ interface Document extends HtmlElement {
   final bool webkitIsFullScreen;
 
   final String webkitVisibilityState;
-
-  DocumentEvents get on();
 
   Range caretRangeFromPoint(int x, int y);
 
@@ -20012,6 +20015,8 @@ interface DocumentEvents extends ElementEvents {
 // WARNING: Do not edit - generated code.
 
 interface DocumentFragment extends Node, NodeSelector {
+
+  ElementEvents get on();
 
   Element query(String selectors);
 
@@ -20352,6 +20357,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element get parent();
 
 
+  ElementEvents get on();
+
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   final int _childElementCount;
@@ -20429,8 +20436,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final String webkitRegionOverflow;
 
   String webkitdropzone;
-
-  ElementEvents get on();
 
   void blur();
 
@@ -20879,6 +20884,8 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   EventSource(String scriptUrl);
 
+  EventSourceEvents get on();
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -20890,8 +20897,6 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
   final int readyState;
 
   final String url;
-
-  EventSourceEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -21372,11 +21377,11 @@ interface FrameElement extends Element {
 
 interface FrameSetElement extends Element {
 
+  FrameSetElementEvents get on();
+
   String cols;
 
   String rows;
-
-  FrameSetElementEvents get on();
 }
 
 interface FrameSetElementEvents extends ElementEvents {
@@ -22011,6 +22016,8 @@ interface ImageElement extends Element {
 
 interface InputElement extends Element {
 
+  InputElementEvents get on();
+
   String accept;
 
   String align;
@@ -22100,8 +22107,6 @@ interface InputElement extends Element {
   bool webkitdirectory;
 
   final bool willValidate;
-
-  InputElementEvents get on();
 
   bool checkValidity();
 
@@ -23310,11 +23315,11 @@ interface Notation extends Node {
 
 interface Notification extends EventTarget {
 
+  NotificationEvents get on();
+
   String dir;
 
   String replaceId;
-
-  NotificationEvents get on();
 
   void cancel();
 
@@ -24575,6 +24580,8 @@ interface SVGElement extends Element {
 
 interface SVGElementInstance extends EventTarget {
 
+  SVGElementInstanceEvents get on();
+
   final SVGElementInstanceList childNodes;
 
   final SVGElement correspondingElement;
@@ -24590,8 +24597,6 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  SVGElementInstanceEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -29040,6 +29045,8 @@ interface WebKitNamedFlow {
 
 interface WebSocket extends EventTarget {
 
+  WebSocketEvents get on();
+
   static final int CLOSED = 3;
 
   static final int CLOSING = 2;
@@ -29061,8 +29068,6 @@ interface WebSocket extends EventTarget {
   final int readyState;
 
   final String url;
-
-  WebSocketEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -29144,6 +29149,8 @@ interface Window extends EventTarget {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
+
+  WindowEvents get on();
 
   static final int PERSISTENT = 1;
 
@@ -29246,8 +29253,6 @@ interface Window extends EventTarget {
   final StorageInfo webkitStorageInfo;
 
   final Window window;
-
-  WindowEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -29621,6 +29626,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
+  XMLHttpRequestEvents get on();
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -29652,8 +29659,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   final XMLHttpRequestUpload upload;
 
   bool withCredentials;
-
-  XMLHttpRequestEvents get on();
 
   void abort();
 

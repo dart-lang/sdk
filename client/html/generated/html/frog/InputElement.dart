@@ -1,6 +1,9 @@
 
 class _InputElementImpl extends _ElementImpl implements InputElement native "*HTMLInputElement" {
 
+  _InputElementEventsImpl get on() =>
+    new _InputElementEventsImpl(this);
+
   String accept;
 
   String align;
@@ -90,9 +93,6 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool webkitdirectory;
 
   final bool willValidate;
-
-  _InputElementEventsImpl get on() =>
-    new _InputElementEventsImpl(this);
 
   bool checkValidity() native;
 

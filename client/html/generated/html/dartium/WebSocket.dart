@@ -2,6 +2,11 @@
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   _WebSocketImpl._wrap(ptr) : super._wrap(ptr);
 
+  _WebSocketEventsImpl get on() {
+    if (_on == null) _on = new _WebSocketEventsImpl(this);
+    return _on;
+  }
+
   String get URL() => _wrap(_ptr.URL);
 
   String get binaryType() => _wrap(_ptr.binaryType);
@@ -17,11 +22,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   int get readyState() => _wrap(_ptr.readyState);
 
   String get url() => _wrap(_ptr.url);
-
-  _WebSocketEventsImpl get on() {
-    if (_on == null) _on = new _WebSocketEventsImpl(this);
-    return _on;
-  }
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

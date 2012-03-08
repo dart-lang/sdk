@@ -2,6 +2,11 @@
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
   _SVGElementInstanceImpl._wrap(ptr) : super._wrap(ptr);
 
+  _SVGElementInstanceEventsImpl get on() {
+    if (_on == null) _on = new _SVGElementInstanceEventsImpl(this);
+    return _on;
+  }
+
   SVGElementInstanceList get childNodes() => _wrap(_ptr.childNodes);
 
   SVGElement get correspondingElement() => _wrap(_ptr.correspondingElement);
@@ -17,11 +22,6 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   SVGElementInstance get parentNode() => _wrap(_ptr.parentNode);
 
   SVGElementInstance get previousSibling() => _wrap(_ptr.previousSibling);
-
-  _SVGElementInstanceEventsImpl get on() {
-    if (_on == null) _on = new _SVGElementInstanceEventsImpl(this);
-    return _on;
-  }
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

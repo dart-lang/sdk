@@ -16,6 +16,8 @@ interface Window extends EventTarget {
   void requestLayoutFrame(TimeoutHandler callback);
 
 
+  WindowEvents get on();
+
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
@@ -117,8 +119,6 @@ interface Window extends EventTarget {
   final StorageInfo webkitStorageInfo;
 
   final Window window;
-
-  WindowEvents get on();
 
   void _addEventListener(String type, EventListener listener, [bool useCapture]);
 
