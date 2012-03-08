@@ -5712,16 +5712,17 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 
 void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<const ICData*>* ic_data_objs) const {
+    const GrowableObjectArray& ic_data_objs) const {
   ASSERT(node_ids != NULL);
-  ASSERT(ic_data_objs != NULL);
+  ASSERT(!ic_data_objs.IsNull());
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
+  ICData& ic_data_obj = ICData::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
       node_ids->Add(descriptors.NodeId(i));
-      ic_data_objs->Add(&ICData::ZoneHandle(
-          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
+      ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
+      ic_data_objs.Add(ic_data_obj);
     }
   }
 }
@@ -8787,10 +8788,13 @@ void ICData::GetCheckAt(intptr_t index,
 
 void ICData::GetOneClassCheckAt(
     int index, Class* cls, Function* target) const {
+  ASSERT(cls != NULL);
+  ASSERT(target != NULL);
   ASSERT(num_args_tested() == 1);
-  GrowableArray<const Class*> classes;
-  GetCheckAt(index, &classes, target);
-  *cls = classes[0]->raw();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  *cls ^= data.At(data_pos);
+  *target ^= data.At(data_pos + 1);
 }
 
 
@@ -8816,7 +8820,7 @@ RawICData* ICData::New(const Function& function,
   // Number of array elements in one test entry (num_args_tested + 1)
   intptr_t len = result.TestEntryLength();
   // IC data array must be null terminated (sentinel entry).
-  Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
   return result.raw();
 }

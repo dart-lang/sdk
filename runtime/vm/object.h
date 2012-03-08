@@ -2199,7 +2199,7 @@ class Code : public Object {
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
   void ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
-      GrowableArray<const ICData*>* ic_data_objs) const;
+      const GrowableObjectArray& ic_data_objs) const;
 
  private:
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT

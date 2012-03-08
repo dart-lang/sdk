@@ -63,8 +63,10 @@ static void ExtractTypeFeedback(const Code& code,
   GrowableArray<AstNode*> all_nodes;
   sequence_node->CollectAllNodes(&all_nodes);
   GrowableArray<intptr_t> node_ids;
-  GrowableArray<const ICData*> ic_data_objs;
-  code.ExtractIcDataArraysAtCalls(&node_ids, &ic_data_objs);
+  const GrowableObjectArray& ic_data_objs =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  code.ExtractIcDataArraysAtCalls(&node_ids, ic_data_objs);
+  ICData& ic_data_obj = ICData::Handle();
   for (intptr_t i = 0; i < node_ids.length(); i++) {
     intptr_t node_id = node_ids[i];
     bool found_node = false;
@@ -73,7 +75,8 @@ static void ExtractTypeFeedback(const Code& code,
         found_node = true;
         // Make sure we assign ic data array only once.
         ASSERT(all_nodes[n]->ICDataAtId(node_id).IsNull());
-        all_nodes[n]->SetIcDataAtId(node_id, *ic_data_objs[i]);
+        ic_data_obj ^= ic_data_objs.At(i);
+        all_nodes[n]->SetIcDataAtId(node_id, ic_data_obj);
       }
     }
     ASSERT(found_node);
