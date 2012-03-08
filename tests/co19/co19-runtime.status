@@ -159,10 +159,6 @@ LibTest/core/Math/atan2_A01_t03: Fail
 LibTest/core/int/remainder_A01_t02: Fail
 LibTest/core/int/operator_remainder_A01_t02: Fail
 
-[ $component == vm && $system == win32 && $checked ]
-LibTest/core/AssertionError/url_A01_t01: Fail
-LibTest/core/TypeError/url_A01_t01: Fail
-
 
 [ $component == vm ]
 LibTest/core/SendPort/send_A02_t02: Crash
