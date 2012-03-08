@@ -428,7 +428,7 @@ class StandardTestSuite implements TestSuite {
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
     if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
       print('Warning for $filename: Browser tests require #library ' +
-            'in any file that uses #import or #source');
+            'in any file that uses #import, #source, or #resource');
     }
 
     final String component = configuration['component'];
@@ -776,7 +776,7 @@ class StandardTestSuite implements TestSuite {
     RegExp libraryDefinitionRegExp =
         const RegExp(@"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(@"^#(source|import)\(", multiLine: true);
+        const RegExp(@"^#(source|import|resource)\(", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
