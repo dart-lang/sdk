@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
     VerifyLoaded(library);
     library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
     VerifyLoaded(library);
-    library = LoadGenericSnapshotCreationScript(Builtin::kUtf8Library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kUtfLibrary);
     VerifyLoaded(library);
   }
 

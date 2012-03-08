@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utf32");
-#import("unicode_core.dart");
-#import("unicode.dart");
-
 /**
  * Decodes the UTF-32 bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. Determines the byte order from the BOM,
@@ -193,12 +189,12 @@ class IterableUtf32Decoder implements Iterable<int> {
 /**
  * Abstrace parent class converts encoded bytes to codepoints.
  */
-class Utf32BytesDecoder implements ListRangeIterator<int> {
-  final ListRangeIterator<int> utf32EncodedBytesIterator;
+class Utf32BytesDecoder implements _ListRangeIterator<int> {
+  final _ListRangeIterator<int> utf32EncodedBytesIterator;
   final int replacementCodepoint;
 
   Utf32BytesDecoder._fromListRangeIterator(
-      ListRangeIterator<int> this.utf32EncodedBytesIterator,
+      _ListRangeIterator<int> this.utf32EncodedBytesIterator,
       int this.replacementCodepoint);
 
   factory Utf32BytesDecoder(List<int> utf32EncodedBytes, [
@@ -275,7 +271,7 @@ class Utf32beBytesDecoder extends Utf32BytesDecoder {
   Utf32beBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new ListRange(utf32EncodedBytes, offset,
+      super._fromListRangeIterator((new _ListRange(utf32EncodedBytes, offset,
       length)).iterator(), replacementCodepoint) {
     if (stripBom && hasUtf32beBom(utf32EncodedBytes, offset, length)) {
       skip();
@@ -299,7 +295,7 @@ class Utf32leBytesDecoder extends Utf32BytesDecoder {
   Utf32leBytesDecoder(List<int> utf32EncodedBytes, [int offset = 0,
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new ListRange(utf32EncodedBytes, offset,
+      super._fromListRangeIterator((new _ListRange(utf32EncodedBytes, offset,
       length)).iterator(), replacementCodepoint) {
     if (stripBom && hasUtf32leBom(utf32EncodedBytes, offset, length)) {
       skip();

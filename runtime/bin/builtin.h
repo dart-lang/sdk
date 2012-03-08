@@ -26,7 +26,7 @@ class Builtin {
     kIOLibrary,
     kJsonLibrary,
     kUriLibrary,
-    kUtf8Library,
+    kUtfLibrary,
   };
 
   static Dart_Handle Source(BuiltinLibraryId id);
@@ -44,7 +44,7 @@ class Builtin {
   static const char io_source_[];
   static const char json_source_[];
   static const char uri_source_[];
-  static const char utf8_source_[];
+  static const char utf_source_[];
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Builtin);

@@ -5,7 +5,7 @@
 
 #library("unicode_tests");
 #import("dunit.dart");
-#import("../../string_encoding/unicode.dart");
+#import("../../../lib/utf/utf.dart");
 
 void main() {
   TestSuite suite = new TestSuite();

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utf8");
-#import("unicode_core.dart");
-#import("unicode.dart");
-#source("utf8_impl.dart");
+// TODO(dgrove) - once the VM has a new way to include whole libraries,
+// remove this file and update runtime/bin/utf_sources.gypi .
+
+#library("utf");

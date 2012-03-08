@@ -1,11 +1,10 @@
 #!/usr/bin/env dart
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("BenchmarkTests");
-#import("../../string_encoding/utf8.dart", prefix: "SE");
-#import("../../utf8/utf8.dart", prefix: "UT");
+#import("../../../lib/utf/utf.dart", prefix: "SE");
 #source("benchmark_runner.dart");
 
 void main() {
@@ -121,35 +120,5 @@ void main() {
   BenchmarkRunner.runTimed("SE_JA1","string_encoding/decodeUtf8-Katakana",
       testConfig_1sec, () =>
           (new SE.Utf8Decoder(testKatakanaUtf8)).decodeRest());
-
-  BenchmarkRunner.runTimed("UT_EN1","Utf8Decoder/decodeUtf8-English1",
-      testConfig_1sec, () =>
-          (new UT.Utf8Decoder(testEnglishUtf8, 0, testEnglishUtf8.length))
-          .decodeRest());
-
-  BenchmarkRunner.runTimed("UT_DA1","Utf8Decoder/decodeUtf8-Danish1",
-      testConfig_1sec, () =>
-          (new UT.Utf8Decoder(testDanishUtf8, 0, testDanishUtf8.length))
-          .decodeRest());
-
-  BenchmarkRunner.runTimed("UT_HE1","Utf8Decoder/decodeUtf8-Hebrew1",
-      testConfig_1sec, () =>
-          (new UT.Utf8Decoder(testHebrewUtf8, 0, testHebrewUtf8.length))
-          .decodeRest());
-
-  BenchmarkRunner.runTimed("UT_RU1","Utf8Decoder/decodeUtf8-Russian1",
-      testConfig_1sec,
-          () => (new UT.Utf8Decoder(testRussianUtf8, 0, testRussianUtf8.length))
-          .decodeRest());
-
-  BenchmarkRunner.runTimed("UT_EL1","Utf8Decoder/decodeUtf8-Greek",
-      testConfig_1sec, () =>
-          (new UT.Utf8Decoder(testGreekUtf8, 0, testGreekUtf8.length))
-          .decodeRest());
-
-  BenchmarkRunner.runTimed("UT_JA1","Utf8Decoder/decodeUtf8-Katakana",
-      testConfig_1sec,() =>
-          (new UT.Utf8Decoder(testKatakanaUtf8, 0, testKatakanaUtf8.length))
-          .decodeRest());
 }
 

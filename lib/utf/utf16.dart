@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utf16");
-#import("unicode_core.dart");
-#import("unicode.dart");
 
 /**
  * Decodes the UTF-16 bytes as an iterable. Thus, the consumer can only convert
@@ -220,7 +217,7 @@ class IterableUtf16Decoder implements Iterable<int> {
   final Function codeunitsProvider;
   final int replacementCodepoint;
 
-  IterableUtf16Decoder._(ListRangeIterator<int> this.codeunitsProvider(),
+  IterableUtf16Decoder._(_ListRangeIterator<int> this.codeunitsProvider(),
       int this.replacementCodepoint);
 
   Utf16CodeUnitDecoder iterator() =>
@@ -233,12 +230,12 @@ class IterableUtf16Decoder implements Iterable<int> {
  * to produce the code unit (0-(2^16)-1). Relies on BOM to determine
  * endian-ness, and defaults to BE.
  */
-class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator<int> {
-  final ListRangeIterator<int> utf16EncodedBytesIterator;
+class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator<int> {
+  final _ListRangeIterator<int> utf16EncodedBytesIterator;
   final int replacementCodepoint;
 
   Utf16BytesToCodeUnitsDecoder._fromListRangeIterator(
-      ListRangeIterator<int> this.utf16EncodedBytesIterator,
+      _ListRangeIterator<int> this.utf16EncodedBytesIterator,
       int this.replacementCodepoint);
 
   factory Utf16BytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
@@ -318,7 +315,7 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16beBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new ListRange(utf16EncodedBytes, offset,
+      super._fromListRangeIterator((new _ListRange(utf16EncodedBytes, offset,
       length)).iterator(), replacementCodepoint) {
     if (stripBom && hasUtf16beBom(utf16EncodedBytes, offset, length)) {
       skip();
@@ -340,7 +337,7 @@ class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
   Utf16leBytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      super._fromListRangeIterator((new ListRange(utf16EncodedBytes, offset,
+      super._fromListRangeIterator((new _ListRange(utf16EncodedBytes, offset,
       length)).iterator(), replacementCodepoint) {
     if (stripBom && hasUtf16leBom(utf16EncodedBytes, offset, length)) {
       skip();

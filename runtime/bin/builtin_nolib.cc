@@ -36,8 +36,8 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
     case kUriLibrary:
       url = Dart_NewString(DartUtils::kUriLibURL);
       break;
-    case kUtf8Library:
-      url = Dart_NewString(DartUtils::kUtf8LibURL);
+    case kUtfLibrary:
+      url = Dart_NewString(DartUtils::kUtfLibURL);
       break;
     default:
       return Dart_Error("Unknown builtin library requested.");

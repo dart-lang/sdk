@@ -2,17 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("unicode_core");
+/**
+ * Provide a list of Unicode codepoints for a given string.
+ */
+List<int> stringToCodepoints(String str) {
+  List<int> codepoints;
+  // TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
+  // removing after this issue is resolved.
+  if (_is16BitCodeUnit()) {
+    codepoints = _utf16CodeUnitsToCodepoints(str.charCodes());
+  } else {
+    codepoints = str.charCodes();
+  }
+  return codepoints;
+}
+
+/**
+ * Generate a string from the provided Unicode codepoints.
+ */
+String codepointsToString(List<int> codepoints) {
+  // TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
+  // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
+  // removing after this issue is resolved.
+  if (_is16BitCodeUnit()) {
+    return new String.fromCharCodes(
+        _codepointsToUtf16CodeUnits(codepoints));
+  } else {
+    return new String.fromCharCodes(codepoints);
+  }
+}
 
 /*
  * Test for presence of bug related to the use of UTF-16 code units for
  * Dart compiled to JS.
  */
 bool _test16BitCodeUnit = null;
-// TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
+// TODO _is16BitCodeUnit() is used to work around a bug with frog/dartc
 // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
 // removing after this issue is resolved.
-bool is16BitCodeUnit() {
+bool _is16BitCodeUnit() {
   if (_test16BitCodeUnit == null) {
     _test16BitCodeUnit = (new String.fromCharCodes([0x1D11E])) ==
         (new String.fromCharCodes([0xD11E]));
@@ -43,11 +72,11 @@ final int UNICODE_UTF16_LO_MASK = 0x3ff;
 /**
  * Encode code points as UTF16 code units.
  */
-List<int> codepointsToUtf16CodeUnits(
+List<int> _codepointsToUtf16CodeUnits(
     List<int> codepoints, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
 
-  ListRange<int> listRange = new ListRange<int>(codepoints, offset, length);
+  _ListRange<int> listRange = new _ListRange<int>(codepoints, offset, length);
   int encodedLength = 0;
   for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
@@ -86,11 +115,11 @@ List<int> codepointsToUtf16CodeUnits(
 /**
  * Decodes the utf16 codeunits to codepoints.
  */
-List<int> utf16CodeUnitsToCodepoints(
+List<int> _utf16CodeUnitsToCodepoints(
     List<int> utf16CodeUnits, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  ListRangeIterator<int> source =
-      (new ListRange<int>(utf16CodeUnits, offset, length)).iterator();
+  _ListRangeIterator<int> source =
+      (new _ListRange<int>(utf16CodeUnits, offset, length)).iterator();
   Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
       .fromListRangeIterator(source, replacementCodepoint);
   List<int> codepoints = new List<int>(source.remaining);
@@ -114,17 +143,17 @@ List<int> utf16CodeUnitsToCodepoints(
  * rather than replace the bad value.
  */
 class Utf16CodeUnitDecoder implements Iterator<int> {
-  final ListRangeIterator<int> utf16CodeUnitIterator;
+  final _ListRangeIterator<int> utf16CodeUnitIterator;
   final int replacementCodepoint;
 
   Utf16CodeUnitDecoder(List<int> utf16CodeUnits, [int offset = 0, int length,
       int this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf16CodeUnitIterator = (new ListRange(utf16CodeUnits, offset, length))
+      utf16CodeUnitIterator = (new _ListRange(utf16CodeUnits, offset, length))
           .iterator();
 
   Utf16CodeUnitDecoder.fromListRangeIterator(
-      ListRangeIterator<int> this.utf16CodeUnitIterator,
+      _ListRangeIterator<int> this.utf16CodeUnitIterator,
       int this.replacementCodepoint);
 
   Iterator<int> iterator() => this;
@@ -176,16 +205,16 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
 }
 
 /**
- * ListRange in an internal type used to create a lightweight Interable on a
+ * _ListRange in an internal type used to create a lightweight Interable on a
  * range within a source list. DO NOT MODIFY the underlying list while
  * iterating over it. The results of doing so are undefined.
  */
-class ListRange<T> implements Iterable<T> {
+class _ListRange<T> implements Iterable<T> {
   final List<T> _source;
   final int _offset;
   final int _length;
 
-  ListRange(List<T> source, [int offset = 0, int length]) :
+  _ListRange(List<T> source, [int offset = 0, int length]) :
       this._source = source, this._offset = offset,
       this._length = (length == null ? source.length - offset : length) {
     if (_offset < 0 || _offset > _source.length) {
@@ -199,18 +228,18 @@ class ListRange<T> implements Iterable<T> {
     }
   }
 
-  ListRangeIterator<T> iterator() =>
-      new ListRangeIteratorImpl(_source, _offset, _offset + _length);
+  _ListRangeIterator<T> iterator() =>
+      new _ListRangeIteratorImpl(_source, _offset, _offset + _length);
 
   int get length() => _length;
 }
 
 /**
- * The ListRangeIterator provides more capabilities than a standard iterator,
+ * The _ListRangeIterator provides more capabilities than a standard iterator,
  * including the ability to get the current position, count remaining items,
  * and move forward/backward within the iterator.
  */
-interface ListRangeIterator<T> extends Iterator<T> {
+interface _ListRangeIterator<T> extends Iterator<T> {
   bool hasNext();
   T next();
   int get position();
@@ -219,12 +248,12 @@ interface ListRangeIterator<T> extends Iterator<T> {
   void skip([int count]);
 }
 
-class ListRangeIteratorImpl<T> implements ListRangeIterator<T> {
+class _ListRangeIteratorImpl<T> implements _ListRangeIterator<T> {
   final List<T> _source;
   int _offset;
   final int _end;
 
-  ListRangeIteratorImpl(List<T> source, int offset, int end) :
+  _ListRangeIteratorImpl(List<T> source, int offset, int end) :
       _source = source, _offset = offset, _end = end;
 
   bool hasNext() => _offset < _end;
@@ -238,3 +267,4 @@ class ListRangeIteratorImpl<T> implements ListRangeIterator<T> {
     _offset += count;
   }
 }
+

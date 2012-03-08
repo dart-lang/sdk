@@ -278,8 +278,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Builtin::LoadLibrary(Builtin::kJsonLibrary);
     } else if (DartUtils::IsDartUriLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kUriLibrary);
-    } else if (DartUtils::IsDartUtf8LibURL(url_string)) {
-      return Builtin::LoadLibrary(Builtin::kUtf8Library);
+    } else if (DartUtils::IsDartUtfLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }

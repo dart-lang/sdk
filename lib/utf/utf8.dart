@@ -50,7 +50,7 @@ String decodeUtf8(List<int> bytes, [int offset = 0, int length,
  * Produce a sequence of UTF-8 encoded bytes from the provided string.
  */
 List<int> encodeUtf8(String str) =>
-  _codepointsToUtf8(stringToCodepoints(str));
+  codepointsToUtf8(stringToCodepoints(str));
 
 int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
   while (bytes > 0) {
@@ -65,9 +65,9 @@ int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
 /**
  * Encode code points as UTF-8 code units.
  */
-List<int> _codepointsToUtf8(
+List<int> codepointsToUtf8(
     List<int> codepoints, [int offset = 0, int length]) {
-  ListRange<int> source = new ListRange(codepoints, offset, length);
+  _ListRange<int> source = new _ListRange(codepoints, offset, length);
 
   int encodedLength = 0;
   for (int value in source) {
@@ -115,7 +115,7 @@ List<int> _codepointsToUtf8(
 
 // Because UTF-8 specifies byte order, we do not have to follow the pattern
 // used by UTF-16 & UTF-32 regarding byte order.
-List<int> _utf8ToCodepoints(
+List<int> utf8ToCodepoints(
     List<int> utf8EncodedBytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
   return new Utf8Decoder(utf8EncodedBytes, offset, length,
@@ -150,17 +150,17 @@ class IterableUtf8Decoder implements Iterable<int> {
  * from this method can be used as an Iterable (e.g. in a for-loop).
  */
 class Utf8Decoder implements Iterator<int> {
-  final ListRangeIterator<int> utf8EncodedBytesIterator;
+  final _ListRangeIterator<int> utf8EncodedBytesIterator;
   final int replacementCodepoint;
 
   Utf8Decoder(List<int> utf8EncodedBytes, [int offset = 0, int length,
       int this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf8EncodedBytesIterator = (new ListRange(utf8EncodedBytes, offset,
+      utf8EncodedBytesIterator = (new _ListRange(utf8EncodedBytes, offset,
           length)).iterator();
 
 
-  Utf8Decoder._fromListRangeIterator(ListRange<int> source, [
+  Utf8Decoder._fromListRangeIterator(_ListRange<int> source, [
       int this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       utf8EncodedBytesIterator = source.iterator();
