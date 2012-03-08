@@ -176,7 +176,23 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
-  Bailout("StrictCompareComp");
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  LoadValue(comp->left());
+  __ movq(RDX, RAX);
+  LoadValue(comp->right());
+  __ cmpq(RAX, RDX);
+  Label load_true, done;
+  if (comp->kind() == Token::kEQ_STRICT) {
+    __ j(EQUAL, &load_true, Assembler::kNearJump);
+  } else {
+    __ j(NOT_EQUAL, &load_true, Assembler::kNearJump);
+  }
+  __ LoadObject(RAX, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(RAX, bool_true);
+  __ Bind(&done);
 }
 
 
@@ -216,7 +232,20 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
 
 
 void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
-  Bailout("NativeCallComp");
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  // Pass a pointer to the first argument in RAX.
+  if (!comp->has_optional_parameters()) {
+    __ leaq(RAX, Address(RBP, (1 + comp->argument_count()) * kWordSize));
+  } else {
+    __ leaq(RAX, Address(RBP, -1 * kWordSize));
+  }
+  __ movq(RBX, Immediate(reinterpret_cast<uword>(comp->native_c_function())));
+  __ movq(R10, Immediate(comp->argument_count()));
+  GenerateCall(comp->token_index(),
+               &StubCode::CallNativeCFunctionLabel(),
+               PcDescriptors::kOther);
+  __ popq(RAX);
 }
 
 

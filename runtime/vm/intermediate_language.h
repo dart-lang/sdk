@@ -287,8 +287,20 @@ class NativeCallComp : public Computation {
 
   DECLARE_COMPUTATION(NativeCall)
 
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
   const String& native_name() const {
     return ast_node_.native_c_function_name();
+  }
+
+  NativeFunction native_c_function() const {
+    return ast_node_.native_c_function();
+  }
+
+  intptr_t argument_count() const { return ast_node_.argument_count(); }
+
+  bool has_optional_parameters() const {
+    return ast_node_.has_optional_parameters();
   }
 
  private:
