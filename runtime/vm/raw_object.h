@@ -1002,7 +1002,7 @@ class RawGrowableObjectArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
   RawSmi* length_;
   RawArray* data_;
