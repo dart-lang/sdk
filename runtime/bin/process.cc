@@ -34,11 +34,16 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   ASSERT(Dart_IsList(arguments));
   intptr_t length = 0;
   Dart_Handle result = Dart_ListLength(arguments, &length);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   char** string_args = new char*[length];
   for (int i = 0; i < length; i++) {
     Dart_Handle arg = Dart_ListGetAt(arguments, i);
-    ASSERT(!Dart_IsError(arg));
+    if (Dart_IsError(arg)) {
+      delete[] string_args;
+      Dart_PropagateError(arg);
+    }
     // The Dart code verifies that the arguments implement the String
     // interface. However, only builtin Strings are handled by
     // GetStringValue.

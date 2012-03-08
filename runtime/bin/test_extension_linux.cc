@@ -32,7 +32,9 @@ extern "C" Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   Dart_Handle check_error;
 
   check_error = Dart_StringToCString(name, &cname);
-  if (Dart_IsError(check_error)) return NULL;
+  if (Dart_IsError(check_error)) {
+    Dart_PropateError(check_error);
+  }
   if (!strcmp("Cat_IfNull", cname) && argc == 2) {
     return IfNull;
   }

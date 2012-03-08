@@ -56,6 +56,8 @@ class CommandLineOptions {
 
 class DartUtils {
  public:
+  // TODO(turnidge): Clean up the implementations of these so that
+  // they allow for proper error propagation.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
   static const char* GetStringValue(Dart_Handle str_obj);
   static bool GetBooleanValue(Dart_Handle bool_obj);

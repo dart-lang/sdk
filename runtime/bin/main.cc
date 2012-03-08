@@ -244,7 +244,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
   bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
@@ -258,7 +258,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
-      return Dart_Error("accessing library url failed");
+      return library_url;
     }
     Dart_Handle dart_args[2];
     dart_args[0] = library_url;
@@ -329,7 +329,7 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
                                              3, dart_args);
   if (Dart_IsError(script_url)) {
     fprintf(stderr, "%s", Dart_GetError(script_url));
-    return false;
+    return script_url;
   }
   if (original_script_url == NULL) {
     const char* script_url_cstr;

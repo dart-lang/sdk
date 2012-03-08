@@ -127,7 +127,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
 
   // If the URL starts with "dart:" then it is handled specially.
@@ -175,7 +175,7 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
   // We only support canonicalization of "dart:".
   if (DartUtils::IsDartSchemeURL(url_string)) {

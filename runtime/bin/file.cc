@@ -179,7 +179,9 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t array_len = 0;
     Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
-    ASSERT(!Dart_IsError(result));
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     ASSERT((offset + length) <= array_len);
     uint8_t* buffer = new uint8_t[length];
     int total_bytes_read =
@@ -190,9 +192,11 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
     if (total_bytes_read >= 0) {
       result =
           Dart_ListSetAsBytes(buffer_obj, offset, buffer, total_bytes_read);
-      if (!Dart_IsError(result)) {
-        return_value = total_bytes_read;
+      if (Dart_IsError(result)) {
+        delete[] buffer;
+        Dart_PropagateError(result);
       }
+      return_value = total_bytes_read;
     }
     delete[] buffer;
   }
@@ -216,11 +220,16 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
         DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
     intptr_t buffer_len = 0;
     Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-    ASSERT(!Dart_IsError(result));
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     ASSERT((offset + length) <= buffer_len);
     uint8_t* buffer = new uint8_t[length];
     result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
-    ASSERT(!Dart_IsError(result));
+    if (Dart_IsError(result)) {
+      delete[] buffer;
+      Dart_PropagateError(result);
+    }
     int total_bytes_written =
         file->Write(reinterpret_cast<void*>(buffer), length);
     if (total_bytes_written >= 0) {
