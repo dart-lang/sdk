@@ -59,14 +59,14 @@ class DartUtils {
   static int64_t GetIntegerValue(Dart_Handle value_obj);
   static const char* GetStringValue(Dart_Handle str_obj);
   static bool GetBooleanValue(Dart_Handle bool_obj);
-  static void SetIntegerInstanceField(Dart_Handle handle,
-                                      const char* name,
-                                      intptr_t val);
-  static intptr_t GetIntegerInstanceField(Dart_Handle handle,
-                                          const char* name);
-  static void SetStringInstanceField(Dart_Handle handle,
-                                     const char* name,
-                                     const char* val);
+  static void SetIntegerField(Dart_Handle handle,
+                              const char* name,
+                              intptr_t val);
+  static intptr_t GetIntegerField(Dart_Handle handle,
+                                  const char* name);
+  static void SetStringField(Dart_Handle handle,
+                             const char* name,
+                             const char* val);
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);

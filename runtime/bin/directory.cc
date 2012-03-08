@@ -69,8 +69,8 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   static const int kMaxChildOsErrorMessageLength = 256;
   char os_error_message[kMaxChildOsErrorMessageLength];
   if (!Dart_IsString(path)) {
-    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringInstanceField(
+    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringField(
         status_handle, "_errorMessage", "Invalid arguments");
     Dart_SetReturnValue(args, Dart_Null());
     Dart_ExitScope();
@@ -88,13 +88,13 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   } else {
     ASSERT(result == NULL);
     if (error_code == -1) {
-      DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
-      DartUtils::SetStringInstanceField(
+      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+      DartUtils::SetStringField(
           status_handle, "_errorMessage", "Invalid arguments");
     } else {
-      DartUtils::SetIntegerInstanceField(
+      DartUtils::SetIntegerField(
           status_handle, "_errorCode", error_code);
-      DartUtils::SetStringInstanceField(
+      DartUtils::SetStringField(
           status_handle, "_errorMessage", os_error_message);
     }
     Dart_SetReturnValue(args, Dart_Null());

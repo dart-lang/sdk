@@ -26,13 +26,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name, int argc);
 static const char* kCustomIsolateScriptChars =
     "#import('dart:isolate');\n"
     "\n"
-    "class GlobalsHack {\n"
-    "  static ReceivePort _receivePort;\n"
-    "}\n"
-    "\n"
-    "ReceivePort get receivePort() {\n"
-    "  return GlobalsHack._receivePort;\n"
-    "}\n"
+    "ReceivePort mainPort;\n"
     "\n"
     "echo(arg) native \"native_echo\";\n"
     "\n"
@@ -62,7 +56,7 @@ static const char* kCustomIsolateScriptChars =
     "\n"
     "isolateMain() {\n"
     "   echo('Running isolateMain');\n"
-    "   receivePort.receive((message, SendPort replyTo) {\n"
+    "   mainPort.receive((message, SendPort replyTo) {\n"
     "     echo('Received: ' + message);\n"
     "     replyTo.send((message + 1), null);\n"
     "   });\n"
@@ -185,13 +179,7 @@ void StartEvent::Process() {
 
   Dart_Handle recv_port = Dart_GetReceivePort(Dart_GetMainPortId());
   EXPECT_VALID(recv_port);
-
-  // TODO(turnidge): Provide a way to set a top-level variable from
-  // the dart embedding api.
-  Dart_Handle hidden = Dart_GetClass(lib, Dart_NewString("GlobalsHack"));
-  EXPECT_VALID(hidden);
-  result = Dart_SetStaticField(hidden, Dart_NewString("_receivePort"),
-                               recv_port);
+  result = Dart_SetField(lib, Dart_NewString("mainPort"), recv_port);
   EXPECT_VALID(result);
 
   result = Dart_InvokeStatic(lib,

@@ -62,7 +62,7 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   handle = Dart_GetNativeArgument(args, 2);
   Dart_Port dart_port =
-      DartUtils::GetIntegerInstanceField(handle, DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);
   intptr_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   event_handler->SendData(id, dart_port, data);
   Dart_ExitScope();

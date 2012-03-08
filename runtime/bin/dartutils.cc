@@ -68,32 +68,31 @@ bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
 }
 
 
-void DartUtils::SetIntegerInstanceField(Dart_Handle handle,
-                                        const char* name,
-                                        intptr_t val) {
-  Dart_Handle result = Dart_SetInstanceField(handle,
-                                             Dart_NewString(name),
-                                             Dart_NewInteger(val));
+void DartUtils::SetIntegerField(Dart_Handle handle,
+                                const char* name,
+                                intptr_t val) {
+  Dart_Handle result = Dart_SetField(handle,
+                                     Dart_NewString(name),
+                                     Dart_NewInteger(val));
   ASSERT(!Dart_IsError(result));
 }
 
 
-intptr_t DartUtils::GetIntegerInstanceField(Dart_Handle handle,
+intptr_t DartUtils::GetIntegerField(Dart_Handle handle,
                                             const char* name) {
-  Dart_Handle result =
-      Dart_GetInstanceField(handle, Dart_NewString(name));
+  Dart_Handle result = Dart_GetField(handle, Dart_NewString(name));
   ASSERT(!Dart_IsError(result));
   intptr_t value = DartUtils::GetIntegerValue(result);
   return value;
 }
 
 
-void DartUtils::SetStringInstanceField(Dart_Handle handle,
-                                       const char* name,
-                                       const char* val) {
-  Dart_Handle result = Dart_SetInstanceField(handle,
-                                             Dart_NewString(name),
-                                             Dart_NewString(val));
+void DartUtils::SetStringField(Dart_Handle handle,
+                               const char* name,
+                               const char* val) {
+  Dart_Handle result = Dart_SetField(handle,
+                                     Dart_NewString(name),
+                                     Dart_NewString(val));
   ASSERT(!Dart_IsError(result));
 }
 

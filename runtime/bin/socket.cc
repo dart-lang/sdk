@@ -17,7 +17,7 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   intptr_t port = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t socket = Socket::CreateConnect(host, port);
-  DartUtils::SetIntegerInstanceField(
+  DartUtils::SetIntegerField(
       socketobj, DartUtils::kIdFieldName, socket);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
   Dart_ExitScope();
@@ -27,8 +27,8 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
-      DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                         DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
   intptr_t available = Socket::Available(socket);
   Dart_SetReturnValue(args, Dart_NewInteger(available));
   Dart_ExitScope();
@@ -38,8 +38,8 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
-      DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                         DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
   intptr_t offset =
@@ -73,8 +73,8 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
-      DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                         DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
   intptr_t offset =
@@ -117,8 +117,8 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
-      DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                         DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
   intptr_t port = Socket::GetPort(socket);
   Dart_SetReturnValue(args, Dart_NewInteger(port));
   Dart_ExitScope();
@@ -132,7 +132,7 @@ void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   ASSERT(num == 0 || num == 1 || num == 2);
   intptr_t socket = Socket::GetStdioHandle(num);
-  DartUtils::SetIntegerInstanceField(
+  DartUtils::SetIntegerField(
       socketobj, DartUtils::kIdFieldName, socket);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
   Dart_ExitScope();
@@ -149,7 +149,7 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t socket =
       ServerSocket::CreateBindListen(bindAddress, port, backlog);
-  DartUtils::SetIntegerInstanceField(
+  DartUtils::SetIntegerField(
       socketobj, DartUtils::kIdFieldName, socket);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
   Dart_ExitScope();
@@ -159,12 +159,12 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
 void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
-      DartUtils::GetIntegerInstanceField(Dart_GetNativeArgument(args, 0),
-                                         DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
   Dart_Handle socketobj = Dart_GetNativeArgument(args, 1);
   intptr_t newSocket = ServerSocket::Accept(socket);
   if (newSocket >= 0) {
-    DartUtils::SetIntegerInstanceField(
+    DartUtils::SetIntegerField(
         socketobj, DartUtils::kIdFieldName, newSocket);
   }
   Dart_SetReturnValue(args, Dart_NewBoolean(newSocket >= 0));

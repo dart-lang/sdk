@@ -199,7 +199,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return script_name_name;
   }
   Dart_Handle set_script_name =
-      Dart_SetStaticField(runtime_options_class, script_name_name, dart_script);
+      Dart_SetField(runtime_options_class, script_name_name, dart_script);
   if (Dart_IsError(set_script_name)) {
     return set_script_name;
   }
@@ -208,9 +208,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return native_name;
   }
 
-  return Dart_SetStaticField(runtime_options_class,
-                             native_name,
-                             dart_arguments);
+  return Dart_SetField(runtime_options_class, native_name, dart_arguments);
 }
 
 

@@ -1497,8 +1497,7 @@ UNIT_TEST_CASE(PostCObject) {
                                             0,
                                             NULL);
   EXPECT_VALID(send_port);
-  Dart_Handle result =
-      Dart_GetInstanceField(send_port, Dart_NewString("_id"));
+  Dart_Handle result = Dart_GetField(send_port, Dart_NewString("_id"));
   ASSERT(!Dart_IsError(result));
   ASSERT(Dart_IsInteger(result));
   int64_t send_port_id;
