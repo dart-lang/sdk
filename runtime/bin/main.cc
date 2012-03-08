@@ -389,9 +389,10 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
 
-  // Prepare builtin for use to resolve URIs.
+  // Prepare builtin and its dependent libraries for use to resolve URIs.
+  Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
   Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
-  Builtin::ImportLibrary(builtin_lib, Builtin::kUriLibrary);
+  Dart_LibraryImportLibrary(builtin_lib, uri_lib);
 
   // Load the specified application script into the newly created isolate.
   Dart_Handle library = LoadScript(builtin_lib, import_map_options);
