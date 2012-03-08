@@ -4,17 +4,25 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.VariableElement;
+
 import java.util.List;
 
 /**
  * Unqualified function invocation AST node.
+ * <p>
+ * {@link DartUnqualifiedInvocation} may be invocation of real method, or invocation of function
+ * object in field, or invocation of function object in variable. So, its {@link Element} may be
+ * {@link MethodElement}, or {@link FieldElement}, or {@link VariableElement}.
  */
 public class DartUnqualifiedInvocation extends DartInvocation {
 
   private DartIdentifier target;
 
-  public DartUnqualifiedInvocation(DartIdentifier target,
-                                   List<DartExpression> args) {
+  public DartUnqualifiedInvocation(DartIdentifier target, List<DartExpression> args) {
     super(args);
     this.target = becomeParentOf(target);
   }

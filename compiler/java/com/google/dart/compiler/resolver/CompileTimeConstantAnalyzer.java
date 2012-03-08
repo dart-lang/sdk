@@ -11,6 +11,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.InternalCompilerException;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -29,7 +30,6 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -45,7 +45,6 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.type.Type;
 
 import java.util.List;
@@ -134,7 +133,7 @@ public class CompileTimeConstantAnalyzer {
 
     /**
      * Determine the most specific type assigned to an expression node. Prefer
-     * the setting in the expression's symbol if present. Otherwise, use a type
+     * the setting in the expression's element if present. Otherwise, use a type
      * tagged in the expression node itself.
      *
      * @return a non <code>null</code> type value. Dynamic if none other can be
@@ -142,7 +141,7 @@ public class CompileTimeConstantAnalyzer {
      */
     private Type getMostSpecificType(DartNode node) {
       if (node != null) {
-        Element element = (Element) node.getSymbol();
+        Element element = (Element) node.getElement();
         Type type = inferredTypes.get(node);
         if (type != null) {
           return type;
@@ -298,7 +297,7 @@ public class CompileTimeConstantAnalyzer {
     public Void visitIdentifier(DartIdentifier x) {
       x.visitChildren(this);
 
-      Element element = x.getSymbol();
+      Element element = x.getElement();
       switch (ElementKind.of(element)) {
         case CLASS:
         case PARAMETER:
@@ -308,19 +307,19 @@ public class CompileTimeConstantAnalyzer {
         case FIELD:
         case VARIABLE:
 
-          if (element != null && visitedSymbols.contains(element)) {
+          if (element != null && visitedElements.contains(element)) {
             context.onError(new DartCompilationError(x,
                 ResolverErrorCode.CIRCULAR_REFERENCE));
             rememberInferredType(x, getMostSpecificType(x));
             return null;
           }
-          visitedSymbols.add(element);
+          visitedElements.add(element);
           if (!element.getModifiers().isConstant()) {
             expectedConstant(x);
           }
           DartNode identifierNode = element.getNode();
           this.visit(Lists.newArrayList(identifierNode));
-          visitedSymbols.remove(element);
+          visitedElements.remove(element);
 
           switch (ElementKind.of(element)) {
             case FIELD:
@@ -414,7 +413,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitPropertyAccess(DartPropertyAccess x) {
       x.visitChildren(this);
-      switch (ElementKind.of(x.getQualifier().getSymbol())) {
+      switch (ElementKind.of(x.getQualifier().getElement())) {
         case CLASS:
         case LIBRARY:
         case NONE:
@@ -425,7 +424,7 @@ public class CompileTimeConstantAnalyzer {
           return null;
       }
 
-      Element element = x.getName().getSymbol();
+      Element element = x.getName().getElement();
       if (element != null && !element.getModifiers().isConstant()) {
         expectedConstant(x);
       }
@@ -436,7 +435,7 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
-      Element element = x.getSymbol();
+      Element element = x.getElement();
       if (element != null) {
         if (!element.getModifiers().isConstant()) {
           expectedConstant(x);
@@ -460,7 +459,7 @@ public class CompileTimeConstantAnalyzer {
 
     @Override
     public Void visitSuperExpression(DartSuperExpression x) {
-      if (!x.getSymbol().getModifiers().isConstant()) {
+      if (!x.getElement().getModifiers().isConstant()) {
         expectedConstant(x);
       }
       return null;
@@ -575,7 +574,7 @@ public class CompileTimeConstantAnalyzer {
 
   public static class Phase implements DartCompilationPhase {
     /**
-     * Executes symbol resolution on the given compilation unit.
+     * Executes element resolution on the given compilation unit.
      *
      * @param context The listener through which compilation errors are reported
      *          (not <code>null</code>)
@@ -588,7 +587,7 @@ public class CompileTimeConstantAnalyzer {
     }
   }
 
-  public Set<Symbol> visitedSymbols = Sets.newHashSet();
+  public Set<Element> visitedElements = Sets.newHashSet();
 
   public Map<DartNode, Type> inferredTypes = Maps.newHashMap();
 

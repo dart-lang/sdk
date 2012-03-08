@@ -61,7 +61,7 @@ class ElementMap {
       }
 
     @Override
-    public String getOriginalSymbolName() {
+    public String getOriginalName() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
       }
 

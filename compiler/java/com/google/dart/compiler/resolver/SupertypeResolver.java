@@ -52,7 +52,7 @@ public class SupertypeResolver {
   private class ClassElementResolver extends ASTVisitor<Void> {
     @Override
     public Void visitClass(DartClass node) {
-      ClassElement classElement = node.getSymbol();
+      ClassElement classElement = node.getElement();
 
       // Make sure that the type parameters are in scope before resolving the
       // super class and interfaces
@@ -113,9 +113,9 @@ public class SupertypeResolver {
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      ResolutionContext resolutionContext = topLevelContext.extend(node.getSymbol());
-      Elements.addInterface(node.getSymbol(), typeProvider.getFunctionType());
-      setBoundsOnTypeParameters(node.getSymbol().getTypeParameters(), resolutionContext);
+      ResolutionContext resolutionContext = topLevelContext.extend(node.getElement());
+      Elements.addInterface(node.getElement(), typeProvider.getFunctionType());
+      setBoundsOnTypeParameters(node.getElement().getTypeParameters(), resolutionContext);
       return null;
     }
   }

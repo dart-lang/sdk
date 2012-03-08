@@ -97,7 +97,7 @@ public class MemberBuilder {
       isStatic = false;
       isFactory = false;
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
-      FunctionAliasElement element = node.getSymbol();
+      FunctionAliasElement element = node.getElement();
       currentHolder = element;
       context = context.extend((ClassElement) currentHolder); // Put type variables in scope.
       visit(node.getTypeParameters());
@@ -118,7 +118,7 @@ public class MemberBuilder {
     public Element visitMethodDefinition(final DartMethodDefinition method) {
       isFactory = method.getModifiers().isFactory();
       isStatic = method.getModifiers().isStatic() || isFactory;
-      MethodElement element = method.getSymbol();
+      MethodElement element = method.getElement();
       if (element == null) {
         switch (getMethodKind(method)) {
           case NONE:
@@ -172,7 +172,7 @@ public class MemberBuilder {
 
     private void beginClassContext(final DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
-      currentHolder = node.getSymbol();
+      currentHolder = node.getElement();
       context = context.extend((ClassElement) currentHolder);
     }
 
@@ -250,7 +250,7 @@ public class MemberBuilder {
         // types of constant expressions.
         modifiers = modifiers.makeConstant();
       }
-      FieldElement fieldElement = fieldNode.getSymbol();
+      FieldElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
         fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);
         addField(currentHolder, fieldElement);
@@ -315,7 +315,7 @@ public class MemberBuilder {
       recordElement(accessorNode, accessorElement);
       resolveFunction(accessorNode.getFunction(), accessorElement);
 
-      String name = fieldNode.getName().getTargetName();
+      String name = fieldNode.getName().getName();
       Element element = null;
       if (currentHolder != null) {
           element = currentHolder.lookupLocalElement(name);
@@ -395,7 +395,7 @@ public class MemberBuilder {
 
       DartExpression name = method.getName();
       if (name instanceof DartIdentifier) {
-        if (((DartIdentifier) name).getTargetName().equals(currentHolder.getName())) {
+        if (((DartIdentifier) name).getName().equals(currentHolder.getName())) {
           return ElementKind.CONSTRUCTOR;
         } else {
           return ElementKind.METHOD;
@@ -404,7 +404,7 @@ public class MemberBuilder {
         DartPropertyAccess property = (DartPropertyAccess) name;
         if (property.getQualifier() instanceof DartIdentifier) {
           DartIdentifier qualifier = (DartIdentifier) property.getQualifier();
-          if (qualifier.getTargetName().equals(currentHolder.getName())) {
+          if (qualifier.getName().equals(currentHolder.getName())) {
             return ElementKind.CONSTRUCTOR;
           }
           resolutionError(method.getName(),

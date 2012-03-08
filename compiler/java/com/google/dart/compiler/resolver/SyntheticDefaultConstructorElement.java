@@ -41,7 +41,7 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   }
 
   @Override
-  public String getOriginalSymbolName() {
+  public String getOriginalName() {
     return getName();
   }
 

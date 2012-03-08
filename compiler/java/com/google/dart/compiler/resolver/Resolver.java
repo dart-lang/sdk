@@ -75,7 +75,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Resolves unqualified symbols in a compilation unit.
+ * Resolves unqualified elements in a compilation unit.
  */
 public class Resolver {
 
@@ -219,7 +219,7 @@ public class Resolver {
     @Override
     public Element visitClass(DartClass cls) {
       assert currentMethod == null : "nested class?";
-      ClassElement classElement = cls.getSymbol();
+      ClassElement classElement = cls.getElement();
       try {
         classElement.getAllSupertypes();
       } catch (CyclicDeclarationException e) {
@@ -336,7 +336,7 @@ public class Resolver {
         Type type = typeIterator.next();
         DartTypeParameter node = nodeIterator.next();
 
-        if (type.getElement().getName().equals(node.getName().getTargetName())) {
+        if (type.getElement().getName().equals(node.getName().getName())) {
           node.setType(type);
           recordElement(node.getName(), type.getElement());
         } else {
@@ -553,7 +553,7 @@ public class Resolver {
 
     @Override
     public MethodElement visitMethodDefinition(DartMethodDefinition node) {
-      MethodElement member = node.getSymbol();
+      MethodElement member = node.getElement();
       ResolutionContext previousContext = context;
       context = context.extend(member.getName());
       assert currentMethod == null : "Nested methods?";
@@ -566,12 +566,12 @@ public class Resolver {
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.
       for (DartParameter parameter : parameters) {
-        assert parameter.getSymbol() != null;
+        assert parameter.getElement() != null;
         if (parameter.getQualifier() instanceof DartThisExpression) {
           checkParameterInitializer(node, parameter);
         } else {
           getContext().declare(
-              parameter.getSymbol(),
+              parameter.getElement(),
               ResolverErrorCode.DUPLICATE_PARAMETER,
               ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
         }
@@ -579,8 +579,8 @@ public class Resolver {
       for (DartParameter parameter : parameters) {
         // Then resolve the default values.
         resolve(parameter.getDefaultExpr());
-        if (parameter.getQualifier() instanceof DartThisExpression && parameter.getSymbol() != null
-            && !initializedFields.add(parameter.getSymbol().getParameterInitializerElement())) {
+        if (parameter.getQualifier() instanceof DartThisExpression && parameter.getElement() != null
+            && !initializedFields.add(parameter.getElement().getParameterInitializerElement())) {
           onError(parameter, ResolverErrorCode.DUPLICATE_INITIALIZATION, parameter.getName());
         }
       }
@@ -626,7 +626,7 @@ public class Resolver {
       if (expression != null) {
         resolve(expression);
         // Now, this constant has a type. Save it for future reference.
-        Element element = node.getSymbol();
+        Element element = node.getElement();
         if (expression.getType() != null) {
           Elements.setType(element, expression.getType());
         }
@@ -636,12 +636,12 @@ public class Resolver {
         } else {
           // If a final instance field wasn't initialized at declaration, we must check
           // at construction time.
-          this.finalsNeedingInitializing.add(node.getSymbol());
+          this.finalsNeedingInitializing.add(node.getElement());
         }
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
-      FieldElement field = node.getSymbol();
+      FieldElement field = node.getElement();
       if (field.getGetter() != null) {
         resolve(field.getGetter().getNode());
       }
@@ -757,7 +757,7 @@ public class Resolver {
       // Handle corner case of L: break L;
       DartNode parent = x.getParent();
       if (parent instanceof DartLabel && x.getLabel() != null) {
-        if (((DartLabel) parent).getLabel().getTargetName().equals(x.getLabel().getTargetName())) {
+        if (((DartLabel) parent).getLabel().getName().equals(x.getLabel().getName())) {
           getContext().pushScope("<break>");
           addLabelToStatement(x);
           visitGotoStatement(x);
@@ -902,7 +902,7 @@ public class Resolver {
     @Override
     public Element visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
       visit(x.getArguments());
-      String name = x.getName() == null ? "" : x.getName().getTargetName();
+      String name = x.getName() == null ? "" : x.getName().getName();
       InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
       ConstructorElement element = (supertype == null) ?
           null : Elements.lookupConstructor(supertype.getElement(), name);
@@ -926,7 +926,7 @@ public class Resolver {
 
     private Element resolveIdentifier(DartIdentifier x, boolean isQualifier) {
       Scope scope = getContext().getScope();
-      String name = x.getTargetName();
+      String name = x.getName();
       Element element = scope.findElement(scope.getLibrary(), name);
       if (element == null) {
         // A private identifier could refer to a field in a different library. In this case
@@ -1143,7 +1143,7 @@ public class Resolver {
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, null, null);
           } else {
-            x.getFunctionName().setSymbol(element);
+            x.getFunctionName().setElement(element);
           }
           break;
       }
@@ -1156,7 +1156,7 @@ public class Resolver {
     @Override
     public Element visitUnqualifiedInvocation(DartUnqualifiedInvocation x) {
       Scope scope = getContext().getScope();
-      Element element = scope.findElement(scope.getLibrary(), x.getTarget().getTargetName());
+      Element element = scope.findElement(scope.getLibrary(), x.getTarget().getName());
       ElementKind kind = ElementKind.of(element);
       if (!INVOKABLE_ELEMENTS.contains(kind)) {
         diagnoseErrorInUnqualifiedInvocation(x);
@@ -1375,7 +1375,7 @@ public class Resolver {
     }
 
     private void diagnoseErrorInUnqualifiedInvocation(DartUnqualifiedInvocation node) {
-      String name = node.getTarget().getTargetName();
+      String name = node.getTarget().getName();
       Scope scope = getContext().getScope();
       Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
@@ -1408,7 +1408,7 @@ public class Resolver {
     }
 
     private void diagnoseErrorInInitializer(DartIdentifier x) {
-      String name = x.getTargetName();
+      String name = x.getName();
       Scope scope = getContext().getScope();
       Element element = scope.findElement(scope.getLibrary(), name);
       ElementKind kind = ElementKind.of(element);
@@ -1461,7 +1461,7 @@ public class Resolver {
       if (x.getName() != null) {
         // Make sure the identifier is a local instance field.
         FieldElement element = Elements.lookupLocalField(
-            (ClassElement) currentHolder, x.getName().getTargetName());
+            (ClassElement) currentHolder, x.getName().getName());
         if (element == null || element.isStatic() || element.getModifiers().isAbstractField()) {
           diagnoseErrorInInitializer(x.getName());
         }
@@ -1478,7 +1478,7 @@ public class Resolver {
     @Override
     public Element visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
       visit(x.getArguments());
-      String name = x.getName() != null ? x.getName().getTargetName() : "";
+      String name = x.getName() != null ? x.getName().getName() : "";
       ConstructorElement element = Elements.lookupConstructor((ClassElement) currentHolder, name);
       if (element == null) {
         onError(x, ResolverErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, name);
@@ -1692,7 +1692,7 @@ public class Resolver {
     }
 
     private void checkParameterInitializer(DartMethodDefinition method, DartParameter parameter) {
-      if (Elements.isNonFactoryConstructor(method.getSymbol())) {
+      if (Elements.isNonFactoryConstructor(method.getElement())) {
         if (method.getModifiers().isRedirectedConstructor()) {
           onError(parameter.getName(),
               ResolverErrorCode.PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR);
@@ -1711,16 +1711,16 @@ public class Resolver {
 
         // Field parameters are not visible as parameters, so we do not declare them
         // in the context. Instead we record the resolved field element.
-        Elements.setParameterInitializerElement(parameter.getSymbol(), element);
+        Elements.setParameterInitializerElement(parameter.getElement(), element);
 
         // The editor expects the referenced elements to be non-null
         DartPropertyAccess prop = (DartPropertyAccess)parameter.getName();
-        prop.setReferencedElement(element);
-        prop.getName().setReferencedElement(element);
+        prop.setElement(element);
+        prop.getName().setElement(element);
 
         // If no type specified, use type of field.
         if (parameter.getTypeNode() == null && element != null) {
-          Elements.setType(parameter.getSymbol(), element.getType());
+          Elements.setType(parameter.getElement(), element.getType());
         }
       } else {
         onError(parameter.getName(),
@@ -1736,9 +1736,9 @@ public class Resolver {
         Element element = resolve(initializer);
         if ((ElementKind.of(element) == ElementKind.CONSTRUCTOR) && initializer.isInvocation()) {
           constructorElement = (ConstructorElement) element;
-        } else if (initializer.getName() != null && initializer.getName().getSymbol() != null
-            && initializer.getName().getSymbol().getModifiers() != null
-            && !intializedFields.add((FieldElement)initializer.getName().getTargetSymbol())) {
+        } else if (initializer.getName() != null && initializer.getName().getElement() != null
+            && initializer.getName().getElement().getModifiers() != null
+            && !intializedFields.add((FieldElement)initializer.getName().getElement())) {
           onError(initializer, ResolverErrorCode.DUPLICATE_INITIALIZATION, initializer.getName());
         }
       }
@@ -1779,7 +1779,7 @@ public class Resolver {
 
   public static class Phase implements DartCompilationPhase {
     /**
-     * Executes symbol resolution on the given compilation unit.
+     * Executes element resolution on the given compilation unit.
      *
      * @param context The listener through which compilation errors are reported
      *          (not <code>null</code>)
@@ -1818,7 +1818,7 @@ public class Resolver {
     // The parser ensures that redirected constructors can be the only item in the initialization
     // list.
     if (inits.size() == 1) {
-      Element element = (Element) inits.get(0).getValue().getSymbol();
+      Element element = (Element) inits.get(0).getValue().getElement();
       if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
         ConstructorElement nextConstructorElement = (ConstructorElement) element;
         ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();

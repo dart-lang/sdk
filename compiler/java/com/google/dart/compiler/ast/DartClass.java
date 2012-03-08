@@ -4,16 +4,15 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
 
 /**
  * Represents a Dart class.
  */
-public class DartClass extends DartDeclaration<DartIdentifier> implements HasSymbol {
+public class DartClass extends DartDeclaration<DartIdentifier> {
 
   private ClassElement element;
 
@@ -119,7 +118,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     if (getName() == null) {
       return null;
     }
-    return getName().getTargetName();
+    return getName().getName();
   }
 
   public DartTypeNode getSuperclass() {
@@ -130,7 +129,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     return defaultClass;
   }
 
-  public Symbol getDefaultSymbol() {
+  public Element getDefaultSymbol() {
     if (defaultClass != null) {
       return defaultClass.getType().getElement();
     } else {
@@ -138,7 +137,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     }
   }
 
-  public Symbol getSuperSymbol() {
+  public Element getSuperSymbol() {
     if (superclass != null) {
       return superclass.getType().getElement();
     } else {
@@ -147,7 +146,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   }
 
   @Override
-  public ClassElement getSymbol() {
+  public ClassElement getElement() {
     return element;
   }
 
@@ -160,8 +159,8 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.element = (ClassElement) symbol;
+  public void setElement(Element element) {
+    this.element = (ClassElement) element;
   }
 
   public DartStringLiteral getNativeName() {

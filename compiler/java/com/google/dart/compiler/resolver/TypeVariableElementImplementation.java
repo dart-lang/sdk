@@ -39,7 +39,7 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
 
   static TypeVariableElementImplementation fromNode(DartTypeParameter node, Element owner) {
     TypeVariableElementImplementation element =
-      new TypeVariableElementImplementation(node, node.getName().getTargetName(), owner);
+      new TypeVariableElementImplementation(node, node.getName().getName(), owner);
     element.setType(Types.typeVariable(element));
     return element;
   }

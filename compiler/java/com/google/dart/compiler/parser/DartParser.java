@@ -2540,7 +2540,7 @@ public class DartParser extends CompletionHooksParserBase {
         boolean hasPrefix = false;
         DartTypeNode part1 = parts.get(0);
         DartTypeNode part2 = parts.get(1);
-        if (prefixes.contains(((DartIdentifier) part1.getIdentifier()).getTargetName())) {
+        if (prefixes.contains(((DartIdentifier) part1.getIdentifier()).getName())) {
           hasPrefix = true;
         }
         if (!part2.getTypeArguments().isEmpty()) {

@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.FieldElement;
 
 /**
@@ -40,13 +40,13 @@ public class DartField extends DartClassMember<DartIdentifier> {
   }
 
   @Override
-  public FieldElement getSymbol() {
+  public FieldElement getElement() {
     return element;
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.element = (FieldElement) symbol;
+  public void setElement(Element element) {
+    this.element = (FieldElement) element;
   }
 
   @Override

@@ -4,18 +4,16 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 
 /**
  * Represents a Dart property access expression (a.b).
  */
-public class DartPropertyAccess extends DartExpression implements ElementReference {
+public class DartPropertyAccess extends DartExpression {
 
   private DartNode qualifier;
   private DartIdentifier name;
-  private Element referencedElement;
   private Type type;
 
   public DartPropertyAccess(DartNode qualifier, DartIdentifier name) {
@@ -29,7 +27,7 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   }
 
   public String getPropertyName() {
-    return name.getTargetName();
+    return name.getName();
   }
 
   public DartIdentifier getName() {
@@ -45,12 +43,13 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    name.setSymbol(symbol);
+  public void setElement(Element element) {
+    name.setElement(element);
   }
 
-  public Element getTargetSymbol() {
-    return name.getTargetSymbol();
+  @Override
+  public Element getElement() {
+    return name.getElement();
   }
 
   @Override
@@ -72,15 +71,5 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitPropertyAccess(this);
-  }
-
-  @Override
-  public Element getReferencedElement() {
-    return referencedElement;
-  }
-
-  @Override
-  public void setReferencedElement(Element element) {
-    referencedElement = element;
   }
 }

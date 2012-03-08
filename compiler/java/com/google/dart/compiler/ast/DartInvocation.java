@@ -32,10 +32,10 @@ import java.util.List;
  * </ul>
  *
  */
-public abstract class DartInvocation extends DartExpression implements ElementReference {
+public abstract class DartInvocation extends DartExpression {
 
   private final NodeList<DartExpression> arguments = NodeList.create(this);
-  private Element referencedElement;
+  private Element element;
 
   public DartInvocation(List<DartExpression> arguments) {
     this.arguments.addAll(arguments);
@@ -49,11 +49,13 @@ public abstract class DartInvocation extends DartExpression implements ElementRe
     return arguments;
   }
 
-  public Element getReferencedElement() {
-    return referencedElement;
+  @Override
+  public Element getElement() {
+    return element;
   }
 
-  public void setReferencedElement(Element referencedElement) {
-    this.referencedElement = referencedElement;
+  @Override
+  public void setElement(Element element) {
+    this.element = (Element) element;
   }
 }

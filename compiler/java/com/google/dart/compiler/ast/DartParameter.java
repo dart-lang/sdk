@@ -5,8 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.base.Preconditions;
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.List;
@@ -14,9 +13,9 @@ import java.util.List;
 /**
  * Represents a Dart function parameter.
  */
-public class DartParameter extends DartDeclaration<DartExpression> implements HasSymbol {
+public class DartParameter extends DartDeclaration<DartExpression> {
 
-  private VariableElement symbol;
+  private VariableElement element;
   private DartTypeNode typeNode;
   private final NodeList<DartParameter> functionParameters;
   private DartExpression defaultExpr;
@@ -28,8 +27,8 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
                        DartExpression defaultExpr,
                        Modifiers modifiers) {
     super(name);
-    Preconditions.checkArgument((name instanceof DartIdentifier)
-      || (name instanceof DartPropertyAccess), "name");
+    Preconditions.checkArgument(name instanceof DartIdentifier
+      || name instanceof DartPropertyAccess, "name");
     this.typeNode = becomeParentOf(typeNode);
     if (functionParameters != null) {
       this.functionParameters = NodeList.create(this);
@@ -48,14 +47,14 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
   public String getParameterName() {
     // TODO(fabiomfv) remove instanceof (http://b/issue?id=4729144)
     if (getName() instanceof DartIdentifier) {
-      return ((DartIdentifier)getName()).getTargetName();
+      return ((DartIdentifier)getName()).getName();
     }
     return ((DartPropertyAccess)getName()).getPropertyName();
   }
 
   @Override
-  public VariableElement getSymbol() {
-    return symbol;
+  public VariableElement getElement() {
+    return element;
   }
 
   public List<DartParameter> getFunctionParameters() {
@@ -78,8 +77,8 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = (VariableElement) symbol;
+  public void setElement(Element element) {
+    this.element = (VariableElement) element;
   }
 
   public void setTypeNode(DartTypeNode typeNode) {

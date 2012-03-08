@@ -60,14 +60,14 @@ class FieldElementImplementation extends AbstractElement implements FieldElement
   public static FieldElementImplementation fromNode(DartField node,
                                                     EnclosingElement holder,
                                                     Modifiers modifiers) {
-    return new FieldElementImplementation(node, node.getName().getTargetName(), holder, modifiers);
+    return new FieldElementImplementation(node, node.getName().getName(), holder, modifiers);
   }
 
   public static FieldElementImplementation fromNode(DartMethodDefinition node,
                                                     EnclosingElement holder,
                                                     Modifiers modifiers) {
     return new FieldElementImplementation(node,
-                                          ((DartIdentifier) node.getName()).getTargetName(),
+                                          ((DartIdentifier) node.getName()).getName(),
                                           holder,
                                           modifiers);
   }

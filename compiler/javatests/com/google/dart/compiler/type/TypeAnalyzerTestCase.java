@@ -238,7 +238,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   protected void checkFunctionStatement(String statement, String printString) {
     DartExprStmt node = (DartExprStmt) analyze(statement);
     DartFunctionExpression expression = (DartFunctionExpression) node.getExpression();
-    Element element = expression.getSymbol();
+    Element element = expression.getElement();
     FunctionType type = (FunctionType) element.getType();
     assertEquals(printString, type.toString());
   }
@@ -303,13 +303,13 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartClass) {
         DartClass classNode = (DartClass) node;
-        final ClassElement classElement = classNode.getSymbol();
+        final ClassElement classElement = classNode.getElement();
         String className = classElement.getName();
         coreElements.put(className, classElement);
         classes.put(className, classElement);
       } else {
         DartFunctionTypeAlias alias = (DartFunctionTypeAlias) node;
-        FunctionAliasElement element = alias.getSymbol();
+        FunctionAliasElement element = alias.getElement();
         coreElements.put(element.getName(), element);
       }
     }

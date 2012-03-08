@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 
 import java.util.Collections;
@@ -40,13 +40,13 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
   }
 
   @Override
-  public MethodElement getSymbol() {
+  public MethodElement getElement() {
     return element;
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    element = (MethodElement) symbol;
+  public void setElement(Element element) {
+    this.element = (MethodElement) element;
   }
 
   public List<DartInitializer> getInitializers() {

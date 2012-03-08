@@ -88,23 +88,23 @@ public class DartUnit extends DartNode {
     for (DartNode node : getTopLevelNodes()) {
       if (node instanceof DartClass) {
         DartIdentifier name = ((DartClass) node).getName();
-        topLevelSymbols.add(name.getTargetName());
+        topLevelSymbols.add(name.getName());
       }
       if (node instanceof DartFunctionTypeAlias) {
         DartIdentifier name = ((DartFunctionTypeAlias) node).getName();
-        topLevelSymbols.add(name.getTargetName());
+        topLevelSymbols.add(name.getName());
       }
       if (node instanceof DartMethodDefinition) {
         DartExpression name = ((DartMethodDefinition) node).getName();
         if (name instanceof DartIdentifier) {
-          topLevelSymbols.add(((DartIdentifier) name).getTargetName());
+          topLevelSymbols.add(((DartIdentifier) name).getName());
         }
       }
       if (node instanceof DartFieldDefinition) {
         DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
         List<DartField> fields = fieldDefinition.getFields();
         for (DartField variable : fields) {
-          topLevelSymbols.add(variable.getName().getTargetName());
+          topLevelSymbols.add(variable.getName().getName());
         }
       }
     }
@@ -119,7 +119,7 @@ public class DartUnit extends DartNode {
     accept(new ASTVisitor<Void>() {
       @Override
       public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-        symbols.add(node.getName().getTargetName());
+        symbols.add(node.getName().getName());
         return super.visitFunctionTypeAlias(node);
       }
 
@@ -131,20 +131,20 @@ public class DartUnit extends DartNode {
 
       @Override
       public Void visitTypeParameter(DartTypeParameter node) {
-        symbols.add(node.getName().getTargetName());
+        symbols.add(node.getName().getName());
         return super.visitTypeParameter(node);
       }
 
       @Override
       public Void visitField(DartField node) {
-        symbols.add(node.getName().getTargetName());
+        symbols.add(node.getName().getName());
         return super.visitField(node);
       }
 
       @Override
       public Void visitMethodDefinition(DartMethodDefinition node) {
         if (node.getName() instanceof DartIdentifier) {
-          symbols.add(((DartIdentifier) node.getName()).getTargetName());
+          symbols.add(((DartIdentifier) node.getName()).getName());
         }
         return super.visitMethodDefinition(node);
       }

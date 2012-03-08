@@ -115,8 +115,8 @@ public class CommentTest extends CompilerTestCase {
 
   private void assertDeclComments(DartUnit unit, String name, String comments) {
     for (DartNode node : unit.getTopLevelNodes()) {
-      if (node instanceof DartDeclaration && node.getSymbol() != null
-          && name.equals(node.getSymbol().getOriginalSymbolName())) {
+      if (node instanceof DartDeclaration && node.getElement() != null
+          && name.equals(node.getElement().getOriginalName())) {
         DartDeclaration<?> decl = (DartDeclaration<?>)node;
         String nodeComments = null;
 

@@ -133,31 +133,31 @@ public class SyntaxTest extends AbstractParserTest {
 
     DartTryStatement tryCatch;
     DartMethodDefinition a = (DartMethodDefinition) nodes.get(2);
-    assertEquals("a", ((DartIdentifier)a.getName()).getTargetName());
+    assertEquals("a", ((DartIdentifier)a.getName()).getName());
     tryCatch = (DartTryStatement) a.getFunction().getBody().getStatements().get(0);
     assertEquals(1, tryCatch.getCatchBlocks().size());
     assertNotNull(tryCatch.getFinallyBlock());
 
     DartMethodDefinition b = (DartMethodDefinition) nodes.get(3);
-    assertEquals("b", ((DartIdentifier)b.getName()).getTargetName());
+    assertEquals("b", ((DartIdentifier)b.getName()).getName());
     tryCatch = (DartTryStatement) b.getFunction().getBody().getStatements().get(0);
     assertEquals(1, tryCatch.getCatchBlocks().size());
     assertNull(tryCatch.getFinallyBlock());
 
     DartMethodDefinition c = (DartMethodDefinition) nodes.get(4);
-    assertEquals("c", ((DartIdentifier)c.getName()).getTargetName());
+    assertEquals("c", ((DartIdentifier)c.getName()).getName());
     tryCatch = (DartTryStatement) c.getFunction().getBody().getStatements().get(0);
     assertEquals(0, tryCatch.getCatchBlocks().size());
     assertNotNull(tryCatch.getFinallyBlock());
 
     DartMethodDefinition d = (DartMethodDefinition) nodes.get(5);
-    assertEquals("d", ((DartIdentifier)d.getName()).getTargetName());
+    assertEquals("d", ((DartIdentifier)d.getName()).getName());
     tryCatch = (DartTryStatement) d.getFunction().getBody().getStatements().get(0);
     assertEquals(2, tryCatch.getCatchBlocks().size());
     assertNull(tryCatch.getFinallyBlock());
 
     DartMethodDefinition e = (DartMethodDefinition) nodes.get(6);
-    assertEquals("e", ((DartIdentifier)e.getName()).getTargetName());
+    assertEquals("e", ((DartIdentifier)e.getName()).getName());
     tryCatch = (DartTryStatement) e.getFunction().getBody().getStatements().get(0);
     assertEquals(2, tryCatch.getCatchBlocks().size());
     assertNotNull(tryCatch.getFinallyBlock());

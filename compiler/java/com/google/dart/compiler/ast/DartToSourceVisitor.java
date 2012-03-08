@@ -747,7 +747,7 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier x) {
-    p(x.getTargetName());
+    p(x.getName());
     return null;
   }
 

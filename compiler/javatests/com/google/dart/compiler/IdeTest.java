@@ -151,7 +151,7 @@ public class IdeTest extends TestCase {
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // void cannot be resolved.
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
     DartIdentifier expression = (DartIdentifier) statement.getExpression();
-    assertEquals("void", expression.getTargetName());
+    assertEquals("void", expression.getName());
   }
 
   public void testAnalyseVoidKeywordPropertyAccess() {
@@ -182,7 +182,7 @@ public class IdeTest extends TestCase {
     CoreTypeProvider typeProvider = new CoreTypeProviderImplementation(unitScope, context);
     DartClass classNode = firstClassOfUnit(unit, "Foo");
     DartReturnStatement rtnStmt = (DartReturnStatement) firstStatementOfMethod(unit, "Foo", "foo");
-    ClassElement classElement = classNode.getSymbol();
+    ClassElement classElement = classNode.getElement();
     InterfaceType definingType = classElement.getType();
     Type type = TypeAnalyzer.analyze(rtnStmt.getValue(), typeProvider, context, definingType);
     assertNotNull(type);
@@ -191,7 +191,7 @@ public class IdeTest extends TestCase {
 
   private Element targetElement(DartExpression expression) {
     DartIdentifier identifier = (DartIdentifier) expression;
-    Element element = identifier.getTargetSymbol();
+    Element element = identifier.getElement();
     assertNotNull(element);
     return element;
   }
@@ -199,7 +199,7 @@ public class IdeTest extends TestCase {
   private Element qualifierElement(DartExpression node) {
     DartPropertyAccess propertyAccess = (DartPropertyAccess) node;
     DartIdentifier identifier = (DartIdentifier) propertyAccess.getQualifier();
-    Element element = identifier.getTargetSymbol();
+    Element element = identifier.getElement();
     assertNotNull(element);
     return element;
   }
@@ -207,7 +207,7 @@ public class IdeTest extends TestCase {
   private DartClass firstClassOfUnit(DartUnit unit, String cls) {
     DartClass dartClass = null;
     for (DartNode dartNode : unit.getTopLevelNodes()) {
-      Element element = (Element) dartNode.getSymbol();
+      Element element = (Element) dartNode.getElement();
       if (element.getName().equals(cls)) {
         dartClass = (DartClass) dartNode;
         break;
@@ -218,7 +218,7 @@ public class IdeTest extends TestCase {
   }
 
   private DartStatement firstStatementOfMethod(DartUnit unit, String cls, String member) {
-    ClassElement classElement = firstClassOfUnit(unit, cls).getSymbol();
+    ClassElement classElement = firstClassOfUnit(unit, cls).getElement();
     MethodElement method = (MethodElement) classElement.lookupLocalElement(member);
     assertNotNull(String.format("Member '%s' not found in %s", member, cls), method);
     DartMethodDefinition methodNode = (DartMethodDefinition) method.getNode();

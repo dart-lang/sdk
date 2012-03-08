@@ -4,19 +4,18 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
 
 /**
  * Redirected constructor invocation AST node.
  */
-public class DartRedirectConstructorInvocation extends DartInvocation implements HasSymbol {
+public class DartRedirectConstructorInvocation extends DartInvocation {
 
   private DartIdentifier name;
-  private ConstructorElement symbol;
+  private ConstructorElement element;
 
   public DartRedirectConstructorInvocation(DartIdentifier name, List<DartExpression> args) {
     super(args);
@@ -28,13 +27,13 @@ public class DartRedirectConstructorInvocation extends DartInvocation implements
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = (ConstructorElement) symbol;
+  public void setElement(Element element) {
+    this.element = (ConstructorElement) element;
   }
 
   @Override
-  public ConstructorElement getSymbol() {
-    return symbol;
+  public ConstructorElement getElement() {
+    return element;
   }
 
   @Override

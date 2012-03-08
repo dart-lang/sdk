@@ -85,10 +85,10 @@ public class TopLevelElementBuilder {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          declare(field.getSymbol(), listener, scope);
+          declare(field.getElement(), listener, scope);
         }
       } else {
-        declare((Element) node.getSymbol(), listener, scope);
+        declare((Element) node.getElement(), listener, scope);
       }
     }
   }
@@ -158,8 +158,8 @@ public class TopLevelElementBuilder {
       element.setType(Types.interfaceType(
           element,
           Collections.<Type>unmodifiableList(typeVariables)));
-      node.setSymbol(element);
-      node.getName().setSymbol(element);
+      node.setElement(element);
+      node.getName().setElement(element);
       return null;
     }
 
@@ -169,13 +169,13 @@ public class TopLevelElementBuilder {
       List<DartTypeParameter> parameterNodes = node.getTypeParameters();
       element.setType(Types.functionAliasType(element,
                                               Elements.makeTypeVariables(parameterNodes, element)));
-      node.setSymbol(element);
+      node.setElement(element);
       return null;
     }
 
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
-      node.setSymbol(Elements.methodFromMethodNode(node, library));
+      node.setElement(Elements.methodFromMethodNode(node, library));
       return null;
     }
 
@@ -186,7 +186,7 @@ public class TopLevelElementBuilder {
         // final toplevel fields are implicitly compile-time constants.
         modifiers = modifiers.makeConstant();
       }
-      node.setSymbol(Elements.fieldFromNode(node, library, modifiers));
+      node.setElement(Elements.fieldFromNode(node, library, modifiers));
       return null;
     }
   }

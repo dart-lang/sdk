@@ -4,14 +4,12 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
 import com.google.dart.compiler.resolver.Element;
 
 /**
  * Base class for class members (fields and methods).
  */
-public abstract class DartClassMember<N extends DartExpression> extends DartDeclaration<N>
-    implements HasSymbol {
+public abstract class DartClassMember<N extends DartExpression> extends DartDeclaration<N> {
 
   private final Modifiers modifiers;
 
@@ -25,7 +23,7 @@ public abstract class DartClassMember<N extends DartExpression> extends DartDecl
   }
 
   @Override
-  public abstract Element getSymbol();
+  public abstract Element getElement();
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {

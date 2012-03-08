@@ -49,7 +49,7 @@ public class ElementMapTest extends TestCase {
     }
 
     @Override
-    public String getOriginalSymbolName() {
+    public String getOriginalName() {
       throw new RuntimeException();
     }
 

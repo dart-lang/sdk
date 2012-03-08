@@ -233,7 +233,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       if (parentNode instanceof DartFunction
           && parentNode.getParent() instanceof DartMethodDefinition) {
         DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
-        if (parentMethod.getSymbol().isConstructor()) {
+        if (parentMethod.getElement().isConstructor()) {
           return true;
         }
       }
@@ -251,7 +251,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       if (parentNode instanceof DartFunction
           && parentNode.getParent() instanceof DartMethodDefinition) {
         DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
-        if (parentMethod.getSymbol().getName().equals(element.getName())) {
+        if (parentMethod.getElement().getName().equals(element.getName())) {
           return true;
         }
       }
@@ -380,7 +380,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       TypeVariable typeVariable =
           Elements.typeVariableFromNode(parameterNode, element).getTypeVariable();
       typeVariables[i++] = typeVariable;
-      parameterNode.getName().setSymbol(typeVariable.getElement());
+      parameterNode.getName().setElement(typeVariable.getElement());
     }
     return Arrays.asList(typeVariables);
   }
@@ -429,7 +429,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
 
   private static String getRawName(DartNode name) {
     if (name instanceof DartIdentifier) {
-      return ((DartIdentifier) name).getTargetName();
+      return ((DartIdentifier) name).getName();
     } else if (name instanceof DartParameterizedTypeNode) {
       return getRawName(((DartParameterizedTypeNode) name).getExpression());
     } else {
@@ -565,7 +565,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       node = node.getParent();
       while (node != null) {
         if (node instanceof DartClass) {
-          return ((DartClass) node).getSymbol();
+          return ((DartClass) node).getElement();
         }
         node = node.getParent();
       }
@@ -623,7 +623,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    */
   private static String getIdentifierName(DartNode identifier) {
     if (identifier != null && identifier instanceof DartIdentifier) {
-      return ((DartIdentifier) identifier).getTargetName();
+      return ((DartIdentifier) identifier).getName();
     }
     return null;
   }

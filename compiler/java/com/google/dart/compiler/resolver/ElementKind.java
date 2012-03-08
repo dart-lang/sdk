@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.common.Symbol;
 
 /**
  * Kinds of elements. Use kinds instead of instanceof for maximum flexibility
@@ -27,9 +26,8 @@ public enum ElementKind {
   NONE,
   VOID;
 
-  public static ElementKind of(Symbol symbol) {
-    if (symbol instanceof Element) {
-      Element element = (Element) symbol;
+  public static ElementKind of(Element element) {
+    if (element != null) {
       return element.getKind();
     } else {
       return NONE;

@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.SuperElement;
 
 /**
@@ -12,7 +12,7 @@ import com.google.dart.compiler.resolver.SuperElement;
  */
 public class DartSuperExpression extends DartExpression {
 
-  private SuperElement targetSymbol;
+  private SuperElement element;
 
   public static DartSuperExpression get() {
     return new DartSuperExpression();
@@ -22,13 +22,13 @@ public class DartSuperExpression extends DartExpression {
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.targetSymbol = (SuperElement) symbol;
+  public void setElement(Element element) {
+    this.element = (SuperElement) element;
   }
 
   @Override
-  public SuperElement getSymbol() {
-    return targetSymbol;
+  public SuperElement getElement() {
+    return element;
   }
 
   @Override

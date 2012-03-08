@@ -91,7 +91,6 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
-import com.google.dart.compiler.ast.ElementReference;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -284,7 +283,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
-      return checkConstructorForwarding(node, node.getSymbol());
+      return checkConstructorForwarding(node, node.getElement());
     }
 
     private String methodNameForUnaryOperator(DartNode diagnosticNode, Token operator) {
@@ -300,13 +299,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return "operator " + operator.getSyntax();
     }
 
-    private Type analyzeBinaryOperator(ElementReference node, Type lhs, Token operator,
+    private Type analyzeBinaryOperator(DartNode node, Type lhs, Token operator,
                                        DartNode diagnosticNode, DartExpression rhs) {
       Type rhsType = nonVoidTypeOf(rhs);
       String methodName = methodNameForBinaryOperator(operator);
       Member member = lookupMember(lhs, methodName, diagnosticNode);
       if (member != null) {
-        node.setReferencedElement(member.getElement());
+        node.setElement(member.getElement());
         return analyzeMethodInvocation(lhs, member, methodName, diagnosticNode,
                                        Collections.<Type>singletonList(rhsType),
                                        Collections.<DartExpression>singletonList(rhs));
@@ -588,7 +587,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               (DartNamedExpression) argumentNodes.get(argumentIndex);
           DartExpression argumentNode = argumentNodes.get(argumentIndex);
           // Prepare parameter name.
-          String parameterName = namedExpression.getName().getTargetName();
+          String parameterName = namedExpression.getName().getName();
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(argumentNode, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
           } else if (usedNamedParametersNamed.contains(parameterName)) {
@@ -702,7 +701,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (boundType.equals(variable)) {
             onError(boundType.getElement().getNode(),
                     TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE,
-                    boundType.getElement().getOriginalSymbolName());
+                    boundType.getElement().getOriginalName());
           }
           break;
         }
@@ -790,17 +789,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
-      node.setReferencedElement(functionType.getElement());
+      node.setElement(functionType.getElement());
       return checkInvocation(node, node, null, typeOf(node.getTarget()));
     }
 
     @Override
     public Type visitMethodInvocation(DartMethodInvocation node) {
       String name = node.getFunctionNameString();
-      Element element = (Element) node.getTargetSymbol();
+      Element element = (Element) node.getElement();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
-        node.setReferencedElement(element);
+        node.setElement(element);
         return checkInvocation(node, node, name, element.getType());
       }
       DartNode target = node.getTarget();
@@ -808,7 +807,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       List<DartExpression> arguments = node.getArguments();
       Member member = lookupMember(receiver, name, node);
       if (member != null) {
-        node.setReferencedElement(member.getElement());
+        node.setElement(member.getElement());
       }
       return analyzeMethodInvocation(receiver, member, name,
                                      node.getFunctionName(), analyzeArgumentTypes(arguments),
@@ -817,7 +816,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
-      return checkConstructorForwarding(node, node.getSymbol());
+      return checkConstructorForwarding(node, node.getElement());
     }
 
     private Type checkConstructorForwarding(DartInvocation node, ConstructorElement element) {
@@ -825,7 +824,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         visit(node.getArguments());
         return voidType;
       } else {
-        node.setReferencedElement(element);
+        node.setElement(element);
         checkInvocation(node, node, null, typeAsMemberOf(element, currentClass));
         return voidType;
       }
@@ -839,7 +838,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitClass(DartClass node) {
-      ClassElement element = node.getSymbol();
+      ClassElement element = node.getElement();
       InterfaceType type = element.getType();
       checkCyclicBounds(type.getArguments());
       findUnimplementedMembers(element);
@@ -858,7 +857,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       checkInterfaceConstructors(element);
       // Report unimplemented members.
       if (!node.isAbstract()) {
-        ClassElement cls = node.getSymbol();
+        ClassElement cls = node.getElement();
         List<Element> unimplementedMembers = findUnimplementedMembers(cls);
         if (unimplementedMembers.size() > 0) {
           StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
@@ -1037,15 +1036,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitFunctionExpression(DartFunctionExpression node) {
       node.visitChildren(this);
-      Type result = ((Element) node.getSymbol()).getType();
+      Type result = ((Element) node.getElement()).getType();
       result.getClass(); // quick null check
       return result;
     }
 
     @Override
     public Type visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      if (TypeKind.of(node.getSymbol().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
-        FunctionAliasType type = node.getSymbol().getType();
+      if (TypeKind.of(node.getElement().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
+        FunctionAliasType type = node.getElement().getType();
         checkCyclicBounds(type.getElement().getTypeParameters());
       }
       return typeAsVoid(node);
@@ -1053,7 +1052,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitIdentifier(DartIdentifier node) {
-      Element element = node.getTargetSymbol();
+      Element element = node.getElement();
       Type type;
       switch (ElementKind.of(element)) {
         case VARIABLE:
@@ -1071,7 +1070,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
 
         case NONE:
-          return typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getTargetName());
+          return typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getName());
 
         case DYNAMIC:
           return element.getType();
@@ -1079,7 +1078,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         default:
           return voidType;
       }
-      node.setReferencedElement(element);
       return type;
     }
 
@@ -1149,7 +1147,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitMethodDefinition(DartMethodDefinition node) {
-      MethodElement methodElement = node.getSymbol();
+      MethodElement methodElement = node.getElement();
       Modifiers modifiers = methodElement.getModifiers();
       if (modifiers.isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
@@ -1183,9 +1181,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression expression = node.getExpression();
           Element e = null;
           if (expression instanceof DartIdentifier) {
-            e = ((DartIdentifier) expression).getTargetSymbol();
+            e = ((DartIdentifier) expression).getElement();
           } else if (expression instanceof DartPropertyAccess) {
-            e = ((DartPropertyAccess) expression).getTargetSymbol();
+            e = ((DartPropertyAccess) expression).getElement();
           }
           if (!ElementKind.of(e).equals(ElementKind.CLASS)) {
             return null;
@@ -1200,8 +1198,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitNewExpression(DartNewExpression node) {
-      ConstructorElement constructorElement = node.getSymbol();
-      node.setReferencedElement(constructorElement);
+      ConstructorElement constructorElement = node.getElement();
 
       DartTypeNode typeNode = Types.constructorTypeNode(node);
       Type type = null;
@@ -1326,7 +1323,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitParameter(DartParameter node) {
-      VariableElement parameter = node.getSymbol();
+      VariableElement parameter = node.getElement();
       FieldElement initializerElement = parameter.getParameterInitializerElement();
       if (initializerElement != null) {
         checkAssignable(node, parameter.getType(), initializerElement.getType());
@@ -1343,8 +1340,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
-      Element element = node.getTargetSymbol();
-      node.setReferencedElement(element);
+      Element element = node.getElement();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
         return element.getType();
@@ -1362,7 +1358,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
       }
       element = member.getElement();
-      node.setReferencedElement(element);
+      node.setElement(element);
       Modifiers modifiers = element.getModifiers();
       if (modifiers.isStatic()) {
         return typeError(node.getName(),
@@ -1542,7 +1538,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             String name = methodNameForUnaryOperator(node, operator);
             Member member = lookupMember(type, name, node);
             if (member != null) {
-              node.setReferencedElement(member.getElement());
+              node.setElement(member.getElement());
               return analyzeMethodInvocation(type, member, name, node,
                                              Collections.<Type>emptyList(),
                                              Collections.<DartExpression>emptyList());
@@ -1567,7 +1563,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                              operatorMethodName);
           }
           MethodElement element = ((MethodElement) member.getElement());
-          node.setReferencedElement(element);
+          node.setElement(element);
           Type returnType = ((FunctionType) member.getType()).getReturnType();
           if (operator == Token.INC || operator == Token.DEC) {
             // For INC and DEC, "operator +" and "operator -" are used to add and subtract one,
@@ -1595,9 +1591,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
       DartIdentifier target = node.getTarget();
-      String name = target.getTargetName();
-      Element element = target.getTargetSymbol();
-      node.setReferencedElement(element);
+      String name = target.getName();
+      Element element = target.getElement();
+      node.setElement(element);
       Type type;
       switch (ElementKind.of(element)) {
         case FIELD:
@@ -1751,8 +1747,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private Type checkInitializedDeclaration(DartDeclaration<?> node, DartExpression value) {
-      if (value != null && node.getSymbol() != null) {
-        checkAssignable(node.getSymbol().getType(), value);
+      if (value != null && node.getElement() != null) {
+        checkAssignable(node.getElement().getType(), value);
       }
       return voidType;
     }
@@ -1824,7 +1820,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       @Override
       public Void visitClass(DartClass node) {
-        assert node.getSymbol().getType() == currentClass;
+        assert node.getElement().getType() == currentClass;
 
         // Prepare supertypes - all superclasses and interfaces.
         List<InterfaceType> supertypes = Collections.emptyList();
@@ -1899,7 +1895,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       @Override
       public Void visitField(DartField node) {
         if (superMembers != null) {
-          FieldElement field = node.getSymbol();
+          FieldElement field = node.getElement();
           String name = field.getName();
           List<Element> overridden = new ArrayList<Element>(superMembers.removeAll(name));
           for (Element element : overridden) {
@@ -1925,7 +1921,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       @Override
       public Void visitMethodDefinition(DartMethodDefinition node) {
-        MethodElement method = node.getSymbol();
+        MethodElement method = node.getElement();
         String name = method.getName();
         if (superMembers != null && !method.isConstructor()) {
           Collection<Element> overridden = superMembers.removeAll(name);

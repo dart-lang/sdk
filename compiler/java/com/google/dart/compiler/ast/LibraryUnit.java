@@ -73,7 +73,7 @@ public class LibraryUnit {
     if ((lastSlash = self.lastIndexOf('/')) > -1) {
       self = self.substring(lastSlash + 1);
     }
-    selfSourcePath = new LibraryNode(self); 
+    selfSourcePath = new LibraryNode(self);
   }
 
   public void addImportPath(LibraryNode path) {
@@ -173,7 +173,7 @@ public class LibraryUnit {
   /**
    * Return the path for dart source that corresponds to the same dart file as
    * this library unit. This is added to the set of sourcePaths for this unit.
-   * 
+   *
    * @return the self source path for this unit.
    */
   public LibraryNode getSelfSourcePath() {

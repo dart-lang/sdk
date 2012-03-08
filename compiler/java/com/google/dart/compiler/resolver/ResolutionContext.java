@@ -194,7 +194,7 @@ public class ResolutionContext implements ResolutionErrorListener {
         // TypeAnalyzer will diagnose unresolved identifiers.
         return null;
       }
-      node.setSymbol(element);
+      node.setElement(element);
     } else {
       throw internalError(node, "Unexpected node: %s", node);
     }
@@ -332,7 +332,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   void pushFunctionAliasScope(DartFunctionTypeAlias x) {
-    pushScope(x.getName().getTargetName() == null ? "<function>" : x.getName().getTargetName());
+    pushScope(x.getName().getName() == null ? "<function>" : x.getName().getName());
   }
 
   AssertionError internalError(DartNode node, String message, Object... arguments) {
@@ -370,7 +370,7 @@ public class ResolutionContext implements ResolutionErrorListener {
 
     @Override
     public Element visitIdentifier(DartIdentifier node) {
-      String name = node.getTargetName();
+      String name = node.getName();
       return scope.findElement(scope.getLibrary(), name);
     }
   }

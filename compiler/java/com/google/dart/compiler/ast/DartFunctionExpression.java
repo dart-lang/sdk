@@ -4,21 +4,20 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 
 /**
  * Represents a Dart 'function' expression.
  */
-public class DartFunctionExpression extends DartExpression implements HasSymbol {
+public class DartFunctionExpression extends DartExpression {
 
   // Not visited. Similar to DartDeclaration, but DartDeclaration shouldn't be
   // a statement or an expression.
   private DartIdentifier name;
 
   private final boolean isStmt;
-  private MethodElement symbol;
+  private MethodElement element;
   private DartFunction function;
 
   public DartFunctionExpression(DartIdentifier name, DartFunction function, boolean isStmt) {
@@ -35,7 +34,7 @@ public class DartFunctionExpression extends DartExpression implements HasSymbol 
     if (name == null) {
       return null;
     }
-    return name.getTargetName();
+    return name.getName();
   }
 
   public DartIdentifier getName() {
@@ -43,8 +42,8 @@ public class DartFunctionExpression extends DartExpression implements HasSymbol 
   }
 
   @Override
-  public MethodElement getSymbol() {
-    return symbol;
+  public MethodElement getElement() {
+    return element;
   }
 
   public boolean isStatement() {
@@ -56,8 +55,8 @@ public class DartFunctionExpression extends DartExpression implements HasSymbol 
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = (MethodElement) symbol;
+  public void setElement(Element element) {
+    this.element = (MethodElement) element;
   }
 
   @Override

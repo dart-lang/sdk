@@ -36,7 +36,7 @@ abstract class AbstractElement implements Element {
   }
 
   @Override
-  public String getOriginalSymbolName() {
+  public String getOriginalName() {
     return name;
   }
 

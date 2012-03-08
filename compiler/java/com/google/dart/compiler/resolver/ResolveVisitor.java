@@ -67,7 +67,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     if (returnNode != null) {
       bindReturnGenerics(returnNode);
     }
-    FunctionAliasElement funcAlias = node.getSymbol();
+    FunctionAliasElement funcAlias = node.getElement();
     for (Type type : funcAlias.getTypeParameters()) {
       TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
       getContext().getScope().declareElement(typeVar.getName(), typeVar);
@@ -147,7 +147,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       // TypeAnalyzer will diagnose unresolved identifiers.
       return null;
     }
-    node.setSymbol(element);
+    node.setElement(element);
     return element;
   }
 

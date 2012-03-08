@@ -4,30 +4,28 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
 
 /**
  * Represents a Dart identifier expression.
  */
-public class DartIdentifier extends DartExpression implements ElementReference {
+public class DartIdentifier extends DartExpression {
 
-  private final String targetName;
-  private Element targetSymbol;
-  private Element referencedElement;
+  private final String name;
+  private Element element;
 
-  public DartIdentifier(String targetName) {
-    assert targetName != null;
-    this.targetName = targetName;
+  public DartIdentifier(String name) {
+    assert name != null;
+    this.name = name;
   }
 
   public DartIdentifier(DartIdentifier original) {
-    this.targetName = original.targetName;
+    this.name = original.name;
   }
 
   @Override
-  public Element getSymbol() {
-    return targetSymbol;
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -35,21 +33,13 @@ public class DartIdentifier extends DartExpression implements ElementReference {
     return true;
   }
 
-  public String getTargetName() {
-    return targetName;
-  }
-
- /**
-  * Different access from getSymbol() to help distinguish parts of an expression
-  * when walking a DartPropertyAccess.
-  */
-  public Element getTargetSymbol() {
-    return targetSymbol;
+  public String getName() {
+    return name;
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.targetSymbol = (Element) symbol;
+  public void setElement(Element element) {
+    this.element = (Element) element;
   }
 
   @Override
@@ -59,16 +49,6 @@ public class DartIdentifier extends DartExpression implements ElementReference {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitIdentifier(this);
-  }
-
-  @Override
-  public void setReferencedElement(Element element) {
-    referencedElement = element;
-  }
-
-  @Override
-  public Element getReferencedElement() {
-    return referencedElement;
   }
 
   public static boolean isPrivateName(String name) {

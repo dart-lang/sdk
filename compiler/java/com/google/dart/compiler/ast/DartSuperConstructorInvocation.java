@@ -4,19 +4,18 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
 
 /**
  * Super constructor invocation AST node.
  */
-public class DartSuperConstructorInvocation extends DartInvocation implements HasSymbol {
+public class DartSuperConstructorInvocation extends DartInvocation {
 
   private DartIdentifier name;
-  private ConstructorElement symbol;
+  private ConstructorElement element;
 
   public DartSuperConstructorInvocation(DartIdentifier name, List<DartExpression> args) {
     super(args);
@@ -27,7 +26,7 @@ public class DartSuperConstructorInvocation extends DartInvocation implements Ha
     if (name == null) {
       return null;
     }
-    return name.getTargetName();
+    return name.getName();
   }
 
   public DartIdentifier getName() {
@@ -39,13 +38,13 @@ public class DartSuperConstructorInvocation extends DartInvocation implements Ha
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = (ConstructorElement) symbol;
+  public void setElement(Element element) {
+    this.element = (ConstructorElement) element;
   }
 
   @Override
-  public ConstructorElement getSymbol() {
-    return symbol;
+  public ConstructorElement getElement() {
+    return element;
   }
 
   @Override

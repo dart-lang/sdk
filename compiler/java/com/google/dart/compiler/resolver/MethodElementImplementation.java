@@ -135,7 +135,7 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
                                                            EnclosingElement holder) {
     String targetName;
     if(node.getName() instanceof DartIdentifier) {
-      targetName = ((DartIdentifier) node.getName()).getTargetName();
+      targetName = ((DartIdentifier) node.getName()).getName();
     } else {
       // Visit the unknown node to generate a string for our use.
       targetName = node.toSource();
@@ -155,8 +155,8 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
   private static EnclosingElement findParentEnclosingElement(DartNode node) {
     while (node != null && node.getParent() != null) {
       node = node.getParent();
-      if (node.getSymbol() instanceof EnclosingElement) {
-        return (EnclosingElement) node.getSymbol();
+      if (node.getElement() instanceof EnclosingElement) {
+        return (EnclosingElement) node.getElement();
       }
     }
     return null;

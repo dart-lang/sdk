@@ -5,11 +5,15 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartLabel;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.type.Type;
 
-public interface Element extends Symbol {
+public interface Element {
+  String getOriginalName();
+
+  DartNode getNode();
+
   void setNode(DartLabel node);
 
   String getName();

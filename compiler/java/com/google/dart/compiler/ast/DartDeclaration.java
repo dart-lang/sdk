@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.Element;
 
 /**
  * Common supertype for most declarations. A declaration introduces a new name
@@ -16,7 +15,7 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
 
   private N name; // Not visited.
   private DartComment dartDoc;
-  
+
   protected DartDeclaration(N name) {
     this.name = becomeParentOf(name);
   }
@@ -29,13 +28,10 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
     name = becomeParentOf(newName);
   }
 
-  @Override
-  public abstract Element getSymbol();
-  
   public DartComment getDartDoc() {
     return dartDoc;
   }
-  
+
   public void setDartDoc(DartComment dartDoc) {
     // dartDoc is still parented by the containing DartUnit.
     this.dartDoc = dartDoc;

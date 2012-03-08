@@ -4,19 +4,19 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.LabelElement;
 
 /**
  * Represents a Dart statement label.
  */
-public class DartLabel extends DartStatement implements HasSymbol {
+public class DartLabel extends DartStatement {
 
   // Not visited. Similar to DartDeclaration, but DartDeclaration shouldn't be
   // a statement or an expression.
   private DartIdentifier label;
 
-  private Symbol symbol;
+  private LabelElement element;
 
   private DartStatement statement;
 
@@ -30,7 +30,7 @@ public class DartLabel extends DartStatement implements HasSymbol {
   }
 
   public String getName() {
-    return label.getTargetName();
+    return label.getName();
   }
 
   public DartStatement getStatement() {
@@ -38,8 +38,8 @@ public class DartLabel extends DartStatement implements HasSymbol {
   }
 
   @Override
-  public Symbol getSymbol() {
-    return symbol;
+  public LabelElement getElement() {
+    return element;
   }
 
   public void setLabel(DartIdentifier newLabel) {
@@ -47,8 +47,8 @@ public class DartLabel extends DartStatement implements HasSymbol {
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = symbol;
+  public void setElement(Element element) {
+    this.element = (LabelElement) element;
   }
 
   @Override

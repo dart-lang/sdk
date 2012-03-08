@@ -41,7 +41,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Element target = node.getTargetSymbol();
+    Element target = node.getElement();
     ElementKind kind = ElementKind.of(target);
     // Add dependency on the field or method.
     switch (kind) {
@@ -78,7 +78,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   public Void visitPropertyAccess(DartPropertyAccess node) {
     if (node.getQualifier() instanceof DartIdentifier) {
       DartIdentifier qualifier = (DartIdentifier) node.getQualifier();
-      Element target = qualifier.getTargetSymbol();
+      Element target = qualifier.getElement();
       if (target != null && target.getKind() == ElementKind.LIBRARY) {
         // Handle library prefixes normally (the prefix part of the qualifier
         // doesn't contain any resolvable library source info)
@@ -125,8 +125,8 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
    * superclass members.
    */
   private void addHoleIfSuper(DartIdentifier node, Element holder) {
-    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getSymbol()) {
-      source.addHole(node.getTargetName());
+    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getElement()) {
+      source.addHole(node.getName());
     }
   }
 

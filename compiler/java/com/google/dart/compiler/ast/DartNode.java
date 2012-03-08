@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.common.AbstractNode;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 import com.google.dart.compiler.util.DefaultTextOutput;
@@ -25,11 +25,11 @@ public abstract class DartNode extends AbstractNode {
     return out.toString();
   }
 
-  public Symbol getSymbol() {
-    return  null;
+  public Element getElement() {
+    return null;
   }
 
-  public void setSymbol(Symbol symbol) {
+  public void setElement(Element element) {
     throw new UnsupportedOperationException(getClass().getSimpleName());
   }
 
