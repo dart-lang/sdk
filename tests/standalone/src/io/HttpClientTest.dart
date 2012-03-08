@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
+#import("dart:uri");
 
 void testGoogle() {
   HttpClient client = new HttpClient();
@@ -21,8 +22,48 @@ void testGoogle() {
       client.shutdown();
     };
   };
+  conn.onError = (error) => Expect.fail("Unexpected IO error");
+}
+
+void testGoogleUrl() {
+  HttpClient client = new HttpClient();
+
+  void testUrl(String url) {
+    var conn = client.getUrl(new Uri.fromString(url));
+
+    conn.onRequest = (HttpClientRequest request) {
+      request.keepAlive = false;
+      request.outputStream.close();
+    };
+    conn.onResponse = (HttpClientResponse response) {
+      Expect.isTrue(response.statusCode < 500);
+      response.inputStream.onData = () {
+        response.inputStream.read();
+      };
+      response.inputStream.onClosed = () {
+        client.shutdown();
+      };
+    };
+    conn.onError = (error) => Expect.fail("Unexpected IO error");
+  }
+
+  testUrl('http://www.google.com');
+  testUrl('http://www.google.com/abc');
+  testUrl('http://www.google.com/?abc');
+  testUrl('http://www.google.com/abc?abc');
+  testUrl('http://www.google.com/abc?abc#abc');
+}
+
+void testInvalidUrl() {
+  HttpClient client = new HttpClient();
+  Expect.throws(
+      () => client.getUrl(new Uri.fromString('ftp://www.google.com')));
+  Expect.throws(
+      () => client.getUrl(new Uri.fromString('http://usr:pwd@www.google.com')));
 }
 
 void main() {
   testGoogle();
+  testGoogleUrl();
+  testInvalidUrl();
 }

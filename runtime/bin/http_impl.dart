@@ -1056,13 +1056,38 @@ class _HttpClient implements HttpClient {
     return _prepareHttpClientConnection(host, port, method, path);
   }
 
+  HttpClientConnection openUrl(String method, Uri url) {
+    if (url.scheme != "http") {
+      throw new HttpException("Unsupported URL scheme ${url.scheme}");
+    }
+    if (url.userInfo != "") {
+      throw new HttpException("Unsupported user info ${url.userInfo}");
+    }
+    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
+    String path;
+    if (url.query != "") {
+      if (url.fragment != "") {
+        path = "${url.path}?${url.query}#${url.fragment}";
+      } else {
+        path = "${url.path}?${url.query}";
+      }
+    } else {
+      path = url.path;
+    }
+    return open(method, url.domain, port, path);
+  }
+
   HttpClientConnection get(String host, int port, String path) {
     return open("GET", host, port, path);
   }
 
+  HttpClientConnection getUrl(Uri url) => openUrl("GET", url);
+
   HttpClientConnection post(String host, int port, String path) {
     return open("POST", host, port, path);
   }
+
+  HttpClientConnection postUrl(Uri url) => openUrl("POST", url);
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {

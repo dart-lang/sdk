@@ -235,14 +235,35 @@ interface HttpClient default _HttpClient {
   HttpClientConnection open(String method, String host, int port, String path);
 
   /**
+   * Opens a HTTP connection. The returned [HttpClientConnection] is
+   * used to register callbacks for asynchronous events on the HTTP
+   * connection. The "Host" header for the request will be set based
+   * the host and port specified in [url]. This can be overridden
+   * through the HttpClientRequest interface before the request is
+   * sent. NOTE if the host is specified as an IP address this will
+   * still be set in the "Host" header.
+   */
+  HttpClientConnection openUrl(String method, Uri url);
+
+  /**
    * Opens a HTTP connection using the GET method. See [open] for details.
    */
   HttpClientConnection get(String host, int port, String path);
 
   /**
+   * Opens a HTTP connection using the GET method. See [openUrl] for details.
+   */
+  HttpClientConnection getUrl(Uri url);
+
+  /**
    * Opens a HTTP connection using the POST method. See [open] for details.
    */
   HttpClientConnection post(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the POST method. See [openUrl] for details.
+   */
+  HttpClientConnection postUrl(Uri url);
 
   /**
    * Shutdown the HTTP client releasing all resources.
