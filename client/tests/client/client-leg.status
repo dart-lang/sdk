@@ -4,7 +4,6 @@
 
 [ $component == legium ]
 
-dom/HTMLElementTest: Fail # named constructors with type arguments are not implemented
 dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
 dom/WrapperTest: Fail # Expect.stringEquals(expected: <HTMLCanvasElement>", <null>) fails
 dom/EventsTest: Fail # CONSOLE MESSAGE: line 7608: Uncaught TypeError: Cannot read property 'is$ExpectException' of undefined
@@ -18,13 +17,13 @@ dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
 dom/HiddenDom1Test: Fail # CompileTimeConstantEvaluator map not implemented
 dom/HiddenDom2Test: Fail # CompileTimeConstantEvaluator map not implemented
 html/html_tests: Fail # CompileTimeConstantEvaluator map not implemented
+samples/smoketest/dartWebBase_tests: Fail # CompileTimeConstantEvaluator map not implemented
 
-# Missing JSON support
-samples/smoketest/dartWebBase_tests: Fail # cannot read dart:json
-dom/WindowOpenTest: Fail # cannot read dart:json
-dom/IsolatesTest: Fail # cannot read dart:json
-dom/IsolateLightTest: Fail # cannot read dart:json
-json/json_tests: Fail # cannot read dart:json
+# DOM errors
+dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
+dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
 
 # Missing Isolate support
 dom/DOMIsolatesTest: Fail # cannot read dart:isolate
+dom/IsolatesTest: Fail # cannot read dart:isolate
+dom/IsolateLightTest: Fail # cannot read dart:isolate

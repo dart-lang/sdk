@@ -4,7 +4,6 @@
 
 [ $component == leg ]
 DartdocTest: Fail
-JsonTest: Fail
 MarkdownTest: Fail
 UriTest: Fail
 
