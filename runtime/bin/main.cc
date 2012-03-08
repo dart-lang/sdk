@@ -317,13 +317,18 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
 static Dart_Handle LoadScript(Dart_Handle builtin_lib,
                               CommandLineOptions* map) {
-  Dart_Handle dart_args[2];
+  Dart_Handle dart_args[3];
   dart_args[0] = Dart_NewString(original_working_directory);
   dart_args[1] = Dart_NewString(original_script_name);
+#if !defined(TARGET_OS_WINDOWS)
+  dart_args[2] = Dart_False();
+#else  // !defined(TARGET_OS_WINDOWS)
+  dart_args[2] = Dart_True();
+#endif  // !defined(TARGET_OS_WINDOWS)
   Dart_Handle script_url = Dart_InvokeStatic(builtin_lib,
                                              Dart_NewString(""),
                                              Dart_NewString("resolveScriptUri"),
-                                             2, dart_args);
+                                             3, dart_args);
   if (Dart_IsError(script_url)) {
     fprintf(stderr, "%s", Dart_GetError(script_url));
     return false;

@@ -23,17 +23,35 @@ class _Logger {
 
 
 // Code to deal with URI resolution for the standalone binary.
+var _is_windows;
+
 void _logResolution(String msg) {
   final enabled = false;
-  if (enabled) {
+  if (enabled || _is_windows) {
     _Logger._printString(msg);
   }
 }
 
 // TODO(iposva): Make these private once the Dart API is fixed.
-String resolveScriptUri(String cwd, String scriptName) {
+String resolveScriptUri(String cwd, String scriptName, bool windows) {
+  _is_windows = windows;
   _logResolution("# Current working directory: $cwd");
   _logResolution("# ScriptName: $scriptName");
+  if (windows) {
+    // Convert
+    // C:\one\two\three
+    // to
+    // /C:/one/two/three
+    cwd = "/${cwd.replaceAll('\\', '/')}";
+    _logResolution("## cwd: $cwd");
+    if ((scriptName.length > 2) && (scriptName[1] == ":")) {
+      // This is an absolute path.
+      scriptName = "/${scriptName.replaceAll('\\', '/')}";
+    } else {
+      scriptName = scriptName.replaceAll('\\', '/');
+    }
+    _logResolution("## scriptName: $scriptName");
+  }
   var base = new Uri(scheme: "file", path: cwd.endsWith("/") ? cwd : "$cwd/");
   var resolved = base.resolve(scriptName);
   _logResolution("# Resolved to: $resolved");
