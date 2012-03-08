@@ -1158,7 +1158,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (returnType != null && returnType.getType() != voidType) {
           typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
         }
-        if (methodElement.getParameters().size() > 0) {
+        if (currentClass != null && methodElement.getParameters().size() > 0) {
           Element parameterElement = methodElement.getParameters().get(0);
           Type setterType = parameterElement.getType();
           MethodElement getterElement = Elements.lookupFieldElementGetter(currentClass.getElement(),
