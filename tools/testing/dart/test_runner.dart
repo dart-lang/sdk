@@ -32,7 +32,7 @@ class Command {
   Command(this.executable, this.arguments) {
     commandLine = "$executable ${Strings.join(arguments, ' ')}";
   }
-  
+
   String toString() => commandLine;
 }
 
@@ -174,17 +174,17 @@ class BrowserTestCase extends TestCase {
 interface TestOutput default TestOutputImpl { 
   TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
     List<String> stdout, List<String> stderr, Duration time);
-  
+
   String get result();
-  
+
   bool get unexpectedOutput();
-  
+
   bool get hasCrashed();
-  
+
   bool get hasTimedOut(); 
-  
+
   bool get didFail();
-  
+
   List<String> get diagnostics();
 }
 
@@ -197,7 +197,7 @@ class TestOutputImpl implements TestOutput {
   List<String> stderr;
   Duration time;
   List<String> diagnostics;
-  
+
   /**
    * Set to true if we encounter a condition in the output that indicates we
    * need to rerun this test.
@@ -224,7 +224,7 @@ class TestOutputImpl implements TestOutput {
     return new TestOutputImpl(testCase, exitCode, timedOut,
       stdout, stderr, time);
   }
-  
+
   String get result() =>
       hasCrashed ? CRASH : (hasTimedOut ? TIMEOUT : (hasFailed ? FAIL : PASS));
 
@@ -249,7 +249,7 @@ class TestOutputImpl implements TestOutput {
   bool get didFail() {
     return (exitCode != 0 && !hasCrashed);
   }
-  
+
   // Reverse result of a negative test.
   bool get hasFailed() => (testCase.isNegative ? !didFail : didFail);
 
@@ -258,7 +258,7 @@ class TestOutputImpl implements TestOutput {
 class BrowserTestOutputImpl extends TestOutputImpl {
   BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
     super(testCase, exitCode, timedOut, stdout, stderr, time);
-    
+
   bool get didFail() {
     // Browser case:
     // If the browser test failed, it may have been because DumpRenderTree
@@ -299,7 +299,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
   AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
     super(testCase, exitCode, timedOut, stdout, stderr, time) {
   }
-  
+
   bool get didFail() {
     if (!alreadyComputed) {
       failResult = _didFail();
@@ -307,13 +307,13 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     }
     return failResult;
   }
-  
+
   bool _didFail() {
     if (hasCrashed) return false;
 
     List<String> errors = [];
     List<String> staticWarnings = [];
-    
+
     // Read the returned list of errors and stuff them away.
     for (String line in stderr) {
       if (line.length == 0) continue;
@@ -335,7 +335,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     }
     return _didStandardTestFail(errors, staticWarnings);
   }
-  
+
   bool _didMultitestFail(List errors, List staticWarnings) {
     String outcome = testCase.info.multitestOutcome;
     if ((outcome == '' || outcome == 'compile-time error') && errors.length > 0) {
@@ -345,7 +345,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     }
     return false;
   }
-  
+
   bool _didStandardTestFail(List errors, List staticWarnings) {
     bool hasFatalTypeErrors = false;
     int numStaticTypeAnnotations = 0;
@@ -366,7 +366,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       numCompileTimeAnnotations = optionsFromFile['numCompileTimeAnnotations'];
       isStaticClean = optionsFromFile['isStaticClean'];
     }
-    
+
     if (errors.length == 0) {
       if (!hasFatalTypeErrors && exitCode != 0) {
         diagnostics.add("EXIT CODE MISMATCH: Expected error message:");
@@ -385,21 +385,21 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       diagnostics.add("Cannot have both @static-clean and /// static type warning annotations.");
       return true;
     }
-    
+
     if (isStaticClean && staticWarnings.length > 0) {
       diagnostics.add("@static-clean annotation found but analyzer returned warnings.");
       return true;
     }
-    
+
     if (numCompileTimeAnnotations > 0 
         && numCompileTimeAnnotations < errors.length) {
-      
+
       // Expected compile-time errors were not returned.  The test did not 'fail' in the way
       // intended so don't return failed.
       diagnostics.add("Fewer compile time errors than annotated: ${numCompileTimeAnnotations}");
       return false;
     }
-    
+
     if (numStaticTypeAnnotations > 0 || hasFatalTypeErrors) {
       // TODO(zundel): match up the annotation line numbers
       // with the reported error line numbers
@@ -413,7 +413,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     } 
     return false;
   }
-  
+
   // Parse a line delimited by the | character using \ as an escape charager
   // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
   List<String> splitMachineError(String line) {
@@ -679,8 +679,10 @@ class BatchRunnerProcess {
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT", 
                    _testStdout, _testStderr, new Date.now().difference(_startTime));
-    // Move on when both stdout and stderr has been drained.
-    if (_stderrDrained) _testCompleted();
+    // Move on when both stdout and stderr has been drained. If the test
+    // crashed, we restarted the process and therefore do not attempt to
+    // drain stderr.
+    if (_stderrDrained || (_currentTest.output.hasCrashed)) _testCompleted();
   }
 
   void _stderrDone() {
@@ -805,7 +807,7 @@ class ProcessQueue {
    */
   String browserUsed = '';
 
-  /** 
+  /**
    * Process running the selenium server .jar (only used for Safari and Opera
    * tests.)
    */
@@ -948,10 +950,10 @@ class ProcessQueue {
       }
     }
   }
- 
-  /** 
+
+  /**
    * True if we are using a browser + platform combination that needs the
-   * Selenium server jar. 
+   * Selenium server jar.
    */
   bool get _needsSelenium() => new Platform().operatingSystem() == 'macos' &&
       browserUsed == 'safari';
@@ -960,7 +962,7 @@ class ProcessQueue {
   bool get _isSeleniumAvailable() => _seleniumServer != null || 
       _seleniumAlreadyRunning;
 
-  /** 
+  /**
    * Restart all the processes that have been waiting/stopped for the server to 
    * start up. If we just call this once we end up with a single-"threaded" run.
    */
@@ -1009,7 +1011,7 @@ class ProcessQueue {
     _tryRunTest();
   }
 
-  /** 
+  /**
    * Monitor the output of the Selenium server, to know when we are ready to
    * begin running tests.
    * source: Output(Stream) from the Java server.
@@ -1029,7 +1031,7 @@ class ProcessQueue {
     };
   }
 
-  /** 
+  /**
    * For browser tests using Safari or Opera, we need to use the Selenium 1.0
    * Java server.
    */
