@@ -969,13 +969,14 @@ RawBigint* BigintOperations::BitOr(const Bigint& a, const Bigint& b) {
   // magnitude and sign.
   // a & b is therefore computed as ~((~(a - 1)) | (~(b - 1))) + 1 which is
   //   equal to ((a-1) & (b-1)) + 1.
+  ASSERT(a_length >= b_length);
+  ASSERT(min_length == b_length);
   intptr_t result_length = min_length + 1;
   const Bigint& result = Bigint::Handle(Bigint::Allocate(result_length));
   result.ToggleSign();
   Chunk a_borrow = 1;
   Chunk b_borrow = 1;
   Chunk result_carry = 1;
-  ASSERT(a_length >= b_length);
   for (intptr_t i = 0; i < b_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
     Chunk b_digit = b.GetChunkAt(i) - b_borrow;
@@ -985,7 +986,7 @@ RawBigint* BigintOperations::BitOr(const Bigint& a, const Bigint& b) {
     b_borrow = b_digit >> (kChunkBitSize - 1);
     result_carry = result_chunk >> kDigitBitSize;
   }
-  result.SetChunkAt(a_length, result_carry);
+  result.SetChunkAt(b_length, result_carry);
   Clamp(result);
   return result.raw();
 }
@@ -1084,11 +1085,12 @@ RawBigint* BigintOperations::BitXor(const Bigint& a, const Bigint& b) {
   // We need to convert a and b to two's complement, do the bit-operation there,
   // and simply store the result.
   // a ^ b is therefore computed as (~(a - 1)) ^ (~(b - 1)).
+  ASSERT(a_length >= b_length);
+  ASSERT(max_length == a_length);
   intptr_t result_length = max_length;
   const Bigint& result = Bigint::Handle(Bigint::Allocate(result_length));
   Chunk a_borrow = 1;
   Chunk b_borrow = 1;
-  ASSERT(a_length >= b_length);
   for (intptr_t i = 0; i < b_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
     Chunk b_digit = b.GetChunkAt(i) - b_borrow;
@@ -1100,7 +1102,8 @@ RawBigint* BigintOperations::BitXor(const Bigint& a, const Bigint& b) {
   ASSERT(b_borrow == 0);
   for (intptr_t i = b_length; i < a_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
-    result.SetChunkAt(i, (~a_digit) & kDigitMask);
+    // (~a_digit) ^ 0xFFF..FFF == a_digit.
+    result.SetChunkAt(i, a_digit & kDigitMask);
     a_borrow = a_digit >> (kChunkBitSize - 1);
   }
   ASSERT(a_borrow == 0);
