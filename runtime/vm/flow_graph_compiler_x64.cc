@@ -20,6 +20,33 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
 
+FlowGraphCompiler::FlowGraphCompiler(
+    Assembler* assembler,
+    const ParsedFunction& parsed_function,
+    const GrowableArray<BlockEntryInstr*>* blocks)
+    : assembler_(assembler),
+      parsed_function_(parsed_function),
+      blocks_(blocks),
+      block_info_(blocks->length()),
+      current_block_(NULL),
+      pc_descriptors_list_(new CodeGenerator::DescriptorList()),
+      stack_local_count_(0) {
+  for (int i = 0; i < blocks->length(); ++i) {
+    block_info_.Add(new BlockInfo());
+  }
+}
+
+
+FlowGraphCompiler::~FlowGraphCompiler() {
+  // BlockInfos are zone-allocated, so their destructors are not called.
+  // Verify the labels explicitly here.
+  for (int i = 0; i < block_info_.length(); ++i) {
+    ASSERT(!block_info_[i]->label.IsLinked());
+    ASSERT(!block_info_[i]->label.HasNear());
+  }
+}
+
+
 void FlowGraphCompiler::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
   const char* function_name = parsed_function_.function().ToCString();
@@ -279,13 +306,37 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitBlocks(
+    const GrowableArray<BlockEntryInstr*>& blocks) {
+  for (intptr_t i = blocks.length() - 1; i >= 0; --i) {
+    // Compile the block entry.
+    current_block_ = blocks[i];
+    Instruction* instr = current_block()->Accept(this);
+    // Compile all successors until an exit, branch, or a block entry.
+    while ((instr != NULL) && !instr->IsBlockEntry()) {
+      instr = instr->Accept(this);
+    }
+
+    BlockEntryInstr* successor =
+        (instr == NULL) ? NULL : instr->AsBlockEntry();
+    if (successor != NULL) {
+      // Block ended with a "goto".  We can fall through if it is the
+      // next block in the list.  Otherwise, we need a jump.
+      if (i == 0 || (blocks[i - 1] != successor)) {
+        __ jmp(&block_info_[successor->block_number()]->label);
+      }
+    }
+  }
+}
+
+
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
-  Bailout("JoinEntryInstr");
+  __ Bind(&block_info_[instr->block_number()]->label);
 }
 
 
 void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
-  // Since we don't handle branching control flow yet, there is nothing to do.
+  __ Bind(&block_info_[instr->block_number()]->label);
 }
 
 
@@ -368,7 +419,23 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
 
 
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
-  Bailout("BranchInstr");
+  // Determine if the true branch is fall through (!negated) or the false
+  // branch is.  They cannot both be backwards branches.
+  intptr_t index = blocks_->length() - current_block()->block_number() - 1;
+  ASSERT(index > 0);
+
+  bool negated = ((*blocks_)[index - 1] == instr->false_successor());
+  ASSERT(!negated == ((*blocks_)[index - 1] == instr->true_successor()));
+
+  LoadValue(instr->value());
+  __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
+  __ cmpq(RAX, RDX);
+  if (negated) {
+    __ j(EQUAL, &block_info_[instr->true_successor()->block_number()]->label);
+  } else {
+    __ j(NOT_EQUAL,
+         &block_info_[instr->false_successor()->block_number()]->label);
+  }
 }
 
 
@@ -389,8 +456,6 @@ void FlowGraphCompiler::CompileGraph() {
                                scope,
                                &context_owner);
   set_stack_local_count(first_local_index - first_free_frame_index);
-
-  if (blocks_->length() != 1) Bailout("more than 1 basic block");
 
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
   __ EnterFrame(stack_local_count() * kWordSize);

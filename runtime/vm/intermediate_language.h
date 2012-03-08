@@ -540,6 +540,9 @@ class Instruction : public ZoneAllocated {
   Instruction() : mark_(false) { }
 
   virtual bool IsBlockEntry() const { return false; }
+  BlockEntryInstr* AsBlockEntry() {
+    return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
+  }
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -576,11 +579,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
-
-  static BlockEntryInstr* cast(Instruction* instr) {
-    ASSERT(instr->IsBlockEntry());
-    return reinterpret_cast<BlockEntryInstr*>(instr);
-  }
 
   intptr_t block_number() const { return block_number_; }
   void set_block_number(intptr_t number) { block_number_ = number; }

@@ -23,14 +23,9 @@ class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>* blocks)
-      : assembler_(assembler),
-        parsed_function_(parsed_function),
-        blocks_(blocks),
-        pc_descriptors_list_(new CodeGenerator::DescriptorList()),
-        stack_local_count_(0) { }
+                    const GrowableArray<BlockEntryInstr*>* blocks);
 
-  virtual ~FlowGraphCompiler() { }
+  virtual ~FlowGraphCompiler();
 
   void CompileGraph();
 
@@ -40,11 +35,21 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   void FinalizeExceptionHandlers(const Code& code);
 
  private:
+  struct BlockInfo : public ZoneAllocated {
+   public:
+    BlockInfo() : label() { }
+
+    Label label;
+  };
+
   int stack_local_count() const { return stack_local_count_; }
   void set_stack_local_count(int count) { stack_local_count_ = count; }
+  BlockEntryInstr* current_block() const { return current_block_; }
 
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
+
+  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& blocks);
 
   // Emit code to perform a computation, leaving its value in RAX.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
@@ -90,6 +95,12 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>* blocks_;
+
+  // Compiler specific per-block state.  Indexed by block number, so not
+  // necessarily the same order as the array of blocks.
+  GrowableArray<BlockInfo*> block_info_;
+
+  BlockEntryInstr* current_block_;
 
   CodeGenerator::DescriptorList* pc_descriptors_list_;
   int stack_local_count_;

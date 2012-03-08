@@ -845,8 +845,10 @@ void FlowGraphPrinter::VisitBlocks(
       OS::Print("\n");
       current = current->Accept(this);
     }
-    if ((current != NULL) && current->IsBlockEntry()) {
-      OS::Print(" goto %d", BlockEntryInstr::cast(current)->block_number());
+    BlockEntryInstr* successor =
+        (current == NULL) ? NULL : current->AsBlockEntry();
+    if (successor != NULL) {
+      OS::Print(" goto %d", successor->block_number());
     }
     OS::Print("\n");
   }
