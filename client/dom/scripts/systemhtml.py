@@ -728,9 +728,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       else:
         raise Exception('No known html even name for event: ' + event_name)
 
-  def _EmitEventGetter(self, interface):
+  def _EmitEventGetter(self, events_interface):
     self._members_emitter.Emit('\n  $TYPE get on();\n',
-                               TYPE=interface)
+                               TYPE=events_interface)
 
 # ------------------------------------------------------------------------------
 
@@ -799,7 +799,8 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     elif events:
       self.AddEventAttributes(events)
     else:
-      self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+      parent_events_class = self._shared.GetParentEventsClass(self._interface)
+      self._EmitEventGetter('_' + parent_events_class + 'Impl')
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
@@ -1055,10 +1056,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       else:
         raise Exception('No known html even name for event: ' + event_name)
 
-  def _EmitEventGetter(self, interface):
+  def _EmitEventGetter(self, events_class):
     self._members_emitter.Emit(
         '\n  $TYPE get on() =>\n    new $TYPE($EVENTTARGET);\n',
-        TYPE=interface,
+        TYPE=events_class,
         EVENTTARGET='_jsDocument' if self._interface.id == 'Document'
             else 'this')
 
@@ -1285,7 +1286,8 @@ class HtmlDartiumInterfaceGenerator(object):
     elif events:
       self.AddEventAttributes(events)
     else:
-      self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+      parent_events_class = self._shared.GetParentEventsClass(self._interface)
+      self._EmitEventGetter('_' + parent_events_class + 'Impl')
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name

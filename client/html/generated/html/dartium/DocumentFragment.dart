@@ -2,8 +2,8 @@
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   _DocumentFragmentImpl._wrap(ptr) : super._wrap(ptr);
 
-  ElementEvents get on() {
-    if (_on == null) _on = new ElementEvents(this);
+  _ElementEventsImpl get on() {
+    if (_on == null) _on = new _ElementEventsImpl(this);
     return _on;
   }
 
