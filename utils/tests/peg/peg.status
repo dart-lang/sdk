@@ -5,5 +5,5 @@
 [ $component == dartc ]
 PegTest: Skip  # Undiagnosed error on "a ? b ? c : d : e ? f : g"
 
-[ $component == frogium || $component == webdriver ]
+[ $component == frogium || $component == webdriver || $component == legium]
 PegTest: Skip  # #-directives not supported by browser test architecture

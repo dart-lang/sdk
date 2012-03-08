@@ -5,7 +5,7 @@
 [ $component == leg ]
 *: Skip # Leg is not ready yet.
 
-[ $component == dartc || $component == chromium || $component == frogium ]
+[ $component == dartc || $component == chromium || $component == frogium || $component == legium ]
 *: Skip # Import mapper runs on the VM.
 
 [ $component == dartium || $component == webdriver ]
