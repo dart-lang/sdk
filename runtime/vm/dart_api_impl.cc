@@ -2998,7 +2998,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                 RawScript::kLibrary,
                 &result);
   // Propagate the error out right now.
-  if (Dart_IsError(result)) {
+  if (::Dart_IsError(result)) {
     return result;
   }
 
