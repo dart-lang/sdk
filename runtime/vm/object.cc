@@ -444,6 +444,11 @@ RawError* Object::Init(Isolate* isolate) {
   // has been created.
   cls.InitEmptyFields();
 
+  // Set up the growable object array class (Has to be done after the array
+  // class is setup as one of its field is an array object).
+  cls = Class::New<GrowableObjectArray>();
+  object_store->set_growable_object_array_class(cls);
+
   // Setup the symbol table used within the String class.
   const int kInitialSymbolTableSize = 16;
   array = Array::New(kInitialSymbolTableSize + 1);
@@ -466,7 +471,9 @@ RawError* Object::Init(Isolate* isolate) {
   Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
   ASSERT(!core_impl_lib.IsNull());
 
-  object_store->set_pending_classes(Array::Handle(Array::Empty()));
+  const GrowableObjectArray& pending_classes =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
+  object_store->set_pending_classes(pending_classes);
 
   Context& context = Context::Handle(Context::New(0));
   object_store->set_empty_context(context);
@@ -475,83 +482,82 @@ RawError* Object::Init(Isolate* isolate) {
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
   const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
-  GrowableArray<const Class*> pending_classes;
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
   RegisterClass(cls, "Smi", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
   RegisterClass(cls, "Mint", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
   RegisterClass(cls, "Bigint", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
   RegisterClass(cls, "Double", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
   RegisterClass(cls, "Bool", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
   RegisterClass(cls, "ObjectArray", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
   RegisterClass(cls, "ImmutableArray", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
   RegisterClass(cls, "OneByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
   RegisterClass(cls, "TwoByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
   RegisterClass(cls, "FourByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
   RegisterClass(cls, "ExternalOneByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
   RegisterClass(cls, "ExternalTwoByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
   RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
   RegisterClass(cls, "Stacktrace", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
   RegisterClass(cls, "JSSyntaxRegExp", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadScript());
@@ -564,19 +570,22 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_name(String::Handle(String::NewSymbol("Object")));
   cls.set_script(script);
   core_lib.AddClass(cls);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
 
   cls = Class::New<InternalByteArray>();
   object_store->set_internal_byte_array_class(cls);
-  cls.set_name(String::Handle(core_lib.PrivateName("_InternalByteArray")));
+  String& public_class_name = String::Handle();
+  public_class_name = String::New("_InternalByteArray");
+  cls.set_name(String::Handle(core_lib.PrivateName(public_class_name)));
   cls.set_script(script);
   core_lib.AddClass(cls);
 
   cls = Class::New<ExternalByteArray>();
   object_store->set_external_byte_array_class(cls);
-  cls.set_name(String::Handle(core_lib.PrivateName("_ExternalByteArray")));
+  public_class_name = String::New("_ExternalByteArray");
+  cls.set_name(String::Handle(core_lib.PrivateName(public_class_name)));
   cls.set_script(script);
   core_lib.AddClass(cls);
 
@@ -586,42 +595,42 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_super_type(type);
 
   cls = CreateAndRegisterInterface("Function", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_function_interface(type);
 
   cls = CreateAndRegisterInterface("num", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_interface(type);
 
   cls = CreateAndRegisterInterface("int", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_interface(type);
 
   cls = CreateAndRegisterInterface("double", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_interface(type);
 
   cls = CreateAndRegisterInterface("String", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_interface(type);
 
   cls = CreateAndRegisterInterface("bool", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_bool_interface(type);
 
   cls = CreateAndRegisterInterface("List", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_list_interface(type);
 
   cls = CreateAndRegisterInterface("ByteArray", script, core_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_byte_array_interface(type);
 
@@ -645,9 +654,6 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
   core_lib.AddClass(cls);
-
-  // Add the preallocated classes to the list of classes to be finalized.
-  ClassFinalizer::AddPendingClasses(pending_classes);
 
   // Allocate pre-initialized values.
   Bool& bool_value = Bool::Handle();
@@ -712,6 +718,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
+
+  cls = Class::New<GrowableObjectArray>();
+  object_store->set_growable_object_array_class(cls);
 
   cls = Class::New<InternalByteArray>();
   object_store->set_internal_byte_array_class(cls);
@@ -1279,6 +1288,9 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kImmutableArray:
       ASSERT(object_store->immutable_array_class() != Class::null());
       return object_store->immutable_array_class();
+    case kGrowableObjectArray:
+      ASSERT(object_store->growable_object_array_class() != Class::null());
+      return object_store->growable_object_array_class();
     case kInternalByteArray:
       ASSERT(object_store->internal_byte_array_class() != Class::null());
       return object_store->internal_byte_array_class();
@@ -1413,7 +1425,8 @@ bool Class::IsCanonicalSignatureClass() const {
 bool Class::IsMoreSpecificThan(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   // Check for DynamicType.
   // The DynamicType on the lefthand side is replaced by the bottom type, which
   // is more specific than any type.
@@ -1436,7 +1449,9 @@ bool Class::IsMoreSpecificThan(
         other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
-    return type_arguments.IsMoreSpecificThan(other_type_arguments, len);
+    return type_arguments.IsMoreSpecificThan(other_type_arguments,
+                                             len,
+                                             malformed_error);
   }
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
@@ -1444,7 +1459,8 @@ bool Class::IsMoreSpecificThan(
     const Function& other_fun = Function::Handle(other.signature_function());
     return fun.IsSubtypeOf(type_arguments,
                            other_fun,
-                           other_type_arguments);
+                           other_type_arguments,
+                           malformed_error);
   }
   // Check for 'direct super type' in the case of an interface and check for
   // transitivity at the same time.
@@ -1474,23 +1490,18 @@ bool Class::IsMoreSpecificThan(
         // dynamic type error, but it will never change the result of the type
         // check from true in production mode to false in checked mode.
         if (FLAG_enable_type_checks && !interface_args.IsNull()) {
-          AbstractTypeArguments& interface_bounds =
-              AbstractTypeArguments::Handle(
-                  interface_class.type_parameter_bounds());
-          ASSERT(!interface_bounds.IsNull());
-          if (!interface_bounds.IsInstantiated()) {
-            interface_bounds = interface_bounds.InstantiateFrom(type_arguments);
-          }
-          const intptr_t len = interface_args.Length();
-          if (!interface_args.IsMoreSpecificThan(interface_bounds, len)) {
-            // TODO(regis): Handle malformed type error.
+          // Pass type_arguments as bounds instantiator.
+          if (!interface_args.IsWithinBoundsOf(interface_class,
+                                               type_arguments,
+                                               malformed_error)) {
             continue;
           }
         }
       }
       if (interface_class.IsMoreSpecificThan(interface_args,
                                              other,
-                                             other_type_arguments)) {
+                                             other_type_arguments,
+                                             malformed_error)) {
         return true;
       }
     }
@@ -1513,7 +1524,8 @@ bool Class::IsMoreSpecificThan(
   // is longer than necessary.
   return super_class.IsMoreSpecificThan(type_arguments,
                                         other,
-                                        other_type_arguments);
+                                        other_type_arguments,
+                                        malformed_error);
 }
 
 
@@ -1525,7 +1537,8 @@ bool Class::IsTopLevel() const {
 bool Class::TestType(TypeTestKind test,
                      const AbstractTypeArguments& type_arguments,
                      const Class& other,
-                     const AbstractTypeArguments& other_type_arguments) const {
+                     const AbstractTypeArguments& other_type_arguments,
+                     Error* malformed_error) const {
   ASSERT(is_finalized() || !ClassFinalizer::AllClassesFinalized());
   ASSERT(other.is_finalized() || !ClassFinalizer::AllClassesFinalized());
   if (test == kIsAssignableTo) {
@@ -1541,7 +1554,8 @@ bool Class::TestType(TypeTestKind test,
       const Function& dst_fun = Function::Handle(other.signature_function());
       return src_fun.IsAssignableTo(type_arguments,
                                     dst_fun,
-                                    other_type_arguments);
+                                    other_type_arguments,
+                                    malformed_error);
     }
     // Continue with a subtype test.
     test = kIsSubtypeOf;
@@ -1549,7 +1563,8 @@ bool Class::TestType(TypeTestKind test,
   ASSERT(test == kIsSubtypeOf);
 
   // Check for "more specific" relation.
-  return IsMoreSpecificThan(type_arguments, other, other_type_arguments);
+  return IsMoreSpecificThan(type_arguments, other, other_type_arguments,
+                            malformed_error);
 }
 
 
@@ -2106,7 +2121,8 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsMoreSpecificThan(const AbstractType& other) const {
+bool AbstractType::IsMoreSpecificThan(const AbstractType& other,
+                                      Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // AbstractType parameters cannot be handled by Class::IsMoreSpecificThan().
@@ -2118,11 +2134,14 @@ bool AbstractType::IsMoreSpecificThan(const AbstractType& other) const {
   return cls.IsMoreSpecificThan(
       AbstractTypeArguments::Handle(arguments()),
       Class::Handle(other.type_class()),
-      AbstractTypeArguments::Handle(other.arguments()));
+      AbstractTypeArguments::Handle(other.arguments()),
+      malformed_error);
 }
 
 
-bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
+bool AbstractType::Test(TypeTestKind test,
+                        const AbstractType& other,
+                        Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   // AbstractType parameters cannot be handled by Class::TestType().
@@ -2133,13 +2152,15 @@ bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
   const Class& cls = Class::Handle(type_class());
   if (test == kIsSubtypeOf) {
     return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                            Class::Handle(other.type_class()),
-                            AbstractTypeArguments::Handle(other.arguments()));
+                           Class::Handle(other.type_class()),
+                           AbstractTypeArguments::Handle(other.arguments()),
+                           malformed_error);
   } else {
     ASSERT(test == kIsAssignableTo);
     return cls.IsAssignableTo(AbstractTypeArguments::Handle(arguments()),
                               Class::Handle(other.type_class()),
-                              AbstractTypeArguments::Handle(other.arguments()));
+                              AbstractTypeArguments::Handle(other.arguments()),
+                              malformed_error);
   }
 }
 
@@ -2730,9 +2751,75 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
 }
 
 
+static RawError* FormatError(const Script& script,
+                             intptr_t token_index,
+                             const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  return Parser::FormatError(script, token_index, "Error", format, args);
+}
+
+
+bool AbstractTypeArguments::IsWithinBoundsOf(
+    const Class& cls,
+    const AbstractTypeArguments& bounds_instantiator,
+    Error* malformed_error) const {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(IsInstantiated());
+  ASSERT(Length() >= cls.NumTypeArguments());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& bound = AbstractType::Handle();
+  const TypeArguments& bounds =
+      TypeArguments::Handle(cls.type_parameter_bounds());
+  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
+         (bounds.Length() == num_type_params));
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    bound = bounds.TypeAt(i);
+    if (!bound.IsDynamicType()) {
+      type = TypeAt(offset + i);
+      if (!bound.IsInstantiated()) {
+        bound = bound.InstantiateFrom(bounds_instantiator);
+      }
+      if (!type.IsSubtypeOf(bound, malformed_error)) {
+        if (malformed_error->IsNull()) {
+          const String& type_argument_name = String::Handle(type.Name());
+          const String& class_name = String::Handle(cls.Name());
+          const String& bound_name = String::Handle(bound.Name());
+          const Script& script = Script::Handle(cls.script());
+          // Since the bound was canonicalized, its token index was lost,
+          // therefore, use the token index of the corresponding type parameter.
+          const TypeArguments& type_parameters =
+              TypeArguments::Handle(cls.type_parameters());
+          type = type_parameters.TypeAt(i);
+          *malformed_error ^= FormatError(script, type.token_index(),
+                                          "type argument '%s' does not "
+                                          "extend bound '%s' of '%s'\n",
+                                          type_argument_name.ToCString(),
+                                          bound_name.ToCString(),
+                                          class_name.ToCString());
+        }
+        return false;
+      }
+    }
+  }
+  const Type& super_type = Type::Handle(cls.super_type());
+  if (!super_type.IsNull()) {
+    ASSERT(super_type.IsFinalized());
+    const Class& super_class = Class::Handle(super_type.type_class());
+    if (!IsWithinBoundsOf(super_class, bounds_instantiator, malformed_error)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool AbstractTypeArguments::IsMoreSpecificThan(
     const AbstractTypeArguments& other,
-    intptr_t len) const {
+    intptr_t len,
+    Error* malformed_error) const {
   ASSERT(Length() >= len);
   ASSERT(!other.IsNull());
   ASSERT(other.Length() >= len);
@@ -2743,7 +2830,7 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsMoreSpecificThan(other_type)) {
+    if (!type.IsMoreSpecificThan(other_type, malformed_error)) {
       return false;
     }
   }
@@ -3293,7 +3380,8 @@ bool Function::TestParameterType(
     intptr_t parameter_position,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
@@ -3310,8 +3398,8 @@ bool Function::TestParameterType(
   if (other_param_type.IsDynamicType()) {
     return true;
   }
-  if (!param_type.IsSubtypeOf(other_param_type) &&
-      !other_param_type.IsSubtypeOf(param_type)) {
+  if (!param_type.IsSubtypeOf(other_param_type, malformed_error) &&
+      !other_param_type.IsSubtypeOf(param_type, malformed_error)) {
     return false;
   }
   return true;
@@ -3322,7 +3410,8 @@ bool Function::TestType(
     TypeTestKind test,
     const AbstractTypeArguments& type_arguments,
     const Function& other,
-    const AbstractTypeArguments& other_type_arguments) const {
+    const AbstractTypeArguments& other_type_arguments,
+    Error* malformed_error) const {
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
@@ -3344,14 +3433,15 @@ bool Function::TestType(
     }
     if (!res_type.IsDynamicType() &&
         (res_type.IsVoidType() ||
-         !(res_type.IsSubtypeOf(other_res_type) ||
-           other_res_type.IsSubtypeOf(res_type)))) {
+         !(res_type.IsSubtypeOf(other_res_type, malformed_error) ||
+           other_res_type.IsSubtypeOf(res_type, malformed_error)))) {
       return false;
     }
   }
   // Check the types of fixed parameters.
   for (intptr_t i = 0; i < num_fixed_params; i++) {
-    if (!TestParameterType(i, type_arguments, other, other_type_arguments)) {
+    if (!TestParameterType(i, type_arguments, other, other_type_arguments,
+                           malformed_error)) {
       return false;
     }
   }
@@ -3369,7 +3459,8 @@ bool Function::TestType(
     for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
       other_param_name = other.ParameterNameAt(i);
       if ((ParameterNameAt(i) != other_param_name.raw()) ||
-          !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+          !TestParameterType(i, type_arguments, other, other_type_arguments,
+                             malformed_error)) {
         return false;
       }
     }
@@ -3389,7 +3480,8 @@ bool Function::TestType(
   for (intptr_t i = num_fixed_params; i < num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
-        !TestParameterType(i, type_arguments, other, other_type_arguments)) {
+        !TestParameterType(i, type_arguments, other, other_type_arguments,
+                           malformed_error)) {
       return false;
     }
   }
@@ -3530,26 +3622,18 @@ RawFunction* Function::ImplicitClosureFunction() const {
 }
 
 
-template<typename T>
-static RawArray* NewArray(const GrowableArray<T*>& objs) {
-  Array& a = Array::Handle(Array::New(objs.length(), Heap::kOld));
-  for (int i = 0; i < objs.length(); i++) {
-    a.SetAt(i, *objs[i]);
-  }
-  return a.raw();
-}
-
-
 RawString* Function::BuildSignature(
     bool instantiate,
     const AbstractTypeArguments& instantiator) const {
-  GrowableArray<const String*> pieces;
+  const GrowableObjectArray& pieces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
   const String& kColonSpace = String::Handle(String::NewSymbol(": "));
   const String& kLParen = String::Handle(String::NewSymbol("("));
   const String& kRParen = String::Handle(String::NewSymbol(") => "));
   const String& kLBracket = String::Handle(String::NewSymbol("["));
   const String& kRBracket = String::Handle(String::NewSymbol("]"));
+  String& name = String::Handle();
   if (!instantiate && !is_static()) {
     const String& kSpaceExtendsSpace =
         String::Handle(String::NewSymbol(" extends "));
@@ -3561,24 +3645,26 @@ RawString* Function::BuildSignature(
         function_class.type_parameters());
     if (!type_parameters.IsNull()) {
       intptr_t num_type_parameters = type_parameters.Length();
-      pieces.Add(&kLAngleBracket);
+      pieces.Add(kLAngleBracket);
       const TypeArguments& bounds = TypeArguments::Handle(
           function_class.type_parameter_bounds());
       AbstractType& type_parameter = AbstractType::Handle();
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
-        pieces.Add(&String::ZoneHandle(type_parameter.Name()));
+        name = type_parameter.Name();
+        pieces.Add(name);
         bound = bounds.TypeAt(i);
         if (!bound.IsNull() && !bound.IsDynamicType()) {
-          pieces.Add(&kSpaceExtendsSpace);
-          pieces.Add(&String::ZoneHandle(bound.Name()));
+          pieces.Add(kSpaceExtendsSpace);
+          name = bound.Name();
+          pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
-          pieces.Add(&kCommaSpace);
+          pieces.Add(kCommaSpace);
         }
       }
-      pieces.Add(&kRAngleBracket);
+      pieces.Add(kRAngleBracket);
     }
   }
   AbstractType& param_type = AbstractType::Handle();
@@ -3586,42 +3672,46 @@ RawString* Function::BuildSignature(
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_params = num_optional_parameters();
   ASSERT((num_fixed_params + num_opt_params) == num_params);
-  pieces.Add(&kLParen);
+  pieces.Add(kLParen);
   for (intptr_t i = 0; i < num_fixed_params; i++) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator);
     }
-    pieces.Add(&String::ZoneHandle(param_type.Name()));
+    name = param_type.Name();
+    pieces.Add(name);
     if (i != (num_params - 1)) {
-      pieces.Add(&kCommaSpace);
+      pieces.Add(kCommaSpace);
     }
   }
   if (num_opt_params > 0) {
-    pieces.Add(&kLBracket);
+    pieces.Add(kLBracket);
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
-      pieces.Add(&String::ZoneHandle(ParameterNameAt(i)));
-      pieces.Add(&kColonSpace);
+      name = ParameterNameAt(i);
+      pieces.Add(name);
+      pieces.Add(kColonSpace);
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
         param_type = param_type.InstantiateFrom(instantiator);
       }
       ASSERT(!param_type.IsNull());
-      pieces.Add(&String::ZoneHandle(param_type.Name()));
+      name = param_type.Name();
+      pieces.Add(name);
       if (i != (num_params - 1)) {
-        pieces.Add(&kCommaSpace);
+        pieces.Add(kCommaSpace);
       }
     }
-    pieces.Add(&kRBracket);
+    pieces.Add(kRBracket);
   }
-  pieces.Add(&kRParen);
+  pieces.Add(kRParen);
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
   }
-  pieces.Add(&String::Handle(res_type.Name()));
-  const Array& strings = Array::Handle(NewArray<const String>(pieces));
+  name = res_type.Name();
+  pieces.Add(name);
+  const Array& strings = Array::Handle(Array::MakeArray(pieces));
   return String::NewSymbol(String::Handle(String::ConcatAll(strings)));
 }
 
@@ -4301,13 +4391,15 @@ RawArray* Library::LoadedScripts() const {
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
     // Iterate over the library dictionary and collect all scripts.
-    GrowableArray<Script*> scripts(8);
+    const GrowableObjectArray& scripts =
+        GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
     Function& func = Function::Handle();
     Field& field = Field::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
     DictionaryIterator it(*this);
+    Script& script_obj = Script::Handle();
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
@@ -4326,27 +4418,22 @@ RawArray* Library::LoadedScripts() const {
         continue;
       }
       bool is_unique = true;
-      for (int i = 0; i < scripts.length(); i++) {
-        if (scripts[i]->raw() == owner_script.raw()) {
+      for (int i = 0; i < scripts.Length(); i++) {
+        script_obj ^= scripts.At(i);
+        if (script_obj.raw() == owner_script.raw()) {
           // We already have a reference to this script.
           is_unique = false;
           break;
         }
       }
       if (is_unique) {
-        // Create a unique script handle and add it to the list of scripts.
-        Script& unique_script = Script::Handle(owner_script.raw());
-        scripts.Add(&unique_script);
+        // Add script to the list of scripts.
+        scripts.Add(owner_script);
       }
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
-    const Array& loaded_scripts =
-        Array::Handle(Array::New(scripts.length(), Heap::kOld));
-    for (int i = 0; i < scripts.length(); i++) {
-      loaded_scripts.SetAt(i, *scripts[i]);
-    }
-    StorePointer(&raw_ptr()->loaded_scripts_, loaded_scripts.raw());
+    StorePointer(&raw_ptr()->loaded_scripts_, Array::MakeArray(scripts));
   }
   return loaded_scripts();
 }
@@ -4461,6 +4548,61 @@ RawObject* Library::LookupLocalObject(const String& name) const {
     entry = dict.At(index);
   }
   return Class::null();
+}
+
+
+static bool ShouldBePrivate(const String& name) {
+  return
+      (name.Length() >= 1 &&
+       name.CharAt(0) == '_') ||
+      (name.Length() >= 5 &&
+       (name.CharAt(4) == '_' &&
+        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+        name.CharAt(1) == 'e' &&
+        name.CharAt(2) == 't' &&
+        name.CharAt(3) == ':'));
+}
+
+
+RawField* Library::LookupLocalField(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  Field& field = Field::Handle(isolate, Field::null());
+  Object& obj = Object::Handle(isolate, Object::null());
+  obj = LookupLocalObject(name);
+  if (obj.IsNull() && ShouldBePrivate(name)) {
+    String& private_name = String::Handle(isolate, PrivateName(name));
+    obj = LookupLocalObject(private_name);
+  }
+  if (!obj.IsNull()) {
+    if (obj.IsField()) {
+      field ^= obj.raw();
+      return field.raw();
+    }
+  }
+
+  // No field found.
+  return Field::null();
+}
+
+
+RawFunction* Library::LookupLocalFunction(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  Function& function = Function::Handle(isolate, Function::null());
+  Object& obj = Object::Handle(isolate, Object::null());
+  obj = LookupLocalObject(name);
+  if (obj.IsNull() && ShouldBePrivate(name)) {
+    String& private_name = String::Handle(isolate, PrivateName(name));
+    obj = LookupLocalObject(private_name);
+  }
+  if (!obj.IsNull()) {
+    if (obj.IsFunction()) {
+      function ^= obj.raw();
+      return function.raw();
+    }
+  }
+
+  // No function found.
+  return Function::null();
 }
 
 
@@ -4879,11 +5021,11 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
-RawString* Library::PrivateName(const char* name) {
-  ASSERT(name[0] == '_');
-  ASSERT(strchr(name, '@') == NULL);
+RawString* Library::PrivateName(const String& name) const {
+  ASSERT(ShouldBePrivate(name));
+  // ASSERT(strchr(name, '@') == NULL);
   String& str = String::Handle();
-  str = String::New(name);
+  str ^= name.raw();
   str = String::Concat(str, String::Handle(this->private_key()));
   str = String::NewSymbol(str);
   return str.raw();
@@ -5956,7 +6098,8 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 
 bool Instance::TestType(TypeTestKind test,
                         const AbstractType& other,
-                        const AbstractTypeArguments& other_instantiator) const {
+                        const AbstractTypeArguments& other_instantiator,
+                        Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
@@ -6020,7 +6163,8 @@ bool Instance::TestType(TypeTestKind test,
           other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
-  return cls.TestType(test, type_arguments, other_class, other_type_arguments);
+  return cls.TestType(test, type_arguments, other_class, other_type_arguments,
+                      malformed_error);
 }
 
 
@@ -6555,9 +6699,7 @@ static uword ZoneAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  // TODO(florian): Add a BigintOperations::ToDecCString method and use that
-  // here.
-  return BigintOperations::ToHexCString(*this, &ZoneAllocator);
+  return BigintOperations::ToDecimalCString(*this, &ZoneAllocator);
 }
 
 
@@ -7952,6 +8094,57 @@ RawArray* Array::Empty() {
 }
 
 
+RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
+  intptr_t used_len = growable_array.Length();
+  intptr_t capacity_len = growable_array.Capacity();
+  Isolate* isolate = Isolate::Current();
+  Array& array = Array::Handle(isolate, growable_array.data());
+  Array& new_array = Array::Handle(isolate, Array::Empty());
+  intptr_t capacity_size = Array::InstanceSize(capacity_len);
+  intptr_t used_size = Array::InstanceSize(used_len);
+
+  // Update the size in the header field and length of the array object.
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(used_size, tags);
+  array.raw_ptr()->tags_ = tags;
+  array.SetLength(used_len);
+
+  // Null the GrowableObjectArray, we are removing it's backing array.
+  growable_array.SetLength(0);
+  growable_array.SetData(new_array);
+
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  if (capacity_size != used_size) {
+    NoGCScope no_gc;
+    ASSERT(capacity_len > used_len);
+    intptr_t leftover_size = capacity_size - used_size;
+
+    uword addr = RawObject::ToAddr(array.raw()) + used_size;
+    if (leftover_size >= Array::InstanceSize(0)) {
+      // As we have enough space to use an array object, update the leftover
+      // space as an Array object.
+      new_array.raw_ = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
+      new_array.raw_ptr()->class_ = isolate->object_store()->array_class();
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      new_array.raw_ptr()->tags_ = tags;
+      intptr_t leftover_len =
+          ((leftover_size - Array::InstanceSize(0)) / kWordSize);
+      new_array.SetLength(leftover_len);
+    } else {
+      // Update the leftover space as a basic object.
+      ASSERT(leftover_size == Object::InstanceSize());
+      Object& new_object = Object::Handle(isolate, RawObject::FromAddr(addr));
+      new_object.raw()->ptr()->class_ = isolate->object_store()->object_class();
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      new_object.raw()->ptr()->tags_ = tags;
+    }
+  }
+  return array.raw();
+}
+
+
 RawImmutableArray* ImmutableArray::New(intptr_t len,
                                        Heap::Space space) {
   ObjectStore* object_store = Isolate::Current()->object_store();
@@ -7962,6 +8155,104 @@ RawImmutableArray* ImmutableArray::New(intptr_t len,
 
 const char* ImmutableArray::ToCString() const {
   return "ImmutableArray";
+}
+
+
+void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
+  ASSERT(!IsNull());
+  Array& contents = Array::Handle(data());
+  if (Length() == Capacity()) {
+    intptr_t new_capacity = Capacity() * 2;
+    if (new_capacity <= Capacity()) {
+      // Use the preallocated out of memory exception to avoid calling
+      // into dart code or allocating any code.
+      const Instance& exception =
+          Instance::Handle(Isolate::Current()->object_store()->out_of_memory());
+      Exceptions::Throw(exception);
+      UNREACHABLE();
+    }
+    StorePointer(&(raw_ptr()->data_),
+                 Array::Grow(contents, new_capacity, space));
+    contents = data();
+  }
+  ASSERT(Length() < Capacity());
+  intptr_t index = Length();
+  SetLength(index + 1);
+  contents.SetAt(index, value);
+}
+
+
+RawObject* GrowableObjectArray::RemoveLast() const {
+  ASSERT(!IsNull());
+  ASSERT(Length() > 0);
+  intptr_t index = Length() - 1;
+  const Array& contents = Array::Handle(data());
+  const Object& obj = Object::Handle(contents.At(index));
+  contents.SetAt(index, Object::Handle());
+  SetLength(index);
+  return obj.raw();
+}
+
+
+bool GrowableObjectArray::Equals(const Instance& other) const {
+  // If both handles point to the same raw instance they are equal.
+  if (this->raw() == other.raw()) {
+    return true;
+  }
+
+  // Other instance must be non null and a GrowableObjectArray.
+  if (!other.IsGrowableObjectArray() || other.IsNull()) {
+    return false;
+  }
+
+  GrowableObjectArray& other_arr = GrowableObjectArray::Handle();
+  other_arr ^= other.raw();
+
+  // The capacity and length of both objects must be equal.
+  if (Capacity() != other_arr.Capacity() || Length() != other_arr.Length()) {
+    return false;
+  }
+
+  // Both must have the same type arguments.
+  if (!AbstractTypeArguments::AreEqual(
+      AbstractTypeArguments::Handle(GetTypeArguments()),
+      AbstractTypeArguments::Handle(other.GetTypeArguments()))) {
+    return false;
+  }
+
+  // The data part in both arrays must be identical.
+  const Array& contents = Array::Handle(data());
+  const Array& other_contents = Array::Handle(other_arr.data());
+  for (intptr_t i = 0; i < Length(); i++) {
+    if (contents.At(i) != other_contents.At(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
+                                                 Heap::Space space) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Class& cls = Class::Handle(object_store->growable_object_array_class());
+  const Array& data = Array::Handle(Array::New(capacity, space));
+  GrowableObjectArray& result = GrowableObjectArray::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      GrowableObjectArray::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(0);
+    result.SetData(data);
+  }
+  return result.raw();
+}
+
+
+const char* GrowableObjectArray::ToCString() const {
+  return "GrowableObjectArray";
 }
 
 

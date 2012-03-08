@@ -6,6 +6,10 @@ package com.google.dart.compiler.type;
 
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.MethodElement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +48,7 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
       return sb.toString();
     }
   }
-  
+
   @Override
   public boolean hasDynamicTypeArgs() {
     for (Type t : getArguments()) {
@@ -162,6 +166,49 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
       List<Type> typeArguments = getHolder().getArguments();
       List<Type> typeParameters = getHolder().getElement().getTypeParameters();
       return getElement().getType().subst(typeArguments, typeParameters);
+    }
+
+    @Override
+    public Type getSetterType() {
+      Element element = getElement();
+      if (!ElementKind.of(element).equals(ElementKind.FIELD)) {
+        return getType();
+      }
+      FieldElement field = (FieldElement) element;
+      MethodElement setter = field.getSetter();
+      if (setter == null) {
+        setter = Elements.lookupFieldElementSetter(holder.getElement(), member.getName());
+        if (setter == null) {
+          return null;
+        }
+      }
+      if (setter.getParameters().size() == 0) {
+        return null;
+      }
+      Type setterType = setter.getParameters().get(0).getType();
+      List<Type> typeArguments = getHolder().getArguments();
+      List<Type> typeParameters = getHolder().getElement().getTypeParameters();
+      return setterType.subst(typeArguments, typeParameters);
+    }
+
+    @Override
+    public Type getGetterType() {
+      Element element = getElement();
+      if (!ElementKind.of(element).equals(ElementKind.FIELD)) {
+        return getType();
+      }
+      FieldElement field = (FieldElement) element;
+      MethodElement getter = field.getGetter();
+      if (getter == null) {
+        getter = Elements.lookupFieldElementGetter(holder.getElement(), member.getName());
+        if (getter == null) {
+          return null;
+        }
+      }
+      Type getterType = getter.getReturnType();
+      List<Type> typeArguments = getHolder().getArguments();
+      List<Type> typeParameters = getHolder().getElement().getTypeParameters();
+      return getterType.subst(typeArguments, typeParameters);
     }
   }
 }

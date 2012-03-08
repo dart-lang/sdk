@@ -88,6 +88,16 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
     return new Member() {
 
       @Override
+      public Type getGetterType() {
+        return DynamicTypeImplementation.this;
+      }
+
+      @Override
+      public Type getSetterType() {
+        return DynamicTypeImplementation.this;
+      }
+
+      @Override
       public Type getType() {
         return DynamicTypeImplementation.this;
       }

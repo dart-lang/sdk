@@ -11,16 +11,39 @@
 namespace dart {
 
 // Forward declarations.
+class Class;
+class DartFrameIterator;
 class Error;
 class Instance;
 class Object;
+class RawInstance;
+class RawScript;
 class RawObject;
+class Script;
+class String;
 
 class Exceptions : AllStatic {
  public:
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);
   static void PropagateError(const Object& obj);
+
+  // Helpers to create and throw errors.
+  static RawScript* GetCallerScript(DartFrameIterator* iterator);
+  static RawInstance* NewInstance(const char* class_name);
+  static void SetField(const Instance& instance,
+                       const Class& cls,
+                       const char* field_name,
+                       const Object& value);
+  static void SetLocationFields(const Instance& instance,
+                                const Class& cls,
+                                const Script& script,
+                                intptr_t location);
+  static void CreateAndThrowTypeError(intptr_t location,
+                                      const String& src_type_name,
+                                      const String& dst_type_name,
+                                      const String& dst_name,
+                                      const String& malformed_error);
 
   enum ExceptionType {
     kIndexOutOfRange,

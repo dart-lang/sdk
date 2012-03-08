@@ -11,19 +11,19 @@ import java.util.List;
  */
 public class DartBlock extends DartStatement {
 
-  private final List<DartStatement> stmts;
+  private final NodeList<DartStatement> statements = NodeList.create(this);
 
   public DartBlock(List<DartStatement> statements) {
-    this.stmts = becomeParentOf(statements);
+    this.statements.addAll(statements);
   }
 
   public List<DartStatement> getStatements() {
-    return stmts;
+    return statements;
   }
 
   @Override
   public boolean isAbruptCompletingStatement() {
-    for (DartStatement stmt : stmts) {
+    for (DartStatement stmt : statements) {
       if (stmt.isAbruptCompletingStatement()) {
         return true;
       }
@@ -32,20 +32,12 @@ public class DartBlock extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      v.acceptWithInsertRemove(this, stmts);
-    }
-    v.endVisit(this, ctx);
+  public void visitChildren(ASTVisitor<?> visitor) {
+    statements.accept(visitor);
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-    visitor.visit(stmts);
-  }
-
-  @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitBlock(this);
   }
 }

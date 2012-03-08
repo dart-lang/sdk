@@ -94,6 +94,26 @@ class EffectGraphVisitor : public AstNodeVisitor {
                              intptr_t next_temp_index,
                              ZoneGrowableArray<Value*>* values);
 
+  // Build the load part of a instance field increment.  Translates the
+  // receiver and loads the value.  The receiver will be named with
+  // start_index, the temporary index of the value is returned (always
+  // start_index+1).
+  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, int start_index);
+
+  // Build the load part of an indexed increment.  Translates the receiver
+  // and index and loads the value.  The receiver will be named with
+  // start_index, the index with start_index+1, and the temporary index of
+  // the value is returned (always start_index+2).
+  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, int start_index);
+
+  // Build the increment part of an increment operation (add or subtract 1).
+  // The original value is expected to be named with start_index-1, and the
+  // result will be named with start_index.
+  void BuildIncrOpIncrement(Token::Kind kind,
+                            intptr_t node_id,
+                            intptr_t token_index,
+                            int start_index);
+
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
@@ -129,6 +149,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
+  virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
 
   Value* value() const { return value_; }
 
@@ -180,10 +202,10 @@ class ArgumentGraphVisitor : public ValueGraphVisitor {
 //
 // We expect that AstNode in test contexts either have only nonlocal exits
 // or else control flow has both true and false successors.
-class TestGraphVisitor : public EffectGraphVisitor {
+class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
-      : EffectGraphVisitor(owner, temp_index),
+      : ValueGraphVisitor(owner, temp_index),
         true_successor_address_(NULL),
         false_successor_address_(NULL) {
   }
@@ -205,11 +227,11 @@ class TestGraphVisitor : public EffectGraphVisitor {
     return false_successor_address_ != NULL;
   }
 
-  TargetEntryInstr** true_successor_address() const {
+  BlockEntryInstr** true_successor_address() const {
     ASSERT(can_be_true());
     return true_successor_address_;
   }
-  TargetEntryInstr** false_successor_address() const {
+  BlockEntryInstr** false_successor_address() const {
     ASSERT(can_be_false());
     return false_successor_address_;
   }
@@ -217,18 +239,18 @@ class TestGraphVisitor : public EffectGraphVisitor {
  private:
   // Construct and concatenate a Branch instruction to this graph fragment.
   // Closes the fragment and sets the output parameters.
-  void BranchOnValue(Value* value);
+  virtual void ReturnValue(Value* value);
 
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and branches on its value.
   virtual void ReturnComputation(Computation* computation) {
     AddInstruction(new BindInstr(temp_index(), computation));
-    BranchOnValue(new TempVal(temp_index()));
+    ReturnValue(new TempVal(temp_index()));
   }
 
   // Output parameters.
-  TargetEntryInstr** true_successor_address_;
-  TargetEntryInstr** false_successor_address_;
+  BlockEntryInstr** true_successor_address_;
+  BlockEntryInstr** false_successor_address_;
 };
 
 }  // namespace dart

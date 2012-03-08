@@ -107,19 +107,25 @@ void testReadLine2() {
   void stringData() {
     var line;
     if (stage == 0) {
+      Expect.equals(21, stream.available());
       line = stream.readLine();
       Expect.equals("Line1", line);
+      Expect.equals(15, stream.available());
       line = stream.readLine();
       Expect.equals("Line2", line);
+      Expect.equals(8, stream.available());
       line = stream.readLine();
       Expect.equals("Line3", line);
       line = stream.readLine();
+      Expect.equals(2, stream.available());
       Expect.equals(null, line);
       stage++;
       s.write("ne4\n".charCodes());
     } else if (stage == 1) {
+      Expect.equals(6, stream.available());
       line = stream.readLine();
       Expect.equals("Line4", line);
+      Expect.equals(0, stream.available());
       line = stream.readLine();
       Expect.equals(null, line);
       stage++;
@@ -127,16 +133,19 @@ void testReadLine2() {
     } else if (stage == 2) {
       // Expect 5 empty lines. As long as the stream is not closed the
       // final \r cannot be interpreted as a end of line.
+      Expect.equals(8, stream.available());
       for (int i = 0; i < 5; i++) {
         line = stream.readLine();
         Expect.equals("", line);
       }
+      Expect.equals(1, stream.available());
       line = stream.readLine();
       Expect.equals(null, line);
       stage++;
       s.markEndOfStream();
     } else if (stage == 3) {
       // The final \r can now be interpreted as an end of line.
+      Expect.equals(1, stream.available());
       line = stream.readLine();
       Expect.equals("", line);
       line = stream.readLine();

@@ -6,21 +6,20 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.type.Type;
 
-import java.util.Collections;
 import java.util.List;
 
 public class DartParameterizedTypeNode extends DartExpression {
   private DartExpression expression;
-  private List<DartTypeParameter> typeParameters;
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
   private Type type;
 
   public DartParameterizedTypeNode(DartExpression expression, List<DartTypeParameter> typeParameters) {
     setExpression(expression);
-    setTypeParameters(typeParameters);
+    this.typeParameters.addAll(typeParameters);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitParameterizedTypeNode(this);
   }
 
@@ -46,25 +45,9 @@ public class DartParameterizedTypeNode extends DartExpression {
     this.type = type;
   }
 
-  public void setTypeParameters(List<DartTypeParameter> typeParameters) {
-    if (typeParameters == null) {
-      typeParameters = Collections.emptyList();
-    }
-    this.typeParameters = becomeParentOf(typeParameters);
-  }
-
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      setExpression(v.accept(getExpression()));
-      setTypeParameters(v.acceptWithInsertRemove(this, getTypeParameters()));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     getExpression().accept(visitor);
-    visitor.visit(getTypeParameters());
+    typeParameters.accept(visitor);
   }
 }

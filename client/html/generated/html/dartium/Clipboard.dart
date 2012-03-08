@@ -26,9 +26,8 @@ class _ClipboardImpl extends _DOMTypeBase implements Clipboard {
     }
   }
 
-  void getData(String type) {
-    _ptr.getData(_unwrap(type));
-    return;
+  String getData(String type) {
+    return _wrap(_ptr.getData(_unwrap(type)));
   }
 
   bool setData(String type, String data) {

@@ -560,7 +560,7 @@ public class Resolver {
       innermostFunction = currentMethod = member;
 
       DartFunction functionNode = node.getFunction();
-      List<DartParameter> parameters = functionNode.getParams();
+      List<DartParameter> parameters = functionNode.getParameters();
       Set<FieldElement> initializedFields = Sets.newHashSet();
 
       // First declare all normal parameters in the scope, putting them in the
@@ -901,7 +901,7 @@ public class Resolver {
 
     @Override
     public Element visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
-      visit(x.getArgs());
+      visit(x.getArguments());
       String name = x.getName() == null ? "" : x.getName().getTargetName();
       InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
       ConstructorElement element = (supertype == null) ?
@@ -1149,7 +1149,7 @@ public class Resolver {
       }
 
       checkInvocationTarget(x, currentMethod, target);
-      visit(x.getArgs());
+      visit(x.getArguments());
       return recordElement(x, element);
     }
 
@@ -1164,20 +1164,20 @@ public class Resolver {
         checkInvocationTarget(x, currentMethod, element);
       }
       recordElement(x.getTarget(), element);
-      visit(x.getArgs());
+      visit(x.getArguments());
       return null;
     }
 
     @Override
     public Element visitFunctionObjectInvocation(DartFunctionObjectInvocation x) {
       x.getTarget().accept(this);
-      visit(x.getArgs());
+      visit(x.getArguments());
       return null;
     }
 
     @Override
     public Element visitNewExpression(DartNewExpression x) {
-      this.visit(x.getArgs());
+      this.visit(x.getArguments());
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
@@ -1208,7 +1208,7 @@ public class Resolver {
         element = Elements.lookupConstructor(classElement, "");
         // If no default constructor, may be use implicit default constructor.
         if (element == null
-            && x.getArgs().isEmpty()
+            && x.getArguments().isEmpty()
             && Elements.needsImplicitDefaultConstructor(classElement)) {
           element = new SyntheticDefaultConstructorElement(null, classElement, typeProvider);
         }
@@ -1477,7 +1477,7 @@ public class Resolver {
 
     @Override
     public Element visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
-      visit(x.getArgs());
+      visit(x.getArguments());
       String name = x.getName() != null ? x.getName().getTargetName() : "";
       ConstructorElement element = Elements.lookupConstructor((ClassElement) currentHolder, name);
       if (element == null) {

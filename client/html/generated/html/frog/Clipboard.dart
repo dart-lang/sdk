@@ -13,7 +13,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 

@@ -204,7 +204,7 @@ bool PortMap::PostMessage(Message* message) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
-    free(message);
+    delete message;
     return false;
   }
   ASSERT(index >= 0);

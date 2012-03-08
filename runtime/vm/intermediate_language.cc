@@ -33,6 +33,18 @@ Instruction* TargetEntryInstr::Accept(FlowGraphVisitor* visitor) {
 }
 
 
+Instruction* PickTempInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitPickTemp(this);
+  return successor_;
+}
+
+
+Instruction* TuckTempInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitTuckTemp(this);
+  return successor_;
+}
+
+
 Instruction* DoInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitDo(this);
   return successor_;
@@ -70,6 +82,33 @@ void FlowGraphVisitor::VisitBlocks(
 
 
 // ==== Postorder graph traversal.
+void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  block_entries->Add(this);
+}
+
+
+void TargetEntryInstr::Postorder(
+    GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  block_entries->Add(this);
+}
+
+
+void PickTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+}
+
+
+void TuckTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+}
+
+
 void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
@@ -97,21 +136,6 @@ void BranchInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   if (true_successor_->mark() != mark()) {
     true_successor_->Postorder(block_entries);
   }
-}
-
-
-void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
-}
-
-
-void TargetEntryInstr::Postorder(
-    GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
 }
 
 

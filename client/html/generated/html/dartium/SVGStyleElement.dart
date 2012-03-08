@@ -10,6 +10,10 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement {
 
   void set media(String value) { _ptr.media = _unwrap(value); }
 
+  String get title() => _wrap(_ptr.title);
+
+  void set title(String value) { _ptr.title = _unwrap(value); }
+
   String get type() => _wrap(_ptr.type);
 
   void set type(String value) { _ptr.type = _unwrap(value); }

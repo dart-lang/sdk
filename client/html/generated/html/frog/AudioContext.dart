@@ -25,7 +25,7 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode() native;
+  _DelayNodeImpl createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 

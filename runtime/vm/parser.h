@@ -89,6 +89,14 @@ class Parser : ValueObject {
                                const char* format,
                                va_list args);
 
+  // Same as FormatError, but appends the new error to the 'prev_error'.
+  static RawError* FormatErrorWithAppend(const Error& prev_error,
+                                         const Script& script,
+                                         intptr_t token_index,
+                                         const char* message_header,
+                                         const char* format,
+                                         va_list args);
+
  private:
   struct Block;
   class TryBlocks;
@@ -192,17 +200,13 @@ class Parser : ValueObject {
   // Reports error message at given location.
   void ErrorMsg(intptr_t token_index, const char* msg, ...);
   void Warning(intptr_t token_index, const char* msg, ...);
+
+  // Reports an already formatted error message.
+  void ErrorMsg(const Error& error);
+
   // Concatenates two error messages, the previous and the current one.
   void AppendErrorMsg(
       const Error& prev_error, intptr_t token_index, const char* format, ...);
-
-  // Same as FormatError, but appends the new error to the 'prev_error'.
-  static RawError* FormatErrorWithAppend(const Error& prev_error,
-                                         const Script& script,
-                                         intptr_t token_index,
-                                         const char* message_header,
-                                         const char* format,
-                                         va_list args);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
@@ -215,9 +219,9 @@ class Parser : ValueObject {
 
   // Support for parsing of scripts.
   void ParseTopLevel();
-  void ParseClassDefinition(GrowableArray<const Class*>* classes);
-  void ParseInterfaceDefinition(GrowableArray<const Class*>* classes);
-  void ParseFunctionTypeAlias(GrowableArray<const Class*>* classes);
+  void ParseClassDefinition(const GrowableObjectArray& pending_classes);
+  void ParseInterfaceDefinition(const GrowableObjectArray& pending_classes);
+  void ParseFunctionTypeAlias(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);
   void ParseTopLevelFunction(TopLevel* top_level);
   void ParseTopLevelAccessor(TopLevel* top_level);
@@ -436,6 +440,7 @@ class Parser : ValueObject {
   AstNode* MakeStaticCall(const char* class_name,
                           const char* function_name,
                           ArgumentListNode* arguments);
+  String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
 

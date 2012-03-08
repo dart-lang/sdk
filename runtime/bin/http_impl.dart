@@ -58,9 +58,10 @@ class _HttpRequestResponseBase {
 
   int get contentLength() => _contentLength;
   bool get keepAlive() => _keepAlive;
+  Map get headers() => _headers;
 
   void _setHeader(String name, String value) {
-    _headers[name] = value;
+    _headers[name.toLowerCase()] = value;
   }
 
   bool _write(List<int> data, bool copyBuffer) {
@@ -173,7 +174,6 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   String get method() => _method;
   String get uri() => _uri;
   String get path() => _path;
-  Map get headers() => _headers;
   String get queryString() => _queryString;
   Map get queryParameters() => _queryParameters;
 
@@ -259,32 +259,46 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
         _state = START;
 
   void set contentLength(int contentLength) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _contentLength = contentLength;
   }
 
   void set keepAlive(bool keepAlive) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _keepAlive = keepAlive;
   }
 
   int get statusCode() => _statusCode;
   void set statusCode(int statusCode) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _statusCode = statusCode;
   }
 
   String get reasonPhrase() => _findReasonPhrase(_statusCode);
   void set reasonPhrase(String reasonPhrase) {
-    if (_outputStream != null) return new HttpException("Header already sent");
+    if (_outputStream != null) throw new HttpException("Header already sent");
     _reasonPhrase = reasonPhrase;
+  }
+
+  Date get expires() => _expires;
+  void set expires(Date expires) {
+    if (_outputStream != null) throw new HttpException("Header already sent");
+    _expires = expires;
+    // Format "Expires" header with date in Greenwich Mean Time (GMT).
+    String formatted =
+        _HttpUtils.formatDate(_expires.changeTimeZone(new TimeZone.utc()));
+    _setHeader("Expires", formatted);
   }
 
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
   void setHeader(String name, String value) {
     if (_outputStream != null) return new HttpException("Header already sent");
-    _setHeader(name, value);
+    if (name.toLowerCase() == "expires") {
+      expires = _HttpUtils.parseDate(value);
+    } else {
+      _setHeader(name, value);
+    }
   }
 
   OutputStream get outputStream() {
@@ -431,6 +445,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   // Response status code.
   int _statusCode;
   String _reasonPhrase;
+  Date _expires;
   _HttpOutputStream _outputStream;
   int _state;
 }
@@ -714,7 +729,36 @@ class _HttpClientRequest
   void set contentLength(int contentLength) => _contentLength = contentLength;
   void set keepAlive(bool keepAlive) => _keepAlive = keepAlive;
 
+  String get host() => _host;
+  void set host(String host) {
+    _host = host;
+    _updateHostHeader();
+  }
+
+  int get port() => _port;
+  void set port(int port) {
+    _port = port;
+    _updateHostHeader();
+  }
+
   void setHeader(String name, String value) {
+    if (_state != START) throw new HttpException("Header already sent");
+    if (name.toLowerCase() == "host") {
+      int pos = value.indexOf(":");
+      if (pos == -1) {
+        _host = value;
+        _port = HttpClient.DEFAULT_HTTP_PORT;
+      } else {
+        _host = value.substring(0, pos);
+        if (pos + 1 == value.length) {
+          _port = HttpClient.DEFAULT_HTTP_PORT;
+        } else {
+          _port = Math.parseInt(value.substring(pos + 1));
+        }
+      }
+      _updateHostHeader();
+      return;
+    }
     _setHeader(name, value);
   }
 
@@ -733,6 +777,11 @@ class _HttpClientRequest
       _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
+  }
+
+  _updateHostHeader() {
+    String portPart = _port == HttpClient.DEFAULT_HTTP_PORT ? "" : ":$_port";
+    _setHeader("Host", "$host$portPart");
   }
 
   // Delegate functions for the HttpOutputStream implementation.
@@ -803,6 +852,8 @@ class _HttpClientRequest
 
   String _method;
   String _uri;
+  String _host;
+  int _port;
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
   int _state;
@@ -818,6 +869,13 @@ class _HttpClientResponse
 
   int get statusCode() => _statusCode;
   String get reasonPhrase() => _reasonPhrase;
+
+  Date get expires() {
+    String str = _headers["expires"];
+    if (str == null) return null;
+    return _HttpUtils.parseDate(str);
+  }
+
   Map get headers() => _headers;
 
   InputStream get inputStream() {
@@ -998,13 +1056,38 @@ class _HttpClient implements HttpClient {
     return _prepareHttpClientConnection(host, port, method, path);
   }
 
+  HttpClientConnection openUrl(String method, Uri url) {
+    if (url.scheme != "http") {
+      throw new HttpException("Unsupported URL scheme ${url.scheme}");
+    }
+    if (url.userInfo != "") {
+      throw new HttpException("Unsupported user info ${url.userInfo}");
+    }
+    int port = url.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : url.port;
+    String path;
+    if (url.query != "") {
+      if (url.fragment != "") {
+        path = "${url.path}?${url.query}#${url.fragment}";
+      } else {
+        path = "${url.path}?${url.query}";
+      }
+    } else {
+      path = url.path;
+    }
+    return open(method, url.domain, port, path);
+  }
+
   HttpClientConnection get(String host, int port, String path) {
     return open("GET", host, port, path);
   }
 
+  HttpClientConnection getUrl(Uri url) => openUrl("GET", url);
+
   HttpClientConnection post(String host, int port, String path) {
     return open("POST", host, port, path);
   }
+
+  HttpClientConnection postUrl(Uri url) => openUrl("POST", url);
 
   void shutdown() {
      _openSockets.forEach((String key, Queue<_SocketConnection> connections) {
@@ -1033,6 +1116,8 @@ class _HttpClient implements HttpClient {
                            _HttpClientConnection connection) {
       connection._connectionEstablished(socketConn);
       HttpClientRequest request = connection.open(method, path);
+      request.host = host;
+      request.port = port;
       if (connection._onRequest != null) {
         connection._onRequest(request);
       } else {

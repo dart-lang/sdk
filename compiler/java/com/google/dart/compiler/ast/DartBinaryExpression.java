@@ -15,7 +15,6 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
   private final Token op;
   private DartExpression arg1;
   private DartExpression arg2;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
 
   public DartBinaryExpression(Token op, DartExpression arg1, DartExpression arg2) {
@@ -38,37 +37,14 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
     return op;
   }
 
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
   @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
-  }
-
-  @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (op.isAssignmentOperator()) {
-        arg1 = becomeParentOf(v.acceptLvalue(arg1));
-      } else {
-        arg1 = becomeParentOf(v.accept(arg1));
-      }
-      arg2 = becomeParentOf(v.accept(arg2));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     arg1.accept(visitor);
     arg2.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitBinaryExpression(this);
   }
 

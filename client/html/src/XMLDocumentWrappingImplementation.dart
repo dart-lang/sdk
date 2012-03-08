@@ -117,8 +117,7 @@ class XMLDocumentWrappingImplementation extends DocumentWrappingImplementation
 
   ElementList get elements() => documentEl.elements;
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value) { documentEl.elements = value; }
+  void set elements(Collection<Element> value) { documentEl.elements = value; }
 
   String get outerHTML() => documentEl.outerHTML;
 

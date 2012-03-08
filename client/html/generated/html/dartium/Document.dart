@@ -39,6 +39,10 @@ class _DocumentImpl extends _ElementImpl
 
   StyleSheetList get styleSheets() => _wrap(_documentPtr.styleSheets);
 
+  String get title() => _wrap(_documentPtr.title);
+
+  void set title(String value) { _documentPtr.title = _unwrap(value); }
+
   Element get webkitCurrentFullScreenElement() => _wrap(_documentPtr.webkitCurrentFullScreenElement);
 
   bool get webkitFullScreenKeyboardInputAllowed() => _wrap(_documentPtr.webkitFullScreenKeyboardInputAllowed);
@@ -98,7 +102,7 @@ class _DocumentImpl extends _ElementImpl
     return _wrap(_documentPtr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
   }
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) {
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
     return _wrap(_documentPtr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
   }
 
@@ -132,7 +136,7 @@ class _DocumentImpl extends _ElementImpl
   }
 
 
-  final dom.Document _documentPtr;
+  final dom.HTMLDocument _documentPtr;
   final _NodeImpl _wrappedDocumentPtr;
  
 _DocumentImpl._wrap(ptr) :
@@ -140,12 +144,6 @@ _DocumentImpl._wrap(ptr) :
   _documentPtr = ptr.parentNode,
   _wrappedDocumentPtr = ptr.parentNode != null ?
       new _SecretHtmlDocumentImpl._wrap(ptr.parentNode) : null;
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() => _documentPtr.title;
-  void set title(String value) => _documentPtr.title = title;
 
   // For efficiency and simplicity, we always use the HtmlElement as the
   // Document but sometimes internally we need the real JS document object.

@@ -7,7 +7,6 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.util.DefaultTextOutput;
 
 /**
  * Tests, for each of the parser test examples, that {@link DartToSourceVisitor} produces
@@ -69,10 +68,7 @@ public class ParserRoundTripTest extends CompilerTestCase {
    */
   private void roundTrip(String path) {
     DartUnit unit = parseUnit(path);
-
-    DefaultTextOutput out = new DefaultTextOutput(false);
-    new DartToSourceVisitor(out, false).accept(unit);
-    String src = out.toString();
+    String src = unit.toSource();
     parseUnit(path, src);
   }
 }

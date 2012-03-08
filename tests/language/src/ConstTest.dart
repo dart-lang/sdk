@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check const classes.
@@ -9,13 +9,30 @@ class AConst {
 }
 
 
-class ConstTest {
-  static testMain() {
-    var o = const AConst();
-    Expect.equals(3, o.b_);
-  }
+class BConst {
+  const BConst();
+  set foo(value) {}
+  get foo() { return 5; }
+  
+  operator [](ix) { return ix; }
+  operator []=(ix, value) {}  
 }
 
+
+testMain() {
+  var o = const AConst();
+  Expect.equals(3, o.b_);
+
+  var x = (const BConst()).foo++;
+  Expect.equals(5, x);
+
+  var y = (const BConst())[5]++;
+  Expect.equals(5, y);
+}
+
+
 main() {
-  ConstTest.testMain();
+  for (int i = 0; i < 1000; i++) {
+    testMain();
+  }
 }

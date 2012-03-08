@@ -119,7 +119,7 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   bool execCommand(String command, bool userInterface, String value) native;
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native;
+  _CanvasRenderingContextJs getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
   _ElementJs getElementById(String elementId) native;
 

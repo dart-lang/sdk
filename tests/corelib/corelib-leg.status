@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-prefix corelib
-
 [ $component == leg && $checked ]
 *: Skip
 
@@ -14,20 +12,13 @@ MathParseDoubleTest: Fail
 MapTest: Skip # SplayTree gets stuck when looking up key. MUST FIX.
 
 # Compilation errors.
-CollectionFromTest: Fail # named constructors with type arguments are not implemented
-CollectionToStringTest: Fail # visitContinueStatement not implemented
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
 CoreRuntimeTypesTest: Fail # map not implemented
 DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
-FutureTest: Fail # named constructors with type arguments are not implemented
 FuturesTest: Fail # factory ReceivePort is not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
 ListTest: Fail # Internal Error: Cannot find value
-MapFromTest: Fail # map not implemented
-MapTest: Fail # map not implemented
-PortTest: Fail # SsaBuilder.visitContinueStatement not implemented
-QueueTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
 SplayTreeTest: Fail # Internal Error: Cannot find value
 StringPatternTest: Fail # Bad bailout code related to for-in.
@@ -42,3 +33,7 @@ BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.
 GrowableObjectArrayVMTest: Fail, OK # VM specific test.
 StringBaseVMTest: Fail, OK # VM specific test.
+
+
+[ $component == legium ]
+*: Skip

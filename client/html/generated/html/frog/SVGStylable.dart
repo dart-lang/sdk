@@ -1,7 +1,7 @@
 
 class _SVGStylableImpl implements SVGStylable native "*SVGStylable" {
 
-  final _SVGAnimatedStringImpl className;
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   final _CSSStyleDeclarationImpl style;
 

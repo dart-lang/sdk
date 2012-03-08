@@ -5,6 +5,11 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
 
   String media;
 
+  // Shadowing definition.
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
+
   String type;
 
   // From SVGLangSpace

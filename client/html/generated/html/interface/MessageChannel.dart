@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MessageChannel {
+interface MessageChannel default _MessageChannelFactoryProvider {
+
+  MessageChannel();
 
   final MessagePort port1;
 

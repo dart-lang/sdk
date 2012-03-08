@@ -25,7 +25,7 @@ class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioC
 
   _ConvolverNodeJs createConvolver() native;
 
-  _DelayNodeJs createDelayNode() native;
+  _DelayNodeJs createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeJs createDynamicsCompressor() native;
 

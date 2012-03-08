@@ -490,6 +490,72 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
   return Api::Success();
 }
 
+
+// --- Garbage Collection Callbacks --
+
+
+DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
+    Dart_GcPrologueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
+  if (callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s permits only one instance of 'callback' to be present in the "
+        "prologue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Add(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
+    Dart_GcPrologueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcPrologueCallbacks& callbacks = isolate->gc_prologue_callbacks();
+  if (!callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s expects 'callback' to be present in the prologue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Remove(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
+  if (callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s permits only one instance of 'callback' to be present in the "
+        "epilogue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Add(callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  GcEpilogueCallbacks& callbacks = isolate->gc_epilogue_callbacks();
+  if (!callbacks.Contains(callback)) {
+    return Api::NewError(
+        "%s expects 'callback' to be present in the epilogue callback list.",
+        CURRENT_FUNC);
+  }
+  callbacks.Remove(callback);
+  return Api::Success();
+}
+
+
 // --- Initialization and Globals ---
 
 
@@ -792,8 +858,10 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   DARTSCOPE(isolate);
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::New("_SendPortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_SendPortImpl"));
+      String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
@@ -819,8 +887,10 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   DARTSCOPE(isolate);
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::New("_ReceivePortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name =
       String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
@@ -946,7 +1016,10 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     return Api::NewError(msg);
   }
   const Type& type = Type::Handle(Type::NewNonParameterizedType(cls));
-  *value = instance.IsInstanceOf(type, TypeArguments::Handle());
+  Error& malformed_type_error = Error::Handle();
+  *value = instance.IsInstanceOf(
+      type, TypeArguments::Handle(), &malformed_type_error);
+  ASSERT(malformed_type_error.IsNull());  // Type was created here from a class.
   return Api::Success();
 }
 
@@ -1420,7 +1493,11 @@ static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
     Instance& instance = Instance::Handle();
     instance ^= obj.raw();
     const Type& type = Type::Handle(isolate->object_store()->list_interface());
-    if (instance.IsInstanceOf(type, TypeArguments::Handle())) {
+    Error& malformed_type_error = Error::Handle();
+    if (instance.IsInstanceOf(type,
+                              TypeArguments::Handle(),
+                              &malformed_type_error)) {
+      ASSERT(malformed_type_error.IsNull());  // Type is a raw List.
       return instance.raw();
     }
   }
@@ -2011,18 +2088,31 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
                                           Dart_Handle* arguments) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  // Finalize all classes.
-  const char* msg = CheckIsolateState(isolate);
-  if (msg != NULL) {
-    return Api::NewError(msg);
-  }
-
-  // Now try to resolve and invoke the static function.
+  // Check whether class finalization is needed.
+  bool finalize_classes = true;
   const Library& library =
       Library::CheckedHandle(Api::UnwrapHandle(library_in));
   if (library.IsNull()) {
     return Api::NewError("No library specified");
   }
+
+  // When calling functions in the dart:builtin library do not finalize as it
+  // should have been prefinalized.
+  Library& builtin =
+      Library::Handle(isolate->object_store()->builtin_library());
+  if (builtin.raw() == library.raw()) {
+    finalize_classes = false;
+  }
+
+  // Finalize all classes if needed.
+  if (finalize_classes) {
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
+  }
+
+  // Now try to resolve and invoke the static function.
   const String& class_name =
       String::CheckedHandle(Api::UnwrapHandle(class_name_in));
   const String& function_name =
@@ -2114,10 +2204,8 @@ static const bool kGetter = true;
 static const bool kSetter = false;
 
 
-static bool UseGetterForStaticField(const Field& fld) {
-  if (fld.IsNull()) {
-    return true;
-  }
+static bool FieldIsUninitialized(const Field& fld) {
+  ASSERT(!fld.IsNull());
 
   // Return getter method for uninitialized fields, rather than the
   // field object, since the value in the field object will not be
@@ -2144,7 +2232,7 @@ static Dart_Handle LookupStaticField(Dart_Handle clazz,
   String& fld_name = String::Handle();
   fld_name ^= param2.raw();
   const Field& fld = Field::Handle(cls.LookupStaticField(fld_name));
-  if (is_getter && UseGetterForStaticField(fld)) {
+  if (is_getter && (fld.IsNull() || FieldIsUninitialized(fld))) {
     const String& func_name = String::Handle(Field::GetterName(fld_name));
     const Function& function =
         Function::Handle(cls.LookupStaticFunction(func_name));
@@ -2190,7 +2278,254 @@ static Dart_Handle LookupInstanceField(const Object& object,
     }
     cls = cls.SuperClass();
   }
-  return Api::NewError("Unable to find field in the class");
+  return Api::NewError("Unable to find field '%s'.", field_name.ToCString());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  const String& field_name = Api::UnwrapStringHandle(name);
+  if (field_name.IsNull()) {
+    RETURN_TYPE_ERROR(name, String);
+  }
+
+  const Object& obj = Object::Handle(Api::UnwrapHandle(container));
+
+  Field& field = Field::Handle();
+  Function& getter = Function::Handle();
+  if (obj.IsNull()) {
+    return Api::NewError("%s expects argument 'container' to be non-null.",
+                         CURRENT_FUNC);
+  } else if (obj.IsInstance()) {
+    // Every instance field has a getter Function.  Try to find the
+    // getter in any superclass and use that function to access the
+    // field.
+    Instance& instance = Instance::Handle();
+    instance ^= obj.raw();
+    Class& cls = Class::Handle(instance.clazz());
+    while (!cls.IsNull()) {
+      String& getter_name = String::Handle(Field::GetterName(field_name));
+      getter = cls.LookupDynamicFunction(getter_name);
+      if (!getter.IsNull()) {
+        break;
+      }
+      cls = cls.SuperClass();
+    }
+
+    if (getter.IsNull()) {
+      return Api::NewError("%s: did not find instance field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+    // Invoke the getter and return the result.
+    GrowableArray<const Object*> args;
+    const Array& kNoArgNames = Array::Handle();
+    const Object& result = Object::Handle(
+        DartEntry::InvokeDynamic(instance, getter, args, kNoArgNames));
+    return Api::NewLocalHandle(result);
+
+  } else if (obj.IsClass()) {
+    // To access a static field we may need to use the Field or the
+    // getter Function.
+    Class& cls = Class::Handle();
+    cls ^= obj.raw();
+    field = cls.LookupStaticField(field_name);
+    if (field.IsNull() || FieldIsUninitialized(field)) {
+      const String& getter_name = String::Handle(Field::GetterName(field_name));
+      getter = cls.LookupStaticFunction(getter_name);
+    }
+
+    if (!getter.IsNull()) {
+      // Invoke the getter and return the result.
+      GrowableArray<const Object*> args;
+      const Array& kNoArgNames = Array::Handle();
+      const Object& result = Object::Handle(
+          DartEntry::InvokeStatic(getter, args, kNoArgNames));
+      return Api::NewLocalHandle(result);
+    } else if (!field.IsNull()) {
+      const Object& result = Object::Handle(field.value());
+      return Api::NewLocalHandle(result);
+    } else {
+      return Api::NewError("%s: did not find static field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+  } else if (obj.IsLibrary()) {
+    // To access a top-level we may need to use the Field or the
+    // getter Function.  The getter function may either be in the
+    // library or in the field's owner class, depending.
+    Library& lib = Library::Handle();
+    lib ^= obj.raw();
+    field = lib.LookupLocalField(field_name);
+    if (field.IsNull()) {
+      // No field found.  Check for a getter in the lib.
+      const String& getter_name = String::Handle(Field::GetterName(field_name));
+      getter = lib.LookupLocalFunction(getter_name);
+    } else if (FieldIsUninitialized(field)) {
+      // A field was found.  Check for a getter in the field's owner classs.
+      const Class& cls = Class::Handle(field.owner());
+      const String& getter_name = String::Handle(Field::GetterName(field_name));
+      getter = cls.LookupStaticFunction(getter_name);
+    }
+
+    if (!getter.IsNull()) {
+      // Invoke the getter and return the result.
+      GrowableArray<const Object*> args;
+      const Array& kNoArgNames = Array::Handle();
+      const Object& result = Object::Handle(
+          DartEntry::InvokeStatic(getter, args, kNoArgNames));
+      return Api::NewLocalHandle(result);
+    } else if (!field.IsNull()) {
+      const Object& result = Object::Handle(field.value());
+      return Api::NewLocalHandle(result);
+    } else {
+      return Api::NewError("%s: did not find top-level variable '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+  } else {
+    return Api::NewError(
+        "%s expects argument 'container' to be an object, class, or library.",
+        CURRENT_FUNC);
+  }
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
+                                      Dart_Handle name,
+                                      Dart_Handle value) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  const String& field_name = Api::UnwrapStringHandle(name);
+  if (field_name.IsNull()) {
+    RETURN_TYPE_ERROR(name, String);
+  }
+  const Instance& value_instance = Api::UnwrapInstanceHandle(value);
+  if (value_instance.IsNull()) {
+    RETURN_TYPE_ERROR(value, Instance);
+  }
+
+  Field& field = Field::Handle();
+  Function& setter = Function::Handle();
+  const Object& obj = Object::Handle(Api::UnwrapHandle(container));
+  if (obj.IsNull()) {
+    return Api::NewError("%s expects argument 'container' to be non-null.",
+                         CURRENT_FUNC);
+  } else if (obj.IsInstance()) {
+    // Every instance field has a setter Function.  Try to find the
+    // setter in any superclass and use that function to access the
+    // field.
+    Instance& instance = Instance::Handle();
+    instance ^= obj.raw();
+    Class& cls = Class::Handle(instance.clazz());
+    while (!cls.IsNull()) {
+      field = cls.LookupInstanceField(field_name);
+      if (!field.IsNull() && field.is_final()) {
+        return Api::NewError("%s: cannot set final field '%s'.",
+                             CURRENT_FUNC, field_name.ToCString());
+      }
+      String& setter_name = String::Handle(Field::SetterName(field_name));
+      setter = cls.LookupDynamicFunction(setter_name);
+      if (!setter.IsNull()) {
+        break;
+      }
+      cls = cls.SuperClass();
+    }
+
+    if (setter.IsNull()) {
+      return Api::NewError("%s: did not find instance field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+    // Invoke the setter and return the result.
+    GrowableArray<const Object*> args(1);
+    args.Add(&value_instance);
+    const Array& kNoArgNames = Array::Handle();
+    const Object& result = Object::Handle(
+        DartEntry::InvokeDynamic(instance, setter, args, kNoArgNames));
+    return Api::NewLocalHandle(result);
+
+  } else if (obj.IsClass()) {
+    // To access a static field we may need to use the Field or the
+    // setter Function.
+    Class& cls = Class::Handle();
+    cls ^= obj.raw();
+    field = cls.LookupStaticField(field_name);
+    if (field.IsNull()) {
+      String& setter_name = String::Handle(Field::SetterName(field_name));
+      setter = cls.LookupStaticFunction(setter_name);
+    }
+
+    if (!setter.IsNull()) {
+      // Invoke the setter and return the result.
+      GrowableArray<const Object*> args(1);
+      args.Add(&value_instance);
+      const Array& kNoArgNames = Array::Handle();
+      const Object& result = Object::Handle(
+          DartEntry::InvokeStatic(setter, args, kNoArgNames));
+      if (result.IsError()) {
+        return Api::NewLocalHandle(result);
+      } else {
+        return Api::Success();
+      }
+    } else if (!field.IsNull()) {
+      if (field.is_final()) {
+        return Api::NewError("%s: cannot set final field '%s'.",
+                             CURRENT_FUNC, field_name.ToCString());
+      } else {
+        field.set_value(value_instance);
+        return Api::Success();
+      }
+    } else {
+      return Api::NewError("%s: did not find static field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+  } else if (obj.IsLibrary()) {
+    // To access a top-level we may need to use the Field or the
+    // setter Function.  The setter function may either be in the
+    // library or in the field's owner class, depending.
+    Library& lib = Library::Handle();
+    lib ^= obj.raw();
+    field = lib.LookupLocalField(field_name);
+    if (field.IsNull()) {
+      const String& setter_name = String::Handle(Field::SetterName(field_name));
+      setter ^= lib.LookupLocalFunction(setter_name);
+    }
+
+    if (!setter.IsNull()) {
+      // Invoke the setter and return the result.
+      GrowableArray<const Object*> args(1);
+      args.Add(&value_instance);
+      const Array& kNoArgNames = Array::Handle();
+      const Object& result = Object::Handle(
+          DartEntry::InvokeStatic(setter, args, kNoArgNames));
+      if (result.IsError()) {
+        return Api::NewLocalHandle(result);
+      } else {
+        return Api::Success();
+      }
+    } else if (!field.IsNull()) {
+      if (field.is_final()) {
+        return Api::NewError("%s: cannot set final top-level variable '%s'.",
+                             CURRENT_FUNC, field_name.ToCString());
+      } else {
+        field.set_value(value_instance);
+        return Api::Success();
+      }
+    } else {
+      return Api::NewError("%s: did not find top-level variable '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
+  } else {
+    return Api::NewError(
+        "%s expects argument 'container' to be an object, class, or library.",
+        CURRENT_FUNC);
+  }
 }
 
 
@@ -2649,6 +2984,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
       library.set_import_map(mapping_array);
     }
     library.Register();
+    // If this is the dart:builtin library register it with the VM.
+    if (url_str.Equals("dart:builtin")) {
+      isolate->object_store()->set_builtin_library(library);
+      const char* msg = CheckIsolateState(isolate);
+      if (msg != NULL) {
+        return Api::NewError(msg);
+      }
+    }
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.

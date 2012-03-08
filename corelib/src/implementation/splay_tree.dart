@@ -274,7 +274,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
    */
   K lastKeyBefore(K key) {
     splay_(key);
-    K visit(SplayTreeNode node, [K ifEmpty]) {
+    K visit(SplayTreeNode node, K ifEmpty) {
       if (node === null) return ifEmpty;
       if (node.key.compareTo(key) >= 0) {
         return visit(node.left, ifEmpty);
@@ -283,7 +283,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
         return visit(node.right, node.key);
       }
     }
-    return visit(_root);
+    return visit(_root, null);
   }
 
   /**
@@ -292,7 +292,7 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
    */
   K firstKeyAfter(K key) {
     splay_(key);
-    K visit(SplayTreeNode node, [K ifEmpty]) {
+    K visit(SplayTreeNode node, K ifEmpty) {
       if (node === null) return ifEmpty;
       if (node.key.compareTo(key) > 0) {
         return visit(node.left, node.key);
@@ -301,6 +301,6 @@ class SplayTreeMap<K extends Comparable, V> implements Map<K, V> {
         return visit(node.right, ifEmpty);
       }
     }
-    return visit(_root);
+    return visit(_root, null);
   }
 }

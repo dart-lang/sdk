@@ -43,7 +43,7 @@ public abstract class DartGotoStatement extends DartStatement {
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (label != null) {
       label.accept(visitor);
     }

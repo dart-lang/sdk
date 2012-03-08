@@ -5,8 +5,4 @@
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement
     native "*IntentionallyInvalid" {
 
-  String manifest;
-
-  String version;
-
 }

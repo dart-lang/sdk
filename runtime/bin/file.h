@@ -46,7 +46,8 @@ class File {
     kTerminal = 0,
     kPipe = 1,
     kFile = 2,
-    kOther = 3
+    kSocket = 3,
+    kOther = -1
   };
 
   enum FileRequest {

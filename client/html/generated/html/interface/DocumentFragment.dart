@@ -8,5 +8,5 @@ interface DocumentFragment extends Node, NodeSelector {
 
   Element query(String selectors);
 
-  NodeList queryAll(String selectors);
+  NodeList _querySelectorAll(String selectors);
 }

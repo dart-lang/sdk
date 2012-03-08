@@ -12,5 +12,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
   // Use implementation from Uint8Array.
   // final int length;
 
+  void setElements(Object array, [int offset = null]) native;
+
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }

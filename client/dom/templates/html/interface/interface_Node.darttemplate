@@ -7,8 +7,7 @@
 interface $ID$EXTENDS {
   NodeList get nodes();
 
-  // TODO: The type of value should be Collection<Node>. See http://b/5392897
-  void set nodes(value);
+  void set nodes(Collection<Node> value);
 
   Node replaceWith(Node otherNode);
 

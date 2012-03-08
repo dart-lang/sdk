@@ -59,16 +59,10 @@ class _CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implemen
   static String _removeProperty(receiver, propertyName) native;
 
   void setProperty(String propertyName, String value, [String priority = null]) {
-    if (priority === null) {
-      _setProperty(this, propertyName, value);
-      return;
-    } else {
-      _setProperty_2(this, propertyName, value, priority);
-      return;
-    }
+    _setProperty(this, propertyName, value, priority);
+    return;
   }
-  static void _setProperty(receiver, propertyName, value) native;
-  static void _setProperty_2(receiver, propertyName, value, priority) native;
+  static void _setProperty(receiver, propertyName, value, priority) native;
 
   String get typeName() { return "CSSStyleDeclaration"; }
 }

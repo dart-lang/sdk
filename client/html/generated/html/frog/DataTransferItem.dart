@@ -7,5 +7,5 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 
   _BlobImpl getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }

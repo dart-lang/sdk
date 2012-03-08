@@ -20,18 +20,18 @@ public class DartStringInterpolation extends DartLiteral {
    * adjacent expressions (e.g. $"${a} ${b}${c}" is represented by 4 strings
    * ("", " ", "", "") and 3 expressions (#(){a}, #(){b}, #(){c}).
    */
-  private List<DartStringLiteral> strings;
+  private final NodeList<DartStringLiteral> strings = NodeList.create(this);;
 
   /** Embedded expressions (see {@link strings} for details). */
-  private List<DartExpression> expressions;
+  private final NodeList<DartExpression> expressions = NodeList.create(this);
 
   public DartStringInterpolation(List<DartStringLiteral> strings,
       List<DartExpression> expressions) {
     Preconditions.checkNotNull(strings);
     Preconditions.checkNotNull(expressions);
     Preconditions.checkArgument(strings.size() == expressions.size() + 1);
-    this.strings = becomeParentOf(strings);
-    this.expressions = becomeParentOf(expressions);
+    this.strings.addAll(strings);
+    this.expressions.addAll(expressions);
   }
 
   public List<DartStringLiteral> getStrings() {
@@ -43,22 +43,13 @@ public class DartStringInterpolation extends DartLiteral {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      v.acceptWithInsertRemove(this, strings);
-      v.acceptWithInsertRemove(this, expressions);
-    }
-    v.endVisit(this, ctx);
+  public void visitChildren(ASTVisitor<?> visitor) {
+    strings.accept(visitor);
+    expressions.accept(visitor);
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-    visitor.visit(strings);
-    visitor.visit(expressions);
-  }
-
-  @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitStringInterpolation(this);
   }
 }

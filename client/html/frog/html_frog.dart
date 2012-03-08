@@ -51,6 +51,11 @@ Document get document() {
 
 _DocumentImpl get _document() native "return window.document.documentElement;";
 
+// Workaround for tags like <cite> that lack their own Element subclass --
+// Dart issue 1990.
+class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
+}
+
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
 
   _AbstractWorkerEventsImpl get on() =>
@@ -316,7 +321,7 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode() native;
+  _DelayNodeImpl createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
@@ -798,6 +803,12 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -4036,7 +4047,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 
@@ -4449,6 +4460,10 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 }
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
+
+  String createObjectURL(var blob_OR_stream) native;
+
+  void revokeObjectURL(String url) native;
 }
 
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
@@ -4459,7 +4474,7 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 
   _BlobImpl getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -4652,6 +4667,10 @@ class _DocumentImpl extends _ElementImpl
 
   _StyleSheetListImpl get styleSheets() native "return this.parentNode.styleSheets;";
 
+  String get title() native "return this.parentNode.title;";
+
+  void set title(String value) native "this.parentNode.title = value;";
+
   _ElementImpl get webkitCurrentFullScreenElement() native "return this.parentNode.webkitCurrentFullScreenElement;";
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.parentNode.webkitFullScreenKeyboardInputAllowed;";
@@ -4687,7 +4706,7 @@ class _DocumentImpl extends _ElementImpl
 
   bool execCommand(String command, bool userInterface, String value) native "return this.parentNode.execCommand(command, userInterface, value);";
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
+  _CanvasRenderingContextImpl getCSSCanvasContext(String contextId, String name, int width, int height) native "return this.parentNode.getCSSCanvasContext(contextId, name, width, height);";
 
   bool queryCommandEnabled(String command) native "return this.parentNode.queryCommandEnabled(command);";
 
@@ -4702,13 +4721,6 @@ class _DocumentImpl extends _ElementImpl
   void webkitCancelFullScreen() native "this.parentNode.webkitCancelFullScreen();";
 
   _WebKitNamedFlowImpl webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
-
-
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() native "return this.parentNode.title;";
-  void set title(String value) native "this.parentNode.title = value;";
 
 
   // For efficiency and simplicity, we always use the HtmlElement as the
@@ -4839,7 +4851,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
 
   _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListImpl queryAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 }
 
 class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*DocumentType" {
@@ -4858,6 +4870,14 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*Docum
 }
 
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
+
+  final _AudioParamImpl knee;
+
+  final _AudioParamImpl ratio;
+
+  final _AudioParamImpl reduction;
+
+  final _AudioParamImpl threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4918,6 +4938,14 @@ class _ChildrenElementList implements ElementList {
       }
     };
     return false;
+  }
+
+  Collection map(f(Element element)) {
+    final out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
   }
 
   bool isEmpty() {
@@ -5017,7 +5045,7 @@ class _FrozenElementList implements ElementList {
   _FrozenElementList._wrap(this._nodeList);
 
   Element get first() {
-    return _nodeList.first;
+    return _nodeList[0];
   }
 
   void forEach(void f(Element element)) {
@@ -5466,6 +5494,10 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   int tabIndex;
 
   final String tagName;
+
+  String title;
+
+  bool translate;
 
   final String webkitRegionOverflow;
 
@@ -6624,10 +6656,6 @@ class _HistoryImpl implements History native "*History" {
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement
     native "*IntentionallyInvalid" {
 
-  String manifest;
-
-  String version;
-
 }
 
 class _IDBAnyImpl implements IDBAny native "*IDBAny" {
@@ -6691,7 +6719,7 @@ class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(var storeName_OR_storeNames, int mode) native;
+  _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseErrorImpl implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -6761,7 +6789,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBRequestImpl getObject(_IDBKeyImpl key) native;
 
@@ -6808,11 +6836,11 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestImpl delete(_IDBKeyImpl key) native;
+  _IDBRequestImpl delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
@@ -7970,6 +7998,8 @@ class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTML
 class _MetadataImpl implements Metadata native "*Metadata" {
 
   final Date modificationTime;
+
+  final int size;
 }
 
 class _MeterElementImpl extends _ElementImpl implements MeterElement native "*HTMLMeterElement" {
@@ -8214,8 +8244,10 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
+    text = '';
+    for (Node node in copy) {
+      _appendChild(node);
+    }
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?
@@ -8541,9 +8573,9 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
 class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementImpl querySelector(String selectors) native;
+  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
-  _NodeListImpl querySelectorAll(String selectors) native;
+  _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -9195,7 +9227,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9424,7 +9456,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9476,7 +9508,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9601,7 +9633,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9637,7 +9669,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9817,7 +9849,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9899,7 +9931,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9939,7 +9971,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -9965,7 +9997,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10017,7 +10049,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10073,7 +10105,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10107,7 +10139,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10151,7 +10183,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10194,7 +10226,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10218,7 +10250,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10262,7 +10294,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10302,7 +10334,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10326,7 +10358,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10371,7 +10403,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10401,7 +10433,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10442,7 +10474,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10487,7 +10519,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10535,7 +10567,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10579,7 +10611,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10657,7 +10689,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10707,7 +10739,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement native "*S
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10756,7 +10788,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10790,7 +10822,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10839,7 +10871,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -10960,7 +10992,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11067,7 +11099,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11117,7 +11149,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11301,7 +11333,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11608,7 +11640,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11678,7 +11710,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11732,7 +11764,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11853,7 +11885,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -11992,7 +12024,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12046,7 +12078,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement nati
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12075,7 +12107,7 @@ class _SVGStringListImpl implements SVGStringList native "*SVGStringList" {
 
 class _SVGStylableImpl implements SVGStylable native "*SVGStylable" {
 
-  final _SVGAnimatedStringImpl className;
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   final _CSSStyleDeclarationImpl style;
 
@@ -12087,6 +12119,11 @@ class _SVGStyleElementImpl extends _SVGElementImpl implements SVGStyleElement na
   bool disabled;
 
   String media;
+
+  // Shadowing definition.
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
 
   String type;
 
@@ -12121,7 +12158,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12161,7 +12198,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12248,7 +12285,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12325,7 +12362,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement na
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12450,7 +12487,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement native
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;
@@ -12660,6 +12697,8 @@ class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native "*ShadowRoot" {
 
   final _ElementImpl host;
+
+  String innerHTML;
 
   _ElementImpl getElementById(String elementId) native;
 
@@ -13120,21 +13159,21 @@ class _TextTrackImpl implements TextTrack native "*TextTrack" {
 
 class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -13144,9 +13183,9 @@ class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
   String text;
 
-  int textPosition;
-
   final _TextTrackImpl track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -13697,6 +13736,8 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   // Use implementation from Uint8Array.
   // final int length;
+
+  void setElements(Object array, [int offset = null]) native;
 
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -14717,6 +14758,10 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final bool overflow;
+
+  _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -15496,6 +15541,194 @@ class _XSLTProcessorImpl implements XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _AudioElementFactoryProvider {
+  factory AudioElement([String src = null]) native '''
+      if (src == null) return new Audio();
+      return new Audio(src);
+    ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _BlobBuilderFactoryProvider {
+  factory BlobBuilder() native
+      '''return new BlobBuilder();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _CSSMatrixFactoryProvider {
+  factory CSSMatrix([String cssValue = '']) native
+      'return new WebKitCSSMatrix(cssValue);';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMParserFactoryProvider {
+  factory DOMParser() native
+      '''return new DOMParser();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _DOMURLFactoryProvider {
+  factory DOMURL() native
+      '''return new DOMURL();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _EventSourceFactoryProvider {
+  factory EventSource(String scriptUrl) native
+      '''return new EventSource(scriptUrl);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _FileReaderFactoryProvider {
+  factory FileReader() native
+      '''return new FileReader();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _FileReaderSyncFactoryProvider {
+  factory FileReaderSync() native
+      '''return new FileReaderSync();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MediaControllerFactoryProvider {
+  factory MediaController() native
+      '''return new MediaController();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MediaStreamFactoryProvider {
+  factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native
+      '''return new MediaStream(audioTracks, videoTracks);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MessageChannelFactoryProvider {
+  factory MessageChannel() native
+      '''return new MessageChannel();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _OptionElementFactoryProvider {
+  factory OptionElement([String data = null, String value = null,
+                         bool defaultSelected = null, bool selected = null])
+      native '''
+          if (data == null) return new Option();
+          if (value == null) return new Option(data);
+          if (defaultSelected == null) return new Option(data, value);
+          if (selected == null) return new Option(data, value, defaultSelected);
+          return new Option(data, value, defaultSelected, selected);
+      ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _PeerConnectionFactoryProvider {
+  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
+      '''return new PeerConnection(serverConfiguration, signalingCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _ShadowRootFactoryProvider {
+  factory ShadowRoot(Element host) native
+      '''return new ShadowRoot(host);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SharedWorkerFactoryProvider {
+  factory SharedWorker(String scriptURL, [String name]) native '''
+      if (name == null) return new SharedWorker(scriptURL);
+      return new SharedWorker(scriptURL, name);
+    ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _TextTrackCueFactoryProvider {
+  factory TextTrackCue(String id, num startTime, num endTime, String text,
+                       [String settings, bool pauseOnExit]) native '''
+    if (settings == null)
+      return new TextTrackCue(id, startTime, endTime, text);
+    if (pauseOnExit == null)
+      return new TextTrackCue(id, startTime, endTime, text, settings);
+    return new TextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
+  ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _WorkerFactoryProvider {
+  factory Worker(String scriptUrl) native
+      '''return new Worker(scriptUrl);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XMLHttpRequestFactoryProvider {
+  factory XMLHttpRequest() native 'return new XMLHttpRequest();';
+
+  factory XMLHttpRequest.getTEMPNAME(String url,
+                                     onSuccess(XMLHttpRequest request)) =>
+      _XMLHttpRequestUtils.getTEMPNAME(url, onSuccess);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XMLSerializerFactoryProvider {
+  factory XMLSerializer() native
+      '''return new XMLSerializer();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XPathEvaluatorFactoryProvider {
+  factory XPathEvaluator() native
+      '''return new XPathEvaluator();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _XSLTProcessorFactoryProvider {
+  factory XSLTProcessor() native
+      '''return new XSLTProcessor();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 interface AbstractWorker extends EventTarget {
@@ -15838,7 +16071,7 @@ interface AudioContext {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode();
+  DelayNode createDelayNode([num maxDelayTime]);
 
   DynamicsCompressorNode createDynamicsCompressor();
 
@@ -15876,7 +16109,9 @@ interface AudioDestinationNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface AudioElement extends MediaElement {
+interface AudioElement extends MediaElement default _AudioElementFactoryProvider {
+
+  AudioElement([String src]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16140,7 +16375,9 @@ interface Blob {
 
 // WARNING: Do not edit - generated code.
 
-interface BlobBuilder {
+interface BlobBuilder default _BlobBuilderFactoryProvider {
+
+  BlobBuilder();
 
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 
@@ -16315,7 +16552,9 @@ interface CSSKeyframesRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix {
+interface CSSMatrix default _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String cssValue]);
 
   num a;
 
@@ -16468,6 +16707,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -18793,7 +19038,7 @@ interface Clipboard {
 
   void clearData([String type]);
 
-  void getData(String type);
+  String getData(String type);
 
   bool setData(String type, String data);
 
@@ -19182,7 +19427,9 @@ interface DOMMimeTypeArray {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMParser {
+interface DOMParser default _DOMParserFactoryProvider {
+
+  DOMParser();
 
   Document parseFromString(String str, String contentType);
 }
@@ -19320,7 +19567,13 @@ interface DOMTokenList {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface DOMURL default _DOMURLFactoryProvider {
+
+  DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19336,7 +19589,7 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback);
+  void getAsString([StringCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19575,12 +19828,6 @@ interface DivElement extends Element {
 
 interface Document extends HtmlElement {
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
 
   final Element activeElement;
 
@@ -19607,6 +19854,8 @@ interface Document extends HtmlElement {
   String selectedStylesheetSet;
 
   final StyleSheetList styleSheets;
+
+  String title;
 
   final Element webkitCurrentFullScreenElement;
 
@@ -19642,7 +19891,7 @@ interface Document extends HtmlElement {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   bool queryCommandEnabled(String command);
 
@@ -19766,7 +20015,7 @@ interface DocumentFragment extends Node, NodeSelector {
 
   Element query(String selectors);
 
-  NodeList queryAll(String selectors);
+  NodeList _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19795,6 +20044,14 @@ interface DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
+
+  final AudioParam knee;
+
+  final AudioParam ratio;
+
+  final AudioParam reduction;
+
+  final AudioParam threshold;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20061,26 +20318,18 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
    */
   ElementList queryAll(String selectors);
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
    *   children, Node.nodes.add
    */
   ElementList get elements();
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value);
+  void set elements(Collection<Element> value);
 
   /** @domName className, classList */
   Set<String> get classes();
 
-  // TODO: The type of value should be Collection<String>. See http://b/5392897
-  void set classes(value);
+  void set classes(Collection<String> value);
 
   Map<String, String> get dataAttributes();
   void set dataAttributes(Map<String, String> value);
@@ -20172,6 +20421,10 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   int tabIndex;
 
   final String tagName;
+
+  String title;
+
+  bool translate;
 
   final String webkitRegionOverflow;
 
@@ -20622,7 +20875,9 @@ interface EventException {
 
 // WARNING: Do not edit - generated code.
 
-interface EventSource extends EventTarget {
+interface EventSource extends EventTarget default _EventSourceFactoryProvider {
+
+  EventSource(String scriptUrl);
 
   static final int CLOSED = 2;
 
@@ -20845,7 +21100,9 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader {
+interface FileReader default _FileReaderFactoryProvider {
+
+  FileReader();
 
   static final int DONE = 2;
 
@@ -20893,7 +21150,9 @@ interface FileReader {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReaderSync {
+interface FileReaderSync default _FileReaderSyncFactoryProvider {
+
+  FileReaderSync();
 
   ArrayBuffer readAsArrayBuffer(Blob blob);
 
@@ -21309,10 +21568,6 @@ interface History {
 // WARNING: Do not edit - generated code.
 
 interface HtmlElement extends Element {
-
-  String manifest;
-
-  String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21396,7 +21651,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21486,7 +21741,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBRequest getObject(IDBKey key);
 
@@ -21548,11 +21803,11 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 
@@ -22215,7 +22470,9 @@ interface MarqueeElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaController {
+interface MediaController default _MediaControllerFactoryProvider {
+
+  MediaController();
 
   final TimeRanges buffered;
 
@@ -22445,7 +22702,9 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStream {
+interface MediaStream default _MediaStreamFactoryProvider {
+
+  MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
   static final int ENDED = 2;
 
@@ -22545,7 +22804,9 @@ interface MenuElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface MessageChannel {
+interface MessageChannel default _MessageChannelFactoryProvider {
+
+  MessageChannel();
 
   final MessagePort port1;
 
@@ -22627,6 +22888,8 @@ interface MetaElement extends Element {
 interface Metadata {
 
   final Date modificationTime;
+
+  final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22852,8 +23115,7 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 interface Node extends EventTarget {
   NodeList get nodes();
 
-  // TODO: The type of value should be Collection<Node>. See http://b/5392897
-  void set nodes(value);
+  void set nodes(Collection<Node> value);
 
   Node replaceWith(Node otherNode);
 
@@ -23011,7 +23273,7 @@ interface NodeList extends List<Node> {
   final int length;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23019,9 +23281,14 @@ interface NodeList extends List<Node> {
 
 interface NodeSelector {
 
-  Element querySelector(String selectors);
+  // TODO(nweiz): add this back once DocumentFragment is ported.
+  // ElementList queryAll(String selectors);
 
-  NodeList querySelectorAll(String selectors);
+
+  Element query(String selectors);
+
+  NodeList _querySelectorAll(String selectors);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23234,7 +23501,9 @@ interface OptGroupElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface OptionElement extends Element {
+interface OptionElement extends Element default _OptionElementFactoryProvider {
+
+  OptionElement([String data, String value, bool defaultSelected, bool selected]);
 
   bool defaultSelected;
 
@@ -23344,7 +23613,9 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection {
+interface PeerConnection default _PeerConnectionFactoryProvider {
+
+  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
 
   static final int ACTIVE = 2;
 
@@ -26177,7 +26448,7 @@ interface SVGStringList {
 
 interface SVGStylable {
 
-  final SVGAnimatedString className;
+  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -26194,6 +26465,8 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
   bool disabled;
 
   String media;
+
+  String title;
 
   String type;
 }
@@ -26685,9 +26958,13 @@ interface ShadowElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface ShadowRoot extends DocumentFragment {
+interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
+
+  ShadowRoot(Element host);
 
   final Element host;
+
+  String innerHTML;
 
   Element getElementById(String elementId);
 
@@ -26703,7 +26980,9 @@ interface ShadowRoot extends DocumentFragment {
 
 // WARNING: Do not edit - generated code.
 
-interface SharedWorker extends AbstractWorker {
+interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
+
+  SharedWorker(String scriptURL, [String name]);
 
   final MessagePort port;
 }
@@ -27240,23 +27519,25 @@ interface TextTrack {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackCue {
+interface TextTrackCue default _TextTrackCueFactoryProvider {
 
-  String alignment;
+  TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -27266,9 +27547,9 @@ interface TextTrackCue {
 
   String text;
 
-  int textPosition;
-
   final TextTrack track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -27607,6 +27888,8 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
   Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
 
   final int length;
+
+  void setElements(Object array, [int offset]);
 
   Uint8ClampedArray subarray(int start, [int end]);
 }
@@ -28744,6 +29027,10 @@ interface WebKitCSSRegionRule extends CSSRule {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29206,7 +29493,9 @@ interface WindowEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
-interface Worker extends AbstractWorker {
+interface Worker extends AbstractWorker default _WorkerFactoryProvider {
+
+  Worker(String scriptUrl);
 
   WorkerEvents get on();
 
@@ -29326,12 +29615,11 @@ interface WorkerNavigator {
 // WARNING: Do not edit - generated code.
 
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-
-  XMLHttpRequest();
-
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
   XMLHttpRequest.getTEMPNAME(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest();
 
   static final int DONE = 4;
 
@@ -29473,7 +29761,9 @@ interface XMLHttpRequestUploadEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
-interface XMLSerializer {
+interface XMLSerializer default _XMLSerializerFactoryProvider {
+
+  XMLSerializer();
 
   String serializeToString(Node node);
 }
@@ -29483,7 +29773,9 @@ interface XMLSerializer {
 
 // WARNING: Do not edit - generated code.
 
-interface XPathEvaluator {
+interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
+
+  XPathEvaluator();
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver);
 
@@ -29583,7 +29875,9 @@ interface XPathResult {
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor {
+interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+
+  XSLTProcessor();
 
   void clearParameters();
 
@@ -30229,6 +30523,35 @@ class _Collections {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _XMLHttpRequestUtils {
+
+  // Helper for factory XMLHttpRequest.getTEMPNAME
+  static XMLHttpRequest getTEMPNAME(String url,
+                                    onSuccess(XMLHttpRequest request)) {
+    final request = new XMLHttpRequest();
+    request.open('GET', url, true);
+
+    // TODO(terry): Validate after client login added if necessary to forward
+    //              cookies to server.
+    request.withCredentials = true;
+
+    // Status 0 is for local XHR request.
+    request.on.readyStateChange.add((e) {
+      if (request.readyState == XMLHttpRequest.DONE &&
+          (request.status == 200 || request.status == 0)) {
+        onSuccess(request);
+      }
+    });
+
+    request.send();
+
+    return request;
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef Object ComputeValue();
 
 class _MeasurementRequest<T> {
@@ -30351,7 +30674,7 @@ void _completeMeasurementFutures() {
 
 class _TextFactoryProvider {
 
-  factory Text(data) => document._createTextNode(data);
+  factory Text(String data) => document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
@@ -30396,7 +30719,6 @@ class _ElementFactoryProvider {
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
-    'tbody': 'table',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
@@ -30460,16 +30782,6 @@ class _AudioContextFactoryProvider {
 ''';
 }
 
-class _DOMParserFactoryProvider {
-
-  factory DOMParser() native 'return new DOMParser();';
-}
-
-class _FileReaderFactoryProvider {
-
-  factory FileReader() native 'return new FileReader();';
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
@@ -30521,46 +30833,9 @@ class _TypedArrayFactoryProvider {
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
-class _CSSMatrixFactoryProvider {
-
-  factory CSSMatrix([String spec = '']) native
-      'return new WebKitCSSMatrix(spec);';
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
-}
-
-class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) native 'return new WebSocket(url);';
-}
-
-class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() native 'return new XMLHttpRequest();';
-
-  factory XMLHttpRequest.getTEMPNAME(String url,
-      onSuccess(XMLHttpRequest request)) {
-    final request = new XMLHttpRequest();
-    request.open('GET', url, true);
-
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
-
-    // Status 0 is for local XHR request.
-    request.on.readyStateChange.add((e) {
-      if (request.readyState == XMLHttpRequest.DONE &&
-          (request.status == 200 || request.status == 0)) {
-        onSuccess(request);
-      }
-    });
-
-    request.send();
-
-    return request;
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

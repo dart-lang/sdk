@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -29,7 +30,6 @@ import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -163,7 +163,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   private static DartInvocation findInvocationSimple(DartNode rootNode,
       final String invocationString) {
     final DartInvocation invocationRef[] = new DartInvocation[1];
-    rootNode.accept(new DartNodeTraverser<Void>() {
+    rootNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitInvocation(DartInvocation node) {
         if (node.toSource().equals(invocationString)) {
@@ -244,7 +244,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
       DartClass classF = (DartClass) unit.getTopLevelNodes().get(1);
       DartMethodDefinition methodF = (DartMethodDefinition) classF.getMembers().get(1);
-      DartParameter parameter = methodF.getFunction().getParams().get(0);
+      DartParameter parameter = methodF.getFunction().getParameters().get(0);
       assertEquals("int", parameter.getSymbol().getType().toString());
     }
     // No errors or type warnings.
@@ -768,7 +768,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartExprStmt stmt = (DartExprStmt) methodBar.getFunction().getBody().getStatements().get(0);
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
-    // Check that unqualified foo() invocation is resolved to the top-level (library) function. 
+    // Check that unqualified foo() invocation is resolved to the top-level (library) function.
     Symbol symbol = invocation.getTarget().getSymbol();
     assertNotNull(symbol);
     assertSame(unit, symbol.getNode().getParent());
@@ -963,6 +963,70 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 17, 7));
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=380
+   */
+  public void test_setterGetterDifferentType() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {} ",
+            "class B extends A {}",
+            "class C {",
+            "  A getterField; ",
+            "  B setterField; ",
+            "  A get field() { return getterField; }",
+            "  void set field(B arg) { setterField = arg; }",
+            "}",
+            "main() {",
+            "  C instance = new C();",
+            "  instance.field = new B();",
+            "  A resultA = instance.field;",
+            "  instance.field = new A();",
+            "  B resultB = instance.field;",
+            "}");
+
+    assertErrors(result.getErrors());
+  }
+
+  public void test_setterGetterNotAssignable() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {} ",
+            "class B {}",
+            "class C {",
+            "  A getterField; ",
+            "  B setterField; ",
+            "  A get field() { return getterField; }",
+            "  void set field(B arg) { setterField = arg; }",
+            "}");
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
+  }
+
+  public void test_typeVariableBoundsMismatch() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I<T extends num> { }",
+            "class A<T extends num> implements I<T> { }",
+            "class B<T> implements I<T> { }"); // static type error B.T not assignable to num
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
+  }
+
+  public void test_typeVariableBoundsMismatch2() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C<T extends num> { }",
+            "class A<T extends num> extends C<T> { }",
+            "class B<T> extends C<T> { }"); // static type error B.T not assignable to num
+    assertErrors(result.getErrors(),
+                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
+  }
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
     return analyzeLibrary(getName(), makeCode(lines));

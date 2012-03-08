@@ -4,6 +4,7 @@
 
 #include "vm/flow_graph_builder.h"
 
+#include "vm/ast_printer.h"
 #include "vm/flags.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
@@ -14,6 +15,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, print_ast);
 
 void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
   ASSERT(is_open());
@@ -120,7 +122,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 }
 
 
-void TestGraphVisitor::BranchOnValue(Value* value) {
+void TestGraphVisitor::ReturnValue(Value* value) {
   BranchInstr* branch = new BranchInstr(value);
   AddInstruction(branch);
   CloseFragment();
@@ -188,7 +190,7 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 }
 
 void TestGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  BranchOnValue(new ConstantVal(node->literal()));
+  ReturnValue(new ConstantVal(node->literal()));
 }
 
 
@@ -217,6 +219,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded therefore do not call
   // operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    // Implement short-circuit logic: do not evaluate right if evaluation
+    // of left is sufficient.
     Bailout("EffectGraphVisitor::VisitBinaryOpNode AND/OR");
   }
   ArgumentGraphVisitor for_left_value(owner(), temp_index());
@@ -230,7 +234,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   arguments->Add(for_right_value.value());
   const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
   InstanceCallComp* call =
-      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 2);
+      new InstanceCallComp(node->id(), node->token_index(), name,
+                           arguments, Array::ZoneHandle(), 2);
   ReturnComputation(call);
 }
 
@@ -245,9 +250,17 @@ void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
 //                              right: <Expression> }
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   if (Token::IsInstanceofOperator(node->kind())) {
-    Bailout("instanceof not yet implemented");
-  } else if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
-    Bailout("'==' or '!=' comparison not yet implemented");
+    ArgumentGraphVisitor for_left_value(owner(), temp_index());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    InstanceOfComp* instance_of = new InstanceOfComp(
+        node->id(),
+        node->token_index(),
+        for_left_value.value(),
+        node->right()->AsTypeNode()->type(),
+        (node->kind() == Token::kISNOT));
+    ReturnComputation(instance_of);
+    return;
   }
   if ((node->kind() == Token::kEQ_STRICT) ||
       (node->kind() == Token::kNE_STRICT)) {
@@ -272,17 +285,42 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
-  InstanceCallComp* call =
-      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 2);
-  ReturnComputation(call);
+  // 'kNE' is not overloadable, must implement as kEQ and negation.
+  // Boolean negation '!' cannot be overloaded neither.
+  if (node->kind() == Token::kNE) {
+    const String& name = String::ZoneHandle(String::NewSymbol("=="));
+    InstanceCallComp* call_equal =
+        new InstanceCallComp(node->id(), node->token_index(), name,
+                             arguments, Array::ZoneHandle(), 2);
+    AddInstruction(new BindInstr(temp_index(), call_equal));
+    Value* eq_result = new TempVal(temp_index());
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kNE");
+    }
+    BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
+    ReturnComputation(negate);
+  } else {
+    const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
+    InstanceCallComp* call =
+        new InstanceCallComp(node->id(), node->token_index(), name,
+                             arguments, Array::ZoneHandle(), 2);
+    ReturnComputation(call);
+  }
 }
 
 
 void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   // "!" cannot be overloaded, therefore do not call operator.
   if (node->kind() == Token::kNOT) {
-    Bailout("EffectGraphVisitor::VisitUnaryOpNode NOT");
+    ValueGraphVisitor for_value(owner(), temp_index());
+    node->operand()->Visit(&for_value);
+    Append(for_value);
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kNOT");
+    }
+    BooleanNegateComp* negate = new BooleanNegateComp(for_value.value());
+    ReturnComputation(negate);
+    return;
   }
   ArgumentGraphVisitor for_value(owner(), temp_index());
   node->operand()->Visit(&for_value);
@@ -294,7 +332,8 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
                                                ? Token::Str(Token::kNEGATE)
                                                : node->Name()));
   InstanceCallComp* call =
-      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 1);
+      new InstanceCallComp(node->id(), node->token_index(), name,
+                           arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
 
@@ -304,20 +343,197 @@ void EffectGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitIncrOpInstanceFieldNode(
-    IncrOpInstanceFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitIncrOpInstanceFieldNode");
+int EffectGraphVisitor::BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node,
+                                             int start_index) {
+  // Evaluate the receiver and duplicate it (it has two uses).
+  //   t_n   <- ... receiver ...
+  //   t_n+1 <- Pick(t_n)
+  ArgumentGraphVisitor for_receiver(owner(), start_index);
+  node->receiver()->Visit(&for_receiver);
+  Append(for_receiver);
+  const int next_index = for_receiver.temp_index();
+  ASSERT(next_index == start_index + 1);
+  AddInstruction(new PickTempInstr(next_index, start_index));
+
+  // Load the value.
+  //   t_n+1 <- InstanceCall(get:name, t_n+1)
+  const String& getter_name =
+      String::ZoneHandle(Field::GetterSymbol(node->field_name()));
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
+  arguments->Add(new TempVal(next_index));
+  InstanceCallComp* load =
+      new InstanceCallComp(node->getter_id(), node->token_index(), getter_name,
+                           arguments, Array::ZoneHandle(), 1);
+  AddInstruction(new BindInstr(next_index, load));
+
+  return next_index;
 }
 
 
-void EffectGraphVisitor::VisitIncrOpStaticFieldNode(
-    IncrOpStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitIncrOpStaticFieldNode");
+void EffectGraphVisitor::BuildIncrOpIncrement(Token::Kind kind,
+                                              intptr_t node_id,
+                                              intptr_t token_index,
+                                              int start_index) {
+  ASSERT((kind == Token::kINCR) || (kind == Token::kDECR));
+  // Assumed that t_n-1 (where n is start_index) is the field value.
+  //   t_n   <- #1
+  //   t_n-1 <- InstanceCall(op, t_n-1, t_n)
+  const Smi& one = Smi::ZoneHandle(Smi::New(1));
+  AddInstruction(new BindInstr(start_index, new ConstantVal(one)));
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
+  arguments->Add(new TempVal(start_index - 1));
+  arguments->Add(new TempVal(start_index));
+  const String& op_name =
+      String::ZoneHandle(String::NewSymbol((kind == Token::kINCR) ? "+" : "-"));
+  InstanceCallComp* add =
+      new InstanceCallComp(node_id, token_index, op_name,
+                           arguments, Array::ZoneHandle(), 2);
+  AddInstruction(new BindInstr(start_index - 1, add));
+}
+
+
+void EffectGraphVisitor::VisitIncrOpInstanceFieldNode(
+    IncrOpInstanceFieldNode* node) {
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  // In an effect context, treat postincrement as if it were preincrement
+  // because its value is not needed.
+
+  // 1. Load the value.
+  const int value_index = BuildIncrOpFieldLoad(node, temp_index());
+  // 2. Increment.
+  BuildIncrOpIncrement(node->kind(), node->operator_id(), node->token_index(),
+                       value_index + 1);
+  // 3. Perform the store, returning the stored value.
+  InstanceSetterComp* store =
+      new InstanceSetterComp(node->setter_id(), node->token_index(),
+                             node->field_name(),
+                             new TempVal(value_index - 1),
+                             new TempVal(value_index));
+  ReturnComputation(store);
+}
+
+
+void ValueGraphVisitor::VisitIncrOpInstanceFieldNode(
+    IncrOpInstanceFieldNode* node) {
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  if (node->prefix()) {
+    // Base class handles preincrement.
+    EffectGraphVisitor::VisitIncrOpInstanceFieldNode(node);
+    return;
+  }
+  // For postincrement, preallocate a temporary to preserve the original
+  // value.
+  //
+  // 1. Name a placeholder.
+  const Smi& placeholder = Smi::ZoneHandle(Smi::New(0));
+  AddInstruction(new BindInstr(temp_index(), new ConstantVal(placeholder)));
+  // 2. Load the value.
+  const int value_index = BuildIncrOpFieldLoad(node, temp_index() + 1);
+  // 3. Preserve the original value.
+  AddInstruction(new TuckTempInstr(temp_index(), value_index));
+  // 4. Increment.
+  BuildIncrOpIncrement(node->kind(), node->operator_id(), node->token_index(),
+                       value_index + 1);
+  // 5. Perform the store and return the original value.
+  const String& setter_name =
+      String::ZoneHandle(Field::SetterSymbol(node->field_name()));
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
+  arguments->Add(new TempVal(value_index - 1));
+  arguments->Add(new TempVal(value_index));
+  InstanceCallComp* store =
+      new InstanceCallComp(node->setter_id(), node->token_index(),
+                           setter_name, arguments, Array::ZoneHandle(), 1);
+  AddInstruction(new DoInstr(store));
+  ReturnValue(new TempVal(AllocateTempIndex()));
+}
+
+
+int EffectGraphVisitor::BuildIncrOpIndexedLoad(IncrOpIndexedNode* node,
+                                               int start_index) {
+  // Evaluate the receiver and index.
+  //   t_n   <- ... receiver ...
+  //   t_n+1 <- ... index ...
+  ArgumentGraphVisitor for_receiver(owner(), start_index);
+  node->array()->Visit(&for_receiver);
+  Append(for_receiver);
+  ASSERT(for_receiver.temp_index() == start_index + 1);
+  ArgumentGraphVisitor for_index(owner(), start_index + 1);
+  node->index()->Visit(&for_index);
+  Append(for_index);
+  ASSERT(for_index.temp_index() == start_index + 2);
+
+  // Duplicate the receiver and index values, load the value.
+  //   t_n+2 <- Pick(t_n)
+  //   t_n+3 <- Pick(t_n+1)
+  //   t_n+2 <- InstanceCall([], t_n+2, t_n+3)
+  const int next_index = start_index + 2;
+  AddInstruction(new PickTempInstr(next_index, start_index));
+  AddInstruction(new PickTempInstr(next_index + 1, start_index + 1));
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
+  arguments->Add(new TempVal(next_index));
+  arguments->Add(new TempVal(next_index + 1));
+  const String& load_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+  InstanceCallComp* load =
+      new InstanceCallComp(node->load_id(), node->token_index(), load_name,
+                           arguments, Array::ZoneHandle(), 1);
+  AddInstruction(new BindInstr(next_index, load));
+  return next_index;
 }
 
 
 void EffectGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
-  Bailout("EffectGraphVisitor::VisitIncrOpIndexedNode");
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  // In an effect context, treat postincrement as if it were preincrement
+  // because its value is not needed.
+
+  // 1. Load the value.
+  const int value_index = BuildIncrOpIndexedLoad(node, temp_index());
+  // 2. Increment.
+  BuildIncrOpIncrement(node->kind(), node->operator_id(), node->token_index(),
+                       value_index + 1);
+  // 3. Perform the store, returning the stored value.
+  StoreIndexedComp* store = new StoreIndexedComp(node->store_id(),
+                                                 node->token_index(),
+                                                 new TempVal(value_index - 2),
+                                                 new TempVal(value_index - 1),
+                                                 new TempVal(value_index));
+  ReturnComputation(store);
+}
+
+
+void ValueGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  if (node->prefix()) {
+    // Base class handles preincrement.
+    EffectGraphVisitor::VisitIncrOpIndexedNode(node);
+    return;
+  }
+  // For postincrement, preallocate a temporary to preserve the original
+  // value.
+  //
+  // 1. Name a placeholder.
+  const Smi& placeholder = Smi::ZoneHandle(Smi::New(0));
+  AddInstruction(new BindInstr(temp_index(), new ConstantVal(placeholder)));
+  // 2. Load the value.
+  const int value_index = BuildIncrOpIndexedLoad(node, temp_index() + 1);
+  // 3. Preserve the original value.
+  AddInstruction(new TuckTempInstr(temp_index(), value_index));
+  // 4. Increment.
+  BuildIncrOpIncrement(node->kind(), node->operator_id(), node->token_index(),
+                       value_index + 1);
+  // 5. Perform the store and return the original value.
+  const String& store_name =
+      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(3);
+  arguments->Add(new TempVal(value_index - 2));
+  arguments->Add(new TempVal(value_index - 1));
+  arguments->Add(new TempVal(value_index));
+  InstanceCallComp* store =
+      new InstanceCallComp(node->store_id(), node->token_index(), store_name,
+                           arguments, Array::ZoneHandle(), 1);
+  AddInstruction(new DoInstr(store));
+  ReturnValue(new TempVal(AllocateTempIndex()));
 }
 
 
@@ -370,7 +586,26 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 
 
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
-  Bailout("EffectGraphVisitor::VisitDoWhileNode");
+  EffectGraphVisitor for_body(owner(), temp_index());
+  node->body()->Visit(&for_body);
+  TestGraphVisitor for_test(owner(), temp_index());
+  node->condition()->Visit(&for_test);
+  ASSERT(is_open());
+
+  // Tie do-while loop (test is after the body).
+  JoinEntryInstr* join = new JoinEntryInstr();
+  AddInstruction(join);
+  join->SetSuccessor(for_body.entry());
+  Instruction* body_exit = for_body.is_empty() ? join : for_body.exit();
+
+  if (body_exit != NULL) {
+    TargetEntryInstr* target_entry = new TargetEntryInstr();
+    target_entry->SetSuccessor(for_test.entry());
+    body_exit->SetSuccessor(target_entry);
+  }
+
+  *for_test.true_successor_address() = join;
+  exit_ = *for_test.false_successor_address() = new TargetEntryInstr();
 }
 
 
@@ -424,7 +659,8 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 
   TranslateArgumentList(*arguments, for_receiver.temp_index(), values);
   InstanceCallComp* call =
-      new InstanceCallComp(node, node->function_name(), values,
+      new InstanceCallComp(node->id(), node->token_index(),
+                           node->function_name(), values,
                            arguments->names(), 1);
   ReturnComputation(call);
 }
@@ -465,7 +701,8 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallComp* call =
-      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 1);
+      new InstanceCallComp(node->id(), node->token_index(), name,
+                           arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
 
@@ -477,7 +714,9 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   ArgumentGraphVisitor for_value(owner(), for_receiver.temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  InstanceSetterComp* setter = new InstanceSetterComp(node,
+  InstanceSetterComp* setter = new InstanceSetterComp(node->id(),
+                                                      node->token_index(),
+                                                      node->field_name(),
                                                       for_receiver.value(),
                                                       for_value.value());
   ReturnComputation(setter);
@@ -543,23 +782,56 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void EffectGraphVisitor::VisitLoadInstanceFieldNode(
     LoadInstanceFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitLoadInstanceFieldNode");
+  ValueGraphVisitor for_instance(owner(), temp_index());
+  node->instance()->Visit(&for_instance);
+  Append(for_instance);
+  LoadInstanceFieldComp* load =
+      new LoadInstanceFieldComp(node, for_instance.value());
+  ReturnComputation(load);
 }
 
 
 void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     StoreInstanceFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitStoreInstanceFieldNode");
+  ValueGraphVisitor for_instance(owner(), temp_index());
+  node->instance()->Visit(&for_instance);
+  Append(for_instance);
+  ValueGraphVisitor for_value(owner(), for_instance.temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  Value* store_value = for_value.value();
+  if (FLAG_enable_type_checks) {
+    const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
+    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
+    AddInstruction(new BindInstr(temp_index(), assert));
+    store_value = new TempVal(temp_index());
+  }
+  StoreInstanceFieldComp* store =
+      new StoreInstanceFieldComp(node, for_instance.value(), store_value);
+  ReturnComputation(store);
 }
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitLoadStaticFieldNode");
+  LoadStaticFieldComp* load = new LoadStaticFieldComp(node->field());
+  ReturnComputation(load);
 }
 
 
 void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  Bailout("EffectGraphVisitor::VisitStoreStaticFieldNode");
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  Value* store_value = for_value.value();
+  if (FLAG_enable_type_checks) {
+    const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
+    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
+    AddInstruction(new BindInstr(temp_index(), assert));
+    store_value = new TempVal(temp_index());
+  }
+  StoreStaticFieldComp* store =
+      new StoreStaticFieldComp(node->field(), store_value);
+  ReturnComputation(store);
 }
 
 
@@ -576,7 +848,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   const String& name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
   InstanceCallComp* call =
-      new InstanceCallComp(node, name, arguments, Array::ZoneHandle(), 1);
+      new InstanceCallComp(node->id(), node->token_index(), name,
+                           arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
 
@@ -591,7 +864,8 @@ void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   ArgumentGraphVisitor for_value(owner(), for_index.temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  StoreIndexedComp* store = new StoreIndexedComp(node,
+  StoreIndexedComp* store = new StoreIndexedComp(node->id(),
+                                                 node->token_index(),
                                                  for_array.value(),
                                                  for_index.value(),
                                                  for_value.value());
@@ -683,8 +957,10 @@ void FlowGraphPrinter::VisitBlocks(
       OS::Print("\n");
       current = current->Accept(this);
     }
-    if ((current != NULL) && current->IsBlockEntry()) {
-      OS::Print(" goto %d", BlockEntryInstr::cast(current)->block_number());
+    BlockEntryInstr* successor =
+        (current == NULL) ? NULL : current->AsBlockEntry();
+    if (successor != NULL) {
+      OS::Print(" goto %d", successor->block_number());
     }
     OS::Print("\n");
   }
@@ -756,6 +1032,38 @@ void FlowGraphPrinter::VisitNativeCall(NativeCallComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
+  OS::Print("LoadInstanceField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->instance()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
+  OS::Print("StoreInstanceField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->instance()->Accept(this);
+  OS::Print(", ");
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitLoadStaticField(LoadStaticFieldComp* comp) {
+  OS::Print("LoadStaticField(%s)",
+      String::Handle(comp->field().name()).ToCString());
+}
+
+
+void FlowGraphPrinter::VisitStoreStaticField(StoreStaticFieldComp* comp) {
+  OS::Print("StoreStaticField(%s, ",
+      String::Handle(comp->field().name()).ToCString());
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
 void FlowGraphPrinter::VisitStoreIndexed(StoreIndexedComp* comp) {
   OS::Print("StoreIndexed(");
   comp->array()->Accept(this);
@@ -776,6 +1084,19 @@ void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitBooleanNegate(BooleanNegateComp* comp) {
+  OS::Print("! ");
+  comp->value()->Accept(this);
+}
+
+
+void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
+  comp->value()->Accept(this);
+  OS::Print(" %s %s",
+      comp->negate_result() ? "ISNOT" : "IS",
+      String::Handle(comp->type().Name()).ToCString());
+}
+
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", instr->block_number());
 }
@@ -783,6 +1104,16 @@ void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
 
 void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
   OS::Print("%2d: [target]", instr->block_number());
+}
+
+
+void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
+  OS::Print("    t%d <- Pick(t%d)", instr->destination(), instr->source());
+}
+
+
+void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
+  OS::Print("    t%d := t%d", instr->destination(), instr->source());
 }
 
 
@@ -813,6 +1144,10 @@ void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
 
 
 void FlowGraphBuilder::BuildGraph() {
+  if (FLAG_print_ast) {
+    // Print the function ast before IL generation.
+    AstPrinter::PrintFunctionNodes(parsed_function_);
+  }
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);

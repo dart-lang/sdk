@@ -591,6 +591,13 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
 }
 
 
+intptr_t RawGrowableObjectArray::VisitGrowableObjectArrayPointers(
+    RawGrowableObjectArray* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return GrowableObjectArray::InstanceSize();
+}
+
+
 intptr_t RawByteArray::VisitByteArrayPointers(RawByteArray* raw_obj,
                                               ObjectPointerVisitor* visitor) {
   // ByteArray is an abstract class.

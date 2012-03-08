@@ -14,6 +14,12 @@ class _ShadowRootWrappingImplementation extends _DocumentFragmentWrappingImpleme
   Element get host() { return _get_host(this); }
   static Element _get_host(var _this) native;
 
+  String get innerHTML() { return _get_innerHTML(this); }
+  static String _get_innerHTML(var _this) native;
+
+  void set innerHTML(String value) { _set_innerHTML(this, value); }
+  static void _set_innerHTML(var _this, String value) native;
+
   Element getElementById(String elementId) {
     return _getElementById(this, elementId);
   }

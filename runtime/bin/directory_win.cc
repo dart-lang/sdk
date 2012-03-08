@@ -324,6 +324,15 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 }
 
 
+char* Directory::Current() {
+  char* result;
+  int length = GetCurrentDirectory(0, NULL);
+  result = reinterpret_cast<char*>(malloc(length + 1));
+  GetCurrentDirectory(length + 1, result);
+  return result;
+}
+
+
 bool Directory::Create(const char* dir_name) {
   return (CreateDirectory(dir_name, NULL) != 0);
 }

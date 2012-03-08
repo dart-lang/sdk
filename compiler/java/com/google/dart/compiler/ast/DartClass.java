@@ -19,9 +19,9 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
 
   private DartTypeNode superclass;
 
-  private final List<DartNode> members;
-  private final List<DartTypeParameter> typeParameters;
-  private final List<DartTypeNode> interfaces;
+  private final NodeList<DartNode> members = NodeList.create(this);
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
+  private final NodeList<DartTypeNode> interfaces = NodeList.create(this);
 
   private boolean isInterface;
   private DartParameterizedTypeNode defaultClass;
@@ -64,9 +64,9 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     super(name);
     this.nativeName = nativeName;
     this.superclass = becomeParentOf(superclass);
-    this.members = becomeParentOf(members);
-    this.typeParameters = becomeParentOf(typeParameters);
-    this.interfaces = becomeParentOf(interfaces);
+    this.members.addAll(members);
+    this.typeParameters.addAll(typeParameters);
+    this.interfaces.addAll(interfaces);
     this.defaultClass = becomeParentOf(defaultClass);
     this.isInterface = isInterface;
     this.modifiers = modifiers;
@@ -169,40 +169,20 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (superclass != null) {
-        superclass = becomeParentOf(v.accept(superclass));
-      }
-      v.acceptWithInsertRemove(this, getMembers());
-      if (getTypeParameters() != null) {
-        v.acceptWithInsertRemove(this, getTypeParameters());
-      }
-      if (getInterfaces() != null) {
-        v.acceptWithInsertRemove(this, getInterfaces());
-      }
-      if (defaultClass != null) {
-        defaultClass = becomeParentOf(v.accept(defaultClass));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-    visitor.visit(typeParameters);
+  public void visitChildren(ASTVisitor<?> visitor) {
+    typeParameters.accept(visitor);
     if (superclass != null) {
       superclass.accept(visitor);
     }
-    visitor.visit(interfaces);
+    interfaces.accept(visitor);
     if (defaultClass != null) {
       defaultClass.accept(visitor);
     }
-    visitor.visit(members);
+    members.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitClass(this);
   }
 }

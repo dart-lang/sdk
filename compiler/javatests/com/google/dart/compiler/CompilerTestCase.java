@@ -13,7 +13,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
@@ -332,7 +332,7 @@ public abstract class CompilerTestCase extends TestCase {
    */
   protected static DartNewExpression findNewExpression(DartNode rootNode, final String sampleSource) {
     final DartNewExpression result[] = new DartNewExpression[1];
-    rootNode.accept(new DartNodeTraverser<Void>() {
+    rootNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitNewExpression(DartNewExpression node) {
         if (node.toSource().equals(sampleSource)) {
@@ -346,7 +346,7 @@ public abstract class CompilerTestCase extends TestCase {
 
   protected static DartFunctionTypeAlias findTypedef(DartNode rootNode, final String name) {
     final DartFunctionTypeAlias result[] = new DartFunctionTypeAlias[1];
-    rootNode.accept(new DartNodeTraverser<Void>() {
+    rootNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
         if (node.getName().getTargetName().equals(name)) {

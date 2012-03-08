@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -138,7 +138,7 @@ public class TopLevelElementBuilder {
   /**
    * Creates a ClassElement for a class.
    */
-  private class Builder extends DartNodeTraverser<Void> {
+  private class Builder extends ASTVisitor<Void> {
 
     private LibraryElement library;
 

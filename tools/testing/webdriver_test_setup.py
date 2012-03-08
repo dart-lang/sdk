@@ -212,8 +212,8 @@ class SeleniumBindingsInstaller(object):
       admin_keyword = 'sudo'
     else:
       # The python installation is "special" on Windows buildbots.
-      if is_buildbot:
-        python_cmd = os.path.join(find_depot_tools_location(is_buildbot),
+      if self.is_buildbot:
+        python_cmd = os.path.join(find_depot_tools_location(self.is_buildbot),
             'python-bin', 'python')
     page = urllib2.urlopen(self.SETUPTOOLS_SITE)
     run_cmd('%s %s' % (admin_keyword, python_cmd), page.read())

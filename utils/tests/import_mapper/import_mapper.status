@@ -2,12 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-prefix import_mapper
-
 [ $component == leg ]
 *: Skip # Leg is not ready yet.
 
-[ $component == dartc || $component == chromium || $component == frogium ]
+[ $component == dartc || $component == chromium || $component == frogium || $component == legium ]
 *: Skip # Import mapper runs on the VM.
 
 [ $component == dartium || $component == webdriver ]

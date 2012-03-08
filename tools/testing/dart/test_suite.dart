@@ -428,7 +428,7 @@ class StandardTestSuite implements TestSuite {
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
     if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
       print('Warning for $filename: Browser tests require #library ' +
-            'in any file that uses #import or #source');
+            'in any file that uses #import, #source, or #resource');
     }
 
     final String component = configuration['component'];
@@ -449,8 +449,7 @@ class StandardTestSuite implements TestSuite {
 
       String dartWrapperFilename = '${tempDir.path}/test.dart';
       String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-      String domLibraryImport = (component == 'chromium') ?
-          '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
+      String domLibraryImport = 'dart:dom';
 
       String htmlPath = '${tempDir.path}/test.html';
       if (!isWebTest) {
@@ -485,10 +484,10 @@ class StandardTestSuite implements TestSuite {
         // than 260 characters, and without this hack, we were running past the
         // the limit.
         String htmlFilename = getHtmlName(filename);
-        while ('${tempDir.path}/../../$htmlFilename'.length >= 260) {
+        while ('${tempDir.path}/../$htmlFilename'.length >= 260) {
           htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
         }
-        htmlPath = '${tempDir.path}/../../$htmlFilename';
+        htmlPath = '${tempDir.path}/../$htmlFilename';
       }
       final String scriptPath = (component == 'dartium') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -577,13 +576,11 @@ class StandardTestSuite implements TestSuite {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
     switch (component) {
+      // TODO(zundel): Remove chromium now that dartc doesn't generate code?
       case 'chromium':
         args.addAll(['--work', dir]);
         args.addAll(vmOptions);
         args.add('--ignore-unrecognized-flags');
-        // TODO(zundel): remove assumption of generated code from dartc
-        args.add('--out');
-        args.add(outputFile);
         args.add(inputFile);
         // TODO(whesse): Add --fatal-type-errors if needed.
         break;
@@ -637,16 +634,17 @@ class StandardTestSuite implements TestSuite {
 
     // Create '[build dir]/generated_tests/$component/$testUniqueName',
       // including any intermediate directories that don't exist.
-    String debugMode =
-        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    var generatedTestPath = [debugMode + configuration["arch"],
-                             'generated_tests',
+    var generatedTestPath = ['generated_tests',
                              configuration['component'],
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
     if (requiresCleanTemporaryDirectory) {
       tempDirPath = globalTemporaryDirectory();
+      String debugMode = 
+          (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+      generatedTestPath = ['${debugMode}_${configuration["arch"]}']
+          .addAll(generatedTestPath);
     }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
@@ -668,15 +666,8 @@ class StandardTestSuite implements TestSuite {
       }
     }
     tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
-
-    for (String subdirectory in generatedTestPath) {
-      tempDirPath = '$tempDirPath/$subdirectory';
-      tempDir = new Directory(tempDirPath);
-      if (!tempDir.existsSync()) {
-        tempDir.createSync();
-      }
-    }
-    return tempDir;
+    return TestUtils.mkdirRecursive(tempDirPath, 
+      Strings.join(generatedTestPath, '/'));
   }
 
   String get scriptType() {
@@ -785,7 +776,7 @@ class StandardTestSuite implements TestSuite {
     RegExp libraryDefinitionRegExp =
         const RegExp(@"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
-        const RegExp(@"^#(source|import)\(", multiLine: true);
+        const RegExp(@"^#(source|import|resource)\(", multiLine: true);
 
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
@@ -1043,6 +1034,38 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
+  
+  /** 
+   * Creates a directory using a [relativePath] to an existing 
+   * [base] directory if that [relativePath] does not already exist.
+   */
+  static Directory mkdirRecursive(String base, String relativePath) {
+    Directory baseDir = new Directory(base);
+    Expect.isTrue(baseDir.existsSync(),
+      "Expected ${base} to already exist");  
+    var tempDir = new Directory(base);
+    for (String dir in relativePath.split('/')) {
+      base = "$base/$dir";
+      tempDir = new Directory(base);
+      if (!tempDir.existsSync()) {
+          tempDir.createSync();
+      }
+      Expect.isTrue(tempDir.existsSync(), "Failed to create ${tempDir.path}");
+    }
+    return tempDir;
+  }
+
+  /**
+   * Copy a [source] file to a new place.
+   * Assumes that the directory for [dest] already exists.
+   */
+  static void copyFile(File source, File dest) {
+    List contents = source.readAsBytesSync();
+    RandomAccessFile handle = dest.openSync(FileMode.WRITE);
+    handle.writeListSync(contents, 0, contents.length);
+    handle.closeSync();
+  }
+  
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
       if (component != 'frogium'

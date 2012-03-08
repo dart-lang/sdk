@@ -4,12 +4,6 @@
 
 interface Document extends HtmlElement {
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title();
-  void set title(String value);
-
 
   final Element activeElement;
 
@@ -36,6 +30,8 @@ interface Document extends HtmlElement {
   String selectedStylesheetSet;
 
   final StyleSheetList styleSheets;
+
+  String title;
 
   final Element webkitCurrentFullScreenElement;
 
@@ -71,7 +67,7 @@ interface Document extends HtmlElement {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   bool queryCommandEnabled(String command);
 

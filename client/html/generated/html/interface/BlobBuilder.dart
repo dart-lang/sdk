@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface BlobBuilder {
+interface BlobBuilder default _BlobBuilderFactoryProvider {
+
+  BlobBuilder();
 
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 

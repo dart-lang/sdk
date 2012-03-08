@@ -32,24 +32,15 @@ public class DartConditional extends DartExpression {
     return thenExpr;
   }
 
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      condition = becomeParentOf(v.accept(condition));
-      thenExpr = becomeParentOf(v.accept(thenExpr));
-      elseExpr = becomeParentOf(v.accept(elseExpr));
-    }
-    v.endVisit(this, ctx);
-  }
-
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     condition.accept(visitor);
     thenExpr.accept(visitor);
     elseExpr.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitConditional(this);
   }
 }

@@ -22,20 +22,34 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return _wrap(_ptr.clear());
   }
 
-  IDBRequest count([IDBKeyRange range = null]) {
-    if (range === null) {
+  IDBRequest count([var key_OR_range = null]) {
+    if (key_OR_range === null) {
       return _wrap(_ptr.count());
     } else {
-      return _wrap(_ptr.count(_unwrap(range)));
+      if (key_OR_range is IDBKeyRange) {
+        return _wrap(_ptr.count(_unwrap(key_OR_range)));
+      } else {
+        if (key_OR_range is IDBKey) {
+          return _wrap(_ptr.count(_unwrap(key_OR_range)));
+        }
+      }
     }
+    throw "Incorrect number or type of arguments";
   }
 
   IDBIndex createIndex(String name, String keyPath) {
     return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
   }
 
-  IDBRequest delete(IDBKey key) {
-    return _wrap(_ptr.delete(_unwrap(key)));
+  IDBRequest delete(var key_OR_keyRange) {
+    if (key_OR_keyRange is IDBKeyRange) {
+      return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
+    } else {
+      if (key_OR_keyRange is IDBKey) {
+        return _wrap(_ptr.delete(_unwrap(key_OR_keyRange)));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void deleteIndex(String name) {

@@ -11,7 +11,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -81,7 +81,7 @@ public class ResolutionContext implements ResolutionErrorListener {
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
           // http://code.google.com/p/dart/issues/detail?id=1060
-          if (!Elements.isLibrarySource(element.getNode().getSource(), "htmlimpl.dart")
+          if (!Elements.isLibrarySource(element.getNode().getSource(), "html.dart")
               && !Elements.isLibrarySource(element.getNode().getSource(), "dom.dart")) {
             onError(nameNode, warningCode, name, existingElement, existingLocation);
           }
@@ -347,7 +347,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     context.onError(new DartCompilationError(node, errorCode, arguments));
   }
 
-  class Selector extends DartNodeTraverser<Element> {
+  class Selector extends ASTVisitor<Element> {
     @Override
     public Element visitNode(DartNode node) {
       throw internalError(node, "Unexpected node: %s", node);

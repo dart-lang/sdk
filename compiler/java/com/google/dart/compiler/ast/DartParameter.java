@@ -18,9 +18,8 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
 
   private VariableElement symbol;
   private DartTypeNode typeNode;
-  private List<DartParameter> functionParameters;
+  private final NodeList<DartParameter> functionParameters;
   private DartExpression defaultExpr;
-  private DartParameter normalizedNode = this;
   private final Modifiers modifiers;
 
   public DartParameter(DartExpression name,
@@ -32,7 +31,12 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
     Preconditions.checkArgument((name instanceof DartIdentifier)
       || (name instanceof DartPropertyAccess), "name");
     this.typeNode = becomeParentOf(typeNode);
-    this.functionParameters = becomeParentOf(functionParameters);
+    if (functionParameters != null) {
+      this.functionParameters = NodeList.create(this);
+      this.functionParameters.addAll(functionParameters);
+    } else {
+      this.functionParameters = null;
+    }
     this.defaultExpr = becomeParentOf(defaultExpr);
     this.modifiers = modifiers;
   }
@@ -73,16 +77,6 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
     return null;
   }
 
-  public void setNormalizedNode(DartParameter normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartParameter getNormalizedNode() {
-    return normalizedNode;
-  }
-
   @Override
   public void setSymbol(Symbol symbol) {
     this.symbol = (VariableElement) symbol;
@@ -93,34 +87,20 @@ public class DartParameter extends DartDeclaration<DartExpression> implements Ha
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (typeNode != null) {
-        typeNode = becomeParentOf(v.accept(typeNode));
-      }
-      if (defaultExpr != null) {
-        defaultExpr = becomeParentOf(v.accept(defaultExpr));
-      }
-      if (functionParameters != null) {
-        v.acceptWithInsertRemove(this, functionParameters);
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (typeNode != null) {
       typeNode.accept(visitor);
     }
     if (defaultExpr != null) {
       defaultExpr.accept(visitor);
     }
-    visitor.visit(functionParameters);
+    if (functionParameters != null) {
+      functionParameters.accept(visitor);
+    }
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitParameter(this);
   }
 }

@@ -26,7 +26,6 @@ namespace dart {
   V(UnaryOpNode, "unaryop")                                                    \
   V(IncrOpLocalNode, "incr local")                                             \
   V(IncrOpInstanceFieldNode, "incr instance field")                            \
-  V(IncrOpStaticFieldNode, "incr static field")                                \
   V(IncrOpIndexedNode, "incr indexed")                                         \
   V(ConditionalExprNode, "?:")                                                 \
   V(IfNode, "if")                                                              \
@@ -756,63 +755,6 @@ class IncrOpInstanceFieldNode : public AstNode {
   ICData& setter_ic_data_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpInstanceFieldNode);
-};
-
-
-class IncrOpStaticFieldNode : public AstNode {
- public:
-  // Access the static field via a call to static getter.
-  IncrOpStaticFieldNode(intptr_t token_index,
-                        Token::Kind kind,
-                        bool prefix,
-                        const Class& field_class,
-                        const String& field_name)
-      : AstNode(token_index),
-        kind_(kind),
-        prefix_(prefix),
-        field_class_(field_class),
-        field_name_(field_name),
-        field_(Field::ZoneHandle()) {
-    ASSERT(field_class_.IsZoneHandle());
-    ASSERT(field_name_.IsZoneHandle());
-    ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
-  }
-
-  // Access the static field directly.
-  IncrOpStaticFieldNode(intptr_t token_index,
-                        Token::Kind kind,
-                        bool prefix,
-                        const Field& field)
-      : AstNode(token_index),
-        kind_(kind),
-        prefix_(prefix),
-        field_class_(Class::ZoneHandle()),
-        field_name_(String::ZoneHandle()),
-        field_(field) {
-    ASSERT(field_.IsZoneHandle());
-    ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
-  }
-
-  Token::Kind kind() const { return kind_; }
-  bool prefix() const { return prefix_; }
-  const Class& field_class() const { return field_class_; }
-  const String& field_name() const { return field_name_; }
-  const Field& field() const { return field_; }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
-
-  virtual const char* Name() const;
-
-  DECLARE_COMMON_NODE_FUNCTIONS(IncrOpStaticFieldNode);
-
- private:
-  const Token::Kind kind_;
-  const bool prefix_;
-  const Class& field_class_;
-  const String& field_name_;
-  const Field& field_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpStaticFieldNode);
 };
 
 

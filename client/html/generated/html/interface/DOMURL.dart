@@ -4,5 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface DOMURL default _DOMURLFactoryProvider {
+
+  DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }

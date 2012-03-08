@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStream {
+interface MediaStream default _MediaStreamFactoryProvider {
+
+  MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
   static final int ENDED = 2;
 

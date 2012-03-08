@@ -182,6 +182,7 @@ void ActivationFrame::GetDescIndices() {
     const Code& code = Code::Handle(DartFunction().unoptimized_code());
     var_descriptors_ =
         &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+    // TODO(Hausner): Consider replacing this GrowableArray.
     GrowableArray<String*> var_names(8);
     intptr_t activation_token_pos = TokenIndex();
     intptr_t var_desc_len = var_descriptors_->Length();
@@ -659,17 +660,6 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
 }
 
 
-static RawArray* MakeNameValueList(const GrowableArray<Object*>& pairs) {
-  int pairs_len = pairs.length();
-  ASSERT(pairs_len % 2 == 0);
-  const Array& list = Array::Handle(Array::New(pairs_len));
-  for (int i = 0; i < pairs_len; i++) {
-    list.SetAt(i, *pairs[i]);
-  }
-  return list.raw();
-}
-
-
 // TODO(hausner): Merge some of this functionality with the code in
 // dart_api_impl.cc.
 RawObject* Debugger::GetInstanceField(const Class& cls,
@@ -722,40 +712,45 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   Class& cls = Class::Handle(obj.clazz());
   Array& fields = Array::Handle();
   Field& field = Field::Handle();
-  GrowableArray<Object*> field_list(8);
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+  String& field_name = String::Handle();
+  Object& field_value = Object::Handle();
   // Iterate over fields in class hierarchy to count all instance fields.
   while (!cls.IsNull()) {
     fields = cls.fields();
     for (int i = 0; i < fields.Length(); i++) {
       field ^= fields.At(i);
       if (!field.is_static()) {
-        String& field_name = String::Handle(field.name());
-        field_list.Add(&field_name);
-        Object& field_value = Object::Handle();
+        field_name = field.name();
+        field_list.Add(field_name);
         field_value = GetInstanceField(cls, field_name, obj);
-        field_list.Add(&field_value);
+        field_list.Add(field_value);
       }
     }
     cls = cls.SuperClass();
   }
-  return MakeNameValueList(field_list);
+  return Array::MakeArray(field_list);
 }
 
 
 RawArray* Debugger::GetStaticFields(const Class& cls) {
-  GrowableArray<Object*> field_list(8);
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
   Array& fields = Array::Handle(cls.fields());
   Field& field = Field::Handle();
+  String& field_name = String::Handle();
+  Object& field_value = Object::Handle();
   for (int i = 0; i < fields.Length(); i++) {
     field ^= fields.At(i);
     if (field.is_static()) {
-      String& field_name = String::Handle(field.name());
-      Object& field_value = Object::Handle(GetStaticField(cls, field_name));
-      field_list.Add(&field_name);
-      field_list.Add(&field_value);
+      field_name = field.name();
+      field_value = GetStaticField(cls, field_name);
+      field_list.Add(field_name);
+      field_list.Add(field_value);
     }
   }
-  return MakeNameValueList(field_list);
+  return Array::MakeArray(field_list);
 }
 
 

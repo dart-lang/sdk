@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-prefix isolate
-
 [ $component == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
@@ -69,6 +67,9 @@ APIv2*: Skip
 
 [ $component == leg ]
 # TODO(ahe): Enable when leg matures.
+*: Skip
+
+[ $component == legium ]
 *: Skip
 
 [ $arch == simarm ]

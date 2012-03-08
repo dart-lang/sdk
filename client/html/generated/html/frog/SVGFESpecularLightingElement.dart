@@ -23,7 +23,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  _SVGAnimatedStringImpl get _className() native "return this.className;";
+  _SVGAnimatedStringImpl get _svgClassName() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationImpl style;

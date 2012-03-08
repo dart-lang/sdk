@@ -9,11 +9,11 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 

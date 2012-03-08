@@ -7,7 +7,6 @@ package com.google.dart.compiler.ast;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.Types;
 
 /**
  * Represents a Dart property access expression (a.b).
@@ -16,7 +15,6 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
 
   private DartNode qualifier;
   private DartIdentifier name;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
   private Type type;
 
@@ -55,16 +53,6 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
     return name.getTargetSymbol();
   }
 
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
-  }
-
   @Override
   public void setType(Type type) {
     this.type = type;
@@ -76,22 +64,13 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      qualifier = becomeParentOf(v.accept(qualifier));
-      name = becomeParentOf(v.accept(name));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     qualifier.accept(visitor);
     name.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitPropertyAccess(this);
   }
 

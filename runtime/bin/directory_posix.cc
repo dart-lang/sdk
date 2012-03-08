@@ -377,6 +377,11 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 }
 
 
+char* Directory::Current() {
+  return getcwd(NULL, 0);
+}
+
+
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
   // process umask.

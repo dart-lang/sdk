@@ -575,26 +575,31 @@ class Class : public Object {
   bool IsMoreSpecificThan(
       const AbstractTypeArguments& type_arguments,
       const Class& other,
-      const AbstractTypeArguments& other_type_arguments) const;
+      const AbstractTypeArguments& other_type_arguments,
+      Error* malformed_error) const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
-                   const AbstractTypeArguments& other_type_arguments) const {
+                   const AbstractTypeArguments& other_type_arguments,
+                   Error* malformed_error) const {
     return TestType(kIsSubtypeOf,
                     type_arguments,
                     other,
-                    other_type_arguments);
+                    other_type_arguments,
+                    malformed_error);
   }
 
   // Check the assignability relationship.
   bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
                       const Class& dst,
-                      const AbstractTypeArguments& dst_type_arguments) const {
+                      const AbstractTypeArguments& dst_type_arguments,
+                      Error* malformed_error) const {
     return TestType(kIsAssignableTo,
                     type_arguments,
                     dst,
-                    dst_type_arguments);
+                    dst_type_arguments,
+                    malformed_error);
   }
 
   // Check if this is the top level class.
@@ -717,7 +722,8 @@ class Class : public Object {
   bool TestType(TypeTestKind test,
                 const AbstractTypeArguments& type_arguments,
                 const Class& other,
-                const AbstractTypeArguments& other_type_arguments) const;
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -857,16 +863,18 @@ class AbstractType : public Object {
   }
 
   // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(const AbstractType& other) const;
+  bool IsMoreSpecificThan(const AbstractType& other,
+                          Error* malformed_error) const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other) const {
-    return Test(kIsSubtypeOf, other);
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
+    return Test(kIsSubtypeOf, other, malformed_error);
   }
 
   // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractType& dst) const {
-    return Test(kIsAssignableTo, dst);
+  bool IsAssignableTo(const AbstractType& dst,
+                      Error* malformed_error) const {
+    return Test(kIsAssignableTo, dst, malformed_error);
   }
 
   static RawAbstractType* NewTypeParameter(intptr_t index,
@@ -879,7 +887,9 @@ class AbstractType : public Object {
 
  protected:
   // Check the subtype or assignability relationship.
-  bool Test(TypeTestKind test, const AbstractType& other) const;
+  bool Test(TypeTestKind test,
+            const AbstractType& other,
+            Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
@@ -1085,10 +1095,17 @@ class AbstractTypeArguments : public Object {
   // considering only a prefix of length 'len'.
   bool IsDynamicTypes(intptr_t len) const;
 
+  // Check that this type argument vector is within the declared bounds of the
+  // given class or interface. If not, set malformed_error (if not yet set).
+  bool IsWithinBoundsOf(const Class& cls,
+                        const AbstractTypeArguments& bounds_instantiator,
+                        Error* malformed_error) const;
+
   // Check the "more specific than" relationship, considering only a prefix of
   // length 'len'.
-  bool IsMoreSpecificThan(
-      const AbstractTypeArguments& other, intptr_t len) const;
+  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t len,
+                          Error* malformed_error) const;
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1393,22 +1410,26 @@ class Function : public Object {
   // the other function.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
-                   const AbstractTypeArguments& other_type_arguments) const {
+                   const AbstractTypeArguments& other_type_arguments,
+                   Error* malformed_error) const {
     return TestType(kIsSubtypeOf,
                     type_arguments,
                     other,
-                    other_type_arguments);
+                    other_type_arguments,
+                    malformed_error);
   }
 
   // Returns true if the type of this function can be assigned to the type of
   // the destination function.
   bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
                       const Function& dst,
-                      const AbstractTypeArguments& dst_type_arguments) const {
+                      const AbstractTypeArguments& dst_type_arguments,
+                      Error* malformed_error) const {
     return TestType(kIsAssignableTo,
                     type_arguments,
                     dst,
-                    dst_type_arguments);
+                    dst_type_arguments,
+                    malformed_error);
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -1488,7 +1509,8 @@ class Function : public Object {
   bool TestType(TypeTestKind test,
                 const AbstractTypeArguments& type_arguments,
                 const Function& other,
-                const AbstractTypeArguments& other_type_arguments) const;
+                const AbstractTypeArguments& other_type_arguments,
+                Error* malformed_error) const;
 
   // Checks the type of the formal parameter at the given position for
   // assignability relationship between the type of this function and the type
@@ -1497,7 +1519,8 @@ class Function : public Object {
       intptr_t parameter_position,
       const AbstractTypeArguments& type_arguments,
       const Function& other,
-      const AbstractTypeArguments& other_type_arguments) const;
+      const AbstractTypeArguments& other_type_arguments,
+      Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
@@ -1747,6 +1770,8 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawField* LookupLocalField(const String& name) const;
+  RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
@@ -1771,7 +1796,7 @@ class Library : public Object {
     raw_ptr()->native_entry_resolver_ = value;
   }
 
-  RawString* PrivateName(const char* name);
+  RawString* PrivateName(const String& name) const;
 
   void Register() const;
 
@@ -2460,14 +2485,16 @@ class Instance : public Object {
 
   // Check if this instance is an instance of the given type.
   bool IsInstanceOf(const AbstractType& type,
-                    const AbstractTypeArguments& type_instantiator) const {
-    return TestType(kIsSubtypeOf, type, type_instantiator);
+                    const AbstractTypeArguments& type_instantiator,
+                    Error* malformed_error) const {
+    return TestType(kIsSubtypeOf, type, type_instantiator, malformed_error);
   }
 
   // Check if this instance is assignable to the given type.
   bool IsAssignableTo(const AbstractType& type,
-                      const AbstractTypeArguments& type_instantiator) const {
-    return TestType(kIsAssignableTo, type, type_instantiator);
+                      const AbstractTypeArguments& type_instantiator,
+                      Error* malformed_error) const {
+    return TestType(kIsAssignableTo, type, type_instantiator, malformed_error);
   }
 
   bool IsValidNativeIndex(int index) const;
@@ -2509,7 +2536,8 @@ class Instance : public Object {
   // instance and the given type.
   bool TestType(TypeTestKind test,
                 const AbstractType& type,
-                const AbstractTypeArguments& type_instantiator) const;
+                const AbstractTypeArguments& type_instantiator,
+                Error* malformed_error) const;
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
@@ -3299,6 +3327,16 @@ class Array : public Instance {
   // Returns the preallocated empty array, used to initialize array fields.
   static RawArray* Empty();
 
+  // Return an Array object that contains all the elements currently present
+  // in the specified Growable Object Array. This is done by first truncating
+  // the Growable Object Array's backing array to the currently used size and
+  // returning the truncated backing array.
+  // The remaining unused part of the backing array is marked as an Array
+  // object or a regular Object so that it can be traversed during garbage
+  // collection. The backing array of the original Growable Object Array is
+  // set to an empty array.
+  static RawArray* MakeArray(const GrowableObjectArray& growable_array);
+
  protected:
   static RawArray* New(const Class& cls,
                        intptr_t len,
@@ -3332,6 +3370,86 @@ class ImmutableArray : public Array {
  private:
   HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
   friend class Class;
+};
+
+
+class GrowableObjectArray : public Instance {
+ public:
+  intptr_t Capacity() const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    return Smi::Value(DataArray()->length_);
+  }
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  RawObject* At(intptr_t index) const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    ASSERT(index < Length());
+    return *ObjectAddr(index);
+  }
+  void SetAt(intptr_t index, const Object& value) const {
+    NoGCScope no_gc;
+    ASSERT(!IsNull());
+    ASSERT(index < Length());
+    StorePointer(ObjectAddr(index), value.raw());
+  }
+
+  void Add(const Object& value, Heap::Space space = Heap::kNew) const;
+  RawObject* RemoveLast() const;
+
+  virtual RawAbstractTypeArguments* GetTypeArguments() const {
+    const Array& contents = Array::Handle(data());
+    return contents.GetTypeArguments();
+  }
+  virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+    const Array& contents = Array::Handle(data());
+    contents.SetTypeArguments(value);
+  }
+
+  virtual bool Equals(const Instance& other) const;
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawGrowableObjectArray, length_);
+  }
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawGrowableObjectArray, data_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawGrowableObjectArray));
+  }
+
+  static RawGrowableObjectArray* New(Heap::Space space = Heap::kNew) {
+    return New(kDefaultInitialCapacity, space);
+  }
+  static RawGrowableObjectArray* New(intptr_t capacity,
+                                     Heap::Space space = Heap::kNew);
+
+ private:
+  RawArray* data() const { return raw_ptr()->data_; }
+  void SetLength(intptr_t value) const {
+    // This is only safe because we create a new Smi, which does not cause
+    // heap allocation.
+    raw_ptr()->length_ = Smi::New(value);
+  }
+  void SetData(const Array& value) const {
+    StorePointer(&raw_ptr()->data_, value.raw());
+  }
+  RawArray* DataArray() const { return data()->ptr(); }
+  RawObject** ObjectAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return &(DataArray()->data()[index]);
+  }
+
+  static const int kDefaultInitialCapacity = 4;
+
+  HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
+  friend class Class;
+  friend class Array;
 };
 
 

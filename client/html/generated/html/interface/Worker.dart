@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Worker extends AbstractWorker {
+interface Worker extends AbstractWorker default _WorkerFactoryProvider {
+
+  Worker(String scriptUrl);
 
   WorkerEvents get on();
 

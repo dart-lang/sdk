@@ -13,8 +13,10 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
-    nodes.clear();
-    nodes.addAll(copy);
+    text = '';
+    for (Node node in copy) {
+      _appendChild(node);
+    }
   }
 
   // TODO(jacobr): should we throw an exception if parent is already null?

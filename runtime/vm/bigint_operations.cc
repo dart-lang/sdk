@@ -6,6 +6,7 @@
 
 #include "vm/double_internals.h"
 #include "vm/exceptions.h"
+#include "vm/object_store.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -333,6 +334,94 @@ const char* BigintOperations::ToHexCString(const Bigint& bigint,
                       bigint.IsNegative(),
                       length ? bigint.ChunkAddr(0) : NULL,
                       allocator);
+}
+
+
+const char* BigintOperations::ToDecimalCString(
+    const Bigint& bigint, uword (*allocator)(intptr_t size)) {
+  // log10(2) ~= 0.30102999566398114.
+  const intptr_t kLog2Dividend = 30103;
+  const intptr_t kLog2Divisor = 100000;
+  // We remove a small constant for rounding imprecision, the \0 character and
+  // the negative sign.
+  const intptr_t kMaxAllowedDigitLength =
+      (kIntptrMax - 10) / kLog2Dividend / kDigitBitSize * kLog2Divisor;
+
+  intptr_t length = bigint.Length();
+  if (length >= kMaxAllowedDigitLength) {
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    Isolate* isolate = Isolate::Current();
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
+
+  // Approximate the size of the resulting string. We prefer overestimating
+  // to not allocating enough.
+  int64_t bit_length = length * kDigitBitSize;
+  ASSERT(bit_length > length);
+  int64_t decimal_length = (bit_length * kLog2Dividend / kLog2Divisor) + 1;
+  // Add one byte for the trailing \0 character.
+  int64_t required_size = decimal_length + 1;
+  if (bigint.IsNegative()) {
+    required_size++;
+  }
+  ASSERT(required_size == static_cast<intptr_t>(required_size));
+  // We will fill the result in the inverse order and then exchange at the end.
+  char* result =
+      reinterpret_cast<char*>(allocator(static_cast<intptr_t>(required_size)));
+  ASSERT(result != NULL);
+  int result_pos = 0;
+
+  // We divide the input into pieces of ~27 bits which can be efficiently
+  // handled.
+  const intptr_t kDivisorValue = 100000000;
+  const int kPowerOfTen = 8;
+  ASSERT(pow(10.0, kPowerOfTen) == kDivisorValue);
+  ASSERT(static_cast<Chunk>(kDivisorValue) < kDigitMaxValue);
+  ASSERT(Smi::IsValid(kDivisorValue));
+  const Bigint& divisor = Bigint::Handle(NewFromInt64(kDivisorValue));
+
+  // Rest contains the remaining bigint that needs to be printed.
+  Bigint& rest = Bigint::Handle(bigint.raw());
+  Bigint& quotient = Bigint::Handle();
+  Bigint& remainder = Bigint::Handle();
+  while (!rest.IsZero()) {
+    DivideRemainder(rest, divisor, &quotient, &remainder);
+    ASSERT(remainder.Length() <= 1);
+    intptr_t part = (remainder.Length() == 1)
+        ? static_cast<intptr_t>(remainder.GetChunkAt(0))
+        : 0;
+    for (int i = 0; i < kPowerOfTen; i++) {
+      result[result_pos++] = '0' + (part % 10);
+      part /= 10;
+    }
+    ASSERT(part == 0);
+    rest = quotient.raw();
+  }
+  // Move the resulting position back until we don't have any zeroes anymore.
+  // This is done so that we can remove all leading zeroes.
+  while (result_pos > 1 && result[result_pos - 1] == '0') {
+    result_pos--;
+  }
+  if (bigint.IsNegative()) {
+    result[result_pos++] = '-';
+  }
+  // Reverse the string.
+  int i = 0;
+  int j = result_pos - 1;
+  while (i < j) {
+    char tmp = result[i];
+    result[i] = result[j];
+    result[j] = tmp;
+    i++;
+    j--;
+  }
+  ASSERT(result_pos >= 0);
+  result[result_pos] = '\0';
+  return result;
 }
 
 
@@ -880,13 +969,14 @@ RawBigint* BigintOperations::BitOr(const Bigint& a, const Bigint& b) {
   // magnitude and sign.
   // a & b is therefore computed as ~((~(a - 1)) | (~(b - 1))) + 1 which is
   //   equal to ((a-1) & (b-1)) + 1.
+  ASSERT(a_length >= b_length);
+  ASSERT(min_length == b_length);
   intptr_t result_length = min_length + 1;
   const Bigint& result = Bigint::Handle(Bigint::Allocate(result_length));
   result.ToggleSign();
   Chunk a_borrow = 1;
   Chunk b_borrow = 1;
   Chunk result_carry = 1;
-  ASSERT(a_length >= b_length);
   for (intptr_t i = 0; i < b_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
     Chunk b_digit = b.GetChunkAt(i) - b_borrow;
@@ -896,7 +986,7 @@ RawBigint* BigintOperations::BitOr(const Bigint& a, const Bigint& b) {
     b_borrow = b_digit >> (kChunkBitSize - 1);
     result_carry = result_chunk >> kDigitBitSize;
   }
-  result.SetChunkAt(a_length, result_carry);
+  result.SetChunkAt(b_length, result_carry);
   Clamp(result);
   return result.raw();
 }
@@ -995,11 +1085,12 @@ RawBigint* BigintOperations::BitXor(const Bigint& a, const Bigint& b) {
   // We need to convert a and b to two's complement, do the bit-operation there,
   // and simply store the result.
   // a ^ b is therefore computed as (~(a - 1)) ^ (~(b - 1)).
+  ASSERT(a_length >= b_length);
+  ASSERT(max_length == a_length);
   intptr_t result_length = max_length;
   const Bigint& result = Bigint::Handle(Bigint::Allocate(result_length));
   Chunk a_borrow = 1;
   Chunk b_borrow = 1;
-  ASSERT(a_length >= b_length);
   for (intptr_t i = 0; i < b_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
     Chunk b_digit = b.GetChunkAt(i) - b_borrow;
@@ -1011,7 +1102,8 @@ RawBigint* BigintOperations::BitXor(const Bigint& a, const Bigint& b) {
   ASSERT(b_borrow == 0);
   for (intptr_t i = b_length; i < a_length; i++) {
     Chunk a_digit = a.GetChunkAt(i) - a_borrow;
-    result.SetChunkAt(i, (~a_digit) & kDigitMask);
+    // (~a_digit) ^ 0xFFF..FFF == a_digit.
+    result.SetChunkAt(i, a_digit & kDigitMask);
     a_borrow = a_digit >> (kChunkBitSize - 1);
   }
   ASSERT(a_borrow == 0);

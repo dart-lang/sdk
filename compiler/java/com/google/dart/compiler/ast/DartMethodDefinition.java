@@ -17,7 +17,6 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
 
   protected DartFunction function;
   private MethodElement element;
-  private DartMethodDefinition normalizedNode = this;
 
   public static DartMethodDefinition create(DartExpression name,
                                             DartFunction function,
@@ -50,49 +49,31 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     element = (MethodElement) symbol;
   }
 
-  public void setNormalizedNode(DartMethodDefinition normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
-  @Override
-  public DartMethodDefinition getNormalizedNode() {
-    return normalizedNode;
-  }
-
   public List<DartInitializer> getInitializers() {
     return Collections.emptyList();
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      function = becomeParentOf(v.accept(function));
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     function.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitMethodDefinition(this);
   }
 
   private static class DartMethodWithInitializersDefinition extends DartMethodDefinition {
 
-    private final List<DartInitializer> initializers;
+    private final NodeList<DartInitializer> initializers = NodeList.create(this);
 
     DartMethodWithInitializersDefinition(DartExpression name,
                                          DartFunction function,
                                          Modifiers modifiers,
                                          List<DartInitializer> initializers) {
       super(name, function, modifiers);
-      this.initializers = becomeParentOf(initializers);
+      this.initializers.addAll(initializers);
     }
 
     @Override
@@ -101,18 +82,9 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     }
 
     @Override
-    public void traverse(DartVisitor v, DartContext ctx) {
-      if (v.visit(this, ctx)) {
-        function = becomeParentOf(v.accept(function));
-        v.acceptWithInsertRemove(this, initializers);
-      }
-      v.endVisit(this, ctx);
-    }
-
-    @Override
-    public void visitChildren(DartPlainVisitor<?> visitor) {
+    public void visitChildren(ASTVisitor<?> visitor) {
       super.visitChildren(visitor);
-      visitor.visit(initializers);
+      initializers.accept(visitor);
     }
   }
 }

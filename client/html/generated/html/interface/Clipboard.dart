@@ -18,7 +18,7 @@ interface Clipboard {
 
   void clearData([String type]);
 
-  void getData(String type);
+  String getData(String type);
 
   bool setData(String type, String data);
 

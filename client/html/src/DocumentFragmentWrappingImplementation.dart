@@ -193,8 +193,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return _elements;
   }
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value) {
+  void set elements(Collection<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     final elements = this.elements;

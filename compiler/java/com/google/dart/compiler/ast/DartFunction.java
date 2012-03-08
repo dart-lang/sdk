@@ -11,48 +11,31 @@ import java.util.List;
  */
 public class DartFunction extends DartNode {
 
-  private final List<DartParameter> params;
+  private final NodeList<DartParameter> parameters = NodeList.create(this);
   private DartBlock body;
   private DartTypeNode returnTypeNode;
 
-  public DartFunction(List<DartParameter> arguments, DartBlock body, DartTypeNode returnTypeNode) {
-    this.params = becomeParentOf(arguments);
+  public DartFunction(List<DartParameter> parameters, DartBlock body, DartTypeNode returnTypeNode) {
+    this.parameters.addAll(parameters);
     this.body = becomeParentOf(body);
     this.returnTypeNode = becomeParentOf(returnTypeNode);
-  }
-
-  public void addParam(DartParameter param) {
-    params.add(param);
   }
 
   public DartBlock getBody() {
     return body;
   }
 
-  public List<DartParameter> getParams() {
-    return params;
+  public List<DartParameter> getParameters() {
+    return parameters;
   }
 
   public DartTypeNode getReturnTypeNode() {
     return returnTypeNode;
   }
 
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      v.acceptWithInsertRemove(this, params);
-      if (body != null) {
-        body = becomeParentOf(v.accept(body));
-      }
-      if (returnTypeNode != null) {
-        returnTypeNode = becomeParentOf(v.accept(returnTypeNode));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-    visitor.visit(params);
+  public void visitChildren(ASTVisitor<?> visitor) {
+    parameters.accept(visitor);
     if (body != null) {
       body.accept(visitor);
     }
@@ -62,7 +45,7 @@ public class DartFunction extends DartNode {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFunction(this);
   }
 }

@@ -18,11 +18,11 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 

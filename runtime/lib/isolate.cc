@@ -85,8 +85,10 @@ static void ThrowErrorException(Exceptions::ExceptionType type,
 RawObject* ReceivePortCreate(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::NewSymbol("_ReceivePortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name =
       String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
@@ -113,8 +115,10 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
 static RawObject* SendPortCreate(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::NewSymbol("_SendPortImpl"));
   const String& class_name =
-      String::Handle(isolate_lib.PrivateName("_SendPortImpl"));
+      String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();

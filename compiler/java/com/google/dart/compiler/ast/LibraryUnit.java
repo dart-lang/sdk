@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
@@ -15,10 +17,9 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -29,14 +30,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class LibraryUnit {
   private final LibrarySource libSource;
   private final LibraryNode selfSourcePath;
-  private final Collection<LibraryNode> importPaths = new ArrayList<LibraryNode>();
-  private final Collection<LibraryNode> sourcePaths = new ArrayList<LibraryNode>();
-  private final Collection<LibraryNode> resourcePaths = new ArrayList<LibraryNode>();
-  private final Collection<LibraryNode> nativePaths = new ArrayList<LibraryNode>();
+  private final List<LibraryNode> importPaths = Lists.newArrayList();
+  private final List<LibraryNode> sourcePaths = Lists.newArrayList();
+  private final List<LibraryNode> resourcePaths = Lists.newArrayList();
+  private final List<LibraryNode> nativePaths = Lists.newArrayList();
 
   private final Map<String, DartUnit> units = new ConcurrentSkipListMap<String, DartUnit>();
-  private final Collection<LibraryUnit> imports = new ArrayList<LibraryUnit>();
-  private final Map<LibraryUnit, String> prefixes = new HashMap<LibraryUnit, String>();
+  private final Collection<LibraryUnit> imports = Lists.newArrayList();
+  private final Map<LibraryUnit, String> prefixes = Maps.newHashMap();
 
   private final LibraryElement element;
 

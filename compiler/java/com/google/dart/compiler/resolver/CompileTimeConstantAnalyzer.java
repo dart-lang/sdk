@@ -29,7 +29,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -63,7 +63,7 @@ import java.util.Set;
  */
 public class CompileTimeConstantAnalyzer {
 
-  private class ExpressionVisitor extends DartNodeTraverser<Void> {
+  private class ExpressionVisitor extends ASTVisitor<Void> {
     private ExpressionVisitor() {
     }
 
@@ -395,7 +395,7 @@ public class CompileTimeConstantAnalyzer {
       if (!x.isConst()) {
         expectedConstant(x);
       } else {
-        for (DartExpression arg : x.getArgs()) {
+        for (DartExpression arg : x.getArguments()) {
           arg.accept(this);
         }
       }
@@ -514,7 +514,7 @@ public class CompileTimeConstantAnalyzer {
     }
   }
 
-  private class FindCompileTimeConstantExpressionsVisitor extends DartNodeTraverser<Void> {
+  private class FindCompileTimeConstantExpressionsVisitor extends ASTVisitor<Void> {
 
     @Override
     public Void visitField(DartField node) {
@@ -525,7 +525,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       DartFunction functionNode = node.getFunction();
-      List<DartParameter> parameters = functionNode.getParams();
+      List<DartParameter> parameters = functionNode.getParameters();
       for (DartParameter parameter : parameters) {
         // Then resolve the default values.
         checkConstantExpression(parameter.getDefaultExpr());
@@ -536,7 +536,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitNewExpression(DartNewExpression node) {
       if (node.isConst()) {
-        for (DartExpression arg : node.getArgs()) {
+        for (DartExpression arg : node.getArguments()) {
           checkConstantExpression(arg);
         }
       }

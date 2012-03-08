@@ -51,16 +51,16 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   private void resolve(DartUnit unit) {
-    unit.addTopLevelNode(ResolverTestCase.makeClass("bool", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("num", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("double", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("int", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("Object", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("Null", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("String", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("Function", null));
-    unit.addTopLevelNode(ResolverTestCase.makeInterface("List", "T"));
-    unit.addTopLevelNode(ResolverTestCase.makeInterface("Map", "K", "V"));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("bool", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("num", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("double", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("int", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("Object", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("Null", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("String", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeClass("Function", null));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeInterface("List", "T"));
+    unit.getTopLevelNodes().add(ResolverTestCase.makeInterface("Map", "K", "V"));
     ResolverTestCase.resolve(unit, getContext());
   }
 

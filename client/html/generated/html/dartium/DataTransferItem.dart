@@ -10,8 +10,13 @@ class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
     return _wrap(_ptr.getAsFile());
   }
 
-  void getAsString(StringCallback callback) {
-    _ptr.getAsString(_unwrap(callback));
-    return;
+  void getAsString([StringCallback callback = null]) {
+    if (callback === null) {
+      _ptr.getAsString();
+      return;
+    } else {
+      _ptr.getAsString(_unwrap(callback));
+      return;
+    }
   }
 }

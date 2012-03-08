@@ -4,14 +4,13 @@
 
 [ $component == leg ]
 DartdocTest: Fail
-JsonTest: Fail
 MarkdownTest: Fail
 UriTest: Fail
 
 [ $arch == simarm ]
 *: Skip
 
-[ $component == frog || $component == frogsh ]
+[ $component == frog || $component == frogsh || $component == frogium ]
 # Dartdoc only runs on the VM.
 DartdocTest: Skip
 MarkdownTest: Skip
@@ -22,3 +21,6 @@ MarkdownTest: Skip
 # be fixed.
 DartdocTest: Skip
 MarkdownTest: Skip
+
+[ $component == legium ]
+*: Skip

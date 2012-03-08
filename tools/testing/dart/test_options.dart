@@ -61,7 +61,40 @@ is 'dart file.dart' and you specify special command
               'debug'),
           new _TestOptionSpecification(
               'component',
-              'The component to test against',
+              '''
+Controls how dart code is compiled and executed. 
+
+   vm: Run dart code on the standalone dart vm.
+
+   frog: Compile dart code by running frog on the standalone dart vm, and
+       run the resulting javascript on D8.
+
+   leg: Compile dart code by running leg on the standalone dart vm, and
+       run the resulting javascript on D8.
+
+   frogsh: Compile dart code by running frog on node.js, and run the
+       resulting javascript on the same instance of node.js.
+
+   dartium: Run dart code in a type="application/dart" script tag in a
+       dartium build of DumpRenderTree.
+
+   chromium: Obsolete, not used, will be removed.
+
+   frogium: Compile dart code by running frog on the standalone dart vm,
+       and run the resulting javascript in a javascript script tag in
+       a dartium build of DumpRenderTree.
+
+   legium: Compile dart code by running leg on the standalone dart vm,
+       and run the resulting javascript in a javascript script tag in
+       a dartium build of DumpRenderTree.
+
+   webdriver: Compile dart code by running frog on the standalone dart vm,
+       and then run the resulting javascript in the browser that is specified
+       by the --browser switch (e.g. chrome, safari, ff, etc.).
+
+   dartc: Run dart code through the dartc static analyzer (does not
+       execute dart code).
+''',
               ['-c', '--component'],
               ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
                'dartium', 'chromium', 'frogium', 'legium', 'webdriver'],

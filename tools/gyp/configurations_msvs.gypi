@@ -9,6 +9,7 @@
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': '2',
+            'BasicRuntimeChecks': '0',  # disable /RTC1 when compiling /O2
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',

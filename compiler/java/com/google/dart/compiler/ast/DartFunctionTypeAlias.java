@@ -16,17 +16,17 @@ import java.util.List;
 public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> implements HasSymbol {
 
   private DartTypeNode returnTypeNode;
-  private final List<DartParameter> parameters;
+  private final NodeList<DartParameter> parameters = NodeList.create(this);
+  private final NodeList<DartTypeParameter> typeParameters = NodeList.create(this);
   private FunctionAliasElement element;
-  private final List<DartTypeParameter> typeParameters;
 
   public DartFunctionTypeAlias(DartIdentifier name, DartTypeNode returnTypeNode,
                                List<DartParameter> parameters,
                                List<DartTypeParameter> typeParameters) {
     super(name);
     this.returnTypeNode = becomeParentOf(returnTypeNode);
-    this.parameters = becomeParentOf(parameters);
-    this.typeParameters = becomeParentOf(typeParameters);
+    this.parameters.addAll(parameters);
+    this.typeParameters.addAll(typeParameters);
   }
 
   public List<DartParameter> getParameters() {
@@ -56,28 +56,16 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (returnTypeNode != null) {
-        returnTypeNode = becomeParentOf(v.accept(returnTypeNode));
-      }
-      v.acceptWithInsertRemove(this, parameters);
-      v.acceptWithInsertRemove(this, typeParameters);
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (returnTypeNode != null) {
       returnTypeNode.accept(visitor);
     }
-    visitor.visit(parameters);
-    visitor.visit(typeParameters);
+    parameters.accept(visitor);
+    typeParameters.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFunctionTypeAlias(this);
   }
 }

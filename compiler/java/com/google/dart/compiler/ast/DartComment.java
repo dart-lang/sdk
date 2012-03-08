@@ -49,15 +49,11 @@ public class DartComment extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
+  public void visitChildren(ASTVisitor<?> visitor) {
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-  }
-
-  @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return null;
   }
 

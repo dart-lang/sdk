@@ -9,7 +9,7 @@ $!MEMBERS
   // captures what would normally be an expando and places property in the
   // storage, stringifying the assigned value.
 
-  var get dartObjectLocalStorage() native """
+  get dartObjectLocalStorage() native """
     if (this === window.localStorage)
       return window._dartLocalStorageLocalStorage;
     else if (this === window.sessionStorage)

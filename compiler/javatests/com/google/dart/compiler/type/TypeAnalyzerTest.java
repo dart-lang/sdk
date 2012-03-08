@@ -19,7 +19,6 @@ import java.util.Map;
  */
 public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
-
   /**
    * There  was problem that cyclic class declaration caused infinite loop.
    * <p>
@@ -1275,6 +1274,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testUnresolved() {
     ClassElement element = loadClass("class_with_supertypes.dart", "ClassWithSupertypes");
+    analyzeIn(element, "this.field", 0);
     analyzeIn(element, "null", 0);
     analyzeIn(element, "noSuchField", 1);
     analyzeIn(element, "noSuchMethod()", 1);
@@ -1283,7 +1283,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(element, "this.noSuchField", 1);
     analyzeIn(element, "this.noSuchMethod()", 1);
     analyzeIn(element, "this.method()", 0);
-    analyzeIn(element, "this.field", 0);
     analyzeIn(element, "staticMethod()", 0);
     analyzeIn(element, "staticField", 0);
     analyzeIn(element, "this.staticMethod()", 1);
@@ -1362,7 +1361,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("while ('') {}",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
-
 
   public void testValidateFactoryBounds() {
     Map<String, ClassElement> source = loadSource(

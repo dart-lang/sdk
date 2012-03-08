@@ -27,10 +27,21 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static String _get_name(var _this) native;
 
   void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _copyTo(this, parent, name, successCallback, errorCallback);
-    return;
+    if (name === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _copyTo(this, parent);
+          return;
+        }
+      }
+    } else {
+      _copyTo_2(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _copyTo(receiver, parent, name, successCallback, errorCallback) native;
+  static void _copyTo(receiver, parent) native;
+  static void _copyTo_2(receiver, parent, name, successCallback, errorCallback) native;
 
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) {
     _getMetadata(this, successCallback, errorCallback);
@@ -45,10 +56,21 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _getParent(receiver, successCallback, errorCallback) native;
 
   void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _moveTo(this, parent, name, successCallback, errorCallback);
-    return;
+    if (name === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _moveTo(this, parent);
+          return;
+        }
+      }
+    } else {
+      _moveTo_2(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _moveTo(receiver, parent, name, successCallback, errorCallback) native;
+  static void _moveTo(receiver, parent) native;
+  static void _moveTo_2(receiver, parent, name, successCallback, errorCallback) native;
 
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
     _remove(this, successCallback, errorCallback);

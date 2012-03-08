@@ -36,8 +36,10 @@ class FutureImpl<T> implements Future<T> {
     _exceptionHandled = false;
   }
 
-  FutureImpl.immediate(T value) : this() {
-    _setValue(value);
+  factory FutureImpl.immediate(T value) {
+    final res = new FutureImpl();
+    res._setValue(value);
+    return res;
   }
 
   T get value() {

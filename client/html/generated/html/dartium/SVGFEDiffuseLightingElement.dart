@@ -26,7 +26,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get _className() => _wrap(_ptr.className);
+  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 

@@ -15,7 +15,6 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
   private final Token operator;
   private DartExpression arg;
   private final boolean isPrefix;
-  private DartExpression normalizedNode = this;
   private Element referencedElement;
 
   public DartUnaryExpression(Token operator, DartExpression arg, boolean isPrefix) {
@@ -38,35 +37,13 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
     return isPrefix;
   }
 
-  public void setNormalizedNode(DartExpression normalizedNode) {
-    normalizedNode.setSourceInfo(this);
-    this.normalizedNode = normalizedNode;
-  }
-
   @Override
-  public DartExpression getNormalizedNode() {
-    return normalizedNode;
-  }
-
-  @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (operator.isCountOperator()) {
-        arg = becomeParentOf(v.acceptLvalue(getArg()));
-      } else {
-        arg = becomeParentOf(v.accept(getArg()));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     arg.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitUnaryExpression(this);
   }
 

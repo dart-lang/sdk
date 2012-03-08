@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,8 +7,7 @@ interface Node extends EventTarget {
 
   NodeList get nodes();
 
-  // TODO: The type of value should be Collection<Node>. See http://b/5392897
-  void set nodes(value);
+  void set nodes(Collection<Node> value);
 
   Node get nextNode();
 

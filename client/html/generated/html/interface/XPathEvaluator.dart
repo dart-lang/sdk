@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XPathEvaluator {
+interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
+
+  XPathEvaluator();
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver);
 

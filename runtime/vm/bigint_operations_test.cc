@@ -391,21 +391,20 @@ TEST_CASE(BigintHexStrings) {
 }
 
 
-#if 0
-// TODO(florian): Add a ToDecString method in bigint operations.
-// Turn this test back on once it is implemented.
 TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("0x123"));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("291", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("0xaBcEf"));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("703727", str);
   }
 
@@ -413,7 +412,8 @@ TEST_CASE(BigintDecStrings) {
     const char* in = "0x123456789";
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("4886718345", str);
   }
 
@@ -421,7 +421,8 @@ TEST_CASE(BigintDecStrings) {
     const char* in = "0xFFFFFFF";
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("268435455", str);
   }
 
@@ -429,14 +430,16 @@ TEST_CASE(BigintDecStrings) {
     const char* in = "0x10000000";
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("268435456", str);
   }
 
   {
     const char* in = "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("7141946863373290020600059860922167424469804758405880798960",
         str);
   }
@@ -452,28 +455,32 @@ TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("-0x123"));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("-291", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("-0xaBcEf"));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("-703727", str);
   }
 
   {
     const char* in = "-0x123456789";
     const Bigint& bigint = Bigint::Handle(BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("-4886718345", str);
   }
 
   {
     const char* in = "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(BigintOperations::NewFromCString(in));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("-7141946863373290020600059860922167424469804758405880798960",
         str);
   }
@@ -489,11 +496,19 @@ TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         BigintOperations::NewFromCString("0x000000123"));
-    const char* str = BigintOperations::ToDecCString(bigint, &ZoneAllocator);
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
     EXPECT_STREQ("291", str);
   }
+
+  {
+    const Bigint& bigint = Bigint::Handle(
+        BigintOperations::NewFromCString("100000000000000000000000000000000"));
+    const char* str =
+        BigintOperations::ToDecimalCString(bigint, &ZoneAllocator);
+    EXPECT_STREQ("100000000000000000000000000000000", str);
+  }
 }
-#endif
 
 
 static void TestBigintCompare(const char* a, const char* b, int compare) {
@@ -1015,15 +1030,14 @@ TEST_CASE(BigintBitAnd) {
 static void TestBigintBitOr(const char* a, const char* b, const char* result) {
   const Bigint& bigint_a = Bigint::Handle(BigintOperations::NewFromCString(a));
   const Bigint& bigint_b = Bigint::Handle(BigintOperations::NewFromCString(b));
-  const Bigint& anded =
+  const Bigint& ored =
       Bigint::Handle(BigintOperations::BitOr(bigint_a, bigint_b));
-  const char* str_anded = BigintOperations::ToHexCString(anded, &ZoneAllocator);
-  EXPECT_STREQ(result, str_anded);
-  const Bigint& anded2 =
+  const char* str_ored = BigintOperations::ToHexCString(ored, &ZoneAllocator);
+  EXPECT_STREQ(result, str_ored);
+  const Bigint& ored2 =
       Bigint::Handle(BigintOperations::BitOr(bigint_b, bigint_a));
-  const char* str_anded2 = BigintOperations::ToHexCString(anded2,
-                                                          &ZoneAllocator);
-  EXPECT_STREQ(result, str_anded2);
+  const char* str_ored2 = BigintOperations::ToHexCString(ored2, &ZoneAllocator);
+  EXPECT_STREQ(result, str_ored2);
 }
 
 
@@ -1089,6 +1103,7 @@ TEST_CASE(BigintBitOr) {
   TestBigintBitOr("-0x100000000", "-0x100000001", "-0x1");
   TestBigintBitOr("-0x100000000000000", "-0x100000000000001", "-0x1");
   TestBigintBitOr("-0x10000000000000000", "-0x10000000000000001", "-0x1");
+  TestBigintBitOr("-0x10000000000000000", "-0x1", "-0x1");
 }
 
 
@@ -1104,6 +1119,26 @@ static void TestBigintBitXor(const char* a, const char* b, const char* result) {
   const char* str_xored2 = BigintOperations::ToHexCString(xored2,
                                                           &ZoneAllocator);
   EXPECT_STREQ(result, str_xored2);
+  const Bigint& xored3 =
+      Bigint::Handle(BigintOperations::BitXor(bigint_a, xored2));
+  const char* str_xored3 = BigintOperations::ToHexCString(xored3,
+                                                          &ZoneAllocator);
+  EXPECT_STREQ(b, str_xored3);
+  const Bigint& xored4 =
+      Bigint::Handle(BigintOperations::BitXor(xored2, bigint_a));
+  const char* str_xored4 = BigintOperations::ToHexCString(xored4,
+                                                          &ZoneAllocator);
+  EXPECT_STREQ(b, str_xored4);
+  const Bigint& xored5 =
+      Bigint::Handle(BigintOperations::BitXor(bigint_b, xored2));
+  const char* str_xored5 = BigintOperations::ToHexCString(xored5,
+                                                          &ZoneAllocator);
+  EXPECT_STREQ(a, str_xored5);
+  const Bigint& xored6 =
+      Bigint::Handle(BigintOperations::BitXor(xored2, bigint_b));
+  const char* str_xored6 = BigintOperations::ToHexCString(xored6,
+                                                          &ZoneAllocator);
+  EXPECT_STREQ(a, str_xored6);
 }
 
 

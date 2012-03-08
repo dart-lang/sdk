@@ -177,11 +177,22 @@ interface HttpResponse default _HttpResponse {
   String reasonPhrase;
 
   /**
+   * Gets and sets the expiry date. The value of this property will
+   * reflect the "Expires" header
+   */
+  Date expires;
+
+  /**
    * Sets a header on the response. NOTE: If the same header name is
    * set more than once only the last value will be part of the
    * response.
    */
   void setHeader(String name, String value);
+
+  /**
+   * Returns the response headers.
+   */
+  Map<String, String> get headers();
 
   /**
    * Returns the output stream for the response. This is used to write
@@ -208,24 +219,51 @@ interface HttpResponse default _HttpResponse {
  * HTTP client factory.
  */
 interface HttpClient default _HttpClient {
+  static final int DEFAULT_HTTP_PORT = 80;
+
   HttpClient();
 
   /**
    * Opens a HTTP connection. The returned [HttpClientConnection] is
-   * used to register handlers for asynchronous events on a Http
-   * connection.
+   * used to register callbacks for asynchronous events on the HTTP
+   * connection. The "Host" header for the request will be set to the
+   * value [host]:[port]. This can be overridden through the
+   * HttpClientRequest interface before the request is sent. NOTE if
+   * [host] is an IP address this will still be set in the "Host"
+   * header.
    */
   HttpClientConnection open(String method, String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the GET method.
+   * Opens a HTTP connection. The returned [HttpClientConnection] is
+   * used to register callbacks for asynchronous events on the HTTP
+   * connection. The "Host" header for the request will be set based
+   * the host and port specified in [url]. This can be overridden
+   * through the HttpClientRequest interface before the request is
+   * sent. NOTE if the host is specified as an IP address this will
+   * still be set in the "Host" header.
+   */
+  HttpClientConnection openUrl(String method, Uri url);
+
+  /**
+   * Opens a HTTP connection using the GET method. See [open] for details.
    */
   HttpClientConnection get(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the POST method.
+   * Opens a HTTP connection using the GET method. See [openUrl] for details.
+   */
+  HttpClientConnection getUrl(Uri url);
+
+  /**
+   * Opens a HTTP connection using the POST method. See [open] for details.
    */
   HttpClientConnection post(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the POST method. See [openUrl] for details.
+   */
+  HttpClientConnection postUrl(Uri url);
 
   /**
    * Shutdown the HTTP client releasing all resources.
@@ -283,11 +321,30 @@ interface HttpClientRequest default _HttpClientRequest {
   bool keepAlive;
 
   /**
+   * Gets and sets the " host part of the "Host" header for the
+   * connection. By default this will be set to the value of the host
+   * used when initiating the connection.
+   */
+  String host;
+
+  /**
+   * Gets and sets the port part of the "Host" header for the
+   * connection. By default this will be set to the value of the port
+   * used when initiating the connection.
+   */
+  int port;
+
+  /**
    * Sets a header on the request. NOTE: If the same header name is
    * set more than once only the last value set will be part of the
    * request.
    */
   void setHeader(String name, String value);
+
+  /**
+   * Returns the request headers.
+   */
+  Map<String, String> get headers();
 
   /**
    * Returns the output stream for the request. This is used to write
@@ -336,9 +393,17 @@ interface HttpClientResponse default _HttpClientResponse {
   bool get keepAlive();
 
   /**
+   * Returns the date value for the "Expires" header. Returns null if
+   * the response has no "Expires" header. Throws a HttpException if
+   * the response has an "Expires" header which is not formatted as a
+   * valid HTTP date.
+   */
+  Date get expires();
+
+  /**
    * Returns the response headers.
    */
-  Map get headers();
+  Map<String, String> get headers();
 
   /**
    * Returns the input stream for the response. This is used to read

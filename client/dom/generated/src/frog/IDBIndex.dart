@@ -11,7 +11,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([var key_OR_range = null]) native;
 
   _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 

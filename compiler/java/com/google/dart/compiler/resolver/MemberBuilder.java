@@ -16,7 +16,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -182,7 +182,7 @@ public class MemberBuilder {
     }
 
     private Element resolveConstructorName(final DartMethodDefinition method) {
-      return method.getName().accept(new DartNodeTraverser<Element>() {
+      return method.getName().accept(new ASTVisitor<Element>() {
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
           Element element = node.getQualifier().accept(this);
           if (ElementKind.of(element).equals(ElementKind.CLASS)) {

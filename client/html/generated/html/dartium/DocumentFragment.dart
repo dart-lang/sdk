@@ -6,7 +6,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList queryAll(String selectors) {
+  NodeList _querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 }

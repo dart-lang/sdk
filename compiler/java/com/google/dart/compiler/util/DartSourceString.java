@@ -10,6 +10,7 @@ import com.google.dart.compiler.LibrarySource;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Instances of the class <code>DartSourceString</code> represent a source
@@ -68,6 +69,10 @@ public class DartSourceString implements DartSource {
 
   @Override
   public URI getUri() {
-    return URI.create(getName()).normalize();
+    try {
+      return new URI(null, null, getName(), null).normalize();
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 }

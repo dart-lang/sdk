@@ -29,8 +29,8 @@ class _ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboa
   DataTransferItemList get items() { return _get_items(this); }
   static DataTransferItemList _get_items(var _this) native;
 
-  List<String> get types() { return _get_types(this); }
-  static List<String> _get_types(var _this) native;
+  List get types() { return _get_types(this); }
+  static List _get_types(var _this) native;
 
   void clearData([String type = null]) {
     if (type === null) {
@@ -44,11 +44,10 @@ class _ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboa
   static void _clearData(receiver) native;
   static void _clearData_2(receiver, type) native;
 
-  void getData(String type) {
-    _getData(this, type);
-    return;
+  String getData(String type) {
+    return _getData(this, type);
   }
-  static void _getData(receiver, type) native;
+  static String _getData(receiver, type) native;
 
   bool setData(String type, String data) {
     return _setData(this, type, data);

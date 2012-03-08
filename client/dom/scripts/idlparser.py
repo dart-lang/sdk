@@ -144,7 +144,8 @@ class IDLParser(object):
         # Web IDL:
         [MAYBE(ExtAttrs), 'const', Type, Id, '=', ConstExpr, ';'],
         # WebKit:
-        ['const', MAYBE(ExtAttrs), Type, Id, '=', ConstExpr, ';'],
+        [OR(['const', MAYBE(ExtAttrs)], [MAYBE(ExtAttrs), 'const']),
+         Type, Id, '=', ConstExpr, ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'const', Type, Id, '=',
          ConstExpr, ';'])

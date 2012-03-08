@@ -28,6 +28,6 @@ public abstract class DartClassMember<N extends DartExpression> extends DartDecl
   public abstract Element getSymbol();
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
   }
 }

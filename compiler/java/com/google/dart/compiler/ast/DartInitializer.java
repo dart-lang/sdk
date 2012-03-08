@@ -45,20 +45,7 @@ public class DartInitializer extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (name != null) {
-        name = becomeParentOf(v.accept(name));
-      }
-      if (value != null) {
-        value = becomeParentOf(v.accept(value));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (name != null) {
       name.accept(visitor);
     }
@@ -68,7 +55,7 @@ public class DartInitializer extends DartNode {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitInitializer(this);
   }
 }

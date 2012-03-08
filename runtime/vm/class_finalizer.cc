@@ -20,26 +20,11 @@ DEFINE_FLAG(bool, verify_implements, false,
     "Verify that all classes implement their interface.");
 DECLARE_FLAG(bool, enable_type_checks);
 
-void ClassFinalizer::AddPendingClasses(
-    const GrowableArray<const Class*>& classes) {
-  if (!classes.is_empty()) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    const Array& old_array = Array::Handle(object_store->pending_classes());
-    const intptr_t old_length = old_array.Length();
-    const int new_length = old_length + classes.length();
-    const Array& new_array = Array::Handle(Array::Grow(old_array, new_length));
-    // Add new classes.
-    for (int i = 0; i < classes.length(); i++) {
-      new_array.SetAt(i + old_length, *classes[i]);
-    }
-    object_store->set_pending_classes(new_array);
-  }
-}
-
 
 bool ClassFinalizer::AllClassesFinalized() {
   ObjectStore* object_store = Isolate::Current()->object_store();
-  const Array& classes = Array::Handle(object_store->pending_classes());
+  const GrowableObjectArray& classes =
+      GrowableObjectArray::Handle(object_store->pending_classes());
   return classes.Length() == 0;
 }
 
@@ -60,7 +45,8 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    const Array& class_array = Array::Handle(object_store->pending_classes());
+    GrowableObjectArray& class_array = GrowableObjectArray::Handle();
+    class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
     // First resolve all superclasses.
@@ -94,7 +80,8 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
       }
     }
     // Clear pending classes array.
-    object_store->set_pending_classes(Array::Handle(Array::Empty()));
+    class_array = GrowableObjectArray::New();
+    object_store->set_pending_classes(class_array);
 
     // Check to ensure there are no duplicate definitions in the library
     // hierarchy.
@@ -114,13 +101,14 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
 // Adds all interfaces of cls into 'collected'. Duplicate entries may occur.
 // No cycles are allowed.
 void ClassFinalizer::CollectInterfaces(const Class& cls,
-                                       GrowableArray<const Class*>* collected) {
+                                       const GrowableObjectArray& collected) {
   const Array& interface_array = Array::ZoneHandle(cls.interfaces());
+  AbstractType& interface = AbstractType::Handle();
+  Class& interface_class = Class::Handle();
   for (intptr_t i = 0; i < interface_array.Length(); i++) {
-    AbstractType& interface = AbstractType::Handle();
     interface ^= interface_array.At(i);
-    const Class& interface_class = Class::ZoneHandle(interface.type_class());
-    collected->Add(&interface_class);
+    interface_class = interface.type_class();
+    collected.Add(interface_class);
     CollectInterfaces(interface_class, collected);
   }
 }
@@ -132,13 +120,17 @@ void ClassFinalizer::CollectInterfaces(const Class& cls,
 // getters/setters.
 void ClassFinalizer::VerifyClassImplements(const Class& cls) {
   ASSERT(!cls.is_interface());
-  GrowableArray<const Class*> interfaces;
-  CollectInterfaces(cls, &interfaces);
+  const GrowableObjectArray& interfaces =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  CollectInterfaces(cls, interfaces);
   const String& class_name = String::Handle(cls.Name());
-  for (int i = 0; i < interfaces.length(); i++) {
-    const String& interface_name = String::Handle(interfaces[i]->Name());
-    const Array& interface_functions =
-        Array::Handle(interfaces[i]->functions());
+  Class& interface_class = Class::Handle();
+  String& interface_name = String::Handle();
+  Array& interface_functions = Array::Handle();
+  for (int i = 0; i < interfaces.Length(); i++) {
+    interface_class ^= interfaces.At(i);
+    interface_name = interface_class.Name();
+    interface_functions = interface_class.functions();
     for (intptr_t f = 0; f < interface_functions.Length(); f++) {
       Function& interface_function = Function::Handle();
       interface_function ^= interface_functions.At(f);
@@ -162,19 +154,26 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
         class_function = test_class.LookupDynamicFunction(function_name);
       }
       if (class_function.IsNull()) {
-        OS::Print("%s implements '%s' missing: '%s'\n",
-            class_name.ToCString(),
-            interface_name.ToCString(),
-            function_name.ToCString());
-      } else if (!class_function.IsSubtypeOf(TypeArguments::Handle(),
+        OS::PrintErr("%s implements '%s' missing: '%s'\n",
+                     class_name.ToCString(),
+                     interface_name.ToCString(),
+                     function_name.ToCString());
+      } else {
+        Error& malformed_error = Error::Handle();
+        if (!class_function.IsSubtypeOf(TypeArguments::Handle(),
                                              interface_function,
-                                             TypeArguments::Handle())) {
-        OS::Print("The type of instance method '%s' in class '%s' is not a "
-                  "subtype of the type of '%s' in interface '%s'\n",
-                  function_name.ToCString(),
-                  class_name.ToCString(),
-                  function_name.ToCString(),
-                  interface_name.ToCString());
+                                             TypeArguments::Handle(),
+                                             &malformed_error)) {
+          if (!malformed_error.IsNull()) {
+            OS::PrintErr("%s\n", malformed_error.ToErrorCString());
+          }
+          OS::PrintErr("The type of instance method '%s' in class '%s' is not "
+                       "a subtype of the type of '%s' in interface '%s'\n",
+                       function_name.ToCString(),
+                       class_name.ToCString(),
+                       function_name.ToCString(),
+                       interface_name.ToCString());
+        }
       }
     }
   }
@@ -230,7 +229,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
-  const Array& class_array = Array::Handle(object_store->pending_classes());
+  const GrowableObjectArray& class_array =
+      GrowableObjectArray::Handle(object_store->pending_classes());
   for (intptr_t i = 0; i < class_array.Length(); i++) {
     // TODO(iposva): Add real checks.
     cls ^= class_array.At(i);
@@ -453,7 +453,8 @@ void ClassFinalizer::ResolveType(const Class& cls,
       parameterized_type.set_type_class(Object::Handle(type_class.raw()));
     } else {
       // The type class could not be resolved. The type is malformed.
-      FinalizeMalformedType(cls, parameterized_type, finalization,
+      FinalizeMalformedType(Error::Handle(),  // No previous error.
+                            cls, parameterized_type, finalization,
                             "cannot resolve class name '%s' from '%s'",
                             String::Handle(unresolved_class.Name()).ToCString(),
                             String::Handle(cls.Name()).ToCString());
@@ -553,6 +554,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   if (parameterized_type.IsBeingFinalized()) {
     // Self reference detected. The type is malformed.
     FinalizeMalformedType(
+        Error::Handle(),  // No previous error.
         cls, parameterized_type, finalization,
         "type '%s' illegally refers to itself",
         String::Handle(parameterized_type.Name()).ToCString());
@@ -612,6 +614,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is malformed.
     FinalizeMalformedType(
+        Error::Handle(),  // No previous error.
         cls, parameterized_type, finalization,
         "wrong number of type arguments in type '%s'",
         String::Handle(parameterized_type.Name()).ToCString());
@@ -652,8 +655,27 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // Mark the type as finalized.
     parameterized_type.set_is_finalized();
 
-    // No need to verify the upper bounds of the finalized type arguments, since
-    // bound errors are static type errors, which are not reported by the VM.
+    // Upper bounds of the finalized type arguments are only verified in checked
+    // mode, since bound errors are never reported by the vm in production mode.
+    if (FLAG_enable_type_checks && full_arguments.IsInstantiated()) {
+      ResolveAndFinalizeUpperBounds(type_class);
+      Error& malformed_error = Error::Handle();
+      // Pass the full type argument vector as the bounds instantiator.
+      if (!full_arguments.IsWithinBoundsOf(type_class,
+                                           full_arguments,
+                                           &malformed_error)) {
+        ASSERT(!malformed_error.IsNull());
+        // The type argument vector of the type is not within bounds. The type
+        // is malformed. Prepend malformed_error to new malformed type error in
+        // order to report both locations.
+        FinalizeMalformedType(
+            malformed_error,
+            cls, parameterized_type, finalization,
+            "type arguments of type '%s' are not within bounds",
+            String::Handle(parameterized_type.Name()).ToCString());
+        return parameterized_type.raw();
+      }
+    }
   } else {
     parameterized_type.set_is_finalized();
   }
@@ -910,8 +932,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
                 "class '%s' has a cycle in its superclass relationship",
                 name.ToCString());
   }
-  GrowableArray<const Class*> visited;
-  ResolveInterfaces(cls, &visited);
+  const GrowableObjectArray& visited =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  ResolveInterfaces(cls, visited);
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     const Class& super_class = Class::Handle(super_type.type_class());
@@ -990,39 +1013,32 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 
 
 bool ClassFinalizer::AddInterfaceIfUnique(
-    GrowableArray<AbstractType*>* interface_list,
-    AbstractType* interface,
+    const GrowableObjectArray& interface_list,
+    const AbstractType& interface,
     AbstractType* conflicting) {
-  String& interface_class_name = String::Handle(interface->ClassName());
+  String& interface_class_name = String::Handle(interface.ClassName());
   String& existing_interface_class_name = String::Handle();
-  for (intptr_t i = 0; i < interface_list->length(); i++) {
-    existing_interface_class_name = (*interface_list)[i]->ClassName();
+  String& interface_name = String::Handle();
+  String& existing_interface_name = String::Handle();
+  AbstractType& other_interface = AbstractType::Handle();
+  for (intptr_t i = 0; i < interface_list.Length(); i++) {
+    other_interface ^= interface_list.At(i);
+    existing_interface_class_name = other_interface.ClassName();
     if (interface_class_name.Equals(existing_interface_class_name)) {
       // Same interface class name, now check names of type arguments.
-      const String& interface_name = String::Handle(interface->Name());
-      const String& existing_interface_name =
-          String::Handle((*interface_list)[i]->Name());
+      interface_name = interface.Name();
+      existing_interface_name = other_interface.Name();
       // TODO(regis): Revisit depending on the outcome of issue 4905685.
       if (!interface_name.Equals(existing_interface_name)) {
-        *conflicting = (*interface_list)[i]->raw();
+        *conflicting = other_interface.raw();
         return false;
       } else {
         return true;
       }
     }
   }
-  interface_list->Add(interface);
+  interface_list.Add(interface);
   return true;
-}
-
-
-template<typename T>
-static RawArray* NewArray(const GrowableArray<T*>& objs) {
-  Array& a = Array::Handle(Array::New(objs.length()));
-  for (int i = 0; i < objs.length(); i++) {
-    a.SetAt(i, *objs[i]);
-  }
-  return a.raw();
 }
 
 
@@ -1034,10 +1050,12 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 // graph. If we visit an interface a second time on a given path,
 // we found a loop.
 void ClassFinalizer::ResolveInterfaces(const Class& cls,
-                                       GrowableArray<const Class*>* visited) {
-  ASSERT(visited != NULL);
-  for (int i = 0; i < visited->length(); i++) {
-    if ((*visited)[i]->raw() == cls.raw()) {
+                                       const GrowableObjectArray& visited) {
+  ASSERT(!visited.IsNull());
+  Class& visited_cls = Class::Handle();
+  for (int i = 0; i < visited.Length(); i++) {
+    visited_cls ^= visited.At(i);
+    if (visited_cls.raw() == cls.raw()) {
       // We have already visited interface class 'cls'. We found a cycle.
       const String& interface_name = String::Handle(cls.Name());
       const Script& script = Script::Handle(cls.script());
@@ -1060,8 +1078,9 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
       (cls.library() == Library::CoreImplLibrary());
 
   // Resolve and check the interfaces of cls.
-  visited->Add(&cls);
+  visited.Add(cls);
   AbstractType& interface = AbstractType::Handle();
+  Class& interface_class = Class::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kFinalizeWellFormed);
@@ -1071,7 +1090,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                   "type parameter '%s' cannot be used as interface",
                   String::Handle(interface.Name()).ToCString());
     }
-    const Class& interface_class = Class::Handle(interface.type_class());
+    interface_class = interface.type_class();
     if (!interface_class.is_interface()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
@@ -1100,7 +1119,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     // Now resolve the super interfaces.
     ResolveInterfaces(interface_class, visited);
   }
-  visited->RemoveLast();
+  visited.RemoveLast();
 }
 
 
@@ -1173,7 +1192,8 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 }
 
 
-void ClassFinalizer::FinalizeMalformedType(const Class& cls,
+void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
+                                           const Class& cls,
                                            const Type& type,
                                            FinalizationKind finalization,
                                            const char* format, ...) {
@@ -1182,8 +1202,13 @@ void ClassFinalizer::FinalizeMalformedType(const Class& cls,
   LanguageError& error = LanguageError::Handle();
   if ((finalization == kFinalizeWellFormed) || FLAG_enable_type_checks) {
     const Script& script = Script::Handle(cls.script());
-    error ^=
-        Parser::FormatError(script, type.token_index(), "Error", format, args);
+    if (prev_error.IsNull()) {
+      error ^= Parser::FormatError(
+          script, type.token_index(), "Error", format, args);
+    } else {
+      error ^= Parser::FormatErrorWithAppend(
+          prev_error, script, type.token_index(), "Error", format, args);
+    }
     if (finalization == kFinalizeWellFormed) {
       ReportError(error);
     }
@@ -1195,8 +1220,14 @@ void ClassFinalizer::FinalizeMalformedType(const Class& cls,
     // In checked mode, mark type as malformed.
     type.set_malformed_error(error);
   }
-  type.set_is_finalized();
-  type.Canonicalize();
+  if (!type.IsFinalized()) {
+    type.set_is_finalized();
+    type.Canonicalize();
+  } else {
+    // The only case where the malformed type was already finalized is when its
+    // type arguments are not within bounds. In that case, we have a prev_error.
+    ASSERT(!prev_error.IsNull());
+  }
 }
 
 

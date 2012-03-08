@@ -17,6 +17,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartAssertion;
@@ -62,12 +63,10 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
@@ -176,7 +175,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
   }
 
   @VisibleForTesting
-  static class Analyzer implements DartPlainVisitor<Type> {
+  static class Analyzer extends ASTVisitor<Type> {
     private final DynamicType dynamicType;
     private final Type stringType;
     private final InterfaceType defaultLiteralMapType;
@@ -804,8 +803,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         node.setReferencedElement(element);
         return checkInvocation(node, node, name, element.getType());
       }
-      Type receiver = nonVoidTypeOf(node.getTarget());
-      List<DartExpression> arguments = node.getArgs();
+      DartNode target = node.getTarget();
+      Type receiver = nonVoidTypeOf(target);
+      List<DartExpression> arguments = node.getArguments();
       Member member = lookupMember(receiver, name, node);
       if (member != null) {
         node.setReferencedElement(member.getElement());
@@ -822,7 +822,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkConstructorForwarding(DartInvocation node, ConstructorElement element) {
       if (element == null) {
-        visit(node.getArgs());
+        visit(node.getArguments());
         return voidType;
       } else {
         node.setReferencedElement(element);
@@ -846,11 +846,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
-        validateTypeNode(node.getSuperclass(), true);
+        validateTypeNode(node.getSuperclass(), false);
       }
       if (node.getInterfaces() != null) {
         for (DartTypeNode interfaceNode : node.getInterfaces()) {
-          validateTypeNode(interfaceNode, true);
+          validateTypeNode(interfaceNode, false);
         }
       }
 
@@ -1027,7 +1027,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitFunction(DartFunction node) {
       Type previous = expected;
-      visit(node.getParams());
+      visit(node.getParameters());
       expected = typeOf(node.getReturnTypeNode());
       typeOf(node.getBody());
       expected = previous;
@@ -1158,12 +1158,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (returnType != null && returnType.getType() != voidType) {
           typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
         }
+        if (currentClass != null && methodElement.getParameters().size() > 0) {
+          Element parameterElement = methodElement.getParameters().get(0);
+          Type setterType = parameterElement.getType();
+          MethodElement getterElement = Elements.lookupFieldElementGetter(currentClass.getElement(),
+                                                                          methodElement.getName());
+          if (getterElement != null) {
+            Type getterType = getterElement.getReturnType();
+            if (!types.isAssignable(setterType, getterType)) {
+              typeError(parameterElement.getNode(), TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
+                        setterType.getElement().getName(),
+                        getterType.getElement().getName());
+            }
+          }
+        }
       }
       return typeAsVoid(node);
     }
 
     private void analyzeFactory(DartExpression name, final ConstructorElement methodElement) {
-      DartNodeTraverser<Void> visitor = new DartNodeTraverser<Void>() {
+      ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
         @Override
         public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
           DartExpression expression = node.getExpression();
@@ -1214,7 +1228,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartNode typeName = typeNode.getIdentifier();
 
       if (constructorElement == null) {
-        visit(node.getArgs());
+        visit(node.getArguments());
       } else {
         ClassElement cls = (ClassElement) constructorElement.getEnclosingElement();
         // Add warning for instantiating abstract class.
@@ -1367,83 +1381,74 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         case FIELD:
           FieldElement fieldElement = (FieldElement) element;
+          MethodElement getter = fieldElement.getGetter();
+          MethodElement setter = fieldElement.getSetter();
+          boolean inSetterContext = inSetterContext(node);
+          boolean inGetterContext = inGetterContext(node);
+          ClassElement enclosingClass = null;
+          if (fieldElement.getEnclosingElement() instanceof ClassElement) {
+            enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+          }
           // Check for cases when property has no setter or getter.
-          if (fieldElement.getModifiers().isAbstractField()
-              && fieldElement.getEnclosingElement() instanceof ClassElement) {
-            ClassElement enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+          if (fieldElement.getModifiers().isAbstractField() && enclosingClass != null) {
             // Check for using field without getter in other operation that assignment.
-            if (fieldElement.getGetter() == null && !hasFieldElementGetter(enclosingClass, name)) {
-              if (!(node.getParent() instanceof DartBinaryExpression)
-                  || ((DartBinaryExpression) node.getParent()).getOperator() != Token.ASSIGN
-                  || ((DartBinaryExpression) node.getParent()).getArg1() != node) {
+            if (inGetterContext && getter == null
+                && Elements.lookupFieldElementGetter(enclosingClass, name) == null) {
+              return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+            }
+            // Check for using field without setter in some assignment variant.
+            if (inSetterContext && setter == null
+                && Elements.lookupFieldElementSetter(enclosingClass, name) == null) {
+                return typeError(node.getName(),
+                                 TypeErrorCode.FIELD_HAS_NO_SETTER,
+                                 node.getName());
+            }
+          }
+
+          Type result = member.getType();
+          if (fieldElement.getModifiers().isAbstractField()) {
+            if (inSetterContext) {
+              result = member.getSetterType();
+              if (result == null) {
+                return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_SETTER, node.getName());
+              }
+            }
+            if (inGetterContext) {
+              result = member.getGetterType();
+              if (result == null) {
                 return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
               }
             }
-            // Check for using field without setter in some assignment variant.
-            if (fieldElement.getSetter() == null && !hasFieldElementSetter(enclosingClass, name)) {
-              if (node.getParent() instanceof DartBinaryExpression) {
-                DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-                if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
-                  return typeError(
-                      node.getName(),
-                      TypeErrorCode.FIELD_HAS_NO_SETTER,
-                      node.getName());
-                }
-              }
-            }
           }
-          // Return field type.
-          return member.getType();
+          return result;
 
         default:
           throw internalError(node.getName(), "unexpected kind %s", element.getKind());
       }
     }
 
-    /**
-     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
-     *         {@link FieldElement} with getter.
-     */
-    private static boolean hasFieldElementGetter(ClassElement holder, String name) {
-      Element element = holder.lookupLocalElement(name);
-      if (element instanceof FieldElement) {
-        FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.getGetter() != null) {
+    private boolean inSetterContext(DartNode node) {
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+        if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
           return true;
         }
-      }
-      for (InterfaceType interfaceType : holder.getInterfaces()) {
-        if (hasFieldElementGetter(interfaceType.getElement(), name)) {
-          return true;
-        }
-      }
-      if (holder.getSupertype() != null) {
-        return hasFieldElementGetter(holder.getSupertype().getElement(), name);
       }
       return false;
     }
 
     /**
-     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
-     *         {@link FieldElement} with setter.
+     * An assignment of the form node = <expr> is a write-only expression.  Other types
+     * of assignments also read the value and require a getter access.
      */
-    private static boolean hasFieldElementSetter(ClassElement holder, String name) {
-      Element element = holder.lookupLocalElement(name);
-      if (element instanceof FieldElement) {
-        FieldElement fieldElement = (FieldElement) element;
-        if (fieldElement.getSetter() != null) {
-          return true;
+    private boolean inGetterContext(DartNode node) {
+      if (node.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+        if (Token.ASSIGN.equals(expr.getOperator()) && expr.getArg1() == node) {
+          return false;
         }
       }
-      for (InterfaceType interfaceType : holder.getInterfaces()) {
-        if (hasFieldElementSetter(interfaceType.getElement(), name)) {
-          return true;
-        }
-      }
-      if (holder.getSupertype() != null) {
-        return hasFieldElementSetter(holder.getSupertype().getElement(), name);
-      }
-      return false;
+      return true;
     }
 
     @Override
@@ -1610,7 +1615,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
                                  Type type) {
-      List<DartExpression> argumentNodes = node.getArgs();
+      List<DartExpression> argumentNodes = node.getArguments();
       List<Type> argumentTypes = new ArrayList<Type>(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
         argumentTypes.add(nonVoidTypeOf(argumentNode));
@@ -1801,7 +1806,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return typeAsVoid(node);
     }
 
-    private class AbstractMethodFinder extends DartNodeTraverser<Void> {
+    private class AbstractMethodFinder extends ASTVisitor<Void> {
       private final InterfaceType currentClass;
       private final Multimap<String, Element> superMembers;
       private final List<Element> unimplementedElements;

@@ -17,16 +17,38 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   static DirectoryReader _createReader(receiver) native;
 
   void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _getDirectory(this, path, flags, successCallback, errorCallback);
-    return;
+    if (flags === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _getDirectory(this, path);
+          return;
+        }
+      }
+    } else {
+      _getDirectory_2(this, path, flags, successCallback, errorCallback);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _getDirectory(receiver, path, flags, successCallback, errorCallback) native;
+  static void _getDirectory(receiver, path) native;
+  static void _getDirectory_2(receiver, path, flags, successCallback, errorCallback) native;
 
   void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    _getFile(this, path, flags, successCallback, errorCallback);
-    return;
+    if (flags === null) {
+      if (successCallback === null) {
+        if (errorCallback === null) {
+          _getFile(this, path);
+          return;
+        }
+      }
+    } else {
+      _getFile_2(this, path, flags, successCallback, errorCallback);
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _getFile(receiver, path, flags, successCallback, errorCallback) native;
+  static void _getFile(receiver, path) native;
+  static void _getFile_2(receiver, path, flags, successCallback, errorCallback) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
     _removeRecursively(this, successCallback, errorCallback);

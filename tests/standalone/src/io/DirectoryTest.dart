@@ -353,6 +353,13 @@ class DirectoryTest {
     });
   }
 
+  static void testCurrent() {
+    Directory current = new Directory.current();
+    if (new Platform().operatingSystem() != "windows") {
+      Expect.equals("/", current.path.substring(0, 1));
+    }
+  }
+
   static void testMain() {
     testListing();
     testListNonExistent();
@@ -365,6 +372,7 @@ class DirectoryTest {
     testExistsCreateDeleteSync();
     testCreateTemp();
     testCreateDeleteTemp();
+    testCurrent();
   }
 }
 

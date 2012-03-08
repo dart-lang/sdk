@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface EventSource extends EventTarget {
+interface EventSource extends EventTarget default _EventSourceFactoryProvider {
+
+  EventSource(String scriptUrl);
 
   static final int CLOSED = 2;
 

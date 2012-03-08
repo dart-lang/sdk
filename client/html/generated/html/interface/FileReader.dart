@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader {
+interface FileReader default _FileReaderFactoryProvider {
+
+  FileReader();
 
   static final int DONE = 2;
 

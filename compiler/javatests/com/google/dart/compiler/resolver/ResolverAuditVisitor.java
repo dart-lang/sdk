@@ -10,7 +10,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -21,7 +21,7 @@ import java.util.List;
  * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
  * be resolved, or marked as an unresolved element.
  */
-public class ResolverAuditVisitor extends DartNodeTraverser<Void> {
+public class ResolverAuditVisitor extends ASTVisitor<Void> {
   public static void exec(DartNode root) {
     ResolverAuditVisitor visitor = new ResolverAuditVisitor();
     root.accept(visitor);

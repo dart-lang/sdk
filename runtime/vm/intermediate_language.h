@@ -27,8 +27,14 @@ class LocalVariable;
 // | StoreLocal <LocalVariable> <Value>
 // | StrictCompare <Token::kind> <Value> <Value>
 // | NativeCall <NativeBodyNode>
-// | StoreIndexed <StoreIndexedNode> <Value> <Value> <Value>
-// | InstanceSetter <InstanceSetterNode> <Value> <Value>
+// | StoreIndexed <Value> <Value> <Value>
+// | InstanceSetter <String> <Value> <Value>
+// | LoadInstanceField <LoadInstanceFieldNode> <Value>
+// | StoreInstanceField <StoreInstanceFieldNode> <Value> <Value>
+// | LoadStaticField <Field>
+// | StoreStaticField <Field> <Value>
+// | BooleanNegate <Value>
+// | InstanceOf <Value> <Type>
 //
 // <Value> ::=
 //   Temp <int>
@@ -54,6 +60,12 @@ class LocalVariable;
   M(NativeCall, NativeCallComp)                                                \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
+  M(LoadInstanceField, LoadInstanceFieldComp)                                  \
+  M(StoreInstanceField, StoreInstanceFieldComp)                                \
+  M(LoadStaticField, LoadStaticFieldComp)                                      \
+  M(StoreStaticField, StoreStaticFieldComp)                                    \
+  M(BooleanNegate, BooleanNegateComp)                                          \
+  M(InstanceOf, InstanceOfComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -152,12 +164,14 @@ class AssertAssignableComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(AstNode* node,
+  InstanceCallComp(intptr_t node_id,
+                   intptr_t token_index,
                    const String& function_name,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
         function_name_(function_name),
         arguments_(arguments),
         argument_names_(argument_names),
@@ -169,10 +183,8 @@ class InstanceCallComp : public Computation {
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
   const String& function_name() const { return function_name_; }
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
@@ -180,7 +192,8 @@ class InstanceCallComp : public Computation {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
  private:
-  const AstNode& ast_node_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
   const String& function_name_;
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
@@ -285,31 +298,118 @@ class NativeCallComp : public Computation {
 };
 
 
+class LoadInstanceFieldComp : public Computation {
+ public:
+  LoadInstanceFieldComp(LoadInstanceFieldNode* ast_node, Value* instance)
+      : ast_node_(*ast_node), instance_(instance) {
+    ASSERT(instance_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(LoadInstanceFieldComp)
+
+  const Field& field() const { return ast_node_.field(); }
+
+  Value* instance() const { return instance_; }
+
+ private:
+  const LoadInstanceFieldNode& ast_node_;
+  Value* instance_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
+};
+
+
+class StoreInstanceFieldComp : public Computation {
+ public:
+  StoreInstanceFieldComp(StoreInstanceFieldNode* ast_node,
+                         Value* instance,
+                         Value* value)
+      : ast_node_(*ast_node), instance_(instance), value_(value) {
+    ASSERT(instance_ != NULL);
+    ASSERT(value_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(StoreInstanceFieldComp)
+
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const Field& field() const { return ast_node_.field(); }
+
+  Value* instance() const { return instance_; }
+  Value* value() const { return value_; }
+
+ private:
+  const StoreInstanceFieldNode& ast_node_;
+  Value* instance_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
+};
+
+
+class LoadStaticFieldComp : public Computation {
+ public:
+  explicit LoadStaticFieldComp(const Field& field) : field_(field) {}
+
+  DECLARE_COMPUTATION(LoadStaticFieldComp);
+
+  const Field& field() const { return field_; }
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldComp);
+};
+
+
+class StoreStaticFieldComp : public Computation {
+ public:
+  StoreStaticFieldComp(const Field& field, Value* value)
+      : field_(field),
+        value_(value) {
+    ASSERT(field.IsZoneHandle());
+    ASSERT(value != NULL);
+  }
+
+  DECLARE_COMPUTATION(StoreStaticFieldComp);
+
+  const Field& field() const { return field_; }
+  Value* value() const { return value_; }
+
+ private:
+  const Field& field_;
+  Value* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldComp);
+};
+
+
 // Not simply an InstanceCall because it has somewhat more complicated
 // semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public Computation {
  public:
-  StoreIndexedComp(StoreIndexedNode* node,
+  StoreIndexedComp(intptr_t node_id,
+                   intptr_t token_index,
                    Value* array,
                    Value* index,
                    Value* value)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
         array_(array),
         index_(index),
         value_(value) { }
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
   Value* array() const { return array_; }
   Value* index() const { return index_; }
   Value* value() const { return value_; }
 
  private:
-  const StoreIndexedNode& ast_node_;
+  intptr_t node_id_;
+  intptr_t token_index_;
   Value* array_;
   Value* index_;
   Value* value_;
@@ -322,29 +422,79 @@ class StoreIndexedComp : public Computation {
 // semantics: the value operand is preserved before the call.
 class InstanceSetterComp : public Computation {
  public:
-  InstanceSetterComp(InstanceSetterNode* node,
+  InstanceSetterComp(intptr_t node_id,
+                     intptr_t token_index,
+                     const String& field_name,
                      Value* receiver,
                      Value* value)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
+        field_name_(field_name),
         receiver_(receiver),
         value_(value) { }
 
   DECLARE_COMPUTATION(InstanceSetter)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-  const String& field_name() const { return ast_node_.field_name(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  const String& field_name() const { return field_name_; }
   Value* receiver() const { return receiver_; }
   Value* value() const { return value_; }
 
  private:
-  const InstanceSetterNode& ast_node_;
-  Value* receiver_;
-  Value* value_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const String& field_name_;
+  Value* const receiver_;
+  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
+};
+
+
+// Note overrideable, built-in: value? false : true.
+class BooleanNegateComp : public Computation {
+ public:
+  explicit BooleanNegateComp(Value* value) : value_(value) {}
+
+  DECLARE_COMPUTATION(BooleanNegateComp)
+
+  Value* value() const { return value_; }
+
+ private:
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
+};
+
+
+class InstanceOfComp : public Computation {
+ public:
+  InstanceOfComp(intptr_t node_id,
+                 intptr_t token_index,
+                 Value* value,
+                 const AbstractType& type,
+                 bool negate_result)
+      : node_id_(node_id),
+        token_index_(token_index),
+        value_(value),
+        type_(type),
+        negate_result_(negate_result) {}
+
+  DECLARE_COMPUTATION(InstanceOfComp)
+
+  Value* value() const { return value_; }
+  bool negate_result() const { return negate_result_; }
+  const AbstractType& type() const { return type_; }
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  Value* value_;
+  const AbstractType& type_;
+  const bool negate_result_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceOfComp);
 };
 
 
@@ -353,11 +503,14 @@ class InstanceSetterComp : public Computation {
 
 // Instructions.
 //
-// <Instruction> ::= Do <Computation> <Instruction>
+// <Instruction> ::= JoinEntry <Instruction>
+//                 | TargetEntry <Instruction>
+//                 | PickTemp <int> <int> <Instruction>
+//                 | TuckTemp <int> <int> <Instruction>
+//                 | Do <Computation> <Instruction>
 //                 | Bind <int> <Computation> <Instruction>
 //                 | Return <Value>
 //                 | Branch <Value> <Instruction> <Instruction>
-//                 | Empty <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -365,10 +518,12 @@ class InstanceSetterComp : public Computation {
 #define FOR_EACH_INSTRUCTION(M)                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
+  M(PickTemp)                                                                  \
+  M(TuckTemp)                                                                  \
   M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Return)                                                                    \
-  M(Branch)
+  M(Branch)                                                                    \
 
 
 // Forward declarations for Instruction classes.
@@ -390,6 +545,9 @@ class Instruction : public ZoneAllocated {
   Instruction() : mark_(false) { }
 
   virtual bool IsBlockEntry() const { return false; }
+  BlockEntryInstr* AsBlockEntry() {
+    return IsBlockEntry() ? reinterpret_cast<BlockEntryInstr*>(this) : NULL;
+  }
 
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
@@ -426,11 +584,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
-
-  static BlockEntryInstr* cast(Instruction* instr) {
-    ASSERT(instr->IsBlockEntry());
-    return reinterpret_cast<BlockEntryInstr*>(instr);
-  }
 
   intptr_t block_number() const { return block_number_; }
   void set_block_number(intptr_t number) { block_number_ = number; }
@@ -483,6 +636,74 @@ class TargetEntryInstr : public BlockEntryInstr {
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
+};
+
+
+// The non-optimizing compiler assumes that there is exactly one use of
+// every temporary so they can be deallocated at their use.  Some AST nodes,
+// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
+// of the values expr0 and expr1).
+//
+// PickTemp is used to name (with 'destination') a copy of a live temporary
+// (named 'source') without counting as the use of the source.
+class PickTempInstr : public Instruction {
+ public:
+  PickTempInstr(intptr_t dst, intptr_t src)
+      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(PickTemp)
+
+  intptr_t destination() const { return destination_; }
+  intptr_t source() const { return source_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  const intptr_t destination_;
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
+};
+
+
+// The non-optimizing compiler assumes that temporary definitions and uses
+// obey a stack discipline, so they can be allocated and deallocated with
+// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
+// (the value expr+1 is produced after the value of expr, and also consumed
+// after it).
+//
+// We 'preallocate' temporaries (named with 'destination') such as the one
+// for expr+1 and use TuckTemp to mutate them by overwriting them with a
+// copy of a temporary (named with 'source').
+class TuckTempInstr : public Instruction {
+ public:
+  TuckTempInstr(intptr_t dst, intptr_t src)
+      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(TuckTemp)
+
+  intptr_t destination() const { return destination_; }
+  intptr_t source() const { return source_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  const intptr_t destination_;
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
 };
 
 
@@ -572,11 +793,11 @@ class BranchInstr : public Instruction {
   DECLARE_INSTRUCTION(Branch)
 
   Value* value() const { return value_; }
-  TargetEntryInstr* true_successor() const { return true_successor_; }
-  TargetEntryInstr* false_successor() const { return false_successor_; }
+  BlockEntryInstr* true_successor() const { return true_successor_; }
+  BlockEntryInstr* false_successor() const { return false_successor_; }
 
-  TargetEntryInstr** true_successor_address() { return &true_successor_; }
-  TargetEntryInstr** false_successor_address() { return &false_successor_; }
+  BlockEntryInstr** true_successor_address() { return &true_successor_; }
+  BlockEntryInstr** false_successor_address() { return &false_successor_; }
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
@@ -584,8 +805,8 @@ class BranchInstr : public Instruction {
 
  private:
   Value* value_;
-  TargetEntryInstr* true_successor_;
-  TargetEntryInstr* false_successor_;
+  BlockEntryInstr* true_successor_;
+  BlockEntryInstr* false_successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

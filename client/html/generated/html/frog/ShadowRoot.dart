@@ -3,6 +3,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   final _ElementImpl host;
 
+  String innerHTML;
+
   _ElementImpl getElementById(String elementId) native;
 
   _NodeListImpl getElementsByClassName(String className) native;

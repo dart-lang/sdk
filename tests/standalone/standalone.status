@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-prefix standalone
-
 TimeoutTest: Skip  # Timeout test for testing the test runner.
 FailTest: Fail, OK # Fails intentionally
 
@@ -33,7 +31,7 @@ io/*: Skip # Don't run tests using dart:io in the browser
 [ $component == dartc || $component == chromium ]
 *: Skip
 
-[ $component == frog || $component == frogsh || $component == leg || $component == frogium ]
+[ $component == frog || $component == frogsh || $component == leg || $component == frogium || $component == legium ]
 *: Skip
 
 

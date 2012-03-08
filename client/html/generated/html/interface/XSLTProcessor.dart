@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor {
+interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+
+  XSLTProcessor();
 
   void clearParameters();
 

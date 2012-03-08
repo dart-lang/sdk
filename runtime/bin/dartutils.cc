@@ -17,7 +17,7 @@ const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kJsonLibURL = "dart:json";
 const char* DartUtils::kUriLibURL = "dart:uri";
-const char* DartUtils::kUtf8LibURL = "dart:utf8";
+const char* DartUtils::kUtfLibURL = "dart:utf";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
 
 
@@ -130,8 +130,8 @@ bool DartUtils::IsDartUriLibURL(const char* url_name) {
 }
 
 
-bool DartUtils::IsDartUtf8LibURL(const char* url_name) {
-  return (strcmp(url_name, kUtf8LibURL) == 0);
+bool DartUtils::IsDartUtfLibURL(const char* url_name) {
+  return (strcmp(url_name, kUtfLibURL) == 0);
 }
 
 

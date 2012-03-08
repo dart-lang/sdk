@@ -11,17 +11,11 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
     return new _TextTrackCueWrappingImplementation();
   }
 
-  String get alignment() { return _get_alignment(this); }
-  static String _get_alignment(var _this) native;
+  String get align() { return _get_align(this); }
+  static String _get_align(var _this) native;
 
-  void set alignment(String value) { _set_alignment(this, value); }
-  static void _set_alignment(var _this, String value) native;
-
-  String get direction() { return _get_direction(this); }
-  static String _get_direction(var _this) native;
-
-  void set direction(String value) { _set_direction(this, value); }
-  static void _set_direction(var _this, String value) native;
+  void set align(String value) { _set_align(this, value); }
+  static void _set_align(var _this, String value) native;
 
   num get endTime() { return _get_endTime(this); }
   static num _get_endTime(var _this) native;
@@ -35,11 +29,11 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
   void set id(String value) { _set_id(this, value); }
   static void _set_id(var _this, String value) native;
 
-  int get linePosition() { return _get_linePosition(this); }
-  static int _get_linePosition(var _this) native;
+  int get line() { return _get_line(this); }
+  static int _get_line(var _this) native;
 
-  void set linePosition(int value) { _set_linePosition(this, value); }
-  static void _set_linePosition(var _this, int value) native;
+  void set line(int value) { _set_line(this, value); }
+  static void _set_line(var _this, int value) native;
 
   EventListener get onenter() { return _get_onenter(this); }
   static EventListener _get_onenter(var _this) native;
@@ -58,6 +52,12 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
 
   void set pauseOnExit(bool value) { _set_pauseOnExit(this, value); }
   static void _set_pauseOnExit(var _this, bool value) native;
+
+  int get position() { return _get_position(this); }
+  static int _get_position(var _this) native;
+
+  void set position(int value) { _set_position(this, value); }
+  static void _set_position(var _this, int value) native;
 
   int get size() { return _get_size(this); }
   static int _get_size(var _this) native;
@@ -83,14 +83,14 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
   void set text(String value) { _set_text(this, value); }
   static void _set_text(var _this, String value) native;
 
-  int get textPosition() { return _get_textPosition(this); }
-  static int _get_textPosition(var _this) native;
-
-  void set textPosition(int value) { _set_textPosition(this, value); }
-  static void _set_textPosition(var _this, int value) native;
-
   TextTrack get track() { return _get_track(this); }
   static TextTrack _get_track(var _this) native;
+
+  String get vertical() { return _get_vertical(this); }
+  static String _get_vertical(var _this) native;
+
+  void set vertical(String value) { _set_vertical(this, value); }
+  static void _set_vertical(var _this, String value) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

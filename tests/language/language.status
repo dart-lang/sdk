@@ -15,9 +15,6 @@
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
-prefix language
-
-
 [ $component == vm || $component == dartium ]
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
@@ -42,8 +39,9 @@ Constructor6Test: Fail          # (Discussion ongoing)
 FunctionTypeAliasNegativeTest: Fail # Spec not clear about self referencing types.
 
 # Bad tests needing to be fixed.
-Prefix23NegativeTest: Fail
 TypeVariableScopeTest/00: Fail
+TypeVariableScopeTest/01: Fail
+TypeVariableScopeTest/02: Fail
 TypeVariableScopeTest/03: Fail
 TypeVariableScopeTest/04: Fail
 TypeVariableScopeTest/05: Fail
@@ -96,11 +94,6 @@ CompileTimeConstant6Test: Fail # Issue 1794
 IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
 
-[ ($component == vm || $component == dartium) && $checked ]
-
-TypeVariableBounds2Test/03: Fail # Work in progress.
-Prefix22Test: Fail # This test should be negative in checked mode.
-
 [ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
@@ -122,6 +115,7 @@ ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
 ConstructorCallWrongArgumentCountNegativeTest: Fail
 DefaultFactoryLibraryTest: Fail          # Issue 514
+DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DuplicateImplementsTest: Skip # Issue 976
 Field3aNegativeTest: Fail
 FieldMethod4NegativeTest: Fail
@@ -149,8 +143,6 @@ Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
-Prefix22NegativeTest: Fail   # Needs to be re-written as multitest
-Prefix23NegativeTest: Fail   # Needs to be re-written as multitest
 Prefix3NegativeTest: Fail              # Bug 5406175
 Prefix6NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
@@ -183,10 +175,10 @@ SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
-TypeVariableBounds2Test*: Skip  # Issue 1939.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-TypeVariableBoundsTest/01: Fail  # issue 1900
+TypeVariableBoundsTest*: Skip  # issue 1900 and multiple error annotations are required
+TypeVariableBounds2Test*: Skip  # multiple error annotations are required
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -201,8 +193,8 @@ TypeVariableBoundsTest/01: Fail  # issue 1900
 
 [ $component == dartium ]
 # TODO: These need to be retriaged.
+DisablePrivacyTest: Skip
 RichardsTest: Fail
-TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
 
@@ -228,6 +220,7 @@ ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
 # be moved to a
@@ -349,8 +342,6 @@ Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
-Prefix22NegativeTest: Fail
-Prefix23NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
@@ -362,10 +353,11 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
-TypeVariableBoundsTest/00: Fail
+TypeVariableBoundsTest*: Skip # multiple error annotations are required
+TypeVariableBounds2Test*: Skip # multiple error annotations are required
 TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
 TypeVariableShadowsClass: Fail # Issue 643
-WrongNumberTypeArgumentsTest/none: Fail
+WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
@@ -378,9 +370,6 @@ NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 
 StringEscape4NegativeTest: Fail # Issue 1352
-
-[ $component == frogium || $component == webdriver || $component == dartium ]
-ResourceTest: Fail  # browser tests are #sourcing the test, causing an error that directives cannot be used in #sourced files, see issue 1807
 
 [ $component == webdriver && $browser == chrome ]
 StringEscape1NegativeTest: Skip
@@ -432,14 +421,9 @@ PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
-TypeVariableBoundsTest/10: Fail  # Should not complain in production mode.
-WrongNumberTypeArgumentsTest/00: Fail  # Should not complain in production mode.
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
-TypeVariableBoundsTest/09: Fail
-TypeVariableBounds2Test/00: Fail  # Issue 1939
-TypeVariableBounds2Test/03: Fail  # Issue 1939
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate

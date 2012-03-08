@@ -8,7 +8,6 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ClassElement extends EnclosingElement {
   void setType(InterfaceType type);

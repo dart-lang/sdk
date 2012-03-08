@@ -7,13 +7,6 @@ class $CLASSNAME extends _ElementImpl
     native "*HTMLHtmlElement" {
 $!MEMBERS
 
-  // TODO(jacobr): remove these methods and let them be generated automatically
-  // once dart supports defining fields with the same name in an interface and
-  // its parent interface.
-  String get title() native "return this.parentNode.title;";
-  void set title(String value) native "this.parentNode.title = value;";
-
-
   // For efficiency and simplicity, we always use the HtmlElement as the
   // Document but sometimes internally we need the real JS document object.
   _NodeImpl get _jsDocument() native "return this.parentNode;";

@@ -6,7 +6,7 @@
 
 interface SVGStylable {
 
-  final SVGAnimatedString className;
+  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 

@@ -64,6 +64,7 @@ main() {
     }
     if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
+      queue.addTestSuite(new VMDartTestSuite(conf));
     }
 
     return true;

@@ -37,5 +37,8 @@ public interface InterfaceType extends Type {
     InterfaceType getHolder();
     Element getElement();
     Type getType();
+    Type getSetterType();
+    Type getGetterType();
+
   }
 }

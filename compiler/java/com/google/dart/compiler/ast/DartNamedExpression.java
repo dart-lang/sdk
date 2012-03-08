@@ -26,20 +26,7 @@ public class DartNamedExpression extends DartExpression {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (name != null) {
-        name = becomeParentOf(v.accept(name));
-      }
-      if (expression != null) {
-        expression = becomeParentOf(v.accept(expression));
-      }
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (name != null) {
       name.accept(visitor);
     }
@@ -49,7 +36,7 @@ public class DartNamedExpression extends DartExpression {
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitNamedExpression(this);
   }
 }

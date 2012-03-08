@@ -287,7 +287,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         // Parsing was successful, add node.
         if (node != null) {
-          unit.addTopLevelNode(node);
+          unit.getTopLevelNodes().add(node);
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
             Position abstractPositionEnd =
@@ -385,23 +385,23 @@ public class DartParser extends CompletionHooksParserBase {
   private void parseDirectives(DartUnit unit) {
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      unit.addDirective(done(parseLibraryDirective()));
+      unit.getDirectives().add(done(parseLibraryDirective()));
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
-      unit.addDirective(done(parseImportDirective()));
+      unit.getDirectives().add(done(parseImportDirective()));
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
-      unit.addDirective(done(parseSourceDirective()));
+      unit.getDirectives().add(done(parseSourceDirective()));
     }
     while (peek(0) == Token.RESOURCE) {
       beginResourceDirective();
-      unit.addDirective(done(parseResourceDirective()));
+      unit.getDirectives().add(done(parseResourceDirective()));
     }
     while (peek(0) == Token.NATIVE) {
       beginResourceDirective();
-      unit.addDirective(done(parseNativeDirective()));
+      unit.getDirectives().add(done(parseNativeDirective()));
     }
   }
 
@@ -617,7 +617,8 @@ public class DartParser extends CompletionHooksParserBase {
     DartStringLiteral nativeName = null;
     if (optionalPseudoKeyword(NATIVE_KEYWORD)) {
       if (superType != null) {
-        reportError(position(), ParserErrorCode.NATIVE_MUST_NOT_EXTEND);
+        // dom_frog.dart has this situation
+        //reportError(position(), ParserErrorCode.NATIVE_MUST_NOT_EXTEND);
       }
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.NATIVE_ONLY_CLASS);
@@ -1212,15 +1213,16 @@ public class DartParser extends CompletionHooksParserBase {
     if (!corelibParse) {
       reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
     }
-    if (optional(Token.SEMICOLON)) {
-      return done(new DartNativeBlock());
-    } else if (match(Token.LBRACE) || match(Token.ARROW)) {
-      if (!modifiers.isStatic()) {
-        reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
-      }
+    if (match(Token.STRING)) {
+      parseString();
+    }
+    if (match(Token.LBRACE) || match(Token.ARROW)) {
+      // dom_frog.dart has non-static native methods with string and block
+      //if (!modifiers.isStatic()) {
+      //  reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
+      //}
       return done(parseFunctionStatementBody(true));
     } else {
-      parseString();
       expect(Token.SEMICOLON);
       return done(new DartNativeBlock());
     }

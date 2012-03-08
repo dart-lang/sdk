@@ -34,7 +34,9 @@ _private_html_members = set([
   'Element.className',
   'Element.children',
   'Element.querySelectorAll',
+  'NodeSelector.querySelectorAll',
   'Document.querySelectorAll',
+  'DocumentFragment.querySelectorAll',
   'Element.getBoundingClientRect',
   'Element.getClientRects',
   'Node.appendChild',
@@ -59,18 +61,20 @@ _private_html_members = set([
 _html_library_renames = {
     'Document.defaultView': 'window',
     'DocumentFragment.querySelector': 'query',
+    'NodeSelector.querySelector': 'query',
     'Element.querySelector': 'query',
     'Element.webkitMatchesSelector' : 'matchesSelector',
     'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
     'Document.querySelector': 'query',
-    'DocumentFragment.querySelectorAll': 'queryAll',
-    'DocumentFragment.querySelectorAll': 'queryAll',
     'Node.cloneNode': 'clone',
     'Node.nextSibling': 'nextNode',
     'Node.ownerDocument': 'document',
     'Node.parentNode': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
+    'SVGElement.className': '_svgClassName',
+    'SVGAnimatedString.className': '_svgClassName',
+    'SVGStylable.className': '_svgClassName',
 }
 
 #TODO(jacobr): inject annotations into the interfaces based on this table and
@@ -95,11 +99,6 @@ _html_library_remove = set([
 #    "CDATASection.*",
 #    "Comment.*",
 #    "DOMImplementation.*",
-    # TODO(jacobr): listing title here is a temporary hack due to a frog bug
-    # involving when an interface inherits from another interface and defines
-    # the same field. BUG(1633)
-    "Document.title",
-    "Element.title",
     "Document.get:documentElement",
     "Document.get:forms",
 #    "Document.get:selectedStylesheetSet",
@@ -201,7 +200,10 @@ _html_library_remove = set([
     "FormElement.get:elements",
     "HTMLFrameElement.*",
     "HTMLFrameSetElement.*",
-    "HTMLHtmlElement.version",
+    "HtmlElement.version",
+    "HtmlElement.manifest",
+    "Document.version",
+    "Document.manifest",
 #    "IFrameElement.getSVGDocument",  #TODO(jacobr): should this be removed
     "InputElement.dirName",
     "HTMLIsIndexElement.*",
@@ -410,8 +412,7 @@ class HtmlSystemShared(object):
         _html_library_remove)
 
   def _Matches(self, interface, member, member_prefix, candidates):
-    for interface_name in ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface)):
+    for interface_name in self._AllAncestorInterfaces(interface):
       if (DartType(interface_name) + '.' + member in candidates or
           DartType(interface_name) + '.' + member_prefix + member in candidates):
         return True
@@ -431,6 +432,11 @@ class HtmlSystemShared(object):
     return (DartType(return_type) == 'EventTarget' or
         DartType(return_type) == 'Document')
 
+  def _AllAncestorInterfaces(self, interface):
+    interfaces = ([interface.id] +
+        self._generator._AllImplementedInterfaces(interface))
+    return interfaces
+
   def RenameInHtmlLibrary(self, interface, member, member_prefix=''):
     """
     Returns the name of the member in the HTML library or None if the member is
@@ -439,9 +445,8 @@ class HtmlSystemShared(object):
     if not self._AllowInHtmlLibrary(interface, member, member_prefix):
       return None
 
-    for interface_name in ([interface.id] +
-        self._generator._AllImplementedInterfaces(interface)):
-      name = interface.id + '.' + member
+    for interface_name in self._AllAncestorInterfaces(interface):
+      name = interface_name + '.' + member
       if name in _html_library_renames:
         return _html_library_renames[name]
       name = interface.id + '.' + member_prefix + member
@@ -586,8 +591,16 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     if suppressed_extends:
       extends_str += ' /*%s %s */' % (comment, ', '.join(suppressed_extends))
 
+    factory_provider = None
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      factory_provider = '_' + typename + 'FactoryProvider';
+
     if typename in interface_factories:
-      extends_str += ' default ' + interface_factories[typename]
+      factory_provider = interface_factories[typename]
+
+    if factory_provider:
+      extends_str += ' default ' + factory_provider
 
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._members_emitter,
@@ -595,6 +608,13 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
          self._template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=extends_str)
+
+    if constructor_info:
+      self._members_emitter.Emit(
+          '\n'
+          '  $CTOR($PARAMS);\n',
+          CTOR=typename,
+          PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
@@ -732,6 +752,27 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
     if element_type:
       self.AddTypedArrayConstructors(element_type)
+
+    # Emit a factory provider class for the constructor.
+    constructor_info = AnalyzeConstructor(interface)
+    if constructor_info:
+      self._EmitFactoryProvider(interface_name, constructor_info)
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    emitter = self._system._ImplFileEmitter(factory_provider)
+    emitter.Emit(
+        template,
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -995,15 +1036,12 @@ class HtmlFrogSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
-    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
       template = self._templates.Load('frog_impl.darttemplate')
 
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    dart_code = self._ImplFileEmitter(interface.id)
     return HtmlFrogClassGenerator(self, interface, template,
                                   super_interface_name, dart_code, self._shared)
 
@@ -1018,11 +1056,12 @@ class HtmlFrogSystem(HtmlSystem):
   def Finish(self):
     pass
 
-  def _FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
+  def _ImplFileEmitter(self, name):
+    """Returns the file emitter of the Frog implementation file."""
     # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'frog',
-                        '%s.dart' % interface_name)
+    path = os.path.join(self._output_dir, 'html', 'frog', '%s.dart' % name)
+    self._dart_frog_file_paths.append(path)
+    return self._emitters.FileEmitter(path)
 
 # -----------------------------------------------------------------------------
 
@@ -1045,25 +1084,22 @@ class HtmlDartiumSystem(HtmlSystem):
                          super_interface_name,
                          source_filter):
     """."""
-    dart_dartium_file_path = self._FilePathForImpl(interface.id)
-    self._dart_dartium_file_paths.append(dart_dartium_file_path)
-
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     # TODO(jacobr): change this name as it is confusing.
     if not template:
       template = self._templates.Load('frog_impl.darttemplate')
 
-    dart_code = self._emitters.FileEmitter(dart_dartium_file_path)
+    dart_code = self._ImplFileEmitter(interface.id)
     return HtmlDartiumInterfaceGenerator(self, interface, template,
         super_interface_name, dart_code, self._BaseDefines(interface),
         self._shared)
 
-  def _FilePathForImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'dartium',
-                        '%s.dart' % interface_name)
+  def _ImplFileEmitter(self, name):
+    """Returns the file emitter of the Dartium implementation file."""
+    path = os.path.join(self._output_dir, 'html', 'dartium', '%s.dart' % name)
+    self._dart_dartium_file_paths.append(path)
+    return self._emitters.FileEmitter(path);
 
   def ProcessCallback(self, interface, info):
     pass
@@ -1075,7 +1111,6 @@ class HtmlDartiumSystem(HtmlSystem):
         os.path.join(lib_dir, 'html_dartium.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         # FIXME: Move the implementation to a separate library.
          self._dart_dartium_file_paths
          ),
         WRAPCASES='\n'.join(self._wrap_cases))
@@ -1196,6 +1231,38 @@ class HtmlDartiumInterfaceGenerator(object):
       self._members_emitter.Emit(
           '  $(CLASSNAME)._wrap(ptr) : super._wrap(ptr);\n',
           CLASSNAME=self._class_name)
+
+    # Emit a factory provider class for the constructor.
+    constructor_info = AnalyzeConstructor(interface)
+    if constructor_info:
+      self._EmitFactoryProvider(interface_name, constructor_info)
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    emitter = self._system._ImplFileEmitter(factory_provider)
+    emitter.Emit(
+        template,
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
+        ARGUMENTS=self._UnwrappedParameters(constructor_info,
+                                            len(constructor_info.arg_infos)))
+
+  def _UnwrappedParameters(self, operation_info, length):
+    """Returns string for an argument list that unwraps first |length|
+    parameters."""
+    def UnwrapArgInfo(arg_info):
+      (name, type, value) = arg_info
+      # TODO(sra): Type dependent unwrapping.
+      return '_unwrap(%s)' % name
+
+    return ', '.join(map(UnwrapArgInfo, operation_info.arg_infos[:length]))
 
   def _BaseClassName(self, interface):
     if not interface.parents:
@@ -1529,22 +1596,10 @@ class HtmlDartiumInterfaceGenerator(object):
       indent: an indentation string for generated code.
       operation: the IDLOperation to call.
     """
-    # TODO(sra): Do we need to distinguish calling with missing optional
-    # arguments from passing 'null' which is represented as 'undefined'?
-    def UnwrapArgExpression(name, type):
-      # TODO: Type specific unwrapping.
-      return '_unwrap(%s)' % (name)
+    argument_expressions = self._UnwrappedParameters(
+        info,
+        len(operation.arguments))  # Just the parameters this far.
 
-    def ArgNameAndUnwrapper(arg_info, overload_arg):
-      (name, type, value) = arg_info
-      return (name, UnwrapArgExpression(name, type))
-
-    names_and_unwrappers = [ArgNameAndUnwrapper(info.arg_infos[i], arg)
-                            for (i, arg) in enumerate(operation.arguments)]
-    unwrap_args = [unwrap_arg for (_, unwrap_arg) in names_and_unwrappers]
-    arg_names = ['_unwrap(%s)' % name for (name, _) in names_and_unwrappers]
-
-    argument_expressions = ', '.join(arg_names)
     if info.type_name != 'void':
       # We could place the logic for handling Document directly in _wrap
       # but we chose to place it here so that bugs in the wrapper and

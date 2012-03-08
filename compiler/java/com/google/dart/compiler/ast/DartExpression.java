@@ -14,9 +14,4 @@ public abstract class DartExpression extends DartNode {
     // By default you cannot assign to expressions.
     return false;
   }
-
-  @Override
-  public DartExpression getNormalizedNode() {
-    return (DartExpression) super.getNormalizedNode();
-  }
 }

@@ -27,5 +27,5 @@ class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(var storeName_OR_storeNames, int mode) native;
+  _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
 }

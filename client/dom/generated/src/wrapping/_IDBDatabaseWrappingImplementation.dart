@@ -89,7 +89,7 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   }
   static IDBVersionChangeRequest _setVersion(receiver, version) native;
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode) {
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode = null]) {
     if (storeName_OR_storeNames is List<String>) {
       return _transaction(this, storeName_OR_storeNames, mode);
     } else {

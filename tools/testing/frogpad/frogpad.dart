@@ -27,7 +27,12 @@ void main() {
   setText("input", fs.readAll(mainFile));
 
   int time1 = new Date.now().value;
-  List<String> args = ["dummy_arg1", "dummy_arg2", mainFile];
+  List<String> args = [
+      "dummy_arg1",
+      "dummy_arg2",
+      "--enable_type_checks",
+      "--enable_asserts",
+    mainFile];
   parseOptions("dummy_home_dir", args, fs);
 
   options.useColors = false;
@@ -43,14 +48,14 @@ void main() {
   };
   bool success = world.compile();
   int time2 = new Date.now().value;
-  String output = world.getGeneratedCode();
+  String output = "throw 'frogpad compilation error';\n";
   if (success) {
-    setText("output", output);
+    output = world.getGeneratedCode();
   }
+  setText("output", output);
   setText("warnings", warnings);
 
-  ((time2 - time1) / 1000).toStringAsPrecision(3);
-  String timing = "generated ${output.length} characters in " + 
+  String timing = "generated ${output.length} characters in " +
       "${((time2 - time1) / 1000).toStringAsPrecision(3)} seconds";
   setText("timing", timing);
 }
@@ -128,7 +133,7 @@ class HtmlFileSystem implements FileSystem {
   bool fileExists(String filename) {
     // frog calls this to check if files exist before reading them.  We return 
     // true here for all files, and let it fail later if frog attempts to read 
-    // the contents of a non-existant file.
+    // the contents of a non-existent file.
     return true;
   }
 

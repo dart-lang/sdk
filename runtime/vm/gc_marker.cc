@@ -219,7 +219,14 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 
 void GCMarker::Prologue(Isolate* isolate) {
-  // Nothing to do at the moment.
+  // Always invoke the prologue callbacks.
+  isolate->gc_prologue_callbacks().Invoke();
+}
+
+
+void GCMarker::Epilogue(Isolate* isolate) {
+  // Always invoke the epilogue callbacks.
+  isolate->gc_epilogue_callbacks().Invoke();
 }
 
 
@@ -240,10 +247,11 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
                                      MarkingVisitor* visitor) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  for (;;) {
+  while (true) {
     WeakReference* queue = state->delayed_weak_references();
     if (queue == NULL) {
-      break;
+      // The delay queue is empty therefore no clean-up is required.
+      return;
     }
     state->set_delayed_weak_references(NULL);
     while (queue != NULL) {
@@ -305,6 +313,7 @@ void GCMarker::MarkObjects(Isolate* isolate, PageSpace* page_space) {
   IterateWeakReferences(isolate, &mark);
   MarkingWeakVisitor mark_weak;
   IterateWeakRoots(isolate, &mark_weak);
+  Epilogue(isolate);
 }
 
 }  // namespace dart

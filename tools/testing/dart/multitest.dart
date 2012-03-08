@@ -5,6 +5,7 @@
 #library("multitest");
 
 #import("dart:io");
+#import("test_suite.dart");
 
 // Multitests are Dart test scripts containing lines of the form
 // " [some dart code] /// [key]: [error type]"
@@ -77,10 +78,6 @@ void ExtractTestsFromMultitest(String filename,
   // time we see a multitest line with a new key.
   Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
 
-  // Matches #import( or #source( followed by " or ' followed by anything
-  // except dart: or /, at the beginning of a line.
-  RegExp relativeImportRegExp =
-      const RegExp('^#(import|source)[(]["\'](?!(dart:|/))');
   int lineCount = 0;
   for (String line in lines) {
     lineCount++;
@@ -102,11 +99,6 @@ void ExtractTestsFromMultitest(String filename,
       testTemplate.add(line);
       for (var test in testsAsLines.getValues()) test.add(line);
     }
-    // Warn if any import or source tags have relative paths.
-    if (relativeImportRegExp.hasMatch(line)) {
-      print('Warning: Multitest cannot contain relative imports:');
-      print('    $filename: $line');
-    }
   }
   // Add the template, with no multitest lines, as a test with key 'none'.
   testsAsLines['none'] = testTemplate;
@@ -119,6 +111,45 @@ void ExtractTestsFromMultitest(String filename,
   }
 }
 
+// Find all relative imports and copy them into the dir that contains
+// the generated tests.
+Set<String> _findAllRelativeImports(String topLibrary) {
+  Set<String> toSearch = new Set<String>.from([topLibrary]);
+  Set<String> foundImports = new HashSet<String>();
+  String pathSep = new Platform().pathSeparator();
+  int end = topLibrary.lastIndexOf(pathSep);
+  String libraryDir = topLibrary.substring(0, end);
+
+  // Matches #import( or #source( followed by " or ' followed by anything
+  // except dart: or /, at the beginning of a line.
+  RegExp relativeImportRegExp =
+      const RegExp('^#(import|source)[(]["\'](?!(dart:|/))([^"\']*)["\']');
+  while (!toSearch.isEmpty()) {
+    var thisPass = toSearch;
+    toSearch = new HashSet<String>();
+    for (String filename in thisPass) {
+      File f = new File(filename);
+      for (String line in f.readAsLinesSync()) {
+        Match match = relativeImportRegExp.firstMatch(line); 
+        if (match != null) {
+          String relativePath = match.group(3);
+          if (foundImports.contains(relativePath)) {
+            continue;
+          }
+          if (relativePath.contains(@'\.\.')) {
+            // This is just for safety reasons, we don't want
+            // to unintentionally clobber files relative to the destination
+            // dir when copying them ove.
+            Expect.fail("relative paths containing .. are not allowed.");
+          }
+          foundImports.add(relativePath);
+          toSearch.add('$libraryDir/$relativePath');
+        }
+      }
+    }
+  }
+  return foundImports;
+}
 
 void DoMultitest(String filename,
                  String outputDir,
@@ -138,10 +169,25 @@ void DoMultitest(String filename,
   ExtractTestsFromMultitest(filename, tests, outcomes);
 
   String directory = CreateMultitestDirectory(outputDir, testDir);
-  String pathSeparator = new Platform().pathSeparator();
-  int start = filename.lastIndexOf(pathSeparator) + 1;
+  Expect.isNotNull(directory);
+  String pathSep = new Platform().pathSeparator();
+  int start = filename.lastIndexOf(pathSep) + 1;
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);
+  String sourceDirectory = filename.substring(0, start - 1);
+  Set<String> importsToCopy = _findAllRelativeImports(filename);
+  Directory destDir = new Directory("directory");
+  for (String import in importsToCopy) {
+    File source = new File('$sourceDirectory/$import');
+    var dest = new File('$directory/$import');
+    var basenameStart = import.lastIndexOf('/');
+    if (basenameStart > 0) {
+      // make sure we have a dir for it
+      var importDir = import.substring(0, basenameStart);
+      TestUtils.mkdirRecursive(directory, importDir);
+    }
+    TestUtils.copyFile(source, dest);
+  }
   for (String key in tests.getKeys()) {
     final String filename = '$directory/${baseFilename}_$key.dart';
     final File file = new File(filename);

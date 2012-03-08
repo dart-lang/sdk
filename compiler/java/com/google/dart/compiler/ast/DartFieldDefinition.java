@@ -12,11 +12,11 @@ import java.util.List;
 public class DartFieldDefinition extends DartNode {
 
   private DartTypeNode typeNode;
-  private final List<DartField> fields;
+  private final NodeList<DartField> fields = NodeList.create(this);
 
   public DartFieldDefinition(DartTypeNode typeNode, List<DartField> fields) {
     this.setTypeNode(typeNode);
-    this.fields = becomeParentOf(fields);
+    this.fields.addAll(fields);
   }
 
   public DartTypeNode getTypeNode() {
@@ -32,26 +32,15 @@ public class DartFieldDefinition extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (getTypeNode() != null) {
-        setTypeNode(v.accept(getTypeNode()));
-      }
-      v.acceptWithInsertRemove(this, getFields());
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (getTypeNode() != null) {
       getTypeNode().accept(visitor);
     }
-    visitor.visit(getFields());
+    fields.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFieldDefinition(this);
   }
 }

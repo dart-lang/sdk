@@ -118,6 +118,127 @@ static void ThrowExceptionHelper(const Instance& exception,
 }
 
 
+// Static helpers for allocating, initializing, and throwing an error instance.
+
+// Return the script of the Dart function that called the native entry or the
+// runtime entry. The frame iterator points to the callee.
+RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
+  DartFrame* caller_frame = iterator->NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
+  ASSERT(!caller.IsNull());
+  const Class& caller_class = Class::Handle(caller.owner());
+  return caller_class.script();
+}
+
+
+// Allocate a new instance of the given class name.
+// TODO(hausner): Rename this NewCoreInstance to call out the fact that
+// the class name is resolved in the core library implicitly?
+RawInstance* Exceptions::NewInstance(const char* class_name) {
+  const String& cls_name = String::Handle(String::NewSymbol(class_name));
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
+  ASSERT(!cls.IsNull());
+  // There are no parameterized error types, so no need to set type arguments.
+  return Instance::New(cls);
+}
+
+
+// Assign the value to the field given by its name in the given instance.
+void Exceptions::SetField(const Instance& instance,
+                          const Class& cls,
+                          const char* field_name,
+                          const Object& value) {
+  const Field& field = Field::Handle(cls.LookupInstanceField(
+      String::Handle(String::NewSymbol(field_name))));
+  ASSERT(!field.IsNull());
+  instance.SetField(field, value);
+}
+
+
+// Initialize the fields 'url', 'line', and 'column' in the given instance
+// according to the given token location in the given script.
+void Exceptions::SetLocationFields(const Instance& instance,
+                                   const Class& cls,
+                                   const Script& script,
+                                   intptr_t location) {
+  SetField(instance, cls, "url", String::Handle(script.url()));
+  intptr_t line, column;
+  script.GetTokenLocation(location, &line, &column);
+  SetField(instance, cls, "line", Smi::Handle(Smi::New(line)));
+  SetField(instance, cls, "column", Smi::Handle(Smi::New(column)));
+}
+
+
+// Allocate, initialize, and throw a TypeError.
+void Exceptions::CreateAndThrowTypeError(intptr_t location,
+                                         const String& src_type_name,
+                                         const String& dst_type_name,
+                                         const String& dst_name,
+                                         const String& malformed_error) {
+  // Allocate a new instance of TypeError.
+  const Instance& type_error = Instance::Handle(NewInstance("TypeError"));
+
+  // Initialize 'url', 'line', and 'column' fields.
+  DartFrameIterator iterator;
+  const Script& script = Script::Handle(GetCallerScript(&iterator));
+  const Class& cls = Class::Handle(type_error.clazz());
+  // Location fields are defined in AssertionError, the superclass of TypeError.
+  const Class& assertion_error_class = Class::Handle(cls.SuperClass());
+  SetLocationFields(type_error, assertion_error_class, script, location);
+
+  // Initialize field 'failedAssertion' in AssertionError superclass.
+  // Printing the src_obj value would be possible, but ToString() is expensive
+  // and not meaningful for all classes, so we just print '$expr instanceof...'.
+  // Users should look at TypeError.ToString(), which contains more useful
+  // information than AssertionError.failedAssertion.
+  String& failed_assertion = String::Handle(String::New("$expr instanceof "));
+  failed_assertion = String::Concat(failed_assertion, dst_type_name);
+  SetField(type_error,
+           assertion_error_class,
+           "failedAssertion",
+           failed_assertion);
+
+  // Initialize field 'srcType'.
+  SetField(type_error, cls, "srcType", src_type_name);
+
+  // Initialize field 'dstType'.
+  SetField(type_error, cls, "dstType", dst_type_name);
+
+  // Initialize field 'dstName'.
+  SetField(type_error, cls, "dstName", dst_name);
+
+  // Initialize field 'malformedError'.
+  SetField(type_error, cls, "malformedError", malformed_error);
+
+  // Type errors in the core library may be difficult to diagnose.
+  // Print type error information before throwing the error when debugging.
+  if (FLAG_print_stack_trace_at_throw) {
+    if (!malformed_error.IsNull()) {
+      OS::Print("%s\n", malformed_error.ToCString());
+    }
+    intptr_t line, column;
+    script.GetTokenLocation(location, &line, &column);
+    OS::Print("'%s': Failed type check: line %d pos %d: ",
+              String::Handle(script.url()).ToCString(), line, column);
+    if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
+      OS::Print("type '%s' is not assignable to type '%s' of '%s'.\n",
+                src_type_name.ToCString(),
+                dst_type_name.ToCString(),
+                dst_name.ToCString());
+    } else {
+      OS::Print("malformed type used in type test.\n",
+                String::Handle(script.url()).ToCString(),
+                line, column);
+    }
+  }
+  // Throw TypeError instance.
+  Exceptions::Throw(type_error);
+  UNREACHABLE();
+}
+
+
 void Exceptions::Throw(const Instance& exception) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(exception, Instance::Handle());

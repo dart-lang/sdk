@@ -258,11 +258,6 @@ void AstPrinter::VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node) {
 }
 
 
-void AstPrinter::VisitIncrOpStaticFieldNode(IncrOpStaticFieldNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
 void AstPrinter::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
   VisitGenericAstNode(node);
 }

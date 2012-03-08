@@ -6,14 +6,6 @@ class _AudioContextFactoryProvider {
   factory AudioContext() => _wrap(new dom.AudioContext());
 }
 
-class _DOMParserFactoryProvider {
-  factory DOMParser() => _wrap(new dom.DOMParser());
-}
-
-class _FileReaderFactoryProvider {
-  factory FileReader() => _wrap(new dom.FileReader());
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
@@ -65,44 +57,7 @@ class _TypedArrayFactoryProvider {
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
-class _CSSMatrixFactoryProvider {
-
-  factory CSSMatrix([String spec = '']) =>
-      _wrap(new dom.WebKitCSSMatrix(spec));
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
-}
-
-class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
-}
-
-class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() => _wrap(new dom.XMLHttpRequest());
-
-  factory XMLHttpRequest.getTEMPNAME(String url,
-      onSuccess(XMLHttpRequest request)) {
-    final request = new XMLHttpRequest();
-    request.open('GET', url, true);
-
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
-
-    // Status 0 is for local XHR request.
-    request.on.readyStateChange.add((e) {
-      if (request.readyState == XMLHttpRequest.DONE &&
-          (request.status == 200 || request.status == 0)) {
-        onSuccess(request);
-      }
-    });
-
-    request.send();
-
-    return request;
-  }
 }

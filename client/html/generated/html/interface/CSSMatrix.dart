@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix {
+interface CSSMatrix default _CSSMatrixFactoryProvider {
+
+  CSSMatrix([String cssValue]);
 
   num a;
 

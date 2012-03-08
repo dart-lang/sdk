@@ -13,11 +13,11 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([_IDBKeyRangeImpl range = null]) native;
+  _IDBRequestImpl count([var key_OR_range = null]) native;
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestImpl delete(_IDBKeyImpl key) native;
+  _IDBRequestImpl delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 

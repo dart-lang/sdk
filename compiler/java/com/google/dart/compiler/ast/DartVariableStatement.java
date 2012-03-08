@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class DartVariableStatement extends DartStatement {
 
-  private final List<DartVariable> vars;
+  private final NodeList<DartVariable> vars = NodeList.create(this);
   private DartTypeNode typeNode;
   private final Modifiers modifiers;
 
@@ -20,7 +20,7 @@ public class DartVariableStatement extends DartStatement {
   }
 
   public DartVariableStatement(List<DartVariable> vars, DartTypeNode type, Modifiers modifiers) {
-    this.vars = becomeParentOf(vars);
+    this.vars.addAll(vars);
     this.typeNode = becomeParentOf(type);
     this.modifiers = modifiers;
   }
@@ -38,26 +38,15 @@ public class DartVariableStatement extends DartStatement {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (typeNode != null) {
-        typeNode = becomeParentOf(v.accept(typeNode));
-      }
-      v.acceptWithInsertRemove(this, getVariables());
-    }
-    v.endVisit(this, ctx);
-  }
-
-  @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (typeNode != null) {
       typeNode.accept(visitor);
     }
-    visitor.visit(vars);
+    vars.accept(visitor);
   }
 
   @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitVariableStatement(this);
   }
 }

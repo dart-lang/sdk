@@ -4,13 +4,9 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
-import com.google.dart.compiler.util.DefaultTextOutput;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -22,21 +18,15 @@ public class DartUnit extends DartNode {
   private static final long serialVersionUID = -3407637869012712127L;
 
   private LibraryUnit library;
-  private List<DartDirective> directives;
-  private final List<DartNode> topLevelNodes = Lists.newArrayList();
+  private final NodeList<DartDirective> directives = NodeList.create(this);
+  private final NodeList<DartNode> topLevelNodes = NodeList.create(this);
+  private final NodeList<DartComment> comments = NodeList.create(this);
   private final DartSource source;
   private final boolean isDiet;
-  /** A list of comments. May be null. */
-  private List<DartComment> comments;
-  private String dietParse;
 
   public DartUnit(DartSource source, boolean isDiet) {
     this.source = source;
     this.isDiet = isDiet;
-  }
-
-  public void addTopLevelNode(DartNode node) {
-    topLevelNodes.add(becomeParentOf(node));
   }
 
   public String getSourceName() {
@@ -48,19 +38,8 @@ public class DartUnit extends DartNode {
     return source;
   }
 
-  public void addComment(DartComment comment) {
-    if (comments == null) {
-      comments = new ArrayList<DartComment>();
-    }
-    comments.add(becomeParentOf(comment));
-  }
-
   public List<DartComment> getComments() {
-    return comments == null ? null : Collections.unmodifiableList(comments);
-  }
-
-  public boolean removeComment(DartComment comment) {
-    return comments == null ? false : comments.remove(comment);
+    return comments;
   }
 
   public void setLibrary(LibraryUnit library) {
@@ -76,32 +55,14 @@ public class DartUnit extends DartNode {
   }
 
   @Override
-  public void traverse(DartVisitor v, DartContext ctx) {
-    if (v.visit(this, ctx)) {
-      if (directives != null) {
-        v.acceptWithInsertRemove(this, directives);
-      }
-      v.acceptWithInsertRemove(this, topLevelNodes);
-      if (comments != null) {
-        v.acceptWithInsertRemove(this, comments);
-      }
-    }
-    v.endVisit(this, ctx);
+  public void visitChildren(ASTVisitor<?> visitor) {
+    directives.accept(visitor);
+    topLevelNodes.accept(visitor);
+    comments.accept(visitor);
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
-    if (directives != null) {
-      visitor.visit(directives);
-    }
-    visitor.visit(topLevelNodes);
-    if (comments != null) {
-      visitor.visit(comments);
-    }
-  }
-
-  @Override
-  public <R> R accept(DartPlainVisitor<R> visitor) {
+  public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitUnit(this);
   }
 
@@ -113,34 +74,9 @@ public class DartUnit extends DartNode {
   }
 
   /**
-   * Generates a diet version of this unit, which contains no method bodies.
-   */
-  public final String toDietSource() {
-    if (dietParse == null) {
-      DefaultTextOutput out = new DefaultTextOutput(false);
-      new DartToSourceVisitor(out, true).accept(this);
-      dietParse = out.toString();
-    }
-    return dietParse;
-  }
-
-  /**
-   * Add the specified directive to the receiver's list of directives
-   */
-  public void addDirective(DartDirective directive) {
-    if (directives == null) {
-      directives = new ArrayList<DartDirective>();
-    }
-    directives.add(becomeParentOf(directive));
-  }
-
-  /**
-   * Answer the receiver's directives or <code>null</code> if none
+   * Answer the receiver's directives, not <code>null</code>.
    */
   public List<DartDirective> getDirectives() {
-    if (directives == null) {
-      return Collections.<DartDirective> emptyList();
-    }
     return directives;
   }
 
@@ -180,7 +116,7 @@ public class DartUnit extends DartNode {
    */
   public Set<String> getDeclarationNames() {
     final Set<String> symbols = Sets.newHashSet();
-    accept(new DartNodeTraverser<Void>() {
+    accept(new ASTVisitor<Void>() {
       @Override
       public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
         symbols.add(node.getName().getTargetName());

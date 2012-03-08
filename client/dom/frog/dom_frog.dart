@@ -121,7 +121,7 @@ class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioC
 
   _ConvolverNodeJs createConvolver() native;
 
-  _DelayNodeJs createDelayNode() native;
+  _DelayNodeJs createDelayNode([num maxDelayTime = null]) native;
 
   _DynamicsCompressorNodeJs createDynamicsCompressor() native;
 
@@ -402,6 +402,12 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -795,11 +801,11 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type = null]) native;
 
-  void getData(String type) native;
+  String getData(String type) native;
 
   bool setData(String type, String data) native;
 
@@ -1179,6 +1185,10 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 }
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
+
+  String createObjectURL(var blob_OR_stream) native;
+
+  void revokeObjectURL(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1387,7 +1397,7 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
 
   _BlobJs getAsFile() native;
 
-  void getAsString(StringCallback callback) native;
+  void getAsString([StringCallback callback = null]) native;
 }
 
 class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
@@ -1644,7 +1654,7 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   bool execCommand(String command, bool userInterface, String value) native;
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height) native;
+  _CanvasRenderingContextJs getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
   _ElementJs getElementById(String elementId) native;
 
@@ -1704,6 +1714,14 @@ class _DocumentTypeJs extends _NodeJs implements DocumentType native "*DocumentT
 }
 
 class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
+
+  final _AudioParamJs knee;
+
+  final _AudioParamJs ratio;
+
+  final _AudioParamJs reduction;
+
+  final _AudioParamJs threshold;
 }
 
 class _ElementJs extends _NodeJs implements Element native "*Element" {
@@ -4061,7 +4079,7 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(var storeName_OR_storeNames, int mode) native;
+  _IDBTransactionJs transaction(var storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseErrorJs extends _DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -4131,7 +4149,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([var key_OR_range = null]) native;
 
   _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 
@@ -4178,7 +4196,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBRequestJs clear() native;
 
-  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([var key_OR_range = null]) native;
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
@@ -4905,6 +4923,8 @@ class _MessagePortJs extends _EventTargetJs implements MessagePort native "*Mess
 class _MetadataJs extends _DOMTypeJs implements Metadata native "*Metadata" {
 
   final Date modificationTime;
+
+  final int size;
 }
 
 class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent" {
@@ -9153,6 +9173,8 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
 
   final _ElementJs host;
 
+  String innerHTML;
+
   _ElementJs getElementById(String elementId) native;
 
   _NodeListJs getElementsByClassName(String className) native;
@@ -9215,7 +9237,7 @@ class _StorageJs extends _DOMTypeJs implements Storage native "*Storage" {
   // captures what would normally be an expando and places property in the
   // storage, stringifying the assigned value.
 
-  var get dartObjectLocalStorage() native """
+  get dartObjectLocalStorage() native """
     if (this === window.localStorage)
       return window._dartLocalStorageLocalStorage;
     else if (this === window.sessionStorage)
@@ -9420,21 +9442,21 @@ class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
 
 class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -9444,9 +9466,9 @@ class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTr
 
   String text;
 
-  int textPosition;
-
   final _TextTrackJs track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11145,6 +11167,8 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final bool overflow;
+
+  _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -11860,7 +11884,7 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   ConvolverNode createConvolver();
 
-  DelayNode createDelayNode();
+  DelayNode createDelayNode([num maxDelayTime]);
 
   DynamicsCompressorNode createDynamicsCompressor();
 
@@ -12244,6 +12268,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -12651,11 +12681,11 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List<String> types;
+  final List types;
 
   void clearData([String type]);
 
-  void getData(String type);
+  String getData(String type);
 
   bool setData(String type, String data);
 
@@ -13155,6 +13185,10 @@ interface DOMTokenList {
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
+
+  String createObjectURL(var blob_OR_stream);
+
+  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13371,7 +13405,7 @@ interface DataTransferItem {
 
   Blob getAsFile();
 
-  void getAsString(StringCallback callback);
+  void getAsString([StringCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13703,7 +13737,7 @@ interface Document extends Node, NodeSelector {
 
   bool execCommand(String command, bool userInterface, String value);
 
-  Object getCSSCanvasContext(String contextId, String name, int width, int height);
+  CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
   Element getElementById(String elementId);
 
@@ -13778,6 +13812,14 @@ interface DocumentType extends Node {
 // WARNING: Do not edit - generated code.
 
 interface DynamicsCompressorNode extends AudioNode {
+
+  final AudioParam knee;
+
+  final AudioParam ratio;
+
+  final AudioParam reduction;
+
+  final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16491,7 +16533,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16581,7 +16623,7 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBRequest getObject(IDBKey key);
 
@@ -16643,7 +16685,7 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
+  IDBRequest count([var key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
@@ -17228,6 +17270,8 @@ interface MessagePort extends EventTarget {
 interface Metadata {
 
   final Date modificationTime;
+
+  final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20892,6 +20936,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   final Element host;
 
+  String innerHTML;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -21182,21 +21228,21 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -21206,9 +21252,9 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   String text;
 
-  int textPosition;
-
   final TextTrack track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -22820,6 +22866,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

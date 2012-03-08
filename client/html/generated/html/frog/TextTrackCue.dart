@@ -1,21 +1,21 @@
 
 class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
-
-  String direction;
+  String align;
 
   num endTime;
 
   String id;
 
-  int linePosition;
+  int line;
 
   EventListener onenter;
 
   EventListener onexit;
 
   bool pauseOnExit;
+
+  int position;
 
   int size;
 
@@ -25,9 +25,9 @@ class _TextTrackCueImpl implements TextTrackCue native "*TextTrackCue" {
 
   String text;
 
-  int textPosition;
-
   final _TextTrackImpl track;
+
+  String vertical;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

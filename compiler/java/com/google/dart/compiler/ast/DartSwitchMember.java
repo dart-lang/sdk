@@ -11,16 +11,12 @@ import java.util.List;
  */
 public abstract class DartSwitchMember extends DartNode {
 
-  private final List<DartStatement> statements;
+  private final NodeList<DartStatement> statements = NodeList.create(this);
   private final DartLabel label;
 
   public DartSwitchMember(DartLabel label, List<DartStatement> statements) {
     this.label = becomeParentOf(label);
-    this.statements = becomeParentOf(statements);
-  }
-
-  public void addStatement(DartStatement statement) {
-    statements.add(statement);
+    this.statements.addAll(statements);
   }
 
   public List<DartStatement> getStatements() {
@@ -32,10 +28,10 @@ public abstract class DartSwitchMember extends DartNode {
   }
 
   @Override
-  public void visitChildren(DartPlainVisitor<?> visitor) {
+  public void visitChildren(ASTVisitor<?> visitor) {
     if (label != null) {
       label.accept(visitor);
     }
-    visitor.visit(statements);
+    statements.accept(visitor);
   }
 }

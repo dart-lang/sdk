@@ -155,7 +155,7 @@ def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='frog,dummy,wrapping',
+                    default='frog,dummy,wrapping,htmlfrog,htmldartium',
                     help='Systems to generate (frog, native, dummy, '
                          'htmlfrog, htmldartium)')
   parser.add_option('--output-dir', dest='output_dir',
@@ -171,28 +171,28 @@ def main():
 
   current_dir = os.path.dirname(__file__)
   systems = options.systems.split(',')
-  num_html_systems = ('htmlfrog' in systems) + ('htmldartium' in systems)
-  if num_html_systems > 0 and num_html_systems < len(systems):
-    print 'Cannot generate html and dom bindings at the same time'
-    sys.exit(-1)
+  html_system_names = ['htmldartium', 'htmlfrog']
+  html_systems = [s for s in systems if s in html_system_names]
+  dom_systems = [s for s in systems if s not in html_system_names]
 
   use_database_cache = options.use_database_cache
-  generate_html_systems = ('htmlfrog' in systems) or ('htmldartium' in systems)
-  output_dir = options.output_dir or (
-      os.path.join(current_dir, '../../html') if generate_html_systems else
-      os.path.join(current_dir, '..'))
-
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
 
-  GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache)
+  if dom_systems:
+    output_dir = options.output_dir or os.path.join(current_dir, '..')
+    GenerateDOM(dom_systems, False, output_dir, use_database_cache)
 
-  # Copy dummy DOM where dartc build expects it.
-  if 'dummy' in systems:
-    # TODO(sra): Make other tools pick this up directly, or do a copy_dart into
-    # a specific directory.
-    source = os.path.join(output_dir, 'dom_dummy.dart')
-    target = os.path.join(output_dir, 'dom.dart')
-    shutil.copyfile(source, target)
+    # Copy dummy DOM where dartc build expects it.
+    if 'dummy' in systems:
+      # TODO(sra): Make other tools pick this up directly, or do a copy_dart into
+      # a specific directory.
+      source = os.path.join(output_dir, 'dom_dummy.dart')
+      target = os.path.join(output_dir, 'dom.dart')
+      shutil.copyfile(source, target)
+
+  if html_systems:
+    output_dir = options.output_dir or os.path.join(current_dir, '../../html')
+    GenerateDOM(html_systems, True, output_dir, use_database_cache or dom_systems)
 
 if __name__ == '__main__':
   sys.exit(main())

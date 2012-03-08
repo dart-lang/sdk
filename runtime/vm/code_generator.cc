@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
 DEFINE_FLAG(int, optimization_counter_threshold, 2000,
     "function's usage-counter value before it is optimized, -1 means never.");
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
@@ -354,19 +355,23 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 
 // Check that the given instance is an instance of the given type.
 // Tested instance may not be null, because the null test is inlined.
-// Arg0: instance being checked.
-// Arg1: type.
-// Arg2: type arguments of the instantiator of the type.
-// Return value: true or false.
-DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
+// Arg0: index of the token of the instanceof test (source location).
+// Arg1: instance being checked.
+// Arg2: type.
+// Arg3: type arguments of the instantiator of the type.
+// Return value: true or false, or may throw a type error in checked mode.
+DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
-  const Instance& instance = Instance::CheckedHandle(arguments.At(0));
-  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
+  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
+  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& instance = Instance::CheckedHandle(arguments.At(1));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(2));
   const AbstractTypeArguments& type_instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.At(2));
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
   ASSERT(type.IsFinalized());
+  Error& malformed_error = Error::Handle();
   const Bool& result = Bool::Handle(
-      instance.IsInstanceOf(type, type_instantiator) ?
+      instance.IsInstanceOf(type, type_instantiator, &malformed_error) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
     const Type& instance_type = Type::Handle(instance.GetType());
@@ -393,7 +398,200 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
         caller_frame->LookupDartFunction());
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
+  if (!result.value() && !malformed_error.IsNull()) {
+    ASSERT(FLAG_enable_type_checks);
+    // Throw a dynamic type error only if the instanceof test fails.
+    String& malformed_error_message =  String::Handle(
+        String::New(malformed_error.ToErrorCString()));
+    const String& no_name = String::Handle(String::NewSymbol(""));
+    Exceptions::CreateAndThrowTypeError(
+        location, no_name, no_name, no_name, malformed_error_message);
+    UNREACHABLE();
+  }
   arguments.SetReturn(result);
+}
+
+
+// Check that the type of the given instance is assignable to the given type.
+// Arg0: index of the token of the assignment (source location).
+// Arg1: instance being assigned.
+// Arg2: type being assigned to.
+// Arg3: type arguments of the instantiator of the type being assigned to.
+// Arg4: name of instance being assigned to.
+// Return value: instance if assignable, otherwise throw a TypeError.
+DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
+  ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
+  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
+  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
+  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& dst_type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
+  const String& dst_name = String::CheckedHandle(arguments.At(4));
+  ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
+
+  Error& malformed_error = Error::Handle();
+  const bool is_assignable = src_instance.IsAssignableTo(
+      dst_type, dst_type_instantiator, &malformed_error);
+
+  if (FLAG_trace_type_checks) {
+    const Type& src_type = Type::Handle(src_instance.GetType());
+    if (dst_type.IsInstantiated()) {
+      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s'.\n",
+                String::Handle(src_type.Name()).ToCString(),
+                is_assignable ? "is" : "is not",
+                String::Handle(dst_type.Name()).ToCString(),
+                dst_name.ToCString());
+    } else {
+      // Instantiate dst_type before printing.
+      const AbstractType& instantiated_dst_type = AbstractType::Handle(
+          dst_type.InstantiateFrom(dst_type_instantiator));
+      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s' "
+                "instantiated from '%s'.\n",
+                String::Handle(src_type.Name()).ToCString(),
+                is_assignable ? "is" : "is not",
+                String::Handle(instantiated_dst_type.Name()).ToCString(),
+                dst_name.ToCString(),
+                String::Handle(dst_type.Name()).ToCString());
+    }
+    DartFrameIterator iterator;
+    DartFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const Function& function = Function::Handle(
+        caller_frame->LookupDartFunction());
+    OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
+  }
+  if (!is_assignable) {
+    const Type& src_type = Type::Handle(src_instance.GetType());
+    const String& src_type_name = String::Handle(src_type.Name());
+    String& dst_type_name = String::Handle();
+    if (!dst_type.IsInstantiated()) {
+      // Instantiate dst_type before reporting the error.
+      const AbstractType& instantiated_dst_type = AbstractType::Handle(
+          dst_type.InstantiateFrom(dst_type_instantiator));
+      dst_type_name = instantiated_dst_type.Name();
+    } else {
+      dst_type_name = dst_type.Name();
+    }
+    String& malformed_error_message =  String::Handle();
+    if (!malformed_error.IsNull()) {
+      ASSERT(FLAG_enable_type_checks);
+      malformed_error_message = String::New(malformed_error.ToErrorCString());
+    }
+    Exceptions::CreateAndThrowTypeError(location, src_type_name, dst_type_name,
+                                        dst_name, malformed_error_message);
+    UNREACHABLE();
+  }
+  arguments.SetReturn(src_instance);
+}
+
+
+// Report that the type of the given object is not bool in conditional context.
+// Arg0: index of the token of the assignment (source location).
+// Arg1: bad object.
+// Return value: none, throws a TypeError.
+DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
+  ASSERT(arguments.Count() ==
+      kConditionTypeErrorRuntimeEntry.argument_count());
+  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
+  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
+  ASSERT(src_instance.IsNull() || !src_instance.IsBool());
+  const Type& bool_interface = Type::Handle(Type::BoolInterface());
+  const Type& src_type = Type::Handle(src_instance.GetType());
+  const String& src_type_name = String::Handle(src_type.Name());
+  const String& bool_type_name = String::Handle(bool_interface.Name());
+  const String& expr = String::Handle(String::NewSymbol("boolean expression"));
+  const String& no_malformed_type_error =  String::Handle();
+  Exceptions::CreateAndThrowTypeError(location, src_type_name, bool_type_name,
+                                      expr, no_malformed_type_error);
+  UNREACHABLE();
+}
+
+
+// Report that the type of the type check is malformed.
+// Arg0: index of the token of the failed type check.
+// Arg1: src value.
+// Arg2: name of instance being assigned to.
+// Arg3: malformed type error message.
+// Return value: none, throws an exception.
+DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
+  ASSERT(arguments.Count() ==
+      kMalformedTypeErrorRuntimeEntry.argument_count());
+  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
+  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& src_value = Instance::CheckedHandle(arguments.At(1));
+  const String& dst_name = String::CheckedHandle(arguments.At(2));
+  const String& malformed_error = String::CheckedHandle(arguments.At(3));
+  const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
+  const String& src_type_name =
+      String::Handle(Type::Handle(src_value.GetType()).Name());
+  Exceptions::CreateAndThrowTypeError(location, src_type_name,
+                                      dst_type_name, dst_name, malformed_error);
+  UNREACHABLE();
+}
+
+
+// Check that the type of each element of the given array is assignable to the
+// given type.
+// Arg0: index of the token of the rest argument declaration (source location).
+// Arg1: rest argument array.
+// Arg2: element declaration type.
+// Arg3: type arguments of the instantiator of the element declaration type.
+// Arg4: name of object being assigned to, i.e. name of rest argument.
+// Return value: null if assignable, otherwise allocate and throw a TypeError.
+DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
+  ASSERT(arguments.Count() ==
+      kRestArgumentTypeCheckRuntimeEntry.argument_count());
+  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
+  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Array& rest_array = Array::CheckedHandle(arguments.At(1));
+  const AbstractType& element_type =
+      AbstractType::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& element_type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
+  const String& rest_name = String::CheckedHandle(arguments.At(4));
+  ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!rest_array.IsNull());
+
+  Instance& elem = Instance::Handle();
+  Error& malformed_error = Error::Handle();
+  for (intptr_t i = 0; i < rest_array.Length(); i++) {
+    elem ^= rest_array.At(i);
+    // The previous successful type check may have set malformed_error.
+    // Note that a returned malformed_error is ignored if a type check succeeds.
+    malformed_error = Error::null();
+    if (!elem.IsNull() && !elem.IsAssignableTo(element_type,
+                                               element_type_instantiator,
+                                               &malformed_error)) {
+      // Allocate and throw a new instance of TypeError.
+      char buf[256];
+      OS::SNPrint(buf, sizeof(buf), "%s[%d]",
+                  rest_name.ToCString(), static_cast<int>(i));
+      const String& src_type_name =
+          String::Handle(Type::Handle(elem.GetType()).Name());
+      String& dst_type_name = String::Handle();
+      if (!element_type.IsInstantiated()) {
+        // Instantiate element_type before reporting the error.
+        const AbstractType& instantiated_element_type = AbstractType::Handle(
+            element_type.InstantiateFrom(element_type_instantiator));
+        dst_type_name = instantiated_element_type.Name();
+      } else {
+        dst_type_name = element_type.Name();
+      }
+      const String& dst_name = String::Handle(String::New(buf));
+      String& malformed_error_message =  String::Handle();
+      if (!malformed_error.IsNull()) {
+        ASSERT(FLAG_enable_type_checks);
+        malformed_error_message = String::New(malformed_error.ToErrorCString());
+      }
+      Exceptions::CreateAndThrowTypeError(location, src_type_name,
+                                          dst_type_name, dst_name,
+                                          malformed_error_message);
+      UNREACHABLE();
+    }
+  }
 }
 
 

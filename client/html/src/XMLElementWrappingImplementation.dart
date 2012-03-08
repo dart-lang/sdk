@@ -43,8 +43,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
     return _elements;
   }
 
-  // TODO: The type of value should be Collection<Element>. See http://b/5392897
-  void set elements(value) {
+  void set elements(Collection<Element> value) {
     final elements = this.elements;
     elements.clear();
     elements.addAll(value);

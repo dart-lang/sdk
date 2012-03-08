@@ -28,6 +28,7 @@ class GCMarker : public ValueObject {
 
  private:
   void Prologue(Isolate* isolate);
+  void Epilogue(Isolate* isolate);
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);

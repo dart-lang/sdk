@@ -78,10 +78,15 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
   }
   static ConvolverNode _createConvolver(receiver) native;
 
-  DelayNode createDelayNode() {
-    return _createDelayNode(this);
+  DelayNode createDelayNode([num maxDelayTime = null]) {
+    if (maxDelayTime === null) {
+      return _createDelayNode(this);
+    } else {
+      return _createDelayNode_2(this, maxDelayTime);
+    }
   }
   static DelayNode _createDelayNode(receiver) native;
+  static DelayNode _createDelayNode_2(receiver, maxDelayTime) native;
 
   DynamicsCompressorNode createDynamicsCompressor() {
     return _createDynamicsCompressor(this);

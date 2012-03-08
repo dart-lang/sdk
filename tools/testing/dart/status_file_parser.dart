@@ -19,7 +19,6 @@ final OK = "ok";
 final RegExp StripComment = const RegExp("^[^#]*");
 final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");
 final RegExp RulePattern = const RegExp(@"\s*([^: ]*)\s*:(.*)");
-final RegExp PrefixPattern = const RegExp(@"^\s*prefix\s+([\w\_\.\-\/]+)\s*$");
 
 // TODO(whesse): Implement configuration_info library that contains data
 // structures for test configuration, including Section.
@@ -64,7 +63,6 @@ void ReadConfigurationInto(path, sections, onDone) {
 
   Section current = new Section.always();
   sections.add(current);
-  String prefix = "";
 
   lines.onLine = () {
     String line;
@@ -93,12 +91,6 @@ void ReadConfigurationInto(path, sections, onDone) {
         SetExpression expression =
             new ExpressionParser(new Scanner(tokens)).parseSetExpression();
         current.testRules.add(new TestRule(name, expression));
-        continue;
-      }
-
-      match = PrefixPattern.firstMatch(line);
-      if (match != null) {
-        prefix = match[1];
         continue;
       }
 

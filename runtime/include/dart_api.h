@@ -272,6 +272,75 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
                                                  Dart_Handle* values,
                                                  intptr_t num_values);
 
+// --- Garbage Collection Callbacks --
+
+/**
+ * Callbacks signal the beginning and end of a garbage collection.
+ *
+ * These signals are intended to be used by the embedder to manage the
+ * lifetime of native objects with a managed object peer.
+ */
+
+/**
+ * A callback invoked at the beginning of a garbage collection.
+ */
+typedef void (*Dart_GcPrologueCallback)();
+
+/**
+ * A callback invoked at the end of a garbage collection.
+ */
+typedef void (*Dart_GcEpilogueCallback)();
+
+/**
+ * Adds a garbage collection prologue callback.
+ *
+ * \param callback A function pointer to a prologue callback function.
+ *   This function must not have been previously added as a prologue
+ *   callback.
+ *
+ * \return Success if the callback was added.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
+    Dart_GcPrologueCallback callback);
+
+/**
+ * Removes a garbage collection prologue callback.
+ *
+ * \param callback A function pointer to a prologue callback function.
+ *   This function must have been added as a prologue callback.
+ *
+ * \return Success if the callback was removed.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
+    Dart_GcPrologueCallback callback);
+
+/**
+ * Adds a garbage collection epilogue callback.
+ *
+ * \param callback A function pointer to an epilogue callback
+ *   function.  This function must not have been previously added as
+ *   an epilogue callback.
+ *
+ * \return Success if the callback was added.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback);
+
+/**
+ * Removes a garbage collection epilogue callback.
+ *
+ * \param callback A function pointer to an epilogue callback
+ *   function.  This function must have been added as an epilogue
+ *   callback.
+ *
+ * \return Success if the callback was removed.  Otherwise, returns an
+ *   error handle.
+ */
+DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
+    Dart_GcEpilogueCallback callback);
 
 // --- Initialization and Globals ---
 
@@ -1615,6 +1684,53 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
                                            Dart_Handle* arguments);
 
 /**
+ * Gets the value of a field.
+ *
+ * The 'container' parameter may actually be an object, class, or
+ * library.  If 'container' is an object, then this function will
+ * access an instance field.  If 'container' is a class, then this
+ * function will access a static field.  If 'container' is a library,
+ * then this function will access a top-level variable.
+ *
+ * This function ignores field visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param container An object, class, or library.
+ * \param name A field name
+ *
+ * \return If no error occurs, then the value of the field is
+ *   returned. Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container,
+                                      Dart_Handle name);
+
+/**
+ * Sets the value of a field.
+ *
+ * The 'container' parameter may actually be an object, class, or
+ * library.  If 'container' is an object, then this function will
+ * access an instance field.  If 'container' is a class, then this
+ * function will access a static field.  If 'container' is a library,
+ * then this function will access a top-level variable.
+ *
+ * This function ignores field visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param container An object, class, or library.
+ * \param name A field name
+ * \param value The new field value
+ *
+ * \return A valid handle if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
+                                      Dart_Handle name,
+                                      Dart_Handle value);
+
+/**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Gets the value of a static field.
  *
  * May generate an unhandled exception error.
@@ -1622,9 +1738,11 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
  * \return If no error occurs, then the value of the field is
  *   returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls, Dart_Handle name);
-
+DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
+                                            Dart_Handle name);
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Sets the value of a static field.
  *
  * May generate an unhandled exception error.
@@ -1636,6 +1754,8 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
                                             Dart_Handle value);
 
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Gets the value of an instance field.
  *
  * May generate an unhandled exception error.
@@ -1646,6 +1766,8 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
 DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
                                               Dart_Handle name);
 /**
+ * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
+ *
  * Sets the value of an instance field.
  *
  * May generate an unhandled exception error.
@@ -1768,7 +1890,7 @@ typedef enum {
   kLibraryTag = 0,
   kImportTag,
   kSourceTag,
-  kCanonicalizeUrl,
+  kCanonicalizeUrl
 } Dart_LibraryTag;
 
 // TODO(turnidge): Document.
