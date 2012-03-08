@@ -23,11 +23,13 @@ class _Logger {
 
 
 // Code to deal with URI resolution for the standalone binary.
+// For Windows we need to massage the paths a bit according to
+// http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
 var _is_windows;
 
 void _logResolution(String msg) {
   final enabled = false;
-  if (enabled || _is_windows) {
+  if (enabled) {
     _Logger._printString(msg);
   }
 }
