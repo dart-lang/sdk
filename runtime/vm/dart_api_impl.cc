@@ -2984,14 +2984,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
       library.set_import_map(mapping_array);
     }
     library.Register();
-    // If this is the dart:builtin library register it with the VM.
-    if (url_str.Equals("dart:builtin")) {
-      isolate->object_store()->set_builtin_library(library);
-      const char* msg = CheckIsolateState(isolate);
-      if (msg != NULL) {
-        return Api::NewError(msg);
-      }
-    }
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.
@@ -3005,6 +2997,19 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                 source_str,
                 RawScript::kLibrary,
                 &result);
+  // Propagate the error out right now.
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
+  // If this is the dart:builtin library, register it with the VM.
+  if (url_str.Equals("dart:builtin")) {
+    isolate->object_store()->set_builtin_library(library);
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
+  }
   return result;
 }
 
