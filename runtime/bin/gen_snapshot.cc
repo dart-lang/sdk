@@ -274,12 +274,11 @@ int main(int argc, char** argv) {
   } else {
     // Load a dummy script as the script to setup the tag handler.
     Dart_Handle empty_string = Dart_NewString("");
-    Dart_Handle import_map = Dart_NewList(0);
-    Dart_Handle lib = Dart_LoadScript(empty_string,
+    library = Dart_LoadScript(empty_string,
                                       empty_string,
                                       BuiltinLibraryTagHandler,
-                                      import_map);
-    USE(lib);
+                                      Dart_Null());
+    VerifyLoaded(library);
     // This is a generic dart snapshot which needs builtin library setup.
     library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
     VerifyLoaded(library);
