@@ -50,7 +50,6 @@ Language/11_Statements/02_Expression_Statements_A01_t05: Fail # co19 issue 91: m
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/09_Try_A02_t04: Fail # co19 issue 98: syntax error in test.
 Language/11_Statements/09_Try_A05_t06: Fail # issue 430
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
 
@@ -239,7 +238,7 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail
 
 [ $component == vm && $unchecked ]
 Language/13_Types/1_Static_Types_A02_t08: Fail
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(vm-team): New failure, please triage.
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # # co19 issue 97
 
 
 [ $arch == simarm ]
