@@ -27,12 +27,12 @@ class LocalVariable;
 // | StoreLocal <LocalVariable> <Value>
 // | StrictCompare <Token::kind> <Value> <Value>
 // | NativeCall <NativeBodyNode>
-// | StoreIndexed <StoreIndexedNode> <Value> <Value> <Value>
-// | InstanceSetter <InstanceSetterNode> <Value> <Value>
+// | StoreIndexed <Value> <Value> <Value>
+// | InstanceSetter <String> <Value> <Value>
 // | LoadInstanceField <LoadInstanceFieldNode> <Value>
 // | StoreInstanceField <StoreInstanceFieldNode> <Value> <Value>
 // | LoadStaticField <Field>
-// | StoreStaticField <StoreStaticFieldNode> <Value>
+// | StoreStaticField <Field> <Value>
 // | BooleanNegate <Value>
 // | InstanceOf <Value> <Type>
 //
@@ -364,21 +364,21 @@ class LoadStaticFieldComp : public Computation {
 
 class StoreStaticFieldComp : public Computation {
  public:
-  StoreStaticFieldComp(StoreStaticFieldNode* ast_node, Value* value)
-      : ast_node_(*ast_node), value_(value) {
+  StoreStaticFieldComp(const Field& field, Value* value)
+      : field_(field),
+        value_(value) {
+    ASSERT(field.IsZoneHandle());
     ASSERT(value != NULL);
   }
 
   DECLARE_COMPUTATION(StoreStaticFieldComp);
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
-  intptr_t node_id() const { return ast_node_.id(); }
-  const Field& field() const { return ast_node_.field(); }
+  const Field& field() const { return field_; }
   Value* value() const { return value_; }
 
  private:
-  const StoreStaticFieldNode& ast_node_;
-  Value* value_;
+  const Field& field_;
+  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldComp);
 };
@@ -388,27 +388,28 @@ class StoreStaticFieldComp : public Computation {
 // semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public Computation {
  public:
-  StoreIndexedComp(StoreIndexedNode* node,
+  StoreIndexedComp(intptr_t node_id,
+                   intptr_t token_index,
                    Value* array,
                    Value* index,
                    Value* value)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
         array_(array),
         index_(index),
         value_(value) { }
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
   Value* array() const { return array_; }
   Value* index() const { return index_; }
   Value* value() const { return value_; }
 
  private:
-  const StoreIndexedNode& ast_node_;
+  intptr_t node_id_;
+  intptr_t token_index_;
   Value* array_;
   Value* index_;
   Value* value_;
@@ -421,27 +422,31 @@ class StoreIndexedComp : public Computation {
 // semantics: the value operand is preserved before the call.
 class InstanceSetterComp : public Computation {
  public:
-  InstanceSetterComp(InstanceSetterNode* node,
+  InstanceSetterComp(intptr_t node_id,
+                     intptr_t token_index,
+                     const String& field_name,
                      Value* receiver,
                      Value* value)
-      : ast_node_(*node),
+      : node_id_(node_id),
+        token_index_(token_index),
+        field_name_(field_name),
         receiver_(receiver),
         value_(value) { }
 
   DECLARE_COMPUTATION(InstanceSetter)
 
-  // Accessors forwarded to the AST node.
-  intptr_t node_id() const { return ast_node_.id(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
-  const String& field_name() const { return ast_node_.field_name(); }
-
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  const String& field_name() const { return field_name_; }
   Value* receiver() const { return receiver_; }
   Value* value() const { return value_; }
 
  private:
-  const InstanceSetterNode& ast_node_;
-  Value* receiver_;
-  Value* value_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const String& field_name_;
+  Value* const receiver_;
+  Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
 };
