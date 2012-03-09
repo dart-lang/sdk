@@ -345,7 +345,7 @@ def run_command(args):
       close_fds=True)
   (stdout, stderr) = child.communicate()
   for line in stderr.splitlines():
-    logging.info(level, '%s: %s', args[0], line)
+    logging.info(log_level, '%s: %s', args[0], line)
   exitcode = child.wait()
   if exitcode:
     msg = "FAILURE (exit_code=%d): '%s'" % (exit_code, command)
