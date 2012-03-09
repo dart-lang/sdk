@@ -849,7 +849,11 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   int length = node->arguments()->length();
   ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length);
   TranslateArgumentList(*node->arguments(), temp_index(), values);
-  StaticCallComp* call = new StaticCallComp(node, values);
+  StaticCallComp* call =
+      new StaticCallComp(node->token_index(),
+                         node->function(),
+                         node->arguments()->names(),
+                         values);
   ReturnComputation(call);
 }
 
@@ -866,6 +870,76 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   Bailout("EffectGraphVisitor::VisitConstructorCallNode");
+}
+
+
+void EffectGraphVisitor::BuildTypeArguments(ConstructorCallNode* node,
+                                            ZoneGrowableArray<Value*>* args) {
+  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  ASSERT(cls.HasTypeArguments());
+  if (node->type_arguments().IsNull() ||
+      node->type_arguments().IsInstantiated()) {
+    AddInstruction(
+        new BindInstr(temp_index(), new ConstantVal(node->type_arguments())));
+    args->Add(new TempVal(temp_index()));
+    if (node->constructor().IsFactory()) {
+      UNIMPLEMENTED();
+    } else {
+      // Null instantiator.
+      AddInstruction(new BindInstr(
+          temp_index() + 1, new ConstantVal(Object::ZoneHandle())));
+      args->Add(new TempVal(temp_index() + 1));
+    }
+    return;
+  }
+  Bailout("EffectGraphVisitor::BuildTypeArguments");
+}
+
+
+void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
+  if (node->constructor().IsFactory()) {
+    Bailout("EffectGraphVisitor::VisitConstructorCallNode Factory");
+  }
+
+  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  ZoneGrowableArray<Value*>* allocate_arguments =
+      new ZoneGrowableArray<Value*>();
+
+  if (requires_type_arguments) {
+    BuildTypeArguments(node, allocate_arguments);
+  }
+  // t_n contains the allocated and initialized object.
+  //   t_n      <- AllocateObject(class)
+  //   t_n+1    <- Pick(t_n)
+  //   t_n+2    <- ctor-arg
+  //   t_n+3... <- constructor arguments start here
+  //   StaticCall(constructor, t_n+1, t_n+2, ...)
+
+  AllocateObjectComp* alloc_comp =
+      new AllocateObjectComp(node, allocate_arguments);
+  AddInstruction(new BindInstr(temp_index(), alloc_comp));
+  intptr_t result_index = AllocateTempIndex();
+  TempVal* alloc_value = new TempVal(result_index);
+  TempVal* dup_alloc_value = new TempVal(result_index + 1);
+  TempVal* ctor_arg_value = new TempVal(result_index + 2);
+  AddInstruction(
+      new PickTempInstr(dup_alloc_value->index(), alloc_value->index()));
+
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
+  values->Add(dup_alloc_value);
+  const Smi& ctor_arg = Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll));
+  AddInstruction(
+      new BindInstr(ctor_arg_value->index(), new ConstantVal(ctor_arg)));
+  values->Add(ctor_arg_value);
+  TranslateArgumentList(*node->arguments(), result_index + 3, values);
+  StaticCallComp* call =
+      new StaticCallComp(node->token_index(),
+                         node->constructor(),
+                         node->arguments()->names(),
+                         values);
+  AddInstruction(new DoInstr(call));
+  ReturnValue(alloc_value);
 }
 
 
@@ -1150,7 +1224,7 @@ void FlowGraphPrinter::VisitTemp(TempVal* val) {
 
 
 void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
-  OS::Print("#%s", val->instance().ToCString());
+  OS::Print("#%s", val->value().ToCString());
 }
 
 
@@ -1272,6 +1346,17 @@ void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
   OS::Print(" %s %s",
       comp->negate_result() ? "ISNOT" : "IS",
       String::Handle(comp->type().Name()).ToCString());
+}
+
+
+void FlowGraphPrinter::VisitAllocateObject(AllocateObjectComp* comp) {
+  OS::Print("AllocateObject(%s",
+      Class::Handle(comp->constructor().owner()).ToCString());
+  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
+    OS::Print(", ");
+    comp->arguments()[i]->Accept(this);
+  }
+  OS::Print(")");
 }
 
 

@@ -35,6 +35,7 @@ class LocalVariable;
 // | StoreStaticField <Field> <Value>
 // | BooleanNegate <Value>
 // | InstanceOf <Value> <Type>
+// | AllocateObject <ConstructorCallNode>
 //
 // <Value> ::=
 //   Temp <int>
@@ -67,6 +68,7 @@ class LocalVariable;
   M(BooleanNegate, BooleanNegateComp)                                          \
   M(InstanceOf, InstanceOfComp)                                                \
   M(CreateArray, CreateArrayComp)                                              \
+  M(AllocateObject, AllocateObjectComp)                                        \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -128,16 +130,16 @@ class TempVal : public Value {
 
 class ConstantVal: public Value {
  public:
-  explicit ConstantVal(const Instance& instance) : instance_(instance) {
-    ASSERT(instance.IsZoneHandle());
+  explicit ConstantVal(const Object& value) : value_(value) {
+    ASSERT(value.IsZoneHandle());
   }
 
   DECLARE_VALUE(Constant)
 
-  const Instance& instance() const { return instance_; }
+  const Object& value() const { return value_; }
 
  private:
-  const Instance& instance_;
+  const Object& value_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantVal);
 };
@@ -228,21 +230,32 @@ class StrictCompareComp : public Computation {
 
 class StaticCallComp : public Computation {
  public:
-  StaticCallComp(StaticCallNode* node, ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), arguments_(arguments) { }
+  StaticCallComp(intptr_t token_index,
+                 const Function& function,
+                 const Array& argument_names,
+                 ZoneGrowableArray<Value*>* arguments)
+      : token_index_(token_index),
+        function_(function),
+        argument_names_(argument_names),
+        arguments_(arguments) {
+    ASSERT(function.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle());
+  }
 
   DECLARE_COMPUTATION(StaticCall)
 
   // Accessors forwarded to the AST node.
-  const Function& function() const { return ast_node_.function(); }
-  const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  const Function& function() const { return function_; }
+  const Array& argument_names() const { return argument_names_; }
+  intptr_t token_index() const { return token_index_; }
 
   int ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
 
  private:
-  const StaticCallNode& ast_node_;
+  const intptr_t token_index_;
+  const Function& function_;
+  const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
@@ -508,6 +521,28 @@ class InstanceOfComp : public Computation {
   const bool negate_result_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfComp);
+};
+
+
+class AllocateObjectComp : public Computation {
+ public:
+  AllocateObjectComp(ConstructorCallNode* node,
+                     ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node), arguments_(arguments) {
+    // Either no arguments or one type-argument and one instantiator.
+    ASSERT(arguments->is_empty() || (arguments->length() == 2));
+  }
+
+  DECLARE_COMPUTATION(AllocateObject)
+
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  ZoneGrowableArray<Value*>* const arguments_;
+  DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
 };
 
 

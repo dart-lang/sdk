@@ -73,11 +73,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
 void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
   if (value->IsConstant()) {
     ConstantVal* constant = value->AsConstant();
-    if (constant->instance().IsSmi()) {
-      int64_t imm = reinterpret_cast<int64_t>(constant->instance().raw());
+    if (constant->value().IsSmi()) {
+      int64_t imm = reinterpret_cast<int64_t>(constant->value().raw());
       __ movq(dst, Immediate(imm));
     } else {
-      __ LoadObject(dst, value->AsConstant()->instance());
+      __ LoadObject(dst, value->AsConstant()->value());
     }
   } else {
     ASSERT(value->IsTemp());
@@ -329,6 +329,18 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
   Bailout("InstanceOf");
+}
+
+
+void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
+  const Class& cls = Class::ZoneHandle(comp->constructor().owner());
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
+  for (intptr_t i = 0; i < comp->arguments().length(); i++) {
+    __ popq(RCX);  // Discard allocation argument
+  }
 }
 
 

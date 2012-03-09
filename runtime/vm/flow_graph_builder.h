@@ -114,6 +114,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
                             intptr_t token_index,
                             int start_index);
 
+  void BuildTypeArguments(ConstructorCallNode* node,
+                          ZoneGrowableArray<Value*>* args);
+
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
@@ -151,6 +154,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
+  virtual void VisitConstructorCallNode(ConstructorCallNode* node);
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
