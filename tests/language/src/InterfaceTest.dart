@@ -1,7 +1,7 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart test program for testing params.
+// Dart test program for testing Interfaces.
 
 interface Ai {
   int foo();
@@ -29,16 +29,14 @@ class InterfaceTest implements Ai, Aai, Abi, Baz, Bi {
   InterfaceTest() {}
   int foo() { return 1; }
 
+  // intentionally unimplemented methods
   abstract beta();
   abstract String beta1();
   abstract String beta2(double d);
-
-  static testMain() {
-    var o = new Bi();
-    Expect.equals(1, o.foo());
-  }
 }
 
 main() {
-  InterfaceTest.testMain();
+  // instantiate an abstract class
+  var o = new Bi(); /// static type error
+  Expect.equals(1, o.foo());
 }
