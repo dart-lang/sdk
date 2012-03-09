@@ -27,6 +27,15 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 
+static void CheckedModeHandler(bool value) {
+  FLAG_enable_asserts = value;
+  FLAG_enable_type_checks = value;
+}
+
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    enable_checked_mode,
+                    "Enabled checked mode.");
+
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kTypeErrorName = "TypeError";
