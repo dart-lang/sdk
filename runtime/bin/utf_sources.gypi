@@ -10,7 +10,7 @@
     # dart:utf library is created by concatenating the files listed here
     # in the order they are listed.
     '../../lib/utf/utf_vm.dart',
-    
+
     '../../lib/utf/utf_core.dart',
     '../../lib/utf/utf8.dart',
     '../../lib/utf/utf16.dart',
