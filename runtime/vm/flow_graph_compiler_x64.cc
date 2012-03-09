@@ -334,7 +334,6 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
 
 void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
   const Class& cls = Class::ZoneHandle(comp->constructor().owner());
-  const bool requires_type_arguments = cls.HasTypeArguments();
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
