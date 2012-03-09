@@ -538,7 +538,47 @@ void ValueGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
 
 
 void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
-  Bailout("EffectGraphVisitor::VisitConditionalExprNode");
+  TestGraphVisitor for_test(owner(), temp_index());
+  node->condition()->Visit(&for_test);
+  ASSERT(for_test.can_be_true() && for_test.can_be_false());
+
+  // Translate the subexpressions for their effects.
+  EffectGraphVisitor for_true(owner(), temp_index());
+  node->true_expr()->Visit(&for_true);
+  EffectGraphVisitor for_false(owner(), temp_index());
+  node->false_expr()->Visit(&for_false);
+
+  Join(for_test, for_true, for_false);
+}
+
+
+void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
+  TestGraphVisitor for_test(owner(), temp_index());
+  node->condition()->Visit(&for_test);
+  ASSERT(for_test.can_be_true() && for_test.can_be_false());
+
+  // Ensure that the value of the true/false subexpressions are named with
+  // the same temporary name.
+  ValueGraphVisitor for_true(owner(), temp_index());
+  node->true_expr()->Visit(&for_true);
+  ASSERT(for_true.is_open());
+  if (for_true.value()->IsTemp()) {
+    ASSERT(for_true.value()->AsTemp()->index() == temp_index());
+  } else {
+    for_true.AddInstruction(new BindInstr(temp_index(), for_true.value()));
+  }
+
+  ValueGraphVisitor for_false(owner(), temp_index());
+  node->false_expr()->Visit(&for_false);
+  ASSERT(for_false.is_open());
+  if (for_false.value()->IsTemp()) {
+    ASSERT(for_false.value()->AsTemp()->index() == temp_index());
+  } else {
+    for_false.AddInstruction(new BindInstr(temp_index(), for_false.value()));
+  }
+
+  Join(for_test, for_true, for_false);
+  ReturnValue(new TempVal(AllocateTempIndex()));
 }
 
 
