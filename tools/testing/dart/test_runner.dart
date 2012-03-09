@@ -462,13 +462,13 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
-  bool allowRetries = false;
+  bool allowRetries;
 
   /** Which command of [testCase.commands] is currently being executed. */
   int currentStep;
 
   RunningProcess(TestCase this.testCase,
-      [this.allowRetries, this.processQueue]);
+      [this.allowRetries = false, this.processQueue]);
 
   /**
    * Called when all commands are executed. [exitCode] is 0 if all command
@@ -484,9 +484,8 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (allowRetries != null && allowRetries
-        && testCase.usesWebDriver && testCase.output.unexpectedOutput
-        && testCase.numRetries > 0) {
+    if (allowRetries && testCase.usesWebDriver 
+        && testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
@@ -867,54 +866,12 @@ class ProcessQueue {
   }
 
   /**
-   * Sometimes Webdriver doesn't close every browser window when it's done
-   * with a test. At the end of all tests we clear out any neglected processes
-   * that are still running.
-   */
-  void killZombieBrowsers() {
-    String chromeName = 'chrome';
-    if (new Platform().operatingSystem() == 'macos') {
-      chromeName = 'Google\ Chrome';
-    }
-    Map<String, List<String>> processNames = {'ie': ['iexplore'],
-        'safari': ['Safari'], 'ff': ['firefox', 'firefox-bin'],
-        'chrome': ['chromedriver', chromeName]};
-    for (String name in processNames[browserUsed]) {
-      Process process = null;
-      if (new Platform().operatingSystem() == 'windows') {
-        process = new Process.start(
-            'C:\\Windows\\System32\\taskkill.exe', ['/F', '/IM', name + '.exe',
-            '/T']);
-      } else {
-        process = new Process.start('killall', ['-9', name]);
-      }
-
-      if (name == processNames[browserUsed].last()) {
-        process.onExit = (exitCode) {
-          process.close();
-          _progress.allDone();
-        };
-        process.onError = (error) {
-          _progress.allDone();
-        };
-      } else {
-        process.onExit = (exitCode) {
-          process.close();
-        };
-      }
-    }
-  }
-
-  /**
    * Perform any cleanup needed once all tests in a TestSuite have completed
    * and notify our progress indicator that we are done.
    */
   void _cleanupAndMarkDone() {
-    if (browserUsed != '' && _progress is BuildbotProgressIndicator) {
-      killZombieBrowsers();
-      if (_seleniumServer != null) {
+    if (browserUsed != '' && _seleniumServer != null) {
         _seleniumServer.kill();
-      }
     } else {
       _progress.allDone();
     }
@@ -1110,7 +1067,13 @@ class ProcessQueue {
         _tests.addFirst(test);
         return;
       }
-      if (_verbose) print(test.commands.last().commandLine);
+      if (_verbose) {
+        int i = 1;
+        for (Command command in test.commands) {
+          print('$i. ${command.commandLine}');
+          i++;
+        }
+      }
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
