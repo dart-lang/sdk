@@ -232,6 +232,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+BoolTest: Fail # Issue 2092
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
