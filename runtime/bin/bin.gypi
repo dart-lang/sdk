@@ -346,7 +346,15 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
-       }]],
+          # Generate an import library on Windows, by exporting a function.
+          # Extensions use this import library to link to the API in dart.exe.
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
+            },
+          },
+        }],
+       ],
     },
     {
       # dart binary without any snapshot built in.
@@ -421,27 +429,38 @@
         }],
       ],
     },
-  ],
-  'conditions': [
-    ['OS=="linux"', {
-      'targets': [
-        {
-          'target_name': 'test_extension',
-          'type': 'shared_library',
-          'dependencies': [
-          ],
-          'include_dirs': [
-            '.',
-          ],
-          'sources': [
-            'test_extension_linux.cc',
-          ],
-          'defines': [
-            'DART_SHARED_LIB',
-          ],
-        },
+    {
+      'target_name': 'test_extension',
+      'type': 'shared_library',
+      'dependencies': [
+        'dart',
       ],
-    }],
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        'test_extension.cc',
+        'test_extension_dllmain_win.cc',
+      ],
+      'defines': [
+        'DART_SHARED_LIB',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalDependencies': [ 'dart.lib' ],
+              'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
+            },
+          },
+        }],
+        ['OS=="mac"', {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
+          },
+        }],
+      ],
+    },
   ],
 }
 

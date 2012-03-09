@@ -21,6 +21,7 @@
     'eventhandler_win.cc',
     'eventhandler_win.h',
     'extensions.h',
+    'extensions.cc',
     'extensions_linux.cc',
     'extensions_macos.cc',
     'extensions_win.cc',
