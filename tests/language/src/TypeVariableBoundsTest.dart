@@ -28,7 +28,7 @@ Foo<int> fi;
 
 // String is not assignable to num.
 Foo
-    <String> /// 02: static type warning
+    <String> /// 02: static type warning, dynamic type error
   fs;
 
 class Box<T> {

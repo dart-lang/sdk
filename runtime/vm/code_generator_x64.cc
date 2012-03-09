@@ -1420,7 +1420,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
-  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
+  if (!dst_type.IsMalformed() &&
+      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
     return;
   }
 
@@ -1455,6 +1456,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
     // We should never return here.
     __ int3();
+
+    __ Bind(&done);  // For a null object.
     return;
   }
 
