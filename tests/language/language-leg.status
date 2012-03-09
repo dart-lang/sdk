@@ -82,7 +82,6 @@ Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 ResourceTest: Fail # #resource tag not recognized - issue 1807
 StatementTest: Fail # switch cases are not implemented
-StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
@@ -123,7 +122,6 @@ ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails
 ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
-PrivateMemberTest: Fail # uncaught exception in toString
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
@@ -226,6 +224,7 @@ Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
 Prefix9NegativeTest: Fail, OK # Negative language test.
+PrivateMember2NegativeTest: Fail, OK # Negative language test.
 PrivateMember3NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.

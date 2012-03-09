@@ -75,7 +75,6 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # TODO(ahe): New co
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
@@ -100,7 +99,6 @@ Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # TODO(ahe): New co
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/29_Type_Test_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/29_Type_Test_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
