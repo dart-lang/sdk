@@ -94,7 +94,6 @@ SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
-ToplevelCollision2Test/none: Fail # duplicate definition
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
