@@ -104,10 +104,10 @@ interface InputStream {
  * [StringOutputStream].
  */
 class Encoding {
-  static final Encoding UTF_8 = const Encoding("UTF-8");
-  static final Encoding ISO_8859_1 = const Encoding("ISO-8859-1");
-  static final Encoding ASCII = const Encoding("ASCII");
-  const Encoding(String this.name);
+  static final Encoding UTF_8 = const Encoding._internal("UTF-8");
+  static final Encoding ISO_8859_1 = const Encoding._internal("ISO-8859-1");
+  static final Encoding ASCII = const Encoding._internal("ASCII");
+  const Encoding._internal(String this.name);
   final String name;
 }
 

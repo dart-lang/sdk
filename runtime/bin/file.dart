@@ -7,10 +7,10 @@
  * FileMode describes the modes in which a file can be opened.
  */
 class FileMode {
-  static final READ = const FileMode(0);
-  static final WRITE = const FileMode(1);
-  static final APPEND = const FileMode(2);
-  const FileMode(int this._mode);
+  static final READ = const FileMode._internal(0);
+  static final WRITE = const FileMode._internal(1);
+  static final APPEND = const FileMode._internal(2);
+  const FileMode._internal(int this._mode);
   final int _mode;
 }
 
