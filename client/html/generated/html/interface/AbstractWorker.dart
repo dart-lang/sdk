@@ -7,12 +7,6 @@
 interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface AbstractWorkerEvents extends Events {

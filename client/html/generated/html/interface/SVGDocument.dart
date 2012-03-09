@@ -7,6 +7,4 @@
 interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
-
-  Event _createEvent(String eventType);
 }

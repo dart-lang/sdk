@@ -4,13 +4,13 @@
 
 class _TextFactoryProvider {
 
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) => _document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
   factory Event(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    _EventImpl e = document._createEvent("Event");
+    final _EventImpl e = _document._createEvent("Event");
     e._initEvent(type, canBubble, cancelable);
     return e;
   }
@@ -22,7 +22,7 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = document._createEvent("MouseEvent");
+    final e = _document._createEvent("MouseEvent");
     e._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -75,8 +75,7 @@ class _ElementFactoryProvider {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
-    _ElementImpl temp = document._createElement(parentTag);
+    final _ElementImpl temp = new Element.tag(parentTag);
     temp.innerHTML = html;
 
     Element element;
@@ -96,7 +95,5 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  factory Element.tag(String tag) {
-    return document._createElement(tag);
-  }
+  factory Element.tag(String tag) => _document._createElement(tag);
 }

@@ -9,6 +9,4 @@ interface DocumentFragment extends Node, NodeSelector {
   ElementEvents get on();
 
   Element query(String selectors);
-
-  NodeList _querySelectorAll(String selectors);
 }

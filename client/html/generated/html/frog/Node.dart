@@ -22,14 +22,16 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   // TODO(jacobr): should we throw an exception if parent is already null?
   _NodeImpl remove() {
     if (this.parent != null) {
-      this.parent._removeChild(this);
+      final _NodeImpl parent = this.parent;
+      parent._removeChild(this);
     }
     return this;
   }
 
   _NodeImpl replaceWith(Node otherNode) {
     try {
-      this.parent._replaceChild(otherNode, this);
+      final _NodeImpl parent = this.parent;
+      parent._replaceChild(otherNode, this);
     } catch(var e) {
       
     };

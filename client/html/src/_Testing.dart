@@ -8,10 +8,12 @@
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._addEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._removeEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._removeEventListener(type, listener, useCapture);
   }
 
 }

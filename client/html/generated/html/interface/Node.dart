@@ -50,10 +50,6 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  final NamedNodeMap _attributes;
-
-  final NodeList _childNodes;
-
   final Node nextNode;
 
   final Document document;
@@ -64,8 +60,6 @@ interface Node extends EventTarget {
 
   String text;
 
-  Node _appendChild(Node newChild);
-
   Node clone(bool deep);
 
   bool contains(Node other);
@@ -73,9 +67,5 @@ interface Node extends EventTarget {
   bool hasChildNodes();
 
   Node insertBefore(Node newChild, Node refChild);
-
-  Node _removeChild(Node oldChild);
-
-  Node _replaceChild(Node newChild, Node oldChild);
 
 }

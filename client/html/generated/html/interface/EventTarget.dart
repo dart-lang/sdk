@@ -20,10 +20,4 @@ interface EventTarget {
 
   final Events on;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event event);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
-
 }

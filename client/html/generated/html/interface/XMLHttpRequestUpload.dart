@@ -7,12 +7,6 @@
 interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface XMLHttpRequestUploadEvents extends Events {

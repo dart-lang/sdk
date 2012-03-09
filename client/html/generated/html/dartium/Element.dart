@@ -533,8 +533,8 @@ class _ElementImpl extends _NodeImpl implements Element {
   }
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(() =>
-            window._getComputedStyle(this, pseudoElement),
+    return _createMeasurementFuture(
+        () => _window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
   _ElementImpl._wrap(ptr) : super._wrap(ptr);

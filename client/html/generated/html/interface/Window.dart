@@ -120,8 +120,6 @@ interface Window extends EventTarget {
 
   final Window window;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void alert(String message);
 
   String atob(String string);
@@ -140,13 +138,9 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
-  bool _dispatchEvent(Event evt);
-
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
-
-  CSSStyleDeclaration _getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
@@ -169,8 +163,6 @@ interface Window extends EventTarget {
   String prompt(String message, String defaultValue);
 
   void releaseEvents();
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 

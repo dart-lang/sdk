@@ -47,10 +47,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void abort();
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
   String getAllResponseHeaders();
 
   String getResponseHeader(String header);
@@ -58,8 +54,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
 

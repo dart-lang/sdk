@@ -533,8 +533,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(() =>
-            window._getComputedStyle(this, pseudoElement),
+    return _createMeasurementFuture(
+        () => _window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
 $!MEMBERS

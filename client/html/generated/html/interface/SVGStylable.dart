@@ -6,8 +6,6 @@
 
 interface SVGStylable {
 
-  final SVGAnimatedString _svgClassName;
-
   final CSSStyleDeclaration style;
 
   CSSValue getPresentationAttribute(String name);

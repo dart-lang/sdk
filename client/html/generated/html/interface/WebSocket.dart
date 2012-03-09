@@ -30,13 +30,7 @@ interface WebSocket extends EventTarget {
 
   final String url;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close([int code, String reason]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }

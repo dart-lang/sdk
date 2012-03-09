@@ -76,8 +76,6 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
-
   void preventDefault();
 
   void stopImmediatePropagation();

@@ -520,6 +520,9 @@ class HtmlSystemShared(object):
     else:
       return False, None
 
+  def IsPrivate(self, name):
+    return name.startswith('_')
+
 class HtmlSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir, generator):
@@ -666,9 +669,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     html_setter_name = self._shared.RenameInHtmlLibrary(
       self._interface, getter.id, 'set:')
 
-    if not html_getter_name:
+    if not html_getter_name or self._shared.IsPrivate(html_getter_name):
       getter = None
-    if not html_setter_name:
+    if not html_setter_name or self._shared.IsPrivate(html_setter_name):
       setter = None
     if not getter and not setter:
       return
@@ -697,7 +700,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         name.
     """
     html_name = self._shared.RenameInHtmlLibrary(self._interface, info.name)
-    if html_name:
+    if html_name and not self._shared.IsPrivate(html_name):
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
                                  TYPE=info.type_name,         

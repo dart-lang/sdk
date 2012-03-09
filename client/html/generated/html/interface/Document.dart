@@ -51,17 +51,9 @@ interface Document extends HtmlElement {
 
   DocumentFragment createDocumentFragment();
 
-  Element _createElement(String tagName);
-
-  Event _createEvent(String eventType);
-
   Range createRange();
 
-  Text _createTextNode(String data);
-
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
-
-  TouchList _createTouchList();
 
   Element elementFromPoint(int x, int y);
 

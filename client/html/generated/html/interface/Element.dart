@@ -301,27 +301,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  final int _childElementCount;
-
-  final HTMLCollection _children;
-
-  String _className;
-
-  final int _clientHeight;
-
-  final int _clientLeft;
-
-  final int _clientTop;
-
-  final int _clientWidth;
-
   String contentEditable;
 
   String dir;
 
   bool draggable;
-
-  final Element _firstElementChild;
 
   bool hidden;
 
@@ -337,27 +321,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   final Element nextElementSibling;
 
-  final int _offsetHeight;
-
-  final int _offsetLeft;
-
   final Element offsetParent;
-
-  final int _offsetTop;
-
-  final int _offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
-
-  final int _scrollHeight;
-
-  int _scrollLeft;
-
-  int _scrollTop;
-
-  final int _scrollWidth;
 
   bool spellcheck;
 
@@ -381,14 +349,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void focus();
 
-  String _getAttribute(String name);
-
-  ClientRect _getBoundingClientRect();
-
-  ClientRectList _getClientRects();
-
-  bool _hasAttribute(String name);
-
   Element insertAdjacentElement(String where, Element element);
 
   void insertAdjacentHTML(String where, String html);
@@ -397,17 +357,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
-
-  void _removeAttribute(String name);
-
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
   void scrollIntoView([bool centerIfNeeded]);
-
-  void _setAttribute(String name, String value);
 
   bool matchesSelector(String selectors);
 

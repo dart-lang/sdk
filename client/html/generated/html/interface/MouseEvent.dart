@@ -45,6 +45,4 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   final int x;
 
   final int y;
-
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }

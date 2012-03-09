@@ -22,13 +22,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   final String url;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close();
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface EventSourceEvents extends Events {

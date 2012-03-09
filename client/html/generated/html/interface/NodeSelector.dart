@@ -12,6 +12,4 @@ interface NodeSelector {
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
-
 }

@@ -5417,8 +5417,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   }
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(() =>
-            window._getComputedStyle(this, pseudoElement),
+    return _createMeasurementFuture(
+        () => _window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
 
@@ -8254,14 +8254,16 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   // TODO(jacobr): should we throw an exception if parent is already null?
   _NodeImpl remove() {
     if (this.parent != null) {
-      this.parent._removeChild(this);
+      final _NodeImpl parent = this.parent;
+      parent._removeChild(this);
     }
     return this;
   }
 
   _NodeImpl replaceWith(Node otherNode) {
     try {
-      this.parent._replaceChild(otherNode, this);
+      final _NodeImpl parent = this.parent;
+      parent._replaceChild(otherNode, this);
     } catch(var e) {
       
     };
@@ -15735,12 +15737,6 @@ class _XSLTProcessorFactoryProvider {
 interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface AbstractWorkerEvents extends Events {
@@ -19245,12 +19241,6 @@ interface DOMApplicationCache extends EventTarget {
 
   void abort();
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
-
   void swapCache();
 
   void update();
@@ -19876,17 +19866,9 @@ interface Document extends HtmlElement {
 
   DocumentFragment createDocumentFragment();
 
-  Element _createElement(String tagName);
-
-  Event _createEvent(String eventType);
-
   Range createRange();
 
-  Text _createTextNode(String data);
-
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
-
-  TouchList _createTouchList();
 
   Element elementFromPoint(int x, int y);
 
@@ -20017,8 +19999,6 @@ interface DocumentFragment extends Node, NodeSelector {
   ElementEvents get on();
 
   Element query(String selectors);
-
-  NodeList _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20359,27 +20339,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  final int _childElementCount;
-
-  final HTMLCollection _children;
-
-  String _className;
-
-  final int _clientHeight;
-
-  final int _clientLeft;
-
-  final int _clientTop;
-
-  final int _clientWidth;
-
   String contentEditable;
 
   String dir;
 
   bool draggable;
-
-  final Element _firstElementChild;
 
   bool hidden;
 
@@ -20395,27 +20359,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   final Element nextElementSibling;
 
-  final int _offsetHeight;
-
-  final int _offsetLeft;
-
   final Element offsetParent;
-
-  final int _offsetTop;
-
-  final int _offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
-
-  final int _scrollHeight;
-
-  int _scrollLeft;
-
-  int _scrollTop;
-
-  final int _scrollWidth;
 
   bool spellcheck;
 
@@ -20439,14 +20387,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void focus();
 
-  String _getAttribute(String name);
-
-  ClientRect _getBoundingClientRect();
-
-  ClientRectList _getClientRects();
-
-  bool _hasAttribute(String name);
-
   Element insertAdjacentElement(String where, Element element);
 
   void insertAdjacentHTML(String where, String html);
@@ -20455,17 +20395,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
-
-  void _removeAttribute(String name);
-
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
   void scrollIntoView([bool centerIfNeeded]);
-
-  void _setAttribute(String name, String value);
 
   bool matchesSelector(String selectors);
 
@@ -20842,8 +20776,6 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
-
   void preventDefault();
 
   void stopImmediatePropagation();
@@ -20894,13 +20826,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   final String url;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close();
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface EventSourceEvents extends Events {
@@ -20932,12 +20858,6 @@ interface Events {
 interface EventTarget {
 
   final Events on;
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event event);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22845,15 +22765,9 @@ interface MessagePort extends EventTarget {
 
   MessagePortEvents get on();
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close();
 
-  bool _dispatchEvent(Event evt);
-
   void postMessage(String message, [List messagePorts]);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -22982,8 +22896,6 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   final int x;
 
   final int y;
-
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23159,10 +23071,6 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  final NamedNodeMap _attributes;
-
-  final NodeList _childNodes;
-
   final Node nextNode;
 
   final Document document;
@@ -23173,8 +23081,6 @@ interface Node extends EventTarget {
 
   String text;
 
-  Node _appendChild(Node newChild);
-
   Node clone(bool deep);
 
   bool contains(Node other);
@@ -23182,10 +23088,6 @@ interface Node extends EventTarget {
   bool hasChildNodes();
 
   Node insertBefore(Node newChild, Node refChild);
-
-  Node _removeChild(Node oldChild);
-
-  Node _replaceChild(Node newChild, Node oldChild);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23287,8 +23189,6 @@ interface NodeSelector {
 
 
   Element query(String selectors);
-
-  NodeList _querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24549,8 +24449,6 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
-
-  Event _createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24593,12 +24491,6 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event event);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -26448,8 +26340,6 @@ interface SVGStringList {
 // WARNING: Do not edit - generated code.
 
 interface SVGStylable {
-
-  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -29065,13 +28955,7 @@ interface WebSocket extends EventTarget {
 
   final String url;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close([int code, String reason]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }
@@ -29250,8 +29134,6 @@ interface Window extends EventTarget {
 
   final Window window;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void alert(String message);
 
   String atob(String string);
@@ -29270,13 +29152,9 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
-  bool _dispatchEvent(Event evt);
-
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
-
-  CSSStyleDeclaration _getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
@@ -29299,8 +29177,6 @@ interface Window extends EventTarget {
   String prompt(String message, String defaultValue);
 
   void releaseEvents();
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 
@@ -29658,10 +29534,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void abort();
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
   String getAllResponseHeaders();
 
   String getResponseHeader(String header);
@@ -29669,8 +29541,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
 
@@ -29734,12 +29604,6 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface XMLHttpRequestUploadEvents extends Events {
@@ -30675,13 +30539,13 @@ void _completeMeasurementFutures() {
 
 class _TextFactoryProvider {
 
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) => _document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
   factory Event(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    _EventImpl e = document._createEvent("Event");
+    final _EventImpl e = _document._createEvent("Event");
     e._initEvent(type, canBubble, cancelable);
     return e;
   }
@@ -30693,7 +30557,7 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = document._createEvent("MouseEvent");
+    final e = _document._createEvent("MouseEvent");
     e._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -30746,8 +30610,7 @@ class _ElementFactoryProvider {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
-    _ElementImpl temp = document._createElement(parentTag);
+    final _ElementImpl temp = new Element.tag(parentTag);
     temp.innerHTML = html;
 
     Element element;
@@ -30767,9 +30630,7 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  factory Element.tag(String tag) {
-    return document._createElement(tag);
-  }
+  factory Element.tag(String tag) => _document._createElement(tag);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30848,10 +30709,12 @@ class _PointFactoryProvider {
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._addEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._removeEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._removeEventListener(type, listener, useCapture);
   }
 
 }// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
