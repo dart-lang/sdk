@@ -14,7 +14,7 @@
 // the normal lines of the file, and all of the multitest lines containing
 // that key, in the same order as in the source file.  The new test
 // is expected to fail if there is a non-empty error type listed, of
-// type 'compile-time error', 'runtime error', 'static type error', or
+// type 'compile-time error', 'runtime error', 'static type warning', or
 // 'dynamic type error'.  The type error tests fail only in checked mode.
 // There is also a test created from only the untagged lines of the file,
 // with key "none", which is expected to pass.  This library extracts these
@@ -26,7 +26,7 @@
 //   aaa
 //   bbb /// 02: runtime error
 //   ccc /// 02: continued
-//   ddd /// 07: static type error
+//   ddd /// 07: static type warning
 //   eee
 //
 // should create three tests:
@@ -42,13 +42,13 @@
 //
 // and I_am_a_multitest_07.dart
 //   aaa
-//   ddd /// 07: static type error
+//   ddd /// 07: static type warning
 //   eee
 //
 // Note that it is possible to indicate more than one acceptable outcome
-// in the case of dynamic and static type errors
+// in the case of dynamic and static type warnings
 //   aaa
-//   ddd /// 07: static type error, dynamic type error
+//   ddd /// 07: static type warning, dynamic type error
 //   eee
 
 void ExtractTestsFromMultitest(String filename,
@@ -76,7 +76,7 @@ void ExtractTestsFromMultitest(String filename,
   contents = null;
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['compile-time error', 'runtime error',
-       'static type error', 'dynamic type error']);
+       'static type warning', 'dynamic type error']);
 
   List<String> testTemplate = new List<String>();
   testTemplate.add('// Test created from multitest named $filename.');
@@ -209,7 +209,7 @@ void DoMultitest(String filename,
     openedFile.writeListSync(bytes, 0, bytes.length);
     openedFile.closeSync();
     Set<String> outcome = outcomes[key];
-    bool enableFatalTypeErrors = outcome.contains('static type error');
+    bool enableFatalTypeErrors = outcome.contains('static type warning');
     bool hasRuntimeErrors = outcome.contains('runtime error');
     bool isNegative = hasRuntimeErrors
         || outcome.contains('compile-time error');

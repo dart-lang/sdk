@@ -339,7 +339,7 @@ class StandardTestSuite implements TestSuite {
             (configuration['checked'] && info.isNegativeIfChecked);
 
         if (configuration['component'] == 'dartc') {
-          // dartc can detect static type errors by the
+          // dartc can detect static type warnings by the
           // format of the error line
           if (info.hasFatalTypeErrors) {
             isNegative = true;
@@ -765,7 +765,7 @@ class StandardTestSuite implements TestSuite {
     RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
     RegExp staticTypeRegExp =
-        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type error");
+        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type warning");
     RegExp compileTimeRegExp =
         const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
     RegExp staticCleanRegExp = const RegExp(@"// @static-clean");

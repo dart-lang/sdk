@@ -342,7 +342,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     if ((outcome.isEmpty() || outcome.contains('compile-time error')) 
         && errors.length > 0) {
       return true;
-    } else if (outcome.contains('static type error') 
+    } else if (outcome.contains('static type warning') 
         && staticWarnings.length > 0) {
       return true;
     }

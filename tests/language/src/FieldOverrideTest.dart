@@ -25,7 +25,7 @@ class SubSub extends Super {
   SubSub() : super();
 
   // B2 not assignable to B1
-  B2 field;  /// 01: static type error
+  B2 field;  /// 01: static type warning
 }
 
 main() {

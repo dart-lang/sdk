@@ -5,17 +5,17 @@
 // This test insures that statically initialized variables, fields, and parameters
 // report static type warnings.
 
-int a = "String";  /// 01: static type error, dynamic type error
+int a = "String";  /// 01: static type warning, dynamic type error
 
 class A {
-  static final int c = "String"; /// 02: static type error, dynamic type error
-  final int d = "String"; /// 03: static type error, dynamic type error
-  int e = "String"; /// 04: static type error, dynamic type error
+  static final int c = "String"; /// 02: static type warning, dynamic type error
+  final int d = "String"; /// 03: static type warning, dynamic type error
+  int e = "String"; /// 04: static type warning, dynamic type error
    A() {
-     int f = "String"; /// 05: static type error, dynamic type error
+     int f = "String"; /// 05: static type warning, dynamic type error
    }
   method([
-     int  /// 06: static type error
+     int  /// 06: static type warning
      g = "String"]) {
     return g;
   }

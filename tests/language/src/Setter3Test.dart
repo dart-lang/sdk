@@ -9,8 +9,8 @@
 class A {
   set foo(x) {}
   void set bar(x) {}
-  Dynamic set baz(x) {} /// 01: static type error
-  bool set bob(x) {} /// 02: static type error
+  Dynamic set baz(x) {} /// 01: static type warning
+  bool set bob(x) {} /// 02: static type warning
 }
 
 main() {

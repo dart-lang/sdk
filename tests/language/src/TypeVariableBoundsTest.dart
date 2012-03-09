@@ -19,7 +19,7 @@ interface IFoo<T extends num> default Foo<T extends num> {
 
 // String is not assignable to num.
 class Baz
-    extends Foo<String> /// 01: static type error, dynamic type error
+    extends Foo<String> /// 01: static type warning, dynamic type error
 {}
 
 class Biz extends Foo<int> {}
@@ -28,26 +28,26 @@ Foo<int> fi;
 
 // String is not assignable to num.
 Foo
-    <String> /// 02: static type error
+    <String> /// 02: static type warning
   fs;
 
 class Box<T> {
 
   // Box.T is not assignable to num.
-  Foo<T> t; /// 03: static type error
+  Foo<T> t; /// 03: static type warning
 
   makeFoo() {
     // Box.T is not assignable to num.
-    return new Foo<T>(); /// 04: static type error
+    return new Foo<T>(); /// 04: static type warning
   }
 }
 
 main() {
   // String is not assignable to num.
-  var v1 = new Foo<String>(); /// 05: static type error, dynamic type error
+  var v1 = new Foo<String>(); /// 05: static type warning, dynamic type error
 
   // String is not assignable to num.
-  Foo<String> v2 = null; /// 06: static type error
+  Foo<String> v2 = null; /// 06: static type warning
 
   new Baz();
   new Biz();
@@ -66,8 +66,8 @@ main() {
   new Box<Object, Object>(); /// 08: compile-time error
 
   // Fisk does not exist.
-  Box<Fisk> box = null; /// 09: static type error
+  Box<Fisk> box = null; /// 09: static type warning
 
   // Too many type arguments.
-  Box<Object, Object> box = null; /// 10: static type error
+  Box<Object, Object> box = null; /// 10: static type warning
 }

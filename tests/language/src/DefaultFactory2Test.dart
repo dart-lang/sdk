@@ -13,5 +13,5 @@ class A<T extends Foo> implements IA<T> {
 }
  
 main() {
-  var result = new IA<String>();  /// 01: static type error
+  var result = new IA<String>();  /// 01: static type warning
 }
