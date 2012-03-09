@@ -15,6 +15,14 @@
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
+# TODO(mattsh) Once we move to the leg code generator, the javascript generated
+# by frog won't depend on whether frog is running on the dart vm or v8. At
+# that point we can make all the tests verify that the generated javascript is
+# identical between frogsh and frogium, and then only need run the js once in
+# the browser.  For now, just disable language tests of frogsh to save time.
+[ $component == frogsh ]
+*: Skip
+
 [ $component == vm || $component == dartium ]
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
