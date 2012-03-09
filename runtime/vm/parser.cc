@@ -2952,7 +2952,11 @@ void Parser::ParseTypeParameters(const Class& cls) {
       bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
-        bound = ParseType(ClassFinalizer::kTryResolve);
+        // A bound may refer to the owner of the type parameter it applies to,
+        // i.e. to the class or interface currently being parsed.
+        // Postpone resolution in order to avoid resolving the class and its
+        // type parameters, as they are not fully parsed yet.
+        bound = ParseType(ClassFinalizer::kDoNotResolve);
       }
       type_parameters_array.Add(type_parameter);
       bounds_array.Add(bound);
@@ -5538,8 +5542,8 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   arguments->Add(new LiteralNode(type_pos, Instance::ZoneHandle()));
   // Dst type name argument.
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
-      String::NewSymbol("malformed type"))));
-  // Dst type name argument.
+      String::NewSymbol("malformed"))));
+  // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
     String::NewSymbol(""))));
   // Malformed type error.
@@ -7341,6 +7345,11 @@ AstNode* Parser::ParseCompoundLiteral() {
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle(
       ParseTypeArguments(&malformed_error,
                          ClassFinalizer::kFinalizeWellFormed));
+  // Map and List interfaces do not declare bounds on their type parameters, so
+  // we should never see a malformed type error here.
+  // Note that a bound error is the only possible malformed type error returned
+  // when requesting kFinalizeWellFormed type finalization.
+  ASSERT(malformed_error.IsNull());
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -7380,12 +7389,12 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = token_index_;
-
-  // TODO(regis): Bounds error should not result in a compile time error,
-  // but in a dynamic type error. Requesting kFinalizeWellFormed below is too
-  // strict. See co19 issue 96.
   const AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kFinalizeWellFormed));
+  // Malformed bounds never result in a compile time error, therefore, the
+  // parsed type may be malformed although we requested kFinalizeWellFormed.
+  // In that case, we throw a dynamic type error instead of calling the
+  // constructor.
   if (type.IsTypeParameter()) {
     ErrorMsg(type_pos,
              "type parameter '%s' cannot be instantiated",
@@ -7548,6 +7557,10 @@ AstNode* Parser::ParseNewOperator() {
       ErrorMsg("'const' requires const constructor: '%s'",
           String::Handle(constructor.name()).ToCString());
     }
+    if (type.IsMalformed()) {
+      // Compile the throw of a dynamic type error due to a bound error.
+      return ThrowTypeError(type_pos, type);
+    }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(constructor_class,
                                      type_arguments,
@@ -7568,6 +7581,10 @@ AstNode* Parser::ParseNewOperator() {
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
+    }
+    if (type.IsMalformed()) {
+      // Compile the throw of a dynamic type error due to a bound error.
+      return ThrowTypeError(type_pos, type);
     }
     // TODO(regis): If the type argument vector is not instantiated, we need to
     // verify in checked mode at runtime that it is within its declared bounds.

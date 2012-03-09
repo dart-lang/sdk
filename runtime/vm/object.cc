@@ -2751,12 +2751,18 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
 }
 
 
-static RawError* FormatError(const Script& script,
+static RawError* FormatError(const Error& prev_error,
+                             const Script& script,
                              intptr_t token_index,
                              const char* format, ...) {
   va_list args;
   va_start(args, format);
-  return Parser::FormatError(script, token_index, "Error", format, args);
+  if (prev_error.IsNull()) {
+    return Parser::FormatError(script, token_index, "Error", format, args);
+  } else {
+    return Parser::FormatErrorWithAppend(prev_error, script, token_index,
+                                         "Error", format, args);
+  }
 }
 
 
@@ -2779,10 +2785,16 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
     bound = bounds.TypeAt(i);
     if (!bound.IsDynamicType()) {
       type = TypeAt(offset + i);
-      if (!bound.IsInstantiated()) {
+      Error& malformed_bound_error = Error::Handle();
+      if (bound.IsMalformed()) {
+        malformed_bound_error = bound.malformed_error();
+      } else if (!bound.IsInstantiated()) {
         bound = bound.InstantiateFrom(bounds_instantiator);
       }
-      if (!type.IsSubtypeOf(bound, malformed_error)) {
+      if (!malformed_bound_error.IsNull() ||
+          !type.IsSubtypeOf(bound, malformed_error)) {
+        // Ignore this bound error if another malformed error was already
+        // reported for this type test.
         if (malformed_error->IsNull()) {
           const String& type_argument_name = String::Handle(type.Name());
           const String& class_name = String::Handle(cls.Name());
@@ -2793,7 +2805,8 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
           const TypeArguments& type_parameters =
               TypeArguments::Handle(cls.type_parameters());
           type = type_parameters.TypeAt(i);
-          *malformed_error ^= FormatError(script, type.token_index(),
+          *malformed_error ^= FormatError(malformed_bound_error,
+                                          script, type.token_index(),
                                           "type argument '%s' does not "
                                           "extend bound '%s' of '%s'\n",
                                           type_argument_name.ToCString(),
