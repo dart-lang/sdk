@@ -10,3 +10,4 @@
 #import("dart:coreimpl");
 #import("dart:isolate");
 #import("dart:nativewrappers");
+#import("dart:uri");

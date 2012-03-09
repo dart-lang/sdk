@@ -391,11 +391,23 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
 
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
+  if (Dart_IsError(uri_lib)) {
+    *error = strdup(Dart_GetError(uri_lib));
+    return false;
+  }
   Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
-  Dart_LibraryImportLibrary(builtin_lib, uri_lib);
+  if (Dart_IsError(builtin_lib)) {
+    *error = strdup(Dart_GetError(builtin_lib));
+    return false;
+  }
+  Dart_Handle library = Dart_LibraryImportLibrary(builtin_lib, uri_lib);
+  if (Dart_IsError(library)) {
+    *error = strdup(Dart_GetError(library));
+    return false;
+  }
 
   // Load the specified application script into the newly created isolate.
-  Dart_Handle library = LoadScript(builtin_lib, import_map_options);
+  library = LoadScript(builtin_lib, import_map_options);
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     Dart_ExitScope();

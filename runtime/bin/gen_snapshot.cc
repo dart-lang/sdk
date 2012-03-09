@@ -182,8 +182,17 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
     if (tag == kCanonicalizeUrl) {
       return url;
     }
-    // TODO(iposva): Make sure only the known libraries are being added.
-    return Dart_True();
+    ASSERT(tag == kImportTag);
+    // Handle imports of other built-in libraries present in the SDK.
+    if (DartUtils::IsDartIOLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+    } else if (DartUtils::IsDartJsonLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+    } else if (DartUtils::IsDartUriLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+    } else if (DartUtils::IsDartUtfLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+    }
   }
   return Dart_Error("unexpected tag encountered %d", tag);
 }
