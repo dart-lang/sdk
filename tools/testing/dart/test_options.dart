@@ -62,7 +62,7 @@ is 'dart file.dart' and you specify special command
           new _TestOptionSpecification(
               'component',
               '''
-Controls how dart code is compiled and executed. 
+Controls how dart code is compiled and executed.
 
    vm: Run dart code on the standalone dart vm.
 
@@ -217,10 +217,10 @@ Controls how dart code is compiled and executed.
               'Path to frog library',
               ['--froglib'],
               [],
-              ''), 
+              ''),
           new _TestOptionSpecification(
               'noBatch',
-              'Do not run browser tests in batch mode', 
+              'Do not run browser tests in batch mode',
               ['-n', '--nobatch'],
               [],
               false,

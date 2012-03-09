@@ -177,7 +177,6 @@ class TestInformation {
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
   bool hasRuntimeErrors;
-  // expected outcome from multi-test  "static type error", "compile-time error", etc
   Set<String> multitestOutcome;
 
   TestInformation(this.filename, this.optionsFromFile, this.isNegative,
@@ -641,7 +640,7 @@ class StandardTestSuite implements TestSuite {
     String tempDirPath = TestUtils.buildDir(configuration);
     if (requiresCleanTemporaryDirectory) {
       tempDirPath = globalTemporaryDirectory();
-      String debugMode = 
+      String debugMode =
           (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
       generatedTestPath = ['${debugMode}_${configuration["arch"]}']
           .addAll(generatedTestPath);
@@ -666,8 +665,8 @@ class StandardTestSuite implements TestSuite {
       }
     }
     tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
-    return TestUtils.mkdirRecursive(tempDirPath, 
-      Strings.join(generatedTestPath, '/'));
+    return TestUtils.mkdirRecursive(tempDirPath,
+                                    Strings.join(generatedTestPath, '/'));
   }
 
   String get scriptType() {
@@ -765,8 +764,10 @@ class StandardTestSuite implements TestSuite {
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
-    RegExp staticTypeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type error");
-    RegExp compileTimeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticTypeRegExp =
+        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type error");
+    RegExp compileTimeRegExp =
+        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
     RegExp staticCleanRegExp = const RegExp(@"// @static-clean");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
@@ -820,7 +821,7 @@ class StandardTestSuite implements TestSuite {
       }
       isStaticClean = true;
     }
-    
+
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -831,7 +832,7 @@ class StandardTestSuite implements TestSuite {
         contents.contains("@runtime-error")) {
       isNegative = true;
     }
-    
+
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1034,15 +1035,14 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
-  
-  /** 
-   * Creates a directory using a [relativePath] to an existing 
+  /**
+   * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(String base, String relativePath) {
     Directory baseDir = new Directory(base);
     Expect.isTrue(baseDir.existsSync(),
-      "Expected ${base} to already exist");  
+      "Expected ${base} to already exist");
     var tempDir = new Directory(base);
     for (String dir in relativePath.split('/')) {
       base = "$base/$dir";
@@ -1065,7 +1065,7 @@ class TestUtils {
     handle.writeListSync(contents, 0, contents.length);
     handle.closeSync();
   }
-  
+
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
       if (component != 'frogium'

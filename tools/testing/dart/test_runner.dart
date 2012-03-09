@@ -171,7 +171,7 @@ class BrowserTestCase extends TestCase {
  * the time the process took to run.  It also contains a pointer to the
  * [TestCase] this is the output of.
  */
-interface TestOutput default TestOutputImpl { 
+interface TestOutput default TestOutputImpl {
   TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
     List<String> stdout, List<String> stderr, Duration time);
 
@@ -181,7 +181,7 @@ interface TestOutput default TestOutputImpl {
 
   bool get hasCrashed();
 
-  bool get hasTimedOut(); 
+  bool get hasTimedOut();
 
   bool get didFail();
 
@@ -204,7 +204,7 @@ class TestOutputImpl implements TestOutput {
    */
   bool requestRetry = false;
 
-  // Don't call  this constructor, call TestOutput.fromCase() to 
+  // Don't call  this constructor, call TestOutput.fromCase() to
   // get anew TestOutput instance.
   TestOutputImpl(this.testCase, this.exitCode, this.timedOut, this.stdout,
              this.stderr, this.time) {
@@ -212,8 +212,8 @@ class TestOutputImpl implements TestOutput {
     diagnostics = [];
   }
 
-  factory TestOutputImpl.fromCase (testCase, exitCode, timedOut, stdout, stderr, 
-    time) {
+  factory TestOutputImpl.fromCase (testCase, exitCode, timedOut,
+                                   stdout, stderr, time) {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
@@ -256,7 +256,7 @@ class TestOutputImpl implements TestOutput {
 }
 
 class BrowserTestOutputImpl extends TestOutputImpl {
-  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
     super(testCase, exitCode, timedOut, stdout, stderr, time);
 
   bool get didFail() {
@@ -290,13 +290,13 @@ class BrowserTestOutputImpl extends TestOutputImpl {
   }
 }
 
-// The static analyzer does not actaully execute code, so 
+// The static analyzer does not actaully execute code, so
 // the criteria for success now depend on the text sent
 // to stderr.
 class AnalysisTestOutputImpl extends TestOutputImpl {
-  boolean alreadyComputed = false;
-  boolean failResult;
-  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+  bool alreadyComputed = false;
+  bool failResult;
+  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
     super(testCase, exitCode, timedOut, stdout, stderr, time) {
   }
 
@@ -325,11 +325,11 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
         // ignore all others
         if (fields[1] == 'STATIC_TYPE') {
           staticWarnings.add(fields);
-        } 
+        }
       }
       // OK to Skip error output that doesn't match the machine format
     }
-    if (testCase.info != null 
+    if (testCase.info != null
         && testCase.info.optionsFromFile['isMultitest']) {
       return _didMultitestFail(errors, staticWarnings);
     }
@@ -394,7 +394,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       return true;
     }
 
-    if (numCompileTimeAnnotations > 0 
+    if (numCompileTimeAnnotations > 0
         && numCompileTimeAnnotations < errors.length) {
 
       // Expected compile-time errors were not returned.  The test did not 'fail' in the way
@@ -413,7 +413,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       return false;
     } else if (errors.length != 0) {
       return true;
-    } 
+    }
     return false;
   }
 
@@ -485,7 +485,7 @@ class RunningProcess {
       for (var line in testCase.output.stdout) print(line);
     }
     if (allowRetries != null && allowRetries
-        && testCase.usesWebDriver && testCase.output.unexpectedOutput 
+        && testCase.usesWebDriver && testCase.output.unexpectedOutput
         && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
@@ -680,7 +680,7 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT", 
+    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT",
                    _testStdout, _testStderr, new Date.now().difference(_startTime));
     // Move on when both stdout and stderr has been drained. If the test
     // crashed, we restarted the process and therefore do not attempt to
@@ -962,11 +962,11 @@ class ProcessQueue {
       browserUsed == 'safari';
 
   /** True if the Selenium Server is ready to be used. */
-  bool get _isSeleniumAvailable() => _seleniumServer != null || 
+  bool get _isSeleniumAvailable() => _seleniumServer != null ||
       _seleniumAlreadyRunning;
 
   /**
-   * Restart all the processes that have been waiting/stopped for the server to 
+   * Restart all the processes that have been waiting/stopped for the server to
    * start up. If we just call this once we end up with a single-"threaded" run.
    */
   void resumeTesting() {
@@ -986,7 +986,7 @@ class ProcessQueue {
         arg.add('/v');
       }
       Process p = new Process.start(cmd, arg);
-      final StringInputStream stdoutStringStream = 
+      final StringInputStream stdoutStringStream =
           new StringInputStream(p.stdout);
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
@@ -1052,7 +1052,7 @@ class ProcessQueue {
         // Heads up: there seems to an obscure data race of some form in
         // the VM between launching the server process and launching the test
         // tasks that disappears when you read IO (which is convenient, since
-        // that is our condition for knowing that the server is ready). 
+        // that is our condition for knowing that the server is ready).
         StringInputStream stdoutStringStream =
             new StringInputStream(_seleniumServer.stdout);
         StringInputStream stderrStringStream =

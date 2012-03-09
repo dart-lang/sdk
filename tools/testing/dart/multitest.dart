@@ -141,7 +141,7 @@ Set<String> _findAllRelativeImports(String topLibrary) {
     for (String filename in thisPass) {
       File f = new File(filename);
       for (String line in f.readAsLinesSync()) {
-        Match match = relativeImportRegExp.firstMatch(line); 
+        Match match = relativeImportRegExp.firstMatch(line);
         if (match != null) {
           String relativePath = match.group(3);
           if (foundImports.contains(relativePath)) {
@@ -165,7 +165,7 @@ Set<String> _findAllRelativeImports(String topLibrary) {
 void DoMultitest(String filename,
                  String outputDir,
                  String testDir,
-                 // TODO(zundel): Are the boolean flags now redundant 
+                 // TODO(zundel): Are the boolean flags now redundant
                  // with the 'multitestOutcome' field?
                  Function doTest(String filename,
                                  bool isNegative,

@@ -129,8 +129,8 @@ class ProgressIndicator {
       for (var s in test.output.diagnostics) {
         output.add('$prefix ${s}');
         prefix = '   ';
-      }      
-    }    
+      }
+    }
     if (!test.output.stdout.isEmpty()) {
       output.add('');
       output.add('stdout:');
