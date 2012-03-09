@@ -18,8 +18,9 @@ OS=`uname | tr [A-Z] [a-z]`
 if [ "$OS" == "darwin" ] ; then
   # Bump up the heap on Mac VMs, some of which default to 128M or less.
   # Users can specify DART_JVMARGS in the environment to override
-  # this setting.
-  EXTRA_JVMARGS+="-Xmx256M"
+  # this setting. Force to 32 bit client vm. 64 bit and server VM make for 
+  # poor performance.
+  EXTRA_JVMARGS+="-Xmx256M -client -d32"
 fi
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -classpath "@CLASSPATH@" \
