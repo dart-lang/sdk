@@ -37,7 +37,7 @@ void testLatin1() {
   InputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
-  StringInputStream stream = new StringInputStream(s, "ISO-8859-1");
+  StringInputStream stream = new StringInputStream(s, Encoding.ISO_8859_1);
   void stringData() {
     String s = stream.read();
     Expect.equals(8, s.length);
@@ -57,7 +57,8 @@ void testAscii() {
   InputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
-  StringInputStream stream = new StringInputStream(s, "ASCII");
+  StringInputStream stream =
+      new StringInputStream(s, Encoding.ASCII);
   void stringData() {
     String s = stream.read();
     Expect.equals(6, s.length);

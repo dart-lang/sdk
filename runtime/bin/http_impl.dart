@@ -2,54 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Utility class for encoding a string into UTF-8 byte stream.
-class _UTF8Encoder {
-  static List<int> encodeString(String string) {
-    int size = _encodingSize(string);
-    ByteArray result = new ByteArray(size);
-    _encodeString(string, result);
-    return result;
-  }
-
-  static int _encodingSize(String string) => _encodeString(string, null);
-
-  static int _encodeString(String string, List<int> buffer) {
-    int pos = 0;
-    int length = string.length;
-    for (int i = 0; i < length; i++) {
-      int additionalBytes;
-      int charCode = string.charCodeAt(i);
-      if (charCode <= 0x007F) {
-        additionalBytes = 0;
-        if (buffer != null) buffer[pos] = charCode;
-      } else if (charCode <= 0x07FF) {
-        // 110xxxxx (xxxxx is top 5 bits).
-        if (buffer != null) buffer[pos] = ((charCode >> 6) & 0x1F) | 0xC0;
-        additionalBytes = 1;
-      } else if (charCode <= 0xFFFF) {
-        // 1110xxxx (xxxx is top 4 bits)
-        if (buffer != null) buffer[pos] = ((charCode >> 12) & 0x0F)| 0xE0;
-        additionalBytes = 2;
-      } else {
-        // 11110xxx (xxx is top 3 bits)
-        if (buffer != null) buffer[pos] = ((charCode >> 18) & 0x07) | 0xF0;
-        additionalBytes = 3;
-      }
-      pos++;
-      if (buffer != null) {
-        for (int i = additionalBytes; i > 0; i--) {
-          // 10xxxxxx (xxxxxx is next 6 bits from the top).
-          buffer[pos++] = ((charCode >> (6 * (i - 1))) & 0x3F) | 0x80;
-        }
-      } else {
-        pos += additionalBytes;
-      }
-    }
-    return pos;
-  }
-}
-
-
 class _HttpRequestResponseBase {
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _contentLength = -1,
@@ -92,16 +44,6 @@ class _HttpRequestResponseBase {
       } else {
         allWritten = _httpConnection.outputStream.writeFrom(data, offset, count);
       }
-    }
-    return allWritten;
-  }
-
-  bool _writeString(String string) {
-    bool allWritten = true;
-    if (string.length > 0) {
-      // Encode as UTF-8 and write data.
-      List<int> data = _UTF8Encoder.encodeString(string);
-      allWritten = _writeList(data, 0, data.length);
     }
     return allWritten;
   }
@@ -313,12 +255,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     return _outputStream;
   }
 
-  bool writeString(String string) {
-    // Invoke the output stream getter to make sure the header is sent.
-    outputStream;
-    return _writeString(string);
-  }
-
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
     return _write(buffer, copyBuffer);
@@ -488,7 +424,7 @@ class _HttpInputStream extends _BaseDataInputStream implements InputStream {
 }
 
 
-class _HttpOutputStream implements OutputStream {
+class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
   _HttpOutputStream(_HttpRequestResponseBase this._requestOrResponse);
 
   bool write(List<int> buffer, [bool copyBuffer = true]) {
@@ -760,11 +696,6 @@ class _HttpClientRequest
       return;
     }
     _setHeader(name, value);
-  }
-
-  bool writeString(String string) {
-    outputStream;
-    return _writeString(string);
   }
 
   OutputStream get outputStream() {

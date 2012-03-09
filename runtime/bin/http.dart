@@ -204,14 +204,6 @@ interface HttpResponse default _HttpResponse {
    * having retrieved the output stream will throw an exception.
    */
   OutputStream get outputStream();
-
-  /**
-   * Write string data to the response. The string characters will be
-   * encoded using UFT-8. This is a temporary convenience method as
-   * long as the OutputStream interface does not have a writeString
-   * method.
-   */
-  bool writeString(String string);
 }
 
 
@@ -356,14 +348,6 @@ interface HttpClientRequest default _HttpClientRequest {
    * having retrieved the output stream will throw an exception.
    */
   OutputStream get outputStream();
-
-  /**
-   * Write string data to the request. The string characters will be
-   * encoded using UFT-8. This is a temporary convenience method as
-   * long as the OutputStream interface does not have a writeString
-   * method.
-   */
-  bool writeString(String string);
 }
 
 

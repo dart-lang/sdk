@@ -91,7 +91,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 }
 
 
-class _FileOutputStream implements OutputStream {
+class _FileOutputStream extends _BaseOutputStream implements OutputStream {
   _FileOutputStream(String name, FileMode mode) {
     _pendingOperations = new List<List<int>>();
     var f = new File(name);
@@ -549,20 +549,9 @@ class _File implements File {
     return result;
   }
 
-  _StringDecoder _getDecoder(encoding) {
-    if (encoding == "UTF-8") {
-      return new _UTF8Decoder();
-    } else if (encoding == "ISO-8859-1") {
-      return new _Latin1Decoder();
-    } else if (encoding == "ASCII") {
-      return new _AsciiDecoder();
-    }
-    throw new FileIOException("Unsupported encoding $_encoding");
-  }
-
-  void readAsText(String encoding, void callback(String text)) {
+  void readAsText(Encoding encoding, void callback(String text)) {
     _asyncUsed = true;
-    var decoder = _getDecoder(encoding);
+    var decoder = _StringDecoders.decoder(encoding);
     readAsBytes((bytes) {
       try {
         decoder.write(bytes);
@@ -576,12 +565,12 @@ class _File implements File {
     });
   }
 
-  String readAsTextSync([String encoding = 'UTF-8']) {
+  String readAsTextSync([Encoding encoding = Encoding.UTF_8]) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    var decoder = _getDecoder(encoding);
+    var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
     decoder.write(bytes);
     return decoder.decoded;
@@ -603,9 +592,9 @@ class _File implements File {
     return result;
   }
 
-  void readAsLines(String encoding, void callback(List<String> lines)) {
+  void readAsLines(Encoding encoding, void callback(List<String> lines)) {
     _asyncUsed = true;
-    var decoder = _getDecoder(encoding);
+    var decoder = _StringDecoders.decoder(encoding);
     readAsBytes((bytes) {
       try {
         decoder.write(bytes);
@@ -619,12 +608,12 @@ class _File implements File {
     });
   }
 
-  List<String> readAsLinesSync([String encoding = "UTF-8"]) {
+  List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    var decoder = _getDecoder(encoding);
+    var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
     decoder.write(bytes);
     return _getDecodedLines(decoder);
@@ -849,7 +838,7 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  void writeString(String string) {
+  void writeString(String string, [Encoding encoding = Encoding.UTF_8]) {
     _ensureFileService();
     _asyncUsed = true;
     List request = new List(3);
@@ -865,7 +854,7 @@ class _RandomAccessFile implements RandomAccessFile {
     });
   }
 
-  int writeStringSync(String string) {
+  int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");

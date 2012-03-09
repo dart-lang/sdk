@@ -104,7 +104,7 @@ class TestServer extends Isolate {
     Expect.equals("GET", request.method);
     request.inputStream.onData = () {};
     request.inputStream.onClosed = () {
-      response.writeString("01234567890");
+      response.outputStream.writeString("01234567890");
       response.outputStream.close();
     };
   }
@@ -113,7 +113,7 @@ class TestServer extends Isolate {
   void _notFoundHandler(HttpRequest request, HttpResponse response) {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.setHeader("Content-Type", "text/html; charset=UTF-8");
-    response.writeString("Page not found");
+    response.outputStream.writeString("Page not found");
     response.outputStream.close();
   }
 
@@ -260,8 +260,8 @@ void testPOST(bool chunkedEncoding) {
           httpClient.post("127.0.0.1", port, "/echo");
       conn.onRequest = (HttpClientRequest request) {
         if (chunkedEncoding) {
-          request.writeString(data.substring(0, 10));
-          request.writeString(data.substring(10, data.length));
+          request.outputStream.writeString(data.substring(0, 10));
+          request.outputStream.writeString(data.substring(10, data.length));
         } else {
           request.contentLength = data.length;
           request.outputStream.write(data.charCodes());
@@ -311,8 +311,8 @@ void testReadInto(bool chunkedEncoding) {
           httpClient.post("127.0.0.1", port, "/echo");
       conn.onRequest = (HttpClientRequest request) {
         if (chunkedEncoding) {
-          request.writeString(data.substring(0, 10));
-          request.writeString(data.substring(10, data.length));
+          request.outputStream.writeString(data.substring(0, 10));
+          request.outputStream.writeString(data.substring(10, data.length));
         } else {
           request.contentLength = data.length;
           request.outputStream.write(data.charCodes());
@@ -366,8 +366,8 @@ void testReadShort(bool chunkedEncoding) {
           httpClient.post("127.0.0.1", port, "/echo");
       conn.onRequest = (HttpClientRequest request) {
         if (chunkedEncoding) {
-          request.writeString(data.substring(0, 10));
-          request.writeString(data.substring(10, data.length));
+          request.outputStream.writeString(data.substring(0, 10));
+          request.outputStream.writeString(data.substring(10, data.length));
         } else {
           request.contentLength = data.length;
           request.outputStream.write(data.charCodes());

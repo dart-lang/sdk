@@ -332,6 +332,29 @@ class FileTest {
     asyncTestStarted();
   }
 
+  // Test for file read and write functionality.
+  static void testOutputStreamWriteString() {
+    String content = "foobar";
+    String filename = tempDirectory.path + "/outstream_write_string";
+    File file = new File(filename);
+    file.createSync();
+    List<int> buffer = content.charCodes();
+    OutputStream outStream = file.openOutputStream();
+    outStream.writeString("abcdABCD");
+    outStream.writeString("abcdABCD", Encoding.UTF_8);
+    outStream.writeString("abcdABCD", Encoding.ISO_8859_1);
+    outStream.writeString("abcdABCD", Encoding.ASCII);
+    outStream.writeString("æøå", Encoding.UTF_8);
+    outStream.onNoPendingWrites = () {
+      outStream.close();
+      outStream.onClosed = () {
+        RandomAccessFile raf = file.openSync();
+        Expect.equals(38, raf.lengthSync());
+      };
+    };
+    asyncTestStarted();
+  }
+
 
   static void testReadWriteSync() {
     // Read a file.
@@ -885,24 +908,24 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsText('UTF-8', (text) {
+    f.readAsText(Encoding.UTF_8, (text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/src/io/read_as_text.dat");
       var f = new File(name);
       f.onError = (e) => Expect.fail("No errors expected");
-      f.readAsText('UTF-8', (text) {
+      f.readAsText(Encoding.UTF_8, (text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.charCodes());
-        f.readAsText('ISO-8859-1', (text) {
+        f.readAsText(Encoding.ISO_8859_1, (text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.charCodes());
           f.onError = (e) {
             port.toSendPort().send(1);
           };
-          f.readAsText('ASCII', (text) {
+          f.readAsText(Encoding.ASCII, (text) {
             Expect.fail("Non-ascii char should cause error");
           });
         });
@@ -923,8 +946,8 @@ class FileTest {
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.charCodes());
-    Expect.throws(() { new File(name).readAsTextSync("ASCII"); });
-    text = new File(name).readAsTextSync("ISO-8859-1");
+    Expect.throws(() { new File(name).readAsTextSync(Encoding.ASCII); });
+    text = new File(name).readAsTextSync(Encoding.ISO_8859_1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.charCodes());
@@ -937,7 +960,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsLines('UTF-8', (lines) {
+    f.readAsLines(Encoding.UTF_8, (lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
@@ -972,9 +995,10 @@ class FileTest {
     Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
     f.readAsBytes((bytes) => Expect.fail("no bytes expected"));
     f.onError = (e) {
-      f.readAsText('UTF-8', (text) => Expect.fail("no text expected"));
+      f.readAsText(Encoding.UTF_8, (text) => Expect.fail("no text expected"));
       f.onError = (e) {
-        f.readAsLines('UTF-8', (lines) => Expect.fail("no lines expected"));
+        f.readAsLines(Encoding.UTF_8,
+                      (lines) => Expect.fail("no lines expected"));
         f.onError = (e) {
           port.toSendPort().send(1);
         };
@@ -1073,6 +1097,7 @@ class FileTest {
       testAppendSync();
       testWriteAppend();
       testOutputStreamWriteAppend();
+      testOutputStreamWriteString();
       testWriteVariousLists();
       testDirectory();
       testDirectorySync();

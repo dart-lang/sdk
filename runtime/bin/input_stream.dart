@@ -100,6 +100,19 @@ interface InputStream {
 
 
 /**
+ * String encodings supported by [StringInputStream] and
+ * [StringOutputStream].
+ */
+class Encoding {
+  static final Encoding UTF_8 = const Encoding("UTF-8");
+  static final Encoding ISO_8859_1 = const Encoding("ISO-8859-1");
+  static final Encoding ASCII = const Encoding("ASCII");
+  const Encoding(String this.name);
+  final String name;
+}
+
+
+/**
  * A string input stream wraps a basic input stream and supplies
  * string data. This data can be read either as string chunks or as
  * lines separated by line termination character sequences.
@@ -107,9 +120,9 @@ interface InputStream {
 interface StringInputStream default _StringInputStream {
   /**
    * Decodes a binary input stream into characters using the specified
-   * encoding.
+   * encoding. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    */
-  StringInputStream(InputStream input, [String encoding]);
+  StringInputStream(InputStream input, [Encoding encoding]);
 
   /**
    * Reads as many characters as is available from the stream. If no data is
@@ -143,7 +156,7 @@ interface StringInputStream default _StringInputStream {
   /**
    * Returns the encoding used to decode the binary data into characters.
    */
-  String get encoding();
+  Encoding get encoding();
 
   /**
    * Sets the handler that gets called when data is available. The two

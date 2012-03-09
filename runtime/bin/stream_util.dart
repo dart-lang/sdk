@@ -175,3 +175,15 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
   output.onNoPendingWrites = null;
 }
 
+
+class _BaseOutputStream {
+  bool writeString(String string, [Encoding encoding = Encoding.UTF_8]) {
+    if (string.length > 0) {
+      // Encode and write data.
+      StringEncoder encoder = _StringEncoders.encoder(encoding);
+      List<int> data = encoder.encodeString(string);
+      return write(data, copyBuffer: false);
+    }
+    return true;
+  }
+}
