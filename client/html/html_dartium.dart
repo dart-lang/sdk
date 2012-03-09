@@ -1128,6 +1128,8 @@ _wrap(raw) {
       throw 'A document should never be wrapped directly. TODO(jacobr) XXX';
     case 'HTMLHtmlElement':
       return new _DocumentImpl._wrap(domObject);
+    case 'HTMLElement':
+      return new _UnknownElementImpl._wrap(domObject);
     case "EventTarget": return new _EventTargetImpl._wrap(domObject);
     case "AbstractWorker": return new _AbstractWorkerImpl._wrap(domObject);
     case "Node": return new _NodeImpl._wrap(domObject);

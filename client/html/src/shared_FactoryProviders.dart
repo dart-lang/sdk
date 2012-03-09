@@ -32,7 +32,7 @@ class _MouseEventFactoryProvider {
 
 class _CSSStyleDeclarationFactoryProvider {
   factory CSSStyleDeclaration.css(String css) {
-    var style = new Element.tag('div').style;
+    final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   } 
@@ -96,4 +96,39 @@ class _ElementFactoryProvider {
 
   /** @domName Document.createElement */
   factory Element.tag(String tag) => _document._createElement(tag);
+}
+
+class _DocumentFragmentFactoryProvider {
+  /** @domName Document.createDocumentFragment */
+  factory DocumentFragment() => document.createDocumentFragment();
+
+  factory DocumentFragment.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHTML = html;
+    return fragment;
+  }
+
+  // TODO(nweiz): enable this when XML is ported.
+  // factory DocumentFragment.xml(String xml) {
+  //   final fragment = new DocumentFragment();
+  //   final e = new XMLElement.tag("xml");
+  //   e.innerHTML = xml;
+  //
+  //   // Copy list first since we don't want liveness during iteration.
+  //   final List nodes = new List.from(e.nodes);
+  //   fragment.nodes.addAll(nodes);
+  //   return fragment;
+  // }
+
+  // TODO(nweiz): enable this when SVG is ported.
+  // factory DocumentFragment.svg(String svg) {
+  //   final fragment = new DocumentFragment();
+  //   final e = new SVGSVGElement();
+  //   e.innerHTML = svg;
+  //
+  //   // Copy list first since we don't want liveness during iteration.
+  //   final List nodes = new List.from(e.nodes);
+  //   fragment.nodes.addAll(nodes);
+  //   return fragment;
+  // }
 }

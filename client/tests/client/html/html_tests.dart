@@ -9,7 +9,7 @@
 
 #source('util.dart');
 #source('CSSStyleDeclarationTests.dart');
-// #source('DocumentFragmentTests.dart');
+#source('DocumentFragmentTests.dart');
 #source('ElementTests.dart');
 // #source('EventTests.dart');
 #source('LocalStorageTests.dart');
@@ -20,8 +20,7 @@
 
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
-  // TODO(nwiez): enable once DocumentFragment is ready -- Dart issue 1998.
-  // group('DocumentFragment', testDocumentFragment);
+  group('DocumentFragment', testDocumentFragment);
   group('Element', testElement);
   // TODO(nweiz): enable once event constructors are ported -- Dart issue 1996.
   // group('Event', testEvents);

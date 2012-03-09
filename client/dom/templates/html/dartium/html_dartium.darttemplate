@@ -78,6 +78,8 @@ _wrap(raw) {
       throw 'A document should never be wrapped directly. TODO(jacobr) XXX';
     case 'HTMLHtmlElement':
       return new _DocumentImpl._wrap(domObject);
+    case 'HTMLElement':
+      return new _UnknownElementImpl._wrap(domObject);
 $WRAPCASES
     default:
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';

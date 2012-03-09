@@ -126,7 +126,7 @@ class EmptyElementRect implements ElementRect {
   const EmptyElementRect();
 }
 
-class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   ElementList _elements;
 
   ElementList get elements() {
@@ -339,19 +339,5 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
       "WebKit region overflow can't be set for document fragments.");
   }
 
-  _DocumentFragmentImpl._wrap(ptr) : super._wrap(ptr);
-
-  _ElementEventsImpl get on() {
-    if (_on == null) _on = new _ElementEventsImpl(this);
-    return _on;
-  }
-
-  Element query(String selectors) {
-    return _wrap(_ptr.querySelector(_unwrap(selectors)));
-  }
-
-  NodeList _querySelectorAll(String selectors) {
-    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
-  }
-
+$!MEMBERS
 }
