@@ -31,6 +31,7 @@ have the generated javascript.
 import logging
 import optparse
 import os.path
+import platform
 import re
 import subprocess
 import sys
@@ -170,8 +171,6 @@ class Pad(object):
     logging.debug("frog_dir: '%s'" % self.frog_dir)
     logging.debug("frogpad_dir: '%s'" % self.frogpad_dir)
 
-    logging.info("cwd '%s'" % os.getcwd())
-
     # location of frogpad.js
     if not options.frogpad_js:
       raise Exception("--frogpad_js is required")
@@ -229,6 +228,11 @@ class Pad(object):
 
   def generate_js(self):
     drt = os.path.join(self.dart_dir, "client/tests/drt/DumpRenderTree")
+    if platform.system() == 'Darwin':
+      drt += ".app"
+    elif platform.system() == 'Windows':
+      raise Exception("frogpad does not run on Windows")
+
     check_exists(drt)
     args = []
     args.append(drt)
@@ -340,7 +344,7 @@ def run_command(args):
   """
 
   command = format_command(args)
-  logging.debug("RUNNING " + command)
+  logging.info("RUNNING: '%s'" % command)
   child = subprocess.Popen(args,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
