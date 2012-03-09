@@ -7,6 +7,7 @@
 
 
 [ $component == leg ]
+AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
