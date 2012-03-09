@@ -70,29 +70,29 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
 }
 
 
-void FlowGraphCompiler::LoadValue(Value* value) {
+void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
   if (value->IsConstant()) {
     ConstantVal* constant = value->AsConstant();
     if (constant->instance().IsSmi()) {
       int64_t imm = reinterpret_cast<int64_t>(constant->instance().raw());
-      __ movq(RAX, Immediate(imm));
+      __ movq(dst, Immediate(imm));
     } else {
-      __ LoadObject(RAX, value->AsConstant()->instance());
+      __ LoadObject(dst, value->AsConstant()->instance());
     }
   } else {
     ASSERT(value->IsTemp());
-    __ popq(RAX);
+    __ popq(dst);
   }
 }
 
 
 void FlowGraphCompiler::VisitTemp(TempVal* val) {
-  LoadValue(val);
+  LoadValue(RAX, val);
 }
 
 
 void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
-  LoadValue(val);
+  LoadValue(RAX, val);
 }
 
 
@@ -178,9 +178,8 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
 void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  LoadValue(comp->left());
-  __ movq(RDX, RAX);
-  LoadValue(comp->right());
+  LoadValue(RAX, comp->left());
+  LoadValue(RDX, comp->right());
   __ cmpq(RAX, RDX);
   Label load_true, done;
   if (comp->kind() == Token::kEQ_STRICT) {
@@ -226,7 +225,7 @@ void FlowGraphCompiler::VisitStoreLocal(StoreLocalComp* comp) {
   if (comp->local().is_captured()) {
     Bailout("store to context variable");
   }
-  LoadValue(comp->value());
+  LoadValue(RAX, comp->value());
   __ movq(Address(RBP, comp->local().index() * kWordSize), RAX);
 }
 
@@ -250,17 +249,16 @@ void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
 
 
 void FlowGraphCompiler::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
-  LoadValue(comp->instance());  // -> RAX.
+  LoadValue(RAX, comp->instance());
   __ movq(RAX, FieldAddress(RAX, comp->field().Offset()));
 }
 
 
 void FlowGraphCompiler::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
   VerifyValues(comp->instance(), comp->value());
-  LoadValue(comp->value());
-  __ movq(R10, RAX);
-  LoadValue(comp->instance());  // -> RAX.
-  __ StoreIntoObject(RAX, FieldAddress(RAX, comp->field().Offset()), R10);
+  LoadValue(RDX, comp->value());
+  LoadValue(RAX, comp->instance());
+  __ StoreIntoObject(RAX, FieldAddress(RAX, comp->field().Offset()), RDX);
 }
 
 
@@ -272,7 +270,7 @@ void FlowGraphCompiler::VisitLoadStaticField(LoadStaticFieldComp* comp) {
 
 
 void FlowGraphCompiler::VisitStoreStaticField(StoreStaticFieldComp* comp) {
-  LoadValue(comp->value());
+  LoadValue(RAX, comp->value());
   __ LoadObject(RDX, comp->field());
   __ StoreIntoObject(RDX, FieldAddress(RDX, Field::value_offset()), RAX);
 }
@@ -320,8 +318,7 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label done;
-  LoadValue(comp->value());
-  __ movq(RDX, RAX);
+  LoadValue(RDX, comp->value());
   __ LoadObject(RAX, bool_true);
   __ cmpq(RAX, RDX);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
@@ -332,6 +329,29 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
   Bailout("InstanceOf");
+}
+
+
+void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
+  // 1. Allocate the array.  R10 = length, RBX = element type.
+  __ movq(R10, Immediate(Smi::RawValue(comp->ElementCount())));
+  const AbstractTypeArguments& element_type = comp->type_arguments();
+  ASSERT(element_type.IsNull() || element_type.IsInstantiated());
+  __ LoadObject(RBX, element_type);
+  GenerateCall(comp->token_index(),
+               &StubCode::AllocateArrayLabel(),
+               PcDescriptors::kOther);
+
+  // 2. Initialize the array in RAX with the element values.
+  __ leaq(RCX, FieldAddress(RAX, Array::data_offset()));
+  for (int i = comp->ElementCount() - 1; i >= 0; --i) {
+    if (comp->ElementAt(i)->IsTemp()) {
+      __ popq(Address(RCX, i * kWordSize));
+    } else {
+      LoadValue(RDX, comp->ElementAt(i));
+      __ movq(Address(RCX, i * kWordSize), RDX);
+    }
+  }
 }
 
 
@@ -403,7 +423,7 @@ void FlowGraphCompiler::VisitBind(BindInstr* instr) {
 
 
 void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
-  LoadValue(instr->value());
+  LoadValue(RAX, instr->value());
 
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
@@ -456,7 +476,7 @@ void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
   bool negated = ((*blocks_)[index - 1] == instr->false_successor());
   ASSERT(!negated == ((*blocks_)[index - 1] == instr->true_successor()));
 
-  LoadValue(instr->value());
+  LoadValue(RAX, instr->value());
   __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
   __ cmpq(RAX, RDX);
   if (negated) {

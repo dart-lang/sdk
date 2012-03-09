@@ -613,7 +613,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_initializer(owner(), temp_index());
   node->initializer()->Visit(&for_initializer);
   Append(for_initializer);
-  if (!is_open()) return;
+  ASSERT(is_open());
 
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -659,7 +659,19 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 
 
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
-  Bailout("EffectGraphVisitor::VisitArrayNode");
+  // Translate the array elements and collect their values.
+  ZoneGrowableArray<Value*>* values =
+      new ZoneGrowableArray<Value*>(node->length());
+  int index = temp_index();
+  for (int i = 0; i < node->length(); ++i) {
+    ValueGraphVisitor for_value(owner(), index);
+    node->ElementAt(i)->Visit(&for_value);
+    Append(for_value);
+    values->Add(for_value.value());
+    index = for_value.temp_index();
+  }
+  CreateArrayComp* create = new CreateArrayComp(node, values);
+  ReturnComputation(create);
 }
 
 
@@ -1130,6 +1142,17 @@ void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
       comp->negate_result() ? "ISNOT" : "IS",
       String::Handle(comp->type().Name()).ToCString());
 }
+
+
+void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
+  OS::Print("CreateArray(");
+  for (int i = 0; i < comp->ElementCount(); ++i) {
+    if (i != 0) OS::Print(", ");
+    comp->ElementAt(i)->Accept(this);
+  }
+  OS::Print(")");
+}
+
 
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", instr->block_number());

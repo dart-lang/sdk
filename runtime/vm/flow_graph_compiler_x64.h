@@ -65,8 +65,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
 
-  // Emit code to load a Value into register RAX.
-  void LoadValue(Value* value);
+  // Emit code to load a Value into register 'dst'.
+  void LoadValue(Register dst, Value* value);
 
   // Emit an instance call.
   void EmitInstanceCall(intptr_t node_id,

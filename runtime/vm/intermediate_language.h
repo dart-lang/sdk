@@ -65,7 +65,8 @@ class LocalVariable;
   M(LoadStaticField, LoadStaticFieldComp)                                      \
   M(StoreStaticField, StoreStaticFieldComp)                                    \
   M(BooleanNegate, BooleanNegateComp)                                          \
-  M(InstanceOf, InstanceOfComp)
+  M(InstanceOf, InstanceOfComp)                                                \
+  M(CreateArray, CreateArrayComp)                                              \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -317,7 +318,7 @@ class LoadInstanceFieldComp : public Computation {
     ASSERT(instance_ != NULL);
   }
 
-  DECLARE_COMPUTATION(LoadInstanceFieldComp)
+  DECLARE_COMPUTATION(LoadInstanceField)
 
   const Field& field() const { return ast_node_.field(); }
 
@@ -341,7 +342,7 @@ class StoreInstanceFieldComp : public Computation {
     ASSERT(value_ != NULL);
   }
 
-  DECLARE_COMPUTATION(StoreInstanceFieldComp)
+  DECLARE_COMPUTATION(StoreInstanceField)
 
   intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
@@ -363,7 +364,7 @@ class LoadStaticFieldComp : public Computation {
  public:
   explicit LoadStaticFieldComp(const Field& field) : field_(field) {}
 
-  DECLARE_COMPUTATION(LoadStaticFieldComp);
+  DECLARE_COMPUTATION(LoadStaticField);
 
   const Field& field() const { return field_; }
 
@@ -383,7 +384,7 @@ class StoreStaticFieldComp : public Computation {
     ASSERT(value != NULL);
   }
 
-  DECLARE_COMPUTATION(StoreStaticFieldComp);
+  DECLARE_COMPUTATION(StoreStaticField);
 
   const Field& field() const { return field_; }
   Value* value() const { return value_; }
@@ -469,7 +470,7 @@ class BooleanNegateComp : public Computation {
  public:
   explicit BooleanNegateComp(Value* value) : value_(value) {}
 
-  DECLARE_COMPUTATION(BooleanNegateComp)
+  DECLARE_COMPUTATION(BooleanNegate)
 
   Value* value() const { return value_; }
 
@@ -493,7 +494,7 @@ class InstanceOfComp : public Computation {
         type_(type),
         negate_result_(negate_result) {}
 
-  DECLARE_COMPUTATION(InstanceOfComp)
+  DECLARE_COMPUTATION(InstanceOf)
 
   Value* value() const { return value_; }
   bool negate_result() const { return negate_result_; }
@@ -507,6 +508,28 @@ class InstanceOfComp : public Computation {
   const bool negate_result_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfComp);
+};
+
+
+class CreateArrayComp : public Computation {
+ public:
+  CreateArrayComp(ArrayNode* node, ZoneGrowableArray<Value*>* elements)
+      : ast_node_(*node), elements_(elements) { }
+
+  DECLARE_COMPUTATION(CreateArray)
+
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  intptr_t ElementCount() const { return elements_->length(); }
+  Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
+
+ private:
+  const ArrayNode& ast_node_;
+  ZoneGrowableArray<Value*>* const elements_;
+
+  DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
 
 
