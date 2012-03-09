@@ -7,7 +7,7 @@
 
 interface Link<T> extends Iterable<T> default LinkFactory<T> {
   // does not match constructor for  LinkFactory
-  Link(T head, [Link<T> tail]); /// static type error
+  Link(T head, [Link<T> tail]); /// static type warning
   Link<T> prepend(T element);
 }
 
@@ -21,7 +21,7 @@ class LinkFactory<T> {
 }
 
 // Does not implement all of Iterable
-class AbstractLink<T> implements Link<T> {  /// static type error
+class AbstractLink<T> implements Link<T> {  /// static type warning
   const AbstractLink();
   Link<T> prepend(T element) {
     return new Link<T>(element, this);
@@ -29,26 +29,26 @@ class AbstractLink<T> implements Link<T> {  /// static type error
 }
 
 // Does not implement all of Iterable
-class LinkTail<T> extends AbstractLink<T>    /// static type error
+class LinkTail<T> extends AbstractLink<T>    /// static type warning
     implements EmptyLink<T> {
   const LinkTail();
 }
 
 // Does not implement all of Iterable
-class LinkEntry<T> extends AbstractLink<T> {  /// static type error
+class LinkEntry<T> extends AbstractLink<T> {  /// static type warning
   LinkEntry(T head, Link<T> realTail);
 }
 
 class Fisk {
   // instantiation of abstract class
-  Link<String> nodes = const EmptyLink();  /// static type error
+  Link<String> nodes = const EmptyLink();  /// static type warning
 }
 
 main() {
   new Fisk();
   // instantiation of abstract class
-  new EmptyLink<String>().prepend('hest'); /// static type error
+  new EmptyLink<String>().prepend('hest'); /// static type warning
   // instantiation of abstract class
-  const EmptyLink<String>().prepend('fisk'); /// static type error
+  const EmptyLink<String>().prepend('fisk'); /// static type warning
 }
 

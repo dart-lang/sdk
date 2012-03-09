@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test program for map literals.
@@ -61,17 +61,18 @@ class MapLiteralTest {
     Expect.equals(14, m.length);
 
     // Check that last value of duplicate key wins for const maps.
-    final cmap = const <num>{"a": 10, "b": 100, "a": 1000};
+    final cmap = const <num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
     Expect.equals(2, cmap.length);
     Expect.equals(1000, cmap["a"]);
     Expect.equals(100, cmap["b"]);
 
-    final cmap2 = const <num>{"a": 10, "a": 100, "a": 1000};
+    final cmap2 = const <num>{"a": 10, "a": 100, "a": 1000}; /// static type warning
     Expect.equals(1, cmap2.length);
     Expect.equals(1000, cmap["a"]);
 
     // Check that last value of duplicate key wins for mutable maps.
-    var mmap = <num>{"a": 10, "b": 100, "a": 1000};
+    var mmap = <num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
+                     
     Expect.equals(2, mmap.length);
     Expect.equals(1000, mmap["a"]);
     Expect.equals(100, mmap["b"]);
@@ -80,7 +81,7 @@ class MapLiteralTest {
     // are still evaluated, including side effects.
     int counter = 0;
     int ctr() { counter += 10; return counter; }
-    mmap = <num>{"a": ctr(), "b": ctr(), "a": ctr()};
+    mmap = <num>{"a": ctr(), "b": ctr(), "a": ctr()}; /// static type warning
     Expect.equals(2, mmap.length);
     Expect.equals(40, ctr());
     Expect.equals(30, mmap["a"]);

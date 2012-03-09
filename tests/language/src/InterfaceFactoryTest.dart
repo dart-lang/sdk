@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -8,7 +8,8 @@
 // a default implementation of the interface.
 
 interface Interface1 default DefaultImplementation {
-  Interface1(var secret);
+  // first parameter type 'var' not a subtype of 'int' in default implementation
+  Interface1(var secret); /// static type warning
   Interface1.named();
 
   GetSecret();

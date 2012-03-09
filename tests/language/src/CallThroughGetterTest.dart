@@ -29,10 +29,10 @@ class CallThroughGetterTest {
     Expect.equals(2, topLevel());
 
     expectThrowsNotClosure(() { 
-      TOP_LEVEL_CONST(); /// static type error
+      TOP_LEVEL_CONST(); /// static type warning
     });
     expectThrowsNotClosure(() { 
-      (TOP_LEVEL_CONST)();  /// static type error
+      (TOP_LEVEL_CONST)();  /// static type warning
     });
   }
 

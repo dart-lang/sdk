@@ -8,7 +8,7 @@ interface Point default PointImplementation {
 }
 
 class PointImplementation implements Point {
-   PointImplementation(int x, int y) {} /// static type error
+   PointImplementation(int x, int y) {} /// static type warning
 }
 
 main() {

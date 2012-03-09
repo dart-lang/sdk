@@ -23,7 +23,7 @@ class C {
     C contents = myCup.getContents(); // expect no warning or error
     bool hasThrown = false;
     try {
-      contents = libCup.getContents();
+      contents = libCup.getContents(); /// static type warning
     } catch (TypeError e) {
       hasThrown = true;
     }
