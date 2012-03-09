@@ -170,6 +170,8 @@ class Pad(object):
     logging.debug("frog_dir: '%s'" % self.frog_dir)
     logging.debug("frogpad_dir: '%s'" % self.frogpad_dir)
 
+    logging.info("cwd '%s'" % os.getcwd())
+
     # location of frogpad.js
     if not options.frogpad_js:
       raise Exception("--frogpad_js is required")
