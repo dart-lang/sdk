@@ -219,9 +219,18 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded therefore do not call
   // operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
-    // Implement short-circuit logic: do not evaluate right if evaluation
-    // of left is sufficient.
-    Bailout("EffectGraphVisitor::VisitBinaryOpNode AND/OR");
+    // See ValueGraphVisitor::VisitBinaryOpNode.
+    TestGraphVisitor for_left(owner(), temp_index());
+    node->left()->Visit(&for_left);
+    EffectGraphVisitor for_right(owner(), temp_index());
+    node->right()->Visit(&for_right);
+    EffectGraphVisitor empty(owner(), temp_index());
+    if (node->kind() == Token::kAND) {
+      Join(for_left, for_right, empty);
+    } else {
+      Join(for_left, empty, for_right);
+    }
+    return;
   }
   ArgumentGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
@@ -237,6 +246,49 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       new InstanceCallComp(node->id(), node->token_index(), name,
                            arguments, Array::ZoneHandle(), 2);
   ReturnComputation(call);
+}
+
+
+// Special handling for AND/OR.
+void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
+  // Operators "&&" and "||" cannot be overloaded therefore do not call
+  // operator.
+  if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    // Implement short-circuit logic: do not evaluate right if evaluation
+    // of left is sufficient.
+    // AND:  left ? right === true : false;
+    // OR:   left ? true : right === true;
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kAND/kOR");
+    }
+    const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+    const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+    TestGraphVisitor for_test(owner(), temp_index());
+    node->left()->Visit(&for_test);
+
+    ValueGraphVisitor for_right(owner(), temp_index());
+    node->right()->Visit(&for_right);
+    StrictCompareComp* comp = new StrictCompareComp(Token::kEQ_STRICT,
+        for_right.value(), new ConstantVal(bool_true));
+    for_right.AddInstruction(new BindInstr(temp_index(), comp));
+
+    if (node->kind() == Token::kAND) {
+      ValueGraphVisitor for_false(owner(), temp_index());
+      for_false.AddInstruction(
+          new BindInstr(temp_index(), new ConstantVal(bool_false)));
+      Join(for_test, for_right, for_false);
+    } else {
+      ASSERT(node->kind() == Token::kOR);
+      ValueGraphVisitor for_true(owner(), temp_index());
+      for_true.AddInstruction(
+          new BindInstr(temp_index(), new ConstantVal(bool_true)));
+      Join(for_test, for_true, for_right);
+    }
+    ReturnValue(new TempVal(AllocateTempIndex()));
+    return;
+  }
+  EffectGraphVisitor::VisitBinaryOpNode(node);
 }
 
 

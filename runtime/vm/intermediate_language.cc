@@ -130,6 +130,8 @@ void BranchInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder.
+  ASSERT(false_successor_ != NULL);
+  ASSERT(true_successor_ != NULL);
   if (false_successor_->mark() != mark()) {
     false_successor_->Postorder(block_entries);
   }

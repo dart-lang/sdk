@@ -151,6 +151,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
+  virtual void VisitBinaryOpNode(BinaryOpNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
