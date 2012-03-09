@@ -104,6 +104,7 @@ GCTest: Skip  # Takes too long.
 
 [ $component == dartc || $component == chromium ]
 AbstractSyntaxTest/01: Fail
+AdjacentStringLiteralsTest: Crash  # Issue 2079
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
