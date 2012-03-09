@@ -148,6 +148,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
+  virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
   virtual void VisitConditionalExprNode(ConditionalExprNode* node);

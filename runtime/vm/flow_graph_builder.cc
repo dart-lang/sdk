@@ -339,7 +339,46 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
 
 
 void EffectGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
-  Bailout("EffectGraphVisitor::VisitIncrOpLocalNode");
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  // In an effect context, treat postincrement as if it were preincrement
+  // because its value is not needed.
+
+  // 1. Load the value.
+  LoadLocalComp* load = new LoadLocalComp(node->local());
+  AddInstruction(new BindInstr(temp_index(), load));
+  // 2. Increment.
+  BuildIncrOpIncrement(node->kind(), node->id(), node->token_index(),
+                       temp_index() + 1);
+  // 3. Perform the store, resulting in the new value.
+  StoreLocalComp* store =
+      new StoreLocalComp(node->local(), new TempVal(temp_index()));
+  ReturnComputation(store);
+}
+
+
+void ValueGraphVisitor::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
+  ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
+  if (node->prefix()) {
+    // Base class handles preincrement.
+    EffectGraphVisitor::VisitIncrOpLocalNode(node);
+    return;
+  }
+  // For postincrement, duplicate the original value to use one copy as the
+  // result.
+  //
+  // 1. Load the value.
+  LoadLocalComp* load = new LoadLocalComp(node->local());
+  AddInstruction(new BindInstr(temp_index(), load));
+  // 2. Duplicate it to increment.
+  AddInstruction(new PickTempInstr(temp_index() + 1, temp_index()));
+  // 3. Increment.
+  BuildIncrOpIncrement(node->kind(), node->id(), node->token_index(),
+                       temp_index() + 2);
+  // 4. Perform the store and return the original value.
+  StoreLocalComp* store =
+      new StoreLocalComp(node->local(), new TempVal(temp_index() + 1));
+  AddInstruction(new DoInstr(store));
+  ReturnValue(new TempVal(AllocateTempIndex()));
 }
 
 
@@ -1221,7 +1260,7 @@ void FlowGraphPrinter::VisitDo(DoInstr* instr) {
 
 
 void FlowGraphPrinter::VisitBind(BindInstr* instr) {
-  OS::Print("    t%d <-", instr->temp_index());
+  OS::Print("    t%d <- ", instr->temp_index());
   instr->computation()->Accept(this);
 }
 
