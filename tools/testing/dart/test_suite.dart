@@ -329,6 +329,7 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
+      case 'frogsh':
       case 'legium':
       case 'webdriver':
         enqueueBrowserTest(filename, testName, optionsFromFile,
@@ -583,6 +584,13 @@ class StandardTestSuite implements TestSuite {
         args.add(inputFile);
         // TODO(whesse): Add --fatal-type-errors if needed.
         break;
+      case 'frogsh':
+        args.clear();
+        args.add('--out=$outputFile');
+        args.add('--frogpad_js=' +
+          '${TestUtils.buildDir(configuration)}/frog/bin/frogpad.js');
+        args.add(inputFile);
+        break;
       case 'frogium':
       case 'legium':
       case 'webdriver':
@@ -675,11 +683,12 @@ class StandardTestSuite implements TestSuite {
         return 'application/dart';
       case 'chromium':
       case 'frogium':
+      case 'frogsh':
       case 'legium':
       case 'webdriver':
         return 'text/javascript';
       default:
-        Expect.fail('Unimplemented component scriptType');
+        Expect.fail("Unexpected component '{configuration['component']}'");
         return null;
     }
   }
@@ -1124,6 +1133,9 @@ class TestUtils {
       return null;  // No separate compiler for dartium tests.
     }
     var name = configuration['frog'];
+    if (configuration['component'] == 'frogsh') {
+      name = '${dartDir()}/tools/testing/frogpad/frogpad.py';
+    }
     if (name == '') {
       name = '${buildDir(configuration)}/${compilerName(configuration)}';
     }
