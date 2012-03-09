@@ -344,10 +344,10 @@ def run_command(args):
       stderr=subprocess.PIPE,
       close_fds=True)
   (stdout, stderr) = child.communicate()
-  for line in stderr.splitlines():
-    logging.info(logging.INFO, '%s: %s' % (args[0], line))
   exit_code = child.wait()
   if exit_code:
+    for line in stderr.splitlines():
+      logging.info(logging.INFO, line)
     msg = "FAILURE (exit_code=%d): '%s'" % (exit_code, command)
     logging.error(msg)
     raise CommandFailedException(msg)
