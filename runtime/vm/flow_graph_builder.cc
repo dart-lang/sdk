@@ -610,7 +610,41 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
-  Bailout("EffectGraphVisitor::VisitForNode");
+  EffectGraphVisitor for_initializer(owner(), temp_index());
+  node->initializer()->Visit(&for_initializer);
+  Append(for_initializer);
+  if (!is_open()) return;
+
+  EffectGraphVisitor for_body(owner(), temp_index());
+  node->body()->Visit(&for_body);
+  if (for_body.is_open()) {
+    EffectGraphVisitor for_increment(owner(), temp_index());
+    node->increment()->Visit(&for_increment);
+    for_body.Append(for_increment);
+  }
+
+  if (node->condition() != NULL) {
+    TestGraphVisitor for_test(owner(), temp_index());
+    node->condition()->Visit(&for_test);
+    TieLoop(for_test, for_body);
+    return;
+  }
+
+  // Degenerate cases.  An absent condition is implicitly true.  No
+  // normal exit from loop => no back edge.
+  if (!for_body.is_open()) {
+    Append(for_body);
+    return;
+  }
+  JoinEntryInstr* join = new JoinEntryInstr();
+  AddInstruction(join);
+  if (for_body.is_empty()) {
+    join->SetSuccessor(join);
+  } else {
+    join->SetSuccessor(for_body.entry());
+    for_body.exit()->SetSuccessor(join);
+  }
+  CloseFragment();
 }
 
 
