@@ -235,6 +235,8 @@ class Pad(object):
 
     check_exists(drt)
     args = []
+    args.append("xvfb-run")
+    args.append("-a")
     args.append(drt)
     args.append(self.html_file)
 
