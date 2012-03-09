@@ -32,12 +32,12 @@ MandelIsolateTest: Skip     # Bug 5353937.
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip
 
-[ $component == frogium || $component == frogsh || $component == webdriver ]
+[ $component == frogium || $component == webdriver ]
 *StandaloneTest: Skip
 *StandaloneNegativeTest: Skip
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
-[ $component == frogium || $component == frogsh || $component == webdriver ]
+[ $component == frogium || $component == webdriver ]
 NestedSpawn2Test: Skip
 NestedSpawnTest: Skip
 IsolateNegativeTest: Skip
