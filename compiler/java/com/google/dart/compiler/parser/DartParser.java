@@ -1214,7 +1214,7 @@ public class DartParser extends CompletionHooksParserBase {
       reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
     }
     if (match(Token.STRING)) {
-      parseString();
+      parseStringWithPasting();
     }
     if (match(Token.LBRACE) || match(Token.ARROW)) {
       // dom_frog.dart has non-static native methods with string and block
@@ -1838,10 +1838,96 @@ public class DartParser extends CompletionHooksParserBase {
     return done(new DartConditional(result, yes, no));
   }
 
+  private boolean looksLikeStringInterpolation() {
+    int peekAhead = 0;
+    while (true) {
+      switch (peek(peekAhead++)) {
+        case STRING:
+          break;
+        case STRING_SEGMENT:
+        case STRING_LAST_SEGMENT:
+        case STRING_EMBED_EXP_START:
+        case STRING_EMBED_EXP_END:
+          return true;
+        default:
+          return false;
+      }
+    }
+  }
+  /**
+   * Pastes together adjacent strings.  Re-uses the StringInterpolation
+   * node if there is more than one ajacent string.
+   */
+  private DartExpression parseStringWithPasting() {
+    List<DartExpression> expressions = new ArrayList<DartExpression>();
+    if (looksLikeStringInterpolation()) {
+      beginStringInterpolation();
+    } else {
+      beginLiteral();
+    }
+    DartExpression result = null;
+    boolean foundStringInterpolation = false;
+    do {
+      result = null;
+      switch(peek(0)) {
+        case STRING:
+        case STRING_SEGMENT:
+        case STRING_EMBED_EXP_START:
+          // another string is coming, glue it together.
+          result = parseString();
+          if (result != null) {
+            expressions.add(result);
+          }
+          if (result instanceof DartStringInterpolation) {
+            foundStringInterpolation = true;
+          }
+          break;
+      }
+    } while (result != null);
+
+    if (expressions.size() == 0) {
+      return doneWithoutConsuming(null);
+    } else if (expressions.size() == 1) {
+      return done(expressions.get(0));
+    }
+
+    if (foundStringInterpolation) {
+      DartStringInterpolationBuilder builder = new DartStringInterpolationBuilder();
+      // Create a new DartStringInterpolation object from the expressions.
+      boolean first = true;
+      for (DartExpression expr : expressions) {
+        if (!first) {
+          // pad between interpolations with a dummy expression
+          builder.addExpression(DartStringLiteral.get(""));
+        }
+        if (expr instanceof DartStringInterpolation) {
+          builder.addInterpolation((DartStringInterpolation)expr);
+        } else if (expr instanceof DartStringLiteral) {
+          builder.addString((DartStringLiteral)expr);
+        } else {
+          throw new InternalCompilerException("Expected String or StringInterpolation");
+        }
+        first = false;
+      }
+      return done(builder.buildInterpolation());
+    }
+
+    // Synthesize a single String literal
+    StringBuilder builder = new StringBuilder();
+    for (DartExpression expr : expressions) {
+      builder.append(((DartStringLiteral)expr).getValue());
+    }
+    return done(DartStringLiteral.get(builder.toString()));
+  }
+
   private DartExpression parseString() {
     switch(peek(0)) {
-      case STRING:
-        return parseLiteral();
+      case STRING: {
+        beginLiteral();
+        consume(Token.STRING);
+        return done(DartStringLiteral.get(ctx.getTokenString()));
+      }
+
       case STRING_SEGMENT:
       case STRING_EMBED_EXP_START:
         return parseStringInterpolation();
@@ -1909,11 +1995,6 @@ public class DartParser extends CompletionHooksParserBase {
         return done(DartIntegerLiteral.get(new BigInteger(number, 16)));
       }
 
-      case STRING: {
-        consume(Token.STRING);
-        return done(DartStringLiteral.get(ctx.getTokenString()));
-      }
-
       case LBRACE: {
         return done(parseMapLiteral(false, null));
       }
@@ -1966,10 +2047,38 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
-   * <pre>
-   * mapLiteral
-   *     : '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+   * mapLiteralEntry
+   *     : STRING ':' expression
    *     ;
+   */
+  private DartMapLiteralEntry parseMapLiteralEntry() {
+    beginMapLiteralEntry();
+    // Parse the key.
+    DartExpression keyExpr = parseStringWithPasting();
+    if (keyExpr == null) {
+      return done(null);
+    }
+    // Parse the value.
+    DartExpression value;
+    if (expect(Token.COLON)) {
+      value = parseExpression();
+    } else {
+      value = doneWithoutConsuming(DartNullLiteral.get());
+    }
+    return done(new DartMapLiteralEntry(keyExpr, value));
+  }
+  private boolean looksLikeString() {
+    switch(peek(0)) {
+      case STRING:
+      case STRING_SEGMENT:
+      case STRING_EMBED_EXP_START:
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * <pre> mapLiteral : '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}' ;
    * </pre>
    */
   private DartExpression parseMapLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
@@ -1979,11 +2088,22 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartMapLiteralEntry> entries = new ArrayList<DartMapLiteralEntry>();
 
     while (!match(Token.RBRACE) && !match(Token.EOS)) {
+      if (!looksLikeString()) {
+        ctx.advance();
+        reportError(position(), ParserErrorCode.EXPECTED_STRING_LITERAL_MAP_ENTRY_KEY);
+        if (peek(0) == Token.COMMA) {
+          // a common error is to put an empty entry in the list, allow it to
+          // recover.
+          continue;
+        } else {
+          break;
+        }
+      }
       DartMapLiteralEntry entry = parseMapLiteralEntry();
       if (entry != null) {
         entries.add(entry);
       }
-      switch(peek(0)) {
+      switch (peek(0)) {
         case COMMA:
           consume(Token.COMMA);
           break;
@@ -2002,28 +2122,6 @@ public class DartParser extends CompletionHooksParserBase {
     expectCloseBrace();
     setAllowFunctionExpression(save);
     return done(new DartMapLiteral(isConst, typeArguments, entries));
-  }
-
-  /**
-   * mapLiteralEntry
-   *     : STRING ':' expression
-   *     ;
-   */
-  private DartMapLiteralEntry parseMapLiteralEntry() {
-    beginMapLiteralEntry();
-    // Parse the key.
-    DartExpression keyExpr = parseString();
-    if (keyExpr == null) {
-      return done(null);
-    }
-    // Parse the value.
-    DartExpression value;
-    if (expect(Token.COLON)) {
-      value = parseExpression();
-    } else {
-      value = doneWithoutConsuming(DartNullLiteral.get());
-    }
-    return done(new DartMapLiteralEntry(keyExpr, value));
   }
 
   /**
@@ -2148,6 +2246,12 @@ public class DartParser extends CompletionHooksParserBase {
       }
       expressions.add(expression);
       lastSeen = LastSeenNode.EXPRESSION;
+    }
+
+    void addInterpolation(DartStringInterpolation interpolation) {
+      strings.addAll(interpolation.getStrings());
+      expressions.addAll(interpolation.getExpressions());
+      lastSeen = LastSeenNode.STRING;
     }
 
     DartStringInterpolation buildInterpolation() {
@@ -2507,11 +2611,14 @@ public class DartParser extends CompletionHooksParserBase {
         return done(literal);
       }
 
+      case STRING:
       case STRING_SEGMENT:
-      case STRING_LAST_SEGMENT:
       case STRING_EMBED_EXP_START: {
-        return parseStringInterpolation();
+        return parseStringWithPasting();
       }
+
+      case STRING_LAST_SEGMENT:
+        throw new InternalCompilerException("Invariant Broken");
 
       default: {
         return parseLiteral();
@@ -3073,7 +3180,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * Parse a function declaration.
-   * 
+   *
    * <pre>
    * nonLabelledStatement : ...
    *     | functionDeclaration functionBody
@@ -3086,7 +3193,7 @@ public class DartParser extends CompletionHooksParserBase {
    *    | returnType? identifier formalParameterList
    *    ;
    * </pre>
-   * 
+   *
    * @return a {@link DartStatement} representing the function declaration or <code>null</code> if
    *         code ends with function invocation, so this is not function declaration.
    */

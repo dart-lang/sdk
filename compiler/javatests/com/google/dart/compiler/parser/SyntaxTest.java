@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -214,13 +215,120 @@ public class SyntaxTest extends AbstractParserTest {
 
   public void testMethodDefinition1() {
     DartUnit unit = parseUnit ("phony_method_definition1.dart",
-        Joiner.on("\n").join(
-            "class A {",
-            "  pref.A foo() {",
-            "    return new pref.A();",
-            "  }",
-            "}"));
+                               Joiner.on("\n").join(
+                                   "class A {",
+                                   "  pref.A foo() {",
+                                   "    return new pref.A();",
+                                   "  }",
+                                   "}"));
+                           List<DartNode> nodes = unit.getTopLevelNodes();
+                           assertEquals(1, nodes.size());
+  }
+
+  public void testAdjacentStrings1() {
+    DartUnit unit = parseUnit ("phony_adjacent_strings_1.dart",
+                               Joiner.on("\n").join(
+                                   "var a = \"\" \"\";",
+                                   "var b = \"1\" \"2\" \"3\""));
     List<DartNode> nodes = unit.getTopLevelNodes();
-    assertEquals(1, nodes.size());
+    assertEquals(2, nodes.size());
+    DartStringLiteral varA = (DartStringLiteral)((DartFieldDefinition)nodes.get(0))
+        .getFields().get(0).getValue();
+    assertEquals("", varA.getValue());
+    DartStringLiteral varB = (DartStringLiteral)((DartFieldDefinition)nodes.get(1))
+        .getFields().get(0).getValue();
+    assertEquals("123", varB.getValue());
+
+  }
+
+  public void testAdjacentStrings2() {
+    DartUnit unit = parseUnit ("phony_adjacent_strings_2.dart",
+                               Joiner.on("\n").join(
+                               "var c = \"hello\" \"${world}\";",
+                               "var d = \"${hello}\" \"world\";",
+                               "var e = \"${hello}\" \"${world}\";"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(3, nodes.size());
+    DartStringInterpolation varC = (DartStringInterpolation)((DartFieldDefinition)nodes.get(0))
+        .getFields().get(0).getValue();
+
+    List<DartStringLiteral> strings = varC.getStrings();
+    assertEquals(3, strings.size());
+    assertEquals("hello", strings.get(0).getValue());
+    assertEquals("", strings.get(1).getValue());
+    assertEquals("", strings.get(2).getValue());
+    List<DartExpression> expressions = varC.getExpressions();
+    assertEquals(2, expressions.size());
+    assertEquals("", ((DartStringLiteral)expressions.get(0)).getValue());
+    DartIdentifier expr = (DartIdentifier)expressions.get(1);
+    assertEquals("world", expr.getName());
+
+    DartStringInterpolation varD = (DartStringInterpolation)((DartFieldDefinition)nodes.get(1))
+        .getFields().get(0).getValue();
+    strings = varD.getStrings();
+    assertEquals(3, strings.size());
+    assertEquals("", strings.get(0).getValue());
+    assertEquals("", strings.get(1).getValue());
+    assertEquals("world", strings.get(2).getValue());
+    expressions = varD.getExpressions();
+    assertEquals(2, expressions.size());
+    expr = (DartIdentifier)expressions.get(0);
+    assertEquals("hello", expr.getName());
+    assertEquals("", ((DartStringLiteral)expressions.get(1)).getValue());
+
+    DartStringInterpolation varE = (DartStringInterpolation)((DartFieldDefinition)nodes.get(2))
+        .getFields().get(0).getValue();
+    strings = varE.getStrings();
+    assertEquals(4, strings.size());
+    assertEquals("", strings.get(0).getValue());
+    assertEquals("", strings.get(1).getValue());
+    assertEquals("", strings.get(2).getValue());
+    assertEquals("", strings.get(3).getValue());
+    expressions = varE.getExpressions();
+    assertEquals(3, expressions.size());
+    expr = (DartIdentifier)expressions.get(0);
+    assertEquals("hello", expr.getName());
+    assertEquals("", ((DartStringLiteral)expressions.get(1)).getValue());
+    expr = (DartIdentifier)expressions.get(2);
+    assertEquals("world", expr.getName());
+  }
+
+  public void testAdjacentStrings3() {
+    DartUnit unit = parseUnit ("phony_adjacent_strings_2.dart",
+                               Joiner.on("\n").join(
+                               "var f = \"hello\" \"${world}\" \"!\";",
+                               "var g = \"${hello}\" \"world\" \"!\";"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(2, nodes.size());
+    DartStringInterpolation varF = (DartStringInterpolation)((DartFieldDefinition)nodes.get(0))
+        .getFields().get(0).getValue();
+
+    List<DartStringLiteral> strings = varF.getStrings();
+    assertEquals(4, strings.size());
+    assertEquals("hello", strings.get(0).getValue());
+    assertEquals("", strings.get(1).getValue());
+    assertEquals("", strings.get(2).getValue());
+    assertEquals("!", strings.get(3).getValue());
+    List<DartExpression> expressions = varF.getExpressions();
+    assertEquals(3, expressions.size());
+    assertEquals("", ((DartStringLiteral)expressions.get(0)).getValue());
+    DartIdentifier expr = (DartIdentifier)expressions.get(1);
+    assertEquals("world", expr.getName());
+    assertEquals("", ((DartStringLiteral)expressions.get(2)).getValue());
+
+    DartStringInterpolation varG = (DartStringInterpolation)((DartFieldDefinition)nodes.get(1))
+        .getFields().get(0).getValue();
+    strings = varG.getStrings();
+    assertEquals(4, strings.size());
+    assertEquals("", strings.get(0).getValue());
+    assertEquals("", strings.get(1).getValue());
+    assertEquals("world", strings.get(2).getValue());
+    assertEquals("!", strings.get(3).getValue());
+    expressions = varG.getExpressions();
+    assertEquals(3, expressions.size());
+    expr = (DartIdentifier)expressions.get(0);
+    assertEquals("hello", expr.getName());
+    assertEquals("", ((DartStringLiteral)expressions.get(1)).getValue());
+    assertEquals("", ((DartStringLiteral)expressions.get(2)).getValue());
   }
 }
