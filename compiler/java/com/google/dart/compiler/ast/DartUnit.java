@@ -33,11 +33,6 @@ public class DartUnit extends DartNode {
     return source.getName();
   }
 
-  @Override
-  public DartSource getSource() {
-    return source;
-  }
-
   public List<DartComment> getComments() {
     return comments;
   }

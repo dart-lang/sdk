@@ -261,7 +261,8 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   }
 
   private DartParser getParser(String string) {
-    return new DartParser(new DartScannerParserContext(null, string, listener));
+    DartSourceString source = new DartSourceString("<source string>", string);
+    return new DartParser(new DartScannerParserContext(source, string, listener));
   }
 
   private String getResource(String name) {

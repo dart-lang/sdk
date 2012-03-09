@@ -1245,10 +1245,10 @@ public class DartParser extends CompletionHooksParserBase {
     if (method.getModifiers().isGetter() || method.getModifiers().isSetter()) {
       DartField field = new DartField((DartIdentifier) method.getName(),
                                       method.getModifiers().makeAbstractField(), method, null);
-      field.setSourceInfo(method);
+      field.setSourceInfo(method.getSourceInfo());
       DartFieldDefinition fieldDefinition =
         new DartFieldDefinition(null, Lists.<DartField>create(field));
-      fieldDefinition.setSourceInfo(field);
+      fieldDefinition.setSourceInfo(field.getSourceInfo());
       return fieldDefinition;
     }
     // OK, use method as method.
@@ -3666,7 +3666,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if ( catches.size() == 0 && finallyBlock == null) {
-      reportError(new DartCompilationError(tryBlock.getSource(), new Location(position()),
+      reportError(new DartCompilationError(tryBlock.getSourceInfo().getSource(), new Location(position()),
         ParserErrorCode.CATCH_OR_FINALLY_EXPECTED));
     }
 

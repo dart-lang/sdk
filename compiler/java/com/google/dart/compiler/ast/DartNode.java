@@ -76,43 +76,6 @@ public abstract class DartNode extends AbstractNode {
     return root;
   }
 
-  /**
-   * Returns the length in characters of the original source file indicating
-   * where the source fragment corresponding to this node ends.
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it
-   * creates.
-   *
-   * @return a (possibly 0) length, or <code>0</code> if no source startPosition
-   *         information is recorded for this node
-   * @see #getStartPosition()
-   * @see #setSourceRange(int, int)
-   * @deprecated
-   */
-  @Deprecated
-  public int getLength() {
-    return getSourceLength();
-  }
-
-  /**
-   * Returns the character index into the original source file indicating where
-   * the source fragment corresponding to this node begins.
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it
-   * creates. See {@link ASTParser#setKind(int)} for details on precisely where
-   * source ranges begin and end.
-   *
-   * @return the 0-based character index, or <code>-1</code> if no source
-   *         startPosition information is recorded for this node
-   * @see #getLength()
-   * @see #setSourceRange(int, int)
-   * @deprecated
-   */
-  @Deprecated
-  public int getStartPosition() {
-    return getSourceStart();
-  }
-
   protected <T extends DartNode> T becomeParentOf(T child) {
     if (child != null) {
       DartNode node = child; // Java 7 access rules require a temp of a concrete type.

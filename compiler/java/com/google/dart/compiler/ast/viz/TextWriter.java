@@ -23,7 +23,7 @@ public class TextWriter extends ConsoleWriter {
   @Override
   protected void startHook(DartUnit unit) {
     if (!isIgnored(unit)) {
-      String txtFilePath = outputDir + File.separator + unit.getSource().getUri()
+      String txtFilePath = outputDir + File.separator + unit.getSourceInfo().getSource().getUri()
           + ".ast.txt";
       makeParentDirs(txtFilePath);
       try {

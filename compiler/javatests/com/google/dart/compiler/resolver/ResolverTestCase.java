@@ -144,8 +144,13 @@ abstract class ResolverTestCase extends TestCase {
     public Void visitIdentifier(DartIdentifier node) {
 
       if (node.getElement() == null) {
-        failures.add("Identifier: " + node.getName() + " has null element @ ("
-            + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+        failures.add("Identifier: "
+            + node.getName()
+            + " has null element @ ("
+            + node.getSourceInfo().getLine()
+            + ":"
+            + node.getSourceInfo().getColumn()
+            + ")");
       }
       return null;
     }
@@ -341,11 +346,8 @@ abstract class ResolverTestCase extends TestCase {
 
   protected DartUnit parseUnit(String string) {
     DartSourceString source = new DartSourceString("<source string>", string);
-    return getParser(string).parseUnit(source);
-  }
-
-  private DartParser getParser(String string) {
-    return new DartParser(new DartScannerParserContext(null, string, getListener()));
+    DartParser parser = new DartParser(new DartScannerParserContext(source, string, getListener()));
+    return parser.parseUnit(source);
   }
 
   private DartCompilerListener getListener() {

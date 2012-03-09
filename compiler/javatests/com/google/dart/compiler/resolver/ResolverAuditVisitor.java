@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.common.SourceInfo;
 
 import java.util.List;
 
@@ -49,8 +50,14 @@ public class ResolverAuditVisitor extends ASTVisitor<Void> {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
     if (node.getElement() == null) {
-      failures.add("Identifier: " + node.getName() + " has null element @ ("
-          + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+      SourceInfo sourceInfo = node.getSourceInfo();
+      failures.add("Identifier: "
+          + node.getName()
+          + " has null element @ ("
+          + sourceInfo.getLine()
+          + ":"
+          + sourceInfo.getColumn()
+          + ")");
     }
     return null;
   }

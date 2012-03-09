@@ -93,7 +93,7 @@ public class TopLevelElementBuilder {
     }
   }
 
-  void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
+  private void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
                         Object... args) {
     DartCompilationError error = new DartCompilationError(node, errorCode, args);
     listener.onError(error);
@@ -129,7 +129,7 @@ public class TopLevelElementBuilder {
       DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
       compilationError(
           listener,
-          nameNode,
+          nameNode.getSourceInfo(),
           ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
           nameNode);
     }

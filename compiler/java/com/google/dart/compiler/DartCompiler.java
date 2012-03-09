@@ -522,7 +522,7 @@ public class DartCompiler {
           // Parse units that are out-of-date with respect to their dependencies.
           for (DartUnit unit : lib.getUnits()) {
             if (unit.isDiet()) {
-              String relPath = unit.getSource().getRelativePath();
+              String relPath = ((DartSource) unit.getSourceInfo().getSource()).getRelativePath();
               LibraryDeps.Source source = deps.getSource(relPath);
               if (isUnitOutOfDate(lib, source)) {
                 filesHaveChanged = true;
@@ -566,7 +566,7 @@ public class DartCompiler {
           return true;
         }
         // May be unit modified.
-        if (depUnit.getSource().getLastModified() != dep.getLastModified()) {
+        if (depUnit.getSourceInfo().getSource().getLastModified() != dep.getLastModified()) {
           return true;
         }
       }
@@ -636,19 +636,18 @@ public class DartCompiler {
             }
           }
           if (!foundLibraryDirective) {
-            // find the imported path node (which corresponds to the import
-            // directive node)
+            // find the imported path node (which corresponds to the import directive node)
             SourceInfo info = null;
             for (LibraryNode importPath : lib.getImportPaths()) {
               if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
-                info = importPath;
+                info = importPath.getSourceInfo();
                 break;
               }
             }
             if (info != null) {
               context.onError(new DartCompilationError(info,
-                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSource()
-                      .getRelativePath()));
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE,
+                  ((DartSource) unit.getSourceInfo().getSource()).getRelativePath()));
             }
           }
         }
@@ -666,10 +665,11 @@ public class DartCompiler {
                 // skip the special synthetic selfSourcePath node
                 continue;
               }
-              if (unit.getSource().getRelativePath().equals(sourceNode.getText())) {
+              DartSource dartSource = (DartSource) unit.getSourceInfo().getSource();
+              if (dartSource.getRelativePath().equals(sourceNode.getText())) {
                 context.onError(new DartCompilationError(unit.getDirectives().get(0),
-                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, unit.getSource()
-                        .getRelativePath()));
+                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,
+                    dartSource.getRelativePath()));
               }
             }
           }
@@ -786,7 +786,8 @@ public class DartCompiler {
 
     private void updateAnalysisTimestamp(DartUnit unit) throws IOException {
       // Update timestamp.
-      Writer writer = context.getArtifactWriter(unit.getSource(), "", EXTENSION_TIMESTAMP);
+      Writer writer =
+          context.getArtifactWriter(unit.getSourceInfo().getSource(), "", EXTENSION_TIMESTAMP);
       String timestampData = String.format("%d\n", System.currentTimeMillis());
       writer.write(timestampData);
       writer.close();

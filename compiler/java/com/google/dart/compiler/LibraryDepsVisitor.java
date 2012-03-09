@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler;
@@ -136,7 +136,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   private void addElementDependency(Element elem) {
     DartNode node = elem.getNode();
     if (node != null) {
-      DartSource unitSource = (DartSource) node.getSource();
+      DartSource unitSource = (DartSource) node.getSourceInfo().getSource();
       URI libUri = unitSource.getLibrary().getUri();
       LibraryDeps.Dependency dep =
           new LibraryDeps.Dependency(libUri, unitSource.getName(), unitSource.getLastModified());

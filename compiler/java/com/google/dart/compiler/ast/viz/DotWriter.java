@@ -46,7 +46,8 @@ public class DotWriter extends BaseASTWriter {
     nodes = new StringBuffer();
     currentUnit = unit;
     if (!isIgnored(unit)) {
-      String dotFilePath = outputDir + File.separator + unit.getSource().getUri() + ".ast.dot";
+      String dotFilePath =
+          outputDir + File.separator + unit.getSourceInfo().getSource().getUri() + ".ast.dot";
       makeParentDirs(dotFilePath);
       try {
         out = new FileWriter(new File(dotFilePath));

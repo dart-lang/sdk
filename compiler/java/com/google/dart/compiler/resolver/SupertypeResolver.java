@@ -72,7 +72,7 @@ public class SupertypeResolver {
       }
       if (supertype != null) {
         if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
-            && !isCoreLibrarySource(node.getSource())) {
+            && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
           topLevelContext.onError(
               superclassNode,
               ResolverErrorCode.BLACK_LISTED_EXTENDS,
@@ -97,7 +97,7 @@ public class SupertypeResolver {
           Elements.addInterface(classElement, intElement);
           // Dynamic can not be used as interface.
           if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
-              && !isCoreLibrarySource(node.getSource())) {
+              && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
             topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
             continue;
           }

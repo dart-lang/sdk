@@ -10,6 +10,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.State;
 
@@ -101,10 +102,7 @@ public class DartScannerParserContext implements ParserContext {
         // handle 0-length tokens, including where there is trailing whitespace
         end = start;
       }
-      node.setSourceLocation(
-          source,
-          startPos.getLine(), startPos.getCol(),
-          start, end - start);
+      node.setSourceInfo(new SourceInfo(source, start, end - start));
     }
   }
 

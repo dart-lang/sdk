@@ -101,13 +101,13 @@ public class DartASTValidator extends ASTVisitor<Void> {
     if (nodes != null) {
       int previousEnd = -1;
       for (DartNode node : nodes) {
-        int start = node.getSourceStart();
+        int start = node.getSourceInfo().getOffset();
         if (start <= previousEnd) {
           errors.add("Node starts (" + start + ") before previous sibling's end (" + previousEnd
               + ") or nodes are not in source order");
         }
         node.accept(this);
-        previousEnd = start + node.getSourceLength() - 1;
+        previousEnd = start + node.getSourceInfo().getLength() - 1;
       }
     }
   }
@@ -599,16 +599,16 @@ public class DartASTValidator extends ASTVisitor<Void> {
       errors.add("No parent for " + node.getClass().getName());
     }
 
-    int nodeStart = node.getSourceStart();
-    int nodeLength = node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeLength = node.getSourceInfo().getLength();
     if (nodeStart < 0 || nodeLength < 0) {
       errors.add("No source info for " + node.getClass().getName());
     }
 
     if (parent != null) {
       int nodeEnd = nodeStart + nodeLength;
-      int parentStart = parent.getSourceStart();
-      int parentEnd = parentStart + parent.getSourceLength();
+      int parentStart = parent.getSourceInfo().getOffset();
+      int parentEnd = parentStart + parent.getSourceInfo().getLength();
       if (parentStart > nodeStart) {
         errors.add("Invalid source start (" + nodeStart + ") for "
             + node.getClass().getName() + " inside "

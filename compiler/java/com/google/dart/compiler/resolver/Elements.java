@@ -527,8 +527,8 @@ static FieldElementImplementation fieldFromNode(DartField node,
         "{0}:{1}:{2}:{3}",
         targetPath,
         targetClassName,
-        targetInfo.getSourceLine(),
-        targetInfo.getSourceColumn());
+        targetInfo.getLine(),
+        targetInfo.getColumn());
   }
 
   /**

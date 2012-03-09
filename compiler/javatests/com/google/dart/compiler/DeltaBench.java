@@ -54,17 +54,18 @@ public class DeltaBench {
                                               new HashSet<LibraryElement>());
     DartUnit unit = null;
     for (DartUnit current : enclosingLibraryUnit.getUnits()) {
-      if (current.getSource().getName().endsWith(interestingFile)) {
+      if (current.getSourceInfo().getSource().getName().endsWith(interestingFile)) {
         unit = current;
         break;
       }
     }
     start = System.currentTimeMillis();
-    DartCompiler.analyzeDelta(SourceDelta.before(unit.getSource()),
+    DartSource unitSource = (DartSource) unit.getSourceInfo().getSource();
+    DartCompiler.analyzeDelta(SourceDelta.before(unitSource),
                               enclosingLibraryUnit.getElement(),
                               coreLibraryUnit.getElement(),
                               null, -1, -1, config, listener);
-    System.err.println("analyzeDelta(" + unit.getSource().getName() + ") took " +
+    System.err.println("analyzeDelta(" + unitSource.getName() + ") took " +
         (System.currentTimeMillis() - start) + "ms");
   }
 }
