@@ -206,10 +206,6 @@ GCTest: Skip # Issue 1487
 
 [ $component == frogsh ]
 ArithmeticTest: Fail # Issue 1470
-AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/03: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/04: Fail # Unrecognized option: --no-enable-type-checks.
 IntrinsifiedMethodsTest: Fail # Issue 1470
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
@@ -433,6 +429,10 @@ PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
+AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
+AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
+AssignStaticTypeTest/03: Fail # Unrecognized option: --no-enable-type-checks.
+AssignStaticTypeTest/04: Fail # Unrecognized option: --no-enable-type-checks.
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
