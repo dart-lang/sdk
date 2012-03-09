@@ -4,7 +4,6 @@
 
 // This test insures that statically initialized variables, fields, and parameters
 // report static type warnings.
-// VMOptions=--no-enable-type-checks
 
 int a = "String";  /// 01: static type error, dynamic type error
 
