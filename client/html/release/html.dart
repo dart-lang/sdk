@@ -7531,8 +7531,6 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   HTMLCollection get _children() => _wrap(_ptr.children);
 
-  DOMTokenList get classList() => _wrap(_ptr.classList);
-
   String get _className() => _wrap(_ptr.className);
 
   void set _className(String value) { _ptr.className = _unwrap(value); }
@@ -25741,8 +25739,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final int _childElementCount;
 
   final HTMLCollection _children;
-
-  final DOMTokenList classList;
 
   String _className;
 

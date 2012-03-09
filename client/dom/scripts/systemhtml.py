@@ -196,6 +196,7 @@ _html_library_remove = set([
     "Element.itemId",
     "Element.get:itemProp",
     'Element.scrollIntoView',
+    'Element.get:classList',
     "EmbedElement.getSVGDocument",
     "FormElement.get:elements",
     "HTMLFrameElement.*",

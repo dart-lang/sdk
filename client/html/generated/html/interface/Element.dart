@@ -305,8 +305,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   final HTMLCollection _children;
 
-  final DOMTokenList classList;
-
   String _className;
 
   final int _clientHeight;

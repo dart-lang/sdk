@@ -5431,8 +5431,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   _HTMLCollectionImpl get _children() native "return this.children;";
 
-  final _DOMTokenListImpl classList;
-
   String get _className() native "return this.className;";
 
   void set _className(String value) native "this.className = value;";
@@ -20364,8 +20362,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   final int _childElementCount;
 
   final HTMLCollection _children;
-
-  final DOMTokenList classList;
 
   String _className;
 
