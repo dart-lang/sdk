@@ -12,11 +12,6 @@ Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
 
-GetSyntaxTest/none: Fail # TODO(ahe): investigate.
-GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
-SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
-FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
-
 # Compilation errors.
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
@@ -41,6 +36,7 @@ DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
 DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
+FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
 ForTest: Fail # SsaBuilder for loop without condition not implemented
 FunctionSyntaxTest: Fail # Internal Error: Cannot find value
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
@@ -51,6 +47,7 @@ FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional pa
 FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
 GenericTest: Fail # cannot resolve type T
+GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
 Issue1363Test: Fail # lib is not a type
@@ -64,7 +61,7 @@ MapLiteral2Test: Fail # expected a constant string
 MapLiteral4Test: Fail # map not implemented
 MapLiteralTest: Fail # Unexpected token ','
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-MethodNameTest: Fail # Unexpected token '('
+MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
 NamedArgumentInConstCreationTest: Fail # CompileTimeConstantEvaluator not implemented
 NamedParameters2Test: Fail # Unimplemented non-matching static call
@@ -87,6 +84,7 @@ StaticFinalFieldTest: Fail # map not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
+SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperTest: Fail # cannot find tokens to produce error message for i++.

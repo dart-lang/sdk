@@ -51,10 +51,8 @@ Language/10_Expressions/03_Numbers_A01_t06: Fail # TODO(ahe): New co19 failure, 
 Language/10_Expressions/03_Numbers_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/06_Lists_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/07_Maps_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/07_Maps_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/07_Maps_A07_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/08_Function_Expressions_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
@@ -74,7 +72,6 @@ Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # 
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/16_Assignment_A05_t06: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/20_Equality_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/20_Equality_A05_t01: Fail # TODO(ahe): New co19 failure, please triage.
@@ -89,11 +86,8 @@ Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # TODO(ahe): New co19
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/29_Type_Test_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/29_Type_Test_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/02_Expression_Statements_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/02_Expression_Statements_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/05_For/1_For_Loop_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
@@ -113,7 +107,6 @@ Language/11_Statements/08_Switch_A01_t02: Fail # TODO(ahe): New co19 failure, pl
 Language/11_Statements/08_Switch_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/08_Switch_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/08_Switch_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/09_Try_A02_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/09_Try_A05_t03: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/11_Labels_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/12_Break_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
@@ -148,6 +141,10 @@ Language/10_Expressions/01_Constants_A17_t01: Skip # Times out.
 
 
 # Issues with co19 test suite.
+Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/11_Statements/09_Try_A02_t04: Fail, OK # Bad test: Unbalanced {.
 Language/11_Statements/10_Return_A02_t01: Fail, OK # co19 issue 87.
 LibTest/core/Date/Date.fromString_A01_t02: Fail, OK # co19 issue 88.
 LibTest/core/Date/Date.fromString_A01_t04: Fail, OK # co19 issue 88.
@@ -211,10 +208,12 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail # Sup
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
 Language/09_Generics/09_Generics_A04_t03: Fail # cannot resolve type N.
 Language/10_Expressions/07_Maps_A05_t01: Fail # Constant maps not implemented.
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # Parsing of anonymous function expressions.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # super-send to non-function not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # super-send to non-function not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Fail # super-send to non-function not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # super-send to non-function not implemented
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Parsing of anonymous function expressions.
 Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # SsaBuilder.visitIdentifier on non-this
@@ -230,6 +229,7 @@ Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # SsaBuilder.visitIde
 Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Parsing of pseudo-keywords.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/toString_A02_t01: Fail # Test is out of date. See co19 issue 86.
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
