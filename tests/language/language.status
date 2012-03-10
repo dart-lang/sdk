@@ -222,7 +222,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 # (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
-[ ($component == frog || $component == frogium || $component == webdriver) && $unchecked ]
+[ ($component == frog || $component == frogsh || $component == frogium || $component == webdriver) && $unchecked ]
 BoolTest: Fail # Issue 2092
 
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
