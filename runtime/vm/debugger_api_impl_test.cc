@@ -41,17 +41,6 @@ static char const* ToCString(Dart_Handle str) {
 }
 
 
-static char const* BPFunctionName(Dart_StackTrace trace) {
-  Dart_ActivationFrame frame;
-  Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_NOT_ERROR(res);
-  Dart_Handle func_name;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
-  return ToCString(func_name);
-}
-
-
 static char const* BreakpointInfo(Dart_StackTrace trace) {
   static char info_str[128];
   Dart_ActivationFrame frame;
@@ -74,6 +63,7 @@ static void PrintValue(Dart_Handle value, bool expand);
 static void PrintObjectList(Dart_Handle list, const char* prefix, bool expand) {
   intptr_t list_length = 0;
   Dart_Handle retval = Dart_ListLength(list, &list_length);
+  EXPECT_NOT_ERROR(retval);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(list, i);
     EXPECT_NOT_ERROR(name_handle);
