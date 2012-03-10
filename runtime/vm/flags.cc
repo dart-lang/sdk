@@ -172,10 +172,15 @@ void Flags::Parse(const char* option) {
   if (*equals != '=') {
     // No explicit option argument. Determine if there is a "no_" prefix
     // preceding the name.
-    const char* kNoPrefix = "no_";
-    const intptr_t kNoPrefixLen = strlen(kNoPrefix);
-    if (strncmp(option, kNoPrefix, kNoPrefixLen) == 0) {
-      option += kNoPrefixLen;  // Skip the "no_" when looking up the name.
+    const char* kNo1Prefix = "no_";
+    const char* kNo2Prefix = "no-";
+    const intptr_t kNo1PrefixLen = strlen(kNo1Prefix);
+    const intptr_t kNo2PrefixLen = strlen(kNo2Prefix);
+    if (strncmp(option, kNo1Prefix, kNo1PrefixLen) == 0) {
+      option += kNo1PrefixLen;  // Skip the "no_" when looking up the name.
+      argument = "false";
+    } else if (strncmp(option, kNo2Prefix, kNo2PrefixLen) == 0) {
+      option += kNo2PrefixLen;  // Skip the "no-" when looking up the name.
       argument = "false";
     } else {
       argument = "true";
