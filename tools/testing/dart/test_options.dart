@@ -72,8 +72,8 @@ Controls how dart code is compiled and executed.
    leg: Compile dart code by running leg on the standalone dart vm, and
        run the resulting javascript on D8.
 
-   frogsh: Compile dart code by running frog (compiled to javascript)
-       in DumpRenderTree, and run the resulting javascript in DumpRenderTree.
+   frogsh: Compile dart code by running frog on node.js, and run the
+       resulting javascript on the same instance of node.js.
 
    dartium: Run dart code in a type="application/dart" script tag in a
        dartium build of DumpRenderTree.
