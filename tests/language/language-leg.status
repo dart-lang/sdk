@@ -10,6 +10,7 @@
 AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
+CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
 
 
 # Compilation errors.
@@ -159,6 +160,7 @@ ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
 ConstInitNegativeTest: Fail, OK # Negative language test.
+ConstOptionalArgsNegativeTest: Fail, OK # 'const' keyword is not verified in literal maps.
 ConstSyntaxTest/01: Fail, OK # Negative language test.
 ConstSyntaxTest/02: Fail, OK # Negative language test.
 ConstSyntaxTest/03: Fail, OK # Negative language test.

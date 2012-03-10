@@ -230,6 +230,8 @@ ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
+CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
