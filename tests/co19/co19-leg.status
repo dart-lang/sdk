@@ -33,17 +33,8 @@ LibTest/core/ReceivePort/*: Fail, OK
 *: Skip
 
 
-[ $component == leg && $mode == release ]
-Language/10_Expressions/01_Constants_A16_t01: Crash # TODO(ahe): Investigate.
-
-
-[ $component == leg && $mode == debug ]
-Language/10_Expressions/01_Constants_A16_t01: Fail # TODO(ahe): Investigate.
-
-
 [ $component == leg ]
 Language/11_Statements/11_Labels_A01_t01: Fail # Internal error in resolution of break targets.
-Language/11_Statements/15_Assert_A02_t01: Crash # TODO(ahe): Investigate.
 
 
 Language/05_Variables/05_Variables_A03_t09: Fail # TODO(ahe): New co19 failure, please triage.
