@@ -33,6 +33,137 @@ static Dart_Handle Invoke(Dart_Handle lib, const char* func_name) {
 }
 
 
+static char const* ToCString(Dart_Handle str) {
+  EXPECT(Dart_IsString(str));
+  char const* c_str = NULL;
+  Dart_StringToCString(str, &c_str);
+  return c_str;
+}
+
+
+static char const* BPFunctionName(Dart_StackTrace trace) {
+  Dart_ActivationFrame frame;
+  Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  return ToCString(func_name);
+}
+
+
+static char const* BreakpointInfo(Dart_StackTrace trace) {
+  static char info_str[128];
+  Dart_ActivationFrame frame;
+  Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  Dart_Handle url;
+  intptr_t line_number = 0;
+  res = Dart_ActivationFrameInfo(frame, &func_name, &url, &line_number);
+  EXPECT_NOT_ERROR(res);
+  OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%d)",
+              ToCString(func_name), ToCString(url), line_number);
+  return info_str;
+}
+
+
+static void PrintValue(Dart_Handle value, bool expand);
+
+
+static void PrintObjectList(Dart_Handle list, const char* prefix, bool expand) {
+  intptr_t list_length = 0;
+  Dart_Handle retval = Dart_ListLength(list, &list_length);
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(list, i);
+    EXPECT_NOT_ERROR(name_handle);
+    EXPECT(Dart_IsString(name_handle));
+    Dart_Handle value_handle = Dart_ListGetAt(list, i + 1);
+    OS::Print("\n        %s %s = ", prefix, ToCString(name_handle));
+    PrintValue(value_handle, expand);
+  }
+}
+
+
+static void PrintObject(Dart_Handle obj, bool expand) {
+  Dart_Handle obj_class = Dart_GetObjClass(obj);
+  EXPECT_NOT_ERROR(obj_class);
+  EXPECT(!Dart_IsNull(obj_class));
+  Dart_Handle class_name = Dart_ToString(obj_class);
+  EXPECT_NOT_ERROR(class_name);
+  EXPECT(Dart_IsString(class_name));
+  char const* class_name_str;
+  Dart_StringToCString(class_name, &class_name_str);
+  Dart_Handle fields = Dart_GetInstanceFields(obj);
+  EXPECT_NOT_ERROR(fields);
+  EXPECT(Dart_IsList(fields));
+  OS::Print("object of type '%s'", class_name_str);
+  PrintObjectList(fields, "field", false);
+  Dart_Handle statics = Dart_GetStaticFields(obj_class);
+  EXPECT_NOT_ERROR(obj_class);
+  PrintObjectList(statics, "static field", false);
+}
+
+
+static void PrintValue(Dart_Handle value, bool expand) {
+  if (Dart_IsNull(value)) {
+    OS::Print("null");
+  } else if (Dart_IsString(value)) {
+    Dart_Handle str_value = Dart_ToString(value);
+    EXPECT_NOT_ERROR(str_value);
+    EXPECT(Dart_IsString(str_value));
+    OS::Print("\"%s\"", ToCString(str_value));
+  } else if (Dart_IsNumber(value) || Dart_IsBoolean(value)) {
+    Dart_Handle str_value = Dart_ToString(value);
+    EXPECT_NOT_ERROR(str_value);
+    EXPECT(Dart_IsString(str_value));
+    OS::Print("%s", ToCString(str_value));
+  } else {
+    PrintObject(value, expand);
+  }
+}
+
+
+static void PrintActivationFrame(Dart_ActivationFrame frame) {
+  Dart_Handle func_name;
+  Dart_Handle res;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* func_name_chars;
+  Dart_StringToCString(func_name, &func_name_chars);
+  OS::Print("    function %s\n", func_name_chars);
+  Dart_Handle locals = Dart_GetLocalVariables(frame);
+  EXPECT_NOT_ERROR(locals);
+  intptr_t list_length = 0;
+  Dart_Handle ret = Dart_ListLength(locals, &list_length);
+  EXPECT_NOT_ERROR(ret);
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(locals, i);
+    EXPECT_NOT_ERROR(name_handle);
+    EXPECT(Dart_IsString(name_handle));
+    OS::Print("      local var %s = ", ToCString(name_handle));
+    Dart_Handle value_handle = Dart_ListGetAt(locals, i + 1);
+    EXPECT_NOT_ERROR(value_handle);
+    PrintValue(value_handle, true);
+    OS::Print("\n");
+  }
+}
+
+
+static void PrintStackTrace(Dart_StackTrace trace) {
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  for (int i = 0; i < trace_len; i++) {
+    Dart_ActivationFrame frame;
+    res = Dart_GetActivationFrame(trace, i, &frame);
+    EXPECT_NOT_ERROR(res);
+    PrintActivationFrame(frame);
+  }
+}
+
+
 void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
@@ -53,7 +184,7 @@ void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
     EXPECT_STREQ(expected_trace[i], name_chars);
-    if (verbose) printf("  >> %d: %s\n", i, name_chars);
+    if (verbose) OS::Print("  >> %d: %s\n", i, name_chars);
   }
 }
 
@@ -108,7 +239,7 @@ void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
     EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
   }
   if (verbose) {
-    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+    OS::Print("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
   }
   breakpoint_hit = true;
   breakpoint_hit_counter++;
@@ -194,7 +325,7 @@ void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
     EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
   }
   if (verbose) {
-    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+    OS::Print("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
   }
   breakpoint_hit = true;
   breakpoint_hit_counter++;
@@ -249,6 +380,55 @@ TEST_CASE(Debug_StepInto) {
 }
 
 
+void TestIgnoreBPHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  if (verbose) {
+    OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
+              breakpoint_hit_counter, BreakpointInfo(trace));
+    PrintStackTrace(trace);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepInto();
+}
+
+
+TEST_CASE(Debug_IgnoreBP) {
+  const char* kScriptChars =
+      "class B {                \n"
+      "  static var z = 0;      \n"
+      "  var i = 100;           \n"
+      "  var d = 3.14;          \n"
+      "  var s = 'Dr Seuss';    \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  var x = new B();       \n"
+      "  return x.i + 1;        \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestIgnoreBPHandler);
+
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("main");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(101, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
 void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const char* expected_bpts[] = {
       "moo", "foo", "moo", "foo", "moo", "foo", "main"};
@@ -267,7 +447,7 @@ void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
   if (verbose) {
-    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+    OS::Print("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
   }
   if (breakpoint_hit_counter < expected_bpts_length) {
     EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
@@ -331,7 +511,7 @@ static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
     EXPECT_STREQ(expected_trace[i], name_chars);
-    if (verbose) printf("  >> %d: %s\n", i, name_chars);
+    if (verbose) OS::Print("  >> %d: %s\n", i, name_chars);
   }
 }
 
@@ -390,11 +570,11 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
     EXPECT_STREQ(expected_trace[i], name_chars);
-    if (verbose) printf("  >> %d: %s\n", i, name_chars);
+    if (verbose) OS::Print("  >> %d: %s\n", i, name_chars);
   }
   // Remove the breakpoint after we've hit it twice
   if (breakpoint_hit_counter == 2) {
-    if (verbose) printf("uninstalling breakpoint\n");
+    if (verbose) OS::Print("uninstalling breakpoint\n");
     Dart_Handle res = Dart_DeleteBreakpoint(bpt);
     EXPECT_NOT_ERROR(res);
   }
@@ -470,7 +650,7 @@ TEST_CASE(Debug_InspectObject) {
   EXPECT_NOT_ERROR(retval);
   int num_fields = list_length / 2;
   EXPECT_EQ(kNumObjectFields, num_fields);
-  printf("Object has %d fields:\n", num_fields);
+  OS::Print("Object has %d fields:\n", num_fields);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(fields, i);
     EXPECT_NOT_ERROR(name_handle);
@@ -484,7 +664,7 @@ TEST_CASE(Debug_InspectObject) {
     EXPECT(Dart_IsString(value_handle));
     char const* value;
     Dart_StringToCString(value_handle, &value);
-    printf("  %s: %s\n", name, value);
+    OS::Print("  %s: %s\n", name, value);
   }
 
   // Check that an integer value returns an empty list of fields.
@@ -610,7 +790,7 @@ TEST_CASE(Debug_LookupSourceLine) {
     EXPECT(Dart_IsString(lib_url));
     char const* chars;
     Dart_StringToCString(lib_url, &chars);
-    printf("Lib %d: %s\n", i, chars);
+    OS::Print("Lib %d: %s\n", i, chars);
 
     Dart_Handle scripts = Dart_GetScriptURLs(lib_url);
     EXPECT(Dart_IsList(scripts));
@@ -621,7 +801,7 @@ TEST_CASE(Debug_LookupSourceLine) {
       Dart_Handle script_url = Dart_ListGetAt(scripts, i);
       char const* chars;
       Dart_StringToCString(script_url, &chars);
-      printf("  script %d: '%s'\n", i + 1, chars);
+      OS::Print("  script %d: '%s'\n", i + 1, chars);
     }
   }
 
@@ -630,7 +810,7 @@ TEST_CASE(Debug_LookupSourceLine) {
   EXPECT(Dart_IsString(source));
   char const* source_chars;
   Dart_StringToCString(source, &source_chars);
-  printf("\n=== source: ===\n%s", source_chars);
+  OS::Print("\n=== source: ===\n%s", source_chars);
   EXPECT_STREQ(kScriptChars, source_chars);
 }
 

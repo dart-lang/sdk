@@ -308,7 +308,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
   token_index_ = desc.TokenIndex(pc_desc_index);
-  ASSERT(token_index_ > 0);
+  ASSERT(token_index_ >= 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
@@ -415,7 +415,8 @@ Debugger::Debugger()
       bp_handler_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
-      resume_action_(kContinue) {
+      resume_action_(kContinue),
+      ignore_breakpoints_(false) {
 }
 
 
@@ -673,6 +674,8 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   LongJump* base = isolate_->long_jump_base();
   LongJump jump;
   isolate_->set_long_jump_base(&jump);
+  bool saved_ignore_flag = ignore_breakpoints_;
+  ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
     GrowableArray<const Object*> noArguments;
     const Array& noArgumentNames = Array::Handle();
@@ -681,6 +684,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   } else {
     result = isolate_->object_store()->sticky_error();
   }
+  ignore_breakpoints_ = saved_ignore_flag;
   isolate_->set_long_jump_base(base);
   return result.raw();
 }
@@ -696,6 +700,8 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   LongJump* base = isolate_->long_jump_base();
   LongJump jump;
   isolate_->set_long_jump_base(&jump);
+  bool saved_ignore_flag = ignore_breakpoints_;
+  ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
     GrowableArray<const Object*> noArguments;
     const Array& noArgumentNames = Array::Handle();
@@ -703,6 +709,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   } else {
     result = isolate_->object_store()->sticky_error();
   }
+  ignore_breakpoints_ = saved_ignore_flag;
   isolate_->set_long_jump_base(base);
   return result.raw();
 }
@@ -798,6 +805,10 @@ void Debugger::SetBreakpointHandler(BreakpointHandler* handler) {
 
 void Debugger::BreakpointCallback() {
   ASSERT(initialized_);
+
+  if (ignore_breakpoints_) {
+    return;
+  }
   DartFrameIterator iterator;
   DartFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
@@ -805,10 +816,10 @@ void Debugger::BreakpointCallback() {
   ASSERT(bpt != NULL);
   if (verbose) {
     OS::Print(">>> %s breakpoint at %s:%d (Address %p)\n",
-        bpt->IsInternal() ? "hit internal" : "hit user",
-        bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
-        bpt ? bpt->LineNumber() : 0,
-        frame->pc());
+              bpt->IsInternal() ? "hit internal" : "hit user",
+              bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
+              bpt ? bpt->LineNumber() : 0,
+              frame->pc());
   }
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   while (frame != NULL) {
