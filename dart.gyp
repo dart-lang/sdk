@@ -61,7 +61,6 @@
             'client/html/html_frog.dart',
             'client/html/html_dartium.dart',
             'client/dom/dom.dart',
-            'client/dom/generated',
             'client/dom/src',
             'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
