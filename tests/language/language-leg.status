@@ -51,16 +51,13 @@ GenericTest: Fail # cannot resolve type T
 GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
-Issue1363Test: Fail # lib is not a type
 Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
-Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
 MapLiteral4Test: Fail # map not implemented
-MapLiteralTest: Fail # Unexpected token ','
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
@@ -74,10 +71,6 @@ NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-Prefix101Test: Fail # duplicate definition
-Prefix14Test: Fail # prefixes not implemented
-Prefix21Test: Fail # Internal Error: Element.computeType.
-Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 ResourceTest: Fail # #resource tag not recognized - issue 1807
 StatementTest: Fail # switch cases are not implemented
@@ -92,7 +85,6 @@ SuperTest: Fail # cannot find tokens to produce error message for i++.
 SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
-TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
 TypeDartcTest: Fail # non-empty instruction stack
 WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
@@ -260,8 +252,8 @@ Switch7NegativeTest: Fail, OK # Negative language test.
 SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
-TypeVariableBoundsTest*: Skip # multiple error annotations are required
 TypeVariableBounds2Test*: Skip # multiple error annotations are required
+TypeVariableBoundsTest*: Skip # multiple error annotations are required
 TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
