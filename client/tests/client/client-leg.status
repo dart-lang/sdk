@@ -9,11 +9,11 @@ dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
 dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
 dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
 
-# Missing constant map support
-dom/HiddenDom1Test: Fail # CompileTimeConstantEvaluator map not implemented
-dom/HiddenDom2Test: Fail # CompileTimeConstantEvaluator map not implemented
-html/html_tests: Fail # CompileTimeConstantEvaluator map not implemented
-samples/smoketest/dartWebBase_tests: Fail # CompileTimeConstantEvaluator map not implemented
+# ConstantHandler with arguments not implemented
+dom/HiddenDom1Test: Fail
+dom/HiddenDom2Test: Fail
+html/html_tests: Fail
+samples/smoketest/dartWebBase_tests: Fail
 
 # DOM errors
 dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
