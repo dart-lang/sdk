@@ -416,6 +416,9 @@ StackOverflowTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
+[ $component == webdriver && $browser == ff && $system == windows ]
+CTConst2Test: Fail  # Issue 2101
+
 [ $component == webdriver && $browser == ie ]
 StackOverflowTest: Fail
 ObjectDynamicMethodTest: Fail
