@@ -417,7 +417,7 @@ ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
 [ $component == webdriver && $browser == ff && $system == win32 ]
-CTConst2Test: Fail  # Issue 2101
+CTConst2Test: Pass,Fail  # Issue 2101
 
 [ $component == webdriver && $browser == ie ]
 StackOverflowTest: Fail
