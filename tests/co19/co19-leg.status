@@ -127,11 +127,6 @@ LibTest/core/List/sort_A01_t06: Skip # Times out.
 LibTest/core/List/sort_A01_t04: Skip # Times out.
 
 
-Language/10_Expressions/01_Constants_A17_t03: Crash # Cycle reference.
-Language/10_Expressions/01_Constants_A17_t02: Skip # Cyclic reference. Times out.
-Language/10_Expressions/01_Constants_A17_t01: Skip # Cyclic reference. Times out.
-
-
 # Issues with co19 test suite.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
