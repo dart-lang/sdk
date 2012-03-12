@@ -431,7 +431,7 @@ class _File implements File {
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       if (_onError != null) {
-        _onError("Unknown file mode. Use FileMode.READ, FileMode.WRITE "
+        _onError("Unknown file mode. Use FileMode.READ, FileMode.WRITE " +
                  "or FileMode.APPEND.");
         return;
       }
@@ -457,7 +457,7 @@ class _File implements File {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      throw new FileIOException("Unknown file mode. Use FileMode.READ, "
+      throw new FileIOException("Unknown file mode. Use FileMode.READ, " +
                                 "FileMode.WRITE or FileMode.APPEND.");
     }
     var id = _FileUtils.checkedOpen(_name, mode._mode);

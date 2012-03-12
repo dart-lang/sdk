@@ -343,7 +343,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       case HttpStatus.GATEWAY_TIMEOUT: return "Gateway Time-out";
       case HttpStatus.HTTP_VERSION_NOT_SUPPORTED:
         return "Http Version not supported";
-      default: return "Status $statusCode";
+      default: return "Status " + statusCode.toString();
     }
   }
 
