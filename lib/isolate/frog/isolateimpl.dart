@@ -19,6 +19,21 @@ void _fillStatics(context) native @"""
   $static_init();
 """;
 
+ReceivePort _port;
+
+SendPort _spawnFunction(void topLevelFunction()) {
+  final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
+  if (name == null) {
+    throw new UnsupportedOperationException(
+        "only top-level functions can be spawned.");
+  }
+  return _IsolateNatives._spawn2(name, null, false);
+}
+
+SendPort _spawnUri(String uri) {
+  return _IsolateNatives._spawn2(null, uri, false);
+}
+
 /** Global state associated with the current worker. See [globalState]. */
 // TODO(sigmund): split in multiple classes: global, thread, main-worker states?
 class _GlobalState {
@@ -139,7 +154,7 @@ class _IsolateContext {
   }
 
   // these are filled lazily the first time the isolate starts running.
-  void initGlobals() native 'this.isolateStatics = {};';
+  void initGlobals() native @'$initGlobals(this);';
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -159,7 +174,7 @@ class _IsolateContext {
     return result;
   }
 
-  void _setGlobals() native @'$globals = this.isolateStatics;';
+  void _setGlobals() native @'$setGlobals(this);';
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int id) => ports[id];
@@ -338,7 +353,7 @@ class _IsolateNatives {
   // TODO(sigmund): fix - this code should be run synchronously when loading the
   // script. Running lazily on DOMContentLoaded will yield incorrect results.
   static String _computeThisScript() native @"""
-    if (!$globalState.supportsWorkers || $globalState.isWorker) return null;
+    if (!$globalState.supportsWorkers || $globalState.isWorker) return (void 0);
 
     // TODO(5334778): Find a cross-platform non-brittle way of getting the
     // currently running script.
@@ -507,9 +522,9 @@ class _IsolateNatives {
     // in discussion on the CL, 9416119.
     native @"""
     if (typeof(f.name) === 'undefined') {
-      return (f.toString().match(/function (.+)\(/) || [, null])[1];
+      return (f.toString().match(/function (.+)\(/) || [, (void 0)])[1];
     } else {
-      return f.name || null;
+      return f.name || (void 0);
     }
   """;
 

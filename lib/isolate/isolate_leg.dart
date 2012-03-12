@@ -1,10 +1,7 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// Dart isolate's API and implementation for frog. Since dartdocs are generated
-// using frog, we include here some additional library level comments.
 
 /**
  * The `dart:isolate` library defines APIs to spawn and communicate with
@@ -45,4 +42,3 @@
 #source("frog/isolateimpl.dart");
 #source("frog/ports.dart");
 #source("frog/messages.dart");
-#native("frog/natives.js");
