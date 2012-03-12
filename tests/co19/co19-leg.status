@@ -41,7 +41,6 @@ Language/05_Variables/05_Variables_A03_t09: Fail # TODO(ahe): New co19 failure, 
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/09_Generics/09_Generics_A04_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/01_Constants_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/01_Constants_A10_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/01_Constants_A11_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/01_Constants_A12_t01: Fail # TODO(ahe): New co19 failure, please triage.
@@ -128,8 +127,9 @@ LibTest/core/List/sort_A01_t06: Skip # Times out.
 LibTest/core/List/sort_A01_t04: Skip # Times out.
 
 
-Language/10_Expressions/01_Constants_A17_t02: Skip # Times out.
-Language/10_Expressions/01_Constants_A17_t01: Skip # Times out.
+Language/10_Expressions/01_Constants_A17_t03: Crash # Cycle reference.
+Language/10_Expressions/01_Constants_A17_t02: Skip # Cyclic reference. Times out.
+Language/10_Expressions/01_Constants_A17_t01: Skip # Cyclic reference. Times out.
 
 
 # Issues with co19 test suite.
