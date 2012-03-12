@@ -442,7 +442,6 @@ class StandardTestSuite implements TestSuite {
     }
 
     final String component = configuration['component'];
-    Expect.isTrue(DumpRenderTreeUpdater.componentRequiresDRT(component));
     final String testPath =
         new File(filename).fullPathSync().replaceAll('\\', '/');
 
