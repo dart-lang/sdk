@@ -24,9 +24,4 @@ class LabelElementImplementation extends AbstractElement implements LabelElement
   public MethodElement getEnclosingFunction() {
     return enclosingFunction;
   }
-
-  @Override
-  public void setNode(DartLabel node) {
-    super.setNode(node);
-  }
 }

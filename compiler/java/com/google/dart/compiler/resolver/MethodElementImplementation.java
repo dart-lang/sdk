@@ -5,12 +5,14 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 
@@ -24,42 +26,39 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
   private final ElementKind kind;
   private final List<VariableElement> parameters = new ArrayList<VariableElement>();
   private FunctionType type;
+  private final SourceInfo nameLocation;
+  private final boolean hasBody;
 
   // TODO(ngeoffray): name, return type, argument types.
   @VisibleForTesting
   MethodElementImplementation(DartFunctionExpression node, String name, Modifiers modifiers) {
     super(node, name);
+    this.hasBody = false;
     this.modifiers = modifiers;
     this.holder = findParentEnclosingElement(node);
     this.kind = ElementKind.FUNCTION_OBJECT;
+    if (node != null && node.getName() != null) {
+      this.nameLocation = node.getName().getSourceInfo();
+    } else {
+      this.nameLocation = SourceInfo.UNKNOWN;
+    }
   }
 
   protected MethodElementImplementation(DartMethodDefinition node, String name,
                                         EnclosingElement holder) {
     super(node, name);
-    // TODO(jgw): Pass in modifiers directly, not referencing node.
     if (node != null) {
-      modifiers = node.getModifiers();
+      this.modifiers = node.getModifiers();
+      this.nameLocation = node.getName().getSourceInfo();
+      DartBlock body = node.getFunction().getBody();
+      this.hasBody = body != null && !(body instanceof DartNativeBlock);
     } else {
-      modifiers = Modifiers.NONE;
+      this.modifiers = Modifiers.NONE;
+      this.nameLocation = SourceInfo.UNKNOWN;
+      this.hasBody = false;
     }
     this.holder = holder;
     this.kind = ElementKind.METHOD;
-  }
-
-  protected MethodElementImplementation(String name, EnclosingElement holder,
-                                        Modifiers modifiers) {
-    super(null, name);
-    this.modifiers = modifiers;
-    this.holder = holder;
-    this.kind = ElementKind.METHOD;
-  }
-
-  private MethodElementImplementation(DartParameter node) {
-    super(node, "<anonymous>");
-    this.holder = null;
-    this.kind = ElementKind.FUNCTION_OBJECT;
-    this.modifiers = Modifiers.NONE;
   }
 
   @Override
@@ -90,6 +89,11 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
   @Override
   public List<VariableElement> getParameters() {
     return parameters;
+  }
+  
+  @Override
+  public boolean hasBody() {
+    return hasBody;
   }
 
   void addParameter(VariableElement parameter) {
@@ -160,5 +164,10 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
       }
     }
     return null;
+  }
+  
+  @Override
+  public SourceInfo getNameLocation() {
+    return nameLocation;
   }
 }

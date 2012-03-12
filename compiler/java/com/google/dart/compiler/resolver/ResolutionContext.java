@@ -16,6 +16,8 @@ import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -77,22 +79,22 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !Elements.isParameterOfMethodWithoutBody(element)
             && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
             && !existingElement.getModifiers().isAbstractField()) {
-          DartNode nameNode = Elements.getNameNode(element);
+          SourceInfo nameSourceInfo = Elements.getNameLocation(element);
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
           // http://code.google.com/p/dart/issues/detail?id=1060
-          if (!Elements.isLibrarySource(element.getNode().getSourceInfo().getSource(), "html.dart")
-              && !Elements.isLibrarySource(element.getNode().getSourceInfo().getSource(), "dom.dart")) {
-            onError(nameNode, warningCode, name, existingElement, existingLocation);
+          if (!Elements.isLibrarySource(element.getSourceInfo().getSource(), "html.dart")
+              && !Elements.isLibrarySource(element.getSourceInfo().getSource(), "dom.dart")) {
+            onError(nameSourceInfo, warningCode, name, existingElement, existingLocation);
           }
         }
       }
     }
     // Check for duplicate declaration in the same scope.
     if (existingLocalElement != null && errorCode != null) {
-      DartNode nameNode = Elements.getNameNode(element);
+      SourceInfo nameSourceInfo = Elements.getNameLocation(element);
       String existingLocation = Elements.getRelativeElementLocation(element, existingLocalElement);
-      onError(nameNode, errorCode, name, existingLocation);
+      onError(nameSourceInfo, errorCode, name, existingLocation);
     }
     // Declare, may be hide existing element.
     scope.declareElement(name, element);
@@ -335,7 +337,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     pushScope(x.getName().getName() == null ? "<function>" : x.getName().getName());
   }
 
-  AssertionError internalError(DartNode node, String message, Object... arguments) {
+  AssertionError internalError(HasSourceInfo node, String message, Object... arguments) {
     message = String.format(message, arguments);
     context.onError(new DartCompilationError(node, ResolverErrorCode.INTERNAL_ERROR,
                                                       message));
@@ -343,8 +345,12 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   @Override
-  public void onError(DartNode node, ErrorCode errorCode, Object... arguments) {
-    context.onError(new DartCompilationError(node, errorCode, arguments));
+  public void onError(HasSourceInfo hasSourceInfo, ErrorCode errorCode, Object... arguments) {
+    onError(hasSourceInfo.getSourceInfo(), errorCode, arguments);
+  }
+
+  public void onError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
+    context.onError(new DartCompilationError(sourceInfo, errorCode, arguments));
   }
 
   class Selector extends ASTVisitor<Element> {

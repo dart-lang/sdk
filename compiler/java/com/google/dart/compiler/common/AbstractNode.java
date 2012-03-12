@@ -7,17 +7,17 @@ package com.google.dart.compiler.common;
 /**
  * Abstract base class for nodes that carry source information.
  */
-public class AbstractNode implements HasSourceInfo {
+public class AbstractNode implements HasSourceInfo, HasSourceInfoSetter {
 
   private SourceInfo sourceInfo = SourceInfo.UNKNOWN;
 
   @Override
-  public SourceInfo getSourceInfo() {
+  public final SourceInfo getSourceInfo() {
     return sourceInfo;
   }
 
   @Override
-  public void setSourceInfo(SourceInfo info) {
-    sourceInfo = info;
+  public final void setSourceInfo(SourceInfo sourceInfo) {
+    this.sourceInfo = sourceInfo;
   }
 }

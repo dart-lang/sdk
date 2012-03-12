@@ -5,13 +5,12 @@
 package com.google.dart.compiler.common;
 
 /**
- * Abstract view of a class that has source info.
+ * Object for which you can set new {@link SourceInfo}.
  */
-public interface HasSourceInfo {
+public interface HasSourceInfoSetter {
 
   /**
-   * @return the {@link SourceInfo} associated with this object. May be {@link SourceInfo#UNKNOWN}
-   *         but not <code>null</code>.
+   * Set the {@link SourceInfo} associated with this object. May only be called only once.
    */
-  SourceInfo getSourceInfo();
+  void setSourceInfo(SourceInfo sourceInfo);
 }

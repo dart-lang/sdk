@@ -740,7 +740,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING, 4, 12, 2));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart::2:7", message);
+      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart:BB:2:7", message);
     }
   }
 
@@ -788,6 +788,18 @@ public class NegativeResolverTest extends CompilerTestCase {
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 3));
+  }
+
+  /**
+   * We should ignore if setter parameter has same name and name of the setter method.
+   */
+  public void test_nameShadow_setter_sameParameterName() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(foo) {}",
+            "}"));
   }
 
   /**

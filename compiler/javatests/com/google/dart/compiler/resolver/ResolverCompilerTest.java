@@ -7,8 +7,10 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.base.Joiner;
+import com.google.common.io.CharStreams;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNewExpression;
@@ -16,10 +18,12 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.FunctionAliasType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 
+import java.io.Reader;
 import java.util.List;
 
 /**
@@ -43,19 +47,19 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertEquals("List<TypeAlias.T>", returnType.toString());
     List<? extends Type> arguments = ftype.getArguments();
     assertEquals(2, arguments.size());
-    TypeVariable arg0 = (TypeVariable)arguments.get(0);
+    TypeVariable arg0 = (TypeVariable) arguments.get(0);
     assertEquals("T", arg0.getTypeVariableElement().getName());
     Type bound0 = arg0.getTypeVariableElement().getBound();
     assertEquals("Object", bound0.toString());
-    TypeVariable arg1 = (TypeVariable)arguments.get(1);
+    TypeVariable arg1 = (TypeVariable) arguments.get(1);
     assertEquals("U", arg1.getTypeVariableElement().getName());
     Type bound1 = arg1.getTypeVariableElement().getBound();
     assertEquals("List<TypeAlias.T>", bound1.toString());
   }
 
   /**
-   * This test checks the class declarations to make sure that elements are set for
-   * all identifiers.  This is useful to the editor and other consumers of the AST.
+   * This test checks the class declarations to make sure that elements are set for all identifiers.
+   * This is useful to the editor and other consumers of the AST.
    */
   public void test_resolution_on_class_decls() throws Exception {
     AnalyzeLibraryResult libraryResult =
@@ -73,21 +77,21 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     List<DartNode> nodes = unit.getTopLevelNodes();
-    DartClass A = (DartClass)nodes.get(0);
+    DartClass A = (DartClass) nodes.get(0);
     assertEquals("A", A.getClassName());
-    DartClass B = (DartClass)nodes.get(1);
+    DartClass B = (DartClass) nodes.get(1);
     assertEquals("B", B.getClassName());
-    DartClass C = (DartClass)nodes.get(2);
+    DartClass C = (DartClass) nodes.get(2);
     assertEquals("C", C.getClassName());
-    DartClass D = (DartClass)nodes.get(3);
+    DartClass D = (DartClass) nodes.get(3);
     assertEquals("D", D.getClassName());
-    DartClass E = (DartClass)nodes.get(4);
+    DartClass E = (DartClass) nodes.get(4);
     assertEquals("E", E.getClassName());
-    DartClass F = (DartClass)nodes.get(5);
+    DartClass F = (DartClass) nodes.get(5);
     assertEquals("F", F.getClassName());
-    DartClass G = (DartClass)nodes.get(6);
+    DartClass G = (DartClass) nodes.get(6);
     assertEquals("G", G.getClassName());
-    DartClass H = (DartClass)nodes.get(7);
+    DartClass H = (DartClass) nodes.get(7);
     assertEquals("H", H.getClassName());
 
     // class A
@@ -121,7 +125,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     DartTypeNode iface = C.getInterfaces().get(0);
     assertNotNull(iface);
     assertSame(B.getElement(), iface.getIdentifier().getElement());
-    assertSame(T.getName().getElement(),
+    assertSame(
+        T.getName().getElement(),
         iface.getTypeArguments().get(0).getIdentifier().getElement());
 
     // class D extends C<int> {}
@@ -162,7 +167,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertSame(F.getElement(), G.getSuperclass().getIdentifier().getElement());
     typeArg = G.getSuperclass().getTypeArguments().get(0);
     assertSame(C.getElement(), typeArg.getIdentifier().getElement());
-    assertEquals("int",
+    assertEquals(
+        "int",
         typeArg.getTypeArguments().get(0).getIdentifier().getElement().getOriginalName());
 
     // class H<T> extends C<T> {}",
@@ -204,7 +210,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     DartNewExpression newExpression = findNewExpression(unit, "new F()");
     ConstructorElement constructorElement = newExpression.getElement();
     assertNotNull(constructorElement);
-    assertNull(constructorElement.getNode());
+    assertEquals("", getElementSource(constructorElement));
   }
 
   public void test_resolveConstructor_noSuchConstructor() throws Exception {
@@ -220,7 +226,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
                 "  }",
                 "}"));
     assertErrors(
-                 libraryResult.getCompilationErrors(),
+        libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 5));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new A.foo()");
@@ -251,7 +257,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
     ConstructorElement constructorElement = newExpression.getElement();
     assertNotNull(constructorElement);
-    assertNull(constructorElement.getNode());
+    assertEquals("", getElementSource(constructorElement));
   }
 
   /**
@@ -277,7 +283,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
     ConstructorElement constructorElement = newExpression.getElement();
     assertNotNull(constructorElement);
-    assertNull(constructorElement.getNode());
+    assertEquals("", getElementSource(constructorElement));
   }
 
   /**
@@ -302,8 +308,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
-    DartNode constructorNode = newExpression.getElement().getNode();
-    assertEquals(true, constructorNode.toSource().contains("F()"));
+    ConstructorElement constructorElement = newExpression.getElement();
+    assertEquals(true, getElementSource(constructorElement).contains("F()"));
   }
 
   /**
@@ -366,8 +372,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I(0)");
-    DartNode constructorNode = newExpression.getElement().getNode();
-    assertEquals(true, constructorNode.toSource().contains("F(int y)"));
+    ConstructorElement constructorElement = newExpression.getElement();
+    assertEquals(true, getElementSource(constructorElement).contains("F(int y)"));
   }
 
   /**
@@ -408,8 +414,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     // "new I.foo()" - good
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.foo(int y)"));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.foo(int y)"));
     }
   }
 
@@ -520,14 +526,14 @@ public class ResolverCompilerTest extends CompilerTestCase {
     // "new I()"
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("I(int y)"));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("I(int y)"));
     }
     // "new I.foo()"
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("I.foo(int y)"));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("I.foo(int y)"));
     }
   }
 
@@ -627,8 +633,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
     // "new I.foo()" - resolved, but we produce error.
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo()");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.foo()"));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.foo()"));
     }
   }
 
@@ -701,20 +707,37 @@ public class ResolverCompilerTest extends CompilerTestCase {
     // "new I.foo()" - resolved, but we produce error.
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.foo("));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.foo("));
     }
     // "new I.bar()" - resolved, but we produce error.
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.bar(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.bar("));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.bar("));
     }
     // "new I.baz()" - resolved, but we produce error.
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.baz(0)");
-      DartNode constructorNode = newExpression.getElement().getNode();
-      assertEquals(true, constructorNode.toSource().contains("F.baz("));
+      ConstructorElement constructorElement = newExpression.getElement();
+      assertEquals(true, getElementSource(constructorElement).contains("F.baz("));
+    }
+  }
+
+  private static String getElementSource(Element element) throws Exception {
+    SourceInfo sourceInfo = element.getSourceInfo();
+    // TODO(scheglov) When we will remove Source.getNode(), this null check may be removed
+    Source source = sourceInfo.getSource();
+    if (source == null) {
+      return "";
+    }
+    Reader reader = sourceInfo.getSource().getSourceReader();
+    try {
+      String code = CharStreams.toString(reader);
+      int offset = sourceInfo.getOffset();
+      return code.substring(offset, offset + sourceInfo.getLength());
+    } finally {
+      reader.close();
     }
   }
 }

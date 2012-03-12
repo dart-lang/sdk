@@ -4,17 +4,16 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
-public interface Element {
+public interface Element extends HasSourceInfo {
   String getOriginalName();
 
   DartNode getNode();
-
-  void setNode(DartLabel node);
 
   String getName();
 
@@ -27,7 +26,12 @@ public interface Element {
   Modifiers getModifiers();
 
   /**
-   * Returns the innermost {@link EnclosingElement} which declares this element.
+   * @return the innermost {@link Element} which declares this {@link Element}.
    */
-  EnclosingElement getEnclosingElement();
+  Element getEnclosingElement();
+  
+  /**
+   * @return location of the name in the declaration of this {@link Element}.
+   */
+  SourceInfo getNameLocation();
 }

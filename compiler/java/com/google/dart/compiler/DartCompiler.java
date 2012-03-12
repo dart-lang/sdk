@@ -691,13 +691,13 @@ public class DartCompiler {
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
           if (modifiers.isGetter()) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
           } else if (methodElement.getParameters().size() > 0) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
           } else {
@@ -706,7 +706,7 @@ public class DartCompiler {
           break;
 
         default:
-          context.onError(new DartCompilationError(element.getNode(),
+          context.onError(new DartCompilationError(element,
               ResolverErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }

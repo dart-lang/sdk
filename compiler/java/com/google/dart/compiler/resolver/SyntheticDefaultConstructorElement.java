@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
@@ -17,8 +14,9 @@ import java.util.List;
 /**
  * {@link ConstructorElement} for implicit default constructor.
  */
-public class SyntheticDefaultConstructorElement implements ConstructorElement {
-  private final DartMethodDefinition method;
+public class SyntheticDefaultConstructorElement extends AbstractElement
+    implements
+      ConstructorElement {
   private final ClassElement enclosingClass;
   private final FunctionType functionType;
   private ConstructorElement defaultConstructor;
@@ -26,7 +24,7 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   public SyntheticDefaultConstructorElement(DartMethodDefinition method,
       ClassElement enclosingClass,
       CoreTypeProvider typeProvider) {
-    this.method = method;
+    super(method, "");
     this.enclosingClass = enclosingClass;
     if (typeProvider != null) {
       this.functionType =
@@ -41,37 +39,8 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   }
 
   @Override
-  public String getOriginalName() {
-    return getName();
-  }
-
-  @Override
-  public DartNode getNode() {
-    return method;
-  }
-
-  @Override
-  public void setNode(DartLabel node) {
-  }
-
-  @Override
-  public boolean isDynamic() {
-    return false;
-  }
-
-  @Override
   public Type getType() {
     return functionType;
-  }
-
-  @Override
-  public String getName() {
-    return "";
-  }
-
-  @Override
-  public Modifiers getModifiers() {
-    return Modifiers.NONE;
   }
 
   @Override
@@ -83,6 +52,11 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   public EnclosingElement getEnclosingElement() {
     return enclosingClass;
   }
+  
+  @Override
+  public String getRawName() {
+    return enclosingClass.getName();
+  }
 
   @Override
   public boolean isStatic() {
@@ -92,6 +66,16 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
   @Override
   public boolean isConstructor() {
     return true;
+  }
+  
+  @Override
+  public boolean isSynthetic() {
+    return true;
+  }
+  
+  @Override
+  public boolean hasBody() {
+    return false;
   }
 
   @Override

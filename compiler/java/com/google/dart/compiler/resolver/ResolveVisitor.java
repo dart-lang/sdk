@@ -5,11 +5,11 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -78,14 +78,15 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
   void bindTypeVariable(TypeVariableElement variable) {
     DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
     DartTypeNode boundNode = typeParameterNode.getBound();
-    Type bound;
     if (boundNode != null) {
-      bound = getContext().resolveType(boundNode, true, isFactoryContext(), ResolverErrorCode.NO_SUCH_TYPE);
+      Type bound =
+          getContext().resolveType(
+              boundNode,
+              true,
+              isFactoryContext(),
+              ResolverErrorCode.NO_SUCH_TYPE);
       boundNode.setType(bound);
-    } else {
-      bound = typeProvider.getObjectType();
     }
-    variable.setBound(bound);
   }
 
   void bindTypeVariables(List<TypeVariable> typeVariables) {
@@ -110,8 +111,12 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
             ? ResolverErrorCode.NO_SUCH_TYPE
             : TypeErrorCode.NO_SUCH_TYPE;
     Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), typeErrorCode);
-    VariableElement element = Elements.parameterElement(node, node.getParameterName(),
-                                                        node.getModifiers());
+    VariableElement element =
+        Elements.parameterElement(
+            getEnclosingElement(),
+            node,
+            node.getParameterName(),
+            node.getModifiers());
     List<DartParameter> functionParameters = node.getFunctionParameters();
     if (functionParameters != null) {
       List<VariableElement> parameterElements =
@@ -124,6 +129,10 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     }
     Elements.setType(element, type);
     return recordElement(node, element);
+  }
+  
+  protected Element getEnclosingElement() {
+    return null;
   }
 
   final Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory,

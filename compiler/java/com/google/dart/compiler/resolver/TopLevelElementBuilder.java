@@ -44,12 +44,12 @@ public class TopLevelElementBuilder {
     }
   }
 
-  public void exec(DartUnit unit, DartCompilerContext context) {
-    unit.accept(new Builder());
+  public void exec(LibraryUnit library, DartUnit unit, DartCompilerContext context) {
+    unit.accept(new Builder(library.getElement()));
   }
 
-  public void exec(DartClass cls, DartCompilerContext context) {
-    cls.accept(new Builder());
+  public void exec(LibraryUnit library, DartClass cls, DartCompilerContext context) {
+    cls.accept(new Builder(library.getElement()));
   }
 
   /**
@@ -141,10 +141,6 @@ public class TopLevelElementBuilder {
   private class Builder extends ASTVisitor<Void> {
 
     private LibraryElement library;
-
-    public Builder() {
-      this(null);
-    }
 
     public Builder(LibraryElement library) {
       this.library = library;

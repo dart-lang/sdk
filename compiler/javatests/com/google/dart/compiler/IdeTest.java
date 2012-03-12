@@ -43,7 +43,7 @@ import java.io.IOException;
 public class IdeTest extends TestCase {
 
   private final TestCompilerContext context = new TestCompilerContext(EventKind.ERROR,
-                                                                      EventKind.TYPE_ERROR) {
+      EventKind.TYPE_ERROR) {
     @Override
     protected void handleEvent(DartCompilationError event, EventKind kind) {
       super.handleEvent(event, kind);
@@ -59,13 +59,15 @@ public class IdeTest extends TestCase {
   private CompilerConfiguration config = new TestCompilerConfiguration();
 
   public void testAnalyseNoSemicolonPropertyAccess() {
-    DartUnit unit = analyzeUnit("no_semicolon_property_access",
-                                "class Foo {",
-                                "  int i;",
-                                "  void foo() {",
-                                "    i.y", // Missing semicolon.
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "no_semicolon_property_access",
+            "class Foo {",
+            "  int i;",
+            "  void foo() {",
+            "    i.y", // Missing semicolon.
+            "  }",
+            "}");
     assertEquals("errorCount", 1, context.getErrorCount()); // Missing semicolon.
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // No member named "y".
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
@@ -74,13 +76,15 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseNoSemicolonBrokenPropertyAccess() {
-    DartUnit unit = analyzeUnit("no_semicolon_broken_property_access",
-                                "class Foo {",
-                                "  int i;",
-                                "  void foo() {",
-                                "    i.", // Syntax error and missing semicolon.
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "no_semicolon_broken_property_access",
+            "class Foo {",
+            "  int i;",
+            "  void foo() {",
+            "    i.", // Syntax error and missing semicolon.
+            "  }",
+            "}");
     // Expected identifier and missing semicolon
     assertEquals("errorCount", 2, context.getErrorCount());
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // No member named "".
@@ -90,13 +94,15 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseBrokenPropertyAccess() {
-    DartUnit unit = analyzeUnit("broken_property_access",
-                                "class Foo {",
-                                "  int i;",
-                                "  void foo() {",
-                                "    i.;", // Syntax error here.
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "broken_property_access",
+            "class Foo {",
+            "  int i;",
+            "  void foo() {",
+            "    i.;", // Syntax error here.
+            "  }",
+            "}");
     assertEquals("errorCount", 1, context.getErrorCount()); // Expected identifier.
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // No member named "".
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
@@ -105,13 +111,15 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseNoSemicolonIdentifier() {
-    DartUnit unit = analyzeUnit("no_semicolon_identifier",
-                                "class Foo {",
-                                "  int i;",
-                                "  void foo() {",
-                                "    i", // Missing semicolon.
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "no_semicolon_identifier",
+            "class Foo {",
+            "  int i;",
+            "  void foo() {",
+            "    i", // Missing semicolon.
+            "  }",
+            "}");
     assertEquals("errorCount", 1, context.getErrorCount()); // Missing semicolon.
     assertEquals("typeErrorCount", 0, context.getTypeErrorCount());
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
@@ -120,13 +128,15 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseNoSemicolonMethodCall() {
-    DartUnit unit = analyzeUnit("no_semicolon_method_call",
-                                "class Foo {",
-                                "  int i () { return 0; }",
-                                "  void foo() {",
-                                "    i()", // Missing semicolon.
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "no_semicolon_method_call",
+            "class Foo {",
+            "  int i () { return 0; }",
+            "  void foo() {",
+            "    i()", // Missing semicolon.
+            "  }",
+            "}");
     assertEquals("errorCount", 1, context.getErrorCount()); // Missing semicolon.
     assertEquals("typeErrorCount", 0, context.getTypeErrorCount());
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
@@ -139,13 +149,15 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseVoidKeyword() {
-    DartUnit unit = analyzeUnit("void_keyword",
-                                "class Foo {",
-                                "  Function voidFunction;",
-                                "  void foo() {",
-                                "    void", // Missing semicolon and keyword
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "void_keyword",
+            "class Foo {",
+            "  Function voidFunction;",
+            "  void foo() {",
+            "    void", // Missing semicolon and keyword
+            "  }",
+            "}");
     // Expected identifier and missing semicolon.
     assertEquals("errorCount", 2, context.getErrorCount());
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // void cannot be resolved.
@@ -155,14 +167,16 @@ public class IdeTest extends TestCase {
   }
 
   public void testAnalyseVoidKeywordPropertyAccess() {
-    DartUnit unit = analyzeUnit("void_keyword_property_access",
-                                "class Foo {",
-                                "  Function voidFunction;",
-                                "  void foo() {",
-                                "    this.void", // Missing semicolon and keyword
-                                "  }",
-                                "}");
-   // Expected identifier and missing semicolon.
+    DartUnit unit =
+        analyzeUnit(
+            "void_keyword_property_access",
+            "class Foo {",
+            "  Function voidFunction;",
+            "  void foo() {",
+            "    this.void", // Missing semicolon and keyword
+            "  }",
+            "}");
+    // Expected identifier and missing semicolon.
     assertEquals("errorCount", 2, context.getErrorCount());
     assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // No member "void".
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
@@ -171,16 +185,18 @@ public class IdeTest extends TestCase {
   }
 
   public void testReturnIntTypeAnalysis() {
-    DartUnit unit = analyzeUnit("return_int_type_analysis",
-                                "class Foo {",
-                                "  int i;",
-                                "  int foo() {",
-                                "    return i;",
-                                "  }",
-                                "}");
+    DartUnit unit =
+        analyzeUnit(
+            "return_int_type_analysis",
+            "class Foo {",
+            "  int i;",
+            "  int foo() {",
+            "    return i;",
+            "  }",
+            "}");
     Scope unitScope = unit.getLibrary().getElement().getScope();
     CoreTypeProvider typeProvider = new CoreTypeProviderImplementation(unitScope, context);
-    DartClass classNode = firstClassOfUnit(unit, "Foo");
+    DartClass classNode = getClassOfUnit(unit, "Foo");
     DartReturnStatement rtnStmt = (DartReturnStatement) firstStatementOfMethod(unit, "Foo", "foo");
     ClassElement classElement = classNode.getElement();
     InterfaceType definingType = classElement.getType();
@@ -204,13 +220,14 @@ public class IdeTest extends TestCase {
     return element;
   }
 
-  private DartClass firstClassOfUnit(DartUnit unit, String cls) {
+  private DartClass getClassOfUnit(DartUnit unit, String cls) {
     DartClass dartClass = null;
-    for (DartNode dartNode : unit.getTopLevelNodes()) {
-      Element element = (Element) dartNode.getElement();
-      if (element.getName().equals(cls)) {
-        dartClass = (DartClass) dartNode;
-        break;
+    for (DartNode node : unit.getTopLevelNodes()) {
+      DartClass classNode = (DartClass) node;
+      if (node instanceof DartClass) {
+        if (classNode.getName().getName().equals(cls)) {
+          dartClass = classNode;
+        }
       }
     }
     assertNotNull(dartClass);
@@ -218,12 +235,20 @@ public class IdeTest extends TestCase {
   }
 
   private DartStatement firstStatementOfMethod(DartUnit unit, String cls, String member) {
-    ClassElement classElement = firstClassOfUnit(unit, cls).getElement();
-    MethodElement method = (MethodElement) classElement.lookupLocalElement(member);
-    assertNotNull(String.format("Member '%s' not found in %s", member, cls), method);
-    DartMethodDefinition methodNode = (DartMethodDefinition) method.getNode();
-    assertNotNull(methodNode);
-    return methodNode.getFunction().getBody().getStatements().get(0);
+    DartClass classNode = getClassOfUnit(unit, cls);
+    for (DartNode memberNode : classNode.getMembers()) {
+      if (memberNode instanceof DartMethodDefinition) {
+        DartMethodDefinition methodNode = (DartMethodDefinition) memberNode;
+        if (methodNode.getName() instanceof DartIdentifier) {
+          DartIdentifier methodName = (DartIdentifier) methodNode.getName();
+          if (methodName.getName().equals(member)) {
+            return methodNode.getFunction().getBody().getStatements().get(0);
+          }
+        }
+      }
+    }
+    fail();
+    return null;
   }
 
   private DartUnit analyzeUnit(String name, String... sourceLines) throws AssertionError {

@@ -37,7 +37,6 @@ import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -78,7 +77,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertSame(ElementKind.METHOD, methodElement.getKind());
     assertEquals("f", ((MethodElement) methodElement).getOriginalName());
     // enclosing Element of MethodElement is ClassElement
-    EnclosingElement classElement = methodElement.getEnclosingElement();
+    Element classElement = methodElement.getEnclosingElement();
     assertNotNull(classElement);
     assertSame(ElementKind.CLASS, classElement.getKind());
     assertEquals("Test", ((ClassElement) classElement).getOriginalName());
@@ -113,14 +112,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertSame(ElementKind.FUNCTION_OBJECT, functionElement.getKind());
     assertEquals("f", ((MethodElement) functionElement).getOriginalName());
     // enclosing Element of this FUNCTION_OBJECT is enclosing method
-    EnclosingElement enclosingMethodElement = functionElement.getEnclosingElement();
-    assertNotNull(enclosingMethodElement);
-    assertSame(ElementKind.METHOD, enclosingMethodElement.getKind());
-    assertEquals("foo", ((MethodElement) enclosingMethodElement).getName());
+    MethodElement methodElement = (MethodElement) functionElement.getEnclosingElement();
+    assertNotNull(methodElement);
+    assertSame(ElementKind.METHOD, methodElement.getKind());
+    assertEquals("foo", ((MethodElement) methodElement).getName());
     // use EnclosingElement methods implementations in MethodElement
-    assertEquals(false, enclosingMethodElement.isInterface());
-    assertEquals(true, Iterables.isEmpty(enclosingMethodElement.getMembers()));
-    assertEquals(null, enclosingMethodElement.lookupLocalElement("f"));
+    assertEquals(false, methodElement.isInterface());
+    assertEquals(true, Iterables.isEmpty(methodElement.getMembers()));
+    assertEquals(null, methodElement.lookupLocalElement("f"));
   }
 
   /**

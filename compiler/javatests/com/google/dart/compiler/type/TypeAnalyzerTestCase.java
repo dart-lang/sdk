@@ -23,6 +23,7 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MemberBuilder;
 import com.google.dart.compiler.resolver.MockLibraryUnit;
 import com.google.dart.compiler.resolver.ResolutionContext;
@@ -299,8 +300,12 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   protected Map<String, ClassElement> loadSource(String source) {
     Map<String, ClassElement> classes = new LinkedHashMap<String, ClassElement>();
     DartUnit unit = parseUnit(source);
+    Scope scope = getMockScope("<test toplevel>");
+    LibraryElement libraryElement = scope.getLibrary();
+    libraryElement.getScope().declareElement("Object", object);
+    unit.setLibrary(libraryElement.getLibraryUnit());
     TopLevelElementBuilder elementBuilder = new TopLevelElementBuilder();
-    elementBuilder.exec(unit, context);
+    elementBuilder.exec(unit.getLibrary(), unit, context);
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartClass) {
         DartClass classNode = (DartClass) node;
@@ -314,8 +319,6 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
         coreElements.put(element.getName(), element);
       }
     }
-    Scope scope = getMockScope("<test toplevel>");
-    unit.setLibrary(scope.getLibrary().getLibraryUnit());
     SupertypeResolver supertypeResolver = new SupertypeResolver();
     supertypeResolver.exec(unit, context, scope, typeProvider);
     MemberBuilder memberBuilder = new MemberBuilder();

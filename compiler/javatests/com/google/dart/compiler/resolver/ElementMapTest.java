@@ -4,9 +4,9 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
 import junit.framework.TestCase;
@@ -64,7 +64,12 @@ public class ElementMapTest extends TestCase {
     }
 
     @Override
-    public void setNode(DartLabel node) {
+    public SourceInfo getSourceInfo() {
+      throw new RuntimeException();
+    }
+    
+    @Override
+    public SourceInfo getNameLocation() {
       throw new RuntimeException();
     }
   }

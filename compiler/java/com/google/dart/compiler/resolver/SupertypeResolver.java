@@ -126,19 +126,15 @@ public class SupertypeResolver {
       TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
       DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
       DartTypeNode boundNode = typeParameterNode.getBound();
-      Type bound;
       if (boundNode != null) {
-        bound =
+        Type bound =
             resolutionContext.resolveType(
                 boundNode,
                 false,
                 false,
                 ResolverErrorCode.NO_SUCH_TYPE);
         boundNode.setType(bound);
-      } else {
-        bound = typeProvider.getObjectType();
       }
-      variable.setBound(bound);
     }
   }
 

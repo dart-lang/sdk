@@ -92,6 +92,7 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
@@ -101,7 +102,6 @@ import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
@@ -226,16 +226,16 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return currentClass;
     }
 
-    private DynamicType typeError(DartNode node, ErrorCode code, Object... arguments) {
+    private DynamicType typeError(HasSourceInfo node, ErrorCode code, Object... arguments) {
       onError(node, code, arguments);
       return dynamicType;
     }
 
-    private void onError(DartNode node, ErrorCode code, Object... arguments) {
+    private void onError(HasSourceInfo node, ErrorCode code, Object... arguments) {
       context.onError(new DartCompilationError(node, code, arguments));
     }
 
-    AssertionError internalError(DartNode node, String message, Object... arguments) {
+    AssertionError internalError(HasSourceInfo node, String message, Object... arguments) {
       message = String.format(message, arguments);
       context.onError(new DartCompilationError(node, TypeErrorCode.INTERNAL_ERROR,
                                                         message));
@@ -661,7 +661,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           TypeVariable variable = (TypeVariable) parameter;
           Type bound = variable.getTypeVariableElement().getBound();
           if (bound == null) {
-            internalError(variable.getElement().getNode(), "bound is null");
+            internalError(variable.getElement(), "bound is null");
           }
           bounds.add(bound);
         }
@@ -1164,7 +1164,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (getterElement != null) {
             Type getterType = getterElement.getReturnType();
             if (!types.isAssignable(setterType, getterType)) {
-              typeError(parameterElement.getNode(), TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
+              typeError(parameterElement, TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
                         setterType.getElement().getName(),
                         getterType.getElement().getName());
             }
@@ -1835,7 +1835,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
 
         // Add all super members to resolve.
-        EnclosingElement currentLibrary = currentClass.getElement().getEnclosingElement();
+        Element currentLibrary = currentClass.getElement().getEnclosingElement();
         for (InterfaceType supertype : supertypes) {
           for (Element member : supertype.getElement().getMembers()) {
             String name = member.getName();

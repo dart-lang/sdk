@@ -4,12 +4,16 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 
 class ConstructorElementImplementation extends MethodElementImplementation
     implements ConstructorElement {
   private final ClassElement constructorType;
+  private final String rawName;
   private ConstructorElement defaultConstructor;
 
   private ConstructorElementImplementation(DartMethodDefinition node,
@@ -18,17 +22,27 @@ class ConstructorElementImplementation extends MethodElementImplementation
                              ClassElement constructorType) {
     super(node, name, declaringClass);
     this.constructorType = constructorType;
+    this.rawName = getRawName(node.getName());
   }
 
-  private ConstructorElementImplementation(String name,
-                             ClassElement declaringClass,
-                             ClassElement constructorType) {
-    super(name, declaringClass, Modifiers.NONE.makeFactory());
-    this.constructorType = constructorType;
+  private static String getRawName(DartNode name) {
+    if (name instanceof DartIdentifier) {
+      return ((DartIdentifier) name).getName();
+    } else if (name instanceof DartParameterizedTypeNode) {
+      return getRawName(((DartParameterizedTypeNode) name).getExpression());
+    } else {
+      DartPropertyAccess propertyAccess = (DartPropertyAccess) name;
+      return getRawName(propertyAccess.getQualifier()) + "." + getRawName(propertyAccess.getName());
+    }
   }
 
   public ClassElement getConstructorType() {
     return constructorType;
+  }
+  
+  @Override
+  public String getRawName() {
+    return rawName;
   }
 
   @Override
@@ -39,6 +53,11 @@ class ConstructorElementImplementation extends MethodElementImplementation
   @Override
   public boolean isConstructor() {
     return true;
+  }
+  
+  @Override
+  public boolean isSynthetic() {
+    return false;
   }
 
   @Override
@@ -56,11 +75,5 @@ class ConstructorElementImplementation extends MethodElementImplementation
                                                   ClassElement declaringClass,
                                                   ClassElement constructorType) {
     return new ConstructorElementImplementation(node, name, declaringClass, constructorType);
-  }
-
-  public static ConstructorElementImplementation named(String name,
-                                         ClassElement declaringClass,
-                                         ClassElement constructorType) {
-    return new ConstructorElementImplementation(name, declaringClass, constructorType);
   }
 }

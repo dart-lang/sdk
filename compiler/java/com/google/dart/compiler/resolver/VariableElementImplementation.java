@@ -7,31 +7,47 @@ package com.google.dart.compiler.resolver;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
 class VariableElementImplementation extends AbstractElement implements VariableElement {
+  private final Element owner;
   private final ElementKind kind;
   private final Modifiers modifiers;
   private final boolean isNamed;
   private final DartExpression defaultValue;
+  private final SourceInfo nameLocation;
 
   // The field element is set for constructor parameters of the form
   // this.foo by the resolver.
   private FieldElement fieldElement;
   private Type type;
 
-  VariableElementImplementation(DartNode node, String name, ElementKind kind, Modifiers modifiers,
-                                boolean isNamed, DartExpression defaultValue) {
+  VariableElementImplementation(Element owner,
+      DartNode node,
+      SourceInfo nameLocation,
+      String name,
+      ElementKind kind,
+      Modifiers modifiers,
+      boolean isNamed,
+      DartExpression defaultValue) {
     super(node, name);
+    this.owner = owner;
     this.isNamed = isNamed;
     this.kind = kind;
     this.modifiers = modifiers;
     this.defaultValue = defaultValue;
+    this.nameLocation = nameLocation;
   }
 
   @Override
   public ElementKind getKind() {
     return kind;
+  }
+
+  @Override
+  public SourceInfo getNameLocation() {
+    return nameLocation;
   }
 
   @Override
@@ -66,5 +82,10 @@ class VariableElementImplementation extends AbstractElement implements VariableE
   @Override
   public FieldElement getParameterInitializerElement() {
     return fieldElement;
+  }
+
+  @Override
+  public Element getEnclosingElement() {
+    return owner;
   }
 }

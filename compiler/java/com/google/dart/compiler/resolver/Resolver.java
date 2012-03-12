@@ -63,6 +63,8 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
@@ -145,7 +147,7 @@ public class Resolver {
           break;
 
       default:
-        throw topLevelContext.internalError(member.getNode(),
+        throw topLevelContext.internalError(member,
                                             "unexpected element kind: %s", member.getKind());
     }
     member.getNode().accept(visitor);
@@ -170,6 +172,7 @@ public class Resolver {
   @VisibleForTesting
   public class ResolveElementsVisitor extends ResolveVisitor {
     private EnclosingElement currentHolder;
+    private Element enclosingElement;
     private MethodElement currentMethod;
     private boolean inInitializer;
     private MethodElement innermostFunction;
@@ -188,6 +191,7 @@ public class Resolver {
       this.currentMethod = currentMethod;
       this.innermostFunction = currentMethod;
       this.currentHolder = currentHolder;
+      this.enclosingElement = currentHolder;
       this.inInitializer = false;
     }
 
@@ -198,6 +202,11 @@ public class Resolver {
     @Override
     ResolutionContext getContext() {
       return context;
+    }
+    
+    @Override
+    protected Element getEnclosingElement() {
+      return enclosingElement;
     }
 
     @Override
@@ -223,11 +232,11 @@ public class Resolver {
       try {
         classElement.getAllSupertypes();
       } catch (CyclicDeclarationException e) {
-        DartNode node = e.getElement().getNode();
-        if (node == null) {
-          node = cls;
+        HasSourceInfo errorTarget = e.getElement();
+        if (errorTarget == null) {
+          errorTarget = cls;
         }
-        onError(node, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
+        onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
       } catch (DuplicatedInterfaceException e) {
         onError(cls, ResolverErrorCode.DUPLICATED_INTERFACE,
                         e.getFirst(), e.getSecond());
@@ -238,7 +247,9 @@ public class Resolver {
       // Push new resolution context.
       ResolutionContext previousContext = context;
       EnclosingElement previousHolder = currentHolder;
+      Element previousEnclosingElement = enclosingElement;
       currentHolder = classElement;
+      enclosingElement = classElement;
       context = topLevelContext.extend(classElement);
 
       this.finalsNeedingInitializing.clear();
@@ -247,10 +258,15 @@ public class Resolver {
       }
 
       boolean testForAllConstantFields = false;
-      for (Element element : classElement.getConstructors()) {
-        element.getNode().accept(this);
-        if (element.getModifiers().isConstant()) {
-          testForAllConstantFields = true;
+      for (DartNode member : cls.getMembers()) {
+        if (member instanceof DartMethodDefinition) {
+          DartMethodDefinition method = (DartMethodDefinition) member;
+          if (method.getElement().isConstructor()) {
+            method.accept(this);
+            if (method.getModifiers().isConstant()) {
+              testForAllConstantFields = true;
+            }
+          }
         }
       }
 
@@ -290,17 +306,17 @@ public class Resolver {
         checkInterfaceTypeParamsToDefault(classElement, defaultClass);
 
         // Check that interface constructors have corresponding methods in default class.
-        checkInteraceConstructors(classElement);
+        checkInterfaceConstructors(classElement);
       } else if (classElement.isInterface() && classElement.getConstructors() != null) {
         for (ConstructorElement interfaceConstructor : classElement.getConstructors()) {
-          DartMethodDefinition methodNode = (DartMethodDefinition)interfaceConstructor.getNode();
-          onError(methodNode.getName(),
+          onError(interfaceConstructor.getNameLocation(),
                   ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE);
         }
       }
 
       context = previousContext;
       currentHolder = previousHolder;
+      enclosingElement = previousEnclosingElement;
       return classElement;
     }
 
@@ -311,8 +327,7 @@ public class Resolver {
         if (ElementKind.of(element).equals(ElementKind.FIELD) && !modifiers.isFinal()
             && !modifiers.isAbstractField()) {
           FieldElement field = (FieldElement) element;
-          DartNode errorNode = field.getSetter() == null ? element.getNode()
-              : field.getSetter().getNode();
+          HasSourceInfo errorNode = field.getSetter() == null ? element : field.getSetter();
           onError(errorNode, currentClass == originalClass
               ? ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS
               : ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS,
@@ -343,21 +358,16 @@ public class Resolver {
           node.setType(typeProvider.getDynamicType());
         }
 
-        TypeVariableElement variable = (TypeVariableElement)type.getElement();
         DartTypeNode boundNode = node.getBound();
-        Type bound;
         if (boundNode != null) {
-          bound =
+          Type bound =
               classContext.resolveType(
                   boundNode,
                   false,
                   false,
                   ResolverErrorCode.NO_SUCH_TYPE);
           boundNode.setType(bound);
-        } else {
-          bound = typeProvider.getObjectType();
         }
-        variable.setBound(bound);
       }
 
       while (nodeIterator.hasNext()) {
@@ -375,17 +385,16 @@ public class Resolver {
       if (defaultClassRef.getTypeParameters().isEmpty()) {
         return;
       }
-      DartClass defaultClass = (DartClass)defaultClassType.getElement().getNode();
+      ClassElement defaultClassElement = defaultClassType.getElement();
       boolean match = true;
-      if (defaultClass.getTypeParameters().isEmpty()) {
+      if (defaultClassElement.getTypeParameters().isEmpty()) {
         match = false;
       } else {
         // TODO(zundel): This is effective in catching mistakes, but highlights the entire type
         // expression - A more specific indication of where the error started might be appreciated.
-        DartParameterizedTypeNode temp = new DartParameterizedTypeNode(defaultClass.getName(),
-                                                                       defaultClass.getTypeParameters());
+        //String defaultClassSource = getTypeDraftSourceString(defaultClassType);
+        String defaultClassSource = defaultClassElement.getDeclarationNameWithTypeParameters();
         String refSource = defaultClassRef.toSource();
-        String defaultClassSource = temp.toSource();
         if (!refSource.equals(defaultClassSource)) {
           match = false;
         }
@@ -406,7 +415,7 @@ public class Resolver {
 
       if (defaultTypeParams.size() != interfaceTypeParams.size()) {
 
-        onError(((DartClass) interfaceElement.getNode()).getName(),
+        onError(Elements.getNameLocation(interfaceElement),
                 ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
       } else {
         Iterator<? extends Type> interfaceIterator = interfaceTypeParams.iterator();
@@ -417,7 +426,7 @@ public class Resolver {
           String iVarName = iVar.getElement().getName();
           String dVarName = dVar.getElement().getName();
           if (!iVarName.equals(dVarName)) {
-            onError(iVar.getElement().getNode(), ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH,
+            onError(iVar.getElement(), ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH,
                     iVarName, dVarName, defaultClassElement.getName());
           }
         }
@@ -436,7 +445,7 @@ public class Resolver {
           String name = typeVariableElement.getName();
           // Check that type variables are unique in this Class  declaration.
           if (declaredVariableNames.contains(name)) {
-            onError(typeVariableElement.getNode(), ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, name);
+            onError(typeVariableElement, ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, name);
           } else {
             declaredVariableNames.add(name);
           }
@@ -444,7 +453,7 @@ public class Resolver {
           Element existingElement = scope.findElement(scope.getLibrary(), name);
           if (existingElement != null) {
             onError(
-                typeVariableElement.getNode(),
+                typeVariableElement,
                 ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING,
                 name,
                 existingElement,
@@ -457,14 +466,14 @@ public class Resolver {
     /**
      * Checks that interface constructors have corresponding methods in default class.
      */
-    private void checkInteraceConstructors(ClassElement interfaceElement) {
+    private void checkInterfaceConstructors(ClassElement interfaceElement) {
       String interfaceClassName = interfaceElement.getName();
       String defaultClassName = interfaceElement.getDefaultClass().getElement().getName();
 
       for (ConstructorElement interfaceConstructor : interfaceElement.getConstructors()) {
         ConstructorElement defaultConstructor =
             resolveInterfaceConstructorInDefaultClass(
-                interfaceConstructor.getNode(),
+                interfaceConstructor,
                 interfaceConstructor);
         if (defaultConstructor != null) {
           // Remember for TypeAnalyzer.
@@ -475,7 +484,7 @@ public class Resolver {
             int numReqDefault = Elements.getNumberOfRequiredParameters(defaultConstructor);
             if (numReqInterface != numReqDefault) {
               onError(
-                  interfaceConstructor.getNode(),
+                  interfaceConstructor,
                   ResolverErrorCode.DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
@@ -491,7 +500,7 @@ public class Resolver {
             List<String> defaultNames = Elements.getNamedParameters(defaultConstructor);
             if (!interfaceNames.equals(defaultNames)) {
               onError(
-                  interfaceConstructor.getNode(),
+                  interfaceConstructor,
                   ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
@@ -558,6 +567,8 @@ public class Resolver {
       context = context.extend(member.getName());
       assert currentMethod == null : "Nested methods?";
       innermostFunction = currentMethod = member;
+      Element previousEnclosingElement = enclosingElement;
+      enclosingElement = member;
 
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParameters();
@@ -588,7 +599,7 @@ public class Resolver {
       if ((functionNode.getBody() == null)
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
-          && !member.getEnclosingElement().isInterface()) {
+          && !((ClassElement) member.getEnclosingElement()).isInterface()) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
       resolve(functionNode.getBody());
@@ -608,6 +619,7 @@ public class Resolver {
 
       context = previousContext;
       innermostFunction = currentMethod = null;
+      enclosingElement = previousEnclosingElement;
       return member;
     }
 
@@ -676,7 +688,7 @@ public class Resolver {
     public Element resolveVariable(DartVariable x, Modifiers modifiers) {
       // Visit the initializer first.
       resolve(x.getValue());
-      VariableElement element = Elements.variableElement(x, x.getVariableName(), modifiers);
+      VariableElement element = Elements.variableElement(enclosingElement, x, x.getVariableName(), modifiers);
       getContext().declare(
           recordElement(x, element),
           ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR,
@@ -1242,7 +1254,7 @@ public class Resolver {
      *
      * @return the resolved {@link ConstructorElement}, or same as given.
      */
-    private ConstructorElement resolveInterfaceConstructorInDefaultClass(DartNode errorTargetNode,
+    private ConstructorElement resolveInterfaceConstructorInDefaultClass(HasSourceInfo errorTarget,
         ConstructorElement constructor) {
       // If no default class, use existing constructor.
       if (constructor == null || constructor.getConstructorType().getDefaultClass() == null) {
@@ -1309,7 +1321,7 @@ public class Resolver {
           expectedFactoryConstructorName = rawOriginalMethodName;
         }
         onError(
-            errorTargetNode,
+            errorTarget,
             ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED,
             expectedFactoryConstructorName,
             defaultClassName);
@@ -1746,7 +1758,11 @@ public class Resolver {
       checkConstructor(node, constructorElement);
     }
 
-    private void onError(DartNode node, ErrorCode errorCode, Object... arguments) {
+    private void onError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
+      context.onError(node, errorCode, arguments);
+    }
+
+    private void onError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
       context.onError(node, errorCode, arguments);
     }
 
@@ -1796,8 +1812,7 @@ public class Resolver {
                                              ResolutionContext context) {
     for (ConstructorElement element : constructors) {
       if (hasRedirectedConstructorCycle(element)) {
-        context.onError(element.getNode(),
-            ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE);
+        context.onError(element, ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE);
       }
     }
   }

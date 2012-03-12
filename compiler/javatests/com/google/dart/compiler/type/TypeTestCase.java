@@ -107,8 +107,7 @@ abstract class TypeTestCase extends TestCase {
   }
 
   static TypeVariable typeVar(String name, Type bound) {
-    TypeVariableElement element = Elements.typeVariableElement(null, name, null);
-    element.setBound(bound);
+    TypeVariableElement element = Elements.typeVariableElement(name, bound);
     return new TypeVariableImplementation(element);
   }
 

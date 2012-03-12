@@ -6,8 +6,10 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 
@@ -30,6 +32,8 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   private final Modifiers modifiers;
   private final AtomicReference<List<InterfaceType>> allSupertypes =
       new AtomicReference<List<InterfaceType>>();
+  private final SourceInfo nameLocation;
+  private final String declarationNameWithTypeParameter;
 
   // declared volatile for thread-safety
   @SuppressWarnings("unused")
@@ -58,15 +62,24 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     if (node != null) {
       isInterface = node.isInterface();
       modifiers = node.getModifiers();
+      nameLocation = node.getName().getSourceInfo();
+      declarationNameWithTypeParameter = new DartParameterizedTypeNode(node.getName(), node.getTypeParameters()).toSource();
     } else {
       isInterface = false;
       modifiers = Modifiers.NONE;
+      nameLocation = SourceInfo.UNKNOWN;
+      declarationNameWithTypeParameter = "";
     }
   }
 
   @Override
   public DartDeclaration<?> getNode() {
     return (DartClass) super.getNode();
+  }
+  
+  @Override
+  public SourceInfo getNameLocation() {
+    return nameLocation;
   }
 
   @Override
@@ -157,6 +170,11 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   @Override
   public String getNativeName() {
     return nativeName;
+  }
+  
+  @Override
+  public String getDeclarationNameWithTypeParameters() {
+    return declarationNameWithTypeParameter;
   }
 
   void addMethod(MethodElement member) {

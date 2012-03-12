@@ -7,8 +7,8 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -16,12 +16,13 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
@@ -58,6 +59,7 @@ public class MemberBuilder {
    */
   private class MemberElementBuilder extends ResolveVisitor {
     EnclosingElement currentHolder;
+    private Element enclosingElement;
     private ResolutionContext context;
     private boolean isStatic;
     private boolean isFactory;
@@ -82,12 +84,20 @@ public class MemberBuilder {
     boolean isFactoryContext() {
       return isFactory;
     }
+    
+    @Override
+    protected Element getEnclosingElement() {
+      return enclosingElement;
+    }
 
     @Override
     public Element visitClass(DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       beginClassContext(node);
+      Element previousEnclosingElement = enclosingElement;
+      enclosingElement = node.getElement();
       this.visit(node.getMembers());
+      enclosingElement = previousEnclosingElement;
       endClassContext();
       return null;
     }
@@ -144,7 +154,10 @@ public class MemberBuilder {
         recordElement(method, element);
         ResolutionContext previous = context;
         context = context.extend(element.getName());
+        Element previousEnclosingElement = enclosingElement;
+        enclosingElement = element;
         resolveFunction(method.getFunction(), element);
+        enclosingElement = previousEnclosingElement;
         context = previous;
       }
       return null;
@@ -312,8 +325,11 @@ public class MemberBuilder {
       boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
       MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
+      Element previousEnclosingElement = enclosingElement;
+      enclosingElement = accessorElement;
       recordElement(accessorNode, accessorElement);
       resolveFunction(accessorNode.getFunction(), accessorElement);
+      enclosingElement = previousEnclosingElement;
 
       String name = fieldNode.getName().getName();
       Element element = null;
@@ -524,20 +540,23 @@ public class MemberBuilder {
       return element;
     }
 
-    void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
+    void resolutionError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
+      resolutionError(node.getSourceInfo(), errorCode, arguments);
+    }
+
+    void resolutionError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
       topLevelContext.onError(node, errorCode, arguments);
     }
 
     /**
      * Reports duplicate declaration for given named element.
      */
-    @SuppressWarnings("unchecked")
     private void reportDuplicateDeclaration(ErrorCode errorCode, Element element) {
-      DartNode node = element.getNode();
-      if (node instanceof DartDeclaration) {
-        DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
-        resolutionError(nameNode, errorCode, nameNode);
-      }
+      String name =
+          element instanceof MethodElement
+              ? Elements.getRawMethodName((MethodElement) element)
+              : element.getName();
+      resolutionError(Elements.getNameLocation(element), errorCode, name);
     }
   }
 }

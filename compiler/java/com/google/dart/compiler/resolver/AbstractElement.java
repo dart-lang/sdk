@@ -4,17 +4,20 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
 abstract class AbstractElement implements Element {
-  private DartNode node;
+  private final DartNode node;
   private final String name;
+  private SourceInfo sourceInfo;
 
   AbstractElement(DartNode node, String name) {
+    // TODO(scheglov) in the future we will not use ASTNode and remove null check
+    this.sourceInfo = node != null ? node.getSourceInfo() : SourceInfo.UNKNOWN;
     this.node = node;
     this.name = name;
   }
@@ -22,12 +25,6 @@ abstract class AbstractElement implements Element {
   @Override
   public DartNode getNode() {
     return node;
-  }
-
-  // This method can be removed if NormalizeAst is integrated in Normalizer.
-  @Override
-  public void setNode(DartLabel node) {
-    this.node = node;
   }
 
   @Override
@@ -68,7 +65,17 @@ abstract class AbstractElement implements Element {
   }
 
   @Override
-  public EnclosingElement getEnclosingElement() {
+  public Element getEnclosingElement() {
     return null;
+  }
+
+  @Override
+  public SourceInfo getNameLocation() {
+    return sourceInfo;
+  }
+  
+  @Override
+  public final SourceInfo getSourceInfo() {
+    return sourceInfo;
   }
 }

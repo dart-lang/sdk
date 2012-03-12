@@ -3,17 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -47,7 +45,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
     switch (kind) {
       case FIELD:
       case METHOD: {
-        EnclosingElement enclosing = target.getEnclosingElement();
+        Element enclosing = target.getEnclosingElement();
         addHoleIfSuper(node, enclosing);
         if (enclosing.getKind().equals(ElementKind.LIBRARY)) {
           addElementDependency(target);
@@ -80,13 +78,12 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
       DartIdentifier qualifier = (DartIdentifier) node.getQualifier();
       Element target = qualifier.getElement();
       if (target != null && target.getKind() == ElementKind.LIBRARY) {
-        // Handle library prefixes normally (the prefix part of the qualifier
-        // doesn't contain any resolvable library source info)
+        // Handle library prefixes normally.
+        // The prefix part of the qualifier doesn't contain any resolvable library source info.
         return super.visitPropertyAccess(node);
       }
     }
-    // Skip rhs of property accesses, so that all identifiers we visit will be 
-    // unqualified.
+    // Skip rhs of property accesses, so that all identifiers we visit will be unqualified.
     return node.getQualifier().accept(this);
   }
 
@@ -133,13 +130,14 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   /**
    * Adds a direct dependency on the unit providing given {@link Element}.
    */
-  private void addElementDependency(Element elem) {
-    DartNode node = elem.getNode();
-    if (node != null) {
-      DartSource unitSource = (DartSource) node.getSourceInfo().getSource();
-      URI libUri = unitSource.getLibrary().getUri();
+  private void addElementDependency(Element element) {
+    DartSource elementSource = (DartSource) element.getSourceInfo().getSource();
+    if (elementSource != null) {
+      URI libUri = elementSource.getLibrary().getUri();
       LibraryDeps.Dependency dep =
-          new LibraryDeps.Dependency(libUri, unitSource.getName(), unitSource.getLastModified());
+          new LibraryDeps.Dependency(libUri,
+              elementSource.getName(),
+              elementSource.getLastModified());
       source.addDep(dep);
     }
   }

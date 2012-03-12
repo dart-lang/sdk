@@ -4,9 +4,9 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
 import java.util.ArrayList;
@@ -24,8 +24,9 @@ class ElementMap {
    * with the same name.
    */
   static class ElementHolder implements Element {
-    private static final String INTERNAL_ONLY_ERROR = "ElementHolder should not be accessed outside this class";
-    
+    private static final String INTERNAL_ONLY_ERROR =
+        "ElementHolder should not be accessed outside this class";
+
     final String name;
     final Element element;
     ElementHolder nextHolder;
@@ -33,6 +34,11 @@ class ElementMap {
     ElementHolder(String name, Element element) {
       this.name = name;
       this.element = element;
+    }
+    
+    @Override
+    public SourceInfo getNameLocation() {
+      throw new AssertionError(INTERNAL_ONLY_ERROR);
     }
 
     @Override
@@ -48,7 +54,7 @@ class ElementMap {
     @Override
     public Modifiers getModifiers() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
 
     @Override
     public String getName() {
@@ -58,27 +64,28 @@ class ElementMap {
     @Override
     public DartNode getNode() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
 
     @Override
     public String getOriginalName() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
 
     @Override
     public Type getType() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
 
     @Override
     public boolean isDynamic() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
 
     @Override
-    public void setNode(DartLabel node) {
+    public SourceInfo getSourceInfo() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
-      }
+    }
+
   }
 
   // Array indexed by hashed name ... length is always power of 2

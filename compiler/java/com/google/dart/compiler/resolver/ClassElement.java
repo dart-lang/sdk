@@ -33,6 +33,12 @@ public interface ClassElement extends EnclosingElement {
       throws CyclicDeclarationException, DuplicatedInterfaceException;
 
   String getNativeName();
+  
+  /**
+   * FIXME(scheglov) We use this in {@link Resolver} to check that "factory" clause is exactly
+   * same as declaration of factory class.
+   */
+  String getDeclarationNameWithTypeParameters();
 
   boolean isObject();
 
