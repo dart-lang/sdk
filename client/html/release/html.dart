@@ -6740,6 +6740,10 @@ class _DocumentImpl extends _ElementImpl
     return _wrap(_documentPtr.createElement(_unwrap(tagName)));
   }
 
+  Element _createElementNS(String namespaceURI, String qualifiedName) {
+    return _wrap(_documentPtr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
+  }
+
   Event _createEvent(String eventType) {
     return _wrap(_documentPtr.createEvent(_unwrap(eventType)));
   }
@@ -7427,7 +7431,7 @@ class _ChildrenElementList implements ElementList {
 
   Iterator<Element> iterator() => _toList().iterator();
 
-  void addAll(Collection<_ElementImpl> collection) {
+  void addAll(Collection<Element> collection) {
     for (_ElementImpl element in collection) {
       _element._appendChild(element);
     }
@@ -13847,8 +13851,58 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
     return _wrap(_ptr.createEvent(_unwrap(eventType)));
   }
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _AttributeClassSet extends _CssClassSet {
+  _AttributeClassSet(element) : super(element);
+
+  String _className() => _element.attributes['class'];
+
+  void _write(Set s) {
+    _element.attributes['class'] = _formatSet(s);
+  }
+}
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement {
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _AttributeClassSet(_ptr);
+    }
+    return _cssClassSet;
+  }
+
+  ElementList get elements() => new FilteredElementList(this);
+
+  void set elements(Collection<Element> value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.add(clone);
+    return container.innerHTML;
+  }
+
+  String get innerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.addAll(clone.elements);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String svg) {
+    final container = new Element.tag("div");
+    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
+    // HTMLElements.
+    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    this.elements = container.elements.first.elements;
+  }
+
   _SVGElementImpl._wrap(ptr) : super._wrap(ptr);
 
   String get id() => _wrap(_ptr.id);
@@ -13862,6 +13916,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
   String get xmlbase() => _wrap(_ptr.xmlbase);
 
   void set xmlbase(String value) { _ptr.xmlbase = _unwrap(value); }
+
 }
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
@@ -25722,10 +25777,11 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
 
   DocumentFragment.html(String html);
 
-  // TODO(nweiz): enable these when XML and/or SVG are ported
+  // TODO(nweiz): enable this when XML is ported
   // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
   // DocumentFragment.xml(String xml);
-  // DocumentFragment.svg(String svg);
+
+  DocumentFragment.svg(String svg);
 
   DocumentFragment clone(bool deep);
 
@@ -30205,9 +30261,13 @@ interface SVGDocument extends Document {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface SVGElement extends Element default _SVGElementFactoryProvider {
 
-interface SVGElement extends Element {
+  SVGElement.tag(String tag);
+  SVGElement.svg(String svg);
+
+  SVGElement clone(bool deep);
+
 
   String id;
 
@@ -30216,6 +30276,7 @@ interface SVGElement extends Element {
   final SVGElement viewportElement;
 
   String xmlbase;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31954,9 +32015,10 @@ interface SVGRenderingIntent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
+    default _SVGSVGElementFactoryProvider {
+  SVGSVGElement();
 
-interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
 
   String contentScriptType;
 
@@ -32031,6 +32093,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   void unsuspendRedraw(int suspendHandleId);
 
   void unsuspendRedrawAll();
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36290,17 +36353,46 @@ class _DocumentFragmentFactoryProvider {
   //   return fragment;
   // }
 
-  // TODO(nweiz): enable this when SVG is ported.
-  // factory DocumentFragment.svg(String svg) {
-  //   final fragment = new DocumentFragment();
-  //   final e = new SVGSVGElement();
-  //   e.innerHTML = svg;
-  //
-  //   // Copy list first since we don't want liveness during iteration.
-  //   final List nodes = new List.from(e.nodes);
-  //   fragment.nodes.addAll(nodes);
-  //   return fragment;
-  // }
+  factory DocumentFragment.svg(String svg) {
+    final fragment = new DocumentFragment();
+    final e = new SVGSVGElement();
+    e.innerHTML = svg;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+}
+
+class _SVGElementFactoryProvider {
+  factory SVGElement.tag(String tag) =>
+    _document._createElementNS("http://www.w3.org/2000/svg", tag);
+
+  factory SVGElement.svg(String svg) {
+    Element parentTag;
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    if (match != null && match.group(1).toLowerCase() == 'svg') {
+      parentTag = new Element.tag('div');
+    } else {
+      parentTag = new SVGSVGElement();
+    }
+
+    parentTag.innerHTML = svg;
+    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
+
+    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+        'top-level elements but 1 expected');
+  }
+}
+
+class _SVGSVGElementFactoryProvider {
+  factory SVGSVGElement() {
+    final el = new SVGElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = "1.1";
+    return el;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

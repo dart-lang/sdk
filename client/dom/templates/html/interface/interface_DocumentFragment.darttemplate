@@ -8,10 +8,11 @@ interface DocumentFragment extends Element default _$(ID)FactoryProvider {
 
   DocumentFragment.html(String html);
 
-  // TODO(nweiz): enable these when XML and/or SVG are ported
+  // TODO(nweiz): enable this when XML is ported
   // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
   // DocumentFragment.xml(String xml);
-  // DocumentFragment.svg(String svg);
+
+  DocumentFragment.svg(String svg);
 
   DocumentFragment clone(bool deep);
 
