@@ -51,7 +51,6 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 
 
 void Bootstrap::SetupNativeResolver() {
-  Isolate* isolate = Isolate::Current();
   Library& library = Library::Handle();
 
   library = Library::CoreLibrary();
