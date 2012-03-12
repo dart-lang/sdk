@@ -25,6 +25,7 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
+  V(IsolateMirrorImpl_buildResponse, 1)                                        \
   V(IsolateNatives_start, 2)                                                   \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
@@ -148,6 +149,7 @@ namespace dart {
   V(ExternalByteArray_setFloat32, 3)                                           \
   V(ExternalByteArray_getFloat64, 2)                                           \
   V(ExternalByteArray_setFloat64, 3)                                           \
+  V(Mirrors_send, 3)                                                           \
 
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)

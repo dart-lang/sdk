@@ -12,6 +12,7 @@
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
+#include "vm/message.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -1127,6 +1128,20 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 }
 
 
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsMessageSnapshot());
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
@@ -1145,7 +1160,28 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
   if (interrupt_bits & Isolate::kMessageInterrupt) {
-    // UNIMPLEMENTED();
+    while (true) {
+      // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
+      Message* message =
+          isolate->message_handler()->queue()->DequeueNoWaitWithPriority(
+              Message::kOOBPriority);
+      if (message == NULL) {
+        // No more OOB messages to handle.
+        break;
+      }
+      const Instance& msg =
+          Instance::Handle(DeserializeMessage(message->data()));
+      // For now the only OOB messages are Mirrors messages.
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMirrorsMessage(
+              message->dest_port(), message->reply_port(), msg));
+      delete message;
+      if (result.IsError()) {
+        // TODO(turnidge): Propagating the error is probably wrong here.
+        Exceptions::PropagateError(result);
+      }
+      ASSERT(result.IsNull());
+    }
   }
   if (interrupt_bits & Isolate::kApiInterrupt) {
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();

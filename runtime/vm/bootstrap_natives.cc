@@ -51,12 +51,20 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 
 
 void Bootstrap::SetupNativeResolver() {
-  Library& library = Library::Handle(Library::CoreLibrary());
+  Isolate* isolate = Isolate::Current();
+  Library& library = Library::Handle();
+
+  library = Library::CoreLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(
       reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
 
   library = Library::CoreImplLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(
+      reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));
+
+  library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(
       reinterpret_cast<Dart_NativeEntryResolver>(NativeLookup));

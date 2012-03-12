@@ -678,7 +678,6 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-
   const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
   Library::InitIsolateLibrary(isolate);
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -687,7 +686,14 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-
+  const Script& mirrors_script = Script::Handle(Bootstrap::LoadMirrorsScript());
+  Library::InitMirrorsLibrary(isolate);
+  Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
+  ASSERT(!mirrors_lib.IsNull());
+  error = Bootstrap::Compile(mirrors_lib, mirrors_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -4960,6 +4966,16 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitMirrorsLibrary(Isolate* isolate) {
+  const String& url = String::Handle(String::NewSymbol("dart:mirrors"));
+  const Library& lib = Library::Handle(Library::New(url));
+  lib.Register();
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  lib.AddImport(isolate_lib);
+  isolate->object_store()->set_mirrors_library(lib);
+}
+
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
@@ -5069,6 +5085,11 @@ RawLibrary* Library::CoreImplLibrary() {
 
 RawLibrary* Library::IsolateLibrary() {
   return Isolate::Current()->object_store()->isolate_library();
+}
+
+
+RawLibrary* Library::MirrorsLibrary() {
+  return Isolate::Current()->object_store()->mirrors_library();
 }
 
 

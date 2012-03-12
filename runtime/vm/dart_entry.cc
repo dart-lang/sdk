@@ -220,4 +220,99 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
   return result.raw();
 }
 
+
+RawObject* DartLibraryCalls::HandleMirrorsMessage(Dart_Port dest_port_id,
+                                                  Dart_Port reply_port_id,
+                                                  const Instance& message) {
+  Isolate* isolate = Isolate::Current();
+  // Create the reply port.
+  const Object& reply_port = Object::Handle(
+      DartLibraryCalls::NewSendPort(reply_port_id));
+  if (reply_port.IsError()) {
+    return reply_port.raw();
+  }
+
+  // Call _Mirrors.processCommand(message, reply_port).
+  const Library& lib =
+      Library::Handle(isolate->object_store()->mirrors_library());
+  const String& raw_class_name =
+      String::Handle(String::NewSymbol("_Mirrors"));
+  const String& private_key =
+      String::Handle(lib.private_key());
+  const String& class_name =
+      String::Handle(String::Concat(raw_class_name, private_key));
+  const String& function_name =
+      String::Handle(String::NewSymbol("processCommand"));
+  const int kNumArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(lib,
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  ASSERT(!function.IsNull());
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&message);
+  arguments.Add(&reply_port);
+  const Object& result = Object::Handle(
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  ASSERT(result.IsNull() || result.IsError());
+  return result.raw();
+}
+
+
+RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  const String& public_class_name =
+      String::Handle(String::New("_SendPortImpl"));
+  const String& class_name =
+      String::Handle(isolate_lib.PrivateName(public_class_name));
+  const String& function_name = String::Handle(String::NewSymbol("_create"));
+  const int kNumArguments = 1;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(isolate_lib,
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(port_id)));
+  return DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);
+}
+
+
+RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
+                                      const Instance& key,
+                                      const Instance& value) {
+  String& name = String::Handle(String::New("[]="));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamic(map, name, 3, 0));
+  ASSERT(!function.IsNull());
+  GrowableArray<const Object*> args(2);
+  args.Add(&key);
+  args.Add(&value);
+  const Array& kNoArgumentNames = Array::Handle();
+  const Object& result = Object::Handle(
+      DartEntry::InvokeDynamic(map, function, args, kNoArgumentNames));
+  return result.raw();
+}
+
+
+RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
+  const String& field_name = String::Handle(String::NewSymbol("_id"));
+  const Class& cls = Class::Handle(port.clazz());
+  const String& func_name = String::Handle(Field::GetterName(field_name));
+  const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));
+  ASSERT(!func.IsNull());
+  GrowableArray<const Object*> arguments;
+  const Array& kNoArgumentNames = Array::Handle();
+  return DartEntry::InvokeDynamic(port, func, arguments, kNoArgumentNames);
+}
+
+
 }  // namespace dart

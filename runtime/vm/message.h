@@ -78,13 +78,17 @@ class MessageQueue {
   // not block.
   Message* DequeueNoWait();
 
+  // Gets the next message of the specified priority or greater from
+  // the message queue if available.  Will not block.
+  Message* DequeueNoWaitWithPriority(Message::Priority min_priority);
+
   void Flush(Dart_Port port);
   void FlushAll();
 
  private:
   friend class MessageQueueTestPeer;
 
-  Message* DequeueNoWaitHoldsLock();
+  Message* DequeueNoWaitHoldsLock(Message::Priority min_priority);
 
   Monitor monitor_;
   Message* head_[Message::kNumPriorities];

@@ -584,7 +584,6 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
                                             void* callback_data,
                                             char** error) {
   Isolate* isolate = Dart::CreateIsolate(name_prefix);
-  assert(isolate != NULL);
   {
     DARTSCOPE_NOCHECKS(isolate);
     const Error& error_obj =
@@ -744,27 +743,35 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Message::Priority priority = Message::kNormalPriority;
   do {
     DARTSCOPE(isolate);
+    // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
     message = isolate->message_handler()->queue()->DequeueNoWait();
     if (message == NULL) {
       break;
     }
-    priority = message->priority();
-    if (priority == Message::kOOBPriority) {
-      // TODO(turnidge): Out of band messages will not go through the
-      // regular message handler.  Instead they will be dispatched to
-      // special vm code.  Implement.
-      UNIMPLEMENTED();
-    }
     const Instance& msg =
         Instance::Handle(DeserializeMessage(message->data()));
-    const Object& result = Object::Handle(
-        DartLibraryCalls::HandleMessage(
-            message->dest_port(), message->reply_port(), msg));
-    delete message;
-    if (result.IsError()) {
-      return Api::NewLocalHandle(result);
+    priority = message->priority();
+    if (priority == Message::kOOBPriority) {
+      // For now the only OOB messages are Mirrors messages.
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMirrorsMessage(
+              message->dest_port(), message->reply_port(), msg));
+      delete message;
+      if (result.IsError()) {
+        // TODO(turnidge): Propagating the error is probably wrong here.
+        return Api::NewLocalHandle(result);
+      }
+      ASSERT(result.IsNull());
+    } else {
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMessage(
+              message->dest_port(), message->reply_port(), msg));
+      delete message;
+      if (result.IsError()) {
+        return Api::NewLocalHandle(result);
+      }
+      ASSERT(result.IsNull());
     }
-    ASSERT(result.IsNull());
   } while (priority >= Message::kOOBPriority);
   return Api::Success();
 }
@@ -857,28 +864,7 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(String::New("_SendPortImpl"));
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name = String::Handle(String::NewSymbol("_create"));
-  const int kNumArguments = 1;
-  const Array& kNoArgumentNames = Array::Handle();
-  // TODO(turnidge): Consider adding a helper function to make
-  // function resolution by class name and function name more concise.
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  const Object& result = Object::Handle(DartLibraryCalls::NewSendPort(port_id));
   return Api::NewLocalHandle(result);
 }
 

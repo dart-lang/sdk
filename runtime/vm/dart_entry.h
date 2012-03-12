@@ -75,6 +75,26 @@ class DartLibraryCalls : public AllStatic {
   static RawObject* HandleMessage(Dart_Port dest_port_id,
                                   Dart_Port reply_port_id,
                                   const Instance& dart_message);
+
+  // Returns null on success, a RawError on failure.
+  static RawObject* HandleMirrorsMessage(Dart_Port dest_port_id,
+                                         Dart_Port reply_port_id,
+                                         const Instance& dart_message);
+
+  // On success returns new SendPort, on failure returns a RawError.
+  static RawObject* NewSendPort(intptr_t port_id);
+
+  // map[key] = value;
+  //
+  // Returns null on success, a RawError on failure.
+  static RawObject* MapSetAt(const Instance& map,
+                             const Instance& key,
+                             const Instance& value);
+
+  // Gets the _id field of a SendPort/ReceivePort.
+  //
+  // Returns null on success, a RawError on failure.
+  static RawObject* PortGetId(const Instance& port);
 };
 
 }  // namespace dart

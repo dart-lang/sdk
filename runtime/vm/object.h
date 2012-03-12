@@ -1810,9 +1810,11 @@ class Library : public Object {
 
   static void InitCoreLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
+  static void InitMirrorsLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
   static RawLibrary* IsolateLibrary();
+  static RawLibrary* MirrorsLibrary();
   static void InitNativeWrappersLibrary(Isolate* isolate);
   static RawLibrary* NativeWrappersLibrary();
 

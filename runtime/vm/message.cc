@@ -110,14 +110,23 @@ void MessageQueue::Enqueue(Message* msg) {
   }
 }
 
+
 Message* MessageQueue::DequeueNoWait() {
   MonitorLocker ml(&monitor_);
-  return DequeueNoWaitHoldsLock();
+  return DequeueNoWaitHoldsLock(Message::kFirstPriority);
 }
 
-Message* MessageQueue::DequeueNoWaitHoldsLock() {
+
+Message* MessageQueue::DequeueNoWaitWithPriority(
+    Message::Priority min_priority) {
+  MonitorLocker ml(&monitor_);
+  return DequeueNoWaitHoldsLock(min_priority);
+}
+
+
+Message* MessageQueue::DequeueNoWaitHoldsLock(Message::Priority min_priority) {
   // Look for the highest priority available message.
-  for (int p = Message::kNumPriorities-1; p >= Message::kFirstPriority; p--) {
+  for (int p = Message::kNumPriorities-1; p >= min_priority; p--) {
     Message* result = head_[p];
     if (result != NULL) {
       head_[p] = result->next_;
@@ -138,11 +147,11 @@ Message* MessageQueue::DequeueNoWaitHoldsLock() {
 Message* MessageQueue::Dequeue(int64_t millis) {
   ASSERT(millis >= 0);
   MonitorLocker ml(&monitor_);
-  Message* result = DequeueNoWaitHoldsLock();
+  Message* result = DequeueNoWaitHoldsLock(Message::kFirstPriority);
   if (result == NULL) {
     // No message available at any priority.
     monitor_.Wait(millis);
-    result = DequeueNoWaitHoldsLock();
+    result = DequeueNoWaitHoldsLock(Message::kFirstPriority);
   }
   return result;
 }

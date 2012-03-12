@@ -273,6 +273,11 @@ class ObjectStore {
     native_wrappers_library_ = value.raw();
   }
 
+  RawLibrary* mirrors_library() const { return mirrors_library_; }
+  void set_mirrors_library(const Library& value) {
+    mirrors_library_ = value.raw();
+  }
+
   RawLibrary* builtin_library() const {
     return builtin_library_;
   }
@@ -392,6 +397,7 @@ class ObjectStore {
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
   RawLibrary* isolate_library_;
+  RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
   RawLibrary* builtin_library_;
   RawLibrary* root_library_;

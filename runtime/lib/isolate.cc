@@ -111,32 +111,6 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
 }
 
 
-// TODO(turnidge): Move to DartLibraryCalls.
-static RawObject* SendPortCreate(intptr_t port_id) {
-  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
-  ASSERT(!isolate_lib.IsNull());
-  const String& public_class_name =
-      String::Handle(String::NewSymbol("_SendPortImpl"));
-  const String& class_name =
-      String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name = String::Handle(String::NewSymbol("_create"));
-  const int kNumArguments = 1;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(isolate_lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  return result.raw();
-}
-
-
 static void RunIsolate(uword parameter) {
   IsolateStartData* data = reinterpret_cast<IsolateStartData*>(parameter);
   Isolate* isolate = data->isolate_;
@@ -346,7 +320,7 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   // TODO(turnidge): Move this code up before we launch the new
   // thread.  That way we won't have a thread hanging around that we
   // can't talk to.
-  const Object& port = Object::Handle(SendPortCreate(port_id));
+  const Object& port = Object::Handle(DartLibraryCalls::NewSendPort(port_id));
   if (port.IsError()) {
     Exceptions::PropagateError(port);
   }

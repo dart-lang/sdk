@@ -27,7 +27,7 @@ class RawObject;
 //   const Type& arg1 = Type::CheckedHandle(arguments.GetArgument(0));
 //   const Type& arg2 = Type::CheckedHandle(arguments.GetArgument(1));
 // The return value is set as follows:
-//   arguments.SetReturnValue(result);
+//   arguments.SetReturn(result);
 // NOTE: Since we pass this as a pass by value argument in the stubs we don't
 // have DISALLOW_COPY_AND_ASSIGN in the class definition and do not make it a
 // subclass of ValueObject.
