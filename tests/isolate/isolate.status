@@ -49,10 +49,6 @@ MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 MessageTest: Skip
 
-[ $component == webdriver && $browser == ff && $system == win32 ]
-MessageTest: Fail  # Issue 2101
-
-
 [ $component == webdriver && $browser == ie && $system == win32 ]
 APIv2*: Skip
 
