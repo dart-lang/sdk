@@ -585,17 +585,18 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
                                             char** error) {
   Isolate* isolate = Dart::CreateIsolate(name_prefix);
   assert(isolate != NULL);
-  DARTSCOPE_NOCHECKS(isolate);
-  const Error& error_obj =
-      Error::Handle(Dart::InitializeIsolate(snapshot, callback_data));
-  if (error_obj.IsNull()) {
-    START_TIMER(time_total_runtime);
-    return reinterpret_cast<Dart_Isolate>(isolate);
-  } else {
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+    const Error& error_obj =
+        Error::Handle(Dart::InitializeIsolate(snapshot, callback_data));
+    if (error_obj.IsNull()) {
+      START_TIMER(time_total_runtime);
+      return reinterpret_cast<Dart_Isolate>(isolate);
+    }
     *error = strdup(error_obj.ToErrorCString());
-    Dart::ShutdownIsolate();
-    return reinterpret_cast<Dart_Isolate>(NULL);
   }
+  Dart::ShutdownIsolate();
+  return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
 
