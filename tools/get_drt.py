@@ -27,10 +27,8 @@ GSUTIL = GSUTIL_DIR + '/gsutil'
 DRT_DIR = 'client/tests/drt'
 VERSION = DRT_DIR + '/LAST_VERSION'
 DRT_DARTIUM_LATEST_PATTERN = (
-    'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
-DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
-DRT_CHROMIUM_LATEST_PATTERN = (
-    'gs://dart-dump-render-tree/latest/chromium-%(osname)s-103752.zip')
+    'gs://dartium-archive/latest/drt-%(osname)s-inc-*.zip')
+DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/drt-%(osname)s-inc'
 
 sys.path.append(GSUTIL_DIR + '/boto')
 import boto
@@ -116,15 +114,10 @@ def main():
     latest = (DRT_DARTIUM_PERMANENT_PREFIX % { 'osname' : osname }
               + latest[latest.rindex('/'):])
   else: # e.g. no access
-    pattern = DRT_CHROMIUM_LATEST_PATTERN  % { 'osname' : osname }
-    result, out = gsutil('ls', pattern)
-    if result == 0:
-      latest = out.split()[-1]
-    else:
-      print "Couldn't download DumpRenderTree: %s\n%s" % (pattern, out)
-      if not os.path.exists(VERSION):
-        print "Tests using arch=chromium will not work. Please try again later."
-      return 0
+    print "Couldn't download DumpRenderTree: %s\n%s" % (pattern, out)
+    if not os.path.exists(VERSION):
+      print "Tests using DumpRenderTree will not work. Please try again later."
+    return 0
 
   # Check if we need to update the file
   if os.path.exists(VERSION):
