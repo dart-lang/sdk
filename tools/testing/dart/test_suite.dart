@@ -698,7 +698,7 @@ class StandardTestSuite implements TestSuite {
 
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_').replaceAll(':', '_')
-        + configuration['component'] + '.html';
+        .replaceAll('\\', '_') + configuration['component'] + '.html';
   }
 
   String get dumpRenderTreeFilename() {
