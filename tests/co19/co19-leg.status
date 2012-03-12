@@ -3,9 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == leg && $system == macos ]
-LibTest/core/Math/acos_A01_t01: Fail
-LibTest/core/Math/asin_A01_t01: Fail
-LibTest/core/Math/atan_A01_t01: Fail
+LibTest/core/Math/acos_A01_t01: Fail, OK
+LibTest/core/Math/asin_A01_t01: Fail, OK
+LibTest/core/Math/atan_A01_t01: Fail, OK
 
 
 [ $component == leg ]
@@ -86,17 +86,7 @@ Language/10_Expressions/29_Type_Test_A03_t01: Fail # TODO(ahe): New co19 failure
 Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/05_For/1_For_Loop_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/05_For/1_For_Loop_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/05_For/1_For_Loop_A01_t07: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/05_For/1_For_Loop_A01_t08: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/05_For_A01_t11: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/06_While_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/06_While_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/06_While_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/06_While_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/06_While_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/07_Do_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/07_Do_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/08_Switch_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/08_Switch_A01_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/08_Switch_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
@@ -104,7 +94,6 @@ Language/11_Statements/08_Switch_A02_t02: Fail # TODO(ahe): New co19 failure, pl
 Language/11_Statements/08_Switch_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/09_Try_A05_t03: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/11_Labels_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/12_Break_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/13_Continue_A02_t12: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/13_Continue_A02_t13: Fail # TODO(ahe): New co19 failure, please triage.
@@ -189,7 +178,6 @@ LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
 
 
-Language/06_Functions/06_Functions_A01_t04: Fail # switch cases are not implemented
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # CompileTimeConstantHandler non-primitive list-entries not implemented
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail # Super initializers not implemented correctly.
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
@@ -217,6 +205,7 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # SsaBuilder.vis
 Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Parsing of pseudo-keywords.
+Language/11_Statements/12_Break_A03_t09: Fail # Bad implementation of break or finally.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/toString_A02_t01: Fail # Test is out of date. See co19 issue 86.
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
@@ -600,6 +589,7 @@ Language/11_Statements/09_Try_A01_t18: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
+Language/11_Statements/11_Labels_A01_t03: Fail, OK # @compile-error
 Language/11_Statements/11_Labels_A03_t05: Fail, OK # @compile-error
 Language/11_Statements/15_Assert_A01_t05: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error

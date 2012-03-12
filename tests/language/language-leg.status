@@ -28,7 +28,6 @@ ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
-DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
@@ -36,7 +35,6 @@ DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
 FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
-ForTest: Fail # SsaBuilder for loop without condition not implemented
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
 FunctionTypeAlias4Test: Fail # cannot resolve type F
@@ -82,7 +80,6 @@ SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
-WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
 
 
@@ -265,11 +262,7 @@ DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
 # TODO(ahe): Categorize these failures.
-ClosureBreak1Test: Fail
-ClosureBreak2Test: Fail
-ClosureBreakTest: Fail
 ExecuteFinally3Test: Fail
-ExecuteFinally9Test: Fail
 
 
 [ $component == leg && $mode == release ]
