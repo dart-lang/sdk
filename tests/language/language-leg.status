@@ -23,7 +23,6 @@ CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
-ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type

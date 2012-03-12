@@ -86,6 +86,8 @@ CompileTimeConstant6Test: Fail # Issue 1794
 AssignStaticTypeTest/01: Skip # Issue 2070 (fails only in checked mode)
 AssignStaticTypeTest/02: Skip # Issue 2070 (fails only in checked mode)
 
+ConstructorRedirectTest/01: Fail # Issue 2103.
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -186,6 +188,7 @@ Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
+ConstructorRedirectTest/01: Fail # Issue 2105.
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -272,6 +275,7 @@ TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
 SuperFieldAccessTest: Fail # Issue 1695
 CompileTimeConstant6Test: Fail
+ConstructorRedirectTest/01: Fail # Issue 2104.
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
