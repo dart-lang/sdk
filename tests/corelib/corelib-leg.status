@@ -21,7 +21,6 @@ ListGetRangeTest: Fail # Bad code for Expect.throws.
 ListTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
 SplayTreeTest: Fail # Internal Error: Cannot find value
-StringPatternTest: Fail # Bad bailout code related to for-in.
 StringTest: Fail # Internal Error: Cannot find value
 
 
