@@ -15,6 +15,7 @@
 #library("test_suite");
 
 #import("dart:io");
+#import("dart:builtin");
 #import("dart:isolate");
 #import("status_file_parser.dart");
 #import("test_runner.dart");
@@ -782,7 +783,7 @@ class StandardTestSuite implements TestSuite {
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
-    RandomAccessFile file = new File(filename).openSync();
+    RandomAccessFile file = new File(filename).openSync(FileMode.READ);
     List chars = new List(file.lengthSync());
     var offset = 0;
     while (offset != chars.length) {

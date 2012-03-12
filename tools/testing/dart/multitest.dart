@@ -57,7 +57,7 @@ void ExtractTestsFromMultitest(String filename,
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  RandomAccessFile file = (new File(filename)).openSync();
+  RandomAccessFile file = (new File(filename)).openSync(FileMode.READ);
   List chars = new List(file.lengthSync());
   int offset = 0;
   while (offset != chars.length) {
@@ -172,7 +172,7 @@ void DoMultitest(String filename,
                                  [bool isNegativeIfChecked,
                                   bool hasFatalTypeErrors,
                                   bool hasRuntimeErrors,
-                                  String multitestOutcome]),
+                                  Set<String> multitestOutcome]),
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
@@ -200,8 +200,8 @@ void DoMultitest(String filename,
     TestUtils.copyFile(source, dest);
   }
   for (String key in tests.getKeys()) {
-    final String filename = '$directory/${baseFilename}_$key.dart';
-    final File file = new File(filename);
+    final String multitestFilename = '$directory/${baseFilename}_$key.dart';
+    final File file = new File(multitestFilename);
 
     file.createSync();
     RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
@@ -214,7 +214,7 @@ void DoMultitest(String filename,
     bool isNegative = hasRuntimeErrors
         || outcome.contains('compile-time error');
     bool isNegativeIfChecked = outcome.contains('dynamic type error');
-    doTest(filename,
+    doTest(multitestFilename,
            isNegative,
            isNegativeIfChecked,
            enableFatalTypeErrors,

@@ -12,6 +12,7 @@
 #library("test_runner");
 
 #import("dart:io");
+#import("dart:builtin");
 #import("status_file_parser.dart");
 #import("test_progress.dart");
 #import("test_suite.dart");
@@ -59,7 +60,7 @@ class TestCase {
    * it. Some isolate tests might even have three, if they require compiling
    * multiple sources that are run in isolation.
    */
-  final List<Command> commands;
+  List<Command> commands;
 
   Map configuration;
   String displayName;
@@ -105,7 +106,7 @@ class TestCase {
           }
           newArguments.add(c.executable);
         }
-        newArguments.addAll(arguments);
+        newArguments.addAll(c.arguments);
         var suffixSplit = suffix.split(' ');
         suffixSplit.forEach((e) {
           if (!e.isEmpty()) newArguments.add(e);
@@ -115,7 +116,7 @@ class TestCase {
         Expect.stringEquals('$prefix ${c.commandLine} $suffix',
             newCommand.commandLine);
       }
-      commands = newCommand;
+      commands = newCommands;
     }
   }
 
@@ -184,7 +185,13 @@ interface TestOutput default TestOutputImpl {
   bool get hasTimedOut();
 
   bool get didFail();
+  
+  Duration get time();
+  
+  List<String> get stdout();
 
+  List<String> get stderr();
+  
   List<String> get diagnostics();
 }
 
@@ -206,14 +213,18 @@ class TestOutputImpl implements TestOutput {
 
   // Don't call  this constructor, call TestOutput.fromCase() to
   // get anew TestOutput instance.
-  TestOutputImpl(this.testCase, this.exitCode, this.timedOut, this.stdout,
-             this.stderr, this.time) {
+  TestOutputImpl(TestCase this.testCase,
+                 int this.exitCode,
+                 bool this.timedOut,
+                 List<String> this.stdout,
+                 List<String> this.stderr,
+                 Duration this.time) {
     testCase.output = this;
     diagnostics = [];
   }
 
-  factory TestOutputImpl.fromCase (testCase, exitCode, timedOut,
-                                   stdout, stderr, time) {
+  factory TestOutputImpl.fromCase (TestCase testCase, int exitCode, bool timedOut,
+                                   List<String> stdout, List<String> stderr, Duration time) {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
@@ -265,7 +276,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
     // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
     // so we have to do this check first.
-    for (String line in stderr) {
+    for (String line in super.stderr) {
       if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
@@ -280,7 +291,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
     String previous_line = '';
-    for (String line in stdout) {
+    for (String line in super.stdout) {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
         return (exitCode != 0 && !hasCrashed);
       }
@@ -290,7 +301,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
   }
 }
 
-// The static analyzer does not actaully execute code, so
+// The static analyzer does not actually execute code, so
 // the criteria for success now depend on the text sent
 // to stderr.
 class AnalysisTestOutputImpl extends TestOutputImpl {
@@ -315,7 +326,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     List<String> staticWarnings = [];
 
     // Read the returned list of errors and stuff them away.
-    for (String line in stderr) {
+    for (String line in super.stderr) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
       if (fields[0] == 'ERROR') {
@@ -641,7 +652,7 @@ class BatchRunnerProcess {
         _process.stdin.write('--terminate\n'.charCodes());
 
         // In case the run_selenium process didn't close, kill it after 30s
-        bool shutdownMillisecs = 30000;
+        int shutdownMillisecs = 30000;
         new Timer(shutdownMillisecs, (e) { if (!closed) _process.kill(); });
       } else {
         _process.kill();
@@ -1003,7 +1014,7 @@ class ProcessQueue {
     filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
     var dir = new Directory(filePath);
     dir.onFile = (String file) {
-      if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
+      if (const RegExp("selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
         _seleniumServer = new Process.start('java', ['-jar', file]);
         // Heads up: there seems to an obscure data race of some form in
