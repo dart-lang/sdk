@@ -512,6 +512,8 @@ class InstanceOfComp : public Computation {
   Value* value() const { return value_; }
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
 
  private:
   const intptr_t node_id_;

@@ -11,6 +11,7 @@
 #include "vm/code_generator.h"
 #include "vm/disassembler.h"
 #include "vm/longjump.h"
+#include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
 
@@ -327,8 +328,183 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 }
 
 
+static const Class* CoreClass(const char* c_name) {
+  const String& class_name = String::Handle(String::NewSymbol(c_name));
+  const Class& cls = Class::ZoneHandle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
+  ASSERT(!cls.IsNull());
+  return &cls;
+}
+
+
+void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
+    intptr_t token_index) {
+  Bailout("FlowGraphCompiler::GenerateInstantiatorTypeArguments");
+}
+
+
+// Copied from CodeGenerator.
+// Optimize instanceof type test by adding inlined tests for:
+// - NULL -> return false.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - RAX: object.
+// Destroys RCX.
+// Returns:
+// - true or false in RAX.
+void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
+                                           intptr_t token_index,
+                                           const AbstractType& type,
+                                           bool negate_result) {
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+
+  // All instances are of a subtype of the Object type.
+  const Type& object_type =
+      Type::Handle(Isolate::Current()->object_store()->object_type());
+  Error& malformed_error = Error::Handle();
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, &malformed_error)) {
+    __ LoadObject(RAX, negate_result ? bool_false : bool_true);
+    return;
+  }
+
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label done;
+  // If type is instantiated and non-parameterized, we can inline code
+  // checking whether the tested instance is a Smi.
+  if (type.IsInstantiated()) {
+    // A null object is only an instance of Object and Dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // Dynamic at run time.
+    Label non_null;
+    __ cmpq(RAX, raw_null);
+    __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
+    __ PushObject(negate_result ? bool_true : bool_false);
+    __ jmp(&done);
+
+    __ Bind(&non_null);
+
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    const bool requires_type_arguments = type_class.HasTypeArguments();
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (requires_type_arguments) {
+      const AbstractTypeArguments& type_arguments =
+          AbstractTypeArguments::Handle(type.arguments());
+      const bool is_raw_type = type_arguments.IsNull() ||
+          type_arguments.IsDynamicTypes(type_arguments.Length());
+      Label runtime_call;
+      __ testq(RAX, Immediate(kSmiTagMask));
+      __ j(ZERO, &runtime_call, Assembler::kNearJump);
+      // Object not Smi.
+      if (is_raw_type) {
+        if (type.IsListInterface()) {
+          Label push_result;
+          // TODO(srdjan) also accept List<Object>.
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          __ CompareObject(RCX, *CoreClass("ObjectArray"));
+          __ j(EQUAL, &push_result, Assembler::kNearJump);
+          __ CompareObject(RCX, *CoreClass("GrowableObjectArray"));
+          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+          __ Bind(&push_result);
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done);
+        } else if (!type_class.is_interface()) {
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          __ CompareObject(RCX, type_class);
+          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done);
+        }
+      }
+      __ Bind(&runtime_call);
+      // Fall through to runtime call.
+    } else {
+      Label compare_classes;
+      __ testq(RAX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
+      // Object is Smi.
+      const Class& smi_class = Class::Handle(Smi::Class());
+      // TODO(regis): We should introduce a SmiType.
+      Error& malformed_error = Error::Handle();
+      if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                                type_class,
+                                TypeArguments::Handle(),
+                                &malformed_error)) {
+        __ PushObject(negate_result ? bool_false : bool_true);
+      } else {
+        __ PushObject(negate_result ? bool_true : bool_false);
+      }
+      __ jmp(&done);
+
+      // Compare if the classes are equal.
+      __ Bind(&compare_classes);
+      const Class* compare_class = NULL;
+      if (type.IsStringInterface()) {
+        compare_class = &Class::ZoneHandle(
+            Isolate::Current()->object_store()->one_byte_string_class());
+      } else if (type.IsBoolInterface()) {
+        compare_class = &Class::ZoneHandle(
+            Isolate::Current()->object_store()->bool_class());
+      } else if (!type_class.is_interface()) {
+        compare_class = &type_class;
+      }
+      if (compare_class != NULL) {
+        Label runtime_call;
+        __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+        __ CompareObject(RCX, *compare_class);
+        __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+        __ PushObject(negate_result ? bool_false : bool_true);
+        __ jmp(&done, Assembler::kNearJump);
+        __ Bind(&runtime_call);
+      }
+    }
+  }
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Immediate location =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+  __ pushq(location);  // Push the source location.
+  __ pushq(RAX);  // Push the instance.
+  __ PushObject(type);  // Push the type.
+  if (!type.IsInstantiated()) {
+    GenerateInstantiatorTypeArguments(token_index);
+  } else {
+    __ pushq(raw_null);  // Null instantiator.
+  }
+  GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
+  // Pop the two parameters supplied to the runtime entry. The result of the
+  // instanceof runtime call will be left as the result of the operation.
+  __ addq(RSP, Immediate(4 * kWordSize));
+  if (negate_result) {
+    Label negate_done;
+    __ popq(RDX);
+    __ LoadObject(RAX, bool_true);
+    __ cmpq(RDX, RAX);
+    __ j(NOT_EQUAL, &negate_done, Assembler::kNearJump);
+    __ LoadObject(RAX, bool_false);
+    __ Bind(&negate_done);
+    __ pushq(RAX);
+  }
+  __ Bind(&done);
+  __ popq(RAX);
+}
+
+
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
-  Bailout("InstanceOf");
+  __ popq(RAX);
+  GenerateInstanceOf(comp->node_id(),
+                     comp->token_index(),
+                     comp->type(),
+                     comp->negate_result());
 }
 
 
