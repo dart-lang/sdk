@@ -36368,7 +36368,7 @@ class _PointFactoryProvider {
 
 class _WebSocketFactoryProvider {
 
-  factory WebSocket(String url) => _wrap(new new dom.WebSocket(url));
+  factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
