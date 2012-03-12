@@ -20,6 +20,7 @@
 #import("status_file_parser.dart");
 #import("test_runner.dart");
 #import("multitest.dart");
+#import("drt_updater.dart");
 
 #source("browser_test.dart");
 
@@ -223,6 +224,16 @@ class StandardTestSuite implements TestSuite {
 
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone = null]) {
+    // If DumpRenderTree is required, and not yet updated, wait for update.
+    if (DumpRenderTreeUpdater.componentRequiresDRT(configuration['component'])
+        && !DumpRenderTreeUpdater.updated) {
+      Expect.isTrue(DumpRenderTreeUpdater.isActive);
+      DumpRenderTreeUpdater.onUpdated.add(() {
+        forEachTest(onTest, testCache, globalTempDir, onDone);
+      });
+      return;
+    }
+
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
     globalTemporaryDirectory = globalTempDir;
@@ -326,41 +337,40 @@ class StandardTestSuite implements TestSuite {
     }
     if (expectations.contains(SKIP)) return;
 
-    switch (configuration['component']) {
-      case 'dartium':
-      case 'chromium':
-      case 'frogium':
-      case 'legium':
-      case 'webdriver':
-        enqueueBrowserTest(filename, testName, optionsFromFile,
-                           expectations, isNegative);
-        break;
-      default:
-        isNegative = isNegative ||
-            (configuration['checked'] && info.isNegativeIfChecked);
+    if (TestUtils.isBrowserComponent(configuration['component'])) {
+      enqueueBrowserTest(info, testName, expectations);
+    } else {
+      enqueueStandardTest(info, testName, expectations);
+    }
+  }
 
-        if (configuration['component'] == 'dartc') {
-          // dartc can detect static type warnings by the
-          // format of the error line
-          if (info.hasFatalTypeErrors) {
-            isNegative = true;
-          } else if (info.hasRuntimeErrors) {
-            isNegative = false;
-          }
-        }
+  void enqueueStandardTest(TestInformation info,
+                           String testName,
+                           Set<String> expectations) {
+    bool isNegative = info.isNegative ||
+        (configuration['checked'] && info.isNegativeIfChecked);
 
-        var argumentLists = argumentListsFromFile(filename,
-                                                  optionsFromFile);
+    if (configuration['component'] == 'dartc') {
+      // dartc can detect static type warnings by the
+      // format of the error line
+      if (info.hasFatalTypeErrors) {
+        isNegative = true;
+      } else if (info.hasRuntimeErrors) {
+        isNegative = false;
+      }
+    }
 
-        for (var args in argumentLists) {
-          doTest(new TestCase('$suiteName/$testName',
-                              [new Command(shellPath(), args)],
-                              configuration,
-                              completeHandler,
-                              expectations,
-                              isNegative,
-                              info));
-        }
+    var argumentLists = argumentListsFromFile(info.filename,
+                                              info.optionsFromFile);
+
+    for (var args in argumentLists) {
+      doTest(new TestCase('$suiteName/$testName',
+                          [new Command(shellPath(), args)],
+                          configuration,
+                          completeHandler,
+                          expectations,
+                          isNegative,
+                          info));
     }
   }
 
@@ -418,11 +428,11 @@ class StandardTestSuite implements TestSuite {
    * step and an execution step, both with the appropriate executable and
    * arguments.
    */
-  void enqueueBrowserTest(String filename,
+  void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          Map optionsFromFile,
-                          Set<String> expectations,
-                          bool isNegative) {
+                          Set<String> expectations) {
+    Map optionsFromFile = info.optionsFromFile;
+    String filename = info.filename;
     if (optionsFromFile['isMultitest']) return;
     bool isWebTest = optionsFromFile['containsDomImport'];
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
@@ -432,6 +442,7 @@ class StandardTestSuite implements TestSuite {
     }
 
     final String component = configuration['component'];
+    Expect.isTrue(DumpRenderTreeUpdater.componentRequiresDRT(component));
     final String testPath =
         new File(filename).fullPathSync().replaceAll('\\', '/');
 
@@ -643,8 +654,9 @@ class StandardTestSuite implements TestSuite {
       tempDirPath = globalTemporaryDirectory();
       String debugMode =
           (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-      generatedTestPath = ['${debugMode}_${configuration["arch"]}']
-          .addAll(generatedTestPath);
+      var temp = ['${debugMode}_${configuration["arch"]}'];
+      temp.addAll(generatedTestPath);
+      generatedTestPath = temp;
     }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
@@ -1171,6 +1183,12 @@ class TestUtils {
     }
     return args;
   }
+
+  static bool isBrowserComponent(String component) =>
+      const <String>['dartium',
+                     'frogium',
+                     'legium',
+                     'webdriver'].some((x) => x == component);
 }
 
 class SummaryReport {

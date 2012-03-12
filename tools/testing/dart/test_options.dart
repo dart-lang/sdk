@@ -6,6 +6,7 @@
 
 #import("dart:io");
 #import("dart:builtin");
+#import("drt_updater.dart");
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
@@ -457,6 +458,11 @@ Controls how dart code is compiled and executed.
         result.addAll(_expandConfigurations(newConfiguration));
       }
       return result;
+    } else {
+      // All components eventually go through this path, after expansion.
+      if (DumpRenderTreeUpdater.componentRequiresDRT(components)) {
+        DumpRenderTreeUpdater.update();
+      }
     }
 
     // Adjust default timeout based on mode and component.
