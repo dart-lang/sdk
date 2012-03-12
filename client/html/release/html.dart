@@ -188,6 +188,7 @@ _wrap(raw) {
     case "DocumentFragment": return new _DocumentFragmentImpl._wrap(domObject);
     case "DocumentType": return new _DocumentTypeImpl._wrap(domObject);
     case "DynamicsCompressorNode": return new _DynamicsCompressorNodeImpl._wrap(domObject);
+    case "EXTTextureFilterAnisotropic": return new _EXTTextureFilterAnisotropicImpl._wrap(domObject);
     case "ElementTimeControl": return new _ElementTimeControlImpl._wrap(domObject);
     case "HTMLEmbedElement": return new _EmbedElementImpl._wrap(domObject);
     case "Entity": return new _EntityImpl._wrap(domObject);
@@ -7323,6 +7324,10 @@ class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsComp
 
   AudioParam get threshold() => _wrap(_ptr.threshold);
 }
+
+class _EXTTextureFilterAnisotropicImpl extends _DOMTypeBase implements EXTTextureFilterAnisotropic {
+  _EXTTextureFilterAnisotropicImpl._wrap(ptr) : super._wrap(ptr);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -8688,6 +8693,12 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement {
   _FieldSetElementImpl._wrap(ptr) : super._wrap(ptr);
 
   FormElement get form() => _wrap(_ptr.form);
+
+  String get name() => _wrap(_ptr.name);
+
+  void set name(String value) { _ptr.name = _unwrap(value); }
+
+  String get type() => _wrap(_ptr.type);
 
   String get validationMessage() => _wrap(_ptr.validationMessage);
 
@@ -17477,6 +17488,8 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement {
 
   void set selectedIndex(int value) { _ptr.selectedIndex = _unwrap(value); }
 
+  HTMLCollection get selectedOptions() => _wrap(_ptr.selectedOptions);
+
   int get size() => _wrap(_ptr.size);
 
   void set size(int value) { _ptr.size = _unwrap(value); }
@@ -17522,6 +17535,8 @@ class _ShadowElementImpl extends _ElementImpl implements ShadowElement {
 
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
   _ShadowRootImpl._wrap(ptr) : super._wrap(ptr);
+
+  Element get activeElement() => _wrap(_ptr.activeElement);
 
   Element get host() => _wrap(_ptr.host);
 
@@ -18604,10 +18619,6 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement {
   _TrackElementImpl._wrap(ptr) : super._wrap(ptr);
-
-  bool get isDefault() => _wrap(_ptr.isDefault);
-
-  void set isDefault(bool value) { _ptr.isDefault = _unwrap(value); }
 
   String get kind() => _wrap(_ptr.kind);
 
@@ -22424,12 +22435,6 @@ interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
-
   final int primitiveType;
 
   Counter getCounterValue();
@@ -25766,6 +25771,18 @@ interface DynamicsCompressorNode extends AudioNode {
 
   final AudioParam threshold;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26599,6 +26616,10 @@ interface EventTarget {
 interface FieldSetElement extends Element {
 
   final FormElement form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -29374,7 +29395,7 @@ interface PerformanceTiming {
 
   final int unloadEventStart;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -32543,6 +32564,8 @@ interface SelectElement extends Element {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -32582,6 +32605,8 @@ interface ShadowElement extends Element {
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
+
+  final Element activeElement;
 
   final Element host;
 
@@ -33319,8 +33344,6 @@ interface TrackElement extends Element {
   static final int LOADING = 1;
 
   static final int NONE = 0;
-
-  bool isDefault;
 
   String kind;
 
@@ -34659,7 +34682,9 @@ interface WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket extends EventTarget {
+interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+
+  WebSocket(String url);
 
   WebSocketEvents get on();
 
@@ -36339,6 +36364,11 @@ class _TypedArrayFactoryProvider {
 class _PointFactoryProvider {
 
   factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
+}
+
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) => _wrap(new new dom.WebSocket(url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

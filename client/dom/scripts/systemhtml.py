@@ -112,6 +112,8 @@ _html_library_remove = set([
     "Document.get:inputEncoding",
     "Document.getElementById",
     "Document.getElementsByClassName",
+    "Document.get:height",
+    "Document.get:width",
     "Element.getElementsByClassName",
     "Element.getElementsByTagNameNS",
     "Element.getElementsByTagName",

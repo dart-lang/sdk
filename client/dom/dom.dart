@@ -700,12 +700,6 @@ interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
-
   final int primitiveType;
 
   Counter getCounterValue();
@@ -2258,6 +2252,18 @@ interface DynamicsCompressorNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface Element extends Node, NodeSelector, ElementTraversal {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
@@ -3372,6 +3378,8 @@ interface HTMLDocument extends Document {
 
   String fgColor;
 
+  final int height;
+
   String linkColor;
 
   final HTMLCollection plugins;
@@ -3379,6 +3387,8 @@ interface HTMLDocument extends Document {
   final HTMLCollection scripts;
 
   String vlinkColor;
+
+  final int width;
 
   void captureEvents();
 
@@ -3483,6 +3493,10 @@ interface HTMLEmbedElement extends HTMLElement {
 interface HTMLFieldSetElement extends HTMLElement {
 
   final HTMLFormElement form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -4438,6 +4452,8 @@ interface HTMLSelectElement extends HTMLElement {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -4765,8 +4781,6 @@ interface HTMLTrackElement extends HTMLElement {
   static final int LOADING = 1;
 
   static final int NONE = 0;
-
-  bool isDefault;
 
   String kind;
 
@@ -9364,6 +9378,8 @@ interface ScriptProfileNode {
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
+
+  final Element activeElement;
 
   final Element host;
 

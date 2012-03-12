@@ -804,12 +804,6 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
 
   static final int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
-
   final int primitiveType;
 
   _CounterImpl getCounterValue() native;
@@ -5222,6 +5216,13 @@ class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsComp
 
   final _AudioParamImpl threshold;
 }
+
+class _EXTTextureFilterAnisotropicImpl implements EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6311,6 +6312,10 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement native "*HTMLFieldSetElement" {
 
   final _FormElementImpl form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -13011,6 +13016,8 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   int selectedIndex;
 
+  final _HTMLCollectionImpl selectedOptions;
+
   int size;
 
   final String type;
@@ -13038,6 +13045,8 @@ class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*
 }
 
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native "*ShadowRoot" {
+
+  final _ElementImpl activeElement;
 
   final _ElementImpl host;
 
@@ -13712,8 +13721,6 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
   static final int LOADING = 1;
 
   static final int NONE = 0;
-
-  bool isDefault;
 
   String kind;
 
@@ -17044,12 +17051,6 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
-
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -20387,6 +20388,18 @@ interface DynamicsCompressorNode extends AudioNode {
 
   final AudioParam threshold;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21220,6 +21233,10 @@ interface EventTarget {
 interface FieldSetElement extends Element {
 
   final FormElement form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -27164,6 +27181,8 @@ interface SelectElement extends Element {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -27203,6 +27222,8 @@ interface ShadowElement extends Element {
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
+
+  final Element activeElement;
 
   final Element host;
 
@@ -27940,8 +27961,6 @@ interface TrackElement extends Element {
   static final int LOADING = 1;
 
   static final int NONE = 0;
-
-  bool isDefault;
 
   String kind;
 
