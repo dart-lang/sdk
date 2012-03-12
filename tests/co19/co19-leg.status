@@ -52,7 +52,6 @@ Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(ahe): New co19 failure, 
 Language/10_Expressions/06_Lists_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/07_Maps_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/07_Maps_A07_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/08_Function_Expressions_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Fail # TODO(ahe): New co19 failure, please triage.
 Language/10_Expressions/10_Instance_Creation/2_Const_A08_t03: Fail # TODO(ahe): New co19 failure, please triage.
@@ -120,10 +119,6 @@ Language/11_Statements/13_Continue_A03_t07: Fail # TODO(ahe): New co19 failure, 
 Language/11_Statements/14_Throw_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
 Language/11_Statements/14_Throw_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/13_Types/5_Function_Types_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/13_Types/5_Function_Types_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/13_Types/5_Function_Types_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/13_Types/5_Function_Types_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
 LibTest/core/double/toStringAsFixed_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
 
 
