@@ -528,6 +528,9 @@ class StandardTestSuite implements TestSuite {
         List<String> otherScripts = optionsFromFile['otherScripts'];
         for (String name in otherScripts) {
           int end = filename.lastIndexOf('/');
+          if (new Platform().operatingSystem() == 'windows' && end == -1) {
+            end = filename.lastIndexOf('\\');
+          }
           if (end == -1) {
             print('Warning: error processing "OtherScripts" of $filename.');
             print('Skipping test ($testName).');
