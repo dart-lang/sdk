@@ -9,7 +9,6 @@
 [ $component == leg ]
 MathParseDoubleTest: Fail
 
-MapTest: Skip # SplayTree gets stuck when looking up key. MUST FIX.
 
 # Compilation errors.
 ConstListLiteralTest: Fail # visitContinueStatement not implemented

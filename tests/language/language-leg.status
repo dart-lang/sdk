@@ -27,7 +27,6 @@ Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
-DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
 DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
@@ -80,7 +79,6 @@ SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
 SwitchTest: Fail # switch cases are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
-WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
 
 
 # Implementation errors (library or generated code).
@@ -244,8 +242,9 @@ Switch7NegativeTest: Fail, OK # Negative language test.
 SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
-TypeVariableBounds2Test*: Skip # multiple error annotations are required
-TypeVariableBoundsTest*: Skip # multiple error annotations are required
+TypeVariableBoundsTest/00: Fail, OK # Negative language test.
+TypeVariableBoundsTest/07: Fail, OK # Negative language test.
+TypeVariableBoundsTest/08: Fail, OK # Negative language test.
 TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
@@ -253,6 +252,7 @@ TypeVariableScopeTest/02: Fail, OK # Negative language test.
 TypeVariableScopeTest/03: Fail, OK # Negative language test.
 TypeVariableScopeTest/04: Fail, OK # Negative language test.
 TypeVariableScopeTest/05: Fail, OK # Negative language test.
+WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.
