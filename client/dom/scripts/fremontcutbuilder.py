@@ -41,6 +41,7 @@ def main():
       'page',
       'plugins',
       'storage',
+      'Modules/webdatabase',
       'svg',
       'webaudio',
       'Modules/websockets',
