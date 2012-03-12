@@ -869,6 +869,22 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 
 
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
+  if (node->constructor().IsFactory()) {
+    ZoneGrowableArray<Value*>* factory_arguments =
+        new ZoneGrowableArray<Value*>();
+    BuildTypeArguments(node, factory_arguments);
+    ASSERT(factory_arguments->length() == 1);
+    TranslateArgumentList(*node->arguments(),
+                          temp_index() + 1,
+                          factory_arguments);
+    StaticCallComp* call =
+        new StaticCallComp(node->token_index(),
+                           node->constructor(),
+                           node->arguments()->names(),
+                           factory_arguments);
+    ReturnComputation(call);
+    return;
+  }
   Bailout("EffectGraphVisitor::VisitConstructorCallNode");
 }
 
@@ -876,15 +892,13 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 void EffectGraphVisitor::BuildTypeArguments(ConstructorCallNode* node,
                                             ZoneGrowableArray<Value*>* args) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
-  ASSERT(cls.HasTypeArguments());
+  ASSERT(cls.HasTypeArguments() || node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
     AddInstruction(
         new BindInstr(temp_index(), new ConstantVal(node->type_arguments())));
     args->Add(new TempVal(temp_index()));
-    if (node->constructor().IsFactory()) {
-      UNIMPLEMENTED();
-    } else {
+    if (!node->constructor().IsFactory()) {
       // Null instantiator.
       AddInstruction(new BindInstr(
           temp_index() + 1, new ConstantVal(Object::ZoneHandle())));
@@ -898,14 +912,15 @@ void EffectGraphVisitor::BuildTypeArguments(ConstructorCallNode* node,
 
 void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
-    Bailout("EffectGraphVisitor::VisitConstructorCallNode Factory");
+    EffectGraphVisitor::VisitConstructorCallNode(node);
+    return;
   }
 
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
+
   ZoneGrowableArray<Value*>* allocate_arguments =
       new ZoneGrowableArray<Value*>();
-
   if (requires_type_arguments) {
     BuildTypeArguments(node, allocate_arguments);
   }

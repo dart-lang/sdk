@@ -2852,7 +2852,11 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
 
 
 const char* AbstractTypeArguments::ToCString() const {
-  // AbstractTypeArguments is an abstract class.
+  // AbstractTypeArguments is an abstract class, valid only for representing
+  // null.
+  if (IsNull()) {
+    return "NULL AbstractTypeArguments";
+  }
   UNREACHABLE();
   return "AbstractTypeArguments";
 }
