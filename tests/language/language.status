@@ -21,6 +21,7 @@ ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
+FieldOverrideTest/02: Fail    # Issue 742: field shadowing now allowed
 SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
 PseudoKWIllegalTest/03: Fail  # Issue 356
 PseudoKWIllegalTest/08: Fail  # Issue 356
@@ -186,6 +187,7 @@ SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
+SyntaxTest: Skip             # Bug 2107  Static type warnings in none case
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 ConstructorRedirectTest/01: Fail # Issue 2105.

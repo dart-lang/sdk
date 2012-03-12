@@ -87,22 +87,21 @@ void ExtractTestsFromMultitest(String filename,
   int lineCount = 0;
   for (String line in lines) {
     lineCount++;
-    if (line.contains('///')) {
-      var parts = line.split('///')[1].split(':');
-      var key = parts[0].trim();
-      var rest = parts[1].trim();
-      if (testsAsLines.containsKey(key)) {
-        Expect.equals('continued', rest);
-        testsAsLines[key].add(line);
+    var annotation = new _Annotation.from(line);
+    if (annotation != null) {
+      testsAsLines.putIfAbsent(annotation.key,
+          () => new List<String>.from(testTemplate)).add(line);
+      outcomes.putIfAbsent(annotation.key, 
+          () => new Set<String>());
+      if (annotation.rest == 'continued') {
+        continue;
       } else {
-        (testsAsLines[key] = new List<String>.from(testTemplate)).add(line);
-        List<String> outcomesList = rest.split(',');
-        for (String nextOutcome in outcomesList) {
-          nextOutcome = nextOutcome.trim();
-          outcomes.putIfAbsent(key, () => new Set<String>()).add(nextOutcome);  
+        for (String nextOutcome in annotation.outcomesList) {
+          outcomes[annotation.key].add(nextOutcome);  
           if (!validMultitestOutcomes.contains(nextOutcome)) {
+            // TODO(zundel): fix long line
             Expect.fail(
-              "Invalid test directive '$nextOutcome' on line ${lineCount}: $rest ");
+              "Invalid test directive '$nextOutcome' on line ${lineCount}: ${annotation.rest} ");
           }
         }
       }
@@ -111,6 +110,15 @@ void ExtractTestsFromMultitest(String filename,
       for (var test in testsAsLines.getValues()) test.add(line);
     }
   }
+
+  // Check that every key (other than the none case) has at least one outcome
+  for (var outcomeKey in outcomes.getKeys()) {
+    if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty()) {
+      // TODO(zundel): fix long line
+      Expect.fail("Test ${outcomeKey} has no valid annotated outcomes. Expected one of: ${validMultitestOutcomes.toString()}");
+    }
+  }
+
   // Add the template, with no multitest lines, as a test with key 'none'.
   testsAsLines['none'] = testTemplate;
   outcomes['none'] = new Set<String>();
@@ -119,6 +127,26 @@ void ExtractTestsFromMultitest(String filename,
   for (String key in testsAsLines.getKeys()) {
     tests[key] =
         Strings.join(testsAsLines[key], line_separator) + line_separator;
+  }
+}
+
+// Represents a mutlitest annotation in the special /// comment.
+class _Annotation {
+  String key;
+  String rest;
+  List<String> outcomesList;
+  _Annotation() {}
+  factory _Annotation.from(String line) {
+    if (!line.contains('///')) {
+      return null;
+    }
+    var annotation = new _Annotation();
+    var parts = line.split('///')[1].split(':').map((s) => s.trim());
+    annotation.key = parts[0];
+    annotation.rest = parts[1];
+    annotation.outcomesList = annotation.rest.split(',')
+        .map((s) => s.trim());
+    return annotation;
   }
 }
 

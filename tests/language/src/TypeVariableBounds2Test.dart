@@ -4,11 +4,19 @@
 
 // Test of parameterized types with invalid bounds.
 
-interface I<T extends num> { }
-
 interface J<T> { }
 
 interface K<T> { }
+
+interface I<T 
+  extends num /// 00: continued
+  extends num /// 01: continued
+  extends num /// 02: continued
+  extends num /// 03: continued
+  extends num /// 04: continued
+  extends num /// 05: continued
+  extends num /// 06: continued
+> { }
 
 class A<T> implements I<T>, J<T> {
 }
@@ -21,10 +29,10 @@ main() {
     J j = a;  /// 01: static type warning
     K k = a;  /// 02: dynamic type error, static type warning
 
-    // In production mode, A<String> is subtype of I, but error in checked mode.
+    // In production mode, A<String> is subtype of I, error in checked mode.
     var x = a is I;  /// 03: dynamic type error, static type warning
 
-    // In both production and checked modes, A<String> is a subtype of I.
+    // In both production and checked modes, A<String> is a subtype of J.
     Expect.isTrue(a is J);  /// 04: static type warning
 
     // In both production and checked modes, A<String> is not a subtype of K.
