@@ -15,7 +15,6 @@ ConstListLiteralTest: Fail # visitContinueStatement not implemented
 CoreRuntimeTypesTest: Fail # map not implemented
 DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
-FuturesTest: Fail # factory ReceivePort is not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
 ListTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
