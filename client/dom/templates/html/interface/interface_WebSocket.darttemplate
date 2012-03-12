@@ -6,5 +6,5 @@
 
 interface $ID$EXTENDS default _$(ID)FactoryProvider {
 
-  $ID(num x, num y);
+  $ID(String url);
 $!MEMBERS}

@@ -29374,7 +29374,7 @@ interface PerformanceTiming {
 
   final int unloadEventStart;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -34659,7 +34659,9 @@ interface WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket extends EventTarget {
+interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+
+  WebSocket(String url);
 
   WebSocketEvents get on();
 
@@ -36339,6 +36341,11 @@ class _TypedArrayFactoryProvider {
 class _PointFactoryProvider {
 
   factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
+}
+
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) => _wrap(new new dom.WebSocket(url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

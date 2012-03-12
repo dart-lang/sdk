@@ -61,3 +61,8 @@ class _PointFactoryProvider {
 
   factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
 }
+
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) => _wrap(new new dom.WebSocket(url));
+}

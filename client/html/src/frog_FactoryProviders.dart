@@ -65,3 +65,8 @@ class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
 }
+
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) native '''return new WebSocket(url);''';
+}

@@ -24,6 +24,9 @@ client/outcode/
 
 # Generated dom idl database
 /client/dom/database
+# Generated dom and html classes
+/client/dom/generated
+/client/html/generated
 
 # Not sure what creates this
 fixed_length_file_out
