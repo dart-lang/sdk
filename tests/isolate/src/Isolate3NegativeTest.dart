@@ -29,11 +29,11 @@ class Isolate3NegativeTest extends Isolate {
 }
 
 void test(TestExpectation expect) {
-  void msg_callback(var message, SendPort replyTo) {
+  void msg_callback(var message) {
     // This test is a negative test and should not complete successfully.
   }
   void spawn_callback(SendPort port) {
-    port.call("foo").receive(expect.runs2(msg_callback));
+    port.call("foo").then(expect.runs1(msg_callback));
   }
   expect.completes(new Isolate3NegativeTest().spawn()).then(spawn_callback);
 }

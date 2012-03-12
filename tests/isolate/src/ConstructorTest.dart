@@ -21,8 +21,7 @@ class ConstructorTest extends Isolate {
 void test(TestExpectation expect) {
   ConstructorTest test = new ConstructorTest();
   expect.completes(test.spawn()).then((SendPort port) {
-    ReceivePort reply = port.call("ignored");
-    reply.receive(expect.runs2((message, replyPort) {
+    port.call("ignored").then(expect.runs1((message) {
       Expect.equals(499, message);
       expect.succeeded();
     }));

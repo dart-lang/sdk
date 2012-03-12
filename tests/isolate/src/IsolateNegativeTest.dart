@@ -20,7 +20,7 @@ class IsolateNegativeTest extends Isolate {
 
 void test(TestExpectation expect) {
   expect.completes(new IsolateNegativeTest().spawn()).then((SendPort port) {
-    port.call("foo").receive(expect.runs2((message, replyTo) {
+    port.call("foo").then(expect.runs1((message) {
       Expect.equals(true, "Expected fail");   // <=-------- Should fail here.
       expect.succeeded();
     }));

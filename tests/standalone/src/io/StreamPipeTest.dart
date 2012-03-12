@@ -163,8 +163,8 @@ class PipeServer extends TestingServer {
 testFileToFilePipe1() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort.singleShot();
-  donePort.receive((message, ignore) {});
+  ReceivePort donePort = new ReceivePort();
+  donePort.receive((message, ignore) { donePort.close(); });
 
   String srcFileName =
       getDataFilename("tests/standalone/src/io/readline_test1.dat");
@@ -193,8 +193,8 @@ testFileToFilePipe1() {
 testFileToFilePipe2() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort.singleShot();
-  donePort.receive((message, ignore) {});
+  ReceivePort donePort = new ReceivePort();
+  donePort.receive((message, ignore) { donePort.close(); });
 
   String srcFileName =
       getDataFilename("tests/standalone/src/io/readline_test1.dat");
@@ -240,8 +240,8 @@ testFileToFilePipe2() {
 testFileToFilePipe3() {
   // Force test to timeout if one of the handlers is
   // not called.
-  ReceivePort donePort = new ReceivePort.singleShot();
-  donePort.receive((message, ignore) {});
+  ReceivePort donePort = new ReceivePort();
+  donePort.receive((message, ignore) { donePort.close(); });
 
   String srcFileName =
       getDataFilename("tests/standalone/src/io/readline_test1.dat");

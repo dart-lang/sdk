@@ -20,7 +20,7 @@ class CrossIsolate1 extends Isolate {
         otherIsolate.send(msg + 58, null);  // 100.
         receivePort.close();
       });
-      replyTo.send('ready', receivePort.toSendPort());
+      replyTo.send(['ready', receivePort.toSendPort()]);
       this.port.close();
     });
   }
@@ -39,7 +39,7 @@ class CrossIsolate2 extends Isolate {
         mainIsolate.send(msg + 399, null); // 499.
         receivePort.close();
       });
-      replyTo.send('ready', receivePort.toSendPort());
+      replyTo.send(['ready', receivePort.toSendPort()]);
       this.port.close();
     });
   }
@@ -51,17 +51,17 @@ test(TestExpectation expect) {
     expect.completes(new CrossIsolate2().spawn()).then((SendPort port2) {
       // Create a new receive port and send it to isolate2.
       ReceivePort myPort = new ReceivePort();
-      port2.call(myPort.toSendPort()).receive(expect.runs2((msg, port2b) {
-        Expect.equals("ready", msg);
+      port2.call(myPort.toSendPort()).then(expect.runs1((msg) {
+        Expect.equals("ready", msg[0]);
         // Send port of isolate2 to isolate1.
-        port1.call(port2b).receive(expect.runs2((msg, port1b) {
-          Expect.equals("ready", msg);
+        port1.call(msg[1]).then(expect.runs1((msg) {
+          Expect.equals("ready", msg[0]);
           myPort.receive(expect.runs2((msg, replyTo) {
             Expect.equals(499, msg);
             expect.succeeded();
             myPort.close();
           }));
-          port1b.send(42, null);
+          msg[1].send(42, null);
         }));
       }));
     });

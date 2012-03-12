@@ -9,12 +9,6 @@ class _BaseSendPort implements SendPort {
 
   _BaseSendPort(this._isolateId);
 
-  _ReceivePortSingleShotImpl call(var message) {
-    final result = new _ReceivePortSingleShotImpl();
-    this.send(message, result.toSendPort());
-    return result;
-  }
-
   static void checkReplyTo(SendPort replyTo) {
     if (replyTo !== null
         && replyTo is! _NativeJsSendPort
@@ -24,20 +18,20 @@ class _BaseSendPort implements SendPort {
     }
   }
 
-  // TODO(sigmund): replace the current SendPort.call with the following:
-  //Future call(var message) {
-  //   final completer = new Completer();
-  //   final port = new _ReceivePort.singleShot();
-  //   send(message, port.toSendPort());
-  //   port.receive((value, ignoreReplyTo) {
-  //     if (value is Exception) {
-  //       completer.completeException(value);
-  //     } else {
-  //       completer.complete(value);
-  //     }
-  //   });
-  //   return completer.future;
-  //}
+  Future call(var message) {
+    final completer = new Completer();
+    final port = new _ReceivePortImpl();
+    send(message, port.toSendPort());
+    port.receive((value, ignoreReplyTo) {
+      port.close();
+      if (value is Exception) {
+        completer.completeException(value);
+      } else {
+        completer.complete(value);
+      }
+    });
+    return completer.future;
+  }
 
   abstract void send(var message, [SendPort replyTo]);
   abstract bool operator ==(var other);
@@ -187,9 +181,6 @@ class _ReceivePortFactory {
     return new _ReceivePortImpl();
   }
 
-  factory ReceivePort.singleShot() {
-    return new _ReceivePortSingleShotImpl();
-  }
 }
 
 /** Implementation of a multi-use [ReceivePort] on top of JavaScript. */
@@ -217,27 +208,6 @@ class _ReceivePortImpl implements ReceivePort {
   }
 }
 
-/** Implementation of a single-shot [ReceivePort]. */
-class _ReceivePortSingleShotImpl implements ReceivePort {
-
-  _ReceivePortSingleShotImpl() : _port = new _ReceivePortImpl() { }
-
-  void receive(void callback(var message, SendPort replyTo)) {
-    _port.receive((var message, SendPort replyTo) {
-      _port.close();
-      callback(message, replyTo);
-    });
-  }
-
-  void close() {
-    _port.close();
-  }
-
-  SendPort toSendPort() => _port.toSendPort();
-
-  final _ReceivePortImpl _port;
-}
-
 /** Wait until all ports in a message are resolved. */
 _waitForPendingPorts(var message, void callback()) {
   final finder = new _PendingSendPortFinder();
@@ -254,8 +224,6 @@ class _PendingSendPortFinder extends _MessageTraverser {
   visitPrimitive(x) {}
   visitNativeJsSendPort(_NativeJsSendPort port) {}
   visitWorkerSendPort(_WorkerSendPort port) {}
-  visitReceivePort(_ReceivePortImpl port) {}
-  visitReceivePortSingleShot(_ReceivePortSingleShotImpl port) {}
 
   visitList(List list) {
     final visited = _getInfo(list);

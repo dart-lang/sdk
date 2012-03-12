@@ -36,13 +36,7 @@ void testAllTypes(Function f) {
   copyAndVerify([ { 'a': 499 }, { 'b': 42 } ], f);
 
   var port = new ReceivePort();
-  var transformed = f(port);
-  Expect.equals(port.toSendPort(), transformed);
-  port.close();
-
-  port = new ReceivePort.singleShot();
-  transformed = f(port);
-  Expect.equals(port.toSendPort(), transformed);
+  Expect.throws(() => f(port));
   port.close();
 
   var a = [ 1, 3, 5 ];

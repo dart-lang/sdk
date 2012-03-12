@@ -308,8 +308,9 @@ class _IsolateNatives {
   /** JavaScript-specific implementation to spawn an isolate. */
   static Future<SendPort> spawn(Isolate isolate, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
-    ReceivePort port = new ReceivePort.singleShot();
+    ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
+      port.close();
       assert(msg == _SPAWNED_SIGNAL);
       completer.complete(replyPort);
     });
@@ -558,8 +559,9 @@ class _IsolateNatives {
 
   static _spawn2(String functionName, String uri, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
-    ReceivePort port = new ReceivePort.singleShot();
+    ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
+      port.close();
       assert(msg == _SPAWNED_SIGNAL);
       completer.complete(replyPort);
     });

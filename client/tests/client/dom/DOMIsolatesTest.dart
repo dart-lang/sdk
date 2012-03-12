@@ -17,7 +17,7 @@ isolateMainTrampoline(port) {
   final childPortFuture = spawnDomIsolate(window, 'isolateMain');
   port.receive((msg, parentPort) {
     childPortFuture.then((childPort) {
-      childPort.call(msg).receive((response, _) {
+      childPort.call(msg).then((response) {
         parentPort.send(response);
         port.close();
       });
@@ -33,7 +33,7 @@ main() {
 
   asyncTest('Simple DOM isolate test', 1, () {
     spawnDomIsolate(iframe.contentWindow, 'isolateMain').then((sendPort) {
-      sendPort.call('check').receive((msg, replyTo) {
+      sendPort.call('check').then((msg) {
         Expect.equals('about:blank', msg);
         callbackDone();
       });
@@ -42,7 +42,7 @@ main() {
 
   asyncTest('Nested DOM isolates test', 1, () {
     spawnDomIsolate(iframe.contentWindow, 'isolateMainTrampoline').then((sendPort) {
-      sendPort.call('check').receive((msg, replyTo) {
+      sendPort.call('check').then((msg) {
         Expect.equals('about:blank', msg);
         callbackDone();
       });

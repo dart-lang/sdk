@@ -480,8 +480,9 @@ class FileTest {
     asyncTestStarted();
 
     // Port to verify that the test completes.
-    var port = new ReceivePort.singleShot();
+    var port = new ReceivePort();
     port.receive((message, replyTo) {
+      port.close();
       Expect.equals(1, message);
       asyncTestDone("testDirectory");
     });
@@ -879,8 +880,9 @@ class FileTest {
   }
 
   static void testReadAsBytes() {
-    var port = new ReceivePort.singleShot();
+    var port = new ReceivePort();
     port.receive((result, replyTo) {
+      port.close();
       Expect.equals(42, result);
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
@@ -902,8 +904,9 @@ class FileTest {
   }
 
   static void testReadAsText() {
-    var port = new ReceivePort.singleShot();
+    var port = new ReceivePort();
     port.receive((result, replyTo) {
+      port.close();
       Expect.equals(1, result);
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
@@ -954,8 +957,9 @@ class FileTest {
   }
 
   static void testReadAsLines() {
-    var port = new ReceivePort.singleShot();
+    var port = new ReceivePort();
     port.receive((result, replyTo) {
+      port.close();
       Expect.equals(42, result);
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
@@ -985,8 +989,9 @@ class FileTest {
 
 
   static void testReadAsErrors() {
-    var port = new ReceivePort.singleShot();
+    var port = new ReceivePort();
     port.receive((message, _) {
+      port.close();
       Expect.equals(1, message);
     });
     var f = new File('.');

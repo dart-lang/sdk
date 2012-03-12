@@ -330,7 +330,7 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kExistsRequest;
     request[1] = _name;
-    _fileService.call(request).receive((exists, replyTo) {
+    _fileService.call(request).then((exists) {
       callback(exists);
     });
   }
@@ -352,7 +352,7 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kCreateRequest;
     request[1] = _name;
-    _fileService.call(request).receive((created, replyTo) {
+    _fileService.call(request).then((created) {
       if (created) {
         callback();
       } else if (_onError != null) {
@@ -378,7 +378,7 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kDeleteRequest;
     request[1] = _name;
-    _fileService.call(request).receive((deleted, replyTo) {
+    _fileService.call(request).then((deleted) {
       if (deleted) {
         callback();
       } else if (_onError != null) {
@@ -404,7 +404,7 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kDirectoryRequest;
     request[1] = _name;
-    _fileService.call(request).receive((path, replyTo) {
+    _fileService.call(request).then((path) {
       if (path != null) {
         callback(new Directory(path));
       } else if (_onError != null) {
@@ -440,7 +440,7 @@ class _File implements File {
     request[0] = _FileUtils.kOpenRequest;
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
-    _fileService.call(request).receive((id, replyTo) {
+    _fileService.call(request).then((id) {
       if (id != 0) {
         callback(new _RandomAccessFile(id, _name));
       } else if (_onError != null) {
@@ -481,7 +481,7 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kFullPathRequest;
     request[1] = _name;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != null) {
         callback(result);
       } else if (_onError != null) {
@@ -653,7 +653,7 @@ class _RandomAccessFile implements RandomAccessFile {
     // Set the id_ to 0 (NULL) to ensure the no more async requests
     // can be issues for this file.
     _id = 0;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != -1) {
         _id = result;
         callback();
@@ -681,7 +681,7 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kReadByteRequest;
     request[1] = _id;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != -1) {
         callback(result);
       } else if (_onError != null) {
@@ -716,7 +716,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kReadListRequest;
     request[1] = _id;
     request[2] = bytes;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result is List && result.length == 2 && result[0] != -1) {
         var read = result[0];
         var data = result[1];
@@ -764,7 +764,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     request[2] = value;
     _writeEnqueued();
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       _writeCompleted();
       if (result == -1 && _onError !== null) {
         _onError("writeByte failed");
@@ -809,7 +809,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[3] = outOffset;
     request[4] = bytes;
     _writeEnqueued();
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       _writeCompleted();
       if (result == -1 && _onError !== null) {
         _onError("writeList failed");
@@ -846,7 +846,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     request[2] = string;
     _writeEnqueued();
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       _writeCompleted();
       if (result == -1 && _onError !== null) {
         _onError("writeString failed");
@@ -872,7 +872,7 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kPositionRequest;
     request[1] = _id;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != -1) {
         callback(result);
       } else if (_onError != null) {
@@ -900,7 +900,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kSetPositionRequest;
     request[1] = _id;
     request[2] = position;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result) {
         callback();
       } else if (_onError != null) {
@@ -928,7 +928,7 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kTruncateRequest;
     request[1] = _id;
     request[2] = length;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result) {
         callback();
       } else if (_onError != null) {
@@ -954,7 +954,7 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kLengthRequest;
     request[1] = _id;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != -1) {
         callback(result);
       } else if (_onError != null) {
@@ -981,7 +981,7 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kFlushRequest;
     request[1] = _id;
-    _fileService.call(request).receive((result, replyTo) {
+    _fileService.call(request).then((result) {
       if (result != -1) {
         callback();
       } else if (_onError != null) {

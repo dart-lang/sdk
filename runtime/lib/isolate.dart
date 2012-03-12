@@ -6,10 +6,6 @@ class _ReceivePortFactory {
   factory ReceivePort() {
     return new _ReceivePortImpl();
   }
-
-  factory ReceivePort.singleShot() {
-    return new _ReceivePortSingleShotImpl();
-  }
 }
 
 
@@ -67,30 +63,6 @@ class _ReceivePortImpl implements ReceivePort {
 }
 
 
-class _ReceivePortSingleShotImpl implements ReceivePort {
-
-  _ReceivePortSingleShotImpl() : _port = new _ReceivePortImpl() { }
-
-  void receive(void callback(var message, SendPort replyTo)) {
-    _port.receive((var message, SendPort replyTo) {
-      _port.close();
-      callback(message, replyTo);
-    });
-  }
-
-  void close() {
-    _port.close();
-  }
-
-  SendPort toSendPort() {
-    return _port.toSendPort();
-  }
-
-  final _ReceivePortImpl _port;
-
-}
-
-
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message, [SendPort replyTo = null]) {
@@ -102,16 +74,19 @@ class _SendPortImpl implements SendPort {
     _sendInternal(_id, replyId, message);
   }
 
-  _ReceivePortSingleShotImpl call(var message) {
-    final result = new _ReceivePortSingleShotImpl();
-    this.send(message, result.toSendPort());
-    return result;
-  }
-
-  _ReceivePortSingleShotImpl _callNow(var message) {
-    final result = new _ReceivePortSingleShotImpl();
-    this._sendNow(message, result.toSendPort());
-    return result;
+  Future call(var message) {
+    final completer = new Completer();
+    final port = new _ReceivePortImpl();
+    send(message, port.toSendPort());
+    port.receive((value, ignoreReplyTo) {
+      port.close();
+      if (value is Exception) {
+        completer.completeException(value);
+      } else {
+        completer.complete(value);
+      }
+    });
+    return completer.future;
   }
 
   bool operator==(var other) {

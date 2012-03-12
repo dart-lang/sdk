@@ -23,7 +23,7 @@ class LogClient {
       for (int i = 0; i < 5; i++) {
         msg[i] = i;
       }
-      remote.call(msg).receive((int message, SendPort replyTo) {
+      remote.call(msg).then((int message) {
         Expect.equals(1, message);
       });
     });

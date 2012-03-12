@@ -33,7 +33,7 @@ class _Directory implements Directory {
     List request = new List(2);
     request[0] = kExistsRequest;
     request[1] = _path;
-    _directoryService.call(request).receive((result, replyTo) {
+    _directoryService.call(request).then((result) {
       if (result < 0) {
         if (_onError != null) {
           _onError("Diretory exists test failed: $_path");
@@ -57,7 +57,7 @@ class _Directory implements Directory {
     List request = new List(2);
     request[0] = kCreateRequest;
     request[1] = _path;
-    _directoryService.call(request).receive((result, replyTo) {
+    _directoryService.call(request).then((result) {
       if (result) {
         callback();
       } else if (_onError != null) {
@@ -77,7 +77,7 @@ class _Directory implements Directory {
     List request = new List(2);
     request[0] = kCreateTempRequest;
     request[1] = _path;
-    _directoryService.call(request).receive((result, replyTo) {
+    _directoryService.call(request).then((result) {
       if (result is !List) {
         _path = result;
         callback();
@@ -107,7 +107,7 @@ class _Directory implements Directory {
     request[0] = kDeleteRequest;
     request[1] = _path;
     request[2] = recursive;
-    _directoryService.call(request).receive((result, replyTo) {
+    _directoryService.call(request).then((result) {
       if (result) {
         callback();
       } else if (_onError != null) {

@@ -70,8 +70,6 @@ class _MessageTraverser {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
     if (x is _BufferingSendPort) return visitBufferingSendPort(x);
-    if (x is _ReceivePortImpl) return visitReceivePort(x);
-    if (x is _ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
     // TODO(floitsch): make this a real exception. (which one)?
     throw "Message serialization: Illegal value $x passed";
   }
@@ -82,8 +80,6 @@ class _MessageTraverser {
   abstract visitNativeJsSendPort(_NativeJsSendPort x);
   abstract visitWorkerSendPort(_WorkerSendPort x);
   abstract visitBufferingSendPort(_BufferingSendPort x);
-  abstract visitReceivePort(_ReceivePortImpl x);
-  abstract visitReceivePortSingleShot(_ReceivePortSingleShotImpl x);
 
   _clearAttachedInfo(var o) native
       "o['__MessageTraverser__attached_info__'] = (void 0);";
@@ -158,14 +154,6 @@ class _Copier extends _MessageTraverser {
           + " ports are resolved at this point.";
     }
   }
-
-  SendPort visitReceivePort(_ReceivePortImpl port) {
-    return port.toSendPort();
-  }
-
-  SendPort visitReceivePortSingleShot(_ReceivePortSingleShotImpl port) {
-    return port.toSendPort();
-  }
 }
 
 /** Visitor that serializes a message as a JSON array. */
@@ -216,14 +204,6 @@ class _Serializer extends _MessageTraverser {
       throw "internal error: must call _waitForPendingPorts to ensure all"
           + " ports are resolved at this point.";
     }
-  }
-
-  visitReceivePort(_ReceivePortImpl port) {
-    return visitNativeJsSendPort(port.toSendPort());;
-  }
-
-  visitReceivePortSingleShot(_ReceivePortSingleShotImpl port) {
-    return visitNativeJsSendPort(port.toSendPort());
   }
 
   _serializeList(List list) {

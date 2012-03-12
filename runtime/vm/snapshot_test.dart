@@ -1239,7 +1239,7 @@ class IsolateExitHandlerTest extends Isolate {
       Expect.equals(1, counter);
     });
     new IsolateExitHandlerTest().spawn().then((SendPort p) {
-      p.call("bar").receive((msg, replyTo) {
+      p.call("bar").then((msg) {
         counter++;
       });
     });
@@ -1281,7 +1281,7 @@ class SpawnTest {
     IsolateTestFramework.waitForDone();
     SpawnedIsolate isolate = new SpawnedIsolate();
     isolate.spawn().then((SendPort port) {
-      port.call(42).receive((message, replyTo) {
+      port.call(42).then((message) {
         Expect.equals(42, message);
         IsolateTestFramework.done();
       });
@@ -1339,8 +1339,7 @@ class ConstructorTest extends Isolate {
   static void testMain() {
     ConstructorTest test = new ConstructorTest();
     test.spawn().then((SendPort port) {
-      ReceivePort reply = port.call("ignored");
-      reply.receive((message, replyPort) {
+      port.call("ignored").then((message) {
         Expect.equals(499, message);
       });
     });
@@ -1384,13 +1383,12 @@ class RequestReplyTest {
   static void test() {
     testCall();
     testSend();
-    testSendSingleShot();
   }
 
   static void testCall() {
     IsolateTest.waitForDone();
     new RequestReplyIsolate().spawn().then((SendPort port) {
-      port.call(42).receive((message, replyTo) {
+      port.call(42).then((message) {
         Expect.equals(42 + 87, message);
         IsolateTest.done();
       });
@@ -1409,19 +1407,6 @@ class RequestReplyTest {
       });
     });
   }
-
-  static void testSendSingleShot() {
-    IsolateTest.waitForDone();
-    new RequestReplyIsolate().spawn().then((SendPort port) {
-      ReceivePort reply = new ReceivePort.singleShot();
-      port.send(99, reply.toSendPort());
-      reply.receive((message, replyTo) {
-        Expect.equals(99 + 87, message);
-        IsolateTest.done();
-      });
-    });
-  }
-
 }
 
 
@@ -1524,12 +1509,12 @@ class StaticStateTest {
     Expect.equals("foo", state);
 
     new StaticStateIsolate().spawn().then((SendPort remote) {
-      remote.call("bar").receive((reply, replyTo) {
+      remote.call("bar").then((reply) {
         Expect.equals("foo", state);
         Expect.equals(null, reply);
 
         state = "baz";
-        remote.call("exit").receive((reply, replyTo) {
+        remote.call("exit").then((reply) {
           Expect.equals("baz", state);
           Expect.equals("bar", reply);
           IsolateTest.done();
@@ -1590,7 +1575,7 @@ class LogClient {
       remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
       remote.send(const ["Hello", "World", 0xffffffffff], null);
       // Shutdown the LogRunner.
-      remote.call(-1).receive((int message, SendPort replyTo) {
+      remote.call(-1).then((int message) {
         Expect.equals(6, message);
       });
       IsolateTestFramework.done();
@@ -1724,10 +1709,9 @@ class PingPongClient {
       // Send objects and receive them back.
       for (int i = 0; i < MessageTest.elms.length; i++) {
         var sentObject = MessageTest.elms[i];
-        remote.call(sentObject).receive(
-            (var receivedObject, SendPort replyTo) {
-              MessageTest.VerifyObject(i, receivedObject);
-            });
+        remote.call(sentObject).then((var receivedObject) {
+            MessageTest.VerifyObject(i, receivedObject);
+          });
       }
 
       // Send recursive objects and receive them back.
@@ -1740,27 +1724,25 @@ class PingPongClient {
       sendObject[2] = local_list2;
       sendObject[3] = sendObject;
       sendObject[4] = local_list3;
-      remote.call(sendObject).receive(
-          (var replyObject, SendPort replyTo) {
-            Expect.equals(true, sendObject is List);
-            Expect.equals(true, replyObject is List);
-            Expect.equals(sendObject.length, replyObject.length);
-            Expect.equals(true, replyObject[1] === replyObject);
-            Expect.equals(true, replyObject[3] === replyObject);
-            Expect.equals(true, replyObject[0] === replyObject[2][1]);
-            Expect.equals(true, replyObject[0] === replyObject[2][2]);
-            Expect.equals(true, replyObject[2] === replyObject[4][0]);
-            Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
-            // Bigint literals are not canonicalized so do a == check.
-            Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
-          });
+      remote.call(sendObject).then((var replyObject) {
+          Expect.equals(true, sendObject is List);
+          Expect.equals(true, replyObject is List);
+          Expect.equals(sendObject.length, replyObject.length);
+          Expect.equals(true, replyObject[1] === replyObject);
+          Expect.equals(true, replyObject[3] === replyObject);
+          Expect.equals(true, replyObject[0] === replyObject[2][1]);
+          Expect.equals(true, replyObject[0] === replyObject[2][2]);
+          Expect.equals(true, replyObject[2] === replyObject[4][0]);
+          Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
+          // Bigint literals are not canonicalized so do a == check.
+          Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
+        });
 
       // Shutdown the MessageServer.
-      remote.call(-1).receive(
-          (int message, SendPort replyTo) {
-            Expect.equals(MessageTest.elms.length + 1, message);
-            IsolateTestFramework.done();
-          });
+      remote.call(-1).then((int message) {
+          Expect.equals(MessageTest.elms.length + 1, message);
+          IsolateTestFramework.done();
+        });
     });
   }
 }
@@ -1860,7 +1842,7 @@ class LineProcessorClient {
 
   void processLine(int y) {
     _out.then((SendPort p) {
-      p.call(y).receive((List<int> message, SendPort replyTo) {
+      p.call(y).then((List<int> message) {
         _state.notifyProcessedLine(this, y, message);
       });
     });
@@ -1932,7 +1914,7 @@ class IsolateNegativeTest extends Isolate {
   static void testMain() {
     IsolateTestFramework.waitForDone();
     new IsolateNegativeTest().spawn().then((SendPort port) {
-      port.call("foo").receive((message, replyTo) {
+      port.call("foo").then((message) {
         Expect.equals(true, false);   // <=-------- Should fail here.
         IsolateTestFramework.done();
       });

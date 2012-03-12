@@ -4200,7 +4200,7 @@ UNIT_TEST_CASE(NewNativePort) {
   const char* kScriptChars =
       "#import('dart:isolate');\n"
       "void callPort(SendPort port) {\n"
-      "    port.call(null).receive((message, replyTo) {\n"
+      "    port.call(null).then((message) {\n"
       "      throw new Exception(message);\n"
       "    });\n"
       "}\n";
@@ -4272,7 +4272,7 @@ static bool RunLoopTestCallback(const char* name_prefix,
       "\n"
       "void main(exc_child, exc_parent) {\n"
       "  new MyIsolate().spawn().then((port) {\n"
-      "    port.call(exc_child).receive((message, replyTo) {\n"
+      "    port.call(exc_child).then((message) {\n"
       "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
       "      if (exc_parent) throw new Exception('MakeParentExit');\n"
       "    });\n"

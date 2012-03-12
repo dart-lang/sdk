@@ -448,8 +448,9 @@ testCreateTempError() {
   var location = illegalTempDirectoryLocation();
   if (location == null) return;
 
-  var resultPort = new ReceivePort.singleShot();
+  var resultPort = new ReceivePort();
   resultPort.receive((String message, ignored) {
+      resultPort.close();
       Expect.equals("error", message);
     });
 

@@ -64,7 +64,7 @@ void test(TestExpectation expect) {
     m[2] = "deux";
     m[3] = "tre";
     m[4] = "four";
-    remote.call(m).receive(expect.runs2((var received, SendPort replyTo) {
+    remote.call(m).then(expect.runs1((var received) {
       MessageTest.mapEqualsDeep(m, received);
       remote.send(-1, null);
       expect.succeeded();
