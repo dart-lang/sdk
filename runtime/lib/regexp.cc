@@ -22,11 +22,11 @@ static void CheckAndThrowExceptionIfNull(const Instance& obj) {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
   ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
-  const String& pattern = String::CheckedHandle(arguments->At(1));
-  CheckAndThrowExceptionIfNull(pattern);
-  const Instance& handle_multi_line = Instance::CheckedHandle(arguments->At(2));
-  const Instance& handle_ignore_case =
-      Instance::CheckedHandle(arguments->At(3));
+  const Instance& arg1 = Instance::CheckedHandle(arguments->At(1));
+  CheckAndThrowExceptionIfNull(arg1);
+  GET_NATIVE_ARGUMENT(String, pattern, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Instance, handle_multi_line, arguments->At(2));
+  GET_NATIVE_ARGUMENT(Instance, handle_ignore_case, arguments->At(3));
   bool ignore_case = handle_ignore_case.raw() == Bool::True();
   bool multi_line = handle_multi_line.raw() == Bool::True();
   const JSRegExp& new_regex = JSRegExp::Handle(
@@ -80,9 +80,10 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_getGroupCount, 1) {
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   const JSRegExp& regexp = JSRegExp::CheckedHandle(arguments->At(0));
   ASSERT(!regexp.IsNull());
-  const String& str = String::CheckedHandle(arguments->At(1));
-  CheckAndThrowExceptionIfNull(str);
-  const Smi& start_index = Smi::CheckedHandle(arguments->At(2));
+  const Instance& arg1 = Instance::CheckedHandle(arguments->At(1));
+  CheckAndThrowExceptionIfNull(arg1);
+  GET_NATIVE_ARGUMENT(String, str, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, start_index, arguments->At(2));
   const Array& result =
       Array::Handle(Jscre::Execute(regexp, str, start_index.Value()));
   arguments->SetReturn(result);
