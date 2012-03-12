@@ -11,7 +11,7 @@
  *
  *   Future<int> future = getFutureFromSomewhere();
  *   future.then((value) {
- *     print("I received the number " + value);
+ *     print("I received the number $value");
  *   });
  */
 interface Future<T> default FutureImpl<T> {

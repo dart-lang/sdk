@@ -82,8 +82,7 @@ class _Directory implements Directory {
         _path = result;
         callback();
       } else if (_onError != null) {
-        _onError("Could not create temporary directory [$_path]: " +
-                 "${result[1]}");
+        _onError("Could not create temporary directory [$_path]: ${result[1]}");
       }
     });
   }
@@ -95,7 +94,7 @@ class _Directory implements Directory {
       _path = result;
     } else {
       throw new DirectoryException(
-          "Could not create temporary directory [$_path]: " +
+          "Could not create temporary directory [$_path]: "
           "${status._errorMessage}",
           status._errorCode);
     }
