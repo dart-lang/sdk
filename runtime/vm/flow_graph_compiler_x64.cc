@@ -30,8 +30,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       blocks_(blocks),
       block_info_(blocks->length()),
       current_block_(NULL),
-      pc_descriptors_list_(new CodeGenerator::DescriptorList()),
-      stack_local_count_(0) {
+      pc_descriptors_list_(new CodeGenerator::DescriptorList()) {
   for (int i = 0; i < blocks->length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
@@ -162,6 +161,31 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall, node_id, token_index);
   __ addq(RSP, Immediate(argument_count * kWordSize));
+}
+
+
+void FlowGraphCompiler::VisitCurrentContext(CurrentContextComp* comp) {
+  __ movq(RAX, CTX);
+}
+
+
+void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
+  ASSERT(comp->context()->IsTemp());
+  ASSERT(VerifyCallComputation(comp));
+  // The arguments to the stub include the closure.  The arguments
+  // descriptor describes the closure's arguments (and so does not include
+  // the closure).
+  int argument_count = comp->ArgumentCount();
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
+                                         comp->argument_names());
+  __ LoadObject(R10, arguments_descriptor);
+
+  GenerateCall(comp->token_index(),
+               &StubCode::CallClosureFunctionLabel(),
+               PcDescriptors::kOther);
+  __ addq(RSP, Immediate(argument_count * kWordSize));
+  __ popq(CTX);
 }
 
 
@@ -542,6 +566,23 @@ void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
+  const Function& function = comp->function();
+  const Code& stub = Code::Handle(
+      StubCode::GetAllocationStubForClosure(function));
+  const ExternalLabel label(function.ToCString(), stub.EntryPoint());
+  GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
+
+  const Class& cls = Class::Handle(function.signature_class());
+  if (cls.HasTypeArguments()) {
+    __ popq(RCX);  // Discard type arguments.
+  }
+  if (function.IsImplicitInstanceClosureFunction()) {
+    __ popq(RCX);  // Discard receiver.
+  }
+}
+
+
 void FlowGraphCompiler::VisitBlocks(
     const GrowableArray<BlockEntryInstr*>& blocks) {
   for (intptr_t i = blocks.length() - 1; i >= 0; --i) {
@@ -616,7 +657,7 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   // Check that the entry stack size matches the exit stack size.
   __ movq(R10, RBP);
   __ subq(R10, RSP);
-  __ cmpq(R10, Immediate(stack_local_count() * kWordSize));
+  __ cmpq(R10, Immediate(parsed_function_.stack_local_count() * kWordSize));
   Label stack_ok;
   __ j(EQUAL, &stack_ok, Assembler::kNearJump);
   __ Stop("Exit stack size does not match the entry stack size.");
@@ -676,25 +717,15 @@ void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
 
 
 void FlowGraphCompiler::CompileGraph() {
-  const Function& function = parsed_function_.function();
-  if ((function.num_optional_parameters() != 0)) {
-    Bailout("function has optional parameters");
-  }
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
-  LocalScope* context_owner = NULL;
-  const int parameter_count = function.num_fixed_parameters();
-  const int first_parameter_index = 1 + parameter_count;
-  const int first_local_index = -1;
-  int first_free_frame_index =
-      scope->AllocateVariables(first_parameter_index,
-                               parameter_count,
-                               first_local_index,
-                               scope,
-                               &context_owner);
-  set_stack_local_count(first_local_index - first_free_frame_index);
-
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
-  __ EnterFrame(stack_local_count() * kWordSize);
+  const Function& function = parsed_function_.function();
+
+  // We don't implement copied parameters yet and should have bailed out
+  // from the graph builder.
+  ASSERT(function.num_optional_parameters() == 0);
+  const int parameter_count = function.num_fixed_parameters();
+  const int local_count = parsed_function_.stack_local_count();
+  __ EnterFrame(local_count * kWordSize);
 #ifdef DEBUG
   const bool check_arguments = true;
 #else
@@ -718,11 +749,12 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   // Initialize locals to null.
-  if (stack_local_count() > 0) {
+  if (local_count > 0) {
     __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(Object::null())));
-    for (int i = 0; i < stack_local_count(); ++i) {
+    const int base = parsed_function_.first_stack_local_index();
+    for (int i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
-      __ movq(Address(RBP, (first_local_index - i) * kWordSize), RAX);
+      __ movq(Address(RBP, (base - i) * kWordSize), RAX);
     }
   }
 

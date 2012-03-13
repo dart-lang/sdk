@@ -21,7 +21,9 @@ class LocalVariable;
 // <Computation> ::=
 //   <Value>
 // | AssertAssignable <Value> <AbstractType>
-// | InstanceCall <AstNode> <String> <Value> ...
+// | CurrentContext
+// | ClosureCall <ClosureCallNode> <Value> <Value> ...
+// | InstanceCall <String> <Value> ...
 // | StaticCall <StaticCallNode> <Value> ...
 // | LoadLocal <LocalVariable>
 // | StoreLocal <LocalVariable> <Value>
@@ -35,6 +37,8 @@ class LocalVariable;
 // | StoreStaticField <Field> <Value>
 // | BooleanNegate <Value>
 // | InstanceOf <Value> <Type>
+// | CreateArray <ArrayNode> <Value> ...
+// | CreateClosure <ClosureNode>
 // | AllocateObject <ConstructorCallNode>
 //
 // <Value> ::=
@@ -53,6 +57,8 @@ class LocalVariable;
 #define FOR_EACH_COMPUTATION(M)                                                \
   FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
+  M(CurrentContext, CurrentContextComp)                                        \
+  M(ClosureCall, ClosureCallComp)                                              \
   M(InstanceCall, InstanceCallComp)                                            \
   M(StaticCall, StaticCallComp)                                                \
   M(LoadLocal, LoadLocalComp)                                                  \
@@ -68,6 +74,7 @@ class LocalVariable;
   M(BooleanNegate, BooleanNegateComp)                                          \
   M(InstanceOf, InstanceOfComp)                                                \
   M(CreateArray, CreateArrayComp)                                              \
+  M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
 
 
@@ -165,6 +172,48 @@ class AssertAssignableComp : public Computation {
 };
 
 
+// Denotes the current context, normally held in a register.  This is
+// a computation, not a value, because it's mutable.
+class CurrentContextComp : public Computation {
+ public:
+  CurrentContextComp() { }
+
+  DECLARE_COMPUTATION(CurrentContext)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
+};
+
+
+class ClosureCallComp : public Computation {
+ public:
+  ClosureCallComp(ClosureCallNode* node,
+                  Value* context,
+                  ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node),
+        context_(context),
+        arguments_(arguments) {
+    ASSERT(context->IsTemp());
+  }
+
+  DECLARE_COMPUTATION(ClosureCall)
+
+  const Array& argument_names() const { return ast_node_.arguments()->names(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  Value* context() const { return context_; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
+
+ private:
+  const ClosureCallNode& ast_node_;
+  Value* context_;
+  ZoneGrowableArray<Value*>* arguments_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
+};
+
+
 class InstanceCallComp : public Computation {
  public:
   InstanceCallComp(intptr_t node_id,
@@ -189,8 +238,8 @@ class InstanceCallComp : public Computation {
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   const String& function_name() const { return function_name_; }
-  int ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
@@ -249,8 +298,8 @@ class StaticCallComp : public Computation {
   const Array& argument_names() const { return argument_names_; }
   intptr_t token_index() const { return token_index_; }
 
-  int ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
  private:
   const intptr_t token_index_;
@@ -567,6 +616,22 @@ class CreateArrayComp : public Computation {
   ZoneGrowableArray<Value*>* const elements_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
+};
+
+
+class CreateClosureComp : public Computation {
+ public:
+  explicit CreateClosureComp(ClosureNode* node) : ast_node_(*node) { }
+
+  DECLARE_COMPUTATION(CreateClosure)
+
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const Function& function() const { return ast_node_.function(); }
+
+ private:
+  const ClosureNode& ast_node_;
+
+  DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
 
 

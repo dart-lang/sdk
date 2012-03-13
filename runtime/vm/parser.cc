@@ -112,6 +112,42 @@ static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
 }
 
 
+void ParsedFunction::AllocateVariables() {
+  LocalScope* scope = node_sequence()->scope();
+  const int fixed_parameter_count = function().num_fixed_parameters();
+  const int optional_parameter_count = function().num_optional_parameters();
+  const int parameter_count = fixed_parameter_count + optional_parameter_count;
+  // Compute start indices to parameters and locals, and the number of
+  // parameters to copy.
+  if (optional_parameter_count == 0) {
+    // Parameter i will be at fp[1 + parameter_count - i] and local variable
+    // j will be at fp[-1 - j].
+    first_parameter_index_ = 1 + parameter_count;
+    first_stack_local_index_ = -1;
+    copied_parameter_count_ = 0;
+  } else {
+    // Parameter i will be at fp[-1 - i] and local variable j will be at
+    // fp[-1 - parameter_count - j].
+    first_parameter_index_ = -1;
+    first_stack_local_index_ = -1 - parameter_count;
+    copied_parameter_count_ = parameter_count;
+  }
+
+  // Allocate parameters and local variables, either in the local frame or
+  // in the context(s).
+  LocalScope* context_owner = NULL;  // No context needed yet.
+  int next_free_frame_index =
+      scope->AllocateVariables(first_parameter_index_,
+                               parameter_count,
+                               first_stack_local_index_,
+                               scope,
+                               &context_owner);
+  // Frame indices are relative to the frame pointer and are decreasing.
+  ASSERT(next_free_frame_index <= first_stack_local_index_);
+  stack_local_count_ = first_stack_local_index_ - next_free_frame_index;
+}
+
+
 struct Parser::Block : public ZoneAllocated {
   Block(Block* outer_block, LocalScope* local_scope, SequenceNode* seq)
     : parent(outer_block), scope(local_scope), statements(seq) {

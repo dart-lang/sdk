@@ -807,7 +807,38 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 
 
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
-  Bailout("EffectGraphVisitor::VisitClosureNode");
+  const Function& function = node->function();
+
+  int next_index = temp_index();
+  if (function.IsNonImplicitClosureFunction()) {
+    const int context_level = 0;  // Only because we don't handle nesting yet.
+    const ContextScope& context_scope = ContextScope::ZoneHandle(
+        node->scope()->PreserveOuterScope(context_level));
+    ASSERT(!function.HasCode());
+    ASSERT(function.context_scope() == ContextScope::null());
+    function.set_context_scope(context_scope);
+  } else if (function.IsImplicitInstanceClosureFunction()) {
+    ValueGraphVisitor for_receiver(owner(), temp_index());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    if (!for_receiver.value()->IsTemp()) {
+      AddInstruction(new BindInstr(temp_index(), for_receiver.value()));
+    }
+    ++next_index;
+  }
+  ASSERT(function.context_scope() != ContextScope::null());
+
+  // The function type of a closure may have type arguments. In that case, pass
+  // the type arguments of the instantiator.
+  const Class& cls = Class::Handle(function.signature_class());
+  ASSERT(!cls.IsNull());
+  const bool requires_type_arguments = cls.HasTypeArguments();
+  if (requires_type_arguments) {
+    Bailout("Closure creation requiring type arguments");
+  }
+
+  CreateClosureComp* create = new CreateClosureComp(node);
+  ReturnComputation(create);
 }
 
 
@@ -859,7 +890,22 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 
 
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  Bailout("EffectGraphVisitor::VisitClosureCallNode");
+  // Context is saved around the call, it's treated as an extra operand
+  // consumed by the call (but not an argument).
+  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
+
+  ArgumentGraphVisitor for_closure(owner(), temp_index() + 1);
+  node->closure()->Visit(&for_closure);
+  Append(for_closure);
+
+  ZoneGrowableArray<Value*>* arguments =
+      new ZoneGrowableArray<Value*>(node->arguments()->length());
+  arguments->Add(for_closure.value());
+  TranslateArgumentList(*node->arguments(), temp_index() + 2, arguments);
+  // First operand is the saved context, consumed by the call.
+  ClosureCallComp* call =
+      new ClosureCallComp(node, new TempVal(temp_index()), arguments);
+  ReturnComputation(call);
 }
 
 
@@ -1250,9 +1296,25 @@ void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitCurrentContext(CurrentContextComp* comp) {
+  OS::Print("CurrentContext");
+}
+
+
+void FlowGraphPrinter::VisitClosureCall(ClosureCallComp* comp) {
+  OS::Print("ClosureCall(");
+  comp->context()->Accept(this);
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
+    OS::Print(", ");
+    comp->ArgumentAt(i)->Accept(this);
+  }
+  OS::Print(")");
+}
+
+
 void FlowGraphPrinter::VisitInstanceCall(InstanceCallComp* comp) {
   OS::Print("InstanceCall(%s", comp->function_name().ToCString());
-  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     OS::Print(", ");
     comp->ArgumentAt(i)->Accept(this);
   }
@@ -1273,7 +1335,7 @@ void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
 void FlowGraphPrinter::VisitStaticCall(StaticCallComp* comp) {
   OS::Print("StaticCall(%s",
             String::Handle(comp->function().name()).ToCString());
-  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
     OS::Print(", ");
     comp->ArgumentAt(i)->Accept(this);
   }
@@ -1385,6 +1447,11 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
 }
 
 
+void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
+  OS::Print("CreateClosure(%s)", comp->function().ToCString());
+}
+
+
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", instr->block_number());
 }
@@ -1434,7 +1501,11 @@ void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
 void FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(parsed_function_);
+    AstPrinter::PrintFunctionNodes(parsed_function());
+  }
+  const Function& function = parsed_function().function();
+  if ((function.num_optional_parameters() != 0)) {
+    Bailout("function has optional parameters");
   }
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
@@ -1451,7 +1522,7 @@ void FlowGraphBuilder::BuildGraph() {
     }
   }
   if (FLAG_print_flow_graph) {
-    FlowGraphPrinter printer(parsed_function().function());
+    FlowGraphPrinter printer(function);
     printer.VisitBlocks(postorder_block_entries_);
   }
 }

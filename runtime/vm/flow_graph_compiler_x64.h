@@ -42,8 +42,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
     Label label;
   };
 
-  int stack_local_count() const { return stack_local_count_; }
-  void set_stack_local_count(int count) { stack_local_count_ = count; }
   BlockEntryInstr* current_block() const { return current_block_; }
 
   // Bail out of the flow graph compiler.  Does not return to the caller.
@@ -110,7 +108,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   BlockEntryInstr* current_block_;
 
   CodeGenerator::DescriptorList* pc_descriptors_list_;
-  int stack_local_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

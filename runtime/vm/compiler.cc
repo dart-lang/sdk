@@ -127,6 +127,7 @@ static RawError* CompileFunctionHelper(const Function& function,
                 function.token_index());
     }
     Parser::ParseFunction(&parsed_function);
+    parsed_function.AllocateVariables();
 
     CodeIndexTable* code_index_table = isolate->code_index_table();
     ASSERT(code_index_table != NULL);

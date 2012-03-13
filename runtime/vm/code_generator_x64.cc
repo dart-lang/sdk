@@ -338,12 +338,6 @@ void CodeGenerator::GenerateInstanceCall(
 }
 
 
-// Call to generate entry code:
-// - compute frame size and setup frame.
-// - allocate local variables on stack.
-// - optionally check if number of arguments match.
-// - initialize all non-argument locals to null.
-//
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of last argument (arg n-1).
@@ -353,53 +347,27 @@ void CodeGenerator::GenerateEntryCode() {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const Function& function = parsed_function_.function();
+
+  // 1. Compute the frame size and enter the frame (reserving local space
+  // for copied incoming and default arguments and stack-allocated local
+  // variables).
+  //
+  // TODO(regis): We may give up reserving space on stack for args/locals
+  // because pushes of initial values may be more effective than moves.
   LocalScope* scope = parsed_function_.node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  const int num_params = num_fixed_params + num_opt_params;
-  int first_param_index;
-  int first_local_index;
-  int num_copied_params;
-  // Assign indices to parameters and locals.
-  if (num_params == num_fixed_params) {
-    // No need to copy incoming arguments.
-    // The body of the function will access parameter i at fp[1 + num_fixed - i]
-    // and local variable j at fp[-1 - j].
-    first_param_index = 1 + num_params;
-    first_local_index = -1;
-    num_copied_params = 0;
-  } else {
-    // The body of the function will access copied parameter i at fp[-1 - i]
-    // and local j at fp[-1 - num_params - j].
-    first_param_index = -1;
-    first_local_index = -1 - num_params;
-    num_copied_params = num_params;
-    ASSERT(num_copied_params > 0);
-  }
-
-  // Allocate parameters and local variables, either in the local frame or in
-  // the context(s).
-  LocalScope* context_owner = NULL;  // No context needed so far.
-  int first_free_frame_index =
-      scope->AllocateVariables(first_param_index,
-                               num_params,
-                               first_local_index,
-                               scope,  // Initial loop owner.
-                               &context_owner);
-  // Frame indices are relative to the frame pointer and are decreasing.
-  ASSERT(first_free_frame_index <= first_local_index);
-  const int num_locals = first_local_index - first_free_frame_index;
-
-  // Reserve local space for copied incoming and default arguments and locals.
-  // TODO(regis): We may give up reserving space on stack for args/locals
-  // because pushes of initial values may be more effective than moves.
-  set_locals_space_size((num_copied_params + num_locals) * kWordSize);
+  const int num_copied_params = parsed_function_.copied_parameter_count();
+  const int stack_slot_count =
+      num_copied_params + parsed_function_.stack_local_count();
+  set_locals_space_size(stack_slot_count * kWordSize);
   __ EnterFrame(locals_space_size());
 
-  // We check the number of passed arguments when we have to copy them due to
-  // the presence of optional named parameters.
-  // No such checking code is generated if only fixed parameters are declared,
-  // unless we are debug mode or unless we are compiling a closure.
+  // 2. Optionally check if the number of arguments matches.  We check the
+  // number of passed arguments when we have to copy them due to the
+  // presence of optional named parameters.  No such checking code is
+  // generated if only fixed parameters are declared, unless we are in debug
+  // mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
 #if defined(DEBUG)
     const bool check_arguments = true;  // Always check arguments in debug mode.
@@ -432,11 +400,12 @@ void CodeGenerator::GenerateEntryCode() {
       __ Bind(&argc_in_range);
     }
   } else {
-    ASSERT(first_param_index == -1);
+    ASSERT(parsed_function_.first_parameter_index() == -1);
     // Copy positional arguments.
     // Check that no fewer than num_fixed_params positional arguments are passed
     // in and that no more than num_params arguments are passed in.
     // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+    const int num_params = num_fixed_params + num_opt_params;
 
     // Total number of args is the first Smi in args descriptor array (R10).
     __ movq(RBX, FieldAddress(R10, Array::data_offset()));
@@ -602,18 +571,20 @@ void CodeGenerator::GenerateEntryCode() {
     __ j(POSITIVE, &null_args_loop, Assembler::kNearJump);
   }
 
-  // Initialize locals.
+  // 3. Initialize (non-argument) stack-allocated locals to null.
+  //
   // TODO(regis): For now, always unroll the init loop. Decide later above
-  // which threshold to implement a loop.
-  // Consider emitting pushes instead of moves.
-  for (int index = first_local_index; index > first_free_frame_index; index--) {
-    if (index == first_local_index) {
+  // which threshold to implement a loop.  Consider emitting pushes instead
+  // of moves.
+  const int base = parsed_function_.first_stack_local_index();
+  for (int index = 0; index < parsed_function_.stack_local_count(); ++index) {
+    if (index == 0) {
       __ movq(RAX, raw_null);
     }
-    __ movq(Address(RBP, index * kWordSize), RAX);
+    __ movq(Address(RBP, (base - index) * kWordSize), RAX);
   }
 
-  // Generate stack overflow check.
+  // 4. Generate the stack overflow check.
   __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
   __ cmpq(RSP, Address(TMP, 0));
   Label no_stack_overflow;
@@ -752,18 +723,20 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {
-    const int current_context_level = state()->context_level();
-    const ContextScope& context_scope = ContextScope::ZoneHandle(
-        node->scope()->PreserveOuterScope(current_context_level));
-    ASSERT(!function.HasCode());
-    ASSERT(function.context_scope() == ContextScope::null());
-    function.set_context_scope(context_scope);
-  } else {
-    ASSERT(function.context_scope() != ContextScope::null());
-    if (function.IsImplicitInstanceClosureFunction()) {
-      node->receiver()->Visit(this);
+    // The context scope may have already been set by the new non-optimizing
+    // compiler.  If it was not, set it here.
+    if (function.context_scope() == ContextScope::null()) {
+      const int current_context_level = state()->context_level();
+      const ContextScope& context_scope = ContextScope::ZoneHandle(
+          node->scope()->PreserveOuterScope(current_context_level));
+      ASSERT(!function.HasCode());
+      function.set_context_scope(context_scope);
     }
+  } else if (function.IsImplicitInstanceClosureFunction()) {
+    node->receiver()->Visit(this);
   }
+  ASSERT(function.context_scope() != ContextScope::null());
+
   // The function type of a closure may have type arguments. In that case, pass
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
