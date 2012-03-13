@@ -543,7 +543,6 @@ void CodeGenerator::GenerateEntryCode() {
   //
   // TODO(regis): We may give up reserving space on stack for args/locals
   // because pushes of initial values may be more effective than moves.
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
   const int num_copied_params = parsed_function_.copied_parameter_count();
