@@ -28,9 +28,6 @@ Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
-DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
-DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
-DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
 DynamicTest: Fail # cannot resolve type F1
 EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
