@@ -6,7 +6,7 @@
 
 #include "bin/utils.h"
 
-OSError::OSError() {
+OSError::OSError() : code_(0), message_(NULL) {
   set_code(errno);
   SetMessage(strerror(errno));
 }
