@@ -8,10 +8,13 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartThisExpression;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.testing.TestCompilerContext;
+import com.google.dart.compiler.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1149,5 +1152,21 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  I();",
             "}"),
         errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 4, 3, 4));
+  }
+
+  public void test_resolvedTypeVariableBounds_inFunctionTypeAlias() throws Exception {
+    DartUnit unit =
+        parseUnit(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "class A {}",
+                "typedef T Foo<T extends A>();",
+                ""));
+    resolve(unit);
+    DartFunctionTypeAlias func = (DartFunctionTypeAlias) unit.getTopLevelNodes().get(1);
+    DartTypeParameter typeParameter = func.getTypeParameters().get(0);
+    Type boundType = typeParameter.getBound().getType();
+    assertEquals("A", boundType.getElement().getName());
   }
 }

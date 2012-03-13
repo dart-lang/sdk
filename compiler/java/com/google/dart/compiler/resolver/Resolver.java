@@ -337,7 +337,7 @@ public class Resolver {
     }
 
     /**
-     * Sets the type in the AST of the default clause of an inteterface so that the type
+     * Sets the type in the AST of the default clause of an interface so that the type
      * parameters to resolve back to the default class.
      */
     private void bindDefaultTypeParameters(List<Type> parameterTypes,

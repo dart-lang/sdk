@@ -12,11 +12,9 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
 import java.util.ArrayList;
@@ -51,53 +49,13 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     return element;
   }
 
-  private void bindReturnGenerics(DartTypeNode node) {
-    for (DartTypeNode typeNode : node.getTypeArguments()) {
-      if (ElementKind.of(typeNode.getType().getElement()) != ElementKind.TYPE_VARIABLE) {
-      //  bindReturnGenerics(typeNode);
-        continue;
-      }
-    //  bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
-    }
-  }
-
   final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {
-    // The purpose of this to find generic types and make sure they are bound to object.
-    DartTypeNode returnNode = node.getReturnTypeNode();
-    if (returnNode != null) {
-      bindReturnGenerics(returnNode);
-    }
     FunctionAliasElement funcAlias = node.getElement();
     for (Type type : funcAlias.getTypeParameters()) {
       TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
       getContext().getScope().declareElement(typeVar.getName(), typeVar);
     }
     return null;
-  }
-
-  void bindTypeVariable(TypeVariableElement variable) {
-    DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
-    DartTypeNode boundNode = typeParameterNode.getBound();
-    if (boundNode != null) {
-      Type bound =
-          getContext().resolveType(
-              boundNode,
-              true,
-              isFactoryContext(),
-              ResolverErrorCode.NO_SUCH_TYPE);
-      boundNode.setType(bound);
-    }
-  }
-
-  void bindTypeVariables(List<TypeVariable> typeVariables) {
-    if (typeVariables == null) {
-      return;
-    }
-    for (TypeVariable typeParameter : typeVariables) {
-      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
-      bindTypeVariable(variable);
-      getContext().getScope().declareElement(variable.getName(), variable);
-    }
   }
 
   abstract boolean isStaticContext();
