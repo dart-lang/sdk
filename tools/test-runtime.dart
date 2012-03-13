@@ -27,15 +27,6 @@ main() {
   List<Map> configurations = optionsParser.parse(new Options().arguments);
   if (configurations == null) return;
 
-  // Print the configurations being run by this excution of test.dart.
-  StringBuffer sb = new StringBuffer('Test configuration');
-  sb.add(configurations.length > 1 ? 's:' : ':');
-  for (Map conf in configurations) {
-    sb.add(' ${conf["component"]}_${conf["mode"]}_${conf["arch"]}');
-    if (conf['checked']) sb.add('_checked');
-  }
-  print(sb);
-
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   Map<String, RegExp> selectors = firstConf['selectors'];
