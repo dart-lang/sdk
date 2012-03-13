@@ -80,8 +80,6 @@ Controls how dart code is compiled and executed.
    dartium: Run dart code in a type="application/dart" script tag in a
        dartium build of DumpRenderTree.
 
-   chromium: Obsolete, not used, will be removed.
-
    frogium: Compile dart code by running frog on the standalone dart vm,
        and run the resulting javascript in a javascript script tag in
        a dartium build of DumpRenderTree.
@@ -98,8 +96,8 @@ Controls how dart code is compiled and executed.
        execute dart code).
 ''',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'dartium', 'chromium', 'frogium', 'legium', 'webdriver'],
+              ['most', 'vm', 'frog', 'leg', 'frogsh', 'dartium',  'frogium',
+               'legium', 'webdriver', 'dartc'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -470,7 +468,6 @@ Controls how dart code is compiled and executed.
       var timeout = 60;
       switch (configuration['component']) {
         case 'dartc':
-        case 'chromium':
         case 'dartium':
         case 'frogium':
         case 'legium':

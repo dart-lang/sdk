@@ -586,14 +586,6 @@ class StandardTestSuite implements TestSuite {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
     switch (component) {
-      // TODO(zundel): Remove chromium now that dartc doesn't generate code?
-      case 'chromium':
-        args.addAll(['--work', dir]);
-        args.addAll(vmOptions);
-        args.add('--ignore-unrecognized-flags');
-        args.add(inputFile);
-        // TODO(whesse): Add --fatal-type-errors if needed.
-        break;
       case 'frogium':
       case 'legium':
       case 'webdriver':
@@ -614,8 +606,7 @@ class StandardTestSuite implements TestSuite {
   }
 
   bool get requiresCleanTemporaryDirectory() =>
-      configuration['component'] == 'dartc' ||
-      configuration['component'] == 'chromium';
+      configuration['component'] == 'dartc';
 
   /**
    * Create a directory for the generated test.  If a Dart language test
@@ -685,7 +676,6 @@ class StandardTestSuite implements TestSuite {
     switch (configuration['component']) {
       case 'dartium':
         return 'application/dart';
-      case 'chromium':
       case 'frogium':
       case 'legium':
       case 'webdriver':
@@ -1111,7 +1101,6 @@ class TestUtils {
   static String compilerName(Map configuration) {
     String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
-      case 'chromium':
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
