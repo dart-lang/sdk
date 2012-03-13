@@ -67,6 +67,14 @@ class _SharedWorkerFactoryProvider {
       FactoryProviderImplementation.createSharedWorker(scriptURL, name);
 }
 
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() => FactoryProviderImplementation.createSpeechGrammar();
+}
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() => FactoryProviderImplementation.createSpeechGrammarList();
+}
+
 class _TextTrackCueFactoryProvider {
   factory TextTrackCue(String id, num startTime, num endTime, String text,
                        [String settings, bool pauseOnExit]) =>

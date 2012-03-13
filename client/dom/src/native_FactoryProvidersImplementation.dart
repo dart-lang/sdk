@@ -34,6 +34,9 @@ class FactoryProviderImplementation {
   static SharedWorker createSharedWorker(String scriptURL, String name)
       native "SharedWorker_constructor_Callback";
 
+  static SpeechGrammar createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
+  static SpeechGrammarList createSpeechGrammarList() native "SpeechGrammarList_constructor_Callback";
+
   static TextTrackCue createTextTrackCue(
       String id, num startTime, num endTime, String text,
                String settings, bool pauseOnExit)

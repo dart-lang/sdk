@@ -81,7 +81,8 @@ _javascript_keywords = ['delete', 'continue']
 # Renames for attributes that have names that are not legal Dart names.
 #
 _dart_attribute_renames = {
-    'default': 'defaultValue'
+    'default': 'defaultValue',
+    'final': 'finalValue',
 }
 
 #
