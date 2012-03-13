@@ -258,6 +258,7 @@ static char* BuildIsolateName(const char* script_name,
 DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   Isolate* preserved_isolate = Isolate::Current();
   GET_NATIVE_ARGUMENT(Instance, runnable, arguments->At(0));
+  // arguments->At(1) unused.
   const Class& runnable_class = Class::Handle(runnable.clazz());
   const char* class_name = String::Handle(runnable_class.Name()).ToCString();
   const Library& library = Library::Handle(runnable_class.library());
