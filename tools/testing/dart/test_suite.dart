@@ -658,10 +658,12 @@ class StandardTestSuite implements TestSuite {
         throw new Exception(
             'Non-relative path to build directory in test_suite.dart');
       }
-      buildPath.removeRange(0, 1);
-      if (buildPath.last() == '') buildPath.removeLast();
-      buildPath.addAll(generatedTestPath);
-      generatedTestPath = buildPath;
+      if (buildPath.length > 1) {
+        buildPath.removeRange(0, 1);
+        if (buildPath.last() == '') buildPath.removeLast();
+        buildPath.addAll(generatedTestPath);
+        generatedTestPath = buildPath;
+      }
       tempDir = new Directory(tempDirPath);
       if (!tempDir.existsSync()) {
         tempDir.createSync();
