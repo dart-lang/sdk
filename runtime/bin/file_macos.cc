@@ -111,7 +111,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
     if (!S_ISREG(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
-      return NULL
+      return NULL;
     }
   }
   int flags = O_RDONLY;
