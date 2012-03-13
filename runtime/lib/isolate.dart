@@ -135,10 +135,9 @@ _getPortInternal() native "isolate_getPortInternal";
 ReceivePort _portInternal;
 
 ReceivePort get _port() {
-  if (_portInternal) {
-    return _portInternal;
+  if (_portInternal === null) {
+    _portInternal = _getPortInternal();
   }
-  _portInternal = _getPortInternal();
   return _portInternal;
 }
 
