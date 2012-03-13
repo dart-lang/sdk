@@ -2309,8 +2309,6 @@ TEST_CASE(SetField_FunnyValue) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle name = Dart_NewString("top");
-
-  Dart_Handle args[1];
   bool value;
 
   // Test that you can set the field to a good value.
@@ -3104,8 +3102,6 @@ TEST_CASE(Invoke_FunnyArgs) {
       "test(arg) => 'hello $arg';\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle name = Dart_NewString("test");
-
   Dart_Handle args[1];
   const char* str;
 
