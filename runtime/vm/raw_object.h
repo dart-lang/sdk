@@ -39,6 +39,7 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(ICData)                                                                    \
   V(Error)                                                                     \
     V(ApiError)                                                                \
     V(LanguageError)                                                           \
@@ -68,7 +69,6 @@ namespace dart {
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
-    V(ICData)                                                                  \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -760,6 +760,23 @@ class RawContextScope : public RawObject {
 };
 
 
+class RawICData : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->function_);
+  }
+  RawFunction* function_;  // Parent/calling function of this IC.
+  RawString* target_name_;  // Name of target function.
+  RawArray* ic_data_;  // Contains test classes and target function.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+  }
+  intptr_t id_;  // Parser node id corresponding to this IC.
+  intptr_t num_args_tested_;  // Number of arguments tested in IC.
+};
+
+
 class RawError : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Error);
 };
@@ -1120,25 +1137,6 @@ class RawJSRegExp : public RawInstance {
 
   // Variable length data follows here.
   uint8_t data_[0];
-};
-
-
-class RawICData : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_);
-  }
-
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
-  }
-
-  RawFunction* function_;  // Parent/calling function of this IC.
-  RawString* target_name_;  // Name of target function.
-  RawArray* ic_data_;  // Contains test classes and target function.
-  intptr_t id_;  // Parser node id corresponding to this IC.
-  intptr_t num_args_tested_;  // Number of arguments tested in IC.
 };
 
 

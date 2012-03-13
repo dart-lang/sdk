@@ -156,11 +156,11 @@ class Object {
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
+    kICDataClass,
     kApiErrorClass,
     kLanguageErrorClass,
     kUnhandledExceptionClass,
     kUnwindErrorClass,
-    kICDataClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -404,11 +404,11 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* api_error_class_;  // Class of ApiError.
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
-  static RawClass* icdata_class_;  // Class of ICData.
 
   friend void RawObject::Validate() const;
   friend class SnapshotReader;
@@ -2353,6 +2353,78 @@ class ContextScope : public Object {
 };
 
 
+// Object holding information about an IC: test classes and their
+// corresponding classes.
+class ICData : public Object {
+ public:
+  RawFunction* function() const {
+    return raw_ptr()->function_;
+  }
+
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  intptr_t num_args_tested() const {
+    return raw_ptr()->num_args_tested_;
+  }
+
+  intptr_t id() const {
+    return raw_ptr()->id_;
+  }
+
+  intptr_t NumberOfChecks() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawICData));
+  }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawICData, target_name_);
+  }
+
+  static intptr_t num_args_tested_offset() {
+    return OFFSET_OF(RawICData, num_args_tested_);
+  }
+
+  static intptr_t ic_data_offset() {
+    return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  static intptr_t function_offset() {
+    return OFFSET_OF(RawICData, function_);
+  }
+
+  void AddCheck(const GrowableArray<const Class*>& classes,
+                const Function& target) const;
+  void GetCheckAt(intptr_t index,
+                  GrowableArray<const Class*>* classes,
+                  Function* target) const;
+  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
+
+  static RawICData* New(const Function& caller_function,
+                        const String& target_name,
+                        intptr_t id,
+                        intptr_t num_args_tested);
+
+ private:
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
+  void set_function(const Function& value) const;
+  void set_target_name(const String& value) const;
+  void set_id(intptr_t value) const;
+  void set_num_args_tested(intptr_t value) const;
+  void set_ic_data(const Array& value) const;
+
+  intptr_t TestEntryLength() const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  friend class Class;
+};
+
+
 class Error : public Object {
  public:
   virtual const char* ToErrorCString() const;
@@ -3783,78 +3855,6 @@ class JSRegExp : public Instance {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
-  friend class Class;
-};
-
-
-// Object holding information about an IC: test classes and their
-// corresponding classes.
-class ICData : public Instance {
- public:
-  RawFunction* function() const {
-    return raw_ptr()->function_;
-  }
-
-  RawString* target_name() const {
-    return raw_ptr()->target_name_;
-  }
-
-  intptr_t num_args_tested() const {
-    return raw_ptr()->num_args_tested_;
-  }
-
-  intptr_t id() const {
-    return raw_ptr()->id_;
-  }
-
-  intptr_t NumberOfChecks() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawICData));
-  }
-
-  static intptr_t target_name_offset() {
-    return OFFSET_OF(RawICData, target_name_);
-  }
-
-  static intptr_t num_args_tested_offset() {
-    return OFFSET_OF(RawICData, num_args_tested_);
-  }
-
-  static intptr_t ic_data_offset() {
-    return OFFSET_OF(RawICData, ic_data_);
-  }
-
-  static intptr_t function_offset() {
-    return OFFSET_OF(RawICData, function_);
-  }
-
-  void AddCheck(const GrowableArray<const Class*>& classes,
-                const Function& target) const;
-  void GetCheckAt(intptr_t index,
-                  GrowableArray<const Class*>* classes,
-                  Function* target) const;
-  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
-
-  static RawICData* New(const Function& caller_function,
-                        const String& target_name,
-                        intptr_t id,
-                        intptr_t num_args_tested);
-
- private:
-  RawArray* ic_data() const {
-    return raw_ptr()->ic_data_;
-  }
-
-  void set_function(const Function& value) const;
-  void set_target_name(const String& value) const;
-  void set_id(intptr_t value) const;
-  void set_num_args_tested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
-
-  intptr_t TestEntryLength() const;
-
-  HEAP_OBJECT_IMPLEMENTATION(ICData, Instance);
   friend class Class;
 };
 

@@ -1041,18 +1041,34 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawICData* ICData::ReadFrom(SnapshotReader* reader,
+                            intptr_t object_id,
+                            intptr_t tags,
+                            Snapshot::Kind kind) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RawICData::WriteTo(SnapshotWriter* writer,
+                        intptr_t object_id,
+                        Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawError* Error::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind) {
+                          intptr_t object_id,
+                          intptr_t tags,
+                          Snapshot::Kind kind) {
   UNREACHABLE();
   return Error::null();
 }
 
 
 void RawError::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind) {
+                       intptr_t object_id,
+                       Snapshot::Kind kind) {
   UNREACHABLE();
 }
 
@@ -1938,22 +1954,6 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->flags_);
 
   // Do not write out the data part which is native.
-}
-
-
-RawICData* ICData::ReadFrom(SnapshotReader* reader,
-                            intptr_t object_id,
-                            intptr_t tags,
-                            Snapshot::Kind kind) {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void RawICData::WriteTo(SnapshotWriter* writer,
-                        intptr_t object_id,
-                        Snapshot::Kind kind) {
-  UNREACHABLE();
 }
 
 
