@@ -186,13 +186,13 @@ interface TestOutput default TestOutputImpl {
   bool get hasTimedOut();
 
   bool get didFail();
-  
+
   Duration get time();
-  
+
   List<String> get stdout();
 
   List<String> get stderr();
-  
+
   List<String> get diagnostics();
 }
 
@@ -353,7 +353,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     Expect.isNotNull(outcome);
     if (outcome.contains('compile-time error') && errors.length > 0) {
       return true;
-    } else if (outcome.contains('static type warning') 
+    } else if (outcome.contains('static type warning')
         && staticWarnings.length > 0) {
       return true;
     } else if (outcome.isEmpty()
@@ -498,7 +498,7 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (allowRetries && testCase.usesWebDriver 
+    if (allowRetries && testCase.usesWebDriver
         && testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
@@ -840,10 +840,13 @@ class ProcessQueue {
                Date startTime,
                bool printTiming,
                Function this._enqueueMoreWork,
-               [bool this._verbose = false,
-                bool this._listTests = false,
-                bool this._keepGeneratedTests = false])
-      : _tests = new Queue<TestCase>(),
+               [bool verbose = false,
+                bool listTests = false,
+                bool keepGeneratedTests = false])
+      : _verbose = verbose,
+        _listTests = listTests,
+        _keepGeneratedTests = keepGeneratedTests,
+        _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),

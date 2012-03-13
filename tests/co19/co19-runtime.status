@@ -21,6 +21,7 @@ Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals ille
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2014 (Evaluation order in ctor initializers)
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # co19 issue 93 (must import dart:isolate)
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t01: Fail # co19 issue 101
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # issue 2024, 1244
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # issue 2024, 1244
@@ -162,7 +163,6 @@ LibTest/core/int/operator_remainder_A01_t02: Fail
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 Language/05_Variables/05_Variables_A05_t04: Fail
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail

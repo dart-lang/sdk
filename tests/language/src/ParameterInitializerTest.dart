@@ -20,7 +20,7 @@ class ParameterInitializerTest {
     obj = new Foo.optional();
     Expect.equals(5, obj.x);
 
-    obj = new Foo.optional_private(_y: 222);
+    obj = new Foo.optional_private(y: 222);
     Expect.equals(222, obj._y);
 
     obj = new Foo.optional_private();
@@ -48,7 +48,7 @@ class Foo {
   Foo.supertype(Object this.x) {}
   Foo.subtype(int this.x) {}
   Foo.optional([this.x = 5]) {}
-  Foo.optional_private([this._y = 77]) {}
+  Foo.optional_private([y = 77]) : _y = y {}
 
   num x;
   num _y;
