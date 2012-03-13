@@ -149,6 +149,8 @@ namespace dart {
   V(ExternalByteArray_setFloat32, 3)                                           \
   V(ExternalByteArray_getFloat64, 2)                                           \
   V(ExternalByteArray_setFloat64, 3)                                           \
+  V(isolate_getPortInternal, 0)                                                \
+  V(isolate_spawnFunction, 1)                                                  \
   V(Mirrors_send, 3)                                                           \
 
 

@@ -116,10 +116,10 @@ RawObject* DartEntry::InvokeClosure(
 
 
 RawObject* DartLibraryCalls::ExceptionCreate(
+    const Library& lib,
     const String& class_name,
     const GrowableArray<const Object*>& arguments) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::Handle(core_lib.LookupClass(class_name));
+  const Class& cls = Class::Handle(lib.LookupClass(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));

@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class IsolateSpawnException implements Exception {
+  const IsolateSpawnException(String this._s);
+  String toString() => "IsolateSpawnException: '$_s'";
+  final String _s;
+}
+
 /**
  * The initial [ReceivePort] available by default for this isolate. This
  * [ReceivePort] is created automatically and it is commonly used to establish

@@ -603,6 +603,21 @@ TEST_CASE(String) {
 }
 
 
+TEST_CASE(StringFormat) {
+  const char* hello_str = "Hello World!";
+  int32_t hello_len = strlen(hello_str);
+  const String& str =
+      String::Handle(String::NewFormatted("Hello %s!", "World"));
+  EXPECT(str.IsInstance());
+  EXPECT(str.IsString());
+  EXPECT(str.IsOneByteString());
+  EXPECT(!str.IsTwoByteString());
+  EXPECT(!str.IsFourByteString());
+  EXPECT(!str.IsNumber());
+  EXPECT(str.Equals(hello_str));
+}
+
+
 TEST_CASE(StringConcat) {
   // Create strings from concatenated 1-byte empty strings.
   {

@@ -7447,6 +7447,23 @@ RawString* String::NewSymbol(const String& str,
 }
 
 
+RawString* String::NewFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  Zone* zone = Isolate::Current()->current_zone();
+  char* buffer = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  return String::New(buffer);
+}
+
+
 RawString* String::Concat(const String& str1,
                           const String& str2,
                           Heap::Space space) {

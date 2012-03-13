@@ -130,14 +130,21 @@ class _IsolateNatives {
       native "IsolateNatives_start";
 }
 
-// TODO(sigmund,turnidge): implement
+_getPortInternal() native "isolate_getPortInternal";
 
-SendPort _spawnFunction(void topLevelFunction()) {
-  throw new NotImplementedException();
+ReceivePort _portInternal;
+
+ReceivePort get _port() {
+  if (_portInternal) {
+    return _portInternal;
+  }
+  _portInternal = _getPortInternal();
+  return _portInternal;
 }
 
+_spawnFunction(void topLevelFunction()) native "isolate_spawnFunction";
+
+// TODO(sigmund,turnidge): implement
 SendPort _spawnUri(String uri) {
   throw new NotImplementedException();
 }
-
-ReceivePort _port = null;

@@ -123,6 +123,9 @@ class Zone : public StackResource {
     return zone_.MakeCopyOfString(str);
   }
 
+  // Make a zone-allocated string based on printf format and args.
+  char* PrintToString(const char* format, ...);
+
   VMHandles* handles() { return &handles_; }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);

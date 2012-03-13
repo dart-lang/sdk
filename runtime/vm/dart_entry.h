@@ -17,6 +17,7 @@ class Context;
 class Function;
 class Instance;
 class Integer;
+class Library;
 class Object;
 class RawInstance;
 class RawObject;
@@ -62,6 +63,7 @@ class DartLibraryCalls : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* ExceptionCreate(
+      const Library& library,
       const String& exception_name,
       const GrowableArray<const Object*>& arguments);
 

@@ -119,4 +119,11 @@ UNIT_TEST_CASE(ZoneAllocated) {
   delete isolate;
 }
 
+
+TEST_CASE(PrintToString) {
+  Zone zone(Isolate::Current());
+  const char* result = zone.PrintToString("Hello %s!", "World");
+  EXPECT_STREQ("Hello World!", result);
+}
+
 }  // namespace dart

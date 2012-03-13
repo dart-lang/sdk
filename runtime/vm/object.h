@@ -2895,6 +2895,8 @@ class String : public Instance {
                               intptr_t begin_index,
                               intptr_t length);
 
+  static RawString* NewFormatted(const char* format, ...);
+
  protected:
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);

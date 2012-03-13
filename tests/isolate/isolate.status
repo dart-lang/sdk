@@ -4,8 +4,11 @@
 
 [ $component == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
+SerializationTest: Skip  # tests frog-specific serialization code
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip
 
-[ $component == dartium || $component == vm || $component == legium ]
+[ $component == dartium || $component == legium ]
 SerializationTest: Skip  # tests frog-specific serialization code
 *APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
