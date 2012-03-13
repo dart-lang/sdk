@@ -7,11 +7,12 @@
 
 
 [ $component == leg ]
+AdjacentConstStringLiteralsTest: Crash # Issue 2110
 AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
-
+StringInterpolation8Test: Fail # Issue 2127
 
 # Compilation errors.
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented

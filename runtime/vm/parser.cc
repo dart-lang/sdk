@@ -7669,9 +7669,6 @@ AstNode* Parser::ParseStringLiteral() {
         (CurrentToken() == Token::kINTERPOL_START)) {
       AstNode* expr = NULL;
       const intptr_t expr_pos = token_index_;
-      // TODO(hausner): Remove the statement below when we allow interpolated
-      // strings to be compile time constants.
-      is_compiletime_const = false;
       if (CurrentToken() == Token::kINTERPOL_VAR) {
         expr = ResolveVarOrField(token_index_, *CurrentLiteral());
         ASSERT(!expr->IsPrimaryNode());

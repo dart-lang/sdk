@@ -183,6 +183,7 @@ StaticField2RunNegativeTest: Fail  # issue 1662
 StaticField2aRunNegativeTest: Fail # issue 1662
 StringEscape1NegativeTest: Fail # Issue 1351.
 StringEscape4NegativeTest: Fail # Issue 1351.
+StringInterpolation8Test: Fail # Issue 2126.
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
@@ -232,6 +233,7 @@ BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
 
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+AdjacentConstStringLiteralsTest: Fail # Issue 2110
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
@@ -275,6 +277,7 @@ ThirdTest: Fail # Issue 1511
 TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
+StringInterpolation8Test: Fail # Issue 2127
 SuperFieldAccessTest: Fail # Issue 1695
 CompileTimeConstant6Test: Fail
 ConstructorRedirectTest/01: Fail # Issue 2104.
