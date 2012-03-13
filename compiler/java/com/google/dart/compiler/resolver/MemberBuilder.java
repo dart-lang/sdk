@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -15,6 +16,7 @@ import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -453,11 +455,13 @@ public class MemberBuilder {
         if (modifiers.isAbstract()) {
           resolutionError(method.getName(), ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT);
         }
-        // TODO(ngeoffray): This is already checked in the parser.
-        // Like operators/getters/setters. Should we all check them here?
-        if (modifiers.isConstant() && method.getFunction().getBody() != null) {
-          resolutionError(method.getName(),
-              ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+        if (modifiers.isConstant()) {
+          // Allow const ... native ... ; type of constructors.  Used in core libraries.
+          DartBlock dartBlock = method.getFunction().getBody();
+          if (dartBlock != null && !(dartBlock instanceof DartNativeBlock)) {
+            resolutionError(method.getName(),
+                            ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+          }
         }
       }
 
@@ -468,10 +472,13 @@ public class MemberBuilder {
         if (modifiers.isAbstract()) {
           resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
         }
-        // TODO(ngeoffray): This is already checked in the parser.
-        // Like operators/getters/setters. Should we all check them here?
+
         if (modifiers.isConstant()) {
-          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
+          // Allow const factory ... native ... ; type of constructors, used in core libraries
+          DartBlock dartBlock = method.getFunction().getBody();
+          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) { 
+            resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
+          }
         }
       }
       // TODO(ngeoffray): Add more checks on the modifiers. For

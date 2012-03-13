@@ -54,10 +54,10 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
   private void bindReturnGenerics(DartTypeNode node) {
     for (DartTypeNode typeNode : node.getTypeArguments()) {
       if (ElementKind.of(typeNode.getType().getElement()) != ElementKind.TYPE_VARIABLE) {
-        bindReturnGenerics(typeNode);
+      //  bindReturnGenerics(typeNode);
         continue;
       }
-      bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
+    //  bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
     }
   }
 
