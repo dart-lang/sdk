@@ -5,6 +5,9 @@
 # This status file is for the dart tests which live under
 # runtime/tests/vm/src.
 
+[ $arch == x64 ]
+IsolateMirrorBusyTest: Skip  # Issue 2129
+
 [ $arch == arm ]
 *: Skip
 
