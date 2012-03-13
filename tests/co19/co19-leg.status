@@ -34,12 +34,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $component == leg ]
-# Time outs on the bots.
-LibTest/core/List/sort_A01_t05: Skip # Times out.
-LibTest/core/List/sort_A01_t06: Skip # Times out.
-LibTest/core/List/sort_A01_t04: Skip # Times out.
-
-
 # Issues with co19 test suite.
 Language/11_Statements/11_Labels_A01_t03: Fail, OK # Test doesn't follow spec.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
