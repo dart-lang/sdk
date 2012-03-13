@@ -34,82 +34,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $component == leg ]
-Language/11_Statements/11_Labels_A01_t01: Fail # Internal error in resolution of break targets.
-
-
-Language/05_Variables/05_Variables_A03_t09: Fail # TODO(ahe): New co19 failure, please triage.
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # TODO(ahe): New co19 failure, please triage.
-Language/09_Generics/09_Generics_A04_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/01_Constants_A10_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/01_Constants_A11_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/01_Constants_A12_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/01_Constants_A13_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/03_Numbers_A01_t06: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/03_Numbers_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/05_Strings_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/06_Lists_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/07_Maps_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/07_Maps_A07_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A08_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A08_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/16_Assignment_A05_t06: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A05_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A07_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A08_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/20_Equality_A09_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/22_Shift_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/29_Type_Test_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/10_Expressions/29_Type_Test_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/05_For/1_For_Loop_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/06_While_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/08_Switch_A01_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/08_Switch_A01_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/08_Switch_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/08_Switch_A02_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/08_Switch_A04_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/09_Try_A05_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/11_Labels_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/12_Break_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A02_t12: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A02_t13: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t01: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t04: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t05: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t06: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/13_Continue_A03_t07: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/14_Throw_A03_t02: Fail # TODO(ahe): New co19 failure, please triage.
-Language/11_Statements/14_Throw_A03_t03: Fail # TODO(ahe): New co19 failure, please triage.
-Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # TODO(ahe): New co19 failure, please triage.
-LibTest/core/double/toStringAsFixed_A01_t03: Fail # TODO(ahe): New co19 failure, please triage.
-
-
 # Time outs on the bots.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
@@ -176,118 +100,169 @@ LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, E
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # CompileTimeConstantHandler non-primitive list-entries not implemented
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail # Super initializers not implemented correctly.
-Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
-Language/09_Generics/09_Generics_A04_t03: Fail # cannot resolve type N.
-Language/10_Expressions/07_Maps_A05_t01: Fail # Constant maps not implemented.
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # Parsing of anonymous function expressions.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Fail # super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # super-send to non-function not implemented
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Parsing of anonymous function expressions.
-Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/20_Equality_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/21_Relational_Expressions_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/22_Shift_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/23_Additive_Expressions_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/24_Multiplicative_Expressions_A03_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Parsing of pseudo-keywords.
-Language/11_Statements/12_Break_A03_t09: Fail # Bad implementation of break or finally.
-LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
-LibTest/core/Date/toString_A02_t01: Fail # Test is out of date. See co19 issue 86.
-LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
-LibTest/core/FallThroughError/toString_A01_t02: Fail # switch cases are not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # switch cases are not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # switch cases are not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # switch cases are not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # switch cases are not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail #  Expect.fail('Some exception expected')
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
+Language/05_Variables/05_Variables_A05_t03: Fail # compiler cancelled: internal error: Unexpected operator.
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # compiler cancelled: unexpected token 'call'
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # compiler cancelled: unexpected token 'call'
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
+Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # compiler cancelled: cannot find constructor A or ADef
+Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
+Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # compiler cancelled: no method named foo in class I
+Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
+Language/09_Generics/09_Generics_A04_t04: Fail # compiler cancelled: cannot resolve type T
+Language/10_Expressions/01_Constants_A10_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A11_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A12_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A13_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/05_Strings_A02_t01: Fail # compiler cancelled: expected ' or "
+Language/10_Expressions/07_Maps_A07_t03: Fail # compiler cancelled: expected a constant string
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # compiler cancelled: expected an expression, but got ')'
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # compiler cancelled: cannot resolve type Isolate
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # compiler cancelled: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # compiler cancelled: Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # compiler cancelled: Unimplemented non-matching static call
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # compiler cancelled: internal error: super-send to non-function not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Fail # compiler cancelled: internal error: super-send to non-function not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # compiler cancelled: internal error: super-send to non-function not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # compiler cancelled: internal error: super property store not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got 'const'
+Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # compiler cancelled: expected an expression, but got '&'
+Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/20_Equality_A01_t01: Fail # compiler cancelled: expected an expression, but got '==='
+Language/10_Expressions/20_Equality_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/20_Equality_A05_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/20_Equality_A07_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/20_Equality_A08_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # compiler cancelled: expected an expression, but got '<='
+Language/10_Expressions/21_Relational_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/22_Shift_A01_t01: Fail # compiler cancelled: expected an expression, but got '<<'
+Language/10_Expressions/22_Shift_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/23_Additive_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/24_Multiplicative_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # compiler cancelled: internal error: super property store not implemented
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
+Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got ':'
+Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # compiler cancelled: internal error: super property store not implemented
+Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # compiler cancelled: internal error
+Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # compiler cancelled: expected ';', but got ':'
+Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # compiler cancelled: internal error: super property read not implemented
+Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # compiler cancelled: unexpected token ';'
+Language/10_Expressions/29_Type_Test_A02_t01: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/10_Expressions/29_Type_Test_A03_t01: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/11_Statements/08_Switch_A01_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/08_Switch_A02_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/08_Switch_A02_t02: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/08_Switch_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/11_Labels_A01_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/12_Break_A03_t07: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
+Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
+Language/11_Statements/13_Continue_A03_t03: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/11_Statements/13_Continue_A03_t05: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # compiler cancelled: cannot resolve type MalformedType
+Language/13_Types/4_Interface_Types_A05_t04: Fail # compiler cancelled: cannot resolve type T
+Language/13_Types/4_Interface_Types_A07_t01: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/13_Types/4_Interface_Types_A07_t02: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/13_Types/4_Interface_Types_A08_t01: Fail # compiler cancelled: cannot resolve type S
+Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpected token 'call'
+Language/13_Types/6_Type_Dynamic_A01_t01: Fail # compiler cancelled: cannot resolve type Dynamic
+Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+LibTest/core/String/String_class_A02_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodeAt_A01_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodes_A01_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
 
 
-LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
-LibTest/core/Queue/iterator_A01_t01: Fail # Implement is-checks.
-
-
-LibTest/core/String/String_class_A02_t01: Fail # Unhandled non-BMP character: U+10000.
-LibTest/core/String/charCodeAt_A01_t01: Fail # Unhandled non-BMP character: U+10000.
-LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+10000.
-
-
-# TODO(floitsch): Please review these.
-LibTest/core/Expect/identical_A01_t01: Fail # Is NaN identical to NaN?
-
-
+Language/05_Variables/05_Variables_A03_t09: Fail # Expect.isTrue(false) fails.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail # Expect.equals(expected: <yxd4d3C.namedD.named>, actual: <d4d3yxC.namedD.named>) fails.
+Language/10_Expressions/03_Numbers_A01_t06: Fail # Expect.equals(expected: <9223372036854775807>, actual: <9223372036854776000>) fails.
+Language/10_Expressions/03_Numbers_A01_t09: Fail # Expect.equals(expected: <1234567899876543210>, actual: <1234567899876543200>) fails.
+Language/10_Expressions/06_Lists_A07_t01: Fail # Expect.isTrue(false) fails.
+Language/10_Expressions/07_Maps_A05_t01: Fail # Expect.fail('Exception is expected')
+Language/10_Expressions/07_Maps_A06_t01: Fail # Expect.isTrue(false) fails.
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Fail # Expect.equals(expected: <123456>, actual: <124356>) fails.
+Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Fail # Expect.equals(expected: <123456>, actual: <124356>) fails.
+Language/10_Expressions/10_Instance_Creation/2_Const_A08_t03: Fail # Expect.isTrue(false) fails.
+Language/10_Expressions/10_Instance_Creation/2_Const_A08_t04: Fail # Expect.isTrue(false) fails.
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # Expect.equals(expected: <static superclass method>, actual: <library function>) fails.
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call$1'
+Language/10_Expressions/16_Assignment_A05_t06: Fail # Expect.fail('Incorrect method was searched: set nonExistingSetter')
+Language/10_Expressions/20_Equality_A06_t01: Fail # Expect.isTrue(false) fails.
+Language/10_Expressions/20_Equality_A09_t01: Fail # Expect.isFalse(true) fails.
+Language/11_Statements/05_For/1_For_Loop_A01_t01: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+Language/11_Statements/06_While_A02_t01: Fail # Expect.equals(expected: <7>, actual: <6>) fails.
+Language/11_Statements/08_Switch_A01_t02: Fail # Expect.fail('FallThroughError expected')
+Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
+Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
+Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, expected: <4>, actual: <2>) fails
+Language/11_Statements/13_Continue_A03_t01: Fail # Expect.fail('This code shouldn't be executed')
+Language/11_Statements/13_Continue_A03_t02: Fail # continue not implemented
+Language/11_Statements/13_Continue_A03_t04: Fail # Expect.fail('This code shouldn't be executed')
+Language/11_Statements/13_Continue_A03_t06: Fail # continue not implemented
+Language/11_Statements/13_Continue_A03_t07: Fail # continue not implemented
+Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
+Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # Expect.isTrue(false) fails.
+Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t10: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
-Language/13_Types/5_Function_Types_A02_t01: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t01: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t02: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t03: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t05: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t06: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t07: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t08: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t09: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t11: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t12: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t13: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t14: Fail # Expect.isTrue(false) fails.
+LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
+LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
+LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
+LibTest/core/FallThroughError/toString_A01_t02: Fail # Expect.fail('FallThroughError expected')
+LibTest/core/Map/containsValue_A01_t01: Fail # Expect.isTrue(false) fails.
+LibTest/core/Map/forEach_A01_t07: Fail # Expect.isTrue(false) fails.
+LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # Expect.isTrue(false) fails.
+LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
 LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
+LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
-
-
-Language/13_Types/4_Interface_Types_A12_t10: Fail # SyntaxError: Unexpected identifier
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # Operator 'call' is not supported on closures.
-
-
-Language/13_Types/4_Interface_Types_A07_t01: Fail # cannot resolve type Dynamic
-Language/13_Types/4_Interface_Types_A07_t02: Fail # cannot resolve type Dynamic
-Language/13_Types/6_Type_Dynamic_A01_t01: Fail # cannot resolve type Dynamic
-Language/13_Types/4_Interface_Types_A08_t01: Fail # cannot resolve type S
-Language/13_Types/6_Type_Dynamic_A02_t01: Fail # cannot resolve type S
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # cannot resolve type T
-Language/13_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # cannot resolve type f1
-Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # cannot resolve type f1
-Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # cannot resolve type f1
-Language/13_Types/5_Function_Types_A01_t07: Fail # cannot resolve type f1
-Language/13_Types/5_Function_Types_A01_t11: Fail # cannot resolve type f1
-Language/13_Types/5_Function_Types_A01_t14: Fail # cannot resolve type f1
-Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # cannot resolve type f_t
-Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # cannot resolve type f_t
-Language/13_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # cannot resolve type f_t
-Language/13_Types/5_Function_Types_A01_t08: Fail # cannot resolve type interfacesFunc
-Language/13_Types/5_Function_Types_A01_t12: Fail # cannot resolve type interfacesFunc
-Language/13_Types/5_Function_Types_A01_t13: Fail # cannot resolve type interfacesFunc
-Language/13_Types/5_Function_Types_A01_t05: Fail # cannot resolve type returnsDynamic
-Language/13_Types/5_Function_Types_A01_t02: Fail # cannot resolve type t1
-Language/13_Types/5_Function_Types_A01_t03: Fail # cannot resolve type t1
-Language/13_Types/5_Function_Types_A01_t06: Fail # cannot resolve type t8
-Language/13_Types/4_Interface_Types_A05_t04: Fail # duplicate definition of num f(){}
-Language/13_Types/5_Function_Types_A01_t01: Fail # duplicate definition of void f(){}
-Language/13_Types/5_Function_Types_A01_t09: Fail # f is not a type
-Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # lib is not a type
-Language/05_Variables/05_Variables_A05_t03: Fail # map not implemented
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # no method named foo in class I
-
-
-LibTest/core/Isolate/Isolate_class_A01_t01: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Isolate/Isolate_class_A02_t01: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Isolate/main_A01_t01: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Isolate/port_A01_t02: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Isolate/spawn_A01_t05: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Isolate/spawn_A01_t06: Fail # TODO(ahe): Categorize failure.
-
-
-LibTest/core/Map/containsValue_A01_t01: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Map/forEach_A01_t07: Fail # TODO(ahe): Categorize failure.
-LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # TODO(ahe): Categorize failure.
+LibTest/core/double/toStringAsFixed_A01_t03: Fail # Expect.equals(expected: <-0>, actual: <0>) fails.
 
 
 #
