@@ -103,6 +103,11 @@ public class DartCompiler {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      throw new AssertionError();
+    }
+
+    @Override
     public URI getUri() {
       throw new AssertionError();
     }

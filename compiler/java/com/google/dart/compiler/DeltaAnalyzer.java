@@ -97,6 +97,11 @@ class DeltaAnalyzer {
     final URI uri = URI.create(name);
     return new LibrarySource() {
       @Override
+      public String getUniqueIdentifier() {
+        return uri.toString();
+      }
+
+      @Override
       public URI getUri() {
         return uri;
       }

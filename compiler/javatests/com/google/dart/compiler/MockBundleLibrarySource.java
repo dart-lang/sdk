@@ -50,6 +50,11 @@ public class MockBundleLibrarySource extends UrlLibrarySource implements Library
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return relPath;
+    }
+
+    @Override
     public URI getUri() {
       try {
         return new URI(relPath);

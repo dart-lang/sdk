@@ -27,6 +27,11 @@ public class TestLibrarySource implements LibrarySource {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return srcUri.toString();
+    }
+
+    @Override
     public URI getUri() {
       return srcUri;
     }
@@ -64,6 +69,11 @@ public class TestLibrarySource implements LibrarySource {
   public TestLibrarySource(String name) {
     this.name = name;
     uri = URI.create(name);
+  }
+
+  @Override
+  public String getUniqueIdentifier() {
+    return uri.toString();
   }
 
   @Override

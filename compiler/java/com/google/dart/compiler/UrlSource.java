@@ -115,6 +115,11 @@ public abstract class UrlSource implements Source {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return absoluteUri.toString();
+  }
+
+  @Override
   public URI getUri() {
     return absoluteUri;
   }

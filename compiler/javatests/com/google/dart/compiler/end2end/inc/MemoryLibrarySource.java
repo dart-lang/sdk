@@ -41,6 +41,11 @@ public class MemoryLibrarySource implements LibrarySource {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return libName;
+  }
+
+  @Override
   public URI getUri() {
     return URI.create(libName);
   }

@@ -31,6 +31,11 @@ public class LibraryParserTest extends TestCase {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return getName();
+    }
+
+    @Override
     public URI getUri() {
       try {
         return new URI(getName());
