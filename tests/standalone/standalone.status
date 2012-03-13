@@ -31,7 +31,7 @@ io/*: Skip # Don't run tests using dart:io in the browser
 [ $component == dartc || $component == chromium ]
 *: Skip
 
-[ $component == frog || $component == frogsh || $component == leg || $component == frogium || $component == legium ]
+[ $component == frog || $component == frogsh || $component == frogium || $component == legium ]
 *: Skip
 
 

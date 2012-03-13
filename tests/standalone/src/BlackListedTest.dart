@@ -34,5 +34,27 @@ class MyTwoByteString extends TwoByteString {}  /// 11: compile-time error
 class MyFourByteString extends FourByteString {}  /// 12: compile-time error
 
 main() {
+  new MyBool(); /// 01: continued
 
+  new MyDouble(); /// 02: continued
+
+  new MyObjectArray(); /// 03: continued
+
+  new MyImmutableArray(); /// 04: continued
+
+  new MyGrowableObjectArray(); /// 05: continued
+
+  new MyIntegerImplementation(); /// 06: continued
+
+  new MySmi(); /// 07: continued
+
+  new MyMint(); /// 08: continued
+
+  new MyBigint(); /// 09: continued
+
+  new MyOneByteString(); /// 10: continued
+
+  new MyTwoByteString(); /// 11: continued
+
+  new MyFourByteString(); /// 12: continued
 }
