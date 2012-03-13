@@ -324,11 +324,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static const ObjectKind kInstanceKind = kObject;
 
-  enum TypeTestKind {
-    kIsSubtypeOf,
-    kIsAssignableTo
-  };
-
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -571,36 +566,11 @@ class Class : public Object {
   // alias as defined in a typedef.
   bool IsCanonicalSignatureClass() const;
 
-  // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(
-      const AbstractTypeArguments& type_arguments,
-      const Class& other,
-      const AbstractTypeArguments& other_type_arguments,
-      Error* malformed_error) const;
-
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
-    return TestType(kIsSubtypeOf,
-                    type_arguments,
-                    other,
-                    other_type_arguments,
-                    malformed_error);
-  }
-
-  // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
-                      const Class& dst,
-                      const AbstractTypeArguments& dst_type_arguments,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo,
-                    type_arguments,
-                    dst,
-                    dst_type_arguments,
-                    malformed_error);
-  }
+                   Error* malformed_error) const;
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -717,13 +687,6 @@ class Class : public Object {
   RawArray* canonical_types() const;
 
   void CalculateFieldOffsets() const;
-
-  // Check the subtype or assignability relationship.
-  bool TestType(TypeTestKind test,
-                const AbstractTypeArguments& type_arguments,
-                const Class& other,
-                const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -862,20 +825,8 @@ class AbstractType : public Object {
     return !cls.IsNull() && cls.is_interface();
   }
 
-  // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* malformed_error) const;
-
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
-    return Test(kIsSubtypeOf, other, malformed_error);
-  }
-
-  // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractType& dst,
-                      Error* malformed_error) const {
-    return Test(kIsAssignableTo, dst, malformed_error);
-  }
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
 
   static RawAbstractType* NewTypeParameter(intptr_t index,
                                            const String& name,
@@ -886,11 +837,6 @@ class AbstractType : public Object {
       const AbstractTypeArguments& instantiator_type_arguments);
 
  protected:
-  // Check the subtype or assignability relationship.
-  bool Test(TypeTestKind test,
-            const AbstractType& other,
-            Error* malformed_error) const;
-
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
 };
@@ -1101,11 +1047,10 @@ class AbstractTypeArguments : public Object {
                         const AbstractTypeArguments& bounds_instantiator,
                         Error* malformed_error) const;
 
-  // Check the "more specific than" relationship, considering only a prefix of
-  // length 'len'.
-  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
-                          intptr_t len,
-                          Error* malformed_error) const;
+  // Check the subtype relationship, considering only a prefix of length 'len'.
+  bool IsSubtypeOf(const AbstractTypeArguments& other,
+                   intptr_t len,
+                   Error* malformed_error) const;
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1411,26 +1356,7 @@ class Function : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
-    return TestType(kIsSubtypeOf,
-                    type_arguments,
-                    other,
-                    other_type_arguments,
-                    malformed_error);
-  }
-
-  // Returns true if the type of this function can be assigned to the type of
-  // the destination function.
-  bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
-                      const Function& dst,
-                      const AbstractTypeArguments& dst_type_arguments,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo,
-                    type_arguments,
-                    dst,
-                    dst_type_arguments,
-                    malformed_error);
-  }
+                   Error* malformed_error) const;
 
   // Returns true if this function represents a (possibly implicit) closure
   // function.
@@ -1503,14 +1429,6 @@ class Function : public Object {
 
   RawString* BuildSignature(bool instantiate,
                             const AbstractTypeArguments& instantiator) const;
-
-  // Checks the subtype or assignability relationship between the type of this
-  // function and the type of the other function.
-  bool TestType(TypeTestKind test,
-                const AbstractTypeArguments& type_arguments,
-                const Function& other,
-                const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
 
   // Checks the type of the formal parameter at the given position for
   // assignability relationship between the type of this function and the type
@@ -2557,19 +2475,10 @@ class Instance : public Object {
   virtual RawAbstractTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const;
 
-  // Check if this instance is an instance of the given type.
+  // Check if the type of this instance is a subtype of the given type.
   bool IsInstanceOf(const AbstractType& type,
                     const AbstractTypeArguments& type_instantiator,
-                    Error* malformed_error) const {
-    return TestType(kIsSubtypeOf, type, type_instantiator, malformed_error);
-  }
-
-  // Check if this instance is assignable to the given type.
-  bool IsAssignableTo(const AbstractType& type,
-                      const AbstractTypeArguments& type_instantiator,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo, type, type_instantiator, malformed_error);
-  }
+                    Error* malformed_error) const;
 
   bool IsValidNativeIndex(int index) const;
 
@@ -2605,13 +2514,6 @@ class Instance : public Object {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
   bool IsValidFieldOffset(int offset) const;
-
-  // Check the subtype or assignability relationship between the type of this
-  // instance and the given type.
-  bool TestType(TypeTestKind test,
-                const AbstractType& type,
-                const AbstractTypeArguments& type_instantiator,
-                Error* malformed_error) const;
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);

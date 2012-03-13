@@ -1429,11 +1429,13 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
-bool Class::IsMoreSpecificThan(
+bool Class::IsSubtypeOf(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
+  ASSERT(is_finalized());
+  ASSERT(other.is_finalized());
   // Check for DynamicType.
   // The DynamicType on the lefthand side is replaced by the bottom type, which
   // is more specific than any type.
@@ -1456,9 +1458,9 @@ bool Class::IsMoreSpecificThan(
         other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
-    return type_arguments.IsMoreSpecificThan(other_type_arguments,
-                                             len,
-                                             malformed_error);
+    return type_arguments.IsSubtypeOf(other_type_arguments,
+                                      len,
+                                      malformed_error);
   }
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
@@ -1505,10 +1507,10 @@ bool Class::IsMoreSpecificThan(
           }
         }
       }
-      if (interface_class.IsMoreSpecificThan(interface_args,
-                                             other,
-                                             other_type_arguments,
-                                             malformed_error)) {
+      if (interface_class.IsSubtypeOf(interface_args,
+                                      other,
+                                      other_type_arguments,
+                                      malformed_error)) {
         return true;
       }
     }
@@ -1529,49 +1531,15 @@ bool Class::IsMoreSpecificThan(
   // Instead of truncating the type argument vector to the length of the super
   // type argument vector, we make sure that the code works with a vector that
   // is longer than necessary.
-  return super_class.IsMoreSpecificThan(type_arguments,
-                                        other,
-                                        other_type_arguments,
-                                        malformed_error);
+  return super_class.IsSubtypeOf(type_arguments,
+                                 other,
+                                 other_type_arguments,
+                                 malformed_error);
 }
 
 
 bool Class::IsTopLevel() const {
   return String::Handle(Name()).Equals("::");
-}
-
-
-bool Class::TestType(TypeTestKind test,
-                     const AbstractTypeArguments& type_arguments,
-                     const Class& other,
-                     const AbstractTypeArguments& other_type_arguments,
-                     Error* malformed_error) const {
-  ASSERT(is_finalized() || !ClassFinalizer::AllClassesFinalized());
-  ASSERT(other.is_finalized() || !ClassFinalizer::AllClassesFinalized());
-  if (test == kIsAssignableTo) {
-    // The spec states that "a type T is assignable to a type S if T is a
-    // subtype of S or S is a subtype of T". This is from the perspective of a
-    // static checker, which does not know the actual type of the assigned
-    // value. However, this type information is available at run time in checked
-    // mode. We therefore apply a more restrictive subtype check, which prevents
-    // heap pollution. We only keep the assignability check when assigning
-    // values of a function type.
-    if (IsSignatureClass() && other.IsSignatureClass()) {
-      const Function& src_fun = Function::Handle(signature_function());
-      const Function& dst_fun = Function::Handle(other.signature_function());
-      return src_fun.IsAssignableTo(type_arguments,
-                                    dst_fun,
-                                    other_type_arguments,
-                                    malformed_error);
-    }
-    // Continue with a subtype test.
-    test = kIsSubtypeOf;
-  }
-  ASSERT(test == kIsSubtypeOf);
-
-  // Check for "more specific" relation.
-  return IsMoreSpecificThan(type_arguments, other, other_type_arguments,
-                            malformed_error);
 }
 
 
@@ -2128,47 +2096,20 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsMoreSpecificThan(const AbstractType& other,
-                                      Error* malformed_error) const {
+bool AbstractType::IsSubtypeOf(const AbstractType& other,
+                               Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // AbstractType parameters cannot be handled by Class::IsMoreSpecificThan().
+  // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     return IsTypeParameter() && other.IsTypeParameter() &&
         (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
-  return cls.IsMoreSpecificThan(
-      AbstractTypeArguments::Handle(arguments()),
-      Class::Handle(other.type_class()),
-      AbstractTypeArguments::Handle(other.arguments()),
-      malformed_error);
-}
-
-
-bool AbstractType::Test(TypeTestKind test,
-                        const AbstractType& other,
-                        Error* malformed_error) const {
-  ASSERT(IsFinalized());
-  ASSERT(other.IsFinalized());
-  // AbstractType parameters cannot be handled by Class::TestType().
-  if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
-  }
-  const Class& cls = Class::Handle(type_class());
-  if (test == kIsSubtypeOf) {
-    return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                           Class::Handle(other.type_class()),
-                           AbstractTypeArguments::Handle(other.arguments()),
-                           malformed_error);
-  } else {
-    ASSERT(test == kIsAssignableTo);
-    return cls.IsAssignableTo(AbstractTypeArguments::Handle(arguments()),
-                              Class::Handle(other.type_class()),
-                              AbstractTypeArguments::Handle(other.arguments()),
-                              malformed_error);
-  }
+  return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
+                         Class::Handle(other.type_class()),
+                         AbstractTypeArguments::Handle(other.arguments()),
+                         malformed_error);
 }
 
 RawAbstractType* AbstractType::NewTypeParameter(
@@ -2836,7 +2777,7 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
 }
 
 
-bool AbstractTypeArguments::IsMoreSpecificThan(
+bool AbstractTypeArguments::IsSubtypeOf(
     const AbstractTypeArguments& other,
     intptr_t len,
     Error* malformed_error) const {
@@ -2850,7 +2791,7 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsMoreSpecificThan(other_type, malformed_error)) {
+    if (!type.IsSubtypeOf(other_type, malformed_error)) {
       return false;
     }
   }
@@ -3430,8 +3371,7 @@ bool Function::TestParameterType(
 }
 
 
-bool Function::TestType(
-    TypeTestKind test,
+bool Function::IsSubtypeOf(
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
@@ -3441,8 +3381,7 @@ bool Function::TestType(
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_params = other.num_optional_parameters();
   if ((num_fixed_params != other_num_fixed_params) ||
-      ((test == AbstractType::kIsSubtypeOf) &&
-       (num_opt_params < other_num_opt_params))) {
+      (num_opt_params < other_num_opt_params)) {
     return false;
   }
   // Check the result type.
@@ -3470,38 +3409,16 @@ bool Function::TestType(
     }
   }
   // Check the names and types of optional parameters.
-  if (num_opt_params >= other_num_opt_params) {
-    // Check that for each optional named parameter of type T of the other
-    // function type, there is a corresponding optional named parameter of this
-    // function at the same position with an identical name and with a type S
-    // that is a subtype or supertype of T.
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const intptr_t other_num_params =
-        other_num_fixed_params + other_num_opt_params;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      if ((ParameterNameAt(i) != other_param_name.raw()) ||
-          !TestParameterType(i, type_arguments, other, other_type_arguments,
-                             malformed_error)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  ASSERT((test == AbstractType::kIsAssignableTo) &&
-         (num_opt_params < other_num_opt_params));
-  // To verify that this function type is assignable to the other function type,
-  // check that for each optional named parameter of type T of this function
-  // type, there is a corresponding optional named parameter of the other
-  // function at the same position with an identical name and with a type S that
-  // is a subtype or supertype of T.
+  // Check that for each optional named parameter of type T of the other
+  // function type, there is a corresponding optional named parameter of this
+  // function at the same position with an identical name and with a type S
+  // that is a subtype or supertype of T.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t num_params = num_fixed_params + num_opt_params;
+  const intptr_t other_num_params =
+      other_num_fixed_params + other_num_opt_params;
   String& other_param_name = String::Handle();
-  for (intptr_t i = num_fixed_params; i < num_params; i++) {
+  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
         !TestParameterType(i, type_arguments, other, other_type_arguments,
@@ -6253,32 +6170,26 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 }
 
 
-bool Instance::TestType(TypeTestKind test,
-                        const AbstractType& other,
-                        const AbstractTypeArguments& other_instantiator,
-                        Error* malformed_error) const {
+bool Instance::IsInstanceOf(const AbstractType& other,
+                            const AbstractTypeArguments& other_instantiator,
+                            Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
-    if (test == AbstractType::kIsSubtypeOf) {
-      Class& other_class = Class::Handle();
-      if (other.IsTypeParameter()) {
-        if (other_instantiator.IsNull()) {
-          return true;  // Other type is uninstantiated, i.e. Dynamic.
-        }
-        const AbstractType& instantiated_other =
-            AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
-        ASSERT(instantiated_other.IsInstantiated());
-        other_class = instantiated_other.type_class();
-      } else {
-        other_class = other.type_class();
+    Class& other_class = Class::Handle();
+    if (other.IsTypeParameter()) {
+      if (other_instantiator.IsNull()) {
+        return true;  // Other type is uninstantiated, i.e. Dynamic.
       }
-      return other_class.IsObjectClass() || other_class.IsDynamicClass();
+      const AbstractType& instantiated_other =
+          AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
+      ASSERT(instantiated_other.IsInstantiated());
+      other_class = instantiated_other.type_class();
     } else {
-      ASSERT(test == AbstractType::kIsAssignableTo);
-      return true;
+      other_class = other.type_class();
     }
+    return other_class.IsObjectClass() || other_class.IsDynamicClass();
   }
   const Class& cls = Class::Handle(clazz());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
@@ -6320,8 +6231,8 @@ bool Instance::TestType(TypeTestKind test,
           other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
-  return cls.TestType(test, type_arguments, other_class, other_type_arguments,
-                      malformed_error);
+  return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
+                         malformed_error);
 }
 
 

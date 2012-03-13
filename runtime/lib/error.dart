@@ -35,8 +35,8 @@ class TypeError extends AssertionError {
   String toString() {
     String str = (malformedError != null) ? malformedError : "";
     if ((dstName != null) && (dstName.length > 0)) {
-      str = "${str}type '$srcType' is not assignable "
-            "to type '$dstType' of '$dstName'.";
+      str = "${str}type '$srcType' is not a subtype of "
+            "type '$dstType' of '$dstName'.";
     } else {
       str = "${str}malformed type used.";
     }

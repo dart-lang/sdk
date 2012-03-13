@@ -7087,10 +7087,11 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         Error& malformed_error = Error::Handle();
         if (!element_type.IsInstantiated() ||
             !element->IsLiteralNode() ||
-            !element->AsLiteralNode()->literal().
-                IsAssignableTo(element_type,
-                               TypeArguments::Handle(),
-                               &malformed_error)) {
+            (!element->AsLiteralNode()->literal().IsNull() &&
+             !element->AsLiteralNode()->literal().IsInstanceOf(
+                 element_type,
+                 TypeArguments::Handle(),
+                 &malformed_error))) {
           element = new AssignableNode(element_pos,
                                        element,
                                        element_type,
@@ -7120,8 +7121,9 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       ASSERT(elem->IsLiteralNode());
       if (FLAG_enable_type_checks &&
           !element_type.IsDynamicType() &&
-          !elem->AsLiteralNode()->literal().IsAssignableTo(
-              element_type, TypeArguments::Handle(), &malformed_error)) {
+          (!elem->AsLiteralNode()->literal().IsNull() &&
+           !elem->AsLiteralNode()->literal().IsInstanceOf(
+               element_type, TypeArguments::Handle(), &malformed_error))) {
         // If the failure is due to a malformed type error, display it instead.
         if (!malformed_error.IsNull()) {
           ErrorMsg(malformed_error);
@@ -7272,8 +7274,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       Error& malformed_error = Error::Handle();
       if (!value_type.IsInstantiated() ||
           !value->IsLiteralNode() ||
-          !value->AsLiteralNode()->literal().IsAssignableTo(
-              value_type, TypeArguments::Handle(), &malformed_error)) {
+          (!value->AsLiteralNode()->literal().IsNull() &&
+           !value->AsLiteralNode()->literal().IsInstanceOf(
+               value_type, TypeArguments::Handle(), &malformed_error))) {
         value = new AssignableNode(value_pos,
                                    value,
                                    value_type,
@@ -7307,8 +7310,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       if (FLAG_enable_type_checks &&
           ((i % 2) == 1) &&  // Check values only, not keys.
           !value_type.IsDynamicType() &&
-          !arg->AsLiteralNode()->literal().IsAssignableTo(
-              value_type, TypeArguments::Handle(), &malformed_error)) {
+          (!arg->AsLiteralNode()->literal().IsNull() &&
+           !arg->AsLiteralNode()->literal().IsInstanceOf(
+               value_type, TypeArguments::Handle(), &malformed_error))) {
         // If the failure is due to a malformed type error, display it instead.
         if (!malformed_error.IsNull()) {
           ErrorMsg(malformed_error);

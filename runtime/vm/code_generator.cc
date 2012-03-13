@@ -413,13 +413,14 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
 }
 
 
-// Check that the type of the given instance is assignable to the given type.
+// Check that the type of the given instance is a subtype of the given type and
+// can therefore be assigned.
 // Arg0: index of the token of the assignment (source location).
 // Arg1: instance being assigned.
 // Arg2: type being assigned to.
 // Arg3: type arguments of the instantiator of the type being assigned to.
-// Arg4: name of instance being assigned to.
-// Return value: instance if assignable, otherwise throw a TypeError.
+// Arg4: name of variable being assigned to.
+// Return value: instance if a subtype, otherwise throw a TypeError.
 DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
   // TODO(regis): Get the token index from the PcDesc (via DartFrame).
@@ -430,28 +431,29 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
       AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& dst_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& malformed_error = Error::Handle();
-  const bool is_assignable = src_instance.IsAssignableTo(
+  const bool is_instance_of = src_instance.IsInstanceOf(
       dst_type, dst_type_instantiator, &malformed_error);
 
   if (FLAG_trace_type_checks) {
     const Type& src_type = Type::Handle(src_instance.GetType());
     if (dst_type.IsInstantiated()) {
-      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s'.\n",
+      OS::Print("TypeCheck: type '%s' %s a subtype of type '%s' of '%s'.\n",
                 String::Handle(src_type.Name()).ToCString(),
-                is_assignable ? "is" : "is not",
+                is_instance_of ? "is" : "is not",
                 String::Handle(dst_type.Name()).ToCString(),
                 dst_name.ToCString());
     } else {
       // Instantiate dst_type before printing.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(dst_type_instantiator));
-      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s' "
+      OS::Print("TypeCheck: type '%s' %s a subtype of type '%s' of '%s' "
                 "instantiated from '%s'.\n",
                 String::Handle(src_type.Name()).ToCString(),
-                is_assignable ? "is" : "is not",
+                is_instance_of ? "is" : "is not",
                 String::Handle(instantiated_dst_type.Name()).ToCString(),
                 dst_name.ToCString(),
                 String::Handle(dst_type.Name()).ToCString());
@@ -463,7 +465,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
         caller_frame->LookupDartFunction());
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
-  if (!is_assignable) {
+  if (!is_instance_of) {
     const Type& src_type = Type::Handle(src_instance.GetType());
     const String& src_type_name = String::Handle(src_type.Name());
     String& dst_type_name = String::Handle();
@@ -534,6 +536,8 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
 }
 
 
+// TODO(regis): Function rest arguments are not supported anymore, but they may
+// come back.
 // Check that the type of each element of the given array is assignable to the
 // given type.
 // Arg0: index of the token of the rest argument declaration (source location).
@@ -554,6 +558,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& rest_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!element_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!rest_array.IsNull());
 
   Instance& elem = Instance::Handle();
@@ -563,9 +568,9 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
     // The previous successful type check may have set malformed_error.
     // Note that a returned malformed_error is ignored if a type check succeeds.
     malformed_error = Error::null();
-    if (!elem.IsNull() && !elem.IsAssignableTo(element_type,
-                                               element_type_instantiator,
-                                               &malformed_error)) {
+    if (!elem.IsNull() && !elem.IsInstanceOf(element_type,
+                                             element_type_instantiator,
+                                             &malformed_error)) {
       // Allocate and throw a new instance of TypeError.
       char buf[256];
       OS::SNPrint(buf, sizeof(buf), "%s[%d]",

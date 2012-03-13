@@ -18,19 +18,25 @@ class NamedParametersTypeTest {
     anyFunction = funNumBool;  // No error.
     anyFunction = funNumOptBool;  // No error.
     anyFunction = funNumOptBoolX;  // No error.
-    acceptFunNumOptBool(funNum);  // No error.
     acceptFunNumOptBool(funNumOptBool);  // No error.
+    try {
+      acceptFunNumOptBool(funNum);  // No static type warning.
+    } catch (TypeError error) {
+      result += 1;
+      Expect.stringEquals("(num, [b: bool]) => void", error.dstType);
+      Expect.stringEquals("(num) => void", error.srcType);
+    }
     try {
       acceptFunNumOptBool(funNumBool);  /// static type warning
     } catch (TypeError error) {
-      result += 1;
+      result += 10;
       Expect.stringEquals("(num, [b: bool]) => void", error.dstType);
       Expect.stringEquals("(num, bool) => void", error.srcType);
     }
     try {
       acceptFunNumOptBool(funNumOptBoolX);  /// static type warning
     } catch (TypeError error) {
-      result += 10;
+      result += 100;
       Expect.stringEquals("(num, [b: bool]) => void", error.dstType);
       Expect.stringEquals("(num, [x: bool]) => void", error.srcType);
     }
@@ -39,5 +45,5 @@ class NamedParametersTypeTest {
 }
 
 main() {
-  Expect.equals(11, NamedParametersTypeTest.testMain());
+  Expect.equals(111, NamedParametersTypeTest.testMain());
 }
