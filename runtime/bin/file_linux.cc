@@ -105,6 +105,14 @@ off_t File::Length() {
 
 
 File* File::Open(const char* name, FileOpenMode mode) {
+  // Report errors for non-regular files.
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
+    if (!S_ISREG(st.st_mode)) {
+      errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
+      return NULL;
+    }
+  }
   int flags = O_RDONLY;
   if ((mode & kWrite) != 0) {
     flags = (O_RDWR | O_CREAT);
@@ -178,6 +186,16 @@ char* File::GetCanonicalPath(const char* pathname) {
 
 
 char* File::GetContainingDirectory(char* pathname) {
+  // Report errors for non-regular files.
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(stat(pathname, &st)) == 0) {
+    if (!S_ISREG(st.st_mode)) {
+      errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
+      return NULL;
+    }
+  } else {
+    return NULL;
+  }
   char* path = NULL;
   do {
     path = dirname(pathname);

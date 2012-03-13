@@ -3,13 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-// Used for holding error code and error message for failed OS system calls.
-class _OSStatus {
-  int _errorCode;
-  String _errorMessage;
-}
-
-
 class _Directory implements Directory {
   static final kCreateRequest = 0;
   static final kDeleteRequest = 1;
@@ -21,8 +14,7 @@ class _Directory implements Directory {
   _Directory.current() : _path = _current();
 
   static String _current() native "Directory_Current";
-  static String _createTemp(String template,
-                            _OSStatus status) native "Directory_CreateTemp";
+  static _createTemp(String template) native "Directory_CreateTemp";
   static int _exists(String path) native "Directory_Exists";
   static bool _create(String path) native "Directory_Create";
   static bool _delete(String path, bool recursive) native "Directory_Delete";
@@ -47,7 +39,7 @@ class _Directory implements Directory {
   bool existsSync() {
     int exists = _exists(_path);
     if (exists < 0) {
-      throw new DirectoryException("Diretory exists test failed: $_path");
+      throw new DirectoryIOException("Diretory exists test failed: $_path");
     }
     return (exists == 1);
   }
@@ -68,7 +60,7 @@ class _Directory implements Directory {
 
   void createSync() {
     if (!_create(_path)) {
-      throw new DirectoryException("Directory creation failed: $_path");
+      throw new DirectoryIOException("Directory creation failed: $_path");
     }
   }
 
@@ -89,16 +81,15 @@ class _Directory implements Directory {
   }
 
   void createTempSync() {
-    var status = new _OSStatus();
-    var result = _createTemp(path, status);
-    if (result != null) {
-      _path = result;
-    } else {
-      throw new DirectoryException(
-          "Could not create temporary directory [$_path]: " +
-          "${status._errorMessage}",
-          status._errorCode);
+    if (_path is !String) {
+      throw new IllegalArgumentException();
     }
+    var result = _createTemp(path);
+    if (result is OSError) {
+      throw new DirectoryIOException("Could not create temporary directory",
+                                     result);
+    }
+    _path = result;
   }
 
   void _deleteHelper(bool recursive, String errorMsg, void callback()) {
@@ -127,14 +118,14 @@ class _Directory implements Directory {
   void deleteSync() {
     bool recursive = false;
     if (!_delete(_path, recursive)) {
-      throw new DirectoryException("Directory deletion failed: $_path");
+      throw new DirectoryIOException("Directory deletion failed: $_path");
     }
   }
 
   void deleteRecursivelySync() {
     bool recursive = true;
     if (!_delete(_path, recursive)) {
-      throw new DirectoryException(
+      throw new DirectoryIOException(
           "Recursive directory deletion failed: $_path");
     }
   }

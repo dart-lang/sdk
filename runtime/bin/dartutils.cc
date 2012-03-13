@@ -278,6 +278,33 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
 }
 
 
+Dart_Handle DartUtils::NewDartOSError() {
+  // Extract the current OS error.
+  OSError os_error;
+  return NewDartOSError(&os_error);
+}
+
+
+Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
+  // Create a Dart OSError object with the information retrieved from the OS.
+  Dart_Handle url = Dart_NewString("dart:io");
+  if (Dart_IsError(url)) return url;
+  Dart_Handle lib = Dart_LookupLibrary(url);
+  if (Dart_IsError(lib)) return lib;
+  Dart_Handle cls = Dart_NewString("IOUtils");
+  if (Dart_IsError(cls)) return cls;
+  Dart_Handle method = Dart_NewString("makeOSError");
+  if (Dart_IsError(method)) return method;
+  Dart_Handle args[2];
+  args[0] = Dart_NewString(os_error->message());
+  if (Dart_IsError(args[0])) return args[0];
+  args[1] = Dart_NewInteger(os_error->code());
+  if (Dart_IsError(args[1])) return args[1];
+  Dart_Handle err = Dart_InvokeStatic(lib, cls, method, 2, args);
+  return err;
+}
+
+
 // Statically allocated Dart_CObject instances for immutable
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
@@ -377,4 +404,27 @@ Dart_CObject* CObject::NewByteArray(int length) {
   cobject->value.as_byte_array.length = length;
   cobject->value.as_byte_array.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
+}
+
+
+static int kIllegalArgumentError = 1;
+static int kOSError = 2;
+
+
+CObject* CObject::IllegalArgumentError() {
+  CObjectArray* result = new CObjectArray(CObject::NewArray(1));
+  result->SetAt(0, new CObjectInt32(CObject::NewInt32(kIllegalArgumentError)));
+  return result;
+}
+
+
+CObject* CObject::NewOSError() {
+  OSError os_error;
+  CObject* error_message =
+      new CObjectString(CObject::NewString(os_error.message()));
+  CObjectArray* result = new CObjectArray(CObject::NewArray(3));
+  result->SetAt(0, new CObjectInt32(CObject::NewInt32(kOSError)));
+  result->SetAt(1, new CObjectInt32(CObject::NewInt32(os_error.code())));
+  result->SetAt(2, error_message);
+  return result;
 }

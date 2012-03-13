@@ -57,5 +57,9 @@
     'thread.h',
     'thread_pool.cc',
     'thread_pool_test.cc',
+    'utils.h',
+    'utils_linux.cc',
+    'utils_macos.cc',
+    'utils_win.cc',
   ],
 }

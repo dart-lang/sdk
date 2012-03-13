@@ -18,7 +18,7 @@
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
-  V(Directory_CreateTemp, 2)                                                   \
+  V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_NewServicePort, 0)                                               \
   V(EventHandler_Start, 1)                                                     \

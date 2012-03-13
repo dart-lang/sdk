@@ -7,6 +7,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 
 #include "include/dart_api.h"
 
@@ -72,10 +73,17 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   // files. Directories can be opened for reading using the posix
   // 'open' call.
   File* file = NULL;
-  if (((file_mode & File::kWrite) != 0) || File::Exists(filename)) {
-    file = File::Open(filename, file_mode);
+  file = File::Open(filename, file_mode);
+  if (file != NULL) {
+    Dart_SetReturnValue(args,
+                        Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
   }
-  Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
 
@@ -322,7 +330,15 @@ void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Create(str);
-  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  if (result) {
+    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
+  }
   Dart_ExitScope();
 }
 
@@ -332,7 +348,15 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Delete(str);
-  Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  if (result) {
+    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
+  }
   Dart_ExitScope();
 }
 
@@ -343,11 +367,17 @@ void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   char* str_copy = strdup(str);
   char* path = File::GetContainingDirectory(str_copy);
+  free(str_copy);
   if (path != NULL) {
     Dart_SetReturnValue(args, Dart_NewString(path));
+    free(path);
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
   }
-  free(str_copy);
-  free(path);
   Dart_ExitScope();
 }
 
@@ -360,6 +390,12 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   if (path != NULL) {
     Dart_SetReturnValue(args, Dart_NewString(path));
     free(path);
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -409,7 +445,7 @@ static CObject* FileExistsRequest(const CObjectArray& request) {
     bool result = File::Exists(filename.CString());
     return CObject::Bool(result);
   }
-  return CObject::False();
+  return CObject::IllegalArgumentError();
 }
 
 
@@ -417,11 +453,14 @@ static CObject* FileCreateRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
     bool result = File::Create(filename.CString());
-    return CObject::Bool(result);
+    if (result) {
+      return CObject::True();
+    } else {
+      return CObject::NewOSError();
+    }
   }
-  return CObject::False();
+  return CObject::IllegalArgumentError();
 }
-
 
 static CObject* FileOpenRequest(const CObjectArray& request) {
   File* file = NULL;
@@ -433,12 +472,15 @@ static CObject* FileOpenRequest(const CObjectArray& request) {
     File::DartFileOpenMode dart_file_mode =
         static_cast<File::DartFileOpenMode>(mode.Value());
     File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
-    if (((file_mode & File::kWrite) != 0) || File::Exists(filename.CString())) {
-      file = File::Open(filename.CString(), file_mode);
+    file = File::Open(filename.CString(), file_mode);
+    if (file != NULL) {
+      return new CObjectIntptr(
+          CObject::NewIntptr(reinterpret_cast<intptr_t>(file)));
+    } else {
+      return CObject::NewOSError();
     }
   }
-  return new CObjectIntptr(
-      CObject::NewIntptr(reinterpret_cast<intptr_t>(file)));
+  return CObject::IllegalArgumentError();
 }
 
 
@@ -446,7 +488,11 @@ static CObject* FileDeleteRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
     bool result = File::Delete(filename.CString());
-    return CObject::Bool(result);
+    if (result) {
+      return CObject::True();
+    } else {
+      return CObject::NewOSError();
+    }
   }
   return CObject::False();
 }
@@ -455,25 +501,31 @@ static CObject* FileDeleteRequest(const CObjectArray& request) {
 static CObject* FileFullPathRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
-    char* path = File::GetCanonicalPath(filename.CString());
-    return new CObjectString(CObject::NewString(path));
+    char* result = File::GetCanonicalPath(filename.CString());
+    if (result != NULL) {
+      CObject* path = new CObjectString(CObject::NewString(result));
+      free(result);
+      return path;
+    } else {
+      return CObject::NewOSError();
+    }
   }
-  return CObject::Null();
+  return CObject::IllegalArgumentError();
 }
 
 
 static CObject* FileDirectoryRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
-    if (File::Exists(filename.CString())) {
-      char* str_copy = strdup(filename.CString());
-      char* path = File::GetContainingDirectory(str_copy);
-      free(str_copy);
-      if (path != NULL) {
-        CObject* result = new CObjectString(CObject::NewString(path));
-        free(path);
-        return result;
-      }
+    char* str_copy = strdup(filename.CString());
+    char* path = File::GetContainingDirectory(str_copy);
+    free(str_copy);
+    if (path != NULL) {
+      CObject* result = new CObjectString(CObject::NewString(path));
+      free(path);
+      return result;
+    } else {
+      return CObject::NewOSError();
     }
   }
   return CObject::Null();

@@ -167,6 +167,11 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 char* File::GetCanonicalPath(const char* pathname) {
+  struct stat st;
+  if (stat(pathname, &st) != 0) {
+    SetLastError(ERROR_FILE_NOT_FOUND);
+    return NULL;
+  }
   int required_size = GetFullPathName(pathname, 0, NULL, NULL);
   char* path = static_cast<char*>(malloc(required_size));
   int written = GetFullPathName(pathname, required_size, path, NULL);
@@ -176,6 +181,16 @@ char* File::GetCanonicalPath(const char* pathname) {
 
 
 char* File::GetContainingDirectory(char* pathname) {
+  struct stat st;
+  if (stat(pathname, &st) == 0) {
+    if ((st.st_mode & S_IFMT) != S_IFREG) {
+      SetLastError(ERROR_FILE_NOT_FOUND);
+      return NULL;
+    }
+  } else {
+    SetLastError(ERROR_FILE_NOT_FOUND);
+    return NULL;
+  }
   int required_size = GetFullPathName(pathname, 0, NULL, NULL);
   char* path = static_cast<char*>(malloc(required_size));
   char* file_part = NULL;

@@ -59,10 +59,7 @@ class Directory {
 
   static bool Create(const char* path);
 
-  static int CreateTemp(const char* const_template,
-                        char** path,
-                        char* os_error_message,
-                        int os_error_message_len);
+  static char* CreateTemp(const char* const_template);
 
   static bool Delete(const char* path, bool recursive);
 

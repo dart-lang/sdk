@@ -65,39 +65,16 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 1);
-  static const int kMaxChildOsErrorMessageLength = 256;
-  char os_error_message[kMaxChildOsErrorMessageLength];
-  if (!Dart_IsString(path)) {
-    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringField(
-        status_handle, "_errorMessage", "Invalid arguments");
-    Dart_SetReturnValue(args, Dart_Null());
-    Dart_ExitScope();
-    return;
-  }
-
-  char* result = NULL;
-  int error_code = Directory::CreateTemp(DartUtils::GetStringValue(path),
-                                         &result,
-                                         os_error_message,
-                                         kMaxChildOsErrorMessageLength);
-  if (error_code == 0) {
+  char* result = Directory::CreateTemp(DartUtils::GetStringValue(path));
+  if (result != NULL) {
     Dart_SetReturnValue(args, Dart_NewString(result));
     free(result);
   } else {
-    ASSERT(result == NULL);
-    if (error_code == -1) {
-      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-      DartUtils::SetStringField(
-          status_handle, "_errorMessage", "Invalid arguments");
-    } else {
-      DartUtils::SetIntegerField(
-          status_handle, "_errorCode", error_code);
-      DartUtils::SetStringField(
-          status_handle, "_errorMessage", os_error_message);
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
     }
-    Dart_SetReturnValue(args, Dart_Null());
+    Dart_SetReturnValue(args, err);
   }
   Dart_ExitScope();
 }
@@ -162,32 +139,13 @@ static CObject* DirectoryExistsRequest(const CObjectArray& request) {
 static CObject* DirectoryCreateTempRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString path(request[1]);
-
-    static const int kMaxChildOsErrorMessageLength = 256;
-    char os_error_message[kMaxChildOsErrorMessageLength];
-    char* result = NULL;
-    int error_code = Directory::CreateTemp(path.CString(),
-                                           &result,
-                                           os_error_message,
-                                           kMaxChildOsErrorMessageLength);
-    if (error_code == 0) {
+    char* result = Directory::CreateTemp(path.CString());
+    if (result != NULL) {
       CObject* temp_dir = new CObjectString(CObject::NewString(result));
       free(result);
       return temp_dir;
     } else {
-      ASSERT(result == NULL);
-      CObjectArray* error_response = new CObjectArray(CObject::NewArray(2));
-      if (error_code == -1) {
-        error_response->SetAt(0, new CObjectInt32(CObject::NewInt32(0)));
-        error_response->SetAt(
-            1, new CObjectString(CObject::NewString("Invalid arguments")));
-      } else {
-        error_response->SetAt(
-            0, new CObjectInt32(CObject::NewInt32(error_code)));
-        error_response->SetAt(
-            1, new CObjectString(CObject::NewString(os_error_message)));
-      }
-      return error_response;
+      return CObject::NewOSError();
     }
   }
   return CObject::False();

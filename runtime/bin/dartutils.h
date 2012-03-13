@@ -6,6 +6,7 @@
 #define BIN_DARTUTILS_H_
 
 #include "bin/builtin.h"
+#include "bin/utils.h"
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
@@ -88,6 +89,11 @@ class DartUtils {
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
+  // Create a new Dart OSError object with the current OS error.
+  static Dart_Handle NewDartOSError();
+  // Create a new Dart OSError object with the provided OS error.
+  static Dart_Handle NewDartOSError(OSError* os_error);
+
   static const char* kDartScheme;
   static const char* kDartExtensionScheme;
   static const char* kBuiltinLibURL;
@@ -154,6 +160,11 @@ class CObject {
   static Dart_CObject* NewByteArray(int length);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
+
+  // Create a new CObject array with an illegal arguments error.
+  static CObject* IllegalArgumentError();
+  // Create a new CObject array with the current OS error.
+  static CObject* NewOSError();
 
  protected:
   CObject() : cobject_(NULL) {}

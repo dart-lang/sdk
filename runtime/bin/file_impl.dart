@@ -7,7 +7,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _file = new File(name);
     _data = [];
     _position = 0;
-    _file.onError = (String s) {
+    _file.onError = (e) {
       if (_clientErrorHandler != null) {
         _clientErrorHandler();
       }
@@ -26,7 +26,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   void _readDataFromFile(RandomAccessFile openedFile) {
-    openedFile.onError = (String s) {
+    openedFile.onError = (e) {
       if (_clientErrorHandler != null) {
         _clientErrorHandler();
       }
@@ -224,6 +224,10 @@ class _FileUtils {
   static final kWriteListRequest = 15;
   static final kWriteStringRequest = 16;
 
+  static final kSuccessResponse = 0;
+  static final kIllegalArgumentResponse = 1;
+  static final kOSErrorResponse = 2;
+
   static List ensureFastAndSerializableBuffer(
       List buffer, int offset, int bytes) {
     // When using the Dart C API to access raw data, using a ByteArray is
@@ -250,12 +254,12 @@ class _FileUtils {
     return [outBuffer, outOffset];
   }
 
-  static bool exists(String name) native "File_Exists";
-  static int open(String name, int mode) native "File_Open";
-  static bool create(String name) native "File_Create";
-  static bool delete(String name) native "File_Delete";
-  static String fullPath(String name) native "File_FullPath";
-  static String directory(String name) native "File_Directory";
+  static exists(String name) native "File_Exists";
+  static open(String name, int mode) native "File_Open";
+  static create(String name) native "File_Create";
+  static delete(String name) native "File_Delete";
+  static fullPath(String name) native "File_FullPath";
+  static directory(String name) native "File_Directory";
   static int close(int id) native "File_Close";
   static int readByte(int id) native "File_ReadByte";
   static int readList(int id, List<int> buffer, int offset, int bytes)
@@ -279,24 +283,70 @@ class _FileUtils {
   static int openStdio(int fd) native "File_OpenStdio";
   static SendPort newServicePort() native "File_NewServicePort";
 
+  static bool checkedExists(String name) {
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    }
+    var result = exists(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot check existence of file", result);
+    }
+    return result;
+  }
+
   static int checkedOpen(String name, int mode) {
-    if (name is !String || mode is !int) return 0;
-    return open(name, mode);
+    if (name is !String || mode is !int) {
+      throw new IllegalArgumentException();
+    };
+    var result = open(name, mode);
+    if (result is OSError) {
+      throw new FileIOException("Cannot open file", result);
+    }
+    return result;
   }
 
   static bool checkedCreate(String name) {
-    if (name is !String) return false;
-    return create(name);
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    };
+    var result = create(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot create file", result);
+    }
+    return true;
   }
 
   static bool checkedDelete(String name) {
-    if (name is !String) return false;
-    return delete(name);
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    };
+    var result = delete(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot delete file", result);
+    }
+    return true;
   }
 
   static String checkedFullPath(String name) {
-    if (name is !String) return null;
-    return fullPath(name);
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    };
+    var result = fullPath(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot retrieve full path", result);
+    }
+    return result;
+  }
+
+  static String checkedDirectory(String name) {
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    }
+    var result = directory(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot retrieve directory for file", result);
+    }
+    return result;
   }
 
   static int checkReadWriteListArguments(int length, int offset, int bytes) {
@@ -310,6 +360,7 @@ class _FileUtils {
     if (string is !String) return -1;
     return writeString(id, string);
   }
+
 }
 
 
@@ -321,17 +372,15 @@ class _File implements File {
   void exists(void callback(bool exists)) {
     _ensureFileService();
     _asyncUsed = true;
-    if (_name is !String) {
-      if (_onError != null) {
-        _onError('File name is not a string: $_name');
-      }
-      return;
-    }
     List request = new List(2);
     request[0] = _FileUtils.kExistsRequest;
     request[1] = _name;
-    _fileService.call(request).then((exists) {
-      callback(exists);
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot open file");
+      } else {
+        callback(response);
+      }
     });
   }
 
@@ -340,10 +389,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    if (_name is !String) {
-      throw new FileIOException('File name is not a string: $_name');
-    }
-    return _FileUtils.exists(_name);
+    return _FileUtils.checkedExists(_name);
   }
 
   void create(void callback()) {
@@ -352,11 +398,11 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kCreateRequest;
     request[1] = _name;
-    _fileService.call(request).then((created) {
-      if (created) {
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot create file");
+      } else {
         callback();
-      } else if (_onError != null) {
-        _onError("Cannot create file: $_name");
       }
     });
   }
@@ -378,11 +424,11 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kDeleteRequest;
     request[1] = _name;
-    _fileService.call(request).then((deleted) {
-      if (deleted) {
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot delete file");
+      } else {
         callback();
-      } else if (_onError != null) {
-        _onError("Cannot delete file: $_name");
       }
     });
   }
@@ -392,10 +438,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    bool deleted = _FileUtils.checkedDelete(_name);
-    if (!deleted) {
-      throw new FileIOException("Cannot delete file: $_name");
-    }
+    _FileUtils.checkedDelete(_name);
   }
 
   void directory(void callback(Directory dir)) {
@@ -404,11 +447,11 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kDirectoryRequest;
     request[1] = _name;
-    _fileService.call(request).then((path) {
-      if (path != null) {
-        callback(new Directory(path));
-      } else if (_onError != null) {
-        _onError("Cannot get directory for: ${_name}");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot retrieve directory for file");
+      } else {
+        callback(new Directory(response));
       }
     });
   }
@@ -418,9 +461,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    if (!existsSync()) {
-      throw new FileIOException("Cannot get directory for: $_name");
-    }
+    _FileUtils.checkedDirectory(_name);
     return new Directory(_FileUtils.directory(_name));
   }
 
@@ -431,8 +472,7 @@ class _File implements File {
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       if (_onError != null) {
-        _onError("Unknown file mode. Use FileMode.READ, FileMode.WRITE " +
-                 "or FileMode.APPEND.");
+        _onError(new IllegalArgumentException());
         return;
       }
     }
@@ -440,11 +480,11 @@ class _File implements File {
     request[0] = _FileUtils.kOpenRequest;
     request[1] = _name;
     request[2] = mode._mode;  // Direct int value for serialization.
-    _fileService.call(request).then((id) {
-      if (id != 0) {
-        callback(new _RandomAccessFile(id, _name));
-      } else if (_onError != null) {
-        _onError("Cannot open file: $_name");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot open file");
+      } else {
+        callback(new _RandomAccessFile(response, _name));
       }
     });
   }
@@ -461,9 +501,7 @@ class _File implements File {
                                 "FileMode.WRITE or FileMode.APPEND.");
     }
     var id = _FileUtils.checkedOpen(_name, mode._mode);
-    if (id == 0) {
-      throw new FileIOException("Cannot open file: $_name");
-    }
+    assert(id != 0);
     return new _RandomAccessFile(id, _name);
   }
 
@@ -481,11 +519,11 @@ class _File implements File {
     List request = new List(2);
     request[0] = _FileUtils.kFullPathRequest;
     request[1] = _name;
-    _fileService.call(request).then((result) {
-      if (result != null) {
-        callback(result);
-      } else if (_onError != null) {
-        _onError("fullPath failed");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot retrieve full path");
+      } else {
+        callback(response);
       }
     });
   }
@@ -495,11 +533,7 @@ class _File implements File {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    String result = _FileUtils.checkedFullPath(_name);
-    if (result == null) {
-      throw new FileIOException("fullPath failed");
-    }
-    return result;
+    return _FileUtils.checkedFullPath(_name);
   }
 
   InputStream openInputStream() {
@@ -528,7 +562,7 @@ class _File implements File {
     };
     stream.onError = () {
       if (_onError != null) {
-        _onError("Failed to read file as bytes: $_name");
+        _onError("Failed to read file");
       }
     };
   }
@@ -543,7 +577,7 @@ class _File implements File {
     var result = new ByteArray(length);
     var read = opened.readListSync(result, 0, length);
     if (read != length) {
-      throw new FileIOException("Failed reading file as bytes: $_name");
+      throw new FileIOException("Failed to read file");
     }
     opened.closeSync();
     return result;
@@ -628,6 +662,27 @@ class _File implements File {
   void _ensureFileService() {
     if (_fileService == null) {
       _fileService = _FileUtils.newServicePort();
+    }
+  }
+
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _FileUtils.kSuccessResponse;
+  }
+
+  bool _reportError(response, String message) {
+    assert(_isErrorResponse(response));
+    if (_onError != null) {
+      switch (response[0]) {
+        case _FileUtils.kIllegalArgumentResponse:
+          _onError(new IllegalArgumentException());
+          break;
+        case _FileUtils.kOSErrorResponse:
+          _onError(new FileIOException(message,
+                                       new OSError(response[2], response[1])));
+          break;
+        default:
+          _onError(new Exception("Unknown error"));
+      }
     }
   }
 

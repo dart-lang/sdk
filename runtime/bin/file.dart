@@ -204,7 +204,7 @@ interface File default _File {
    * Sets the handler that gets called when errors occur during
    * operations on this file.
    */
-  void set onError(void handler(String error));
+  void set onError(void handler(Exception e));
 }
 
 
@@ -366,7 +366,21 @@ interface RandomAccessFile {
 
 
 class FileIOException implements Exception {
-  const FileIOException([String this.message = ""]);
-  String toString() => "FileIOException: $message";
+  const FileIOException([String this.message = "",
+                         OSError this.osError = null]);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add("FileIOException");
+    if (!message.isEmpty()) {
+      sb.add(": $message");
+      if (osError != null) {
+        sb.add(" ($osError)");
+      }
+    } else if (osError != null) {
+      sb.add(": osError");
+    }
+    return sb.toString();
+  }
   final String message;
+  final OSError osError;
 }

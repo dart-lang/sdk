@@ -439,7 +439,7 @@ testCreateTempErrorSync() {
   var location = illegalTempDirectoryLocation();
   if (location != null) {
     Expect.throws(new Directory(location).createTempSync,
-                  (e) => e is DirectoryException);
+                  (e) => e is DirectoryIOException);
   }
 }
 
