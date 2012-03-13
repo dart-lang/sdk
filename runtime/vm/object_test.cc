@@ -605,7 +605,6 @@ TEST_CASE(String) {
 
 TEST_CASE(StringFormat) {
   const char* hello_str = "Hello World!";
-  int32_t hello_len = strlen(hello_str);
   const String& str =
       String::Handle(String::NewFormatted("Hello %s!", "World"));
   EXPECT(str.IsInstance());
