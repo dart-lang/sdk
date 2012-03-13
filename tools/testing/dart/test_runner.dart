@@ -90,8 +90,8 @@ class TestCase {
       Expect.isTrue(specialCommand.contains('@'),
                     "special-command must contain a '@' char");
       var specialCommandSplit = specialCommand.split('@');
-      var prefix = specialCommandSplit[0];
-      var suffix = specialCommandSplit[1];
+      var prefix = specialCommandSplit[0].trim();
+      var suffix = specialCommandSplit[1].trim();
       List<Command> newCommands = [];
       for (Command c in commands) {
         var newExecutablePath;
@@ -113,7 +113,8 @@ class TestCase {
         });
         final newCommand = new Command(newExecutablePath, newArguments);
         newCommands.add(newCommand);
-        Expect.stringEquals('$prefix ${c.commandLine} $suffix',
+        // If there are extra spaces inside the prefix or suffix, this fails.
+        Expect.stringEquals('$prefix ${c.commandLine} $suffix'.trim(),
             newCommand.commandLine);
       }
       commands = newCommands;
