@@ -909,7 +909,6 @@ void FlowGraphCompiler::CompileGraph() {
   const Function& function = parsed_function_.function();
 
   const int parameter_count = function.num_fixed_parameters();
-  const int num_opt_params = function.num_optional_parameters();
   const int num_copied_params = parsed_function_.copied_parameter_count();
   const int local_count = parsed_function_.stack_local_count();
   __ EnterFrame(StackSize() * kWordSize);
