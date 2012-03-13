@@ -36,7 +36,8 @@
  */
 #library("dart:isolate");
 
-#import("../uri/uri.dart");
+//#import("../uri/uri.dart");
+#import("../../frog/leg/lib/uri_toremove.dart");
 #source("isolate_api.dart");
 #source("frog/compiler_hooks.dart");
 #source("frog/isolateimpl.dart");

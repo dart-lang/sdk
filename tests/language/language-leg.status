@@ -101,7 +101,6 @@ Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-TypedMessageTest: Fail # SyntaxError: Unexpected token this
 
 
 #

@@ -3,24 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == leg ]
-APIv2_spawnBrowserTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-APIv2_spawnStandaloneTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-APIv2_spawnUriBrowserTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-APIv2_unresolvedPortsBrowserTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-APIv2_unresolvedPortsStandaloneTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-ConstructorTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-CountTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-CrossIsolateMessageTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-IsolateComplexMessagesTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-MandelIsolateTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-Message2Test: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-MessageTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-MintMakerTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-Mixed2Test: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-MixedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-NestedSpawn2Test: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-NestedSpawnTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-RequestReplyTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-SerializationTest: Fail # Expect.isTrue(false) fails.
-SpawnTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-StaticStateTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+ConstructorTest: Fail # Isolate object not properly constructed
+StaticStateTest: Fail # Closure wrapping does not switch isolate
+
+SerializationTest: Fail, OK # Frog specific serialization state
+
+APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
+APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
+
+# Browser tests only supported on browser components.
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip

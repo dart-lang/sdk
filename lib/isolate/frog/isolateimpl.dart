@@ -197,6 +197,16 @@ class _IsolateContext {
   }
 }
 
+// We don't want to import the DOM library just because of window.setTimeout,
+// so we reconstruct the Window class here. The only conflict that could happen
+// with the other DOMWindow class would be because of subclasses.
+// Currently, none of the two Dart classes have subclasses.
+typedef void _TimeoutHandler();
+class _Window native "@*DOMWindow" {
+  int setTimeout(_TimeoutHandler handler, int timeout) native;
+}
+_Window get _window() native
+    """return typeof window != 'undefined' ? window : (void 0);""";
 
 /** Represent the event loop on a javascript thread (DOM or worker). */
 class _EventLoop {
@@ -224,23 +234,16 @@ class _EventLoop {
     return true;
   }
 
-  /** Function equivalent to [:window.setTimeout:] when available, or null. */
-  static Function _wrapSetTimeout() native """
-      return typeof window != 'undefined' ?
-          function(a, b) { window.setTimeout(a, b); } : undefined;
-  """;
-
   /**
    * Runs multiple iterations of the run-loop. If possible, each iteration is
    * run asynchronously.
    */
   void _runHelper() {
-    final setTimeout = _wrapSetTimeout();
-    if (setTimeout != null) {
+    if (_window != null) {
       // Run each iteration from the browser's top event loop.
       void next() {
         if (!runIteration()) return;
-        setTimeout(next, 0);
+        _window.setTimeout(next, 0);
       }
       next();
     } else {

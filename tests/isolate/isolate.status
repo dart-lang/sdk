@@ -5,7 +5,7 @@
 [ $component == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
-[ $component == dartium || $component == vm ]
+[ $component == dartium || $component == vm || $component == legium ]
 SerializationTest: Skip  # tests frog-specific serialization code
 *APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
@@ -32,7 +32,7 @@ MandelIsolateTest: Skip     # Bug 5353937.
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip
 
-[ $component == frogium || $component == webdriver ]
+[ $component == frogium || $component == webdriver || $component == legium ]
 *StandaloneTest: Skip
 *StandaloneNegativeTest: Skip
 
@@ -63,9 +63,6 @@ APIv2*: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]
-*: Skip
-
-[ $component == legium ]
 *: Skip
 
 [ $arch == simarm ]
