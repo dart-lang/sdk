@@ -11,14 +11,14 @@ import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
 /**
- * Represention of a type variable.
+ * Representation of a type variable.
  * 
  * <p>
  * For example, in {@code class Foo<T> ... } , {@code T} is a type variable.
  */
 class TypeVariableElementImplementation extends AbstractElement implements TypeVariableElement {
 
-  private final Element owner;
+  private final EnclosingElement owner;
   private TypeVariable type;
   private Type bound;
   private final DartTypeNode boundNode;
@@ -28,7 +28,7 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
     this.bound = bound;
   }
 
-  TypeVariableElementImplementation(DartTypeParameter node, String name, Element owner) {
+  TypeVariableElementImplementation(DartTypeParameter node, String name, EnclosingElement owner) {
     super(node, name);
     this.owner = owner;
     this.boundNode = node != null ? node.getBound() : null;
@@ -44,7 +44,7 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
     return ElementKind.TYPE_VARIABLE;
   }
 
-  static TypeVariableElementImplementation fromNode(DartTypeParameter node, Element owner) {
+  static TypeVariableElementImplementation fromNode(DartTypeParameter node, EnclosingElement owner) {
     TypeVariableElementImplementation element =
         new TypeVariableElementImplementation(node, node.getName().getName(), owner);
     element.setType(Types.typeVariable(element));
@@ -81,7 +81,7 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
   }
 
   @Override
-  public Element getEnclosingElement() {
+  public EnclosingElement getEnclosingElement() {
     return owner;
   }
 }

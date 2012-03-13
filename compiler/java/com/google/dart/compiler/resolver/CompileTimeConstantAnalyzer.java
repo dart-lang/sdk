@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
@@ -45,6 +44,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
 
 import java.util.List;
@@ -126,9 +126,8 @@ public class CompileTimeConstantAnalyzer {
      * Logs a general message "expected a constant expression" error. Use a more
      * specific error message when possible.
      */
-    private void expectedConstant(DartNode x) {
-      context.onError(new DartCompilationError(x,
-          ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION));
+    private void expectedConstant(HasSourceInfo x) {
+      context.onError(new DartCompilationError(x, ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION));
     }
 
     /**
@@ -307,6 +306,7 @@ public class CompileTimeConstantAnalyzer {
         case FIELD:
         case VARIABLE:
 
+          // Check for circular references.
           if (element != null && visitedElements.contains(element)) {
             context.onError(new DartCompilationError(x,
                 ResolverErrorCode.CIRCULAR_REFERENCE));
@@ -314,11 +314,17 @@ public class CompileTimeConstantAnalyzer {
             return null;
           }
           visitedElements.add(element);
+
+          // Should be declared as constant.
           if (!element.getModifiers().isConstant()) {
             expectedConstant(x);
           }
+
+          // Validate that declared constant is really constant.
           DartNode identifierNode = element.getNode();
-          this.visit(Lists.newArrayList(identifierNode));
+          identifierNode.accept(this);
+          
+          // Done with this element.
           visitedElements.remove(element);
 
           switch (ElementKind.of(element)) {

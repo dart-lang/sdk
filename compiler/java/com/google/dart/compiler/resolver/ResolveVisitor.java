@@ -131,7 +131,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     return recordElement(node, element);
   }
   
-  protected Element getEnclosingElement() {
+  protected EnclosingElement getEnclosingElement() {
     return null;
   }
 

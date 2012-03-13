@@ -85,7 +85,7 @@ public class Elements {
     return new TypeVariableElementImplementation(name, bound);
   }
 
-  public static VariableElement variableElement(Element owner,
+  public static VariableElement variableElement(EnclosingElement owner,
       DartVariable node,
       String name,
       Modifiers modifiers) {
@@ -99,7 +99,7 @@ public class Elements {
         null);
   }
 
-  public static VariableElement parameterElement(Element owner,
+  public static VariableElement parameterElement(EnclosingElement owner,
       DartParameter node,
       String name,
       Modifiers modifiers) {
@@ -190,7 +190,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return ClassElementImplementation.named(name);
   }
 
-  static TypeVariableElement typeVariableFromNode(DartTypeParameter node, Element element) {
+  static TypeVariableElement typeVariableFromNode(DartTypeParameter node, EnclosingElement element) {
     return TypeVariableElementImplementation.fromNode(node, element);
   }
 
@@ -342,7 +342,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   static List<TypeVariable> makeTypeVariables(List<DartTypeParameter> parameterNodes,
-                                              Element element) {
+                                              EnclosingElement element) {
     if (parameterNodes == null) {
       return Arrays.<TypeVariable>asList();
     }
@@ -438,14 +438,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
-   * @return the {@link SourceInfo} of the name name of underlying {@link Element}, or
-   *         {@link SourceInfo} of {@link Element} itself.
-   */
-  public static SourceInfo getNameLocation(Element element) {
-    return element.getNameLocation();
-  }
-
-  /**
    * @return the {@link String} which contains user-readable description of "target" {@link Element}
    *         location relative to "source".
    */
@@ -453,7 +445,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     // Prepare "target" SourceInfo.
     SourceInfo targetInfo;
     {
-      targetInfo = getNameLocation(target);
+      targetInfo = target.getNameLocation();
       if (targetInfo == null) {
         return "unknown";
       }

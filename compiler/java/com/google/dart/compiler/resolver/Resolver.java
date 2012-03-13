@@ -172,7 +172,7 @@ public class Resolver {
   @VisibleForTesting
   public class ResolveElementsVisitor extends ResolveVisitor {
     private EnclosingElement currentHolder;
-    private Element enclosingElement;
+    private EnclosingElement enclosingElement;
     private MethodElement currentMethod;
     private boolean inInitializer;
     private MethodElement innermostFunction;
@@ -205,7 +205,7 @@ public class Resolver {
     }
     
     @Override
-    protected Element getEnclosingElement() {
+    protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
     }
 
@@ -247,7 +247,7 @@ public class Resolver {
       // Push new resolution context.
       ResolutionContext previousContext = context;
       EnclosingElement previousHolder = currentHolder;
-      Element previousEnclosingElement = enclosingElement;
+      EnclosingElement previousEnclosingElement = enclosingElement;
       currentHolder = classElement;
       enclosingElement = classElement;
       context = topLevelContext.extend(classElement);
@@ -392,7 +392,6 @@ public class Resolver {
       } else {
         // TODO(zundel): This is effective in catching mistakes, but highlights the entire type
         // expression - A more specific indication of where the error started might be appreciated.
-        //String defaultClassSource = getTypeDraftSourceString(defaultClassType);
         String defaultClassSource = defaultClassElement.getDeclarationNameWithTypeParameters();
         String refSource = defaultClassRef.toSource();
         if (!refSource.equals(defaultClassSource)) {
@@ -415,7 +414,7 @@ public class Resolver {
 
       if (defaultTypeParams.size() != interfaceTypeParams.size()) {
 
-        onError(Elements.getNameLocation(interfaceElement),
+        onError(interfaceElement.getNameLocation(),
                 ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
       } else {
         Iterator<? extends Type> interfaceIterator = interfaceTypeParams.iterator();
@@ -567,7 +566,7 @@ public class Resolver {
       context = context.extend(member.getName());
       assert currentMethod == null : "Nested methods?";
       innermostFunction = currentMethod = member;
-      Element previousEnclosingElement = enclosingElement;
+      EnclosingElement previousEnclosingElement = enclosingElement;
       enclosingElement = member;
 
       DartFunction functionNode = node.getFunction();

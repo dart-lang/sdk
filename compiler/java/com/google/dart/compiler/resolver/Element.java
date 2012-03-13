@@ -26,9 +26,9 @@ public interface Element extends HasSourceInfo {
   Modifiers getModifiers();
 
   /**
-   * @return the innermost {@link Element} which declares this {@link Element}.
+   * @return the innermost {@link EnclosingElement} which encloses this {@link Element}.
    */
-  Element getEnclosingElement();
+  EnclosingElement getEnclosingElement();
   
   /**
    * @return location of the name in the declaration of this {@link Element}.

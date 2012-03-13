@@ -95,7 +95,7 @@ public class DartScannerParserContext implements ParserContext {
    * @param startPos
    */
   private <T> void setSourcePosition(T result, DartScanner.Position startPos) {
-    if (result instanceof HasSourceInfo) {
+    if (result instanceof HasSourceInfoSetter) {
       HasSourceInfoSetter hasSourceInfoSetter = (HasSourceInfoSetter) result;
       int start = startPos.getPos();
       int end = getEndLocation().getPos();

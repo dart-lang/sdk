@@ -59,7 +59,7 @@ public class MemberBuilder {
    */
   private class MemberElementBuilder extends ResolveVisitor {
     EnclosingElement currentHolder;
-    private Element enclosingElement;
+    private EnclosingElement enclosingElement;
     private ResolutionContext context;
     private boolean isStatic;
     private boolean isFactory;
@@ -86,7 +86,7 @@ public class MemberBuilder {
     }
     
     @Override
-    protected Element getEnclosingElement() {
+    protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
     }
 
@@ -94,7 +94,7 @@ public class MemberBuilder {
     public Element visitClass(DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       beginClassContext(node);
-      Element previousEnclosingElement = enclosingElement;
+      EnclosingElement previousEnclosingElement = enclosingElement;
       enclosingElement = node.getElement();
       this.visit(node.getMembers());
       enclosingElement = previousEnclosingElement;
@@ -154,7 +154,7 @@ public class MemberBuilder {
         recordElement(method, element);
         ResolutionContext previous = context;
         context = context.extend(element.getName());
-        Element previousEnclosingElement = enclosingElement;
+        EnclosingElement previousEnclosingElement = enclosingElement;
         enclosingElement = element;
         resolveFunction(method.getFunction(), element);
         enclosingElement = previousEnclosingElement;
@@ -325,7 +325,7 @@ public class MemberBuilder {
       boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
       MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
-      Element previousEnclosingElement = enclosingElement;
+      EnclosingElement previousEnclosingElement = enclosingElement;
       enclosingElement = accessorElement;
       recordElement(accessorNode, accessorElement);
       resolveFunction(accessorNode.getFunction(), accessorElement);
@@ -556,7 +556,7 @@ public class MemberBuilder {
           element instanceof MethodElement
               ? Elements.getRawMethodName((MethodElement) element)
               : element.getName();
-      resolutionError(Elements.getNameLocation(element), errorCode, name);
+      resolutionError(element.getNameLocation(), errorCode, name);
     }
   }
 }

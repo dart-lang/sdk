@@ -65,7 +65,7 @@ abstract class AbstractElement implements Element {
   }
 
   @Override
-  public Element getEnclosingElement() {
+  public EnclosingElement getEnclosingElement() {
     return null;
   }
 

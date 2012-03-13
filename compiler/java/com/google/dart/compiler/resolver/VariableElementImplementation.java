@@ -11,7 +11,7 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
 class VariableElementImplementation extends AbstractElement implements VariableElement {
-  private final Element owner;
+  private final EnclosingElement owner;
   private final ElementKind kind;
   private final Modifiers modifiers;
   private final boolean isNamed;
@@ -23,7 +23,7 @@ class VariableElementImplementation extends AbstractElement implements VariableE
   private FieldElement fieldElement;
   private Type type;
 
-  VariableElementImplementation(Element owner,
+  VariableElementImplementation(EnclosingElement owner,
       DartNode node,
       SourceInfo nameLocation,
       String name,
@@ -85,7 +85,7 @@ class VariableElementImplementation extends AbstractElement implements VariableE
   }
 
   @Override
-  public Element getEnclosingElement() {
+  public EnclosingElement getEnclosingElement() {
     return owner;
   }
 }

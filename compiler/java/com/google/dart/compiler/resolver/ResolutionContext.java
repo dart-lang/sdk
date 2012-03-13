@@ -79,7 +79,7 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !Elements.isParameterOfMethodWithoutBody(element)
             && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
             && !existingElement.getModifiers().isAbstractField()) {
-          SourceInfo nameSourceInfo = Elements.getNameLocation(element);
+          SourceInfo nameSourceInfo = element.getNameLocation();
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
           // http://code.google.com/p/dart/issues/detail?id=1060
@@ -92,7 +92,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     }
     // Check for duplicate declaration in the same scope.
     if (existingLocalElement != null && errorCode != null) {
-      SourceInfo nameSourceInfo = Elements.getNameLocation(element);
+      SourceInfo nameSourceInfo = element.getNameLocation();
       String existingLocation = Elements.getRelativeElementLocation(element, existingLocalElement);
       onError(nameSourceInfo, errorCode, name, existingLocation);
     }
