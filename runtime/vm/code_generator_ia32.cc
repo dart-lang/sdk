@@ -369,6 +369,7 @@ void CodeGenerator::GenerateEntryCode() {
   // generated if only fixed parameters are declared, unless we are in debug
   // mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
+    ASSERT(num_opt_params == 0);
 #if defined(DEBUG)
     const bool check_arguments = true;  // Always check arguments in debug mode.
 #else
@@ -382,14 +383,8 @@ void CodeGenerator::GenerateEntryCode() {
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (EDX).
       __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-      if (num_opt_params == 0) {
-        __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
-      } else {
-        __ subl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ cmpl(EAX, Immediate(Smi::RawValue(num_opt_params)));
-        __ j(BELOW_EQUAL, &argc_in_range, Assembler::kNearJump);
-      }
+      __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
+      __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
                             0,

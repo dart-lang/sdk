@@ -1504,9 +1504,6 @@ void FlowGraphBuilder::BuildGraph() {
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
   const Function& function = parsed_function().function();
-  if ((function.num_optional_parameters() != 0)) {
-    Bailout("function has optional parameters");
-  }
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);

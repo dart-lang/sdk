@@ -222,6 +222,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t node_id,
                             intptr_t token_index);
+  void CopyParameters();
 
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

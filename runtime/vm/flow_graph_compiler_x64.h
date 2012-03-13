@@ -97,6 +97,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   void GenerateInstantiatorTypeArguments(intptr_t token_index);
 
+  void CopyParameters();
+
+  intptr_t StackSize() const;
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>* blocks_;
