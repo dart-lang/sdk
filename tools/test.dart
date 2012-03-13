@@ -64,6 +64,19 @@ main() {
   var listTests = firstConf['list'];
   var keepGeneratedTests = firstConf['keep-generated-tests'];
 
+  // Print the configurations being run by this execution of
+  // test.dart. However, don't do it if the silent progress indicator
+  // is used. This is only needed because of the junit tests.
+  if (progressIndicator != 'silent') {
+    StringBuffer sb = new StringBuffer('Test configuration');
+    sb.add(configurations.length > 1 ? 's:' : ':');
+    for (Map conf in configurations) {
+      sb.add(' ${conf["component"]}_${conf["mode"]}_${conf["arch"]}');
+      if (conf['checked']) sb.add('_checked');
+    }
+    print(sb);
+  }
+
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
     if (!configurationIterator.hasNext()) {
