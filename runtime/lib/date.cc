@@ -5,6 +5,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "vm/bigint_operations.h"
+#include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -22,13 +23,13 @@ static bool BreakDownSecondsSinceEpoch(const Integer& dart_seconds,
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_brokenDownToSecondsSinceEpoch, 7) {
-  const Integer& dart_years = Integer::CheckedHandle(arguments->At(0));
-  const Smi& dart_month = Smi::CheckedHandle(arguments->At(1));
-  const Smi& dart_day = Smi::CheckedHandle(arguments->At(2));
-  const Smi& dart_hours = Smi::CheckedHandle(arguments->At(3));
-  const Smi& dart_minutes = Smi::CheckedHandle(arguments->At(4));
-  const Smi& dart_seconds = Smi::CheckedHandle(arguments->At(5));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(6));
+  GET_NATIVE_ARGUMENT(Integer, dart_years, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, dart_month, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, dart_day, arguments->At(2));
+  GET_NATIVE_ARGUMENT(Smi, dart_hours, arguments->At(3));
+  GET_NATIVE_ARGUMENT(Smi, dart_minutes, arguments->At(4));
+  GET_NATIVE_ARGUMENT(Smi, dart_seconds, arguments->At(5));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(6));
   if (!dart_years.IsSmi()) {
     UNIMPLEMENTED();
   }
@@ -67,8 +68,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_currentTimeMillis, 0) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getYear, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
@@ -83,8 +84,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_getYear, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getMonth, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
@@ -98,8 +99,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_getMonth, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getDay, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
@@ -112,8 +113,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_getDay, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getHours, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
@@ -126,8 +127,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_getHours, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getMinutes, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);
@@ -140,8 +141,8 @@ DEFINE_NATIVE_ENTRY(DateNatives_getMinutes, 2) {
 
 
 DEFINE_NATIVE_ENTRY(DateNatives_getSeconds, 2) {
-  const Integer& dart_seconds = Integer::CheckedHandle(arguments->At(0));
-  const Bool& dart_is_utc = Bool::CheckedHandle(arguments->At(1));
+  GET_NATIVE_ARGUMENT(Integer, dart_seconds, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Bool, dart_is_utc, arguments->At(1));
   OS::BrokenDownDate broken_down;
   bool succeeded =
       BreakDownSecondsSinceEpoch(dart_seconds, dart_is_utc, &broken_down);

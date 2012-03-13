@@ -257,7 +257,7 @@ static char* BuildIsolateName(const char* script_name,
 
 DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   Isolate* preserved_isolate = Isolate::Current();
-  const Instance& runnable = Instance::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(Instance, runnable, arguments->At(0));
   const Class& runnable_class = Class::Handle(runnable.clazz());
   const char* class_name = String::Handle(runnable_class.Name()).ToCString();
   const Library& library = Library::Handle(runnable_class.library());
@@ -341,20 +341,21 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
 
 
 DEFINE_NATIVE_ENTRY(ReceivePortImpl_closeInternal, 1) {
-  intptr_t id = Smi::CheckedHandle(arguments->At(0)).Value();
-  PortMap::ClosePort(id);
+  GET_NATIVE_ARGUMENT(Smi, id, arguments->At(0));
+  PortMap::ClosePort(id.Value());
 }
 
 
 DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
-  intptr_t send_id = Smi::CheckedHandle(arguments->At(0)).Value();
-  intptr_t reply_id = Smi::CheckedHandle(arguments->At(1)).Value();
+  GET_NATIVE_ARGUMENT(Smi, send_id, arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, reply_id, arguments->At(1));
   // TODO(iposva): Allow for arbitrary messages to be sent.
-  uint8_t* data = SerializeObject(Instance::CheckedHandle(arguments->At(2)));
+  GET_NATIVE_ARGUMENT(Instance, obj, arguments->At(2));
+  uint8_t* data = SerializeObject(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
   PortMap::PostMessage(new Message(
-      send_id, reply_id, data, Message::kNormalPriority));
+      send_id.Value(), reply_id.Value(), data, Message::kNormalPriority));
 }
 
 }  // namespace dart

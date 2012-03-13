@@ -19,6 +19,8 @@ DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 // Arg1: index of the first token after the failed assertion.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
+  // No need to type check the arguments. This function can only be called
+  // internally from the VM.
   intptr_t assertion_start = Smi::CheckedHandle(arguments->At(0)).Value();
   intptr_t assertion_end = Smi::CheckedHandle(arguments->At(1)).Value();
 
@@ -55,6 +57,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 // Arg4: malformed type error message.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
+  // No need to type check the arguments. This function can only be called
+  // internally from the VM.
   intptr_t location = Smi::CheckedHandle(arguments->At(0)).Value();
   const Instance& src_value = Instance::CheckedHandle(arguments->At(1));
   const String& dst_type_name = String::CheckedHandle(arguments->At(2));
