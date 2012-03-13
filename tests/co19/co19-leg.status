@@ -139,29 +139,17 @@ Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # 
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got 'const'
-Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/20_Equality_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/20_Equality_A05_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/20_Equality_A07_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/20_Equality_A08_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/21_Relational_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/22_Shift_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/23_Additive_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/24_Multiplicative_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # compiler cancelled: internal error: super property store not implemented
 Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got ':'
 Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # compiler cancelled: internal error: super property store not implemented
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # compiler cancelled: internal error
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # compiler cancelled: expected ';', but got ':'
 Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # compiler cancelled: internal error: super property read not implemented
-Language/10_Expressions/27_Assignable_Expressions_A06_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # compiler cancelled: unexpected token ';'
 Language/10_Expressions/29_Type_Test_A02_t01: Fail # compiler cancelled: cannot resolve type Dynamic
 Language/10_Expressions/29_Type_Test_A03_t01: Fail # compiler cancelled: cannot resolve type Dynamic
