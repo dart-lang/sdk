@@ -18675,6 +18675,10 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 class _TrackElementImpl extends _ElementImpl implements TrackElement {
   _TrackElementImpl._wrap(ptr) : super._wrap(ptr);
 
+  bool get default() => _wrap(_ptr.defaultValue);
+
+  void set default(bool value) { _ptr.defaultValue = _unwrap(value); }
+
   String get kind() => _wrap(_ptr.kind);
 
   void set kind(String value) { _ptr.kind = _unwrap(value); }
@@ -33407,6 +33411,8 @@ interface TrackElement extends Element {
   static final int LOADING = 1;
 
   static final int NONE = 0;
+
+  bool defaultValue;
 
   String kind;
 

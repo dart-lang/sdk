@@ -4782,6 +4782,8 @@ interface HTMLTrackElement extends HTMLElement {
 
   static final int NONE = 0;
 
+  bool defaultValue;
+
   String kind;
 
   String label;

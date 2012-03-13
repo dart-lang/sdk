@@ -13775,6 +13775,10 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
 
   static final int NONE = 0;
 
+  bool get defaultValue() native "return this.default;";
+
+  void set defaultValue(bool value) native "this.default = value;";
+
   String kind;
 
   String label;
@@ -28022,6 +28026,8 @@ interface TrackElement extends Element {
   static final int LOADING = 1;
 
   static final int NONE = 0;
+
+  bool defaultValue;
 
   String kind;
 

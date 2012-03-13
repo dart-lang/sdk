@@ -667,9 +667,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
 
   def AddAttribute(self, getter, setter):
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+      self._interface, DartDomNameOfAttribute(getter), 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+      self._interface, DartDomNameOfAttribute(getter), 'set:')
 
     if not html_getter_name or self._shared.IsPrivate(html_getter_name):
       getter = None
@@ -875,9 +875,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   def AddAttribute(self, getter, setter):
   
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+      self._interface, DartDomNameOfAttribute(getter), 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+      self._interface, DartDomNameOfAttribute(getter), 'set:')
 
     if not html_getter_name:
       getter = None
@@ -913,7 +913,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_getter_interface.id,
-              NAME=getter.id,
+              NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
 
@@ -926,13 +926,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if getter and setter and input_type == output_type:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
-          NAME=getter.id,
+          NAME=DartDomNameOfAttribute(getter),
           TYPE=output_type)
       return
     if getter and not setter:
       self._members_emitter.Emit(
           '\n  final $TYPE $NAME;\n',
-          NAME=getter.id,
+          NAME=DartDomNameOfAttribute(getter),
           TYPE=output_type)
       return
     self._AddAttributeUsingProperties(getter, setter)
@@ -944,10 +944,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    self._AddRenamingGetter(attr, attr.id)
+    self._AddRenamingGetter(attr, DartDomNameOfAttribute(attr))
 
   def _AddSetter(self, attr):
-    self._AddRenamingSetter(attr, attr.id)
+    self._AddRenamingSetter(attr, DartDomNameOfAttribute(attr))
 
   def _AddRenamingGetter(self, attr, html_name):
     return_type = self._NarrowOutputType(attr.type.id)
@@ -956,7 +956,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         '\n  $TYPE get $(HTML_NAME)() => '
         '_FixHtmlDocumentReference(_$(HTML_NAME));\n',
         HTML_NAME=html_name,
-        NAME=attr.id,
         TYPE=return_type)
       html_name = '_' + html_name
       # For correctness this needs to be the return type of the native helper
@@ -1376,26 +1375,27 @@ class HtmlDartiumInterfaceGenerator(object):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE get $(HTML_NAME)() => '
-          '_FixHtmlDocumentReference(_wrap($(THIS).$NAME));\n',
-          NAME=attr.id,
+          '_FixHtmlDocumentReference(_wrap($(THIS).$DOM_NAME));\n',
           HTML_NAME=html_name,
+          DOM_NAME=DartDomNameOfAttribute(attr),
           TYPE=DartType(attr.type.id),
           THIS=self.DomObjectName())
     else:
       self._members_emitter.Emit(
         '\n'
-        '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$NAME);\n',
-        NAME=attr.id,
+        '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$DOM_NAME);\n',
         HTML_NAME=html_name,
+        DOM_NAME=DartDomNameOfAttribute(attr),
         TYPE=DartType(attr.type.id),
         THIS=self.DomObjectName())
 
   def _AddSetter(self, attr, html_name):
     self._members_emitter.Emit(
         '\n'
-        '  void set $(HTML_NAME)($TYPE value) { $(THIS).$NAME = _unwrap(value); }\n',
-        NAME=attr.id,
+        '  void set $(HTML_NAME)($TYPE value) { '
+        '$(THIS).$DOM_NAME = _unwrap(value); }\n',
         HTML_NAME=html_name,
+        DOM_NAME=DartDomNameOfAttribute(attr),
         TYPE=DartType(attr.type.id),
         THIS=self.DomObjectName())
 

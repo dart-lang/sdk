@@ -3939,6 +3939,9 @@ class _HTMLTrackElementJs extends _HTMLElementJs implements HTMLTrackElement nat
 
   static final int NONE = 0;
 
+  bool get defaultValue() native "return this.default;";
+  void set defaultValue(bool value) native "this.default = value;";
+
   String kind;
 
   String label;
@@ -16361,6 +16364,8 @@ interface HTMLTrackElement extends HTMLElement {
   static final int LOADING = 1;
 
   static final int NONE = 0;
+
+  bool defaultValue;
 
   String kind;
 

@@ -182,11 +182,13 @@ class DartInterfaceGenerator(object):
   def AddAttribute(self, getter, setter):
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=DartType(getter.type.id));
+                                 NAME=DartDomNameOfAttribute(getter),
+                                 TYPE=DartType(getter.type.id));
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=DartType(getter.type.id));
+                                 NAME=DartDomNameOfAttribute(getter),
+                                 TYPE=DartType(getter.type.id));
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))

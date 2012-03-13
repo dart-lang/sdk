@@ -378,7 +378,9 @@ class IDLInterface(IDLNode):
 
   def has_attribute(self, candidate):
     for attribute in self.attributes:
-      if attribute.id == candidate.id and attribute.is_fc_getter == candidate.is_fc_getter and attribute.is_fc_setter == candidate.is_fc_setter:
+      if (attribute.id == candidate.id and
+          attribute.is_fc_getter == candidate.is_fc_getter and
+          attribute.is_fc_setter == candidate.is_fc_setter):
         return True
     return False
 

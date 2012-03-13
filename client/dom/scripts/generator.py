@@ -78,6 +78,13 @@ def IsPureInterface(interface_name):
 _javascript_keywords = ['delete', 'continue']
 
 #
+# Renames for attributes that have names that are not legal Dart names.
+#
+_dart_attribute_renames = {
+    'default': 'defaultValue'
+}
+
+#
 # Interface version of the DOM needs to delegate typed array constructors to a
 # factory provider.
 #
@@ -340,6 +347,19 @@ def FindMatchingAttribute(interface, attr1):
     return matches[0]
   return None
 
+
+def DartDomNameOfAttribute(attr):
+  """Returns the Dart name for an IDLAttribute.
+
+  attr.id is the 'native' or JavaScript name.
+
+  To ensure uniformity, work with the true IDL name until as late a possible,
+  e.g. translate to the Dart name when generating Dart code.
+  """
+  name = attr.id
+  name = _dart_attribute_renames.get(name, name)
+  name = attr.ext_attrs.get('DartName', None) or name
+  return name
 
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.

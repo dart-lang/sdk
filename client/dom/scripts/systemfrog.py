@@ -220,24 +220,32 @@ class FrogInterfaceGenerator(object):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_getter_interface.id,
-              NAME=getter.id, TYPE=output_type)
+              NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
           return
 
       self._members_emitter.Emit('\n  // Shadowing definition.')
       self._AddAttributeUsingProperties(getter, setter)
       return
 
+    # Can't generate field if attribute has different name in JS and Dart.
+    if self._AttributeChangesName(getter or setter):
+      self._AddAttributeUsingProperties(getter, setter)
+      return
+
     if getter and setter and input_type == output_type:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
-          NAME=getter.id, TYPE=output_type)
+          NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
       return
     if getter and not setter:
       self._members_emitter.Emit(
           '\n  final $TYPE $NAME;\n',
-          NAME=getter.id, TYPE=output_type)
+          NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
       return
     self._AddAttributeUsingProperties(getter, setter)
+
+  def _AttributeChangesName(self, attr):
+    return attr.id != DartDomNameOfAttribute(attr)
 
   def _AddAttributeUsingProperties(self, getter, setter):
     if getter:
@@ -248,14 +256,18 @@ class FrogInterfaceGenerator(object):
   def _AddGetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  $TYPE get $NAME() native "return this.$NAME;";\n',
-        NAME=attr.id, TYPE=self._NarrowOutputType(attr.type.id))
+        '\n  $TYPE get $NAME() native "return this.$NATIVE_NAME;";\n',
+        NAME=DartDomNameOfAttribute(attr),
+        NATIVE_NAME=attr.id,
+        TYPE=self._NarrowOutputType(attr.type.id))
 
   def _AddSetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
-        NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id))
+        '  void set $NAME($TYPE value) native "this.$NATIVE_NAME = value;";\n',
+        NAME=DartDomNameOfAttribute(attr),
+        NATIVE_NAME=attr.id,
+        TYPE=self._NarrowInputType(attr.type.id))
 
   def _FindShadowedAttribute(self, attr):
     """Returns (attribute, superinterface) or (None, None)."""

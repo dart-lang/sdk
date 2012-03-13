@@ -12,6 +12,15 @@ import systemwrapping
 from generator import *
 from systembase import *
 
+
+_cpp_keywords = set(['default', 'operator'])
+
+def CppSafeName(name):
+  """Returns version of name safe for use in cpp code, i.e. not a keyword."""
+  if name in _cpp_keywords:
+    return '_' + name
+  return name
+
 class NativeImplementationSystem(System):
 
   def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
@@ -280,8 +289,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     # Process constructor arguments.
     for (i, arg) in enumerate(constructor_info.idl_args):
-      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
-      arguments.append(arg.id)
+      cpp_arg_name = CppSafeName(arg.id)
+      self._GenerateParameterAdapter(
+          parameter_definitions_emitter, arg, cpp_arg_name, i - 1)
+      arguments.append(cpp_arg_name)
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
@@ -373,7 +384,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
   def _AddGetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = '%s get %s()' % (type_info.dart_type(), attr.id)
+    dart_declaration = '%s get %s()' % (
+        type_info.dart_type(), DartDomNameOfAttribute(attr))
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -390,14 +402,13 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
           webcore_function_name = 'getURLAttribute'
       arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
-      if attr.id == 'operator':
-        webcore_function_name = '_operator'
-      elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
+      webcore_function_name = CppSafeName(attr.id)
+      if attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
       else:
         webcore_function_name = re.sub(r'^(HTML|URL|JS|XML|XSLT|\w)',
                                        lambda s: s.group(1).lower(),
-                                       attr.id)
+                                       webcore_function_name)
         webcore_function_name = re.sub(r'^(create|exclusive)',
                                        lambda s: 'is' + s.group(1).capitalize(),
                                        webcore_function_name)
@@ -412,7 +423,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
   def _AddSetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
-    dart_declaration = 'void set %s(%s)' % (attr.id, type_info.dart_type())
+    dart_declaration = 'void set %s(%s)' % (
+        DartDomNameOfAttribute(attr), type_info.dart_type())
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
@@ -431,10 +443,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    arguments.append(attr.id)
+    cpp_arg_name = CppSafeName(attr.id)
+    arguments.append(cpp_arg_name)
 
     parameter_definitions_emitter = emitter.Emitter()
-    self._GenerateParameterAdapter(parameter_definitions_emitter, attr, 0)
+    self._GenerateParameterAdapter(
+        parameter_definitions_emitter, attr, cpp_arg_name, 0)
     parameter_definitions = parameter_definitions_emitter.Fragments()
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
@@ -571,12 +585,16 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     # Process Dart arguments.
     for (i, argument) in enumerate(operation.arguments):
-      if i == len(operation.arguments) - 1 and self._interface.id == 'Console' and argument.id == 'arg':
+      if (i == len(operation.arguments) - 1 and
+          self._interface.id == 'Console' and
+          argument.id == 'arg'):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      self._GenerateParameterAdapter(parameter_definitions_emitter, argument, i)
-      arguments.append(argument.id)
+      cpp_arg_name = CppSafeName(argument.id)
+      self._GenerateParameterAdapter(
+          parameter_definitions_emitter, argument, cpp_arg_name, i)
+      arguments.append(cpp_arg_name)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
@@ -640,14 +658,15 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateParameterAdapter(self, emitter, idl_argument, index):
-    type_info = GetIDLTypeInfo(idl_argument.type.id)
+  def _GenerateParameterAdapter(self, emitter, idl_node, name, index):
+    """idl_node is IDLArgument or IDLAttribute."""
+    type_info = GetIDLTypeInfo(idl_node.type.id)
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
       self._cpp_impl_includes.add(include_name)
     flags = ''
-    if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
-        'RequiredCppParameter' in idl_argument.ext_attrs):
+    if (idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString' or
+        'RequiredCppParameter' in idl_node.ext_attrs):
       flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(
         '\n'
@@ -657,7 +676,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         '            goto fail;\n'
         '        }\n',
         ADAPTER_TYPE=adapter_type,
-        NAME=idl_argument.id,
+        NAME=name,
         INDEX=index + 1,
         FLAGS=flags)
 
