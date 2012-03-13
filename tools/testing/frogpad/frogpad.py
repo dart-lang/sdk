@@ -119,6 +119,9 @@ DIRECTIVE_RE = re.compile(r"^#(import|source|native)\([\"']([^\"']*)[\"']")
 # (This file name passed will be passed to the frog compiler by frogpad.dart.)
 MAIN_ID = "main_id"
 
+# id of the script tag that holds the name of the frog directory
+FROGDIR_ID = "frogdir_id"
+
 DART_LIBRARIES = {
     "core": "lib/corelib.dart",
     "coreimpl": "lib/corelib_impl.dart",
@@ -223,6 +226,7 @@ class Pad(object):
     for f in self.id_to_file.values():
       tags.append(self._create_tag(f.id, f.contents))
     tags.append(self._create_tag(MAIN_ID, self.main_file))
+    tags.append(self._create_tag(FROGDIR_ID, self.frog_dir))
     html = HTML.replace("{{script_tags}}", "".join(tags))
     html = html.replace("{{FROGPAD_JS}}", read_file(self.frogpad_js))
     return html
@@ -288,10 +292,7 @@ class File(object):
     Generates an id (based on the file name) for the <script> tag that will
     hold the contents of this file.
     """
-    (dirname, name) = os.path.split(self.name)
-    dirname = os.path.basename(dirname)
-    name = name.replace(".", "_")
-    return dirname + "_" + name
+    return self.name.replace("/", "_").replace(".", "_")
 
   def directives(self):
     """Load files referenced by #source, #import and #native directives."""
