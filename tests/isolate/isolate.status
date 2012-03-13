@@ -65,10 +65,6 @@ APIv2*: Skip
 [ $component == webdriver && $browser == opera ]
 *: Skip
 
-[ $component == leg ]
-# TODO(ahe): Enable when leg matures.
-*: Skip
-
 [ $component == legium ]
 *: Skip
 

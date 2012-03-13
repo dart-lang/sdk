@@ -42,6 +42,11 @@ LibTest/core/List/sort_A01_t04: Skip # Times out.
 
 # Issues with co19 test suite.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/22_Shift_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/09_Try_A02_t04: Fail, OK # Bad test: Unbalanced {.
@@ -119,7 +124,6 @@ Language/10_Expressions/01_Constants_A12_t01: Fail # compiler cancelled: interna
 Language/10_Expressions/01_Constants_A13_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/05_Strings_A02_t01: Fail # compiler cancelled: expected ' or "
 Language/10_Expressions/07_Maps_A07_t03: Fail # compiler cancelled: expected a constant string
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # compiler cancelled: expected an expression, but got ')'
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # compiler cancelled: cannot resolve type Isolate
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # compiler cancelled: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # compiler cancelled: Unimplemented non-matching static call
@@ -135,18 +139,14 @@ Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # 
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got 'const'
-Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # compiler cancelled: expected an expression, but got '&'
 Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/20_Equality_A01_t01: Fail # compiler cancelled: expected an expression, but got '==='
 Language/10_Expressions/20_Equality_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/20_Equality_A05_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/20_Equality_A07_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/20_Equality_A08_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # compiler cancelled: expected an expression, but got '<='
 Language/10_Expressions/21_Relational_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
-Language/10_Expressions/22_Shift_A01_t01: Fail # compiler cancelled: expected an expression, but got '<<'
 Language/10_Expressions/22_Shift_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/23_Additive_Expressions_A01_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this
 Language/10_Expressions/23_Additive_Expressions_A03_t01: Fail # compiler cancelled: internal error: SsaBuilder.visitIdentifier on non-this

@@ -65,9 +65,6 @@ html/frog_html_tests: Skip # Issue 1884
 [ $component == vm ]
 *: Skip
 
-[ $component == leg ]
-*: Skip
-
 [ $component == frog ]
 *: Skip
 
