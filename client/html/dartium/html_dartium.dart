@@ -36372,8 +36372,11 @@ class _DocumentFragmentFactoryProvider {
 }
 
 class _SVGElementFactoryProvider {
-  factory SVGElement.tag(String tag) =>
-    _document._createElementNS("http://www.w3.org/2000/svg", tag);
+  factory SVGElement.tag(String tag) {
+    final Element temp =
+      _document._createElementNS("http://www.w3.org/2000/svg", tag);
+    return temp;
+  }
 
   factory SVGElement.svg(String svg) {
     Element parentTag;
