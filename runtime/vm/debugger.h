@@ -236,7 +236,8 @@ class Debugger {
     kStepOut
   };
 
-  void InstrumentForStepping(const Function &target_function);
+  void EnsureFunctionIsDeoptimized(const Function& func);
+  void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t token_index);
   void RemoveInternalBreakpoints();

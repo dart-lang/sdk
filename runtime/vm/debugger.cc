@@ -485,8 +485,27 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
-void Debugger::InstrumentForStepping(const Function &target_function) {
-  if (!target_function.HasCode()) {
+// Deoptimize function if necessary. Does not patch return addresses on the
+// stack. If there are activation frames of this function on the stack,
+// the optimized code will be executed when the callee returns.
+void Debugger::EnsureFunctionIsDeoptimized(const Function& func) {
+  if (func.HasOptimizedCode()) {
+    if (verbose) {
+      OS::Print("Deoptimizing function %s\n",
+                String::Handle(func.name()).ToCString());
+    }
+    func.set_usage_counter(0);
+    func.set_deoptimization_counter(func.deoptimization_counter() + 1);
+    Compiler::CompileFunction(func);
+    ASSERT(!func.HasOptimizedCode());
+  }
+}
+
+
+void Debugger::InstrumentForStepping(const Function& target_function) {
+  if (target_function.HasCode()) {
+    EnsureFunctionIsDeoptimized(target_function);
+  } else {
     Compiler::CompileFunction(target_function);
     // If there were any errors, ignore them silently and return without
     // adding breakpoints to target.
@@ -494,7 +513,6 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
       return;
     }
   }
-  ASSERT(!target_function.HasOptimizedCode());
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -563,6 +581,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     // The given token position is not within the target function.
     return NULL;
   }
+  EnsureFunctionIsDeoptimized(target_function);
   SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_index);
   if (bpt != NULL) {
     // A breakpoint for this location already exists, return it.

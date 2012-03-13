@@ -1209,6 +1209,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  if (isolate->debugger()->IsActive()) {
+    // We cannot set breakpoints in optimized code, so do not optimize
+    // the function.
+    function.set_usage_counter(0);
+    return;
+  }
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     // TODO(srdjan): Investigate excessive deoptimization.

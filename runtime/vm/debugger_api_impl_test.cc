@@ -370,7 +370,7 @@ TEST_CASE(Debug_StepInto) {
 }
 
 
-void TestIgnoreBPHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+static void StepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   if (verbose) {
     OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
               breakpoint_hit_counter, BreakpointInfo(trace));
@@ -399,7 +399,7 @@ TEST_CASE(Debug_IgnoreBP) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(!Dart_IsError(lib));
 
-  Dart_SetBreakpointHandler(&TestIgnoreBPHandler);
+  Dart_SetBreakpointHandler(&StepIntoHandler);
 
   Dart_Handle c_name = Dart_NewString("");
   Dart_Handle f_name = Dart_NewString("main");
@@ -415,6 +415,49 @@ TEST_CASE(Debug_IgnoreBP) {
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
   EXPECT_EQ(101, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
+TEST_CASE(Debug_DeoptimizeFunction) {
+  const char* kScriptChars =
+      "foo(x) => 2 * x;         \n"
+      "                         \n"
+      "warmup() {               \n"
+      "  for (int i = 0; i < 5000; i++) {   \n"
+      "    foo(i);              \n"
+      "  }                      \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  return foo(99);        \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&StepIntoHandler);
+
+
+  // Cause function foo to be optimized before we set a BP.
+  Dart_Handle res = Invoke(lib, "warmup");
+  EXPECT_NOT_ERROR(res);
+
+  // Now set breakpoint in main and then step into optimized function foo.
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("main");
+  Dart_Breakpoint bpt;
+  res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(2 * 99, int_value);
   EXPECT(breakpoint_hit == true);
 }
 
