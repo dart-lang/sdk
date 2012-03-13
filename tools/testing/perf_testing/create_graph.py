@@ -276,12 +276,19 @@ class TestRunner(object):
 
   def add_svn_revision_to_trace(self, outfile):
     """Add the svn version number to the provided tracefile."""
-    p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE, 
-      stderr = subprocess.STDOUT, shell = HAS_SHELL)
-    output, not_used = p.communicate()
-    for line in output.split('\n'):
-      if 'Revision' in line:
-        run_cmd(['echo', line.strip()], outfile)
+    def search_for_revision(svn_info_command):
+      p = subprocess.Popen(svn_info_command, stdout = subprocess.PIPE,
+                           stderr = subprocess.STDOUT, shell = HAS_SHELL)
+      output, _ = p.communicate()
+      for line in output.split('\n'):
+        if 'Revision' in line:
+          run_cmd(['echo', line.strip()], outfile)
+          return True
+      return False
+
+    if not search_for_revision(['svn', 'info']):
+      if not search_for_revision(['git', 'svn', 'info']):
+        run_cmd(['echo', 'Revision: unknown'], outfile)
 
   def write_html(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
       cleanFile=False):
@@ -756,4 +763,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
