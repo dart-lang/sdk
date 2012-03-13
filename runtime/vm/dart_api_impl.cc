@@ -2068,6 +2068,118 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 // --- Methods and Fields ---
 
 
+DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
+                                    Dart_Handle name,
+                                    int number_of_arguments,
+                                    Dart_Handle* arguments) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  const String& function_name = Api::UnwrapStringHandle(name);
+  if (function_name.IsNull()) {
+    RETURN_TYPE_ERROR(name, String);
+  }
+  if (number_of_arguments < 0) {
+    return Api::NewError(
+        "%s expects argument 'number_of_arguments' to be non-negative.",
+        CURRENT_FUNC);
+  }
+
+  // Check for malformed arguments in the arguments list.
+  GrowableArray<const Object*> dart_args(number_of_arguments);
+  for (int i = 0; i < number_of_arguments; i++) {
+    const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
+    if (!arg.IsNull() && !arg.IsInstance()) {
+      if (arg.IsError()) {
+        return Api::NewLocalHandle(arg);
+      } else {
+        return Api::NewError(
+            "%s expects argument %d to be an instance of Object.",
+            CURRENT_FUNC, i);
+      }
+    }
+    dart_args.Add(&arg);
+  }
+
+  const Array& kNoArgNames = Array::Handle();
+  const Object& obj = Object::Handle(Api::UnwrapHandle(target));
+  if (obj.IsNull()) {
+    return Api::NewError("%s expects argument 'target' to be non-null.",
+                         CURRENT_FUNC);
+  } else if (obj.IsInstance()) {
+    Instance& instance = Instance::Handle();
+    instance ^= obj.raw();
+    const Function& function = Function::Handle(
+        Resolver::ResolveDynamic(instance,
+                                 function_name,
+                                 (number_of_arguments + 1),
+                                 Resolver::kIsQualified));
+    if (function.IsNull()) {
+      const Type& type = Type::Handle(instance.GetType());
+      const String& cls_name = String::Handle(type.ClassName());
+      return Api::NewError("%s: did not find instance method '%s.%s'.",
+                           CURRENT_FUNC,
+                           cls_name.ToCString(),
+                           function_name.ToCString());
+    }
+    const Object& result = Object::Handle(
+        DartEntry::InvokeDynamic(instance, function, dart_args, kNoArgNames));
+    return Api::NewLocalHandle(result);
+
+  } else if (obj.IsClass()) {
+    // Finalize all classes.
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
+
+    Class& cls = Class::Handle();
+    cls ^= obj.raw();
+    const Function& function = Function::Handle(
+        Resolver::ResolveStatic(cls,
+                                function_name,
+                                number_of_arguments,
+                                Array::Handle(),
+                                Resolver::kIsQualified));
+    if (function.IsNull()) {
+      const String& cls_name = String::Handle(cls.Name());
+      return Api::NewError("%s: did not find static method '%s.%s'.",
+                           CURRENT_FUNC,
+                           cls_name.ToCString(),
+                           function_name.ToCString());
+    }
+    const Object& result = Object::Handle(
+        DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
+    return Api::NewLocalHandle(result);
+
+  } else if (obj.IsLibrary()) {
+    // Finalize all classes.
+    const char* msg = CheckIsolateState(isolate);
+    if (msg != NULL) {
+      return Api::NewError(msg);
+    }
+
+    Library& lib = Library::Handle();
+    lib ^= obj.raw();
+    const Function& function = Function::Handle(
+        lib.LookupLocalFunction(function_name));
+    if (function.IsNull()) {
+      return Api::NewError("%s: did not find top-level function '%s'.",
+                           CURRENT_FUNC,
+                           function_name.ToCString());
+    }
+    const Object& result = Object::Handle(
+        DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
+    return Api::NewLocalHandle(result);
+
+  } else {
+    return Api::NewError(
+        "%s expects argument 'target' to be an object, class, or library.",
+        CURRENT_FUNC);
+  }
+}
+
+
 DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
                                           Dart_Handle class_name_in,
                                           Dart_Handle function_name_in,
@@ -2390,10 +2502,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   if (field_name.IsNull()) {
     RETURN_TYPE_ERROR(name, String);
   }
-  const Instance& value_instance = Api::UnwrapInstanceHandle(value);
-  if (value_instance.IsNull()) {
+
+  // Since null is allowed for value, we don't use UnwrapInstanceHandle.
+  const Object& value_obj = Object::Handle(Api::UnwrapHandle(value));
+  if (!value_obj.IsNull() && !value_obj.IsInstance()) {
     RETURN_TYPE_ERROR(value, Instance);
   }
+  Instance& value_instance = Instance::Handle();
+  value_instance ^= value_obj.raw();
 
   Field& field = Field::Handle();
   Function& setter = Function::Handle();
