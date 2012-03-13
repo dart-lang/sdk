@@ -1016,7 +1016,7 @@ class ProcessQueue {
     filePath = filePath.substring(0, index) + '${pathSep}testing${pathSep}';
     var dir = new Directory(filePath);
     dir.onFile = (String file) {
-      if (const RegExp("selenium-server-standalone-.*\.jar").hasMatch(file)
+      if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
         _seleniumServer = new Process.start('java', ['-jar', file]);
         // Heads up: there seems to an obscure data race of some form in
