@@ -21,16 +21,6 @@
 			<locationURI>DART_TRUNK/compiler/javatests</locationURI>
 		</link>
 		<link>
-			<name>d8</name>
-			<type>1</type>
-			<locationURI>D8_EXEC</locationURI>
-		</link>
-		<link>
-			<name>jscomp</name>
-			<type>2</type>
-			<locationURI>DART_TRUNK/compiler/javatests</locationURI>
-		</link>
-		<link>
 			<name>suites</name>
 			<type>2</type>
 			<locationURI>DART_TRUNK/compiler/javatests</locationURI>

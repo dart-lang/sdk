@@ -7,7 +7,6 @@
 <listEntry value="2"/>
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
-<mapEntry key="D8_EXEC" value="${resource_loc:/tests/d8}"/>
 </mapAttribute>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
@@ -19,5 +18,5 @@
 <stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit3"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value=""/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="tests"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea&#10;-Dcom.google.dart.corelib.SharedTests.test_py=${resource_loc:/tests/test.py}&#10;-Dcom.google.dart.runner.d8=${resource_loc:/tests/d8}"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea&#10;-Dcom.google.dart.corelib.SharedTests.test_py=${resource_loc:/tests/test.py}&#10;"/>
 </launchConfiguration>
