@@ -6,7 +6,7 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartLabel;
 
-class LabelElementImplementation extends AbstractElement implements LabelElement {
+class LabelElementImplementation extends AbstractNodeElement implements LabelElement {
 
   private MethodElement enclosingFunction;
 

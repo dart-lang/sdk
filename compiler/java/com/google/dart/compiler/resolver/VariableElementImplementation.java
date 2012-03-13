@@ -10,7 +10,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
-class VariableElementImplementation extends AbstractElement implements VariableElement {
+class VariableElementImplementation extends AbstractNodeElement implements VariableElement {
   private final EnclosingElement owner;
   private final ElementKind kind;
   private final Modifiers modifiers;

@@ -174,7 +174,7 @@ public class Elements {
 
   @VisibleForTesting
   public static void setType(Element element, Type type) {
-    ((AbstractElement) element).setType(type);
+    ((AbstractNodeElement) element).setType(type);
   }
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,

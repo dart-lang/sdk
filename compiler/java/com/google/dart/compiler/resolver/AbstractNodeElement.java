@@ -10,12 +10,12 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
-abstract class AbstractElement implements Element {
+abstract class AbstractNodeElement implements Element, NodeElement {
   private final DartNode node;
   private final String name;
   private SourceInfo sourceInfo;
 
-  AbstractElement(DartNode node, String name) {
+  AbstractNodeElement(DartNode node, String name) {
     // TODO(scheglov) in the future we will not use ASTNode and remove null check
     this.sourceInfo = node != null ? node.getSourceInfo() : SourceInfo.UNKNOWN;
     this.node = node;

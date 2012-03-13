@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClassElementImplementation extends AbstractElement implements ClassElement {
+class ClassElementImplementation extends AbstractNodeElement implements ClassElement {
   private InterfaceType type;
   private InterfaceType supertype;
   private InterfaceType defaultClass;

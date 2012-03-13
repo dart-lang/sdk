@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class MethodElementImplementation extends AbstractElement implements MethodElement {
+class MethodElementImplementation extends AbstractNodeElement implements MethodElement {
   private final Modifiers modifiers;
   private final EnclosingElement holder;
   private final ElementKind kind;

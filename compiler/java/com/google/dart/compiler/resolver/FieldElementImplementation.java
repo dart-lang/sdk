@@ -12,13 +12,14 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
-class FieldElementImplementation extends AbstractElement implements FieldElement {
+class FieldElementImplementation extends AbstractNodeElement implements FieldElement, FieldNodeElement {
   private final EnclosingElement holder;
   private final SourceInfo nameLocation;
   private Modifiers modifiers;
   private Type type;
   private MethodElement getter;
   private MethodElement setter;
+  private Type constantType;
 
   FieldElementImplementation(DartNode node,
       SourceInfo nameLocation,
@@ -102,5 +103,15 @@ class FieldElementImplementation extends AbstractElement implements FieldElement
 
   void setSetter(MethodElement setter) {
     this.setter = setter;
+  }
+  
+  @Override
+  public Type getConstantType() {
+    return constantType;
+  }
+  
+  @Override
+  public void setConstantType(Type type) {
+    constantType = type;
   }
 }

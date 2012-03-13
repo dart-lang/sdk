@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.FieldNodeElement;
 
 /**
  * Represents a single field within a field definition.
@@ -13,7 +13,7 @@ import com.google.dart.compiler.resolver.FieldElement;
 public class DartField extends DartClassMember<DartIdentifier> {
 
   private DartExpression value;
-  private FieldElement element;
+  private FieldNodeElement element;
   private DartMethodDefinition accessor;
 
   public DartField(DartIdentifier name, Modifiers modifiers, DartMethodDefinition accessor,
@@ -40,13 +40,13 @@ public class DartField extends DartClassMember<DartIdentifier> {
   }
 
   @Override
-  public FieldElement getElement() {
+  public FieldNodeElement getElement() {
     return element;
   }
 
   @Override
   public void setElement(Element element) {
-    this.element = (FieldElement) element;
+    this.element = (FieldNodeElement) element;
   }
 
   @Override

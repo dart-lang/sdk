@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Dummy element corresponding to {@link DynamicType}.
  */
-class DynamicElementImplementation extends AbstractElement implements DynamicElement {
+class DynamicElementImplementation extends AbstractNodeElement implements DynamicElement {
 
   private DynamicElementImplementation() {
     super(null, "<dynamic>");
@@ -270,5 +270,10 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   @Override
   public void setType(Type type) {
     super.setType(type);
+  }
+  
+  @Override
+  public Type getConstantType() {
+    return null;
   }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * {@link ConstructorElement} for implicit default constructor.
  */
-public class SyntheticDefaultConstructorElement extends AbstractElement
+public class SyntheticDefaultConstructorElement extends AbstractNodeElement
     implements
       ConstructorElement {
   private final ClassElement enclosingClass;

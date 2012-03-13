@@ -8,7 +8,7 @@ package com.google.dart.compiler.resolver;
  * Implementation of "void". There is no public interface for this class as Element already exposes
  * all the functionality needed.
  */
-class VoidElement extends AbstractElement {
+class VoidElement extends AbstractNodeElement {
   private VoidElement() {
     super(null, "void");
   }

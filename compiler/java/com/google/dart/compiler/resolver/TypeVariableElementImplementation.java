@@ -16,7 +16,7 @@ import com.google.dart.compiler.type.Types;
  * <p>
  * For example, in {@code class Foo<T> ... } , {@code T} is a type variable.
  */
-class TypeVariableElementImplementation extends AbstractElement implements TypeVariableElement {
+class TypeVariableElementImplementation extends AbstractNodeElement implements TypeVariableElement {
 
   private final EnclosingElement owner;
   private TypeVariable type;
