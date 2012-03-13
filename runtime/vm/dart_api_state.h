@@ -120,14 +120,16 @@ class PersistentHandle {
 
 // Implementation of persistent handles which are handed out through the
 // dart API.
-class WeakPersistentHandle {
+class FinalizablePersistentHandle {
  public:
   // Accessors.
   RawObject* raw() const { return raw_; }
   void set_raw(RawObject* raw) { raw_ = raw; }
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
-  static intptr_t raw_offset() { return OFFSET_OF(WeakPersistentHandle, raw_); }
+  static intptr_t raw_offset() {
+    return OFFSET_OF(FinalizablePersistentHandle, raw_);
+  }
   void* peer() const { return peer_; }
   void set_peer(void* peer) { peer_ = peer; }
   Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
@@ -135,7 +137,7 @@ class WeakPersistentHandle {
     callback_ = callback;
   }
 
-  static void Finalize(WeakPersistentHandle* handle) {
+  static void Finalize(FinalizablePersistentHandle* handle) {
     Dart_WeakPersistentHandleFinalizer callback = handle->callback();
     if (callback != NULL) {
       void* peer = handle->peer();
@@ -147,21 +149,21 @@ class WeakPersistentHandle {
   }
 
  private:
-  friend class WeakPersistentHandles;
+  friend class FinalizablePersistentHandles;
 
-  WeakPersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
-  ~WeakPersistentHandle() { }
+  FinalizablePersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
+  ~FinalizablePersistentHandle() { }
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
-  WeakPersistentHandle* Next() {
-    return reinterpret_cast<WeakPersistentHandle*>(raw_);
+  FinalizablePersistentHandle* Next() {
+    return reinterpret_cast<FinalizablePersistentHandle*>(raw_);
   }
-  void SetNext(WeakPersistentHandle* free_list) {
+  void SetNext(FinalizablePersistentHandle* free_list) {
     raw_ = reinterpret_cast<RawObject*>(free_list);
     ASSERT(!raw_->IsHeapObject());
   }
-  void FreeHandle(WeakPersistentHandle* free_list) {
+  void FreeHandle(FinalizablePersistentHandle* free_list) {
     SetNext(free_list);
   }
 
@@ -175,7 +177,7 @@ class WeakPersistentHandle {
   void* peer_;
   Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
-  DISALLOW_COPY_AND_ASSIGN(WeakPersistentHandle);
+  DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
 };
 
 
@@ -285,49 +287,60 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 };
 
 
-// Weak persistent handles repository structure.
-static const int kWeakPersistentHandleSizeInWords =
-    sizeof(WeakPersistentHandle) / kWordSize;
-static const int kWeakPersistentHandlesPerChunk = 64;
-static const int kOffsetOfRawPtrInWeakPersistentHandle = 0;
-class WeakPersistentHandles : Handles<kWeakPersistentHandleSizeInWords,
-                                      kWeakPersistentHandlesPerChunk,
-                                      kOffsetOfRawPtrInWeakPersistentHandle> {
+// Finalizable persistent handles repository structure.
+static const int kFinalizablePersistentHandleSizeInWords =
+     sizeof(FinalizablePersistentHandle) / kWordSize;
+static const int kFinalizablePersistentHandlesPerChunk = 64;
+static const int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
+class FinalizablePersistentHandles
+    : Handles<kFinalizablePersistentHandleSizeInWords,
+              kFinalizablePersistentHandlesPerChunk,
+              kOffsetOfRawPtrInFinalizablePersistentHandle> {
  public:
-  WeakPersistentHandles() : Handles<kWeakPersistentHandleSizeInWords,
-                                    kWeakPersistentHandlesPerChunk,
-                                    kOffsetOfRawPtrInWeakPersistentHandle>(),
-        free_list_(NULL) { }
-  ~WeakPersistentHandles() {
+  FinalizablePersistentHandles()
+      : Handles<kFinalizablePersistentHandleSizeInWords,
+                kFinalizablePersistentHandlesPerChunk,
+                kOffsetOfRawPtrInFinalizablePersistentHandle>(),
+                                   free_list_(NULL) { }
+  ~FinalizablePersistentHandles() {
     free_list_ = NULL;
   }
 
   // Accessors.
-  WeakPersistentHandle* free_list() const { return free_list_; }
-  void set_free_list(WeakPersistentHandle* value) { free_list_ = value; }
+  FinalizablePersistentHandle* free_list() const { return free_list_; }
+  void set_free_list(FinalizablePersistentHandle* value) { free_list_ = value; }
 
   // Visit all handles stored in the various handle blocks.
-  void VisitWeakPersistentHandles(HandleVisitor* visitor) {
-    Handles<kWeakPersistentHandleSizeInWords,
-            kWeakPersistentHandlesPerChunk,
-            kOffsetOfRawPtrInWeakPersistentHandle>::Visit(visitor);
+  void VisitHandles(HandleVisitor* visitor) {
+    Handles<kFinalizablePersistentHandleSizeInWords,
+            kFinalizablePersistentHandlesPerChunk,
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(visitor);
+  }
+
+  // Visit all object pointers stored in the various handles.
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    Handles<kFinalizablePersistentHandleSizeInWords,
+            kFinalizablePersistentHandlesPerChunk,
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::VisitObjectPointers(
+                visitor);
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly
   // by calling FreeHandle.
-  WeakPersistentHandle* AllocateHandle() {
-    WeakPersistentHandle* handle;
+  FinalizablePersistentHandle* AllocateHandle() {
+    FinalizablePersistentHandle* handle;
     if (free_list_ != NULL) {
       handle = free_list_;
       free_list_ = handle->Next();
     } else {
-      handle = reinterpret_cast<WeakPersistentHandle*>(AllocateScopedHandle());
+      handle = reinterpret_cast<FinalizablePersistentHandle*>(
+          AllocateScopedHandle());
     }
     handle->set_callback(NULL);
     return handle;
   }
 
-  void FreeHandle(WeakPersistentHandle* handle) {
+  void FreeHandle(FinalizablePersistentHandle* handle) {
     handle->FreeHandle(free_list());
     set_free_list(handle);
   }
@@ -343,8 +356,8 @@ class WeakPersistentHandles : Handles<kWeakPersistentHandleSizeInWords,
   }
 
  private:
-  WeakPersistentHandle* free_list_;
-  DISALLOW_COPY_AND_ASSIGN(WeakPersistentHandles);
+  FinalizablePersistentHandle* free_list_;
+  DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandles);
 };
 
 
@@ -458,14 +471,22 @@ class ApiState {
   // Accessors.
   ApiLocalScope* top_scope() const { return top_scope_; }
   void set_top_scope(ApiLocalScope* value) { top_scope_ = value; }
+
   PersistentHandles& persistent_handles() { return persistent_handles_; }
-  WeakPersistentHandles& weak_persistent_handles() {
+
+  FinalizablePersistentHandles& weak_persistent_handles() {
     return weak_persistent_handles_;
   }
+
+  FinalizablePersistentHandles& prologue_weak_persistent_handles() {
+    return prologue_weak_persistent_handles_;
+  }
+
   WeakReference* delayed_weak_references() { return delayed_weak_references_; }
   void set_delayed_weak_references(WeakReference* reference) {
     delayed_weak_references_ = reference;
   }
+
   void UnwindScopes(uword sp) {
     while (top_scope_ != NULL && top_scope_->stack_marker() < sp) {
       ApiLocalScope* scope = top_scope_;
@@ -474,17 +495,25 @@ class ApiState {
     }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           bool visit_prologue_weak_handles) {
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {
       scope->local_handles()->VisitObjectPointers(visitor);
       scope = scope->previous();
     }
     persistent_handles().VisitObjectPointers(visitor);
+    if (visit_prologue_weak_handles) {
+      prologue_weak_persistent_handles().VisitObjectPointers(visitor);
+    }
   }
 
-  void VisitWeakHandles(HandleVisitor* visitor) {
-    weak_persistent_handles().VisitWeakPersistentHandles(visitor);
+  void VisitWeakHandles(HandleVisitor* visitor,
+                        bool visit_prologue_weak_handles) {
+    weak_persistent_handles().VisitHandles(visitor);
+    if (visit_prologue_weak_handles) {
+      prologue_weak_persistent_handles().VisitHandles(visitor);
+    }
   }
 
   bool IsValidLocalHandle(Dart_Handle object) const {
@@ -504,6 +533,10 @@ class ApiState {
 
   bool IsValidWeakPersistentHandle(Dart_Handle object) const {
     return weak_persistent_handles_.IsValidHandle(object);
+  }
+
+  bool IsValidPrologueWeakPersistentHandle(Dart_Handle object) const {
+    return prologue_weak_persistent_handles_.IsValidHandle(object);
   }
 
   bool IsProtectedHandle(PersistentHandle* object) const {
@@ -569,7 +602,8 @@ class ApiState {
 
  private:
   PersistentHandles persistent_handles_;
-  WeakPersistentHandles weak_persistent_handles_;
+  FinalizablePersistentHandles weak_persistent_handles_;
+  FinalizablePersistentHandles prologue_weak_persistent_handles_;
   ApiLocalScope* top_scope_;
   WeakReference* delayed_weak_references_;
 

@@ -205,11 +205,11 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
   void VisitHandle(uword addr) {
-    WeakPersistentHandle* handle =
-        reinterpret_cast<WeakPersistentHandle*>(addr);
+    FinalizablePersistentHandle* handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      WeakPersistentHandle::Finalize(handle);
+      FinalizablePersistentHandle::Finalize(handle);
     }
   }
 
@@ -218,28 +218,38 @@ class MarkingWeakVisitor : public HandleVisitor {
 };
 
 
-void GCMarker::Prologue(Isolate* isolate) {
-  // Always invoke the prologue callbacks.
-  isolate->gc_prologue_callbacks().Invoke();
+void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
+  if (invoke_api_callbacks) {
+    isolate->gc_prologue_callbacks().Invoke();
+  }
 }
 
 
-void GCMarker::Epilogue(Isolate* isolate) {
-  // Always invoke the epilogue callbacks.
-  isolate->gc_epilogue_callbacks().Invoke();
+void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
+  if (invoke_api_callbacks) {
+    isolate->gc_epilogue_callbacks().Invoke();
+  }
 }
 
 
-void GCMarker::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
+void GCMarker::IterateRoots(Isolate* isolate,
+                            ObjectPointerVisitor* visitor,
+                            bool visit_prologue_weak_persistent_handles) {
   isolate->VisitObjectPointers(visitor,
+                               visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
   heap_->IterateCodePointers(visitor);
 }
 
 
-void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
-  isolate->VisitWeakPersistentHandles(visitor);
+void GCMarker::IterateWeakRoots(Isolate* isolate,
+                                HandleVisitor* visitor,
+                                bool visit_prologue_weak_persistent_handles) {
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  isolate->VisitWeakPersistentHandles(visitor,
+                                      visit_prologue_weak_persistent_handles);
 }
 
 
@@ -304,16 +314,18 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
 }
 
 
-void GCMarker::MarkObjects(Isolate* isolate, PageSpace* page_space) {
+void GCMarker::MarkObjects(Isolate* isolate,
+                           PageSpace* page_space,
+                           bool invoke_api_callbacks) {
   MarkingStack marking_stack;
-  Prologue(isolate);
+  Prologue(isolate, invoke_api_callbacks);
   MarkingVisitor mark(heap_, page_space, &marking_stack);
-  IterateRoots(isolate, &mark);
+  IterateRoots(isolate, &mark, !invoke_api_callbacks);
   DrainMarkingStack(isolate, &mark);
   IterateWeakReferences(isolate, &mark);
   MarkingWeakVisitor mark_weak;
-  IterateWeakRoots(isolate, &mark_weak);
-  Epilogue(isolate);
+  IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
+  Epilogue(isolate, invoke_api_callbacks);
 }
 
 }  // namespace dart

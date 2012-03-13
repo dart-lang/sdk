@@ -48,9 +48,13 @@ class Isolate {
   void Shutdown();
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           bool visit_prologue_weak_persistent_handles,
+                           bool validate_frames);
 
-  void VisitWeakPersistentHandles(HandleVisitor* visitor);
+  // Visits weak object pointers.
+  void VisitWeakPersistentHandles(HandleVisitor* visit,
+                                  bool visit_prologue_weak_persistent_handles);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 

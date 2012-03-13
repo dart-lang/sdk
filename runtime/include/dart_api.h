@@ -238,6 +238,15 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
  * explicitly deallocated by calling Dart_DeletePersistentHandle.
  *
  * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected.
+ *
+ * \return Success if the weak persistent handle was
+ *   created. Otherwise, returns an error.
  */
 DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
@@ -251,6 +260,43 @@ DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
  */
 DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
 
+/**
+ * Allocates a prologue weak persistent handle for an object.
+ *
+ * Prologue weak persistent handles are similar to weak persistent
+ * handles but exhibit different behavior during garbage collections
+ * that invoke the prologue and epilogue callbacks.  While weak
+ * persistent handles always weakly reference their referents,
+ * prologue weak persistent handles weakly reference their referents
+ * only during a garbage collection that invokes the prologue and
+ * epilogue callbacks.  During all other garbage collections, prologue
+ * weak persistent handles strongly reference their referents.
+ *
+ * This handle has the lifetime of the current isolate unless it is
+ * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected.
+ *
+ * \return Success if the prologue weak persistent handle was created.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback);
+
+/**
+ * Is this object a prologue weak persistent handle?
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(Dart_Handle object);
 
 /**
  * Constructs a set of weak references from the Cartesian product of

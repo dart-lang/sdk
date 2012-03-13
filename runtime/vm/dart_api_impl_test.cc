@@ -1561,6 +1561,64 @@ TEST_CASE(ObjectGroups) {
 }
 
 
+TEST_CASE(PrologueWeakPersistentHandles) {
+  Dart_Handle old_pwph = Dart_Null();
+  EXPECT(Dart_IsNull(old_pwph));
+  Dart_Handle new_pwph = Dart_Null();
+  EXPECT(Dart_IsNull(new_pwph));
+  Dart_EnterScope();
+  {
+    DARTSCOPE(Isolate::Current());
+    String& str = String::Handle();
+    str ^= String::New("new space prologue weak", Heap::kNew);
+    new_pwph = Dart_NewPrologueWeakPersistentHandle(Api::NewLocalHandle(str),
+                                                    NULL,
+                                                    NULL);
+    EXPECT_VALID(new_pwph);
+    EXPECT(!Dart_IsNull(new_pwph));
+    str ^= String::New("old space prologue weak", Heap::kOld);
+    old_pwph = Dart_NewPrologueWeakPersistentHandle(Api::NewLocalHandle(str),
+                                                    NULL,
+                                                    NULL);
+    EXPECT_VALID(old_pwph);
+    EXPECT(!Dart_IsNull(old_pwph));
+    str ^= String::null();
+  }
+  Dart_ExitScope();
+  EXPECT_VALID(new_pwph);
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(Dart_IsPrologueWeakPersistentHandle(new_pwph));
+  EXPECT_VALID(old_pwph);
+  EXPECT(!Dart_IsNull(old_pwph));
+  EXPECT(Dart_IsPrologueWeakPersistentHandle(old_pwph));
+  // Garbage collect new space without invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kIgnoreApiCallbacks);
+  // Both prologue weak handles should be preserved.
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  // Garbage collect old space without invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kIgnoreApiCallbacks);
+  // Both prologue weak handles should be preserved.
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  // Garbage collect new space invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kInvokeApiCallbacks);
+  // The prologue weak handle with a new space referent should now be
+  // cleared.  The old space referent should be preserved.
+  EXPECT(Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kInvokeApiCallbacks);
+  // The prologue weak handle with an old space referent should now be
+  // cleared.  The new space referent should remain cleared.
+  EXPECT(Dart_IsNull(new_pwph));
+  EXPECT(Dart_IsNull(old_pwph));
+}
+
+
 TEST_CASE(ImplicitReferences) {
   Dart_Handle strong = Dart_Null();
   EXPECT(Dart_IsNull(strong));

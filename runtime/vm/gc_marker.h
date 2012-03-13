@@ -24,13 +24,19 @@ class GCMarker : public ValueObject {
   explicit GCMarker(Heap* heap) : heap_(heap) { }
   ~GCMarker() { }
 
-  void MarkObjects(Isolate* isolate, PageSpace* page_space);
+  void MarkObjects(Isolate* isolate,
+                   PageSpace* page_space,
+                   bool invoke_api_callbacks);
 
  private:
-  void Prologue(Isolate* isolate);
-  void Epilogue(Isolate* isolate);
-  void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  void Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
+  void IterateRoots(Isolate* isolate,
+                    ObjectPointerVisitor* visitor,
+                    bool visit_prologue_weak_persistent_handles);
+  void IterateWeakRoots(Isolate* isolate,
+                        HandleVisitor* visitor,
+                        bool visit_prologue_weak_persistent_handles);
   void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
 

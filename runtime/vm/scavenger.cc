@@ -137,8 +137,8 @@ class ScavengerWeakVisitor : public HandleVisitor {
   }
 
   void VisitHandle(uword addr) {
-    WeakPersistentHandle* handle =
-        reinterpret_cast<WeakPersistentHandle*>(addr);
+    FinalizablePersistentHandle* handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (!raw_obj->IsHeapObject()) return;
     uword raw_addr = RawObject::ToAddr(raw_obj);
@@ -147,7 +147,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
       if (IsForwarding(header)) {
         handle->set_raw(RawObject::FromAddr(ForwardedAddr(header)));
       } else {
-        WeakPersistentHandle::Finalize(handle);
+        FinalizablePersistentHandle::Finalize(handle);
       }
     }
   }
@@ -202,7 +202,10 @@ Scavenger::~Scavenger() {
 }
 
 
-void Scavenger::Prologue() {
+void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
+  if (invoke_api_callbacks) {
+    isolate->gc_prologue_callbacks().Invoke();
+  }
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   MemoryRegion* temp = from_;
@@ -213,7 +216,7 @@ void Scavenger::Prologue() {
 }
 
 
-void Scavenger::Epilogue() {
+void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
   survivor_end_ = top_;
@@ -221,18 +224,27 @@ void Scavenger::Epilogue() {
 #if defined(DEBUG)
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
+  if (invoke_api_callbacks) {
+    isolate->gc_prologue_callbacks().Invoke();
+  }
 }
 
 
-void Scavenger::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
+void Scavenger::IterateRoots(Isolate* isolate,
+                             ObjectPointerVisitor* visitor,
+                             bool visit_prologue_weak_persistent_handles) {
   isolate->VisitObjectPointers(visitor,
+                               visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
 }
 
 
-void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
-  isolate->VisitWeakPersistentHandles(visitor);
+void Scavenger::IterateWeakRoots(Isolate* isolate,
+                                 HandleVisitor* visitor,
+                                 bool visit_prologue_weak_persistent_handles) {
+  isolate->VisitWeakPersistentHandles(visitor,
+                                      visit_prologue_weak_persistent_handles);
 }
 
 
@@ -265,6 +277,13 @@ void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 
 
 void Scavenger::Scavenge() {
+  // TODO(cshapiro): Add a decision procedure for determining when the
+  // the API callbacks should be invoked.
+  Scavenge(false);
+}
+
+
+void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
@@ -281,12 +300,12 @@ void Scavenger::Scavenge() {
   timer.Start();
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(this);
-  Prologue();
-  IterateRoots(isolate, &visitor);
+  Prologue(isolate, invoke_api_callbacks);
+  IterateRoots(isolate, &visitor, !invoke_api_callbacks);
   ProcessToSpace(&visitor);
   ScavengerWeakVisitor weak_visitor(this);
-  IterateWeakRoots(isolate, &weak_visitor);
-  Epilogue();
+  IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
+  Epilogue(isolate, invoke_api_callbacks);
   timer.Stop();
   if (FLAG_verbose_gc) {
     OS::PrintErr("Scavenge[%d]: %dus\n", count_, timer.TotalElapsedTime());

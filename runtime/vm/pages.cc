@@ -206,7 +206,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
-void PageSpace::MarkSweep() {
+void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
   sweeping_ = true;
@@ -224,7 +224,7 @@ void PageSpace::MarkSweep() {
 
   // Mark all reachable old-gen objects.
   GCMarker marker(heap_);
-  marker.MarkObjects(isolate, this);
+  marker.MarkObjects(isolate, this, invoke_api_callbacks);
 
   // Reset the freelists and setup sweeping.
   freelist_.Reset();

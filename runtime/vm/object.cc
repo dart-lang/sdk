@@ -7921,7 +7921,7 @@ static void AddFinalizer(const Object& referent,
   ASSERT(callback != NULL);
   ApiState* state = Isolate::Current()->api_state();
   ASSERT(state != NULL);
-  WeakPersistentHandle* weak_ref =
+  FinalizablePersistentHandle* weak_ref =
       state->weak_persistent_handles().AllocateHandle();
   weak_ref->set_raw(referent);
   weak_ref->set_peer(peer);
@@ -7960,8 +7960,8 @@ RawExternalOneByteString* ExternalOneByteString::New(
 static void DeleteWeakPersistentHandle(Dart_Handle handle) {
   ApiState* state = Isolate::Current()->api_state();
   ASSERT(state != NULL);
-  WeakPersistentHandle* weak_ref =
-      reinterpret_cast<WeakPersistentHandle*>(handle);
+  FinalizablePersistentHandle* weak_ref =
+      reinterpret_cast<FinalizablePersistentHandle*>(handle);
   ASSERT(state->IsValidWeakPersistentHandle(handle));
   state->weak_persistent_handles().FreeHandle(weak_ref);
 }

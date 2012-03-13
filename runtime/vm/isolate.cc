@@ -432,6 +432,7 @@ RawError* Isolate::StandardRunLoop() {
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
+                                  bool visit_prologue_weak_handles,
                                   bool validate_frames) {
   ASSERT(visitor != NULL);
 
@@ -454,7 +455,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
-    api_state()->VisitObjectPointers(visitor);
+    api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
   }
 
   // Visit all objects in the code index table.
@@ -470,9 +471,10 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
+void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
+                                         bool visit_prologue_weak_handles) {
   if (api_state() != NULL) {
-    api_state()->VisitWeakHandles(visitor);
+    api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
   }
 }
 
