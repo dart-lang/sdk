@@ -2156,7 +2156,7 @@ class Context : public Object {
  public:
   RawContext* parent() const { return raw_ptr()->parent_; }
   void set_parent(const Context& parent) const {
-    ASSERT(parent.isolate() == Isolate::Current());
+    ASSERT(parent.IsNull() || parent.isolate() == Isolate::Current());
     StorePointer(&raw_ptr()->parent_, parent.raw());
   }
   static intptr_t parent_offset() { return OFFSET_OF(RawContext, parent_); }

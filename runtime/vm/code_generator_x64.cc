@@ -615,8 +615,15 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
   int context_level = state()->context_level();
   ASSERT(context_level >= 0);
-  while (context_level-- > 0) {
-    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  if (!parsed_function_.function().IsClosureFunction()) {
+    if (context_level > 0) {
+      // CTX on entry was saved on the stack, but not linked as context parent.
+      __ popq(CTX);
+    }
+  } else {
+    while (context_level-- > 0) {
+      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
@@ -806,6 +813,18 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
                               StubCode::AllocateContextEntryPoint());
     GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
 
+    // If this node_sequence is the body of the function being compiled, and if
+    // this function is not a closure, do not link the current context as the
+    // parent of the newly allocated context, as it is not accessible. Instead,
+    // save it on the stack and restore it on exit.
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ pushq(CTX);
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movq(CTX, raw_null);
+    }
+
     // Chain the new context in RAX to its parent in CTX.
     __ StoreIntoObject(RAX,
                        FieldAddress(RAX, Context::parent_offset()),
@@ -853,12 +872,22 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   }
   if (num_context_variables > 0) {
     // Unchain the previously allocated context.
-    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popq(CTX);
+    } else {
+      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
   if (node_sequence->label() != NULL) {
     __ Bind(node_sequence->label()->break_label());
+    if ((num_context_variables > 0) &&
+        (node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popq(CTX);
+    }
   }
 }
 
@@ -2517,6 +2546,12 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   ASSERT(locals_space_size() >= 0);
   __ movq(RSP, RBP);
   __ subq(RSP, Immediate(locals_space_size()));
+
+  if ((state()->context_level() > 0) &&
+      !parsed_function_.function().IsClosureFunction()) {
+    // CTX was saved on entry.
+    __ subq(RSP, Immediate(kWordSize));
+  }
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in RAX (kExceptionObjectReg)
