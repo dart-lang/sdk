@@ -27,6 +27,13 @@ class _DOMURLFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) => _dummy();
 }
@@ -83,13 +90,6 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) => _dummy();
 }
@@ -99,6 +99,20 @@ class _ShadowRootFactoryProvider {
 
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name = null]) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1955,6 +1969,58 @@ interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {
 interface DelayNode extends AudioNode {
 
   final AudioParam delayTime;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+
+  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6251,58 +6317,6 @@ interface PageTransitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection default _PeerConnectionFactoryProvider {
-
-  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Performance {
 
   final MemoryInfo memory;
@@ -9428,7 +9442,37 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, PeerConnection source);
+typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammar default _SpeechGrammarFactoryProvider {
+
+  SpeechGrammar();
+
+  num weight;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
+
+  SpeechGrammarList();
+
+  final int length;
+
+  void addFromString(String string, [num weight]);
+
+  void addFromUri(String src, [num weight]);
+
+  SpeechGrammar item(int index);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9462,6 +9506,90 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionAlternative {
+
+  final num confidence;
+
+  final String transcript;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionError {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionEvent extends Event {
+
+  final SpeechRecognitionError error;
+
+  final SpeechRecognitionResult result;
+
+  final SpeechRecognitionResultList resultHistory;
+
+  final int resultIndex;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResult {
+
+  final bool finalValue;
+
+  final int length;
+
+  SpeechRecognitionAlternative item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResultList {
+
+  final int length;
+
+  SpeechRecognitionResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
