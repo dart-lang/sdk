@@ -46,7 +46,6 @@ TypeVariableScopeTest/02: Fail
 TypeVariableScopeTest/03: Fail
 TypeVariableScopeTest/04: Fail
 TypeVariableScopeTest/05: Fail
-NamedParametersWithObjectPropertyNamesTest: Fail # Issue 2137
 
 # Regular bugs which should be fixed.
 
