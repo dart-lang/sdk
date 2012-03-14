@@ -77,8 +77,8 @@ class ThreadPool {
     // Fields owned by ThreadPool.  Workers should not look at these
     // directly.  It's like looking at the sun.
     bool owned_;         // Protected by ThreadPool::mutex_
-    Worker* idle_next_;  // Protected by ThreadPool::mutex_
     Worker* all_next_;   // Protected by ThreadPool::mutex_
+    Worker* idle_next_;  // Protected by ThreadPool::mutex_
 
     DISALLOW_COPY_AND_ASSIGN(Worker);
   };
