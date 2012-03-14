@@ -31,6 +31,7 @@ def main():
       'css',
       'dom',
       'fileapi',
+      'Modules/filesystem',
       'html',
       'html/canvas',
       'inspector',

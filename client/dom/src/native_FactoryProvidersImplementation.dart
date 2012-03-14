@@ -6,6 +6,11 @@ class FactoryProviderImplementation {
   static AudioContext createAudioContext() native "AudioContext_constructor_Callback";
   static DOMParser createDOMParser() native "DOMParser_constructor_Callback";
   static DOMURL createDOMURL() native "DOMURL_constructor_Callback";
+  static DeprecatedPeerConnection createDeprecatedPeerConnection(
+      String serverConfiguration,
+      SignalingCallback signalingCallback)
+      native "DeprecatedPeerConnection_constructor_Callback";
+
   static FileReader createFileReader() native "FileReader_constructor_Callback";
   static FileReaderSync createFileReaderSync() native "FileReaderSync_constructor_Callback";
 
@@ -22,11 +27,6 @@ class FactoryProviderImplementation {
       native "MediaStream_constructor_Callback";
 
   static  MessageChannel createMessageChannel() native "MessageChannel_constructor_Callback";
-
-  static PeerConnection createPeerConnection(
-      String serverConfiguration,
-      SignalingCallback signalingCallback)
-      native "PeerConnection_constructor_Callback";
 
   static ShadowRoot createShadowRoot(Element host)
       native "ShadowRoot_constructor_Callback";

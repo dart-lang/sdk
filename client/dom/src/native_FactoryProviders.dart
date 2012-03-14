@@ -19,6 +19,12 @@ class _EventSourceFactoryProvider {
       FactoryProviderImplementation.createEventSource(scriptUrl);
 }
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration,
+                         SignalingCallback signalingCallback) =>
+      FactoryProviderImplementation.createDeprecatedPeerConnection(serverConfiguration, signalingCallback);
+}
+
 class _FileReaderFactoryProvider {
   factory FileReader() => FactoryProviderImplementation.createFileReader();
 }
@@ -48,13 +54,6 @@ class _MediaStreamFactoryProvider {
 
 class _MessageChannelFactoryProvider {
   factory MessageChannel() => FactoryProviderImplementation.createMessageChannel();
-}
-
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration,
-                         SignalingCallback signalingCallback) =>
-      FactoryProviderImplementation.createPeerConnection(serverConfiguration,
-                                                         signalingCallback);
 }
 
 class _ShadowRootFactoryProvider {
