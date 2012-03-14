@@ -3,13 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == leg || $component == legium ]
-ConstructorTest: Fail # Isolate object not properly constructed
 StaticStateTest: Fail # Closure wrapping does not switch isolate
 
 SerializationTest: Fail, OK # Frog specific serialization state
 
 APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
 APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
+ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
 
 [ $component == leg ]
 # Browser tests only supported on browser components.

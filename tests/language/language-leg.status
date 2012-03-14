@@ -6,7 +6,7 @@
 *: Skip
 
 
-[ $component == leg ]
+[ $component == leg || $component == legium ]
 AdjacentConstStringLiteralsTest: Crash # Issue 2110
 AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
@@ -259,6 +259,3 @@ ExecuteFinally3Test: Fail
 
 [ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
-
-[ $component == legium ]
-*: Skip
