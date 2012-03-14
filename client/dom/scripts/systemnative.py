@@ -344,6 +344,43 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         TO_DART_VALUE=to_dart_value_emitter.Fragments(),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments())
 
+  def _GenerateCallWithHandling(self, node, parameter_definitions_emitter, arguments):
+    if 'CallWith' not in node.ext_attrs:
+      return False
+
+    call_with = node.ext_attrs['CallWith']
+    if call_with == 'ScriptExecutionContext':
+      parameter_definitions_emitter.Emit(
+          '\n'
+          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
+          '        if (!context)\n'
+          '            return;\n')
+      arguments.append('context')
+      return False
+
+    if call_with == 'ScriptArguments|CallStack':
+      self._cpp_impl_includes.add('DOMWindow')
+      self._cpp_impl_includes.add('ScriptArguments')
+      self._cpp_impl_includes.add('ScriptCallStack')
+      self._cpp_impl_includes.add('V8Proxy')
+      self._cpp_impl_includes.add('v8')
+      parameter_definitions_emitter.Emit(
+          '\n'
+          '        v8::HandleScope handleScope;\n'
+          '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
+          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
+          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
+          '        if (!scriptArguments)\n'
+          '            goto fail;\n'
+          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
+          '        if (!scriptCallStack->size())\n'
+          '            return;\n',
+          INDEX=len(node.arguments))
+      arguments.extend(['scriptArguments', 'scriptCallStack'])
+      return True
+
+    return False
+
   def AddAttribute(self, getter, setter):
     # FIXME: Dartium does not support attribute event listeners. However, JS
     # implementation falls back to them when addEventListener is not available.
@@ -382,6 +419,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     arguments = []
+    parameter_definitions_emitter = emitter.Emitter()
+    raises_exceptions = self._GenerateCallWithHandling(attr, parameter_definitions_emitter, arguments)
+    raises_exceptions = raises_exceptions or attr.get_raises
+
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_getter_name()
       if 'URL' in attr.ext_attrs:
@@ -408,8 +449,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, attr.type.id, attr.ext_attrs, attr.get_raises)
-    self._GenerateNativeCallback(cpp_callback_name, '', True, invocation,
-        raises_exceptions=attr.get_raises)
+    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
+        True, invocation, raises_exceptions=raises_exceptions)
 
   def _AddSetter(self, attr):
     type_info = GetIDLTypeInfo(attr.type.id)
@@ -422,6 +463,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     arguments = []
+    parameter_definitions_emitter = emitter.Emitter()
+    self._GenerateCallWithHandling(attr, parameter_definitions_emitter, arguments)
+
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_setter_name()
       arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
@@ -435,7 +479,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     arguments.append('value')
 
-    parameter_definitions_emitter = emitter.Emitter()
     self._GenerateParameterAdapter(
         parameter_definitions_emitter, attr, 0, adapter_name='value')
     parameter_definitions = parameter_definitions_emitter.Fragments()
@@ -444,7 +487,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, 'void', attr.ext_attrs, attr.set_raises)
 
-    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions,
+    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
         True, invocation, raises_exceptions=True)
 
   def _HasNativeIndexGetter(self, interface):
@@ -540,37 +583,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
 
     parameter_definitions_emitter = emitter.Emitter()
-    raises_dart_exceptions = len(operation.arguments) > 0 or operation.raises
     arguments = []
-
-    # Process 'CallWith' argument.
-    if 'CallWith' in operation.ext_attrs:
-      call_with = operation.ext_attrs['CallWith']
-      if call_with == 'ScriptExecutionContext':
-        parameter_definitions_emitter.Emit(
-            '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
-            '        if (!context)\n'
-            '            return;\n')
-        arguments.append('context')
-      elif call_with == 'ScriptArguments|CallStack':
-        raises_dart_exceptions = True
-        self._cpp_impl_includes.add('DOMWindow')
-        self._cpp_impl_includes.add('ScriptArguments')
-        self._cpp_impl_includes.add('ScriptCallStack')
-        self._cpp_impl_includes.add('V8Proxy')
-        self._cpp_impl_includes.add('v8')
-        parameter_definitions_emitter.Emit(
-            '        v8::HandleScope handleScope;\n'
-            '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
-            '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
-            '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
-            '        if (!scriptArguments)\n'
-            '            goto fail;\n'
-            '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
-            '        if (!scriptCallStack->size())\n'
-            '            return;\n',
-            INDEX=len(operation.arguments))
-        arguments.extend(['scriptArguments', 'scriptCallStack'])
+    raises_dart_exceptions = self._GenerateCallWithHandling(
+        operation, parameter_definitions_emitter, arguments)
+    raises_dart_exceptions = raises_dart_exceptions or len(operation.arguments) > 0 or operation.raises
 
     # Process Dart arguments.
     for (i, argument) in enumerate(operation.arguments):
