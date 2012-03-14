@@ -626,7 +626,13 @@ class _HttpServer implements HttpServer {
     _server.onConnection = onConnection;
   }
 
-  void close() => _server.close();
+  void close() {
+    _server.close();
+    for (_HttpConnection connection in _connections) {
+      connection._socket.close();
+    }
+  }
+
   int get port() => _server.port;
 
   void set onError(void handler(String errorMessage)) {
@@ -887,6 +893,7 @@ class _HttpClientConnection
     _httpParser.headersComplete = () => _onHeadersComplete();
     _httpParser.dataReceived = (data) => _onDataReceived(data);
     _httpParser.dataEnd = () => _onDataEnd();
+    onDisconnect = _onDisconnected;
   }
 
   HttpClientRequest open(String method, String uri) {
@@ -917,6 +924,7 @@ class _HttpClientConnection
   }
 
   void _onDataEnd() {
+    onDisconnect = null;
     if (_response.headers["connection"] == "close") {
       _socket.close();
     } else {
@@ -934,6 +942,14 @@ class _HttpClientConnection
   void set onResponse(void handler(HttpClientResponse response)) {
     _onResponse = handler;
   }
+
+  void _onDisconnected() {
+    if (_onErrorCallback !== null) {
+      _onErrorCallback(new HttpException(
+          "Client disconnected before response was received."));
+    }
+  }
+
 
   Function _onRequest;
   Function _onResponse;
