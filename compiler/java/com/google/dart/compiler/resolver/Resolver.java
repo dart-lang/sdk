@@ -72,6 +72,7 @@ import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.StringUtils;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -1817,16 +1818,21 @@ public class Resolver {
   }
 
   private boolean hasRedirectedConstructorCycle(ConstructorElement constructorElement) {
+    HashSet<ConstructorElement> visited = new HashSet<ConstructorElement>();
     ConstructorElement next = getNextConstructorInvocation(constructorElement);
     while (next != null) {
+      if (visited.contains(next)) {
+        return true;
+      }
       if (constructorElement.getName().equals(next.getName())) {
         return true;
       }
+      visited.add(next);
       next = getNextConstructorInvocation(next);
     }
     return false;
   }
-
+  
   private ConstructorElement getNextConstructorInvocation(ConstructorElement constructor) {
     List<DartInitializer> inits = ((DartMethodDefinition) constructor.getNode()).getInitializers();
     // The parser ensures that redirected constructors can be the only item in the initialization
