@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class DartClass extends DartDeclaration<DartIdentifier> {
 
-  private ClassElement element;
+  private ClassNodeElement element;
 
   private DartTypeNode superclass;
 
@@ -146,7 +146,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
   }
 
   @Override
-  public ClassElement getElement() {
+  public ClassNodeElement getElement() {
     return element;
   }
 
@@ -160,7 +160,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
 
   @Override
   public void setElement(Element element) {
-    this.element = (ClassElement) element;
+    this.element = (ClassNodeElement) element;
   }
 
   public DartStringLiteral getNativeName() {

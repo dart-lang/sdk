@@ -95,6 +95,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
@@ -109,17 +110,14 @@ import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType.Member;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Analyzer of static type information.
@@ -139,10 +137,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Token.ASSIGN_DIV,
           Token.ASSIGN_MOD,
           Token.ASSIGN_TRUNC);
-  private final ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements =
-      new ConcurrentHashMap<ClassElement, List<Element>>();
-  private final Set<ClassElement> diagnosedAbstractClasses =
-      Collections.newSetFromMap(new ConcurrentHashMap<ClassElement, Boolean>());
+  private final Set<ClassElement> diagnosedAbstractClasses = Sets.newHashSet();
 
   /**
    * Perform type analysis on the given AST rooted at <code>node</code>.
@@ -156,20 +151,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
    */
   public static Type analyze(DartNode node, CoreTypeProvider typeProvider,
                              DartCompilerContext context, InterfaceType currentClass) {
-    ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements =
-        new ConcurrentHashMap<ClassElement, List<Element>>();
-    Set<ClassElement> diagnosed =
-        Collections.newSetFromMap(new ConcurrentHashMap<ClassElement, Boolean>());
-    Analyzer analyzer = new Analyzer(context, typeProvider, unimplementedElements, diagnosed);
+    Set<ClassElement> diagnosed = Sets.newHashSet();
+    Analyzer analyzer = new Analyzer(context, typeProvider, diagnosed);
     analyzer.setCurrentClass(currentClass);
     return node.accept(analyzer);
   }
 
   @Override
-  public DartUnit exec(DartUnit unit, DartCompilerContext context,
-                       CoreTypeProvider typeProvider) {
-    unit.accept(new Analyzer(context, typeProvider, unimplementedElements,
-                             diagnosedAbstractClasses));
+  public DartUnit exec(DartUnit unit, DartCompilerContext context, CoreTypeProvider typeProvider) {
+    unit.accept(new Analyzer(context, typeProvider, diagnosedAbstractClasses));
     return unit;
   }
 
@@ -183,7 +173,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Types types;
     private Type expected;
     private InterfaceType currentClass;
-    private final ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements;
     private final InterfaceType boolType;
     private final InterfaceType numType;
     private final InterfaceType intType;
@@ -199,11 +188,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private int catchDepth = 0;
 
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
-             ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements,
              Set<ClassElement> diagnosedAbstractClasses) {
       this.context = context;
       this.developerModeChecks = context.getCompilerConfiguration().developerModeChecks();
-      this.unimplementedElements = unimplementedElements;
       this.types = Types.getInstance(typeProvider);
       this.dynamicType = typeProvider.getDynamicType();
       this.stringType = typeProvider.getStringType();
@@ -429,7 +416,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private List<Type> analyzeArgumentTypes(List<? extends DartExpression> argumentNodes) {
-      List<Type> argumentTypes = new ArrayList<Type>(argumentNodes.size());
+      List<Type> argumentTypes = Lists.newArrayListWithCapacity(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
         argumentTypes.add(nonVoidTypeOf(argumentNode));
       }
@@ -563,7 +550,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         Set<String> usedNamedParametersNamed = Sets.newHashSet();
         // Prepare named parameters.
         Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
-        assert namedParameterTypes.isEmpty() || namedParameterTypes instanceof LinkedHashMap;
         Iterator<Entry<String, Type>> namedParameterTypesIterator =
             namedParameterTypes.entrySet().iterator();
         // Check positional arguments for named parameters.
@@ -656,7 +642,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                                 List<Type> parameters,
                                 boolean badBoundIsError) {
       if (arguments.size() == parameters.size() && arguments.size() == diagnosticNodes.size()) {
-        List<Type> bounds = new ArrayList<Type>(parameters.size());
+        List<Type> bounds = Lists.newArrayListWithCapacity(parameters.size());
         for (Type parameter : parameters) {
           TypeVariable variable = (TypeVariable) parameter;
           Type bound = variable.getTypeVariableElement().getBound();
@@ -699,7 +685,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case VARIABLE: {
           TypeVariable boundType = (TypeVariable)bound;
           if (boundType.equals(variable)) {
-            onError(boundType.getElement().getNode(),
+            onError(boundType.getElement(),
                     TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE,
                     boundType.getElement().getOriginalName());
           }
@@ -838,10 +824,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitClass(DartClass node) {
-      ClassElement element = node.getElement();
+      ClassNodeElement element = node.getElement();
       InterfaceType type = element.getType();
       checkCyclicBounds(type.getArguments());
-      findUnimplementedMembers(element);
+      List<Element> unimplementedMembers = findUnimplementedMembers(element);
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
@@ -857,14 +843,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
       checkInterfaceConstructors(element);
       // Report unimplemented members.
       if (!node.isAbstract()) {
-        ClassElement cls = node.getElement();
-        List<Element> unimplementedMembers = findUnimplementedMembers(cls);
         if (unimplementedMembers.size() > 0) {
-          StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
+          StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
           typeError(
               node.getName(),
               TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
-              cls.getName(),
+              element.getName(),
               sb);
         }
       }
@@ -897,7 +881,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (interfaceTypes.size() == defaultTypes.size()
                 && !interfaceTypes.equals(defaultTypes)) {
               onError(
-                  interfaceConstructor.getNode(),
+                  interfaceConstructor,
                   TypeErrorCode.DEFAULT_CONSTRUCTOR_TYPES,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
@@ -911,25 +895,26 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
-    private List<Element> findUnimplementedMembers(ClassElement element) {
-      if (element.isInterface()) {
-        element.getNode().accept(new AbstractMethodFinder(element.getType()));
-        return Collections.emptyList();
-      }
-      List<Element> members = unimplementedElements.get(element);
+    private List<Element> findUnimplementedMembers(ClassElement classElement) {
+      // May be has members already (cached or already analyzed ClassNodeElement).
+      List<Element> members = classElement.getUnimplementedMembers();
       if (members != null) {
         return members;
       }
-      synchronized (element) {
-        members = unimplementedElements.get(element);
-        if (members != null) {
-          return members;
-        }
-        AbstractMethodFinder finder = new AbstractMethodFinder(element.getType());
-        element.getNode().accept(finder);
-        unimplementedElements.put(element, finder.unimplementedElements);
-        return finder.unimplementedElements;
+      // If no cached result, then should be node based.
+      ClassNodeElement classNodeElement = (ClassNodeElement) classElement;
+      // Analyze ClassElement node.
+      AbstractMethodFinder finder = new AbstractMethodFinder(classNodeElement.getType());
+      classNodeElement.getNode().accept(finder);
+      // Prepare unimplemented members.
+      if (classNodeElement.isInterface()) {
+        members = Collections.emptyList();
+      } else {
+        members = finder.unimplementedElements;
       }
+      // Remember unimplemented methods.
+      classNodeElement.setUnimplementedMembers(members);
+      return members;
     }
 
     @Override
@@ -1612,7 +1597,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
                                  Type type) {
       List<DartExpression> argumentNodes = node.getArguments();
-      List<Type> argumentTypes = new ArrayList<Type>(argumentNodes.size());
+      List<Type> argumentTypes = Lists.newArrayListWithCapacity(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
         argumentTypes.add(nonVoidTypeOf(argumentNode));
       }
@@ -1804,13 +1789,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private class AbstractMethodFinder extends ASTVisitor<Void> {
       private final InterfaceType currentClass;
-      private final Multimap<String, Element> superMembers;
-      private final List<Element> unimplementedElements;
+      private final Multimap<String, Element> superMembers = LinkedListMultimap.create();
+      private final List<Element> unimplementedElements = Lists.newArrayList();
 
       private AbstractMethodFinder(InterfaceType currentClass) {
         this.currentClass = currentClass;
-        this.superMembers = LinkedListMultimap.create();
-        this.unimplementedElements = new ArrayList<Element>();
       }
 
       @Override
@@ -1897,7 +1880,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (superMembers != null) {
           FieldElement field = node.getElement();
           String name = field.getName();
-          List<Element> overridden = new ArrayList<Element>(superMembers.removeAll(name));
+          Collection<Element> overridden = superMembers.removeAll(name);
           for (Element element : overridden) {
             if (canOverride(node.getName(), field.getModifiers(), element)) {
               switch (element.getKind()) {
@@ -1951,13 +1934,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
        * Report a compile-time error if either modifiers or elements.getModifiers() is static.
        * @returns true if no compile-time error was reported
        */
-      private boolean canOverride(DartExpression node, Modifiers modifiers, Element element) {
+      private boolean canOverride(HasSourceInfo errorTarget, Modifiers modifiers, Element element) {
         if (element.getModifiers().isStatic()) {
-          onError(node, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
+          onError(errorTarget, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
                           element.getName(), element.getEnclosingElement().getName());
           return false;
         } else if (modifiers.isStatic()) {
-          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER,
+          onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER,
                           element.getName(), element.getEnclosingElement().getName());
           return false;
         }
@@ -1968,15 +1951,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
        * Report a static type error if member cannot override superElement, that
        * is, they are not assignable.
        */
-      private void checkOverride(DartExpression node, Element member, Element superElement) {
+      private void checkOverride(HasSourceInfo errorTarget, Element member, Element superElement) {
         String name = member.getName();
         Type superMember = typeAsMemberOf(superElement, currentClass);
         if (member.getKind() == ElementKind.METHOD && superElement.getKind() == ElementKind.METHOD) {
           MethodElement method = (MethodElement) member;
           MethodElement superMethod = (MethodElement) superElement;
-          if (hasLegalMethodOverrideSignature(node, method, superMethod)) {
+          if (hasLegalMethodOverrideSignature(errorTarget, method, superMethod)) {
             if (!types.isSubtype(member.getType(), superMember)) {
-              typeError(node,
+              typeError(errorTarget,
                         TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
                         name,
                         superElement.getEnclosingElement().getName(),
@@ -1985,7 +1968,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             }
           }
         } else if (!types.isAssignable(superMember, member.getType())) {
-          typeError(node,
+          typeError(errorTarget,
                     TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
                     name,
                     superElement.getEnclosingElement().getName(),
@@ -1997,7 +1980,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       /**
        * @return <code>true</code> if given "method" has signature compatible with "superMethod".
        */
-      private boolean hasLegalMethodOverrideSignature(DartNode node,
+      private boolean hasLegalMethodOverrideSignature(HasSourceInfo errorTarget,
                                                       MethodElement method,
                                                       MethodElement superMethod) {
         // Prepare parameters.
@@ -2008,7 +1991,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           int numRequired = getNumRequiredParameters(parameters);
           int superNumRequired = getNumRequiredParameters(superParameters);
           if (numRequired != superNumRequired) {
-            onError(node,
+            onError(errorTarget,
                     ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS,
                     method.getName());
             return false;
@@ -2027,7 +2010,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               continue;
             }
           }
-          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
+          onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
           return false;
         }
         return true;

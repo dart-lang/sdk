@@ -51,4 +51,11 @@ public interface ClassElement extends EnclosingElement {
   boolean isAbstract();
 
   ConstructorElement lookupConstructor(String name);
+
+  /**
+   * @return the {@link Element}s which are declared in superclass or interfaces, but not
+   *         implemented in this class. May be <code>null</code> if this {@link ClassElement} is
+   *         {@link ClassNodeElement} and was not analyzed yet.
+   */
+  List<Element> getUnimplementedMembers();
 }

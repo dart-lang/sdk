@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClassElementImplementation extends AbstractNodeElement implements ClassElement {
+class ClassElementImplementation extends AbstractNodeElement implements ClassNodeElement {
   private InterfaceType type;
   private InterfaceType supertype;
   private InterfaceType defaultClass;
@@ -34,6 +34,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassEle
       new AtomicReference<List<InterfaceType>>();
   private final SourceInfo nameLocation;
   private final String declarationNameWithTypeParameter;
+  private List<Element> unimplementedMembers;
 
   // declared volatile for thread-safety
   @SuppressWarnings("unused")
@@ -358,5 +359,15 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassEle
         throw new DuplicatedInterfaceException(existing, intf);
       }
     }
+  }
+  
+  @Override
+  public List<Element> getUnimplementedMembers() {
+    return unimplementedMembers;
+  }
+  
+  @Override
+  public void setUnimplementedMembers(List<Element> members) {
+    this.unimplementedMembers = members;
   }
 }

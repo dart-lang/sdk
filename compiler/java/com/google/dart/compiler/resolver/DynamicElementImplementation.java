@@ -276,4 +276,8 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public Type getConstantType() {
     return null;
   }
+  @Override
+  public List<Element> getUnimplementedMembers() {
+    return null;
+  }
 }

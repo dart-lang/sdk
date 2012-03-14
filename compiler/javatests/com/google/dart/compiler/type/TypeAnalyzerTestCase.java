@@ -43,7 +43,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Base class for static type analysis tests.
@@ -334,9 +333,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
 
   private TypeAnalyzer.Analyzer makeTypeAnalyzer(ClassElement element) {
     TypeAnalyzer.Analyzer analyzer =
-        new TypeAnalyzer.Analyzer(context, typeProvider,
-                                  new ConcurrentHashMap<ClassElement, List<Element>>(),
-                                  diagnosedAbstractClasses);
+        new TypeAnalyzer.Analyzer(context, typeProvider, diagnosedAbstractClasses);
     analyzer.setCurrentClass(element.getType());
     return analyzer;
   }
