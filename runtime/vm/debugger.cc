@@ -22,7 +22,7 @@
 
 namespace dart {
 
-static const bool verbose = true;
+static const bool verbose = false;
 
 
 SourceBreakpoint::SourceBreakpoint(const Function& func, intptr_t token_index)
@@ -542,8 +542,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   intptr_t best_fit_index = -1;
-  // TODO(hausner): find a symbolic value that works on all platforms.
-  intptr_t best_fit = 0x7fffffff;
+  intptr_t best_fit = INT_MAX;
   for (int i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_index = desc.TokenIndex(i);
     if (desc_token_index < token_index) {
