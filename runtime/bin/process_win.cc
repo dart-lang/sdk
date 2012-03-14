@@ -560,9 +560,9 @@ int Process::Start(const char* path,
   for (int i = 0; i < arguments_length; i++) {
     command_line_length += strlen(arguments[i]);
   }
-  // Account for two occurrences of '"' around the command, one
-  // space per argument and a terminating '\0'.
-  command_line_length += 2 + arguments_length + 1;
+  // Account for two occurrences of '"' around the command, one space
+  // and two occurrences of '"' per argument and a terminating '\0'.
+  command_line_length += 2 + (3 * arguments_length) + 1;
   static const int kMaxCommandLineLength = 32768;
   if (command_line_length > kMaxCommandLineLength) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
@@ -580,7 +580,7 @@ int Process::Start(const char* path,
   remaining -= written;
   ASSERT(remaining >= 0);
   for (int i = 0; i < arguments_length; i++) {
-    written = snprintf(command_line + len, remaining, " %s", arguments[i]);
+    written = snprintf(command_line + len, remaining, " \"%s\"", arguments[i]);
     len += written;
     remaining -= written;
     ASSERT(remaining >= 0);
