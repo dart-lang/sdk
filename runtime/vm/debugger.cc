@@ -542,7 +542,8 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   intptr_t best_fit_index = -1;
-  intptr_t best_fit = INTPTR_MAX;
+  // TODO(hausner): find a symbolic value that works on all platforms.
+  intptr_t best_fit = 0x8fffffff;
   for (int i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_index = desc.TokenIndex(i);
     if (desc_token_index < token_index) {
