@@ -12,15 +12,6 @@ import systemwrapping
 from generator import *
 from systembase import *
 
-
-_cpp_keywords = set(['default', 'operator'])
-
-def CppSafeName(name):
-  """Returns version of name safe for use in cpp code, i.e. not a keyword."""
-  if name in _cpp_keywords:
-    return '_' + name
-  return name
-
 class NativeImplementationSystem(System):
 
   def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
@@ -289,10 +280,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     # Process constructor arguments.
     for (i, arg) in enumerate(constructor_info.idl_args):
-      cpp_arg_name = CppSafeName(arg.id)
-      self._GenerateParameterAdapter(
-          parameter_definitions_emitter, arg, cpp_arg_name, i - 1)
-      arguments.append(cpp_arg_name)
+      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
+      arguments.append(arg.id)
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
@@ -402,13 +391,14 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
           webcore_function_name = 'getURLAttribute'
       arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
-      webcore_function_name = CppSafeName(attr.id)
-      if attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
+      if attr.id == 'operator':
+        webcore_function_name = '_operator'
+      elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
       else:
         webcore_function_name = re.sub(r'^(HTML|URL|JS|XML|XSLT|\w)',
                                        lambda s: s.group(1).lower(),
-                                       webcore_function_name)
+                                       attr.id)
         webcore_function_name = re.sub(r'^(create|exclusive)',
                                        lambda s: 'is' + s.group(1).capitalize(),
                                        webcore_function_name)
@@ -443,12 +433,11 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    cpp_arg_name = CppSafeName(attr.id)
-    arguments.append(cpp_arg_name)
+    arguments.append('value')
 
     parameter_definitions_emitter = emitter.Emitter()
     self._GenerateParameterAdapter(
-        parameter_definitions_emitter, attr, cpp_arg_name, 0)
+        parameter_definitions_emitter, attr, 0, adapter_name='value')
     parameter_definitions = parameter_definitions_emitter.Fragments()
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
@@ -591,10 +580,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      cpp_arg_name = CppSafeName(argument.id)
-      self._GenerateParameterAdapter(
-          parameter_definitions_emitter, argument, cpp_arg_name, i)
-      arguments.append(cpp_arg_name)
+      self._GenerateParameterAdapter(parameter_definitions_emitter, argument, i)
+      arguments.append(argument.id)
 
     if operation.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
@@ -658,7 +645,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateParameterAdapter(self, emitter, idl_node, name, index):
+  def _GenerateParameterAdapter(self, emitter, idl_node, index,
+                                adapter_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = GetIDLTypeInfo(idl_node.type.id)
     (adapter_type, include_name) = type_info.parameter_adapter_info()
@@ -676,7 +664,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         '            goto fail;\n'
         '        }\n',
         ADAPTER_TYPE=adapter_type,
-        NAME=name,
+        NAME=adapter_name or idl_node.id,
         INDEX=index + 1,
         FLAGS=flags)
 
