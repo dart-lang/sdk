@@ -57,7 +57,8 @@ class HtmlDiff {
    * calling [HtmlDiff.run].
    */
   static void initialize() {
-    world.processDartScript('dart:html');
+    world.getOrAddLibrary('dart:dom');
+    world.getOrAddLibrary('dart:html');
     world.resolveAll();
     dom = world.libraries['dart:dom'];
   }
@@ -160,7 +161,6 @@ class HtmlDiff {
     var htmlType = htmlImplToHtmlType(implMember.declaringType);
     if (htmlType == null) return null;
 
-    bool getter, setter;
     if (implMember.isConstructor || implMember.isFactory) {
       var constructor = htmlType.constructors[implMember.name];
       if (constructor != null) return constructor;
@@ -168,18 +168,25 @@ class HtmlDiff {
       // Look for a factory constructor whose type and name matches the member.
       return htmlType.factories.getFactoriesFor(implMember.name)[
           implMember.constructorName];
-    } else if ((getter = implMember.name.startsWith('get:')) ||
-        (setter = implMember.name.startsWith('set:'))) {
+    }
+
+    final getter = implMember.name.startsWith('get:');
+    final setter = implMember.name.startsWith('set:');
+
+    if (getter || setter) {
       // Use getMember to follow interface inheritance chains.
       var htmlProperty = htmlType.getMember(implMember.name.substring(4));
-      if (htmlProperty != null) {
-        return getter ? htmlProperty.getter : htmlProperty.setter;
-      } else {
-        return null;
-      }
-    } else {
-      return htmlType.getMember(implMember.name);
+
+      if (htmlProperty == null) return null;
+
+      // If it's a straight field, use that directly.
+      if (htmlProperty.isField) return htmlProperty;
+
+      // Otherwise, it's a property, so use the appropriate getter or setter.
+      return getter ? htmlProperty.getter : htmlProperty.setter;
     }
+
+    return htmlType.getMember(implMember.name);
   }
 
   /**
@@ -287,12 +294,16 @@ class HtmlDiff {
       print('Warning: invalid member name ${name}');
       return new Set();
     }
+
     var typeName = splitName[0];
     if (typeName == 'Window') typeName = 'DOMWindow';
+
     final type = dom.types[typeName];
     if (type == null) return new Set();
+
     final member = type.members[splitName[1]];
     if (member == null) return new Set();
+
     return new Set.from([member]);
   }
 
