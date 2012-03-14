@@ -4,7 +4,6 @@
 
 // Test that newlines cannot be escaped in import tags.
 
-#library('StringEscape3NegativeTest');
 #import('StringEscape3NegativeTestHelper.dart', prefix: 'foo\
 ');
 
