@@ -63,8 +63,6 @@ UNIT_TEST_CASE(ThreadPool_RunOne) {
   // Do a sanity test on the worker stats.
   EXPECT_EQ(1U, thread_pool.workers_started());
   EXPECT_EQ(0U, thread_pool.workers_stopped());
-  EXPECT_EQ(1U, thread_pool.workers_idle());
-  EXPECT_EQ(0U, thread_pool.workers_running());
 }
 
 
