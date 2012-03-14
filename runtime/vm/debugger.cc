@@ -541,11 +541,26 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  intptr_t best_fit_index = -1;
+  intptr_t best_fit = INTPTR_MAX;
   for (int i = 0; i < desc.Length(); i++) {
-    if (desc.TokenIndex(i) < token_index) {
+    intptr_t desc_token_index = desc.TokenIndex(i);
+    if (desc_token_index < token_index) {
       continue;
     }
-    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
+    PcDescriptors::Kind kind = desc.DescriptorKind(i);
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kReturn)) {
+      if ((desc_token_index - token_index) < best_fit) {
+        best_fit = desc_token_index - token_index;
+        ASSERT(best_fit >= 0);
+        best_fit_index = i;
+      }
+    }
+  }
+  if (best_fit_index >= 0) {
+    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
     // We should only ever have one code breakpoint at the same address.
     // If we find an existing breakpoint, it must be an internal one which
     // is used for stepping.
@@ -554,21 +569,16 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
       return bpt;
     }
 
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kFuncCall) ||
-        (kind == PcDescriptors::kReturn)) {
-      bpt = new CodeBreakpoint(func, i);
-      if (verbose) {
-        OS::Print("Setting breakpoint in function '%s' (%s:%d)  (PC %p)\n",
-                  String::Handle(func.name()).ToCString(),
-                  String::Handle(bpt->SourceUrl()).ToCString(),
-                  bpt->LineNumber(),
-                  bpt->pc());
-      }
-      RegisterCodeBreakpoint(bpt);
-      return bpt;
+    bpt = new CodeBreakpoint(func, best_fit_index);
+    if (verbose) {
+      OS::Print("Setting breakpoint in function '%s' (%s:%d) (PC %p)\n",
+                String::Handle(func.name()).ToCString(),
+                String::Handle(bpt->SourceUrl()).ToCString(),
+                bpt->LineNumber(),
+                bpt->pc());
     }
+    RegisterCodeBreakpoint(bpt);
+    return bpt;
   }
   return NULL;
 }
