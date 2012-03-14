@@ -4,7 +4,7 @@
 
 [ $component == vm || $component == dartium ]
 UnicodeTest: Fail        # Bug 5163868
-StringSplitRegExpTest: Fail    # Issue 429
+StringSplitRegExpTest: Skip    # Issue 2171
 *DartcTest: Skip
 
 [ $arch == ia32 ]
