@@ -589,6 +589,72 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
+  __ popq(RAX);
+  __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
+}
+
+
+void FlowGraphCompiler::VisitExtractTypeArguments(
+    ExtractTypeArgumentsComp* comp) {
+  __ popq(RAX);  // Instantiator.
+  if (!comp->constructor().IsFactory()) {
+    __ popq(RBX);  // Discard placeholder.
+  }
+
+  // RAX is the instantiator AbstractTypeArguments object (or null).
+  // If RAX is null, no need to instantiate the type arguments, use null, and
+  // allocate an object of a raw type.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label type_arguments_instantiated, type_arguments_uninstantiated;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+
+  // Instantiate non-null type arguments.
+  if (comp->type_arguments().IsUninstantiatedIdentity()) {
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
+        Smi::New(comp->type_arguments().Length())));
+    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  __ Bind(&type_arguments_uninstantiated);
+  if (comp->constructor().IsFactory()) {
+    // A runtime call to instantiate the type arguments is required before
+    // calling the factory.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(comp->type_arguments());
+    __ pushq(RAX);  // Push instantiator type arguments.
+    GenerateCallRuntime(comp->node_id(),
+                        comp->token_index(),
+                        kInstantiateTypeArgumentsRuntimeEntry);
+    __ popq(RAX);  // Pop instantiator type arguments.
+    __ popq(RAX);  // Pop uninstantiated type arguments.
+    __ popq(RAX);  // Pop instantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
+    // RAX: Instantiated type arguments.
+  } else {
+    // In the non-factory case, we rely on the allocation stub to
+    // instantiate the type arguments.
+    __ PushObject(comp->type_arguments());
+    // RAX: Instantiator type arguments.
+    Label type_arguments_pushed;
+    __ jmp(&type_arguments_pushed, Assembler::kNearJump);
+
+    __ Bind(&type_arguments_instantiated);
+    __ pushq(RAX);  // Instantiated type arguments.
+    __ movq(RAX, raw_null);  // Null instantiator.
+    __ Bind(&type_arguments_pushed);
+  }
+}
+
+
 void FlowGraphCompiler::VisitBlocks(
     const GrowableArray<BlockEntryInstr*>& blocks) {
   for (intptr_t i = blocks.length() - 1; i >= 0; --i) {

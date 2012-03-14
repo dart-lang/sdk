@@ -40,6 +40,8 @@ class LocalVariable;
 // | CreateArray <ArrayNode> <Value> ...
 // | CreateClosure <ClosureNode>
 // | AllocateObject <ConstructorCallNode>
+// | NativeLoadField <Value> <intptr_t>
+// | ExtractTypeArgumentsComp <ConstructorCallNode> <Value>
 //
 // <Value> ::=
 //   Temp <int>
@@ -76,6 +78,8 @@ class LocalVariable;
   M(CreateArray, CreateArrayComp)                                              \
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
+  M(NativeLoadField, NativeLoadFieldComp)                                      \
+  M(ExtractTypeArguments, ExtractTypeArgumentsComp)                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -632,6 +636,51 @@ class CreateClosureComp : public Computation {
   const ClosureNode& ast_node_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
+};
+
+
+class NativeLoadFieldComp : public Computation {
+ public:
+  NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
+      : value_(value), offset_in_bytes_(offset_in_bytes) {
+    ASSERT(value != NULL);
+  }
+
+  DECLARE_COMPUTATION(NativeLoadFieldComp)
+
+  Value* value() const { return value_; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+ private:
+  Value* value_;
+  intptr_t offset_in_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+};
+
+
+class ExtractTypeArgumentsComp : public Computation {
+ public:
+  ExtractTypeArgumentsComp(ConstructorCallNode* ast_node, Value* instantiator)
+      : ast_node_(*ast_node), instantiator_(instantiator) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractTypeArgumentsComp)
+
+  Value* instantiator() const { return instantiator_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractTypeArgumentsComp);
 };
 
 

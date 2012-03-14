@@ -114,8 +114,18 @@ class EffectGraphVisitor : public AstNodeVisitor {
                             intptr_t token_index,
                             int start_index);
 
+  // Creates type arguments (one or two values in 'args') used in preparation
+  // of a constructor or factory call.
+  // For factory call instantiates and returns type argument vector in 'args'.
+  // For constructor call returns type arguments and type arguments of the
+  // instantiator.
+  // May be called only if allocating an object of a parameterized class.
   void BuildTypeArguments(ConstructorCallNode* node,
                           ZoneGrowableArray<Value*>* args);
+
+  // Returns the value of the type arguments of the instantiator.
+  Value* GenerateInstantiatorTypeArguments(intptr_t token_index,
+                                           intptr_t type_arguments);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }

@@ -935,6 +935,52 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 }
 
 
+Value* EffectGraphVisitor::GenerateInstantiatorTypeArguments(
+    intptr_t token_index, intptr_t value_index) {
+  const Class& instantiator_class = Class::Handle(
+      owner()->parsed_function().function().owner());
+  if (instantiator_class.NumTypeParameters() == 0) {
+    // The type arguments are compile time constants.
+    AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
+    // TODO(regis): Temporary type should be allocated in new gen heap.
+    Type& type = Type::Handle(
+        Type::New(instantiator_class, type_arguments, token_index));
+    type ^= ClassFinalizer::FinalizeType(
+        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
+    type_arguments = type.arguments();
+    AddInstruction(new BindInstr(value_index, new ConstantVal(type_arguments)));
+    return new TempVal(value_index);
+  }
+  ASSERT(owner()->parsed_function().instantiator() != NULL);
+  ValueGraphVisitor for_instantiator(owner(), value_index);
+  owner()->parsed_function().instantiator()->Visit(&for_instantiator);
+  Append(for_instantiator);
+  Function& outer_function =
+      Function::Handle(owner()->parsed_function().function().raw());
+  while (outer_function.IsLocalFunction()) {
+    outer_function = outer_function.parent_function();
+  }
+  if (outer_function.IsFactory()) {
+    // All OK.
+    return for_instantiator.value();
+  }
+
+  // The instantiator is the receiver of the caller, which is not a factory.
+  // The receiver cannot be null; extract its AbstractTypeArguments object.
+  // Note that in the factory case, the instantiator is the first parameter
+  // of the factory, i.e. already an AbstractTypeArguments object.
+  intptr_t type_arguments_instance_field_offset =
+      instantiator_class.type_arguments_instance_field_offset();
+  ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
+
+  NativeLoadFieldComp* load = new NativeLoadFieldComp(
+      for_instantiator.value(), type_arguments_instance_field_offset);
+  AddInstruction(new BindInstr(value_index, load));
+  return new TempVal(value_index);
+}
+
+
+
 void EffectGraphVisitor::BuildTypeArguments(ConstructorCallNode* node,
                                             ZoneGrowableArray<Value*>* args) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
@@ -952,7 +998,23 @@ void EffectGraphVisitor::BuildTypeArguments(ConstructorCallNode* node,
     }
     return;
   }
-  Bailout("EffectGraphVisitor::BuildTypeArguments");
+  if (!node->constructor().IsFactory()) {
+    // Place holder instruction as ExtractTypeArgumentsComp returns two values.
+    AddInstruction(new BindInstr(temp_index(),
+                                 new ConstantVal(Object::ZoneHandle())));
+  }
+  // The type arguments are uninstantiated.
+  Value* instantiator_value =
+      GenerateInstantiatorTypeArguments(node->token_index(), temp_index() + 1);
+  ExtractTypeArgumentsComp* extract = new ExtractTypeArgumentsComp(
+      node, instantiator_value);
+  AddInstruction(new BindInstr(temp_index() + 1, extract));
+  if (node->constructor().IsFactory()) {
+    args->Add(new TempVal(temp_index()));
+  } else {
+    args->Add(new TempVal(temp_index()));
+    args->Add(new TempVal(temp_index() + 1));
+  }
 }
 
 
@@ -1449,6 +1511,21 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
 
 void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
   OS::Print("CreateClosure(%s)", comp->function().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
+  OS::Print("NativeLoadField(");
+  comp->value()->Accept(this);
+  OS::Print(", %d)", comp->offset_in_bytes());
+}
+
+
+void FlowGraphPrinter::VisitExtractTypeArguments(
+    ExtractTypeArgumentsComp* comp) {
+  OS::Print("ExtractTypeArguments(");
+  comp->instantiator()->Accept(this);
+  OS::Print(")");
 }
 
 
