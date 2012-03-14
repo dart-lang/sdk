@@ -84,6 +84,7 @@ void FlowGraphVisitor::VisitBlocks(
 // ==== Postorder graph traversal.
 void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
   block_entries->Add(this);
 }
@@ -92,6 +93,7 @@ void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
 void TargetEntryInstr::Postorder(
     GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
   block_entries->Add(this);
 }
@@ -99,24 +101,28 @@ void TargetEntryInstr::Postorder(
 
 void PickTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
 void TuckTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
 void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
 void BindInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
+  ASSERT(successor_ != NULL);
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 

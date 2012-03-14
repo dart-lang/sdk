@@ -1275,7 +1275,23 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
-  Bailout("EffectGraphVisitor::VisitThrowNode");
+  ValueGraphVisitor for_exception(owner(), temp_index());
+  node->exception()->Visit(&for_exception);
+  Append(for_exception);
+  if (node->stacktrace() == NULL) {
+    ThrowComp* comp =
+        new ThrowComp(node->id(), node->token_index(), for_exception.value());
+    AddInstruction(new DoInstr(comp));
+  } else {
+    ValueGraphVisitor for_stack_trace(owner(), temp_index() + 1);
+    node->stacktrace()->Visit(&for_stack_trace);
+    Append(for_stack_trace);
+    ReThrowComp* comp = new ReThrowComp(node->id(),
+                                        node->token_index(),
+                                        for_exception.value(),
+                                        for_stack_trace.value());
+    AddInstruction(new DoInstr(comp));
+  }
 }
 
 
@@ -1511,6 +1527,22 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
 
 void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
   OS::Print("CreateClosure(%s)", comp->function().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitThrow(ThrowComp* comp) {
+  OS::Print("Throw(");
+  comp->exception()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitReThrow(ReThrowComp* comp) {
+  OS::Print("ReThrow(");
+  comp->exception()->Accept(this);
+  OS::Print(", ");
+  comp->stack_trace()->Accept(this);
+  OS::Print(")");
 }
 
 

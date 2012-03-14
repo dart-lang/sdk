@@ -589,6 +589,25 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitThrow(ThrowComp* comp) {
+  LoadValue(RAX, comp->exception());
+  __ pushq(RAX);
+  GenerateCallRuntime(comp->node_id(), comp->token_index(), kThrowRuntimeEntry);
+  __ int3();
+}
+
+
+void FlowGraphCompiler::VisitReThrow(ReThrowComp* comp) {
+  LoadValue(RBX, comp->stack_trace());
+  LoadValue(RAX, comp->exception());
+  __ pushq(RAX);
+  __ pushq(RBX);
+  GenerateCallRuntime(
+      comp->node_id(), comp->token_index(), kReThrowRuntimeEntry);
+  Bailout("ReThrow Untested");
+}
+
+
 void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
   __ popq(RAX);
   __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));

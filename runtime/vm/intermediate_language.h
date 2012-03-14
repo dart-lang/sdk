@@ -40,6 +40,8 @@ class LocalVariable;
 // | CreateArray <ArrayNode> <Value> ...
 // | CreateClosure <ClosureNode>
 // | AllocateObject <ConstructorCallNode>
+// | Throw <Value>
+// | ReThrow <Value> <Value>
 // | NativeLoadField <Value> <intptr_t>
 // | ExtractTypeArgumentsComp <ConstructorCallNode> <Value>
 //
@@ -78,6 +80,8 @@ class LocalVariable;
   M(CreateArray, CreateArrayComp)                                              \
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
+  M(Throw, ThrowComp)                                                          \
+  M(ReThrow, ReThrowComp)                                                      \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
   M(ExtractTypeArguments, ExtractTypeArgumentsComp)                            \
 
@@ -636,6 +640,61 @@ class CreateClosureComp : public Computation {
   const ClosureNode& ast_node_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
+};
+
+
+class ThrowComp : public Computation {
+ public:
+  explicit ThrowComp(intptr_t node_id,
+                     intptr_t token_index,
+                     Value* exception)
+      : node_id_(node_id), token_index_(token_index), exception_(exception) {
+    ASSERT(exception_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(Throw)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowComp);
+};
+
+
+class ReThrowComp : public Computation {
+ public:
+  ReThrowComp(intptr_t node_id,
+              intptr_t token_index,
+              Value* exception,
+              Value* stack_trace)
+      : node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception),
+        stack_trace_(stack_trace) {
+    ASSERT(exception_ != NULL);
+    ASSERT(stack_trace_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ReThrow)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+  Value* stack_trace() const { return stack_trace_; }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+  Value* stack_trace_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReThrowComp);
 };
 
 
