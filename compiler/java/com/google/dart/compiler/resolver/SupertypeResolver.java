@@ -123,7 +123,7 @@ public class SupertypeResolver {
   private void setBoundsOnTypeParameters(List<Type> typeParameters,
                                          ResolutionContext resolutionContext) {
     for (Type typeParameter : typeParameters) {
-      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
+      TypeVariableNodeElement variable = (TypeVariableNodeElement) typeParameter.getElement();
       DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
       DartTypeNode boundNode = typeParameterNode.getBound();
       if (boundNode != null) {

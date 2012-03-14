@@ -9,15 +9,13 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -122,17 +120,12 @@ public class TopLevelElementBuilder {
   /**
    * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DEFINITION} for given named element.
    */
-  @SuppressWarnings("unchecked")
   private void reportDuplicateDeclaration(DartCompilerListener listener, Element element) {
-    DartNode node = element.getNode();
-    if (node instanceof DartDeclaration) {
-      DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
-      compilationError(
-          listener,
-          nameNode.getSourceInfo(),
-          ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
-          nameNode);
-    }
+    compilationError(
+        listener,
+        element.getNameLocation(),
+        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
+        element.getName());
   }
 
   /**
