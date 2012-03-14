@@ -61,10 +61,10 @@ UNIT_TEST_CASE(ThreadPool_RunOne) {
   EXPECT(done);
 
   // Do a sanity test on the worker stats.
-  EXPECT_EQ(1, thread_pool.workers_started());
-  EXPECT_EQ(0, thread_pool.workers_stopped());
-  EXPECT_EQ(1, thread_pool.workers_idle());
-  EXPECT_EQ(0, thread_pool.workers_running());
+  EXPECT_EQ(1U, thread_pool.workers_started());
+  EXPECT_EQ(0U, thread_pool.workers_stopped());
+  EXPECT_EQ(1U, thread_pool.workers_idle());
+  EXPECT_EQ(0U, thread_pool.workers_running());
 }
 
 
@@ -133,15 +133,15 @@ UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   FLAG_worker_timeout_millis = 1;
 
   ThreadPool thread_pool;
-  EXPECT_EQ(0, thread_pool.workers_started());
-  EXPECT_EQ(0, thread_pool.workers_stopped());
+  EXPECT_EQ(0U, thread_pool.workers_started());
+  EXPECT_EQ(0U, thread_pool.workers_stopped());
 
   // Run a worker.
   Monitor sync;
   bool done = false;
   thread_pool.Run(new TestTask(&sync, &done));
-  EXPECT_EQ(1, thread_pool.workers_started());
-  EXPECT_EQ(0, thread_pool.workers_stopped());
+  EXPECT_EQ(1U, thread_pool.workers_started());
+  EXPECT_EQ(0U, thread_pool.workers_stopped());
   {
     MonitorLocker ml(&sync);
     while (!done) {
@@ -157,7 +157,7 @@ UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
     OS::Sleep(1);
     waited += 1;
   }
-  EXPECT_EQ(1, thread_pool.workers_stopped());
+  EXPECT_EQ(1U, thread_pool.workers_stopped());
   FLAG_worker_timeout_millis = saved_timeout;
 }
 
