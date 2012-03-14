@@ -930,6 +930,10 @@ public class DartParser extends CompletionHooksParserBase {
       case CONST: {
         consume(Token.CONST);
         modifiers = modifiers.makeConstant();
+        // Allow "const factory ... native" constructors for core libraries only
+        if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
+          modifiers = modifiers.makeFactory();
+        }
         member = done(parseMethod(modifiers, null));
         break;
       }
