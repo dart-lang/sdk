@@ -7,7 +7,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.type.Type;
 
 /**
- * Extension of {@link FieldElement} which is base of {@link DartNode} and is modifiable.
+ * Extension of {@link FieldElement} which is based on {@link DartNode} and is modifiable.
  */
 public interface FieldNodeElement extends FieldElement, NodeElement {
   /**
@@ -16,4 +16,8 @@ public interface FieldNodeElement extends FieldElement, NodeElement {
    * @param type the {@link Type} to set, not <code>null</code>.
    */
   void setConstantType(Type type);
+  
+  MethodNodeElement getGetter();
+  
+  MethodNodeElement getSetter();
 }

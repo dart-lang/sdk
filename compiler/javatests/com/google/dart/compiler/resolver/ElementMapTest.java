@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 
 public class ElementMapTest extends TestCase {
 
-  private class MockElement implements Element {
+  private class MockElement implements NodeElement {
 
     private final ElementKind kind;
     private final String name;

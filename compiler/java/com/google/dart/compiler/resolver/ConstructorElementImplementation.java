@@ -11,7 +11,7 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 
 class ConstructorElementImplementation extends MethodElementImplementation
-    implements ConstructorElement {
+    implements ConstructorNodeElement {
   private final ClassElement constructorType;
   private final String rawName;
   private ConstructorElement defaultConstructor;

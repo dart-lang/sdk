@@ -17,8 +17,8 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   private final SourceInfo nameLocation;
   private Modifiers modifiers;
   private Type type;
-  private MethodElement getter;
-  private MethodElement setter;
+  private MethodNodeElement getter;
+  private MethodNodeElement setter;
   private Type constantType;
 
   FieldElementImplementation(DartNode node,
@@ -88,20 +88,20 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   }
 
   @Override
-  public MethodElement getGetter() {
+  public MethodNodeElement getGetter() {
     return getter;
   }
 
   @Override
-  public MethodElement getSetter() {
+  public MethodNodeElement getSetter() {
     return setter;
   }
 
-  void setGetter(MethodElement getter) {
+  void setGetter(MethodNodeElement getter) {
     this.getter = getter;
   }
 
-  void setSetter(MethodElement setter) {
+  void setSetter(MethodNodeElement setter) {
     this.setter = setter;
   }
   

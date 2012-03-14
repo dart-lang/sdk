@@ -117,11 +117,11 @@ public class Elements {
     return new SuperElementImplementation(node, cls);
   }
 
-  static void addConstructor(ClassElement cls, ConstructorElement constructor) {
+  static void addConstructor(ClassElement cls, ConstructorNodeElement constructor) {
     ((ClassElementImplementation) cls).addConstructor(constructor);
   }
 
-  static void addField(EnclosingElement holder, FieldElement field) {
+  static void addField(EnclosingElement holder, FieldNodeElement field) {
     if (ElementKind.of(holder).equals(ElementKind.CLASS)) {
       ((ClassElementImplementation) holder).addField(field);
     } else if (ElementKind.of(holder).equals(ElementKind.LIBRARY)) {
@@ -132,7 +132,7 @@ public class Elements {
   }
 
   @VisibleForTesting
-  public static void addMethod(EnclosingElement holder, MethodElement method) {
+  public static void addMethod(EnclosingElement holder, MethodNodeElement method) {
     if (ElementKind.of(holder).equals(ElementKind.CLASS)) {
       ((ClassElementImplementation) holder).addMethod(method);
     } else if (ElementKind.of(holder).equals(ElementKind.LIBRARY)) {
@@ -158,13 +158,12 @@ public class Elements {
     return MethodElementImplementation.fromFunctionExpression(node, modifiers);
   }
 
-  @VisibleForTesting
-  public static MethodElement methodFromMethodNode(DartMethodDefinition node,
+  public static MethodNodeElement methodFromMethodNode(DartMethodDefinition node,
       EnclosingElement holder) {
     return MethodElementImplementation.fromMethodNode(node, holder);
   }
 
-  static ConstructorElement constructorFromMethodNode(DartMethodDefinition node,
+  static ConstructorNodeElement constructorFromMethodNode(DartMethodDefinition node,
                                                       String name,
                                                       ClassElement declaringClass,
                                                       ClassElement constructorType) {

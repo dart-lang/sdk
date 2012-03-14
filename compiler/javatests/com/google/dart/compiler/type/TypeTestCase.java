@@ -19,7 +19,7 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
-import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
@@ -83,7 +83,7 @@ abstract class TypeTestCase extends TestCase {
             new DartBlock(Collections.<DartStatement>emptyList()), returnTypeNode),
         Modifiers.NONE,
         Collections.<DartInitializer>emptyList());
-    MethodElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
+    MethodNodeElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
     Type returnType = Types.interfaceType(iterElement, Arrays.<Type>asList(typeVar));
     FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(),
          null);

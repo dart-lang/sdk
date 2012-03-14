@@ -14,24 +14,24 @@ import java.util.List;
 
 /**
  * A more efficient version of {@link com.google.common.collect.Multimap} specifically for
- * {@link Element}
+ * {@link NodeElement}
  */
 class ElementMap {
 
   /**
    * A synthetic place holder for an element where the name given to the element map does not match
-   * the value returned by {@link Element#getName()} or where there are multiple elements associated
+   * the value returned by {@link NodeElement#getName()} or where there are multiple elements associated
    * with the same name.
    */
-  static class ElementHolder implements Element {
+  static class ElementHolder implements NodeElement {
     private static final String INTERNAL_ONLY_ERROR =
         "ElementHolder should not be accessed outside this class";
 
     final String name;
-    final Element element;
+    final NodeElement element;
     ElementHolder nextHolder;
 
-    ElementHolder(String name, Element element) {
+    ElementHolder(String name, NodeElement element) {
       this.name = name;
       this.element = element;
     }
@@ -89,8 +89,8 @@ class ElementMap {
   }
 
   // Array indexed by hashed name ... length is always power of 2
-  private Element[] elements;
-  private List<Element> ordered = new ArrayList<Element>();
+  private NodeElement[] elements;
+  private List<NodeElement> ordered = new ArrayList<NodeElement>();
 
   ElementMap() {
     clear();
@@ -100,10 +100,10 @@ class ElementMap {
    * Associate the specified element with the specified name. If the element is already associated
    * with that name, do not associate it again.
    */
-  void add(String name, Element element) {
+  void add(String name, NodeElement element) {
 
     // Most of the time name equals getName() thus holder == element
-    Element newHolder;
+    NodeElement newHolder;
     if (name.equals(element.getName())) {
       newHolder = element;
     } else {
@@ -121,7 +121,7 @@ class ElementMap {
     }
 
     // Handle existing element with the same name
-    Element existingHolder = elements[index];
+    NodeElement existingHolder = elements[index];
     if (existingHolder == element) {
       return;
     }
@@ -146,7 +146,7 @@ class ElementMap {
   }
 
   void clear() {
-    elements = new Element[16];
+    elements = new NodeElement[16];
     ordered.clear();
   }
 
@@ -155,8 +155,8 @@ class ElementMap {
    * 
    * @return the element or <code>null</code> if none
    */
-  Element get(String name) {
-    Element element = internalGet(name);
+  NodeElement get(String name) {
+    NodeElement element = internalGet(name);
     if (element instanceof ElementHolder) {
       return ((ElementHolder) element).element;
     } else {
@@ -169,8 +169,8 @@ class ElementMap {
    * 
    * @return the element of that kind or <code>null</code> if none
    */
-  Element get(String name, ElementKind kind) {
-    Element element = internalGet(name);
+  NodeElement get(String name, ElementKind kind) {
+    NodeElement element = internalGet(name);
     if (element instanceof ElementHolder) {
       ElementHolder holder = (ElementHolder) element;
       while (true) {
@@ -199,14 +199,14 @@ class ElementMap {
     return ordered.size();
   }
 
-  List<Element> values() {
+  List<NodeElement> values() {
     return ordered;
   }
 
   private void grow() {
-    Element[] old = elements;
-    elements = new Element[elements.length << 2];
-    for (Element element : old) {
+    NodeElement[] old = elements;
+    elements = new NodeElement[elements.length << 2];
+    for (NodeElement element : old) {
       if (element != null) {
         if (internalAdd(element) != -1) {
           // Every element in the array should have a unique name, so there should not be any collision
@@ -220,13 +220,13 @@ class ElementMap {
    * If an element with the given name does not exist in the array, then add the element and return
    * -1 otherwise nothing is added and the index of the existing element returned.
    */
-  private int internalAdd(Element element) {
+  private int internalAdd(NodeElement element) {
     String name = element.getName();
     int mask = elements.length - 1;
     int probe = name.hashCode() & mask;
     for (int i = probe; i < probe + mask + 1; i++) {
       int index = i & mask;
-      Element current = elements[index];
+      NodeElement current = elements[index];
       if (current == null) {
         elements[index] = element;
         return -1;
@@ -238,8 +238,8 @@ class ElementMap {
     throw new AssertionError("overfilled array");
   }
 
-  private Element internalGet(String name) {
-    Element element;
+  private NodeElement internalGet(String name) {
+    NodeElement element;
     int mask = elements.length - 1;
     int probe = name.hashCode() & mask;
     for (int i = probe; i < probe + mask + 1; i++) {

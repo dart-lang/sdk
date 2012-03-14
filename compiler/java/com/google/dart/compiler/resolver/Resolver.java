@@ -72,7 +72,6 @@ import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.StringUtils;
 
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -229,7 +228,7 @@ public class Resolver {
     @Override
     public Element visitClass(DartClass cls) {
       assert currentMethod == null : "nested class?";
-      ClassElement classElement = cls.getElement();
+      ClassNodeElement classElement = cls.getElement();
       try {
         classElement.getAllSupertypes();
       } catch (CyclicDeclarationException e) {
@@ -254,8 +253,8 @@ public class Resolver {
       context = topLevelContext.extend(classElement);
 
       this.finalsNeedingInitializing.clear();
-      for (Element element : classElement.getMembers()) {
-        element.getNode().accept(this);
+      for (NodeElement member : classElement.getMembers()) {
+        member.getNode().accept(this);
       }
 
       boolean testForAllConstantFields = false;
@@ -321,7 +320,7 @@ public class Resolver {
       return classElement;
     }
 
-    private void constVerifyMembers(Iterable<Element> members, ClassElement originalClass,
+    private void constVerifyMembers(Iterable<? extends Element> members, ClassElement originalClass,
         ClassElement currentClass) {
       for (Element element : members) {
         Modifiers modifiers = element.getModifiers();
@@ -653,7 +652,7 @@ public class Resolver {
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
-      FieldElement field = node.getElement();
+      FieldNodeElement field = node.getElement();
       if (field.getGetter() != null) {
         resolve(field.getGetter().getNode());
       }
@@ -1808,18 +1807,18 @@ public class Resolver {
     }
   }
 
-  private void checkRedirectConstructorCycle(List<ConstructorElement> constructors,
+  private void checkRedirectConstructorCycle(List<ConstructorNodeElement> constructors,
                                              ResolutionContext context) {
-    for (ConstructorElement element : constructors) {
+    for (ConstructorNodeElement element : constructors) {
       if (hasRedirectedConstructorCycle(element)) {
         context.onError(element, ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE);
       }
     }
   }
 
-  private boolean hasRedirectedConstructorCycle(ConstructorElement constructorElement) {
-    HashSet<ConstructorElement> visited = new HashSet<ConstructorElement>();
-    ConstructorElement next = getNextConstructorInvocation(constructorElement);
+  private boolean hasRedirectedConstructorCycle(ConstructorNodeElement constructorElement) {
+    Set<ConstructorNodeElement> visited = Sets.newHashSet();
+    ConstructorNodeElement next = getNextConstructorInvocation(constructorElement);
     while (next != null) {
       if (visited.contains(next)) {
         return true;
@@ -1833,10 +1832,9 @@ public class Resolver {
     return false;
   }
   
-  private ConstructorElement getNextConstructorInvocation(ConstructorElement constructor) {
+  private ConstructorNodeElement getNextConstructorInvocation(ConstructorNodeElement constructor) {
     List<DartInitializer> inits = ((DartMethodDefinition) constructor.getNode()).getInitializers();
-    // The parser ensures that redirected constructors can be the only item in the initialization
-    // list.
+    // Parser ensures that redirected constructors can be the only item in the initialization list.
     if (inits.size() == 1) {
       Element element = (Element) inits.get(0).getValue().getElement();
       if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
@@ -1844,7 +1842,7 @@ public class Resolver {
         ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();
         ClassElement currentClass = (ClassElement) constructor.getEnclosingElement();
         if (nextClass == currentClass) {
-          return nextConstructorElement;
+          return (ConstructorNodeElement) nextConstructorElement;
         }
       }
     }

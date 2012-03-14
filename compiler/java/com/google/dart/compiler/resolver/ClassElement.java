@@ -23,7 +23,7 @@ public interface ClassElement extends EnclosingElement {
 
   void setSupertype(InterfaceType element);
 
-  List<ConstructorElement> getConstructors();
+  List<? extends ConstructorElement> getConstructors();
 
   LibraryElement getLibrary();
 

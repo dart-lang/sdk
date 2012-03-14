@@ -130,14 +130,14 @@ public class MemberBuilder {
     public Element visitMethodDefinition(final DartMethodDefinition method) {
       isFactory = method.getModifiers().isFactory();
       isStatic = method.getModifiers().isStatic() || isFactory;
-      MethodElement element = method.getElement();
+      MethodNodeElement element = method.getElement();
       if (element == null) {
         switch (getMethodKind(method)) {
           case NONE:
           case CONSTRUCTOR:
             element = buildConstructor(method);
             checkConstructor(element, method);
-            addConstructor((ClassElement) currentHolder, (ConstructorElement) element);
+            addConstructor((ClassElement) currentHolder, (ConstructorNodeElement) element);
             break;
 
           case METHOD:
@@ -232,7 +232,7 @@ public class MemberBuilder {
       });
     }
 
-    private MethodElement buildConstructor(final DartMethodDefinition method) {
+    private MethodNodeElement buildConstructor(final DartMethodDefinition method) {
       // Resolve the constructor's name and class name.
       Element e = resolveConstructorName(method);
 
@@ -247,7 +247,7 @@ public class MemberBuilder {
           break;
 
         case CONSTRUCTOR:
-          return (ConstructorElement) e;
+          return (ConstructorNodeElement) e;
       }
       // If the constructor name resolves to a class or there was an error,
       // create the unnamed constructor.
@@ -265,7 +265,7 @@ public class MemberBuilder {
         // types of constant expressions.
         modifiers = modifiers.makeConstant();
       }
-      FieldElement fieldElement = fieldNode.getElement();
+      FieldNodeElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
         fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);
         addField(currentHolder, fieldElement);
@@ -326,7 +326,7 @@ public class MemberBuilder {
       assert fieldNode.getModifiers().isAbstractField();
       boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
-      MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
+      MethodNodeElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
       EnclosingElement previousEnclosingElement = enclosingElement;
       enclosingElement = accessorElement;
       recordElement(accessorNode, accessorElement);
@@ -385,21 +385,21 @@ public class MemberBuilder {
       return recordElement(fieldNode, fieldElement);
     }
 
-    private void addField(EnclosingElement holder, FieldElement element) {
+    private void addField(EnclosingElement holder, FieldNodeElement element) {
       if (holder != null) {
         checkUniqueName(holder, element);
         Elements.addField(holder, element);
       }
     }
 
-    private void addMethod(EnclosingElement holder, MethodElement element) {
+    private void addMethod(EnclosingElement holder, MethodNodeElement element) {
       checkUniqueName(holder, element);
       Elements.addMethod(holder, element);
     }
 
-    private void addConstructor(ClassElement cls, MethodElement element) {
+    private void addConstructor(ClassElement cls, ConstructorNodeElement element) {
       checkUniqueName(cls, element);
-      Elements.addConstructor(cls, (ConstructorElement) element);
+      Elements.addConstructor(cls, element);
     }
 
     private ElementKind getMethodKind(DartMethodDefinition method) {

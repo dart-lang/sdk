@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -26,7 +27,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   private InterfaceType type;
   private InterfaceType supertype;
   private InterfaceType defaultClass;
-  private List<InterfaceType> interfaces;
+  private final List<InterfaceType> interfaces = Lists.newArrayList();
   private final boolean isInterface;
   private final String nativeName;
   private final Modifiers modifiers;
@@ -40,8 +41,8 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   @SuppressWarnings("unused")
   private volatile Set<InterfaceType> subtypes;
 
-  private final List<ConstructorElement> constructors;
-  private final ElementMap members;
+  private final List<ConstructorNodeElement> constructors = Lists.newArrayList();
+  private final ElementMap members = new ElementMap();
 
   private final LibraryElement library;
 
@@ -57,9 +58,6 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     super(node, name);
     this.nativeName = nativeName;
     this.library = library;
-    constructors = new ArrayList<ConstructorElement>();
-    members = new ElementMap();
-    interfaces = new ArrayList<InterfaceType>();
     if (node != null) {
       isInterface = node.isInterface();
       modifiers = node.getModifiers();
@@ -118,8 +116,8 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   }
 
   @Override
-  public Iterable<Element> getMembers() {
-    return new Iterable<Element>() {
+  public Iterable<NodeElement> getMembers() {
+    return new Iterable<NodeElement>() {
       // The only use case for calling getMembers() is for iterating through the
       // members. You should not be able to add or remove members through the
       // object returned by this method. Returning members or members.value()
@@ -132,14 +130,14 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       // Strictly speaking, we should also wrap the iterator as we don't want
       // the method Iterator.remove to be used either.
       @Override
-      public Iterator<Element> iterator() {
+      public Iterator<NodeElement> iterator() {
         return members.values().iterator();
       }
     };
   }
 
   @Override
-  public List<ConstructorElement> getConstructors() {
+  public List<ConstructorNodeElement> getConstructors() {
     return constructors;
   }
 
@@ -178,7 +176,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     return declarationNameWithTypeParameter;
   }
 
-  void addMethod(MethodElement member) {
+  void addMethod(MethodNodeElement member) {
     String name = member.getName();
     if (member.getModifiers().isOperator()) {
       name = "operator " + name;
@@ -186,11 +184,11 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     members.add(name, member);
   }
 
-  void addConstructor(ConstructorElement member) {
+  void addConstructor(ConstructorNodeElement member) {
     constructors.add(member);
   }
 
-  void addField(FieldElement member) {
+  void addField(FieldNodeElement member) {
     members.add(member.getName(), member);
   }
 
