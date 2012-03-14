@@ -186,13 +186,13 @@ interface TestOutput default TestOutputImpl {
   bool get hasTimedOut();
 
   bool get didFail();
-  
+
   Duration get time();
-  
+
   List<String> get stdout();
 
   List<String> get stderr();
-  
+
   List<String> get diagnostics();
 }
 
@@ -840,10 +840,13 @@ class ProcessQueue {
                Date startTime,
                bool printTiming,
                Function this._enqueueMoreWork,
-               [bool this._verbose = false,
-                bool this._listTests = false,
-                bool this._keepGeneratedTests = false])
-      : _tests = new Queue<TestCase>(),
+               [bool verbose = false,
+                bool listTests = false,
+                bool keepGeneratedTests = false])
+      : _verbose = verbose,
+        _listTests = listTests,
+        _keepGeneratedTests = keepGeneratedTests,
+        _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
