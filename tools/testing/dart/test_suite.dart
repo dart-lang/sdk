@@ -567,7 +567,8 @@ class StandardTestSuite implements TestSuite {
             dartFlags.add("--enable_type_checks");
           }
           dartFlags.addAll(vmOptions);
-          args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+          final joined = Strings.join(dartFlags, ' ');
+          args.add('--dart-flags="$joined"');
         }
         args.add(htmlPath);
       }
