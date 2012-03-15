@@ -119,6 +119,13 @@ Controls how dart code is compiled and executed.
               false,
               'bool'),
           new _TestOptionSpecification(
+              'host_checked',
+              'Run compiler in checked mode',
+              ['--host-checked'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'timeout',
               'Timeout in seconds',
               ['-t', '--timeout'],
@@ -386,9 +393,10 @@ Controls how dart code is compiled and executed.
       configuration['progress'] = 'verbose';
     }
 
-    // Create the artificial 'unchecked' option that test status files
+    // Create the artificial 'unchecked' options that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
+    configuration['host_unchecked'] = !configuration['host_checked'];
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
@@ -477,6 +485,9 @@ Controls how dart code is compiled and executed.
         case 'leg':
         case 'frog':
           if (configuration['mode'] == 'debug') {
+            timeout *= 4;
+          }
+          if (configuration['host_checked']) {
             timeout *= 4;
           }
           break;

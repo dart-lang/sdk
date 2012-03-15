@@ -1170,6 +1170,9 @@ class TestUtils {
         || configuration["component"] == "legium") {
       args.add("--verbose");
       args.add("--leg");
+      if (configuration["host_checked"]) {
+        args.add("--vm_flags=--enable_asserts --enable_type_checks");
+      }
     }
     return args;
   }
