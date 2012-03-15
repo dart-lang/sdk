@@ -39,12 +39,6 @@ if [ -d "docs" ]; then
 fi
 mkdir docs
 
-# Bundle up the IO libraries so dartdoc can find them.
-# TODO(rnystrom): Having to do this is gross. Ideally apidoc should walk the
-# sources under runtime/bin/ directly instead of relying on this.
-grep "'*.dart'" ../../runtime/bin/io_sources.gypi | sed s/\',//g | \
-    sed s,\',../../runtime/bin/,g | xargs cat > io_libs.dart
-
 # Copy the static files over.
 cp ../../lib/dartdoc/static/* docs
 # Overlay any apidoc-specific ones.

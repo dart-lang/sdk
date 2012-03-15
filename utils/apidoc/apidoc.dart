@@ -35,7 +35,7 @@ void main() {
   // TODO(rnystrom): Cram in the the IO libraries. This is hackish right now.
   // We should probably move corelib stuff completely out of dartdoc and have it
   // all here.
-  world.getOrAddLibrary('io_libs.dart');
+  world.getOrAddLibrary('dart:io');
 
   print('Generating docs...');
   final apidoc = new Apidoc(mdn);
