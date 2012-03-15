@@ -140,6 +140,7 @@ LibTest/core/Queue/addLast_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip  # Issue 331
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
+LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
 
 
 

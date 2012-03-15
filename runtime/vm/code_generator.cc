@@ -413,6 +413,17 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
 }
 
 
+// For error reporting simplify type name, e.g, all integer types (Smi, Mint,
+// Bigint) a re reported as 'int'.
+static RawString* GetSimpleTypeName(const Instance& value) {
+  if (value.IsInteger()) {
+    return String::NewSymbol("int");
+  } else {
+    return Type::Handle(value.GetType()).Name();
+  }
+}
+
+
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
 // Arg0: index of the token of the assignment (source location).
@@ -466,8 +477,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
   if (!is_instance_of) {
-    const Type& src_type = Type::Handle(src_instance.GetType());
-    const String& src_type_name = String::Handle(src_type.Name());
+    String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
     String& dst_type_name = String::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
@@ -502,8 +512,7 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolInterface());
-  const Type& src_type = Type::Handle(src_instance.GetType());
-  const String& src_type_name = String::Handle(src_type.Name());
+  const String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
   const String& bool_type_name = String::Handle(bool_interface.Name());
   const String& expr = String::Handle(String::NewSymbol("boolean expression"));
   const String& no_malformed_type_error =  String::Handle();
@@ -528,8 +537,7 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
   const String& dst_name = String::CheckedHandle(arguments.At(2));
   const String& malformed_error = String::CheckedHandle(arguments.At(3));
   const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
-  const String& src_type_name =
-      String::Handle(Type::Handle(src_value.GetType()).Name());
+  const String& src_type_name = String::Handle(GetSimpleTypeName(src_value));
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
   UNREACHABLE();
@@ -575,8 +583,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       char buf[256];
       OS::SNPrint(buf, sizeof(buf), "%s[%d]",
                   rest_name.ToCString(), static_cast<int>(i));
-      const String& src_type_name =
-          String::Handle(Type::Handle(elem.GetType()).Name());
+      const String& src_type_name = String::Handle(GetSimpleTypeName(elem));
       String& dst_type_name = String::Handle();
       if (!element_type.IsInstantiated()) {
         // Instantiate element_type before reporting the error.
