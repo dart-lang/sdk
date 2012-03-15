@@ -17662,6 +17662,10 @@ class _SpanElementImpl extends _ElementImpl implements SpanElement {
 class _SpeechGrammarImpl extends _DOMTypeBase implements SpeechGrammar {
   _SpeechGrammarImpl._wrap(ptr) : super._wrap(ptr);
 
+  String get src() => _wrap(_ptr.src);
+
+  void set src(String value) { _ptr.src = _unwrap(value); }
+
   num get weight() => _wrap(_ptr.weight);
 
   void set weight(num value) { _ptr.weight = _unwrap(value); }
@@ -32860,6 +32864,8 @@ interface SpanElement extends Element {
 interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
   SpeechGrammar();
+
+  String src;
 
   num weight;
 }

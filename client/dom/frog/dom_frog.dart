@@ -9212,6 +9212,8 @@ class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerCon
 
 class _SpeechGrammarJs extends _DOMTypeJs implements SpeechGrammar native "*SpeechGrammar" {
 
+  String src;
+
   num weight;
 }
 
@@ -21112,6 +21114,8 @@ typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
 interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
   SpeechGrammar();
+
+  String src;
 
   num weight;
 }

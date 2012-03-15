@@ -9453,6 +9453,8 @@ interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
   SpeechGrammar();
 
+  String src;
+
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

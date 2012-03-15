@@ -174,6 +174,7 @@ _wrap(raw) {
     case "WorkerContext": return new _WorkerContextImpl._wrap(domObject);
     case "DedicatedWorkerContext": return new _DedicatedWorkerContextImpl._wrap(domObject);
     case "DelayNode": return new _DelayNodeImpl._wrap(domObject);
+    case "DeprecatedPeerConnection": return new _DeprecatedPeerConnectionImpl._wrap(domObject);
     case "HTMLDetailsElement": return new _DetailsElementImpl._wrap(domObject);
     case "DeviceMotionEvent": return new _DeviceMotionEventImpl._wrap(domObject);
     case "DeviceOrientationEvent": return new _DeviceOrientationEventImpl._wrap(domObject);
@@ -306,7 +307,6 @@ _wrap(raw) {
     case "PageTransitionEvent": return new _PageTransitionEventImpl._wrap(domObject);
     case "HTMLParagraphElement": return new _ParagraphElementImpl._wrap(domObject);
     case "HTMLParamElement": return new _ParamElementImpl._wrap(domObject);
-    case "PeerConnection": return new _PeerConnectionImpl._wrap(domObject);
     case "Performance": return new _PerformanceImpl._wrap(domObject);
     case "PerformanceNavigation": return new _PerformanceNavigationImpl._wrap(domObject);
     case "PerformanceTiming": return new _PerformanceTimingImpl._wrap(domObject);
@@ -492,9 +492,16 @@ _wrap(raw) {
     case "SharedWorkerContext": return new _SharedWorkerContextImpl._wrap(domObject);
     case "HTMLSourceElement": return new _SourceElementImpl._wrap(domObject);
     case "HTMLSpanElement": return new _SpanElementImpl._wrap(domObject);
+    case "SpeechGrammar": return new _SpeechGrammarImpl._wrap(domObject);
+    case "SpeechGrammarList": return new _SpeechGrammarListImpl._wrap(domObject);
     case "SpeechInputEvent": return new _SpeechInputEventImpl._wrap(domObject);
     case "SpeechInputResult": return new _SpeechInputResultImpl._wrap(domObject);
     case "SpeechInputResultList": return new _SpeechInputResultListImpl._wrap(domObject);
+    case "SpeechRecognitionAlternative": return new _SpeechRecognitionAlternativeImpl._wrap(domObject);
+    case "SpeechRecognitionError": return new _SpeechRecognitionErrorImpl._wrap(domObject);
+    case "SpeechRecognitionEvent": return new _SpeechRecognitionEventImpl._wrap(domObject);
+    case "SpeechRecognitionResult": return new _SpeechRecognitionResultImpl._wrap(domObject);
+    case "SpeechRecognitionResultList": return new _SpeechRecognitionResultListImpl._wrap(domObject);
     case "Storage": return new _StorageImpl._wrap(domObject);
     case "StorageEvent": return new _StorageEventImpl._wrap(domObject);
     case "StorageInfo": return new _StorageInfoImpl._wrap(domObject);
@@ -6501,6 +6508,89 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
   _DelayNodeImpl._wrap(ptr) : super._wrap(ptr);
 
   AudioParam get delayTime() => _wrap(_ptr.delayTime);
+}
+
+class _DeprecatedPeerConnectionImpl extends _DOMTypeBase implements DeprecatedPeerConnection {
+  _DeprecatedPeerConnectionImpl._wrap(ptr) : super._wrap(ptr);
+
+  MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
+
+  EventListener get onaddstream() => _wrap(_ptr.onaddstream);
+
+  void set onaddstream(EventListener value) { _ptr.onaddstream = _unwrap(value); }
+
+  EventListener get onconnecting() => _wrap(_ptr.onconnecting);
+
+  void set onconnecting(EventListener value) { _ptr.onconnecting = _unwrap(value); }
+
+  EventListener get onmessage() => _wrap(_ptr.onmessage);
+
+  void set onmessage(EventListener value) { _ptr.onmessage = _unwrap(value); }
+
+  EventListener get onopen() => _wrap(_ptr.onopen);
+
+  void set onopen(EventListener value) { _ptr.onopen = _unwrap(value); }
+
+  EventListener get onremovestream() => _wrap(_ptr.onremovestream);
+
+  void set onremovestream(EventListener value) { _ptr.onremovestream = _unwrap(value); }
+
+  EventListener get onstatechange() => _wrap(_ptr.onstatechange);
+
+  void set onstatechange(EventListener value) { _ptr.onstatechange = _unwrap(value); }
+
+  int get readyState() => _wrap(_ptr.readyState);
+
+  MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  void addStream(MediaStream stream) {
+    _ptr.addStream(_unwrap(stream));
+    return;
+  }
+
+  void close() {
+    _ptr.close();
+    return;
+  }
+
+  bool dispatchEvent(Event event) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  }
+
+  void processSignalingMessage(String message) {
+    _ptr.processSignalingMessage(_unwrap(message));
+    return;
+  }
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  void removeStream(MediaStream stream) {
+    _ptr.removeStream(_unwrap(stream));
+    return;
+  }
+
+  void send(String text) {
+    _ptr.send(_unwrap(text));
+    return;
+  }
 }
 
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement {
@@ -12761,89 +12851,6 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement {
   void set valueType(String value) { _ptr.valueType = _unwrap(value); }
 }
 
-class _PeerConnectionImpl extends _DOMTypeBase implements PeerConnection {
-  _PeerConnectionImpl._wrap(ptr) : super._wrap(ptr);
-
-  MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
-
-  EventListener get onaddstream() => _wrap(_ptr.onaddstream);
-
-  void set onaddstream(EventListener value) { _ptr.onaddstream = _unwrap(value); }
-
-  EventListener get onconnecting() => _wrap(_ptr.onconnecting);
-
-  void set onconnecting(EventListener value) { _ptr.onconnecting = _unwrap(value); }
-
-  EventListener get onmessage() => _wrap(_ptr.onmessage);
-
-  void set onmessage(EventListener value) { _ptr.onmessage = _unwrap(value); }
-
-  EventListener get onopen() => _wrap(_ptr.onopen);
-
-  void set onopen(EventListener value) { _ptr.onopen = _unwrap(value); }
-
-  EventListener get onremovestream() => _wrap(_ptr.onremovestream);
-
-  void set onremovestream(EventListener value) { _ptr.onremovestream = _unwrap(value); }
-
-  EventListener get onstatechange() => _wrap(_ptr.onstatechange);
-
-  void set onstatechange(EventListener value) { _ptr.onstatechange = _unwrap(value); }
-
-  int get readyState() => _wrap(_ptr.readyState);
-
-  MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
-
-  void addStream(MediaStream stream) {
-    _ptr.addStream(_unwrap(stream));
-    return;
-  }
-
-  void close() {
-    _ptr.close();
-    return;
-  }
-
-  bool dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
-
-  void processSignalingMessage(String message) {
-    _ptr.processSignalingMessage(_unwrap(message));
-    return;
-  }
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
-
-  void removeStream(MediaStream stream) {
-    _ptr.removeStream(_unwrap(stream));
-    return;
-  }
-
-  void send(String text) {
-    _ptr.send(_unwrap(text));
-    return;
-  }
-}
-
 class _PerformanceImpl extends _DOMTypeBase implements Performance {
   _PerformanceImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -17652,6 +17659,48 @@ class _SpanElementImpl extends _ElementImpl implements SpanElement {
   _SpanElementImpl._wrap(ptr) : super._wrap(ptr);
 }
 
+class _SpeechGrammarImpl extends _DOMTypeBase implements SpeechGrammar {
+  _SpeechGrammarImpl._wrap(ptr) : super._wrap(ptr);
+
+  String get src() => _wrap(_ptr.src);
+
+  void set src(String value) { _ptr.src = _unwrap(value); }
+
+  num get weight() => _wrap(_ptr.weight);
+
+  void set weight(num value) { _ptr.weight = _unwrap(value); }
+}
+
+class _SpeechGrammarListImpl extends _DOMTypeBase implements SpeechGrammarList {
+  _SpeechGrammarListImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get length() => _wrap(_ptr.length);
+
+  void addFromString(String string, [num weight = null]) {
+    if (weight === null) {
+      _ptr.addFromString(_unwrap(string));
+      return;
+    } else {
+      _ptr.addFromString(_unwrap(string), _unwrap(weight));
+      return;
+    }
+  }
+
+  void addFromUri(String src, [num weight = null]) {
+    if (weight === null) {
+      _ptr.addFromUri(_unwrap(src));
+      return;
+    } else {
+      _ptr.addFromUri(_unwrap(src), _unwrap(weight));
+      return;
+    }
+  }
+
+  SpeechGrammar item(int index) {
+    return _wrap(_ptr.item(_unwrap(index)));
+  }
+}
+
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
   _SpeechInputEventImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -17672,6 +17721,56 @@ class _SpeechInputResultListImpl extends _DOMTypeBase implements SpeechInputResu
   int get length() => _wrap(_ptr.length);
 
   SpeechInputResult item(int index) {
+    return _wrap(_ptr.item(_unwrap(index)));
+  }
+}
+
+class _SpeechRecognitionAlternativeImpl extends _DOMTypeBase implements SpeechRecognitionAlternative {
+  _SpeechRecognitionAlternativeImpl._wrap(ptr) : super._wrap(ptr);
+
+  num get confidence() => _wrap(_ptr.confidence);
+
+  String get transcript() => _wrap(_ptr.transcript);
+}
+
+class _SpeechRecognitionErrorImpl extends _DOMTypeBase implements SpeechRecognitionError {
+  _SpeechRecognitionErrorImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get code() => _wrap(_ptr.code);
+
+  String get message() => _wrap(_ptr.message);
+}
+
+class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent {
+  _SpeechRecognitionEventImpl._wrap(ptr) : super._wrap(ptr);
+
+  SpeechRecognitionError get error() => _wrap(_ptr.error);
+
+  SpeechRecognitionResult get result() => _wrap(_ptr.result);
+
+  SpeechRecognitionResultList get resultHistory() => _wrap(_ptr.resultHistory);
+
+  int get resultIndex() => _wrap(_ptr.resultIndex);
+}
+
+class _SpeechRecognitionResultImpl extends _DOMTypeBase implements SpeechRecognitionResult {
+  _SpeechRecognitionResultImpl._wrap(ptr) : super._wrap(ptr);
+
+  bool get final() => _wrap(_ptr.finalValue);
+
+  int get length() => _wrap(_ptr.length);
+
+  SpeechRecognitionAlternative item(int index) {
+    return _wrap(_ptr.item(_unwrap(index)));
+  }
+}
+
+class _SpeechRecognitionResultListImpl extends _DOMTypeBase implements SpeechRecognitionResultList {
+  _SpeechRecognitionResultListImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get length() => _wrap(_ptr.length);
+
+  SpeechRecognitionResult item(int index) {
     return _wrap(_ptr.item(_unwrap(index)));
   }
 }
@@ -18674,6 +18773,10 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 
 class _TrackElementImpl extends _ElementImpl implements TrackElement {
   _TrackElementImpl._wrap(ptr) : super._wrap(ptr);
+
+  bool get default() => _wrap(_ptr.defaultValue);
+
+  void set default(bool value) { _ptr.defaultValue = _unwrap(value); }
 
   String get kind() => _wrap(_ptr.kind);
 
@@ -21386,6 +21489,14 @@ class _DOMURLFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
+      _wrap(new dom.DeprecatedPeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) =>
       _wrap(new dom.EventSource(_unwrap(scriptUrl)));
@@ -21442,14 +21553,6 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) =>
-      _wrap(new dom.PeerConnection(_unwrap(serverConfiguration), _unwrap(signalingCallback)));
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) =>
       _wrap(new dom.ShadowRoot(_unwrap(host)));
@@ -21461,6 +21564,22 @@ class _ShadowRootFactoryProvider {
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name = null]) =>
       _wrap(new dom.SharedWorker(_unwrap(scriptURL), _unwrap(name)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() =>
+      _wrap(new dom.SpeechGrammar());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() =>
+      _wrap(new dom.SpeechGrammarList());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25488,6 +25607,58 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+
+  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface DetailsElement extends Element {
 
   bool open;
@@ -29321,58 +29492,6 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection default _PeerConnectionFactoryProvider {
-
-  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Performance {
 
   final MemoryInfo memory;
@@ -32713,7 +32832,7 @@ interface SharedWorkerContext extends WorkerContext {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, PeerConnection source);
+typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32735,6 +32854,38 @@ interface SourceElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface SpanElement extends Element {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammar default _SpeechGrammarFactoryProvider {
+
+  SpeechGrammar();
+
+  String src;
+
+  num weight;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
+
+  SpeechGrammarList();
+
+  final int length;
+
+  void addFromString(String string, [num weight]);
+
+  void addFromUri(String src, [num weight]);
+
+  SpeechGrammar item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32769,6 +32920,90 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionAlternative {
+
+  final num confidence;
+
+  final String transcript;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionError {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionEvent extends Event {
+
+  final SpeechRecognitionError error;
+
+  final SpeechRecognitionResult result;
+
+  final SpeechRecognitionResultList resultHistory;
+
+  final int resultIndex;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResult {
+
+  final bool finalValue;
+
+  final int length;
+
+  SpeechRecognitionAlternative item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResultList {
+
+  final int length;
+
+  SpeechRecognitionResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33407,6 +33642,8 @@ interface TrackElement extends Element {
   static final int LOADING = 1;
 
   static final int NONE = 0;
+
+  bool defaultValue;
 
   String kind;
 

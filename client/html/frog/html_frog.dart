@@ -13140,6 +13140,8 @@ class _SpanElementImpl extends _ElementImpl implements SpanElement native "*HTML
 
 class _SpeechGrammarImpl implements SpeechGrammar native "*SpeechGrammar" {
 
+  String src;
+
   num weight;
 }
 
@@ -27455,6 +27457,8 @@ interface SpanElement extends Element {
 interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
   SpeechGrammar();
+
+  String src;
 
   num weight;
 }
