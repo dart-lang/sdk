@@ -25,6 +25,8 @@ StringTest: Fail # Internal Error: Cannot find value
 # Bad test, assumes RegExp.allMatches returns a Collection.
 RegExpAllMatchesTest: Fail, OK # NoSuchMethodException : method not found: 'forEach'
 
+RegExp4Test: Fail, OK # Expects exception from const constructor.
+
 
 BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.

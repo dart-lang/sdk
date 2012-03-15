@@ -35,7 +35,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 [ $component == leg ]
 # Issues with co19 test suite.
-Language/11_Statements/11_Labels_A01_t03: Fail, OK # Test doesn't follow spec.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -46,6 +45,7 @@ Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/09_Try_A02_t04: Fail, OK # Bad test: Unbalanced {.
 Language/11_Statements/10_Return_A02_t01: Fail, OK # co19 issue 87.
+Language/11_Statements/11_Labels_A01_t03: Fail, OK # Test doesn't follow spec.
 LibTest/core/Date/Date.fromString_A01_t02: Fail, OK # co19 issue 88.
 LibTest/core/Date/Date.fromString_A01_t04: Fail, OK # co19 issue 88.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
@@ -72,6 +72,8 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 92.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail, OK # co19 issue 92.
+LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const constructor.
+LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.

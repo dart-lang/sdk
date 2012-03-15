@@ -253,6 +253,9 @@ TypeVMTest: Fail, OK # VM specific test.
 DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
+RegExp3Test: Fail, OK # Expects exception from const constructor.
+
+
 # TODO(ahe): Categorize these failures.
 ExecuteFinally3Test: Fail
 
