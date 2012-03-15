@@ -12,6 +12,9 @@ dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 html/frog_html_tests: Skip
 
+[ $component == dartium && $system == windows ]
+dom/DOMIsolate: Skip
+
 [ $component == dartium && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
 dom/CSSTest: Skip
