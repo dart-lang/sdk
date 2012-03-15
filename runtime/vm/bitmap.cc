@@ -20,7 +20,7 @@ bool BitmapBuilder::Get(intptr_t bit_offset) const {
 void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
   while (!InRange(bit_offset)) {
     intptr_t new_size = size_in_bytes_ + kIncrementSizeInBytes;
-    ASSERT(new_size > size_in_bytes_);
+    ASSERT(new_size > 0);
     uint8_t* new_bit_list = reinterpret_cast<uint8_t*>(
         Isolate::Current()->current_zone()->Allocate(new_size));
     ASSERT(new_bit_list != NULL);
