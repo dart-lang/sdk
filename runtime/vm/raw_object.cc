@@ -137,6 +137,12 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = PcDescriptors::InstanceSize(num_descriptors);
         break;
       }
+      case kStackmap: {
+        const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
+        intptr_t size_in_bytes = Smi::Value(map->ptr()->bitmap_size_in_bytes_);
+        instance_size = Stackmap::InstanceSize(size_in_bytes);
+        break;
+      }
       case kLocalVarDescriptors: {
         const RawLocalVarDescriptors* raw_descriptors =
             reinterpret_cast<const RawLocalVarDescriptors*>(this);
@@ -369,6 +375,15 @@ intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
   intptr_t length = Smi::Value(obj->length_);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
   return PcDescriptors::InstanceSize(length);
+}
+
+
+intptr_t RawStackmap::VisitStackmapPointers(RawStackmap* raw_obj,
+                                            ObjectPointerVisitor* visitor) {
+  RawStackmap* obj = raw_obj->ptr();
+  intptr_t size_in_bytes = Smi::Value(obj->bitmap_size_in_bytes_);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Stackmap::InstanceSize(size_in_bytes);
 }
 
 
@@ -660,6 +675,5 @@ intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return JSRegExp::InstanceSize(length);
 }
-
 
 }  // namespace dart

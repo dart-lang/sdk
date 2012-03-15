@@ -79,6 +79,7 @@ RawClass* Object::library_prefix_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
@@ -137,6 +138,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kInstructionsClass;
   } else if (raw_class == pc_descriptors_class()) {
     return kPcDescriptorsClass;
+  } else if (raw_class == stackmap_class()) {
+    return kStackmapClass;
   } else if (raw_class == var_descriptors_class()) {
     return kLocalVarDescriptorsClass;
   } else if (raw_class == exception_handlers_class()) {
@@ -184,6 +187,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kCodeClass: return code_class();
     case kInstructionsClass: return instructions_class();
     case kPcDescriptorsClass: return pc_descriptors_class();
+    case kStackmapClass: return stackmap_class();
     case kLocalVarDescriptorsClass: return var_descriptors_class();
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
@@ -222,6 +226,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kCodeClass: return "Code";
     case kInstructionsClass: return "Instructions";
     case kPcDescriptorsClass: return "PcDescriptors";
+    case kStackmapClass: return "Stackmap";
     case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
@@ -364,6 +369,9 @@ void Object::InitOnce() {
 
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
+
+  cls = Class::New<Stackmap>();
+  stackmap_class_ = cls.raw();
 
   cls = Class::New<LocalVarDescriptors>();
   var_descriptors_class_ = cls.raw();
@@ -5377,6 +5385,114 @@ void PcDescriptors::Verify(bool check_ids) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+// Return the bit offset of the highest bit set.
+intptr_t Stackmap::Maximum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = (bound - 1); i >= 0; i--) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMaximum;
+}
+
+
+// Return the bit offset of the lowest bit set.
+intptr_t Stackmap::Minimum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = 0; i < bound; i++) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMinimum;
+}
+
+
+bool Stackmap::GetBit(intptr_t bit_offset) const {
+  ASSERT(InRange(bit_offset));
+  int byte_offset = bit_offset >> kBitsPerByteLog2;
+  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  uint8_t byte = raw_ptr()->data_[byte_offset];
+  return (byte & byte_mask);
+}
+
+
+void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
+  ASSERT(InRange(bit_offset));
+  int byte_offset = bit_offset >> kBitsPerByteLog2;
+  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  uint8_t* byte_addr = &(raw_ptr()->data_[byte_offset]);
+  if (value) {
+    *byte_addr |= byte_mask;
+  } else {
+    *byte_addr &= ~byte_mask;
+  }
+}
+
+
+RawStackmap* Stackmap::New(uword pc, const Code& code, BitmapBuilder* bmap) {
+  const Class& cls = Class::Handle(Object::stackmap_class());
+  ASSERT(!cls.IsNull());
+  ASSERT(bmap != NULL);
+  Stackmap& result = Stackmap::Handle();
+  intptr_t size = bmap->SizeInBytes();
+  {
+    // Stackmap data objects are associated with a code object, allocate them
+    // in old generation.
+    RawObject* raw =
+        Object::Allocate(cls, Stackmap::InstanceSize(size), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.set_bitmap_size_in_bytes(size);
+  }
+  result.set_pc(pc);
+  result.set_code(code);
+  intptr_t bound = bmap->SizeInBits();
+  for (intptr_t i = 0; i < bound; i++) {
+    result.SetBit(i, bmap->Get(i));
+  }
+  return result.raw();
+}
+
+
+void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  raw_ptr()->bitmap_size_in_bytes_ = Smi::New(value);
+}
+
+
+void Stackmap::set_pc(uword value) const {
+  raw_ptr()->pc_ = value;
+}
+
+
+void Stackmap::set_code(const Code& code) const {
+  StorePointer(&raw_ptr()->code_, code.raw());
+}
+
+
+const char* Stackmap::ToCString() const {
+  if (IsNull()) {
+    return "{null}";
+  } else {
+    intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", pc());
+    intptr_t alloc_size = index + ((Maximum() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    Isolate* isolate = Isolate::Current();
+    char* chars = reinterpret_cast<char*>(
+        isolate->current_zone()->Allocate(alloc_size));
+    index = OS::SNPrint(chars, alloc_size, "0x%lx { ", pc());
+    for (intptr_t i = 0; i <= Maximum(); i++) {
+      index += OS::SNPrint((chars + index),
+                           (alloc_size - index),
+                           "%d ",
+                           IsObject(i) ? 1 : 0);
+    }
+    OS::SNPrint((chars + index), (alloc_size - index), "}");
+    return chars;
+  }
 }
 
 

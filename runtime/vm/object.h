@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -152,6 +153,7 @@ class Object {
     kCodeClass,
     kInstructionsClass,
     kPcDescriptorsClass,
+    kStackmapClass,
     kLocalVarDescriptorsClass,
     kExceptionHandlersClass,
     kContextClass,
@@ -288,6 +290,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
@@ -395,6 +398,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
@@ -1981,6 +1985,49 @@ class PcDescriptors : public Object {
 
   HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
+};
+
+
+class Stackmap : public Object {
+ public:
+  static const intptr_t kNoMaximum = -1;
+  static const intptr_t kNoMinimum = -1;
+
+  bool IsObject(intptr_t offset) const {
+    return InRange(offset) && GetBit(offset);
+  }
+  uword pc() const { return raw_ptr()->pc_; }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t size) {
+    return RoundedAllocationSize(sizeof(RawStackmap) + (size * kWordSize));
+  }
+  static RawStackmap* New(uword pc, const Code& code, BitmapBuilder* bmap);
+
+ private:
+  inline intptr_t SizeInBits() const;
+
+  bool InRange(intptr_t offset) const { return offset < SizeInBits(); }
+
+  bool GetBit(intptr_t bit_offset) const;
+  void SetBit(intptr_t bit_offset, bool value) const;
+
+  // Return the offset of the highest stack slot that has an object.
+  intptr_t Maximum() const;
+
+  // Return the offset of the lowest stack slot that has an object.
+  intptr_t Minimum() const;
+
+  void set_bitmap_size_in_bytes(intptr_t value) const;
+  void set_pc(uword value) const;
+  void set_code(const Code& code) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
+  friend class Class;
+  friend class BitmapBuilder;
 };
 
 
@@ -3832,6 +3879,11 @@ Token::Kind TokenStream::KindAt(intptr_t index) const {
 
 void Context::SetAt(intptr_t index, const Instance& value) const {
   StorePointer(InstanceAddr(index), value.raw());
+}
+
+
+intptr_t Stackmap::SizeInBits() const {
+  return (Smi::Value(raw_ptr()->bitmap_size_in_bytes_) * kBitsPerByte);
 }
 
 }  // namespace dart

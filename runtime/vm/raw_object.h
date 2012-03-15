@@ -35,6 +35,7 @@ namespace dart {
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(PcDescriptors)                                                             \
+  V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
@@ -688,6 +689,32 @@ class RawPcDescriptors : public RawObject {
 };
 
 
+// Stackmap is an immutable representation of the layout of the stack at
+// a PC. The stack map representation consists of a bit map which marks
+// each stack slot index starting from the FP (frame pointer) as an object
+// or regular untagged value.
+// The Stackmap also consists of a link to code object corresponding to
+// the frame which the stack map is describing.
+// The bit map representation is optimized for dense and small bit maps,
+// without any upper bound.
+class RawStackmap : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  }
+  RawCode* code_;  // Code object corresponding to the frame described.
+  RawSmi* bitmap_size_in_bytes_;  // Size of the bit map in bytes.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->bitmap_size_in_bytes_);
+  }
+  uword pc_;  // PC corresponding to this stack map representation.
+
+  // Variable length data follows here (bitmap of the stack layout).
+  uint8_t data_[0];
+};
+
+
 class RawLocalVarDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
 
@@ -1138,7 +1165,6 @@ class RawJSRegExp : public RawInstance {
   // Variable length data follows here.
   uint8_t data_[0];
 };
-
 
 }  // namespace dart
 

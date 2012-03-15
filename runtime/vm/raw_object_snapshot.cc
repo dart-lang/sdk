@@ -904,6 +904,22 @@ void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind) {
+  UNREACHABLE();
+  return Stackmap::null();
+}
+
+
+void RawStackmap::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
                                                       intptr_t tags,
