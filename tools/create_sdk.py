@@ -163,7 +163,15 @@ def Main(argv):
   assert builtin_runtime_sources[0] == 'builtin.dart'
   copyfile(join(HOME, 'runtime', 'bin', 'builtin.dart'),
            join(builtin_dest_dir, 'builtin_runtime.dart'))
-
+  #
+  # rename the print function in dart:builtin 
+  # so that it does not conflict with the print function in dart:core
+  #
+  ReplaceInFiles([
+      join(builtin_dest_dir, 'builtin_runtime.dart')
+    ], [
+      ('void print\(', 'void builtinPrint(')
+    ])
 
   #
   # Create and populate lib/io.
@@ -341,6 +349,8 @@ def Main(argv):
   for filename in corelib_runtime_sources:
     if filename.endswith('.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
+  # include the missing print function
+  dest_file.write('void print(String arg) { /* native */ }\n')
   dest_file.close()
 
   #
