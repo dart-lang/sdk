@@ -46,7 +46,7 @@ class NativeImplementationSystem(System):
     cpp_impl_path = self._FilePathForCppImplementation(interface_name)
     self._cpp_impl_files.append(cpp_impl_path)
 
-    return NativeImplementationGenerator(interface, super_interface_name,
+    return NativeImplementationGenerator(self, interface, super_interface_name,
         self._emitters.FileEmitter(dart_impl_path),
         self._emitters.FileEmitter(cpp_header_path),
         self._emitters.FileEmitter(cpp_impl_path),
@@ -177,6 +177,14 @@ class NativeImplementationSystem(System):
     return os.path.join(self._output_dir, 'dart',
                         '%sImplementation.dart' % interface_name)
 
+  def _FilePathForDartFactoryProvider(self, interface_name):
+    return os.path.join(self._output_dir, 'dart',
+                        '_%sFactoryProvider.dart' % interface_name)
+
+  def _FilePathForDartFactoryProviderImplementation(self, interface_name):
+    return os.path.join(self._output_dir, 'dart',
+                        '%sFactoryProviderImplementation.dart' % interface_name)
+
   def _FilePathForCppHeader(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.h' % interface_name)
 
@@ -187,13 +195,13 @@ class NativeImplementationSystem(System):
 class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, super_interface,
+  def __init__(self, system, interface, super_interface,
                dart_impl_emitter, cpp_header_emitter, cpp_impl_emitter,
                base_members, templates):
     """Generates Dart and C++ code for the given interface.
 
     Args:
-
+      system: The NativeImplementationSystem.
       interface: an IDLInterface instance. It is assumed that all types have
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
@@ -207,6 +215,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
+    self._system = system
     self._interface = interface
     self._super_interface = super_interface
     self._dart_impl_emitter = dart_impl_emitter
@@ -240,6 +249,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
 
     constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      self._EmitFactoryProvider(self._interface.id, constructor_info)
+
     if constructor_info is None:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
@@ -297,6 +309,48 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    implementation_class = interface_name + 'FactoryProviderImplementation'
+    implementation_function = 'create' + interface_name
+    native_implementation_function = '%s_constructor_Callback' % interface_name
+
+    # Emit private factory provider in public library.
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    dart_impl_path = self._system._FilePathForDartFactoryProvider(
+        interface_name)
+    self._system._dom_public_files.append(dart_impl_path)
+
+    emitter = self._system._emitters.FileEmitter(dart_impl_path)
+    emitter.Emit(
+        template,
+        FACTORY_PROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        IMPL_CLASS=implementation_class,
+        IMPL_FUNCTION=implementation_function,
+        ARGUMENTS=constructor_info.ParametersAsArgumentList())
+
+    # Emit public implementation in implementation libary.
+    dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
+        interface_name)
+    self._system._dom_impl_files.append(dart_impl_path)
+    emitter = self._system._emitters.FileEmitter(dart_impl_path)
+    emitter.Emit(
+        'class $IMPL_CLASS {\n'
+        '  static $INTERFACE_NAME $IMPL_FUNCTION($PARAMETERS)\n'
+        '      native "$NATIVE_NAME";\n'
+        '}',
+        INTERFACE_NAME=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        IMPL_CLASS=implementation_class,
+        IMPL_FUNCTION=implementation_function,
+        NATIVE_NAME=native_implementation_function)
 
   def FinishInterface(self):
     base = self._BaseClassName(self._interface)
