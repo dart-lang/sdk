@@ -309,7 +309,6 @@ Constructor2Test: Fail
 Constructor3Test: Fail
 Constructor5Test: Fail    # Order of initializers.
 Constructor6Test: Fail    # Parse failure in initializers.
-Constructor7Test: Fail    # Issue 2087
 ExecuteFinally6Test: Fail
 ExpectTest: Fail
 FauxverrideTest/03: Fail
