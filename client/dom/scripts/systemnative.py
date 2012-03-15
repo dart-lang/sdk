@@ -248,12 +248,12 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     raises_dom_exceptions = 'ConstructorRaisesException' in self._interface.ext_attrs
-    raises_dart_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
+    raises_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     arguments = []
     parameter_definitions_emitter = emitter.Emitter()
     create_function = 'create'
     if 'NamedConstructor' in self._interface.ext_attrs:
-      raises_dart_exceptions = True
+      raises_exceptions = True
       parameter_definitions_emitter.Emit(
             '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
             '        if (!domWindow) {\n'
@@ -267,7 +267,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if 'CallWith' in self._interface.ext_attrs:
       call_with = self._interface.ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
-        raises_dart_exceptions = True
+        raises_exceptions = True
         parameter_definitions_emitter.Emit(
             '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
             '        if (!context) {\n'
@@ -289,7 +289,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateNativeCallback(callback_name='constructorCallback',
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
-        raises_exceptions=raises_dart_exceptions)
+        raises_exceptions=raises_exceptions)
 
   def _ImplClassName(self, interface_name):
     return interface_name + 'Implementation'
@@ -584,9 +584,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     parameter_definitions_emitter = emitter.Emitter()
     arguments = []
-    raises_dart_exceptions = self._GenerateCallWithHandling(
+    raises_exceptions = self._GenerateCallWithHandling(
         operation, parameter_definitions_emitter, arguments)
-    raises_dart_exceptions = raises_dart_exceptions or len(operation.arguments) > 0 or operation.raises
+    raises_exceptions = raises_exceptions or len(operation.arguments) > 0 or operation.raises
 
     # Process Dart arguments.
     for (i, argument) in enumerate(operation.arguments):
@@ -620,7 +620,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=True, invocation=invocation,
-        raises_exceptions=raises_dart_exceptions)
+        raises_exceptions=raises_exceptions)
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
       needs_receiver, invocation, raises_exceptions):
