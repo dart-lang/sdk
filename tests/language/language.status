@@ -468,8 +468,10 @@ SyntaxTest/29: Fail # Issue 1109
 SyntaxTest/31: Fail # Issue 1109
 SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
-StringEscape3NegativeTest: Fail # Issue 1352
 LiteralUnaryPlusTest/01: Fail # Issue 1400
+
+[ $component == frog || $component == frogsh || $component == frogium || $component == webdriver ]
+StringEscape3NegativeTest: Fail # Issue 1352
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate

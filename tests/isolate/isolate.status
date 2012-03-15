@@ -18,19 +18,6 @@ IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
 *APIv2*: Skip # new api for isolates not in corelib yet.
 
-[ $arch == chromium && $arch == release ]
-ConstructorTest: Fail            # Bug 5382463
-SpawnTest: Fail                  # Bug 5382463
-IsolateComplexMessagesTest: Fail # Bug 5382463
-CountTest: Fail               # Bug 5401734
-MintMakerTest: Fail           # Bug 5401734
-RequestReplyTest: Fail        # Bug 5401734
-StaticStateTest: Fail         # Bug 5401734
-
-[ $arch == chromium ]
-MandelIsolateTest: Skip     # Bug 5353937.
-*APIv2*: Skip # not supported
-
 [ $component == frog || $component == frogsh ]
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip

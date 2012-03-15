@@ -4,6 +4,7 @@
 
 // Test that newlines cannot be escaped in source tags.
 
+#library('StringEscape2NegativeTest');
 #source('StringEscape2NegativeTestHelper\
 .dart');
 
