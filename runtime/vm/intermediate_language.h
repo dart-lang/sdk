@@ -40,8 +40,6 @@ class LocalVariable;
 // | CreateArray <ArrayNode> <Value> ...
 // | CreateClosure <ClosureNode>
 // | AllocateObject <ConstructorCallNode>
-// | Throw <Value>
-// | ReThrow <Value> <Value>
 // | NativeLoadField <Value> <intptr_t>
 // | ExtractFactoryTypeArgumentsComp <ConstructorCallNode> <Value>
 // | ExtractConstructorTypeArgumentsComp <ConstructorCallNode> <Value>
@@ -82,8 +80,6 @@ class LocalVariable;
   M(CreateArray, CreateArrayComp)                                              \
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
-  M(Throw, ThrowComp)                                                          \
-  M(ReThrow, ReThrowComp)                                                      \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
   M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
@@ -647,61 +643,6 @@ class CreateClosureComp : public Computation {
 };
 
 
-class ThrowComp : public Computation {
- public:
-  explicit ThrowComp(intptr_t node_id,
-                     intptr_t token_index,
-                     Value* exception)
-      : node_id_(node_id), token_index_(token_index), exception_(exception) {
-    ASSERT(exception_ != NULL);
-  }
-
-  DECLARE_COMPUTATION(Throw)
-
-  intptr_t node_id() const { return node_id_; }
-  intptr_t token_index() const { return token_index_; }
-  Value* exception() const { return exception_; }
-
- private:
-  intptr_t node_id_;
-  intptr_t token_index_;
-  Value* exception_;
-
-  DISALLOW_COPY_AND_ASSIGN(ThrowComp);
-};
-
-
-class ReThrowComp : public Computation {
- public:
-  ReThrowComp(intptr_t node_id,
-              intptr_t token_index,
-              Value* exception,
-              Value* stack_trace)
-      : node_id_(node_id),
-        token_index_(token_index),
-        exception_(exception),
-        stack_trace_(stack_trace) {
-    ASSERT(exception_ != NULL);
-    ASSERT(stack_trace_ != NULL);
-  }
-
-  DECLARE_COMPUTATION(ReThrow)
-
-  intptr_t node_id() const { return node_id_; }
-  intptr_t token_index() const { return token_index_; }
-  Value* exception() const { return exception_; }
-  Value* stack_trace() const { return stack_trace_; }
-
- private:
-  intptr_t node_id_;
-  intptr_t token_index_;
-  Value* exception_;
-  Value* stack_trace_;
-
-  DISALLOW_COPY_AND_ASSIGN(ReThrowComp);
-};
-
-
 class NativeLoadFieldComp : public Computation {
  public:
   NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
@@ -830,6 +771,8 @@ class ExtractConstructorInstantiatorComp : public Computation {
   M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Return)                                                                    \
+  M(Throw)                                                                     \
+  M(ReThrow)                                                                   \
   M(Branch)                                                                    \
 
 
@@ -1070,7 +1013,9 @@ class BindInstr : public Instruction {
 class ReturnInstr : public Instruction {
  public:
   ReturnInstr(Value* value, intptr_t token_index)
-      : Instruction(), value_(value), token_index_(token_index) { }
+      : Instruction(), value_(value), token_index_(token_index) {
+    ASSERT(value_ != NULL);
+  }
 
   DECLARE_INSTRUCTION(Return)
 
@@ -1086,6 +1031,70 @@ class ReturnInstr : public Instruction {
   intptr_t token_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
+};
+
+
+class ThrowInstr : public Instruction {
+ public:
+  ThrowInstr(intptr_t node_id, intptr_t token_index, Value* exception)
+      : Instruction(),
+        node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception) {
+    ASSERT(exception_ != NULL);
+  }
+
+  DECLARE_INSTRUCTION(Throw)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
+};
+
+
+class ReThrowInstr : public Instruction {
+ public:
+  ReThrowInstr(intptr_t node_id,
+              intptr_t token_index,
+              Value* exception,
+              Value* stack_trace)
+      : node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception),
+        stack_trace_(stack_trace) {
+    ASSERT(exception_ != NULL);
+    ASSERT(stack_trace_ != NULL);
+  }
+
+  DECLARE_INSTRUCTION(ReThrow)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+  Value* stack_trace() const { return stack_trace_; }
+
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+  Value* stack_trace_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
 
 

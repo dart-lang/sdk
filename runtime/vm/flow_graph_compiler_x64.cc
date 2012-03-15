@@ -589,25 +589,6 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
-void FlowGraphCompiler::VisitThrow(ThrowComp* comp) {
-  LoadValue(RAX, comp->exception());
-  __ pushq(RAX);
-  GenerateCallRuntime(comp->node_id(), comp->token_index(), kThrowRuntimeEntry);
-  __ int3();
-}
-
-
-void FlowGraphCompiler::VisitReThrow(ReThrowComp* comp) {
-  LoadValue(RBX, comp->stack_trace());
-  LoadValue(RAX, comp->exception());
-  __ pushq(RAX);
-  __ pushq(RBX);
-  GenerateCallRuntime(
-      comp->node_id(), comp->token_index(), kReThrowRuntimeEntry);
-  Bailout("ReThrow Untested");
-}
-
-
 void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
   __ popq(RAX);
   __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
@@ -859,6 +840,28 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
                        AstNode::kNoId,
                        instr->token_index());
 }
+
+
+void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
+  LoadValue(RAX, instr->exception());
+  __ pushq(RAX);
+  GenerateCallRuntime(instr->node_id(),
+                      instr->token_index(),
+                      kThrowRuntimeEntry);
+  __ int3();
+}
+
+
+void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
+  LoadValue(RBX, instr->stack_trace());
+  LoadValue(RAX, instr->exception());
+  __ pushq(RAX);
+  __ pushq(RBX);
+  GenerateCallRuntime(
+      instr->node_id(), instr->token_index(), kReThrowRuntimeEntry);
+  Bailout("ReThrow Untested");
+}
+
 
 
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {

@@ -1274,6 +1274,10 @@ void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 //                            nodes: <Statement>*
 //                            label: SourceLabel }
 void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
+  if (FLAG_enable_type_checks &&
+      (node == owner()->parsed_function().node_sequence())) {
+    Bailout("VisitSequenceNode GenerateArgumentTypeChecks()");
+  }
   if ((node->scope() != NULL) &&
       (node->scope()->num_context_variables() != 0)) {
     Bailout("Sequence needs a context.  Gotta have a context.");
@@ -1301,20 +1305,21 @@ void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
+  Instruction* instr = NULL;
   if (node->stacktrace() == NULL) {
-    ThrowComp* comp =
-        new ThrowComp(node->id(), node->token_index(), for_exception.value());
-    AddInstruction(new DoInstr(comp));
+    instr = new ThrowInstr(
+        node->id(), node->token_index(), for_exception.value());
   } else {
     ValueGraphVisitor for_stack_trace(owner(), temp_index() + 1);
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
-    ReThrowComp* comp = new ReThrowComp(node->id(),
-                                        node->token_index(),
-                                        for_exception.value(),
-                                        for_stack_trace.value());
-    AddInstruction(new DoInstr(comp));
+    instr = new ReThrowInstr(node->id(),
+                             node->token_index(),
+                             for_exception.value(),
+                             for_stack_trace.value());
   }
+  AddInstruction(instr);
+  CloseFragment();
 }
 
 
@@ -1553,22 +1558,6 @@ void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
-void FlowGraphPrinter::VisitThrow(ThrowComp* comp) {
-  OS::Print("Throw(");
-  comp->exception()->Accept(this);
-  OS::Print(")");
-}
-
-
-void FlowGraphPrinter::VisitReThrow(ReThrowComp* comp) {
-  OS::Print("ReThrow(");
-  comp->exception()->Accept(this);
-  OS::Print(", ");
-  comp->stack_trace()->Accept(this);
-  OS::Print(")");
-}
-
-
 void FlowGraphPrinter::VisitNativeLoadField(NativeLoadFieldComp* comp) {
   OS::Print("NativeLoadField(");
   comp->value()->Accept(this);
@@ -1637,6 +1626,22 @@ void FlowGraphPrinter::VisitBind(BindInstr* instr) {
 void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
   OS::Print("    return ");
   instr->value()->Accept(this);
+}
+
+
+void FlowGraphPrinter::VisitThrow(ThrowInstr* instr) {
+  OS::Print("Throw(");
+  instr->exception()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
+  OS::Print("ReThrow(");
+  instr->exception()->Accept(this);
+  OS::Print(", ");
+  instr->stack_trace()->Accept(this);
+  OS::Print(")");
 }
 
 

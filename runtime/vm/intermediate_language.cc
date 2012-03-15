@@ -63,6 +63,18 @@ Instruction* ReturnInstr::Accept(FlowGraphVisitor* visitor) {
 }
 
 
+Instruction* ThrowInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitThrow(this);
+  return NULL;
+}
+
+
+Instruction* ReThrowInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitReThrow(this);
+  return NULL;
+}
+
+
 Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitBranch(this);
   return NULL;
@@ -128,6 +140,16 @@ void BindInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
 
 
 void ReturnInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+}
+
+
+void ThrowInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
+  flip_mark();
+}
+
+
+void ReThrowInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
 }
 
