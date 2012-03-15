@@ -20,7 +20,8 @@ class Extensions {
   static char* Concatenate(const char** strings);
 
   // Platform-specific implementations.
-  static void* LoadExtensionLibrary(const char* library_name);
+  static void* LoadExtensionLibrary(const char* library_path,
+                                    const char* extension_name);
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
 
   DISALLOW_ALLOCATION();

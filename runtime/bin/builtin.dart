@@ -65,7 +65,21 @@ String resolveUri(String base, String userString) {
   _logResolution("# Resolving: $userString from $base");
   var resolved = baseUri.resolve(userString);
   _logResolution("# Resolved to: $resolved");
-  return resolved.toString(); 
+  return resolved.toString();
+}
+
+String resolveExtensionUri(String base, String userString) {
+  var uri = new Uri.fromString(userString);
+  if ("dart-ext" != uri.scheme) {
+    throw "Not a Dart extension uri: $uri";
+  }
+  var schemelessUri = new Uri(path: uri.path);
+  var baseUri = new Uri.fromString(base);
+  _logResolution("# Resolving: $userString from $base");
+  var resolved = baseUri.resolveUri(schemelessUri);
+  resolved = new Uri(scheme: 'dart-ext', path: resolved.path);
+  _logResolution("# Resolved to: $resolved");
+  return resolved.toString();
 }
 
 String filePathFromUri(String userUri) {

@@ -162,7 +162,7 @@ bool File::IsAbsolutePath(const char* pathname) {
   if (pathname == NULL) return false;
   return (strlen(pathname) > 2) &&
       (pathname[1] == ':') &&
-      (pathname[2] == '\\');
+      (pathname[2] == '\\' || pathname[2] == '/');
 }
 
 

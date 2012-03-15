@@ -251,7 +251,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (tag == kCanonicalizeUrl) {
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
-    if (is_dart_scheme_url || is_dart_extension_url) {
+    if (is_dart_scheme_url) {
       return url;
     }
     // Resolve the url within the context of the library's URL.
@@ -263,9 +263,16 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle dart_args[2];
     dart_args[0] = library_url;
     dart_args[1] = url;
-    return Dart_InvokeStatic(builtin_lib,
-                             Dart_NewString(""), Dart_NewString("resolveUri"),
-                             2, dart_args);
+    if (is_dart_extension_url) {
+      return Dart_InvokeStatic(builtin_lib,
+                               Dart_NewString(""),
+                               Dart_NewString("resolveExtensionUri"),
+                               2, dart_args);
+    } else {
+      return Dart_InvokeStatic(builtin_lib,
+                               Dart_NewString(""), Dart_NewString("resolveUri"),
+                               2, dart_args);
+    }
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);

@@ -5,11 +5,13 @@
 #include "bin/extensions.h"
 #include <dlfcn.h>
 
-void* Extensions::LoadExtensionLibrary(const char* library_name) {
-  const char* strings[4] = { "./lib", library_name, ".so", NULL };
-  char* library_path = Concatenate(strings);
-  void* lib_handle = dlopen(library_path, RTLD_LAZY);
-  free(library_path);
+void* Extensions::LoadExtensionLibrary(const char* library_path,
+                                       const char* extension_name) {
+  const char* strings[5] = { library_path, "/lib",
+                             extension_name, ".so", NULL };
+  char* library_file = Concatenate(strings);
+  void* lib_handle = dlopen(library_file, RTLD_LAZY);
+  free(library_file);
   return lib_handle;
 }
 

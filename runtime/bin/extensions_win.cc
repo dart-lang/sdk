@@ -4,11 +4,12 @@
 
 #include "bin/extensions.h"
 
-void* Extensions::LoadExtensionLibrary(const char* library_name) {
-  const char* strings[3] = { library_name, ".dll", NULL };
-  char* library_path = Concatenate(strings);
-  void* lib_handle = LoadLibrary(library_path);
-  free(library_path);
+void* Extensions::LoadExtensionLibrary(const char* library_path,
+                                       const char* extension_name) {
+  const char* strings[5] = { library_path, "/", extension_name, ".dll", NULL };
+  char* library_file = Concatenate(strings);
+  void* lib_handle = LoadLibrary(library_file);
+  free(library_file);
   return lib_handle;
 }
 

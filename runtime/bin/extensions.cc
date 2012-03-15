@@ -10,27 +10,42 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "bin/dartutils.h"
+#include "bin/file.h"
 
 Dart_Handle Extensions::LoadExtension(const char* extension_url,
                                       Dart_Handle parent_library) {
   ASSERT(DartUtils::IsDartExtensionSchemeURL(extension_url));
-  const char* library_name =
+  // Make a mutable copy of the extension url, without the "dart:" scheme.
+  const char* path_component =
       extension_url + strlen(DartUtils::kDartExtensionScheme);
-  if (strchr(library_name, '/') != NULL ||
-      strchr(library_name, '\\') != NULL) {
-    return Dart_Error("path components not allowed in extension library name");
+#ifdef TARGET_OS_WINDOWS
+  // Remove initial '/' from a uri formatted absolute path "/C:/path/to/dll"
+  ASSERT(path_component[0] == '/');
+  path_component++;
+#endif
+  char* library_path = strdup(path_component);
+  if (!library_path || !File::IsAbsolutePath(library_path)) {
+    free(library_path);
+    return Dart_Error("unexpected error in library path");
   }
-  void* library_handle = LoadExtensionLibrary(library_name);
+  // Extract the path and the extension name from the url.
+  char* last_path_separator = strrchr(library_path, '/');
+  char* extension_name = last_path_separator + 1;
+  *last_path_separator = '\0';  // Terminate library_path at last separator.
+
+  void* library_handle = LoadExtensionLibrary(library_path, extension_name);
   if (!library_handle) {
+    free(library_path);
     return Dart_Error("cannot find extension library");
   }
 
-  const char* strings[3] = { library_name, "_Init", NULL };
+  const char* strings[3] = { extension_name, "_Init", NULL };
   char* init_function_name = Concatenate(strings);
   typedef Dart_Handle (*InitFunctionType)(Dart_Handle import_map);
   InitFunctionType fn = reinterpret_cast<InitFunctionType>(
       ResolveSymbol(library_handle, init_function_name));
   free(init_function_name);
+  free(library_path);
 
   if (fn == NULL) {
     return Dart_Error("cannot find initialization function in extension");
