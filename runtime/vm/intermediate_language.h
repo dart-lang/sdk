@@ -43,7 +43,9 @@ class LocalVariable;
 // | Throw <Value>
 // | ReThrow <Value> <Value>
 // | NativeLoadField <Value> <intptr_t>
-// | ExtractTypeArgumentsComp <ConstructorCallNode> <Value>
+// | ExtractFactoryTypeArgumentsComp <ConstructorCallNode> <Value>
+// | ExtractConstructorTypeArgumentsComp <ConstructorCallNode> <Value>
+// | ExtractConstructorInstantiatorComp <ConstructorCallNode> <Value> <Value>
 //
 // <Value> ::=
 //   Temp <int>
@@ -83,7 +85,9 @@ class LocalVariable;
   M(Throw, ThrowComp)                                                          \
   M(ReThrow, ReThrowComp)                                                      \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
-  M(ExtractTypeArguments, ExtractTypeArgumentsComp)                            \
+  M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
+  M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
+  M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -705,7 +709,7 @@ class NativeLoadFieldComp : public Computation {
     ASSERT(value != NULL);
   }
 
-  DECLARE_COMPUTATION(NativeLoadFieldComp)
+  DECLARE_COMPUTATION(NativeLoadField)
 
   Value* value() const { return value_; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -718,14 +722,41 @@ class NativeLoadFieldComp : public Computation {
 };
 
 
-class ExtractTypeArgumentsComp : public Computation {
+class ExtractFactoryTypeArgumentsComp : public Computation {
  public:
-  ExtractTypeArgumentsComp(ConstructorCallNode* ast_node, Value* instantiator)
+  ExtractFactoryTypeArgumentsComp(ConstructorCallNode* ast_node,
+                                  Value* instantiator)
       : ast_node_(*ast_node), instantiator_(instantiator) {
     ASSERT(instantiator_ != NULL);
   }
 
-  DECLARE_COMPUTATION(ExtractTypeArgumentsComp)
+  DECLARE_COMPUTATION(ExtractFactoryTypeArguments)
+
+  Value* instantiator() const { return instantiator_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& factory() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractFactoryTypeArgumentsComp);
+};
+
+
+class ExtractConstructorTypeArgumentsComp : public Computation {
+ public:
+  ExtractConstructorTypeArgumentsComp(ConstructorCallNode* ast_node,
+                                      Value* instantiator)
+      : ast_node_(*ast_node), instantiator_(instantiator) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractConstructorTypeArguments)
 
   Value* instantiator() const { return instantiator_; }
   const AbstractTypeArguments& type_arguments() const {
@@ -739,7 +770,38 @@ class ExtractTypeArgumentsComp : public Computation {
   const ConstructorCallNode& ast_node_;
   Value* instantiator_;
 
-  DISALLOW_COPY_AND_ASSIGN(ExtractTypeArgumentsComp);
+  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsComp);
+};
+
+
+class ExtractConstructorInstantiatorComp : public Computation {
+ public:
+  ExtractConstructorInstantiatorComp(ConstructorCallNode* ast_node,
+                                     Value* instantiator,
+                                     Value* discard_value)
+      : ast_node_(*ast_node),
+        instantiator_(instantiator),
+        discard_value_(discard_value) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractConstructorInstantiator)
+
+  Value* instantiator() const { return instantiator_; }
+  Value* discard_value() const { return discard_value_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+  Value* discard_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorComp);
 };
 
 

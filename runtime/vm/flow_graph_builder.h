@@ -98,13 +98,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // receiver and loads the value.  The receiver will be named with
   // start_index, the temporary index of the value is returned (always
   // start_index+1).
-  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, int start_index);
+  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, intptr_t start_index);
 
   // Build the load part of an indexed increment.  Translates the receiver
   // and index and loads the value.  The receiver will be named with
   // start_index, the index with start_index+1, and the temporary index of
   // the value is returned (always start_index+2).
-  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, int start_index);
+  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, intptr_t start_index);
 
   // Build the increment part of an increment operation (add or subtract 1).
   // The original value is expected to be named with start_index-1, and the
@@ -112,20 +112,25 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildIncrOpIncrement(Token::Kind kind,
                             intptr_t node_id,
                             intptr_t token_index,
-                            int start_index);
+                            intptr_t start_index);
 
-  // Creates type arguments (one or two values in 'args') used in preparation
-  // of a constructor or factory call.
-  // For factory call instantiates and returns type argument vector in 'args'.
-  // For constructor call returns type arguments and type arguments of the
-  // instantiator.
+  // Creates an instantiated type argument vector used in preparation of a
+  // factory call.
   // May be called only if allocating an object of a parameterized class.
-  void BuildTypeArguments(ConstructorCallNode* node,
-                          ZoneGrowableArray<Value*>* args);
+  Value* BuildFactoryTypeArguments(ConstructorCallNode* node,
+                                   intptr_t start_index);
+
+  // Creates a possibly uninstantiated type argument vector and the type
+  // argument vector of the instantiator (two values in 'args') used in
+  // preparation of a constructor call.
+  // May be called only if allocating an object of a parameterized class.
+  void BuildConstructorTypeArguments(ConstructorCallNode* node,
+                                     intptr_t start_index,
+                                     ZoneGrowableArray<Value*>* args);
 
   // Returns the value of the type arguments of the instantiator.
-  Value* GenerateInstantiatorTypeArguments(intptr_t token_index,
-                                           intptr_t type_arguments);
+  Value* BuildInstantiatorTypeArguments(intptr_t token_index,
+                                        intptr_t start_index);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
