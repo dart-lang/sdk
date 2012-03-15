@@ -37,6 +37,7 @@
           },
           'VCLinkerTool': {
             'LinkIncremental': '1',
+            'GenerateDebugInformation': 'true',
             'OptimizeReferences': '2',
             'EnableCOMDATFolding': '2',
             'StackReserveSize': '2097152',
