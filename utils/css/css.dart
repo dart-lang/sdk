@@ -4,47 +4,53 @@
 
 #library('css');
 
-#import('../../frog/lang.dart', prefix:'lang');
-#import('../../frog/file_system.dart');
-#import('../../frog/file_system_memory.dart');
+#import("../lib/file_system.dart");
+#import('../lib/file_system_memory.dart');
+
+#source('cssoptions.dart');
+#source('source.dart');
 #source('tokenkind.dart');
+#source('token.dart');
+#source('tokenizer_base.dart');
 #source('tokenizer.dart');
+#source('treebase.dart');
 #source('tree.dart');
 #source('cssselectorexception.dart');
 #source('cssworld.dart');
 #source('parser.dart');
 #source('validate.dart');
 #source('generate.dart');
+#source('world.dart');
 
 
 void initCssWorld([bool commandLine = true]) {
-  var fs = new MemoryFileSystem();
-  lang.parseOptions('', [], fs);
-  lang.initializeWorld(fs);
-  lang.world.process();
-  lang.world.resolveAll();
+  FileSystem fs = new MemoryFileSystem();
+  parseOptions([], fs);
+  initializeWorld(fs);
 
   // TODO(terry): Should be set by arguments.  When run as a tool these aren't
   // set when run internaly set these so we can compile CSS and catch any
   // problems programmatically.
-  lang.options.throwOnErrors = true;
-  lang.options.throwOnFatal = true;
-  lang.options.useColors = commandLine ? true : false;
+  options.throwOnErrors = true;
+  options.throwOnFatal = true;
+  options.useColors = commandLine ? true : false;
+  options.warningsAsErrors = false;
+  options.showWarnings = true;
 }
 
 // TODO(terry): Add obfuscation mapping file.
-void cssParseAndValidate(String cssExpression, CssWorld world) {
-  Parser parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+void cssParseAndValidate(String cssExpression, CssWorld cssworld) {
+  Parser parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
       cssExpression));
   var tree = parser.parseTemplate();
   if (tree != null) {
-    Validate.template(tree.selectors, world);
+    Validate.template(tree.selectors, cssworld);
   }
 }
 
 // Returns pretty printed tree of the expression.
-String cssParseAndValidateDebug(String cssExpression, CssWorld world) {
-  Parser parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+String cssParseAndValidateDebug(String cssExpression, CssWorld cssworld) {
+  Parser parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
       cssExpression));
   String output = "";
   String prettyTree = "";
@@ -52,7 +58,7 @@ String cssParseAndValidateDebug(String cssExpression, CssWorld world) {
     var tree = parser.parseTemplate();
     if (tree != null) {
       prettyTree = tree.toDebugString();
-      Validate.template(tree.selectors, world);
+      Validate.template(tree.selectors, cssworld);
       output = prettyTree;
     }
   } catch (var e) {

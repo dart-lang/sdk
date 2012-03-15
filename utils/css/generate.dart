@@ -23,7 +23,7 @@ class Generate {
     return classes;
   }
 
-  static dartClass(FileSystem files, String outPath, Stylesheet stylesheet,
+  static dartClass(var files, String outPath, Stylesheet stylesheet,
       String filename) {
 
     List<String> knownClasses = [];

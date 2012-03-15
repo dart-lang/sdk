@@ -8,7 +8,7 @@
 /** Can be thrown on any Css runtime problem includes source location. */
 class CssSelectorException implements Exception {
   final String _message;
-  final lang.SourceSpan _location;
+  final SourceSpan _location;
 
   CssSelectorException(this._message, [this._location = null]);
 

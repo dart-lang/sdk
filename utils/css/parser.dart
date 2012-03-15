@@ -10,11 +10,15 @@ class Parser {
   var _fs;                        // If non-null filesystem to read files.
   String _basePath;               // Base path of CSS file.
 
-  final lang.SourceFile source;
+  final SourceFile source;
 
-  lang.Token _previousToken;
-  lang.Token _peekToken;
-  
+  Token _previousToken;
+  Token _peekToken;
+
+// Communicating errors back to template parser.
+// TODO(terry): Need a better mechanism (e.g., common World).
+  var _erroMsgRedirector;
+
   Parser(this.source, [int start = 0, this._fs = null, this._basePath = null]) {
     tokenizer = new Tokenizer(source, true, start);
     _peekToken = tokenizer.next();
@@ -22,17 +26,38 @@ class Parser {
   }
 
   // Main entry point for parsing an entire CSS file.
-  Stylesheet parse() {
-    List<lang.Node> productions = [];
+  // If nestedCSS is true when we're back at processing directives from top and
+  // we encounter a } then stop we're inside of a template e.g.,
+  //
+  //       template ... {
+  //          css {
+  //            .item {
+  //               left: 10px;
+  //            }
+  //          }
+  //          <div>...</div>
+  //       }
+  // 
+  Stylesheet parse([bool nestedCSS = false, var erroMsgRedirector = null]) {
+    // TODO(terry): Hack for migrating CSS errors back to template errors.
+    _erroMsgRedirector = erroMsgRedirector;
+
+    List<ASTNode> productions = [];
 
     int start = _peekToken.start;
-    while (!_maybeEat(TokenKind.END_OF_FILE)) {
+    while (!_maybeEat(TokenKind.END_OF_FILE) &&
+           (!nestedCSS && !_peekKind(TokenKind.RBRACE))) {
       // TODO(terry): Need to handle charset, import, media and page.
       var directive = processDirective();
       if (directive != null) {
         productions.add(directive);
       } else {
-        productions.add(processRuleSet());
+        RuleSet ruleset = processRuleSet();
+        if (ruleset != null) {
+          productions.add(ruleset);
+        } else {
+          break;
+        }
       }
     }
 
@@ -64,7 +89,7 @@ class Parser {
     return _peekToken.kind;
   }
 
-  lang.Token _next() {
+  Token _next() {
     _previousToken = _peekToken;
     _peekToken = tokenizer.next();
     return _previousToken;
@@ -110,24 +135,32 @@ class Parser {
     _error(message, tok.span);
   }
 
-  void _error(String message, [lang.SourceSpan location=null]) {
+  void _error(String message, [SourceSpan location=null]) {
     if (location === null) {
       location = _peekToken.span;
     }
 
-    lang.world.fatal(message, location);    // syntax errors are fatal for now
+    if (_erroMsgRedirector == null) {
+       world.fatal(message, location);    // syntax errors are fatal for now
+    } else {
+      String text = "";
+      if (location != null) {
+        text = location.toMessageString("");
+      }
+      _erroMsgRedirector.displayError("CSS error: \r${text}\r${message}");
+    }
   }
 
-  void _warning(String message, [lang.SourceSpan location=null]) {
+  void _warning(String message, [SourceSpan location=null]) {
     if (location === null) {
       location = _peekToken.span;
     }
 
-    lang.world.warning(message, location);
+    world.warning(message, location);
   }
 
-  lang.SourceSpan _makeSpan(int start) {
-    return new lang.SourceSpan(source, start, _previousToken.end);
+  SourceSpan _makeSpan(int start) {
+    return new SourceSpan(source, start, _previousToken.end);
   }
 
   ///////////////////////////////////////////////////////////////////
@@ -313,7 +346,7 @@ class Parser {
             // Yes, let's parse this file as well.
             String fullFN = '${basePath}${filename}';
             String contents = _fs.readAll(fullFN);
-            Parser parser = new Parser(new lang.SourceFile(fullFN, contents), 0,
+            Parser parser = new Parser(new SourceFile(fullFN, contents), 0,
                 _fs, basePath);
             Stylesheet stylesheet = parser.parse();
             return new IncludeDirective(filename, stylesheet, _makeSpan(start));
@@ -340,9 +373,9 @@ class Parser {
 
         _eat(TokenKind.LBRACE);
 
-        List<lang.Node> productions = [];
+        List<ASTNode> productions = [];
 
-        int start = _peekToken.start;
+        start = _peekToken.start;
         while (!_maybeEat(TokenKind.END_OF_FILE)) {
           RuleSet ruleset = processRuleSet();
           if (ruleset == null) {
@@ -360,7 +393,7 @@ class Parser {
     }
   }
 
-  processRuleSet() {
+  RuleSet processRuleSet() {
     int start = _peekToken.start;
 
     SelectorGroup selGroup = processSelectorGroup();
@@ -698,7 +731,7 @@ class Parser {
   //
   processTerm() {
     int start = _peekToken.start;
-    lang.Token t;             // token for term's value
+    Token t;             // token for term's value
     var value;                // value of term (numeric values)
 
     var unary = "";
@@ -778,24 +811,27 @@ class Parser {
         }
 
         // What kind of identifier is it?
-        int value;
         try {
           // Named color?
-          value = TokenKind.matchColorName(nameValue.name);
+          int colorValue = TokenKind.matchColorName(nameValue.name);
 
           // Yes, process the color as an RGB value.
-          String rgbColor = TokenKind.decimalToHex(value);
-          int value;
+          String rgbColor = TokenKind.decimalToHex(colorValue);
           try {
-            value = parseHex(rgbColor);
+            colorValue = parseHex(rgbColor);
           } catch (HexNumberException hne) {
             _error('Bad hex number', _makeSpan(start));
           }
-          return new HexColorTerm(value, rgbColor, _makeSpan(start));
+          return new HexColorTerm(colorValue, rgbColor, _makeSpan(start));
         } catch (final error) {
           if (error is NoColorMatchException) {
             // TODO(terry): Other named things to match with validator?
-            _warning('Unknown property value ${error.name}', _makeSpan(start));
+
+            // TODO(terry): Disable call to _warning need one World class for
+            //              both CSS parser and other parser (e.g., template)
+            //              so all warnings, errors, options, etc. are driven
+            //              from the one World.
+//          _warning('Unknown property value ${error.name}', _makeSpan(start));
             return new LiteralTerm(nameValue, nameValue.name, _makeSpan(start));
           }
         }

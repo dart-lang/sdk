@@ -8,18 +8,18 @@
 /////////////////////////////////////////////////////////////////////////
 
 
-class Identifier extends lang.Node {
+class Identifier extends ASTNode {
   String name;
 
-  Identifier(this.name, lang.SourceSpan span): super(span);
+  Identifier(this.name, SourceSpan span): super(span);
 
   visit(TreeVisitor visitor) => visitor.visitIdentifier(this);
 
   String toString() => name;
 }
 
-class Wildcard extends lang.Node {
-  Wildcard(lang.SourceSpan span): super(span);
+class Wildcard extends ASTNode {
+  Wildcard(SourceSpan span): super(span);
 
   visit(TreeVisitor visitor) => visitor.visitWildcard(this);
 
@@ -27,10 +27,10 @@ class Wildcard extends lang.Node {
 }
 
 // /*  ....   */
-class CssComment extends lang.Node {
+class CssComment extends ASTNode {
   String comment;
 
-  CssComment(this.comment, lang.SourceSpan span): super(span);
+  CssComment(this.comment, SourceSpan span): super(span);
 
   visit(TreeVisitor visitor) => visitor.visitCssComment(this);
 
@@ -39,17 +39,17 @@ class CssComment extends lang.Node {
 
 // CDO/CDC (Comment Definition Open <!-- and Comment Definition Close -->).
 class CommentDefinition extends CssComment {
-  CommentDefinition(String comment, lang.SourceSpan span): super(comment, span);
+  CommentDefinition(String comment, SourceSpan span): super(comment, span);
 
   visit(TreeVisitor visitor) => visitor.visitCommentDefinition(this);
 
   String toString() => '<!-- ${comment} -->';
 }
 
-class SelectorGroup extends lang.Node {
+class SelectorGroup extends ASTNode {
   List<Selector> _selectors;
 
-  SelectorGroup(this._selectors, lang.SourceSpan span): super(span);
+  SelectorGroup(this._selectors, SourceSpan span): super(span);
 
   List<Selector> get selectors() => _selectors;
 
@@ -69,17 +69,17 @@ class SelectorGroup extends lang.Node {
 
   /** A multiline string showing the node and its children. */
   String toDebugString() {
-    var to = new lang.TreeOutput();
+    var to = new TreeOutput();
     var tp = new TreePrinter(to);
     this.visit(tp);
     return to.buf.toString();
   }
 }
 
-class Selector extends lang.Node {
+class Selector extends ASTNode {
   List<SimpleSelectorSequence> _simpleSelectorSequences;
 
-  Selector(this._simpleSelectorSequences, lang.SourceSpan span) : super(span);
+  Selector(this._simpleSelectorSequences, SourceSpan span) : super(span);
 
   List<SimpleSelectorSequence> get simpleSelectorSequences() =>
       _simpleSelectorSequences;
@@ -93,8 +93,8 @@ class Selector extends lang.Node {
 
   String toString() {
     StringBuffer buff = new StringBuffer();
-    for (_simpleSelectorSequence in _simpleSelectorSequences) {
-      buff.add(_simpleSelectorSequence.toString());
+    for (final simpleSelectorSequence in _simpleSelectorSequences) {
+      buff.add(simpleSelectorSequence.toString());
     }
     return buff.toString();
   }
@@ -102,11 +102,11 @@ class Selector extends lang.Node {
   visit(TreeVisitor visitor) => visitor.visitSelector(this);
 }
 
-class SimpleSelectorSequence extends lang.Node {
+class SimpleSelectorSequence extends ASTNode {
   int _combinator;              // +, >, ~, NONE
   SimpleSelector _selector;
 
-  SimpleSelectorSequence(this._selector, lang.SourceSpan span,
+  SimpleSelectorSequence(this._selector, SourceSpan span,
       [this._combinator = TokenKind.COMBINATOR_NONE]) : super(span);
 
   get simpleSelector() => _selector;
@@ -132,10 +132,10 @@ class SimpleSelectorSequence extends lang.Node {
 /* All other selectors (element, #id, .class, attribute, pseudo, negation,
  * namespace, *) are derived from this selector.
  */
-class SimpleSelector extends lang.Node {
+class SimpleSelector extends ASTNode {
   var _name;
 
-  SimpleSelector(this._name, lang.SourceSpan span) : super(span);
+  SimpleSelector(this._name, SourceSpan span) : super(span);
 
   // Name can be an Identifier or WildCard we'll return either the name or '*'.
   String get name() => isWildcard() ? '*' : _name.name;
@@ -149,7 +149,7 @@ class SimpleSelector extends lang.Node {
 
 // element name
 class ElementSelector extends SimpleSelector {
-  ElementSelector(var name, lang.SourceSpan span) : super(name, span);
+  ElementSelector(var name, SourceSpan span) : super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitElementSelector(this);
 
@@ -157,7 +157,7 @@ class ElementSelector extends SimpleSelector {
 
   /** A multiline string showing the node and its children. */
   String toDebugString() {
-    var to = new lang.TreeOutput();
+    var to = new TreeOutput();
     var tp = new TreePrinter(to);
     this.visit(tp);
     return to.buf.toString();
@@ -168,7 +168,7 @@ class ElementSelector extends SimpleSelector {
 class NamespaceSelector extends SimpleSelector {
   var _namespace;           // null, Wildcard or Identifier
 
-  NamespaceSelector(this._namespace, var name, lang.SourceSpan span) :
+  NamespaceSelector(this._namespace, var name, SourceSpan span) :
       super(name, span);
 
   String get namespace() => _namespace is Wildcard ? '*' : _namespace.name;
@@ -188,7 +188,7 @@ class AttributeSelector extends SimpleSelector {
   var _value;
 
   AttributeSelector(Identifier name, this._op, this._value,
-      lang.SourceSpan span) : super(name, span);
+      SourceSpan span) : super(name, span);
 
   String matchOperator() {
     switch (_op) {
@@ -240,7 +240,7 @@ class AttributeSelector extends SimpleSelector {
 
 // #id
 class IdSelector extends SimpleSelector {
-  IdSelector(Identifier name, lang.SourceSpan span) : super(name, span);
+  IdSelector(Identifier name, SourceSpan span) : super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitIdSelector(this);
 
@@ -249,7 +249,7 @@ class IdSelector extends SimpleSelector {
 
 // .class
 class ClassSelector extends SimpleSelector {
-  ClassSelector(Identifier name, lang.SourceSpan span) : super(name, span);
+  ClassSelector(Identifier name, SourceSpan span) : super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitClassSelector(this);
 
@@ -258,7 +258,7 @@ class ClassSelector extends SimpleSelector {
 
 // :pseudoClass
 class PseudoClassSelector extends SimpleSelector {
-  PseudoClassSelector(Identifier name, lang.SourceSpan span) :
+  PseudoClassSelector(Identifier name, SourceSpan span) :
       super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitPseudoClassSelector(this);
@@ -268,7 +268,7 @@ class PseudoClassSelector extends SimpleSelector {
 
 // ::pseudoElement
 class PseudoElementSelector extends SimpleSelector {
-  PseudoElementSelector(Identifier name, lang.SourceSpan span) :
+  PseudoElementSelector(Identifier name, SourceSpan span) :
       super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitPseudoElementSelector(this);
@@ -279,16 +279,16 @@ class PseudoElementSelector extends SimpleSelector {
 // TODO(terry): Implement
 // NOT
 class NotSelector extends SimpleSelector {
-  NotSelector(String name, lang.SourceSpan span) : super(name, span);
+  NotSelector(String name, SourceSpan span) : super(name, span);
 
   visit(TreeVisitor visitor) => visitor.visitNotSelector(this);
 }
 
-class Stylesheet extends lang.Node {
+class Stylesheet extends ASTNode {
   // Contains charset, ruleset, directives (media, page, etc.)
-  List<lang.Node> _topLevels;
+  List<ASTNode> _topLevels;
 
-  Stylesheet(this._topLevels, lang.SourceSpan span) : super(span) {
+  Stylesheet(this._topLevels, SourceSpan span) : super(span) {
     for (final node in _topLevels) {
       assert(node is TopLevelProduction || node is Directive);
     }
@@ -296,7 +296,7 @@ class Stylesheet extends lang.Node {
 
   visit(TreeVisitor visitor) => visitor.visitStylesheet(this);
 
-  List<lang.Node> get topLevels() => _topLevels;
+  List<ASTNode> get topLevels() => _topLevels;
   
   String toString() {
     StringBuffer buff = new StringBuffer();
@@ -308,15 +308,15 @@ class Stylesheet extends lang.Node {
 
   /** A multiline string showing the node and its children. */
   String toDebugString() {
-    var to = new lang.TreeOutput();
+    var to = new TreeOutput();
     var tp = new TreePrinter(to);
     this.visit(tp);
     return to.buf.toString();
   }
 }
 
-class TopLevelProduction extends lang.Node {
-  TopLevelProduction(lang.SourceSpan span) : super(span);
+class TopLevelProduction extends ASTNode {
+  TopLevelProduction(SourceSpan span) : super(span);
 
   visit(TreeVisitor visitor) => visitor.visitTopLevelProduction(this);
 
@@ -327,7 +327,7 @@ class RuleSet extends TopLevelProduction {
   SelectorGroup _selectorGroup;
   DeclarationGroup _declarationGroup;
 
-  RuleSet(this._selectorGroup, this._declarationGroup, lang.SourceSpan span) :
+  RuleSet(this._selectorGroup, this._declarationGroup, SourceSpan span) :
       super(span);
 
   SelectorGroup get selectorGroup() => _selectorGroup;
@@ -340,8 +340,8 @@ class RuleSet extends TopLevelProduction {
         "${_declarationGroup.toString()}}\n";
 }
 
-class Directive extends lang.Node {
-  Directive(lang.SourceSpan span) : super(span);
+class Directive extends ASTNode {
+  Directive(SourceSpan span) : super(span);
 
   String toString() => "Directive";
 
@@ -355,7 +355,7 @@ class ImportDirective extends Directive {
   String _import;
   List<String> _media;
 
-  ImportDirective(this._import, this._media, lang.SourceSpan span) :
+  ImportDirective(this._import, this._media, SourceSpan span) :
       super(span);
 
   visit(TreeVisitor visitor) => visitor.visitImportDirective(this);
@@ -379,7 +379,7 @@ class MediaDirective extends Directive {
   List<String> _media;
   RuleSet _ruleset;
 
-  MediaDirective(this._media, this._ruleset, lang.SourceSpan span) :
+  MediaDirective(this._media, this._ruleset, SourceSpan span) :
       super(span);
 
   visit(TreeVisitor visitor) => visitor.visitMediaDirective(this);
@@ -404,7 +404,7 @@ class PageDirective extends Directive {
   String _pseudoPage;
   DeclarationGroup _decls;
 
-  PageDirective(this._pseudoPage, this._decls, lang.SourceSpan span) :
+  PageDirective(this._pseudoPage, this._decls, SourceSpan span) :
     super(span);
 
   visit(TreeVisitor visitor) => visitor.visitPageDirective(this);
@@ -429,7 +429,7 @@ class KeyFrameDirective extends Directive {
   var _name;
   List<KeyFrameBlock> _blocks;
 
-  KeyFrameDirective(this._name, lang.SourceSpan span) :
+  KeyFrameDirective(this._name, SourceSpan span) :
       _blocks = [], super(span);
 
   add(KeyFrameBlock block) {
@@ -451,11 +451,11 @@ class KeyFrameDirective extends Directive {
   }
 }
 
-class KeyFrameBlock extends lang.Expression {
+class KeyFrameBlock extends Expression {
   Expressions _blockSelectors;
   DeclarationGroup _declarations;
 
-  KeyFrameBlock(this._blockSelectors, this._declarations, lang.SourceSpan span):
+  KeyFrameBlock(this._blockSelectors, this._declarations, SourceSpan span):
       super(span);
 
   visit(TreeVisitor visitor) => visitor.visitKeyFrameBlock(this);
@@ -473,7 +473,7 @@ class KeyFrameBlock extends lang.Expression {
 class FontFaceDirective extends Directive {
   List<Declaration> _declarations;
 
-  FontFaceDirective(this._declarations, lang.SourceSpan span) : super(span);
+  FontFaceDirective(this._declarations, SourceSpan span) : super(span);
 
   visit(TreeVisitor visitor) => visitor.visitFontFaceDirective(this);
 
@@ -486,7 +486,7 @@ class IncludeDirective extends Directive {
   String _include;
   Stylesheet _stylesheet;
 
-  IncludeDirective(this._include, this._stylesheet, lang.SourceSpan span) :
+  IncludeDirective(this._include, this._stylesheet, SourceSpan span) :
       super(span);
 
   visit(TreeVisitor visitor) => visitor.visitIncludeDirective(this);
@@ -509,7 +509,7 @@ class StyletDirective extends Directive {
   String _dartClassName;
   List<RuleSet> _rulesets;
 
-  StyletDirective(this._dartClassName, this._rulesets, lang.SourceSpan span) :
+  StyletDirective(this._dartClassName, this._rulesets, SourceSpan span) :
       super(span);
 
   bool get isBuiltIn() => false;
@@ -524,16 +524,16 @@ class StyletDirective extends Directive {
   String toString() => '/* @stylet export as ${_dartClassName} */\n';
 }
 
-class Declaration extends lang.Node {
+class Declaration extends ASTNode {
   Identifier _property;
-  lang.Expression _expression;
+  Expression _expression;
   bool _important;
 
-  Declaration(this._property, this._expression, lang.SourceSpan span) :
+  Declaration(this._property, this._expression, SourceSpan span) :
       _important = false, super(span);
 
   String get property() => _property.name;
-  lang.Expression get expression() => _expression;
+  Expression get expression() => _expression;
 
   bool get important() => _important;
   set important(bool value) => _important = value;
@@ -545,10 +545,10 @@ class Declaration extends lang.Node {
       "${_property.name}: ${_expression.toString()}${importantAsString()}";
 }
 
-class DeclarationGroup extends lang.Node {
+class DeclarationGroup extends ASTNode {
   List<Declaration> _declarations;
 
-  DeclarationGroup(this._declarations, lang.SourceSpan span) : super(span);
+  DeclarationGroup(this._declarations, SourceSpan span) : super(span);
 
   List<Declaration> get declarations() => _declarations;
 
@@ -564,27 +564,27 @@ class DeclarationGroup extends lang.Node {
   }
 }
 
-class OperatorSlash extends lang.Expression {
-  OperatorSlash(lang.SourceSpan span) : super(span);
+class OperatorSlash extends Expression {
+  OperatorSlash(SourceSpan span) : super(span);
 
   visit(TreeVisitor visitor) => visitor.visitOperatorSlash(this);
 
   String toString() => ' /';
 }
 
-class OperatorComma extends lang.Expression {
-  OperatorComma(lang.SourceSpan span) : super(span);
+class OperatorComma extends Expression {
+  OperatorComma(SourceSpan span) : super(span);
 
   visit(TreeVisitor visitor) => visitor.visitOperatorComma(this);
 
   String toString() => ',';
 }
 
-class LiteralTerm extends lang.Expression {
+class LiteralTerm extends Expression {
   var _value;
   String _text;
 
-  LiteralTerm(this._value, this._text, lang.SourceSpan span) : super(span);
+  LiteralTerm(this._value, this._text, SourceSpan span) : super(span);
 
   get value() => _value;
   String get text() => _text;
@@ -595,7 +595,7 @@ class LiteralTerm extends lang.Expression {
 }
 
 class NumberTerm extends LiteralTerm {
-  NumberTerm(var value, String t, lang.SourceSpan span) : super(value, t, span);
+  NumberTerm(var value, String t, SourceSpan span) : super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitNumberTerm(this);
 }
@@ -603,7 +603,7 @@ class NumberTerm extends LiteralTerm {
 class UnitTerm extends LiteralTerm {
   int _unit;
 
-  UnitTerm(var value, String t, lang.SourceSpan span, this._unit) :
+  UnitTerm(var value, String t, SourceSpan span, this._unit) :
       super(value, t, span);
 
   int get unit() => _unit;
@@ -615,7 +615,7 @@ class UnitTerm extends LiteralTerm {
 }
 
 class LengthTerm extends UnitTerm {
-  LengthTerm(var value, String t, lang.SourceSpan span,
+  LengthTerm(var value, String t, SourceSpan span,
       [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this._unit == TokenKind.UNIT_LENGTH_PX ||
         this._unit == TokenKind.UNIT_LENGTH_CM ||
@@ -629,7 +629,7 @@ class LengthTerm extends UnitTerm {
 }
 
 class PercentageTerm extends LiteralTerm {
-  PercentageTerm(var value, String t, lang.SourceSpan span) :
+  PercentageTerm(var value, String t, SourceSpan span) :
       super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitPercentageTerm(this);
@@ -639,7 +639,7 @@ class PercentageTerm extends LiteralTerm {
 }
 
 class EmTerm extends LiteralTerm {
-  EmTerm(var value, String t, lang.SourceSpan span) :
+  EmTerm(var value, String t, SourceSpan span) :
       super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitEmTerm(this);
@@ -648,7 +648,7 @@ class EmTerm extends LiteralTerm {
 }
 
 class ExTerm extends LiteralTerm {
-  ExTerm(var value, String t, lang.SourceSpan span) :
+  ExTerm(var value, String t, SourceSpan span) :
       super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitExTerm(this);
@@ -657,7 +657,7 @@ class ExTerm extends LiteralTerm {
 }
 
 class AngleTerm extends UnitTerm {
-  AngleTerm(var value, String t, lang.SourceSpan span,
+  AngleTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this._unit == TokenKind.UNIT_ANGLE_DEG ||
         this._unit == TokenKind.UNIT_ANGLE_RAD ||
@@ -668,7 +668,7 @@ class AngleTerm extends UnitTerm {
 }
 
 class TimeTerm extends UnitTerm {
-  TimeTerm(var value, String t, lang.SourceSpan span,
+  TimeTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this._unit == TokenKind.UNIT_ANGLE_DEG ||
         this._unit == TokenKind.UNIT_TIME_MS ||
@@ -679,7 +679,7 @@ class TimeTerm extends UnitTerm {
 }
 
 class FreqTerm extends UnitTerm {
-  FreqTerm(var value, String t, lang.SourceSpan span,
+  FreqTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(_unit == TokenKind.UNIT_FREQ_HZ || _unit == TokenKind.UNIT_FREQ_KHZ);
   }
@@ -688,7 +688,7 @@ class FreqTerm extends UnitTerm {
 }
 
 class FractionTerm extends LiteralTerm {
-  FractionTerm(var value, String t, lang.SourceSpan span) :
+  FractionTerm(var value, String t, SourceSpan span) :
     super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitFractionTerm(this);
@@ -697,7 +697,7 @@ class FractionTerm extends LiteralTerm {
 }
 
 class UriTerm extends LiteralTerm {
-  UriTerm(String value, lang.SourceSpan span) : super(value, value, span);
+  UriTerm(String value, SourceSpan span) : super(value, value, span);
 
   visit(TreeVisitor visitor) => visitor.visitUriTerm(this);
   
@@ -705,7 +705,7 @@ class UriTerm extends LiteralTerm {
 }
 
 class HexColorTerm extends LiteralTerm {
-  HexColorTerm(var value, String t, lang.SourceSpan span) :
+  HexColorTerm(var value, String t, SourceSpan span) :
       super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitHexColorTerm(this);
@@ -716,7 +716,7 @@ class HexColorTerm extends LiteralTerm {
 class FunctionTerm extends LiteralTerm {
   Expressions _params;
 
-  FunctionTerm(var value, String t, this._params, lang.SourceSpan span)
+  FunctionTerm(var value, String t, this._params, SourceSpan span)
       : super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitFunctionTerm(this);
@@ -733,10 +733,10 @@ class FunctionTerm extends LiteralTerm {
   }
 }
 
-class GroupTerm extends lang.Expression {
+class GroupTerm extends Expression {
   List<LiteralTerm> _terms;
 
-  GroupTerm(lang.SourceSpan span) : _terms =  [], super(span);
+  GroupTerm(SourceSpan span) : _terms =  [], super(span);
 
   add(LiteralTerm term) {
     _terms.add(term);
@@ -760,23 +760,23 @@ class GroupTerm extends lang.Expression {
 }
 
 class ItemTerm extends NumberTerm {
-  ItemTerm(var value, String t, lang.SourceSpan span) : super(value, t, span);
+  ItemTerm(var value, String t, SourceSpan span) : super(value, t, span);
 
   visit(TreeVisitor visitor) => visitor.visitItemTerm(this);
 
   String toString() => '[${text}]';
 }
 
-class Expressions extends lang.Expression {
-  List<lang.Expression> _expressions;
+class Expressions extends Expression {
+  List<Expression> _expressions;
 
-  Expressions(lang.SourceSpan span): super(span), _expressions = [];
+  Expressions(SourceSpan span): super(span), _expressions = [];
 
-  add(lang.Expression expression) {
+  add(Expression expression) {
     _expressions.add(expression);
   }
 
-  List<lang.Expression> get expressions() => _expressions;
+  List<Expression> get expressions() => _expressions;
 
   visit(TreeVisitor visitor) => visitor.visitExpressions(this);
 
@@ -797,21 +797,21 @@ class Expressions extends lang.Expression {
   }
 }
 
-class BinaryExpression extends lang.Expression {
-  lang.Token op;
-  lang.Expression x;
-  lang.Expression y;
+class BinaryExpression extends Expression {
+  Token op;
+  Expression x;
+  Expression y;
 
-  BinaryExpression(this.op, this.x, this.y, lang.SourceSpan span): super(span);
+  BinaryExpression(this.op, this.x, this.y, SourceSpan span): super(span);
 
   visit(TreeVisitor visitor) => visitor.visitBinaryExpression(this);
 }
 
-class UnaryExpression extends lang.Expression {
-  lang.Token op;
-  lang.Expression self;
+class UnaryExpression extends Expression {
+  Token op;
+  Expression self;
 
-  UnaryExpression(this.op, this.self, lang.SourceSpan span): super(span);
+  UnaryExpression(this.op, this.self, SourceSpan span): super(span);
 
   visit(TreeVisitor visitor) => visitor.visitUnaryExpression(this);
 }
@@ -874,7 +874,7 @@ interface TreeVisitor {
   void visitWildcard(Wildcard node);
 
   // TODO(terry): Defined for ../tree.dart.
-  void visitTypeReference(lang.TypeReference node);
+  void visitTypeReference(TypeReference node);
 }
 
 class TreePrinter implements TreeVisitor {
@@ -1273,7 +1273,7 @@ class TreePrinter implements TreeVisitor {
   }
 
   // TODO(terry): Defined for frog/tree.dart.
-  void visitTypeReference(lang.TypeReference node) {
+  void visitTypeReference(TypeReference node) {
     output.heading('Unimplemented');
   }
 }

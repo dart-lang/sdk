@@ -4,8 +4,7 @@
 
 #import('dart:html');
 #import('css.dart');
-#import('../../frog/lang.dart', prefix:'lang');
-#import('../../frog/file_system_memory.dart');
+#import('../lib/file_system_memory.dart');
 
 void runCss([bool debug = false, bool parseOnly = false]) {
   final Document doc = window.document;
@@ -39,8 +38,8 @@ void runCss([bool debug = false, bool parseOnly = false]) {
     }
   } else if (parseOnly) {
     try {
-      Parser parser = new Parser(new lang.SourceFile(
-          lang.SourceFile.IN_MEMORY_FILE, cssExpr));
+      Parser parser = new Parser(new SourceFile(
+          SourceFile.IN_MEMORY_FILE, cssExpr));
       Stylesheet stylesheet = parser.parse();
       StringBuffer stylesheetTree = new StringBuffer();
       String prettyStylesheet = stylesheet.toString();
@@ -64,18 +63,16 @@ void runCss([bool debug = false, bool parseOnly = false]) {
   final bgcolor = templateValid ? "white" : "red";
   final color = templateValid ? "black" : "white";
   final valid = templateValid ? "VALID" : "NOT VALID";
-  String resultStyle = 'resize: none; margin: 0; height: 100%; width: 100%; padding: 5px 7px;';
-  String validityStyle = '''
-    font-weight: bold; background-color: $bgcolor; color: $color; border: 1px solid black; border-bottom: 0px solid white;
-  ''';
+  String resultStyle = "resize:none; margin:0; height:100%; width:100%;"
+    "padding:5px 7px;";
+  String validityStyle = "font-weight:bold; background-color:$bgcolor;"
+    "color:$color; border:1px solid black; border-bottom:0px solid white;";
   validity.innerHTML = '''
     <div style="$validityStyle">
       Expression: $cssExpr is $valid
     </div>
   ''';
-  result.innerHTML = '''
-    <textarea style="$resultStyle">$dumpTree</textarea>
-  ''';
+  result.innerHTML = "<textarea style=\"$resultStyle\">$dumpTree</textarea>";
 }
 
 void main() {
@@ -128,13 +125,13 @@ void main() {
                       <tbody>
                         <tr>
                           <td>
-                            <button onclick="runCss(true, true)">Parse</button>
+                            <button id=parse>Parse</button>
                           </td>
                           <td>
-                            <button onclick="runCss()">Check</button>
+                            <button id=check>Check</button>
                           </td>
                           <td>
-                            <button onclick="runCss(true)">Debug</button>
+                            <button id=debug>Debug</button>
                           </td>
                         </tr>
                       </tbody>
@@ -175,10 +172,20 @@ void main() {
   document.body.style.setProperty("background-color", "lightgray");
   document.body.elements.add(element);
 
-  // TODO(terry): Needed so runCss isn't shakened out.
-  if (false) {
+  ButtonElement parseButton = window.document.query('#parse');
+  parseButton.on.click.add((MouseEvent e) {
+    runCss(true, true);
+  });
+
+  ButtonElement checkButton = window.document.query('#check');
+  checkButton.on.click.add((MouseEvent e) {
     runCss();
-  }
+  });
+
+  ButtonElement debugButton = window.document.query('#debug');
+  debugButton.on.click.add((MouseEvent e) {
+    runCss(true);
+  });
 
   initCssWorld(false);
 }

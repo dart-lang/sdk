@@ -382,7 +382,7 @@ class TokenKind {
       if (length == ident.length) {
         int idx = offset;
         bool match = true;
-        for (final identIdx = 0; identIdx < ident.length; identIdx++) {
+        for (int identIdx = 0; identIdx < ident.length; identIdx++) {
           int identChar = ident.charCodeAt(identIdx);
           int char = text.charCodeAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
@@ -447,7 +447,7 @@ class TokenKind {
       if (length == ident.length) {
         int idx = 0;
         bool match = true;
-        for (final identIdx = 0; identIdx < ident.length; identIdx++) {
+        for (int identIdx = 0; identIdx < ident.length; identIdx++) {
           int identChar = ident.charCodeAt(identIdx);
           int char = text.charCodeAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
@@ -485,7 +485,7 @@ class TokenKind {
     }
 
     StringBuffer invertResult = new StringBuffer();
-    for (final idx = result.length - 1; idx >= 0; idx--) {
+    for (int idx = result.length - 1; idx >= 0; idx--) {
       invertResult.add(result[idx]);
     }
     return invertResult.toString();

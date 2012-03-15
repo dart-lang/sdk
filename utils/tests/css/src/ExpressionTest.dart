@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../css/css.dart");
-#import('../../../../frog/lang.dart', prefix:'lang');
 
 class ExpressionTest {
 
@@ -23,8 +22,8 @@ class ExpressionTest {
   }
 
   static void testClass() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE, ".foobar {}"));
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE, ".foobar {}"));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -45,7 +44,7 @@ class ExpressionTest {
       Expect.equals(simpSelector.name, "foobar");
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         ".foobar .bar .no-story {}"));
 
     stylesheet = parser.parse();
@@ -85,8 +84,8 @@ class ExpressionTest {
   }
 
   static void testId() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE, "#elemId {}"));
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE, "#elemId {}"));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -109,8 +108,8 @@ class ExpressionTest {
   }
 
   static void testElement() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE, "div {}"));
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE, "div {}"));
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
     Expect.equals(stylesheet.topLevels.length, 1);
@@ -130,7 +129,7 @@ class ExpressionTest {
       Expect.equals(simpSelector.name, "div");
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         "div div span {}"));
     stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -168,8 +167,8 @@ class ExpressionTest {
   }
 
   static void testNamespace() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE, "ns1|div {}"));
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE, "ns1|div {}"));
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
     Expect.equals(stylesheet.topLevels.length, 1);
@@ -194,7 +193,7 @@ class ExpressionTest {
       Expect.equals(elementSelector.name, "div");
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         "ns1|div div ns2|span .foobar {}"));
     stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -246,8 +245,8 @@ class ExpressionTest {
   }
 
   static void testSelectorGroups() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE,
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE,
         "div, .foobar ,#elemId, .xyzzy .test, ns1|div div #elemId .foobar {}"));
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -328,8 +327,8 @@ class ExpressionTest {
   }
 
   static void testCombinator() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE,
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE,
         ".foobar > .bar + .no-story ~ myNs|div #elemId {}"));
 
     Stylesheet stylesheet = parser.parse();
@@ -381,8 +380,8 @@ class ExpressionTest {
   }
 
   static void testWildcard() {
-    Parser parser = new Parser(new lang.SourceFile(
-        lang.SourceFile.IN_MEMORY_FILE, "* {}"));
+    Parser parser = new Parser(new SourceFile(
+        SourceFile.IN_MEMORY_FILE, "* {}"));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -404,7 +403,7 @@ class ExpressionTest {
       Expect.equals(simpSelector.name, "*");
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         "*.foobar {}"));
 
     stylesheet = parser.parse();
@@ -438,7 +437,7 @@ class ExpressionTest {
       idx++;
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         "myNs|*.foobar {}"));
 
     stylesheet = parser.parse();
@@ -475,7 +474,7 @@ class ExpressionTest {
       idx++;
     }
 
-    parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
+    parser = new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE,
         "*|*.foobar {}"));
 
     stylesheet = parser.parse();

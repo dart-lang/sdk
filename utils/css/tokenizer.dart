@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Tokenizer extends lang.TokenizerBase {
+class Tokenizer extends CSSTokenizerBase {
   TokenKind cssTokens;
 
   bool _selectorParsing;
 
-  Tokenizer(lang.SourceFile source, bool skipWhitespace, [int index = 0])
+  Tokenizer(SourceFile source, bool skipWhitespace, [int index = 0])
     : super(source, skipWhitespace, index), _selectorParsing = false {
     cssTokens = new TokenKind();
   }
 
-  lang.Token next() {
+  int get startIndex() => _startIndex;
+
+  Token next() {
     // keep track of our starting position
     _startIndex = _index;
 
@@ -47,8 +49,8 @@ class Tokenizer extends lang.TokenizerBase {
         int start = _startIndex;             // Start where the dot started.
         if (maybeEatDigit()) {
           // looks like a number dot followed by digit(s).
-          lang.Token num = finishNumber();
-          if (num.kind == TokenKind.INTEGER) {
+          Token number = finishNumber();
+          if (number.kind == TokenKind.INTEGER) {
             // It's a number but it's preceeded by a dot, so make it a double.
             _startIndex = start;
             return _finishToken(TokenKind.DOUBLE);
@@ -84,7 +86,7 @@ class Tokenizer extends lang.TokenizerBase {
         if (maybeEatDigit()) {
           return finishNumber();
         } else if (TokenizerHelpers.isIdentifierStart(ch)) {
-          return this.finishIdentifier();
+          return this.finishIdentifier(ch);
         } else {
           return _finishToken(TokenKind.MINUS);
         }
@@ -151,11 +153,11 @@ class Tokenizer extends lang.TokenizerBase {
           return _finishToken(TokenKind.DOLLAR);
         }
       case cssTokens.tokens[TokenKind.BANG]:
-        lang.Token tok = finishIdentifier();
+        Token tok = finishIdentifier(ch);
         return (tok == null) ? _finishToken(TokenKind.BANG) : tok;
       default:
         if (TokenizerHelpers.isIdentifierStart(ch)) {
-          return this.finishIdentifier();
+          return this.finishIdentifier(ch);
         } else if (isDigit(ch)) {
           return this.finishNumber();
         } else {
@@ -166,7 +168,7 @@ class Tokenizer extends lang.TokenizerBase {
 
   // TODO(jmesserly): we need a way to emit human readable error messages from
   // the tokenizer.
-  lang.Token _errorToken() {
+  Token _errorToken([String message = null]) {
     return _finishToken(TokenKind.ERROR);
   }
 
@@ -186,7 +188,7 @@ class Tokenizer extends lang.TokenizerBase {
   }
 
   // Need to override so CSS version of isIdentifierPart is used.
-  lang.Token finishIdentifier() {
+  Token finishIdentifier(int ch) {
     while (_index < _text.length) {
 //      if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index++))) {
       if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index))) {
@@ -207,11 +209,11 @@ class Tokenizer extends lang.TokenizerBase {
     }
   }
 
-  lang.Token finishImportant() {
+  Token finishImportant() {
     
   }
 
-  lang.Token finishNumber() {
+  Token finishNumber() {
     eatDigits();
 
     if (_peekChar() == 46/*.*/) {
@@ -254,7 +256,7 @@ class Tokenizer extends lang.TokenizerBase {
     return false;
   }
 
-  lang.Token finishMultiLineComment() {
+  Token finishMultiLineComment() {
     while (true) {
       int ch = _nextChar();
       if (ch == 0) {
@@ -286,17 +288,32 @@ class Tokenizer extends lang.TokenizerBase {
 }
 
 /** Static helper methods. */
+/** Static helper methods. */
 class TokenizerHelpers {
-  static bool isIdentifierStart(int c) =>
-      lang.TokenizerHelpers.isIdentifierStart(c) || c == 95 /*_*/ ||
-      c == 45; /*-*/
+  
+  static bool isIdentifierStart(int c) {
+    return ((c >= 97/*a*/ && c <= 122/*z*/) || (c >= 65/*A*/ && c <= 90/*Z*/) ||
+        c == 95/*_*/ || c == 45 /*-*/);
+  }
 
-  static bool isDigit(int c) => lang.TokenizerHelpers.isDigit(c);
+  static bool isDigit(int c) {
+    return (c >= 48/*0*/ && c <= 57/*9*/);
+  }
 
-  static bool isHexDigit(int c) => lang.TokenizerHelpers.isHexDigit(c);
+  static bool isHexDigit(int c) {
+    return (isDigit(c) || (c >= 97/*a*/ && c <= 102/*f*/) || (c >= 65/*A*/ && c <= 70/*F*/));
+  }
 
-  static bool isWhitespace(int c) => lang.TokenizerHelpers.isWhitespace(c);
+  static bool isWhitespace(int c) {
+    return (c == 32/*' '*/ || c == 9/*'\t'*/ || c == 10/*'\n'*/ || c == 13/*'\r'*/);
+  }
 
-  static bool isIdentifierPart(int c) =>
-      lang.TokenizerHelpers.isIdentifierPart(c) || c == 45 /*-*/;
+  static bool isIdentifierPart(int c) {
+    return (isIdentifierStart(c) || isDigit(c) || c == 45 /*-*/);
+  }
+
+  static bool isInterpIdentifierPart(int c) {
+    return (isIdentifierStart(c) || isDigit(c));
+  }
 }
+

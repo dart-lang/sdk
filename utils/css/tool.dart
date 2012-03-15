@@ -4,11 +4,11 @@
 
 #library('csstool');
 
-#import('../../frog/lang.dart', prefix:'lang');
-#import('../../frog/file_system.dart');
-#import('../../frog/file_system_node.dart');
-#import('../../frog/lib/node/node.dart');
+#import('dart:io');
 #import('css.dart');
+#import('../lib/file_system.dart');
+#import('../lib/file_system_vm.dart');
+
 
 FileSystem files;
 
@@ -22,18 +22,18 @@ num time(callback()) {
 }
 
 printStats(num elapsed, [String filename = '']) {
-  print('Parsed\033[32m ${filename}\033[0m in ${elapsed} msec.');
+  print('Parsed ${_GREEN_COLOR}${filename}${_NO_COLOR} in ${elapsed} msec.');
 }
 
 /**
  * Run from the `utils/css` directory.
  */
 void main() {
-  // process.argv[0] == node and process.argv[1] == minfrog
-  assert(process.argv.length == 4);
+  var optionArgs = new Options().arguments;
+  assert(optionArgs.length == 2);
 
-  String sourceFullFn = process.argv[2];
-  String outputFullFn = process.argv[3];
+  String sourceFullFn = optionArgs[0];
+  String outputFullFn = optionArgs[1];
 
   String sourcePath;
   String sourceFilename;
@@ -51,7 +51,7 @@ void main() {
 
   initCssWorld();
 
-  files = new NodeFileSystem();
+  files = new VMFileSystem();
   if (!files.fileExists(sourceFullFn)) {
     // Display colored error message if file is missing.
     print("\033[31mCSS source file missing - ${sourceFullFn}\033[0m");
@@ -62,7 +62,7 @@ void main() {
 
     final elapsed = time(() {
       Parser parser = new Parser(
-          new lang.SourceFile(sourceFullFn, source), 0, files, sourcePath);
+          new SourceFile(sourceFullFn, source), 0, files, sourcePath);
       stylesheet = parser.parse();
     });
 
