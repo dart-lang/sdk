@@ -14,6 +14,7 @@
           '<@(common_gcc_warning_flags)',
           '-Wnon-virtual-dtor',
           '-Wvla',
+          '-Wno-conversion-null',
           # TODO(v8-team): Fix V8 build.
           #'-Woverloaded-virtual',
           '-g3',
