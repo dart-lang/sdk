@@ -267,10 +267,10 @@ class Token {
   }
 
  private:
-  static const char* name_[kNumTokens];
-  static const char* tok_str_[kNumTokens];
-  static const uint8_t precedence_[kNumTokens];
-  static const Attribute attributes_[kNumTokens];
+  static const char* name_[];
+  static const char* tok_str_[];
+  static const uint8_t precedence_[];
+  static const Attribute attributes_[];
 };
 
 

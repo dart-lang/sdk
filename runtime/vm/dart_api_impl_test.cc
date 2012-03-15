@@ -2827,7 +2827,6 @@ TEST_CASE(NativeFieldAccess) {
       "    return obj;\n"
       "  }\n"
       "}\n";
-  Dart_Handle result;
   const int kNumNativeFields = 4;
 
   // Create a test library.
@@ -2835,10 +2834,11 @@ TEST_CASE(NativeFieldAccess) {
                                              native_field_lookup);
 
   // Create a native wrapper class with native fields.
-  result = Dart_CreateNativeWrapperClass(
+  Dart_Handle result = Dart_CreateNativeWrapperClass(
       lib,
       Dart_NewString("NativeFieldsWrapper"),
       kNumNativeFields);
+  EXPECT_VALID(result);
 
   // Load up a test script in it.
 
