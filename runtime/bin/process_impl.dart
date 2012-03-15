@@ -29,6 +29,9 @@ class _Process implements Process {
         throw new ProcessException("Non-string argument: $arg");
       }
       _arguments[i] = arguments[i];
+      if (new Platform().operatingSystem() == 'windows') {
+        _arguments[i] = _windowsArgumentEscape(_arguments[i]);
+      }
     }
 
     if (workingDirectory is !String && workingDirectory !== null) {
@@ -48,6 +51,52 @@ class _Process implements Process {
     // TODO(ager): Make the actual process starting really async instead of
     // simulating it with a timer.
     new Timer(0, (Timer ignore) => start());
+  }
+
+  String _windowsArgumentEscape(String argument) {
+    var result = argument;
+    if (argument.contains('\t') || argument.contains(' ')) {
+      // Produce something that the C runtime on Windows will parse
+      // back as this string.
+
+      // Replace any number of '\' followed by '"' with
+      // twice as many '\' followed by '\"'.
+      var backslash = '\\'.charCodeAt(0);
+      var sb = new StringBuffer();
+      var nextPos = 0;
+      var quotePos = argument.indexOf('"', nextPos);
+      while (quotePos != -1) {
+        var numBackslash = 0;
+        var pos = quotePos - 1;
+        while (pos >= 0 && argument.charCodeAt(pos) == backslash) {
+          numBackslash++;
+          pos--;
+        }
+        sb.add(argument.substring(nextPos, quotePos - numBackslash));
+        for (var i = 0; i < numBackslash; i++) {
+          sb.add(@'\\');
+        }
+        sb.add(@'\"');
+        nextPos = quotePos + 1;
+        quotePos = argument.indexOf('"', nextPos);
+      }
+      sb.add(argument.substring(nextPos, argument.length));
+      result = sb.toString();
+
+      // Add '"' at the beginning and end and replace all '\' at
+      // the end with two '\'.
+      sb = new StringBuffer('"');
+      sb.add(result);
+      nextPos = argument.length - 1;
+      while (argument.charCodeAt(nextPos) == backslash) {
+        sb.add('\\');
+        nextPos--;
+      }
+      sb.add('"');
+      result = sb.toString();
+    }
+
+    return result;
   }
 
   int _intFromBytes(List<int> bytes, int offset) {
