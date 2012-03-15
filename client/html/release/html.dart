@@ -17756,7 +17756,7 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
 class _SpeechRecognitionResultImpl extends _DOMTypeBase implements SpeechRecognitionResult {
   _SpeechRecognitionResultImpl._wrap(ptr) : super._wrap(ptr);
 
-  bool get final() => _wrap(_ptr.finalValue);
+  bool get finalValue() => _wrap(_ptr.finalValue);
 
   int get length() => _wrap(_ptr.length);
 
@@ -18774,9 +18774,9 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 class _TrackElementImpl extends _ElementImpl implements TrackElement {
   _TrackElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  bool get default() => _wrap(_ptr.defaultValue);
+  bool get defaultValue() => _wrap(_ptr.defaultValue);
 
-  void set default(bool value) { _ptr.defaultValue = _unwrap(value); }
+  void set defaultValue(bool value) { _ptr.defaultValue = _unwrap(value); }
 
   String get kind() => _wrap(_ptr.kind);
 

@@ -1360,10 +1360,11 @@ class HtmlDartiumInterfaceGenerator(object):
     return method_name
 
   def AddAttribute(self, getter, setter):
+    dom_name = DartDomNameOfAttribute(getter or setter)
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+        self._interface, dom_name, 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+        self._interface, dom_name, 'set:')
 
     if getter and html_getter_name:
       self._AddGetter(getter, html_getter_name)
