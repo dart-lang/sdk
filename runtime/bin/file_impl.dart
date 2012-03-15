@@ -655,7 +655,7 @@ class _File implements File {
 
   String get name() => _name;
 
-  void set onError(void handler(String error)) {
+  void set onError(void handler(Exception error)) {
     _onError = handler;
   }
 

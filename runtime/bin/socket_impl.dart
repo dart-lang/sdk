@@ -91,7 +91,7 @@ class _SocketBase {
     }
   }
 
-  void _getPort() native "Socket_GetPort";
+  int _getPort() native "Socket_GetPort";
 
   void set onError(void callback()) {
     _setHandler(_ERROR_EVENT, callback);
@@ -206,6 +206,8 @@ class _SocketBase {
   // Hash code for the socket. Currently this is just a counter.
   int _hashCode;
   static int _nextHashCode = 0;
+  bool _closedRead = false;
+  bool _closedWrite = false;
 }
 
 
@@ -216,7 +218,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   // and port to the socket. Null is returned if file descriptor creation or
   // bind failed.
   factory _ServerSocket(String bindAddress, int port, int backlog) {
-    ServerSocket socket = new _ServerSocket._internal();
+    _ServerSocket socket = new _ServerSocket._internal();
     if (!socket._createBindListen(bindAddress, port, backlog)) {
       socket.close();
       return null;
@@ -261,7 +263,7 @@ class _Socket extends _SocketBase implements Socket {
   // host on the given port. Null is returned if file descriptor creation
   // or connect failed.
   factory _Socket(String host, int port) {
-    Socket socket = new _Socket._internal();
+    _Socket socket = new _Socket._internal();
     if (!socket._createConnect(host, port)) {
       socket.close();
       return null;
@@ -270,8 +272,8 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   _Socket._internal();
-  _Socket._internalReadOnly() : _closedWrite = true, _pipe = true;
-  _Socket._internalWriteOnly() : _closedRead = true, _pipe = true;
+  _Socket._internalReadOnly() : _pipe = true { super._closedWrite = true; }
+  _Socket._internalWriteOnly() : _pipe = true { super._closedRead = true; }
 
   int available() {
     if (_id >= 0) {
@@ -282,8 +284,6 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   int _available() native "Socket_Available";
-
-  bool get closed() => _closed;
 
   int readList(List<int> buffer, int offset, int bytes) {
     if (_id >= 0) {
@@ -478,8 +478,6 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   bool _seenFirstOutEvent = false;
-  bool _closedRead = false;
-  bool _closedWrite = false;
   bool _pipe = false;
   Function _clientConnectHandler;
   Function _clientWriteHandler;

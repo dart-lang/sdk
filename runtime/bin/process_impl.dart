@@ -197,9 +197,10 @@ class _Process implements Process {
   String _path;
   ObjectArray<String> _arguments;
   String _workingDirectory;
-  Socket _in;
-  Socket _out;
-  Socket _err;
+  // Private methods of _Socket are used by _in, _out, and _err.
+  _Socket _in;
+  _Socket _out;
+  _Socket _err;
   Socket _exitHandler;
   int _pid;
   bool _closed;
