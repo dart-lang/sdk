@@ -12,6 +12,7 @@ import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.util.DartSourceString;
 
@@ -167,7 +168,7 @@ public class CommentPreservingParser extends DartParser {
     Collections.sort(nodes, new Comparator<DartNode>() {
       @Override
       public int compare(DartNode node1, DartNode node2) {
-        return node1.getSourceStart() - node2.getSourceStart();
+        return node1.getSourceInfo().getOffset() - node2.getSourceInfo().getOffset();
       }
     });
 
@@ -219,11 +220,13 @@ public class CommentPreservingParser extends DartParser {
     return children;
   }
 
-  private boolean isContainedBy(DartNode node, DartNode containedByNode) {
-    int nodeEnd = node.getSourceStart() + node.getSourceLength();
-    int containedByEnd = containedByNode.getSourceStart() + containedByNode.getSourceLength();
-
-    return node.getSourceStart() >= containedByNode.getSourceStart() && nodeEnd <= containedByEnd; 
+  private static boolean isContainedBy(DartNode node, DartNode containedByNode) {
+    SourceInfo nodeSource = node.getSourceInfo();
+    SourceInfo containedBySource = containedByNode.getSourceInfo();
+    int nodeEnd = nodeSource.getOffset() + nodeSource.getLength();
+    int containedByEnd = containedBySource.getOffset() + containedBySource.getLength();
+    return nodeSource.getOffset() >= containedBySource.getOffset()
+        && nodeEnd <= containedByEnd;
   }
 
   /**

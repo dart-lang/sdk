@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -152,6 +152,7 @@ void CodeGenTest::Compile() {
   parsed_function.set_node_sequence(node_sequence_);
   parsed_function.set_instantiator(NULL);
   parsed_function.set_default_parameter_values(default_parameter_values_);
+  parsed_function.AllocateVariables();
   bool retval;
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);

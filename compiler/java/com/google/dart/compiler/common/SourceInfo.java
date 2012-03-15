@@ -4,56 +4,161 @@
 
 package com.google.dart.compiler.common;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.Source;
 
+import java.io.BufferedReader;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Tracks file and line information for AST nodes.
+ * Contains {@link Source} and location information for AST nodes.
+ * <p>
+ * Each node in the subtree (other than the contrived nodes) carries source range(s) information
+ * relating back to positions in the given source (the given source itself is not remembered with
+ * the AST). The source range usually begins at the first character of the first token corresponding
+ * to the node; leading whitespace and comments are <b>not</b> included. The source range usually
+ * extends through the last character of the last token corresponding to the node; trailing
+ * whitespace and comments are <b>not</b> included. There are a handful of exceptions (including the
+ * various body declarations). Source ranges nest properly: the source range for a child is always
+ * within the source range of its parent, and the source ranges of sibling nodes never overlap.
  */
-public interface SourceInfo extends Serializable {
+public final class SourceInfo implements Serializable {
 
   /**
-   * The source code provider.
+   * The unknown {@link SourceInfo}.
    */
-  Source getSource();
+  public static final SourceInfo UNKNOWN = new SourceInfo(null, 0, 0);
+
+  private static final Map<Source, LinesInfo> lines = new MapMaker().weakKeys().makeMap();
+
+  private final Source source;
+  private final int offset;
+  private final int length;
+
+  public SourceInfo(Source source, int offset, int length) {
+    Preconditions.checkArgument(offset != -1 && length >= 0 || offset == -1 && length == 0);
+    this.source = source;
+    this.offset = offset;
+    this.length = length;
+  }
 
   /**
-   * @return A 1-based line number into the original source file indicating
-   * where the source fragment begins.
+   * @return the {@link LinesInfo}, may be empty if some {@link Exception} happens, but not
+   *         <code>null</code>.
    */
-  int getSourceLine();
+  private static LinesInfo getLinesInfo(Source source) {
+    LinesInfo linesInfo = lines.get(source);
+    if (linesInfo == null) {
+      linesInfo = createLinesInfo(source);
+      lines.put(source, linesInfo);
+    }
+    return linesInfo;
+  }
 
   /**
-   * @return A 1-based column number into the original source file indicating
-   * where the source fragment begins.
+   * @return the new {@link LinesInfo}, may be empty if some {@link Exception} happens, but not
+   *         <code>null</code>.
    */
-  int getSourceColumn();
+  private static LinesInfo createLinesInfo(Source source) {
+    try {
+      BufferedReader reader = new BufferedReader(source.getSourceReader());
+      int offset = 0;
+      boolean ignoreLF = false;
+      List<Integer> lineOffsets = Lists.newArrayList(0);
+      while (true) {
+        int charValue = reader.read();
+        if (charValue == -1) {
+          break;
+        }
+        offset++;
+        char c = (char) charValue;
+        ignoreLF = c == '\n';
+        if (c == '\n' || c == '\r' && !ignoreLF) {
+          lineOffsets.add(offset);
+        }
+      }
+      return new LinesInfo(lineOffsets);
+    } catch (Throwable e) {
+      return new LinesInfo(ImmutableList.of(0));
+    }
+  }
 
   /**
-   * Returns the character index into the original source file indicating
-   * where the source fragment corresponding to this node begins.
-   * 
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it creates.
-   *
-   * @return the 0-based character index, or <code>-1</code>
-   *    if no source startPosition information is recorded for this node
-   * @see #getSourceLength()
-   * @see HasSourceInfo#setSourceLocation(Source, int, int, int, int)
+   * @return the {@link Source}.
    */
-  int getSourceStart();
+  public Source getSource() {
+    return source;
+  }
 
   /**
-   * Returns the length in characters of the original source file indicating
-   * where the source fragment corresponding to this node ends.
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it creates.
-   *
-   * @return a (possibly 0) length, or <code>0</code>
-   *    if no source source position information is recorded for this node
-   * @see #getSourceStart()
-   * @see HasSourceInfo#setSourceLocation(Source, int, int, int, int)
+   * @return the 0-based character index in the {@link Source}, may <code>-1</code> if no source
+   *         information is recorded.
    */
-  int getSourceLength();
+  public int getOffset() {
+    return offset;
+  }
+
+  /**
+   * @return a (possibly 0) length of this node in the {@link Source}, may <code>0</code> if no
+   *         source position information is recorded.
+   */
+  public int getLength() {
+    return length;
+  }
+
+  /**
+   * @return a 1-based line number in the {@link Source} indicating where the source fragment
+   *         begins. May be <code>0</code> if line not found.
+   */
+  public int getLine() {
+    if (source == null) {
+      return 0;
+    }
+    return 1 + getLinesInfo(source).getLineOfOffset(offset);
+  }
+
+  /**
+   * @return a 1-based column number in the {@link Source} indicating where the source fragment
+   *         begins. May be <code>0</code> if column not found.
+   */
+  public int getColumn() {
+    if (source == null) {
+      return 0;
+    }
+    return 1 + getLinesInfo(source).getColumnOfOffset(offset);
+  }
+
+  /**
+   * Container for information about lines in some {@link Source}.
+   */
+  private static class LinesInfo {
+    private final List<Integer> lineOffsets;
+
+    public LinesInfo(List<Integer> lineOffsets) {
+      this.lineOffsets = lineOffsets;
+    }
+
+    int getLineOffset(int line) {
+      return lineOffsets.get(line);
+    }
+
+    int getLineOfOffset(int offset) {
+      int index = Collections.binarySearch(lineOffsets, offset);
+      if (index >= 0) {
+        return index;
+      }
+      return -(2 + index);
+    }
+
+    int getColumnOfOffset(int offset) {
+      int line = getLineOfOffset(offset);
+      return offset - getLineOffset(line);
+    }
+  }
 }

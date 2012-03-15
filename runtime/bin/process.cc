@@ -20,8 +20,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   // interface. However, only builtin Strings are handled by
   // GetStringValue.
   if (!Dart_IsString(path_handle)) {
-    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringInstanceField(
+    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringField(
         status_handle, "_errorMessage", "Path must be a builtin string");
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
     Dart_ExitScope();
@@ -34,17 +34,22 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   ASSERT(Dart_IsList(arguments));
   intptr_t length = 0;
   Dart_Handle result = Dart_ListLength(arguments, &length);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   char** string_args = new char*[length];
   for (int i = 0; i < length; i++) {
     Dart_Handle arg = Dart_ListGetAt(arguments, i);
-    ASSERT(!Dart_IsError(arg));
+    if (Dart_IsError(arg)) {
+      delete[] string_args;
+      Dart_PropagateError(arg);
+    }
     // The Dart code verifies that the arguments implement the String
     // interface. However, only builtin Strings are handled by
     // GetStringValue.
     if (!Dart_IsString(arg)) {
-      DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
-      DartUtils::SetStringInstanceField(
+      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+      DartUtils::SetStringField(
           status_handle, "_errorMessage", "Arguments must be builtin strings");
       delete[] string_args;
       Dart_SetReturnValue(args, Dart_NewBoolean(false));
@@ -60,8 +65,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     working_directory = DartUtils::GetStringValue(working_directory_handle);
   } else if (!Dart_IsNull(working_directory_handle)) {
     delete[] string_args;
-    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringInstanceField(
+    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringField(
         status_handle, "_errorMessage",
         "WorkingDirectory must be a builtin string");
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
@@ -87,18 +92,18 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
                                   &exit_event,
       os_error_message, kMaxChildOsErrorMessageLength);
   if (error_code == 0) {
-    DartUtils::SetIntegerInstanceField(in_handle, DartUtils::kIdFieldName, in);
-    DartUtils::SetIntegerInstanceField(
+    DartUtils::SetIntegerField(in_handle, DartUtils::kIdFieldName, in);
+    DartUtils::SetIntegerField(
         out_handle, DartUtils::kIdFieldName, out);
-    DartUtils::SetIntegerInstanceField(
+    DartUtils::SetIntegerField(
         err_handle, DartUtils::kIdFieldName, err);
-    DartUtils::SetIntegerInstanceField(
+    DartUtils::SetIntegerField(
         exit_handle, DartUtils::kIdFieldName, exit_event);
-    DartUtils::SetIntegerInstanceField(process, "_pid", pid);
+    DartUtils::SetIntegerField(process, "_pid", pid);
   } else {
-    DartUtils::SetIntegerInstanceField(
+    DartUtils::SetIntegerField(
         status_handle, "_errorCode", error_code);
-    DartUtils::SetStringInstanceField(
+    DartUtils::SetStringField(
         status_handle, "_errorMessage", os_error_message);
   }
   delete[] string_args;

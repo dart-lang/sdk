@@ -3,12 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/extensions.h"
+#include <dlfcn.h>
 
-#include "include/dart_api.h"
-#include "platform/assert.h"
+void* Extensions::LoadExtensionLibrary(const char* library_path,
+                                       const char* extension_name) {
+  const char* strings[5] = { library_path, "/lib",
+                             extension_name, ".dylib", NULL };
+  char* library_file = Concatenate(strings);
+  void* lib_handle = dlopen(library_file, RTLD_LAZY);
+  free(library_file);
+  return lib_handle;
+}
 
-Dart_Handle Extensions::LoadExtension(const char* extension_url,
-                                      Dart_Handle parent_library) {
-  UNIMPLEMENTED();
-  return NULL;
+void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  void* result = dlsym(lib_handle, symbol);
+  if (dlerror() != NULL) return NULL;
+  return result;
 }

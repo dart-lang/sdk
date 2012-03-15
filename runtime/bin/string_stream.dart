@@ -28,6 +28,21 @@ interface _StringDecoder {
 }
 
 
+class _StringDecoders {
+  static _StringDecoder decoder(Encoding encoding) {
+    if (encoding == Encoding.UTF_8) {
+      return new _UTF8Decoder();
+    } else if (encoding == Encoding.ISO_8859_1) {
+      return new _Latin1Decoder();
+    } else if (encoding == Encoding.ASCII) {
+      return new _AsciiDecoder();
+    } else {
+      throw new StreamException("Unsupported encoding ${encoding.name}");
+    }
+  }
+}
+
+
 class DecoderException implements Exception {
   const DecoderException([String this.message]);
   String toString() => "DecoderException: $message";
@@ -142,37 +157,6 @@ class _StringDecoderBase implements _StringDecoder {
 }
 
 
-// Utility class for decoding ascii data delivered as a stream of
-// bytes.
-class _AsciiDecoder extends _StringDecoderBase {
-  // Process the next ascii encoded character.
-  bool _processNext() {
-    while (_bufferList.length > 0) {
-      int byte = _bufferList.next();
-      if (byte > 127) {
-        throw new DecoderException("Illegal ASCII character $byte");
-      }
-      addChar(byte);
-    }
-    return true;
-  }
-}
-
-
-// Utility class for decoding Latin-1 data delivered as a stream of
-// bytes.
-class _Latin1Decoder extends _StringDecoderBase {
-  // Process the next Latin-1 encoded character.
-  bool _processNext() {
-    while (_bufferList.length > 0) {
-      int byte = _bufferList.next();
-      addChar(byte);
-    }
-    return true;
-  }
-}
-
-
 // Utility class for decoding UTF-8 from data delivered as a stream of
 // bytes.
 class _UTF8Decoder extends _StringDecoderBase {
@@ -214,21 +198,152 @@ class _UTF8Decoder extends _StringDecoderBase {
 }
 
 
-class _StringInputStream implements StringInputStream {
-  _StringInputStream(InputStream this._input, [String encoding])
-      : _encoding = encoding {
-    if (_encoding === null) {
-      _encoding = "UTF-8";
+// Utility class for decoding ascii data delivered as a stream of
+// bytes.
+class _AsciiDecoder extends _StringDecoderBase {
+  // Process the next ascii encoded character.
+  bool _processNext() {
+    while (_bufferList.length > 0) {
+      int byte = _bufferList.next();
+      if (byte > 127) {
+        throw new DecoderException("Illegal ASCII character $byte");
+      }
+      addChar(byte);
     }
-    if (_encoding == "UTF-8") {
-      _decoder = new _UTF8Decoder();
-    } else if (_encoding == "ISO-8859-1") {
-      _decoder = new _Latin1Decoder();
-    } else if (_encoding == "ASCII") {
-      _decoder = new _AsciiDecoder();
+    return true;
+  }
+}
+
+
+// Utility class for decoding Latin-1 data delivered as a stream of
+// bytes.
+class _Latin1Decoder extends _StringDecoderBase {
+  // Process the next Latin-1 encoded character.
+  bool _processNext() {
+    while (_bufferList.length > 0) {
+      int byte = _bufferList.next();
+      addChar(byte);
+    }
+    return true;
+  }
+}
+
+
+// Interface for encoders encoding string data into binary data.
+interface _StringEncoder {
+  List<int> encodeString(String string);
+}
+
+
+// Utility class for encoding a string into UTF-8 byte stream.
+class _UTF8Encoder implements _StringEncoder {
+  List<int> encodeString(String string) {
+    int size = _encodingSize(string);
+    ByteArray result = new ByteArray(size);
+    _encodeString(string, result);
+    return result;
+  }
+
+  static int _encodingSize(String string) => _encodeString(string, null);
+
+  static int _encodeString(String string, List<int> buffer) {
+    int pos = 0;
+    int length = string.length;
+    for (int i = 0; i < length; i++) {
+      int additionalBytes;
+      int charCode = string.charCodeAt(i);
+      if (charCode <= 0x007F) {
+        additionalBytes = 0;
+        if (buffer != null) buffer[pos] = charCode;
+      } else if (charCode <= 0x07FF) {
+        // 110xxxxx (xxxxx is top 5 bits).
+        if (buffer != null) buffer[pos] = ((charCode >> 6) & 0x1F) | 0xC0;
+        additionalBytes = 1;
+      } else if (charCode <= 0xFFFF) {
+        // 1110xxxx (xxxx is top 4 bits)
+        if (buffer != null) buffer[pos] = ((charCode >> 12) & 0x0F)| 0xE0;
+        additionalBytes = 2;
+      } else {
+        // 11110xxx (xxx is top 3 bits)
+        if (buffer != null) buffer[pos] = ((charCode >> 18) & 0x07) | 0xF0;
+        additionalBytes = 3;
+      }
+      pos++;
+      if (buffer != null) {
+        for (int i = additionalBytes; i > 0; i--) {
+          // 10xxxxxx (xxxxxx is next 6 bits from the top).
+          buffer[pos++] = ((charCode >> (6 * (i - 1))) & 0x3F) | 0x80;
+        }
+      } else {
+        pos += additionalBytes;
+      }
+    }
+    return pos;
+  }
+}
+
+
+// Utility class for encoding a string into a Latin1 byte stream.
+class _Latin1Encoder implements _StringEncoder {
+  List<int> encodeString(String string) {
+    ByteArray result = new ByteArray(string.length);
+    for (int i = 0; i < string.length; i++) {
+      int charCode = string.charCodeAt(i);
+      if (charCode > 255) {
+        throw new EncoderException(
+            "No ISO_8859_1 encoding for code point $charCode");
+      }
+      result[i] = charCode;
+    }
+    return result;
+  }
+}
+
+
+// Utility class for encoding a string into an ASCII byte stream.
+class _AsciiEncoder implements _StringEncoder {
+  List<int> encodeString(String string) {
+    ByteArray result = new ByteArray(string.length);
+    for (int i = 0; i < string.length; i++) {
+      int charCode = string.charCodeAt(i);
+      if (charCode > 127) {
+        throw new EncoderException(
+            "No ASCII encoding for code point $charCode");
+      }
+      result[i] = charCode;
+    }
+    return result;
+  }
+}
+
+
+class _StringEncoders {
+  static _StringEncoder encoder(Encoding encoding) {
+    if (encoding == Encoding.UTF_8) {
+      return new _UTF8Encoder();
+    } else if (encoding == Encoding.ISO_8859_1) {
+      return new _Latin1Encoder();
+    } else if (encoding == Encoding.ASCII) {
+      return new _AsciiEncoder();
     } else {
-      throw new StreamException("Unsupported encoding $_encoding");
+      throw new StreamException("Unsupported encoding ${encoding.name}");
     }
+  }
+}
+
+
+class EncoderException implements Exception {
+  const EncoderException([String this.message]);
+  String toString() => "EncoderException: $message";
+  final String message;
+}
+
+
+class _StringInputStream implements StringInputStream {
+  _StringInputStream(InputStream this._input,
+                     [Encoding encoding = Encoding.UTF_8])
+      : _encoding = encoding {
+    _decoder = _StringDecoders.decoder(encoding);
     _input.onData = _onData;
     _input.onClosed = _onClosed;
   }
@@ -257,7 +372,7 @@ class _StringInputStream implements StringInputStream {
 
   int available() => _decoder.available();
 
-  String get encoding() => _encoding;
+  Encoding get encoding() => _encoding;
 
   bool get closed() => _inputClosed && _decoder.isEmpty();
 
@@ -390,7 +505,7 @@ class _StringInputStream implements StringInputStream {
   }
 
   InputStream _input;
-  String _encoding;
+  Encoding _encoding;
   _StringDecoder _decoder;
   bool _inputClosed = false;  // Is the underlying input stream closed?
   bool _closed = false;  // Is this stream closed.

@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
+#include "vm/exceptions.h"
 #include "vm/native_arguments.h"
 #include "vm/verifier.h"
 

@@ -15,10 +15,12 @@
 #library("test_suite");
 
 #import("dart:io");
+#import("dart:builtin");
 #import("dart:isolate");
 #import("status_file_parser.dart");
 #import("test_runner.dart");
 #import("multitest.dart");
+#import("drt_updater.dart");
 
 #source("browser_test.dart");
 
@@ -177,8 +179,7 @@ class TestInformation {
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
   bool hasRuntimeErrors;
-  // expected outcome from multi-test  "static type error", "compile-time error", etc
-  String multitestOutcome;
+  Set<String> multitestOutcome;
 
   TestInformation(this.filename, this.optionsFromFile, this.isNegative,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
@@ -223,6 +224,16 @@ class StandardTestSuite implements TestSuite {
 
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone = null]) {
+    // If DumpRenderTree is required, and not yet updated, wait for update.
+    if (DumpRenderTreeUpdater.componentRequiresDRT(configuration['component'])
+        && !DumpRenderTreeUpdater.updated) {
+      Expect.isTrue(DumpRenderTreeUpdater.isActive);
+      DumpRenderTreeUpdater.onUpdated.add(() {
+        forEachTest(onTest, testCache, globalTempDir, onDone);
+      });
+      return;
+    }
+
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
     globalTemporaryDirectory = globalTempDir;
@@ -326,41 +337,40 @@ class StandardTestSuite implements TestSuite {
     }
     if (expectations.contains(SKIP)) return;
 
-    switch (configuration['component']) {
-      case 'dartium':
-      case 'chromium':
-      case 'frogium':
-      case 'legium':
-      case 'webdriver':
-        enqueueBrowserTest(filename, testName, optionsFromFile,
-                           expectations, isNegative);
-        break;
-      default:
-        isNegative = isNegative ||
-            (configuration['checked'] && info.isNegativeIfChecked);
+    if (TestUtils.isBrowserComponent(configuration['component'])) {
+      enqueueBrowserTest(info, testName, expectations);
+    } else {
+      enqueueStandardTest(info, testName, expectations);
+    }
+  }
 
-        if (configuration['component'] == 'dartc') {
-          // dartc can detect static type errors by the
-          // format of the error line
-          if (info.hasFatalTypeErrors) {
-            isNegative = true;
-          } else if (info.hasRuntimeErrors) {
-            isNegative = false;
-          }
-        }
+  void enqueueStandardTest(TestInformation info,
+                           String testName,
+                           Set<String> expectations) {
+    bool isNegative = info.isNegative ||
+        (configuration['checked'] && info.isNegativeIfChecked);
 
-        var argumentLists = argumentListsFromFile(filename,
-                                                  optionsFromFile);
+    if (configuration['component'] == 'dartc') {
+      // dartc can detect static type warnings by the
+      // format of the error line
+      if (info.hasFatalTypeErrors) {
+        isNegative = true;
+      } else if (info.hasRuntimeErrors) {
+        isNegative = false;
+      }
+    }
 
-        for (var args in argumentLists) {
-          doTest(new TestCase('$suiteName/$testName',
-                              [new Command(shellPath(), args)],
-                              configuration,
-                              completeHandler,
-                              expectations,
-                              isNegative,
-                              info));
-        }
+    var argumentLists = argumentListsFromFile(info.filename,
+                                              info.optionsFromFile);
+
+    for (var args in argumentLists) {
+      doTest(new TestCase('$suiteName/$testName',
+                          [new Command(shellPath(), args)],
+                          configuration,
+                          completeHandler,
+                          expectations,
+                          isNegative,
+                          info));
     }
   }
 
@@ -370,7 +380,7 @@ class StandardTestSuite implements TestSuite {
             [bool isNegativeIfChecked = false,
              bool hasFatalTypeErrors = false,
              bool hasRuntimeErrors = false,
-             String multitestOutcome = null]) {
+             Set<String> multitestOutcome = null]) {
       // Cache the test information for each test case.
       var info = new TestInformation(filename,
                                      optionsFromFile,
@@ -418,11 +428,11 @@ class StandardTestSuite implements TestSuite {
    * step and an execution step, both with the appropriate executable and
    * arguments.
    */
-  void enqueueBrowserTest(String filename,
+  void enqueueBrowserTest(TestInformation info,
                           String testName,
-                          Map optionsFromFile,
-                          Set<String> expectations,
-                          bool isNegative) {
+                          Set<String> expectations) {
+    Map optionsFromFile = info.optionsFromFile;
+    String filename = info.filename;
     if (optionsFromFile['isMultitest']) return;
     bool isWebTest = optionsFromFile['containsDomImport'];
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
@@ -576,14 +586,6 @@ class StandardTestSuite implements TestSuite {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
     switch (component) {
-      // TODO(zundel): Remove chromium now that dartc doesn't generate code?
-      case 'chromium':
-        args.addAll(['--work', dir]);
-        args.addAll(vmOptions);
-        args.add('--ignore-unrecognized-flags');
-        args.add(inputFile);
-        // TODO(whesse): Add --fatal-type-errors if needed.
-        break;
       case 'frogium':
       case 'legium':
       case 'webdriver':
@@ -604,8 +606,7 @@ class StandardTestSuite implements TestSuite {
   }
 
   bool get requiresCleanTemporaryDirectory() =>
-      configuration['component'] == 'dartc' ||
-      configuration['component'] == 'chromium';
+      configuration['component'] == 'dartc';
 
   /**
    * Create a directory for the generated test.  If a Dart language test
@@ -641,10 +642,11 @@ class StandardTestSuite implements TestSuite {
     String tempDirPath = TestUtils.buildDir(configuration);
     if (requiresCleanTemporaryDirectory) {
       tempDirPath = globalTemporaryDirectory();
-      String debugMode = 
+      String debugMode =
           (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-      generatedTestPath = ['${debugMode}_${configuration["arch"]}']
-          .addAll(generatedTestPath);
+      var temp = ['${debugMode}_${configuration["arch"]}'];
+      temp.addAll(generatedTestPath);
+      generatedTestPath = temp;
     }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
@@ -656,25 +658,26 @@ class StandardTestSuite implements TestSuite {
         throw new Exception(
             'Non-relative path to build directory in test_suite.dart');
       }
-      buildPath.removeRange(0, 1);
-      if (buildPath.last() == '') buildPath.removeLast();
-      buildPath.addAll(generatedTestPath);
-      generatedTestPath = buildPath;
+      if (buildPath.length > 1) {
+        buildPath.removeRange(0, 1);
+        if (buildPath.last() == '') buildPath.removeLast();
+        buildPath.addAll(generatedTestPath);
+        generatedTestPath = buildPath;
+      }
       tempDir = new Directory(tempDirPath);
       if (!tempDir.existsSync()) {
         tempDir.createSync();
       }
     }
     tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
-    return TestUtils.mkdirRecursive(tempDirPath, 
-      Strings.join(generatedTestPath, '/'));
+    return TestUtils.mkdirRecursive(tempDirPath,
+                                    Strings.join(generatedTestPath, '/'));
   }
 
   String get scriptType() {
     switch (configuration['component']) {
       case 'dartium':
         return 'application/dart';
-      case 'chromium':
       case 'frogium':
       case 'legium':
       case 'webdriver':
@@ -687,7 +690,7 @@ class StandardTestSuite implements TestSuite {
 
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_').replaceAll(':', '_')
-        + configuration['component'] + '.html';
+        .replaceAll('\\', '_') + configuration['component'] + '.html';
   }
 
   String get dumpRenderTreeFilename() {
@@ -765,8 +768,10 @@ class StandardTestSuite implements TestSuite {
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = const RegExp(@"// OtherScripts=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
-    RegExp staticTypeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type error");
-    RegExp compileTimeRegExp = const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
+    RegExp staticTypeRegExp =
+        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*static type warning");
+    RegExp compileTimeRegExp =
+        const RegExp(@"/// ([0-9][0-9]:){0,1}\s*compile-time error");
     RegExp staticCleanRegExp = const RegExp(@"// @static-clean");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
@@ -781,7 +786,7 @@ class StandardTestSuite implements TestSuite {
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
-    RandomAccessFile file = new File(filename).openSync();
+    RandomAccessFile file = new File(filename).openSync(FileMode.READ);
     List chars = new List(file.lengthSync());
     var offset = 0;
     while (offset != chars.length) {
@@ -820,7 +825,7 @@ class StandardTestSuite implements TestSuite {
       }
       isStaticClean = true;
     }
-    
+
     List<String> otherScripts = new List<String>();
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
@@ -831,7 +836,7 @@ class StandardTestSuite implements TestSuite {
         contents.contains("@runtime-error")) {
       isNegative = true;
     }
-    
+
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1034,15 +1039,14 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
-  
-  /** 
-   * Creates a directory using a [relativePath] to an existing 
+  /**
+   * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
    */
   static Directory mkdirRecursive(String base, String relativePath) {
     Directory baseDir = new Directory(base);
     Expect.isTrue(baseDir.existsSync(),
-      "Expected ${base} to already exist");  
+      "Expected ${base} to already exist");
     var tempDir = new Directory(base);
     for (String dir in relativePath.split('/')) {
       base = "$base/$dir";
@@ -1065,7 +1069,7 @@ class TestUtils {
     handle.writeListSync(contents, 0, contents.length);
     handle.closeSync();
   }
-  
+
   static String executableSuffix(String component) {
     if (new Platform().operatingSystem() == 'windows') {
       if (component != 'frogium'
@@ -1099,7 +1103,6 @@ class TestUtils {
   static String compilerName(Map configuration) {
     String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
-      case 'chromium':
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
@@ -1167,9 +1170,18 @@ class TestUtils {
         || configuration["component"] == "legium") {
       args.add("--verbose");
       args.add("--leg");
+      if (configuration["host_checked"]) {
+        args.add("--vm_flags=--enable_asserts --enable_type_checks");
+      }
     }
     return args;
   }
+
+  static bool isBrowserComponent(String component) =>
+      const <String>['dartium',
+                     'frogium',
+                     'legium',
+                     'webdriver'].some((x) => x == component);
 }
 
 class SummaryReport {

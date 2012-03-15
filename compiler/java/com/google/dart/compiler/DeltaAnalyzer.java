@@ -86,7 +86,7 @@ class DeltaAnalyzer {
     // Copy all the elements from the old library, except the ones declared in the original source.
     Scope scope = libraryUnit.getElement().getScope();
     for (Element member : enclosingLibrary.getMembers()) {
-      if (member.getNode() != null && member.getNode().getSource() != originalSource) {
+      if (member.getSourceInfo().getSource() != originalSource) {
         scope.declareElement(member.getName(), member);
       }
     }
@@ -96,6 +96,11 @@ class DeltaAnalyzer {
   private LibrarySource makeLibrarySource(final String name) {
     final URI uri = URI.create(name);
     return new LibrarySource() {
+      @Override
+      public String getUniqueIdentifier() {
+        return uri.toString();
+      }
+
       @Override
       public URI getUri() {
         return uri;

@@ -62,7 +62,7 @@ class LocalVariable : public ZoneAllocated {
   // out, and fell back to a different compilation mode).  In any case, it
   // should not change the index once set.
   void set_index(int index) {
-    ASSERT(!HasIndex() || (index_ == index));
+    ASSERT(!HasIndex());
     ASSERT(index != kUnitializedIndex);
     index_ = index;
   }

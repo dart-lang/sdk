@@ -79,18 +79,19 @@ RawClass* Object::library_prefix_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -137,6 +138,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kInstructionsClass;
   } else if (raw_class == pc_descriptors_class()) {
     return kPcDescriptorsClass;
+  } else if (raw_class == stackmap_class()) {
+    return kStackmapClass;
   } else if (raw_class == var_descriptors_class()) {
     return kLocalVarDescriptorsClass;
   } else if (raw_class == exception_handlers_class()) {
@@ -145,6 +148,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
     return kContextScopeClass;
+  } else if (raw_class == icdata_class()) {
+    return kICDataClass;
   } else if (raw_class == api_error_class()) {
     return kApiErrorClass;
   } else if (raw_class == language_error_class()) {
@@ -153,8 +158,6 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kUnhandledExceptionClass;
   } else if (raw_class == unwind_error_class()) {
     return kUnwindErrorClass;
-  } else if (raw_class == icdata_class()) {
-    return kICDataClass;
   }
   return kInvalidIndex;
 }
@@ -184,15 +187,16 @@ RawClass* Object::GetSingletonClass(int index) {
     case kCodeClass: return code_class();
     case kInstructionsClass: return instructions_class();
     case kPcDescriptorsClass: return pc_descriptors_class();
+    case kStackmapClass: return stackmap_class();
     case kLocalVarDescriptorsClass: return var_descriptors_class();
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
+    case kICDataClass: return icdata_class();
     case kApiErrorClass: return api_error_class();
     case kLanguageErrorClass: return language_error_class();
     case kUnhandledExceptionClass: return unhandled_exception_class();
     case kUnwindErrorClass: return unwind_error_class();
-    case kICDataClass: return icdata_class();
     default: break;
   }
   UNREACHABLE();
@@ -222,10 +226,12 @@ const char* Object::GetSingletonClassName(int index) {
     case kCodeClass: return "Code";
     case kInstructionsClass: return "Instructions";
     case kPcDescriptorsClass: return "PcDescriptors";
+    case kStackmapClass: return "Stackmap";
     case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
+    case kICDataClass: return "ICData";
     case kApiErrorClass: return "ApiError";
     case kLanguageErrorClass: return "LanguageError";
     case kUnhandledExceptionClass: return "UnhandledException";
@@ -364,6 +370,9 @@ void Object::InitOnce() {
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
 
+  cls = Class::New<Stackmap>();
+  stackmap_class_ = cls.raw();
+
   cls = Class::New<LocalVarDescriptors>();
   var_descriptors_class_ = cls.raw();
 
@@ -376,6 +385,9 @@ void Object::InitOnce() {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
+  cls = Class::New<ICData>();
+  icdata_class_ = cls.raw();
+
   cls = Class::New<ApiError>();
   api_error_class_ = cls.raw();
 
@@ -387,9 +399,6 @@ void Object::InitOnce() {
 
   cls = Class::New<UnwindError>();
   unwind_error_class_ = cls.raw();
-
-  cls = Class::New<ICData>();
-  icdata_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -678,7 +687,6 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-
   const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
   Library::InitIsolateLibrary(isolate);
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -687,7 +695,14 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-
+  const Script& mirrors_script = Script::Handle(Bootstrap::LoadMirrorsScript());
+  Library::InitMirrorsLibrary(isolate);
+  Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
+  ASSERT(!mirrors_lib.IsNull());
+  error = Bootstrap::Compile(mirrors_lib, mirrors_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -1422,11 +1437,13 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
-bool Class::IsMoreSpecificThan(
+bool Class::IsSubtypeOf(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
+  ASSERT(is_finalized());
+  ASSERT(other.is_finalized());
   // Check for DynamicType.
   // The DynamicType on the lefthand side is replaced by the bottom type, which
   // is more specific than any type.
@@ -1449,9 +1466,9 @@ bool Class::IsMoreSpecificThan(
         other_type_arguments.IsDynamicTypes(len)) {
       return true;
     }
-    return type_arguments.IsMoreSpecificThan(other_type_arguments,
-                                             len,
-                                             malformed_error);
+    return type_arguments.IsSubtypeOf(other_type_arguments,
+                                      len,
+                                      malformed_error);
   }
   // Check for two function types.
   if (IsSignatureClass() && other.IsSignatureClass()) {
@@ -1498,10 +1515,10 @@ bool Class::IsMoreSpecificThan(
           }
         }
       }
-      if (interface_class.IsMoreSpecificThan(interface_args,
-                                             other,
-                                             other_type_arguments,
-                                             malformed_error)) {
+      if (interface_class.IsSubtypeOf(interface_args,
+                                      other,
+                                      other_type_arguments,
+                                      malformed_error)) {
         return true;
       }
     }
@@ -1522,49 +1539,15 @@ bool Class::IsMoreSpecificThan(
   // Instead of truncating the type argument vector to the length of the super
   // type argument vector, we make sure that the code works with a vector that
   // is longer than necessary.
-  return super_class.IsMoreSpecificThan(type_arguments,
-                                        other,
-                                        other_type_arguments,
-                                        malformed_error);
+  return super_class.IsSubtypeOf(type_arguments,
+                                 other,
+                                 other_type_arguments,
+                                 malformed_error);
 }
 
 
 bool Class::IsTopLevel() const {
   return String::Handle(Name()).Equals("::");
-}
-
-
-bool Class::TestType(TypeTestKind test,
-                     const AbstractTypeArguments& type_arguments,
-                     const Class& other,
-                     const AbstractTypeArguments& other_type_arguments,
-                     Error* malformed_error) const {
-  ASSERT(is_finalized() || !ClassFinalizer::AllClassesFinalized());
-  ASSERT(other.is_finalized() || !ClassFinalizer::AllClassesFinalized());
-  if (test == kIsAssignableTo) {
-    // The spec states that "a type T is assignable to a type S if T is a
-    // subtype of S or S is a subtype of T". This is from the perspective of a
-    // static checker, which does not know the actual type of the assigned
-    // value. However, this type information is available at run time in checked
-    // mode. We therefore apply a more restrictive subtype check, which prevents
-    // heap pollution. We only keep the assignability check when assigning
-    // values of a function type.
-    if (IsSignatureClass() && other.IsSignatureClass()) {
-      const Function& src_fun = Function::Handle(signature_function());
-      const Function& dst_fun = Function::Handle(other.signature_function());
-      return src_fun.IsAssignableTo(type_arguments,
-                                    dst_fun,
-                                    other_type_arguments,
-                                    malformed_error);
-    }
-    // Continue with a subtype test.
-    test = kIsSubtypeOf;
-  }
-  ASSERT(test == kIsSubtypeOf);
-
-  // Check for "more specific" relation.
-  return IsMoreSpecificThan(type_arguments, other, other_type_arguments,
-                            malformed_error);
 }
 
 
@@ -2121,47 +2104,20 @@ bool AbstractType::IsListInterface() const {
 }
 
 
-bool AbstractType::IsMoreSpecificThan(const AbstractType& other,
-                                      Error* malformed_error) const {
+bool AbstractType::IsSubtypeOf(const AbstractType& other,
+                               Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // AbstractType parameters cannot be handled by Class::IsMoreSpecificThan().
+  // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     return IsTypeParameter() && other.IsTypeParameter() &&
         (Index() == other.Index());
   }
   const Class& cls = Class::Handle(type_class());
-  return cls.IsMoreSpecificThan(
-      AbstractTypeArguments::Handle(arguments()),
-      Class::Handle(other.type_class()),
-      AbstractTypeArguments::Handle(other.arguments()),
-      malformed_error);
-}
-
-
-bool AbstractType::Test(TypeTestKind test,
-                        const AbstractType& other,
-                        Error* malformed_error) const {
-  ASSERT(IsFinalized());
-  ASSERT(other.IsFinalized());
-  // AbstractType parameters cannot be handled by Class::TestType().
-  if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
-  }
-  const Class& cls = Class::Handle(type_class());
-  if (test == kIsSubtypeOf) {
-    return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
-                           Class::Handle(other.type_class()),
-                           AbstractTypeArguments::Handle(other.arguments()),
-                           malformed_error);
-  } else {
-    ASSERT(test == kIsAssignableTo);
-    return cls.IsAssignableTo(AbstractTypeArguments::Handle(arguments()),
-                              Class::Handle(other.type_class()),
-                              AbstractTypeArguments::Handle(other.arguments()),
-                              malformed_error);
-  }
+  return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
+                         Class::Handle(other.type_class()),
+                         AbstractTypeArguments::Handle(other.arguments()),
+                         malformed_error);
 }
 
 RawAbstractType* AbstractType::NewTypeParameter(
@@ -2751,12 +2707,18 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
 }
 
 
-static RawError* FormatError(const Script& script,
+static RawError* FormatError(const Error& prev_error,
+                             const Script& script,
                              intptr_t token_index,
                              const char* format, ...) {
   va_list args;
   va_start(args, format);
-  return Parser::FormatError(script, token_index, "Error", format, args);
+  if (prev_error.IsNull()) {
+    return Parser::FormatError(script, token_index, "Error", format, args);
+  } else {
+    return Parser::FormatErrorWithAppend(prev_error, script, token_index,
+                                         "Error", format, args);
+  }
 }
 
 
@@ -2779,10 +2741,16 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
     bound = bounds.TypeAt(i);
     if (!bound.IsDynamicType()) {
       type = TypeAt(offset + i);
-      if (!bound.IsInstantiated()) {
+      Error& malformed_bound_error = Error::Handle();
+      if (bound.IsMalformed()) {
+        malformed_bound_error = bound.malformed_error();
+      } else if (!bound.IsInstantiated()) {
         bound = bound.InstantiateFrom(bounds_instantiator);
       }
-      if (!type.IsSubtypeOf(bound, malformed_error)) {
+      if (!malformed_bound_error.IsNull() ||
+          !type.IsSubtypeOf(bound, malformed_error)) {
+        // Ignore this bound error if another malformed error was already
+        // reported for this type test.
         if (malformed_error->IsNull()) {
           const String& type_argument_name = String::Handle(type.Name());
           const String& class_name = String::Handle(cls.Name());
@@ -2793,7 +2761,8 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
           const TypeArguments& type_parameters =
               TypeArguments::Handle(cls.type_parameters());
           type = type_parameters.TypeAt(i);
-          *malformed_error ^= FormatError(script, type.token_index(),
+          *malformed_error ^= FormatError(malformed_bound_error,
+                                          script, type.token_index(),
                                           "type argument '%s' does not "
                                           "extend bound '%s' of '%s'\n",
                                           type_argument_name.ToCString(),
@@ -2816,7 +2785,7 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
 }
 
 
-bool AbstractTypeArguments::IsMoreSpecificThan(
+bool AbstractTypeArguments::IsSubtypeOf(
     const AbstractTypeArguments& other,
     intptr_t len,
     Error* malformed_error) const {
@@ -2830,7 +2799,7 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
     ASSERT(!type.IsNull());
     other_type = other.TypeAt(i);
     ASSERT(!other_type.IsNull());
-    if (!type.IsMoreSpecificThan(other_type, malformed_error)) {
+    if (!type.IsSubtypeOf(other_type, malformed_error)) {
       return false;
     }
   }
@@ -2839,7 +2808,11 @@ bool AbstractTypeArguments::IsMoreSpecificThan(
 
 
 const char* AbstractTypeArguments::ToCString() const {
-  // AbstractTypeArguments is an abstract class.
+  // AbstractTypeArguments is an abstract class, valid only for representing
+  // null.
+  if (IsNull()) {
+    return "NULL AbstractTypeArguments";
+  }
   UNREACHABLE();
   return "AbstractTypeArguments";
 }
@@ -3406,8 +3379,7 @@ bool Function::TestParameterType(
 }
 
 
-bool Function::TestType(
-    TypeTestKind test,
+bool Function::IsSubtypeOf(
     const AbstractTypeArguments& type_arguments,
     const Function& other,
     const AbstractTypeArguments& other_type_arguments,
@@ -3417,8 +3389,7 @@ bool Function::TestType(
   const intptr_t other_num_fixed_params = other.num_fixed_parameters();
   const intptr_t other_num_opt_params = other.num_optional_parameters();
   if ((num_fixed_params != other_num_fixed_params) ||
-      ((test == AbstractType::kIsSubtypeOf) &&
-       (num_opt_params < other_num_opt_params))) {
+      (num_opt_params < other_num_opt_params)) {
     return false;
   }
   // Check the result type.
@@ -3446,38 +3417,16 @@ bool Function::TestType(
     }
   }
   // Check the names and types of optional parameters.
-  if (num_opt_params >= other_num_opt_params) {
-    // Check that for each optional named parameter of type T of the other
-    // function type, there is a corresponding optional named parameter of this
-    // function at the same position with an identical name and with a type S
-    // that is a subtype or supertype of T.
-    // Note that SetParameterNameAt() guarantees that names are symbols, so we
-    // can compare their raw pointers.
-    const intptr_t other_num_params =
-        other_num_fixed_params + other_num_opt_params;
-    String& other_param_name = String::Handle();
-    for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
-      other_param_name = other.ParameterNameAt(i);
-      if ((ParameterNameAt(i) != other_param_name.raw()) ||
-          !TestParameterType(i, type_arguments, other, other_type_arguments,
-                             malformed_error)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  ASSERT((test == AbstractType::kIsAssignableTo) &&
-         (num_opt_params < other_num_opt_params));
-  // To verify that this function type is assignable to the other function type,
-  // check that for each optional named parameter of type T of this function
-  // type, there is a corresponding optional named parameter of the other
-  // function at the same position with an identical name and with a type S that
-  // is a subtype or supertype of T.
+  // Check that for each optional named parameter of type T of the other
+  // function type, there is a corresponding optional named parameter of this
+  // function at the same position with an identical name and with a type S
+  // that is a subtype or supertype of T.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
-  const intptr_t num_params = num_fixed_params + num_opt_params;
+  const intptr_t other_num_params =
+      other_num_fixed_params + other_num_opt_params;
   String& other_param_name = String::Handle();
-  for (intptr_t i = num_fixed_params; i < num_params; i++) {
+  for (intptr_t i = other_num_fixed_params; i < other_num_params; i++) {
     other_param_name = other.ParameterNameAt(i);
     if ((ParameterNameAt(i) != other_param_name.raw()) ||
         !TestParameterType(i, type_arguments, other, other_type_arguments,
@@ -4943,6 +4892,16 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitMirrorsLibrary(Isolate* isolate) {
+  const String& url = String::Handle(String::NewSymbol("dart:mirrors"));
+  const Library& lib = Library::Handle(Library::New(url));
+  lib.Register();
+  const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  lib.AddImport(isolate_lib);
+  isolate->object_store()->set_mirrors_library(lib);
+}
+
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
@@ -5052,6 +5011,11 @@ RawLibrary* Library::CoreImplLibrary() {
 
 RawLibrary* Library::IsolateLibrary() {
   return Isolate::Current()->object_store()->isolate_library();
+}
+
+
+RawLibrary* Library::MirrorsLibrary() {
+  return Isolate::Current()->object_store()->mirrors_library();
 }
 
 
@@ -5424,6 +5388,114 @@ void PcDescriptors::Verify(bool check_ids) const {
 }
 
 
+// Return the bit offset of the highest bit set.
+intptr_t Stackmap::Maximum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = (bound - 1); i >= 0; i--) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMaximum;
+}
+
+
+// Return the bit offset of the lowest bit set.
+intptr_t Stackmap::Minimum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = 0; i < bound; i++) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMinimum;
+}
+
+
+bool Stackmap::GetBit(intptr_t bit_offset) const {
+  ASSERT(InRange(bit_offset));
+  int byte_offset = bit_offset >> kBitsPerByteLog2;
+  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  uint8_t byte = raw_ptr()->data_[byte_offset];
+  return (byte & byte_mask);
+}
+
+
+void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
+  ASSERT(InRange(bit_offset));
+  int byte_offset = bit_offset >> kBitsPerByteLog2;
+  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  uint8_t* byte_addr = &(raw_ptr()->data_[byte_offset]);
+  if (value) {
+    *byte_addr |= byte_mask;
+  } else {
+    *byte_addr &= ~byte_mask;
+  }
+}
+
+
+RawStackmap* Stackmap::New(uword pc, const Code& code, BitmapBuilder* bmap) {
+  const Class& cls = Class::Handle(Object::stackmap_class());
+  ASSERT(!cls.IsNull());
+  ASSERT(bmap != NULL);
+  Stackmap& result = Stackmap::Handle();
+  intptr_t size = bmap->SizeInBytes();
+  {
+    // Stackmap data objects are associated with a code object, allocate them
+    // in old generation.
+    RawObject* raw =
+        Object::Allocate(cls, Stackmap::InstanceSize(size), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.set_bitmap_size_in_bytes(size);
+  }
+  result.set_pc(pc);
+  result.set_code(code);
+  intptr_t bound = bmap->SizeInBits();
+  for (intptr_t i = 0; i < bound; i++) {
+    result.SetBit(i, bmap->Get(i));
+  }
+  return result.raw();
+}
+
+
+void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  raw_ptr()->bitmap_size_in_bytes_ = Smi::New(value);
+}
+
+
+void Stackmap::set_pc(uword value) const {
+  raw_ptr()->pc_ = value;
+}
+
+
+void Stackmap::set_code(const Code& code) const {
+  StorePointer(&raw_ptr()->code_, code.raw());
+}
+
+
+const char* Stackmap::ToCString() const {
+  if (IsNull()) {
+    return "{null}";
+  } else {
+    intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", pc());
+    intptr_t alloc_size = index + ((Maximum() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    Isolate* isolate = Isolate::Current();
+    char* chars = reinterpret_cast<char*>(
+        isolate->current_zone()->Allocate(alloc_size));
+    index = OS::SNPrint(chars, alloc_size, "0x%lx { ", pc());
+    for (intptr_t i = 0; i <= Maximum(); i++) {
+      index += OS::SNPrint((chars + index),
+                           (alloc_size - index),
+                           "%d ",
+                           IsObject(i) ? 1 : 0);
+    }
+    OS::SNPrint((chars + index), (alloc_size - index), "}");
+    return chars;
+  }
+}
+
+
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
@@ -5712,16 +5784,17 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 
 void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<const ICData*>* ic_data_objs) const {
+    const GrowableObjectArray& ic_data_objs) const {
   ASSERT(node_ids != NULL);
-  ASSERT(ic_data_objs != NULL);
+  ASSERT(!ic_data_objs.IsNull());
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
+  ICData& ic_data_obj = ICData::Handle();
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
       node_ids->Add(descriptors.NodeId(i));
-      ic_data_objs->Add(&ICData::ZoneHandle(
-          CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
+      ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
+      ic_data_objs.Add(ic_data_obj);
     }
   }
 }
@@ -5831,6 +5904,123 @@ void ContextScope::SetContextLevelAt(intptr_t scope_index,
 
 const char* ContextScope::ToCString() const {
   return "ContextScope";
+}
+
+
+const char* ICData::ToCString() const {
+  return "ICData";
+}
+
+
+void ICData::set_function(const Function& value) const {
+  raw_ptr()->function_ = value.raw();
+}
+
+
+void ICData::set_target_name(const String& value) const {
+  raw_ptr()->target_name_ = value.raw();
+}
+
+
+void ICData::set_id(intptr_t value) const {
+  raw_ptr()->id_ = value;
+}
+
+
+void ICData::set_num_args_tested(intptr_t value) const {
+  raw_ptr()->num_args_tested_ = value;
+}
+
+
+void ICData::set_ic_data(const Array& value) const {
+  raw_ptr()->ic_data_ = value.raw();
+}
+
+
+intptr_t ICData::TestEntryLength() const {
+  return num_args_tested() + 1 /* target function*/;
+}
+
+
+intptr_t ICData::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
+}
+
+
+void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+                      const Function& target) const {
+  ASSERT(classes.length() == num_args_tested());
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  for (intptr_t i = 0; i < classes.length(); i++) {
+    // Null is used as terminating value, do not add it.
+    ASSERT(!classes[i]->IsNull());
+    data.SetAt(data_pos++, *(classes[i]));
+  }
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos, target);
+}
+
+
+void ICData::GetCheckAt(intptr_t index,
+                        GrowableArray<const Class*>* classes,
+                        Function* target) const {
+  ASSERT(classes != NULL);
+  ASSERT(target != NULL);
+  classes->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < num_args_tested(); i++) {
+    Class& cls = Class::ZoneHandle();
+    cls ^= data.At(data_pos++);
+    classes->Add(&cls);
+  }
+  (*target) ^= data.At(data_pos);
+}
+
+
+void ICData::GetOneClassCheckAt(
+    int index, Class* cls, Function* target) const {
+  ASSERT(cls != NULL);
+  ASSERT(target != NULL);
+  ASSERT(num_args_tested() == 1);
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  *cls ^= data.At(data_pos);
+  *target ^= data.At(data_pos + 1);
+}
+
+
+RawICData* ICData::New(const Function& function,
+                       const String& target_name,
+                       intptr_t id,
+                       intptr_t num_args_tested) {
+  ASSERT(num_args_tested > 0);
+  const Class& cls = Class::Handle(Object::icdata_class());
+  ASSERT(!cls.IsNull());
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects ar long living objects, allocate them in old generation.
+    RawObject* raw =
+    Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_function(function);
+  result.set_target_name(target_name);
+  result.set_id(id);
+  result.set_num_args_tested(num_args_tested);
+  // Number of array elements in one test entry (num_args_tested + 1)
+  intptr_t len = result.TestEntryLength();
+  // IC data array must be null terminated (sentinel entry).
+  const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  result.set_ic_data(ic_data);
+  return result.raw();
 }
 
 
@@ -6096,32 +6286,26 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
 }
 
 
-bool Instance::TestType(TypeTestKind test,
-                        const AbstractType& other,
-                        const AbstractTypeArguments& other_instantiator,
-                        Error* malformed_error) const {
+bool Instance::IsInstanceOf(const AbstractType& other,
+                            const AbstractTypeArguments& other_instantiator,
+                            Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
   if (IsNull()) {
-    if (test == AbstractType::kIsSubtypeOf) {
-      Class& other_class = Class::Handle();
-      if (other.IsTypeParameter()) {
-        if (other_instantiator.IsNull()) {
-          return true;  // Other type is uninstantiated, i.e. Dynamic.
-        }
-        const AbstractType& instantiated_other =
-            AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
-        ASSERT(instantiated_other.IsInstantiated());
-        other_class = instantiated_other.type_class();
-      } else {
-        other_class = other.type_class();
+    Class& other_class = Class::Handle();
+    if (other.IsTypeParameter()) {
+      if (other_instantiator.IsNull()) {
+        return true;  // Other type is uninstantiated, i.e. Dynamic.
       }
-      return other_class.IsObjectClass() || other_class.IsDynamicClass();
+      const AbstractType& instantiated_other =
+          AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
+      ASSERT(instantiated_other.IsInstantiated());
+      other_class = instantiated_other.type_class();
     } else {
-      ASSERT(test == AbstractType::kIsAssignableTo);
-      return true;
+      other_class = other.type_class();
     }
+    return other_class.IsObjectClass() || other_class.IsDynamicClass();
   }
   const Class& cls = Class::Handle(clazz());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
@@ -6163,8 +6347,8 @@ bool Instance::TestType(TypeTestKind test,
           other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
-  return cls.TestType(test, type_arguments, other_class, other_type_arguments,
-                      malformed_error);
+  return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
+                         malformed_error);
 }
 
 
@@ -7379,6 +7563,23 @@ RawString* String::NewSymbol(const String& str,
 }
 
 
+RawString* String::NewFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  Zone* zone = Isolate::Current()->current_zone();
+  char* buffer = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  return String::New(buffer);
+}
+
+
 RawString* String::Concat(const String& str1,
                           const String& str2,
                           Heap::Space space) {
@@ -7836,7 +8037,7 @@ static void AddFinalizer(const Object& referent,
   ASSERT(callback != NULL);
   ApiState* state = Isolate::Current()->api_state();
   ASSERT(state != NULL);
-  WeakPersistentHandle* weak_ref =
+  FinalizablePersistentHandle* weak_ref =
       state->weak_persistent_handles().AllocateHandle();
   weak_ref->set_raw(referent);
   weak_ref->set_peer(peer);
@@ -7875,8 +8076,8 @@ RawExternalOneByteString* ExternalOneByteString::New(
 static void DeleteWeakPersistentHandle(Dart_Handle handle) {
   ApiState* state = Isolate::Current()->api_state();
   ASSERT(state != NULL);
-  WeakPersistentHandle* weak_ref =
-      reinterpret_cast<WeakPersistentHandle*>(handle);
+  FinalizablePersistentHandle* weak_ref =
+      reinterpret_cast<FinalizablePersistentHandle*>(handle);
   ASSERT(state->IsValidWeakPersistentHandle(handle));
   state->weak_persistent_handles().FreeHandle(weak_ref);
 }
@@ -8705,120 +8906,6 @@ const char* JSRegExp::ToCString() const {
       Isolate::Current()->current_zone()->Allocate(len + 1));
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
-}
-
-
-const char* ICData::ToCString() const {
-  return "ICData";
-}
-
-
-void ICData::set_function(const Function& value) const {
-  raw_ptr()->function_ = value.raw();
-}
-
-
-void ICData::set_target_name(const String& value) const {
-  raw_ptr()->target_name_ = value.raw();
-}
-
-
-void ICData::set_id(intptr_t value) const {
-  raw_ptr()->id_ = value;
-}
-
-
-void ICData::set_num_args_tested(intptr_t value) const {
-  raw_ptr()->num_args_tested_ = value;
-}
-
-
-void ICData::set_ic_data(const Array& value) const {
-  raw_ptr()->ic_data_ = value.raw();
-}
-
-
-intptr_t ICData::TestEntryLength() const {
-  return num_args_tested() + 1 /* target function*/;
-}
-
-
-intptr_t ICData::NumberOfChecks() const {
-  // Do not count the sentinel;
-  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
-}
-
-
-void ICData::AddCheck(const GrowableArray<const Class*>& classes,
-                      const Function& target) const {
-  ASSERT(classes.length() == num_args_tested());
-  intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(ic_data());
-  intptr_t new_len = data.Length() + TestEntryLength();
-  data = Array::Grow(data, new_len, Heap::kOld);
-  set_ic_data(data);
-  intptr_t data_pos = old_num * TestEntryLength();
-  for (intptr_t i = 0; i < classes.length(); i++) {
-    // Null is used as terminating value, do not add it.
-    ASSERT(!classes[i]->IsNull());
-    data.SetAt(data_pos++, *(classes[i]));
-  }
-  ASSERT(!target.IsNull());
-  data.SetAt(data_pos, target);
-}
-
-
-void ICData::GetCheckAt(intptr_t index,
-                        GrowableArray<const Class*>* classes,
-                        Function* target) const {
-  ASSERT(classes != NULL);
-  ASSERT(target != NULL);
-  classes->Clear();
-  const Array& data = Array::Handle(ic_data());
-  intptr_t data_pos = index * TestEntryLength();
-  for (intptr_t i = 0; i < num_args_tested(); i++) {
-    Class& cls = Class::ZoneHandle();
-    cls ^= data.At(data_pos++);
-    classes->Add(&cls);
-  }
-  (*target) ^= data.At(data_pos);
-}
-
-
-void ICData::GetOneClassCheckAt(
-    int index, Class* cls, Function* target) const {
-  ASSERT(num_args_tested() == 1);
-  GrowableArray<const Class*> classes;
-  GetCheckAt(index, &classes, target);
-  *cls = classes[0]->raw();
-}
-
-
-RawICData* ICData::New(const Function& function,
-                       const String& target_name,
-                       intptr_t id,
-                       intptr_t num_args_tested) {
-  ASSERT(num_args_tested > 0);
-  const Class& cls = Class::Handle(Object::icdata_class());
-  ASSERT(!cls.IsNull());
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects ar long living objects, allocate them in old generation.
-    RawObject* raw =
-        Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  result.set_function(function);
-  result.set_target_name(target_name);
-  result.set_id(id);
-  result.set_num_args_tested(num_args_tested);
-  // Number of array elements in one test entry (num_args_tested + 1)
-  intptr_t len = result.TestEntryLength();
-  // IC data array must be null terminated (sentinel entry).
-  Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
-  result.set_ic_data(ic_data);
-  return result.raw();
 }
 
 }  // namespace dart

@@ -5,15 +5,16 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.MethodElement;
 
 /**
  * Represents a Dart array access expression (a[b]).
  */
-public class DartArrayAccess extends DartExpression implements ElementReference {
+public class DartArrayAccess extends DartExpression {
 
   private DartExpression target;
   private DartExpression key;
-  private Element referencedElement;
+  private MethodElement element;
 
   public DartArrayAccess(DartExpression target, DartExpression key) {
     this.target = becomeParentOf(target);
@@ -45,12 +46,12 @@ public class DartArrayAccess extends DartExpression implements ElementReference 
   }
 
   @Override
-  public Element getReferencedElement() {
-    return referencedElement;
+  public MethodElement getElement() {
+    return element;
   }
 
   @Override
-  public void setReferencedElement(Element element) {
-    referencedElement = element;
+  public void setElement(Element element) {
+    this.element = (MethodElement) element;
   }
 }

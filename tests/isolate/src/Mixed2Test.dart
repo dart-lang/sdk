@@ -114,13 +114,13 @@ void test(TestExpectation expect) {
 
   heavy2.then(expect.runs1((SendPort heavy2Port) {
     heavy3.then(expect.runs1((SendPort heavy3Port) {
-      heavy2Port.call(heavy3Port).receive(expect.runs2((h2l1Port, ignored) {
+      heavy2Port.call(heavy3Port).then(expect.runs1((h2l1Port) {
         heavy1.then(expect.runs1((SendPort heavy1Port) {
           heavy1Port.send(h2l1Port, null);
           // ---------------
           // Setup complete.
           // Start the chain-message.
-          heavy1Port.call(1).receive(expect.runs2((result, ignored) {
+          heavy1Port.call(1).then(expect.runs1((result) {
             Expect.equals(6531, result);
             expect.succeeded();
           }));

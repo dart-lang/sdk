@@ -55,7 +55,7 @@ class StringInterpolationTest {
     Expect.equals("}", "escaped     \${3+2}"[17]);
 
     if (alwaysFalse) {
-      "${i.toHorse()}"; /// 01: static type error
+      "${i.toHorse()}"; /// 01: static type warning
     }
   }
 

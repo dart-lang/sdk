@@ -4,8 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.List;
 /**
  * Named function-type alias AST node.
  */
-public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> implements HasSymbol {
+public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> {
 
   private DartTypeNode returnTypeNode;
   private final NodeList<DartParameter> parameters = NodeList.create(this);
@@ -42,7 +41,7 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
   }
 
   @Override
-  public FunctionAliasElement getSymbol() {
+  public FunctionAliasElement getElement() {
     return element;
   }
 
@@ -51,8 +50,8 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> imple
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    element = (FunctionAliasElement) symbol;
+  public void setElement(Element element) {
+    this.element = (FunctionAliasElement) element;
   }
 
   @Override

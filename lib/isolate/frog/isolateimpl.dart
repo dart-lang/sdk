@@ -19,6 +19,21 @@ void _fillStatics(context) native @"""
   $static_init();
 """;
 
+ReceivePort _port;
+
+SendPort _spawnFunction(void topLevelFunction()) {
+  final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
+  if (name == null) {
+    throw new UnsupportedOperationException(
+        "only top-level functions can be spawned.");
+  }
+  return _IsolateNatives._spawn2(name, null, false);
+}
+
+SendPort _spawnUri(String uri) {
+  return _IsolateNatives._spawn2(null, uri, false);
+}
+
 /** Global state associated with the current worker. See [globalState]. */
 // TODO(sigmund): split in multiple classes: global, thread, main-worker states?
 class _GlobalState {
@@ -139,7 +154,7 @@ class _IsolateContext {
   }
 
   // these are filled lazily the first time the isolate starts running.
-  void initGlobals() native 'this.isolateStatics = {};';
+  void initGlobals() native @'$initGlobals(this);';
 
   /**
    * Run [code] in the context of the isolate represented by [this]. Note this
@@ -159,7 +174,7 @@ class _IsolateContext {
     return result;
   }
 
-  void _setGlobals() native @'$globals = this.isolateStatics;';
+  void _setGlobals() native @'$setGlobals(this);';
 
   /** Lookup a port registered for this isolate. */
   ReceivePort lookup(int id) => ports[id];
@@ -182,6 +197,16 @@ class _IsolateContext {
   }
 }
 
+// We don't want to import the DOM library just because of window.setTimeout,
+// so we reconstruct the Window class here. The only conflict that could happen
+// with the other DOMWindow class would be because of subclasses.
+// Currently, none of the two Dart classes have subclasses.
+typedef void _TimeoutHandler();
+class _Window native "@*DOMWindow" {
+  int setTimeout(_TimeoutHandler handler, int timeout) native;
+}
+_Window get _window() native
+    """return typeof window != 'undefined' ? window : (void 0);""";
 
 /** Represent the event loop on a javascript thread (DOM or worker). */
 class _EventLoop {
@@ -209,23 +234,16 @@ class _EventLoop {
     return true;
   }
 
-  /** Function equivalent to [:window.setTimeout:] when available, or null. */
-  static Function _wrapSetTimeout() native """
-      return typeof window != 'undefined' ?
-          function(a, b) { window.setTimeout(a, b); } : undefined;
-  """;
-
   /**
    * Runs multiple iterations of the run-loop. If possible, each iteration is
    * run asynchronously.
    */
   void _runHelper() {
-    final setTimeout = _wrapSetTimeout();
-    if (setTimeout != null) {
+    if (_window != null) {
       // Run each iteration from the browser's top event loop.
       void next() {
         if (!runIteration()) return;
-        setTimeout(next, 0);
+        _window.setTimeout(next, 0);
       }
       next();
     } else {
@@ -293,8 +311,9 @@ class _IsolateNatives {
   /** JavaScript-specific implementation to spawn an isolate. */
   static Future<SendPort> spawn(Isolate isolate, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
-    ReceivePort port = new ReceivePort.singleShot();
+    ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
+      port.close();
       assert(msg == _SPAWNED_SIGNAL);
       completer.complete(replyPort);
     });
@@ -338,7 +357,7 @@ class _IsolateNatives {
   // TODO(sigmund): fix - this code should be run synchronously when loading the
   // script. Running lazily on DOMContentLoaded will yield incorrect results.
   static String _computeThisScript() native @"""
-    if (!$globalState.supportsWorkers || $globalState.isWorker) return null;
+    if (!$globalState.supportsWorkers || $globalState.isWorker) return (void 0);
 
     // TODO(5334778): Find a cross-platform non-brittle way of getting the
     // currently running script.
@@ -507,9 +526,9 @@ class _IsolateNatives {
     // in discussion on the CL, 9416119.
     native @"""
     if (typeof(f.name) === 'undefined') {
-      return (f.toString().match(/function (.+)\(/) || [, null])[1];
+      return (f.toString().match(/function (.+)\(/) || [, (void 0)])[1];
     } else {
-      return f.name || null;
+      return f.name || (void 0);
     }
   """;
 
@@ -543,8 +562,9 @@ class _IsolateNatives {
 
   static _spawn2(String functionName, String uri, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
-    ReceivePort port = new ReceivePort.singleShot();
+    ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
+      port.close();
       assert(msg == _SPAWNED_SIGNAL);
       completer.complete(replyPort);
     });

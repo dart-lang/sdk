@@ -45,6 +45,7 @@ _private_html_members = set([
   'Node.attributes',
   'Node.childNodes',
   'Document.createElement',
+  'Document.createElementNS',
   'Document.createEvent',
   'Document.createTextNode',
   'Document.createTouchList',
@@ -112,6 +113,8 @@ _html_library_remove = set([
     "Document.get:inputEncoding",
     "Document.getElementById",
     "Document.getElementsByClassName",
+    "Document.get:height",
+    "Document.get:width",
     "Element.getElementsByClassName",
     "Element.getElementsByTagNameNS",
     "Element.getElementsByTagName",
@@ -129,7 +132,6 @@ _html_library_remove = set([
     "Document.createAttribute",
     "Document.querySelectorAll",
     "Document.get:URL",
-    "Document.createElementNS",
     "Document.createEntityReference",
     "Document.get:documentURI",
     "Document.set:documentURI",
@@ -196,6 +198,7 @@ _html_library_remove = set([
     "Element.itemId",
     "Element.get:itemProp",
     'Element.scrollIntoView',
+    'Element.get:classList',
     "EmbedElement.getSVGDocument",
     "FormElement.get:elements",
     "HTMLFrameElement.*",
@@ -383,6 +386,11 @@ _html_event_names = {
   'webkitTransitionEnd': 'transitionEnd'
 }
 
+# These classes require an explicit declaration for the "on" method even though
+# they don't declare any unique events, because the concrete class hierarchy
+# doesn't match the interface hierarchy.
+_html_explicit_event_classes = set(['DocumentFragment'])
+
 def _OnAttributeToEventName(on_method):
   event_name = on_method.id[2:]
   if event_name in _on_attribute_to_event_name_mapping:
@@ -474,9 +482,9 @@ class HtmlSystemShared(object):
 
   # TODO(jacobr): this isn't quite right.... 
   def GetParentsEventsClasses(self, interface):
-    # Ugly hack as we don't specify that Document inherits from Element
-    # in our IDL.
-    if interface.id == 'Document':
+    # Ugly hack as we don't specify that Document and DocumentFragment inherit
+    # from Element in our IDL.
+    if interface.id == 'Document' or interface.id == 'DocumentFragment':
       return ['ElementEvents']
 
     interfaces_with_events = set()
@@ -493,8 +501,29 @@ class HtmlSystemShared(object):
         names.append(interface.id + 'Events')
       return names
 
+  def GetParentEventsClass(self, interface):
+    parent_event_classes = self.GetParentsEventsClasses(interface)
+    if len(parent_event_classes) != 1:
+      raise Exception('Only one parent event class allowed ' + interface.id)
+    return parent_event_classes[0]
+
   def _ImplClassName(self, type_name):
     return '_' + type_name + 'Impl'
+
+  # This returns two values: the first is whether or not an "on" property should
+  # be generated for the interface, and the second is the event attributes to
+  # generate if it should.
+  def GetEventAttributes(self, interface):
+    events =  set([attr for attr in interface.attributes
+                   if self._generator._IsEventAttribute(interface, attr)])
+
+    if events or interface.id in _html_explicit_event_classes:
+      return True, events
+    else:
+      return False, None
+
+  def IsPrivate(self, name):
+    return name.startswith('_')
 
 class HtmlSystem(System):
 
@@ -628,15 +657,23 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         CTOR=self._interface.id,
         TYPE=DartType(element_type))
 
+    emit_events, events = self._shared.GetEventAttributes(self._interface)
+    if not emit_events:
+      return
+    elif events:
+      self.AddEventAttributes(events)
+    else:
+      self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+
   def AddAttribute(self, getter, setter):
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+      self._interface, DartDomNameOfAttribute(getter), 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+      self._interface, DartDomNameOfAttribute(getter), 'set:')
 
-    if not html_getter_name:
+    if not html_getter_name or self._shared.IsPrivate(html_getter_name):
       getter = None
-    if not html_setter_name:
+    if not html_setter_name or self._shared.IsPrivate(html_setter_name):
       setter = None
     if not getter and not setter:
       return
@@ -665,7 +702,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         name.
     """
     html_name = self._shared.RenameInHtmlLibrary(self._interface, info.name)
-    if html_name:
+    if html_name and not self._shared.IsPrivate(html_name):
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
                                  TYPE=info.type_name,         
@@ -682,8 +719,8 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
     self._shared._event_classes.add(self._interface.id)
     events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit('\n  $TYPE get on();\n',
-                               TYPE=events_interface)
+    self._EmitEventGetter(events_interface)
+
     events_members = self._emitter.Emit(
         '\ninterface $INTERFACE extends $PARENTS {\n$!MEMBERS}\n',
         INTERFACE=events_interface,
@@ -696,6 +733,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
           NAME=_html_event_names[event_name])
       else:
         raise Exception('No known html even name for event: ' + event_name)
+
+  def _EmitEventGetter(self, events_interface):
+    self._members_emitter.Emit('\n  $TYPE get on();\n',
+                               TYPE=events_interface)
 
 # ------------------------------------------------------------------------------
 
@@ -757,6 +798,15 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     constructor_info = AnalyzeConstructor(interface)
     if constructor_info:
       self._EmitFactoryProvider(interface_name, constructor_info)
+
+    emit_events, events = self._shared.GetEventAttributes(self._interface)
+    if not emit_events:
+      return
+    elif events:
+      self.AddEventAttributes(events)
+    else:
+      parent_events_class = self._shared.GetParentEventsClass(self._interface)
+      self._EmitEventGetter('_' + parent_events_class + 'Impl')
 
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
@@ -825,9 +875,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   def AddAttribute(self, getter, setter):
   
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+      self._interface, DartDomNameOfAttribute(getter), 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+      self._interface, DartDomNameOfAttribute(getter), 'set:')
 
     if not html_getter_name:
       getter = None
@@ -863,7 +913,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_getter_interface.id,
-              NAME=getter.id,
+              NAME=DartDomNameOfAttribute(getter),
               TYPE=output_type)
           return
 
@@ -876,13 +926,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if getter and setter and input_type == output_type:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
-          NAME=getter.id,
+          NAME=DartDomNameOfAttribute(getter),
           TYPE=output_type)
       return
     if getter and not setter:
       self._members_emitter.Emit(
           '\n  final $TYPE $NAME;\n',
-          NAME=getter.id,
+          NAME=DartDomNameOfAttribute(getter),
           TYPE=output_type)
       return
     self._AddAttributeUsingProperties(getter, setter)
@@ -894,10 +944,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    self._AddRenamingGetter(attr, attr.id)
+    self._AddRenamingGetter(attr, DartDomNameOfAttribute(attr))
 
   def _AddSetter(self, attr):
-    self._AddRenamingSetter(attr, attr.id)
+    self._AddRenamingSetter(attr, DartDomNameOfAttribute(attr))
 
   def _AddRenamingGetter(self, attr, html_name):
     return_type = self._NarrowOutputType(attr.type.id)
@@ -906,7 +956,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         '\n  $TYPE get $(HTML_NAME)() => '
         '_FixHtmlDocumentReference(_$(HTML_NAME));\n',
         HTML_NAME=html_name,
-        NAME=attr.id,
         TYPE=return_type)
       html_name = '_' + html_name
       # For correctness this needs to be the return type of the native helper
@@ -986,19 +1035,11 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
     events_class = '_' + self._interface.id + 'EventsImpl'
     events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit(
-        '\n  $TYPE get on() =>\n    new $TYPE($EVENTTARGET);\n',
-        TYPE=events_class,
-        EVENTTARGET='_jsDocument' if self._interface.id == 'Document'
-            else 'this')
+    self._EmitEventGetter(events_class)
 
     self._shared._event_classes.add(self._interface.id)
 
-    parent_event_classes = self._shared.GetParentsEventsClasses(
-        self._interface)
-    if len(parent_event_classes) != 1:
-      raise Exception('Only one parent event class allowed '
-          + self._interface.id)
+    parent_event_class = self._shared.GetParentEventsClass(self._interface)
 
     # TODO(jacobr): specify the type of _ptr as EventTarget
     events_members = self._dart_code.Emit(
@@ -1008,7 +1049,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         '$!MEMBERS}\n',
         CLASSNAME=events_class,
         INTERFACE=events_interface,
-        SUPER='_' + parent_event_classes[0] + 'Impl')
+        SUPER='_' + parent_event_class + 'Impl')
 
     for event_name in event_attrs:
       if event_name in _html_event_names:
@@ -1019,6 +1060,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
             NAME=_html_event_names[event_name])
       else:
         raise Exception('No known html even name for event: ' + event_name)
+
+  def _EmitEventGetter(self, events_class):
+    self._members_emitter.Emit(
+        '\n  $TYPE get on() =>\n    new $TYPE($EVENTTARGET);\n',
+        TYPE=events_class,
+        EVENTTARGET='_jsDocument' if self._interface.id == 'Document'
+            else 'this')
 
 # ------------------------------------------------------------------------------
 
@@ -1237,6 +1285,15 @@ class HtmlDartiumInterfaceGenerator(object):
     if constructor_info:
       self._EmitFactoryProvider(interface_name, constructor_info)
 
+    emit_events, events = self._shared.GetEventAttributes(self._interface)
+    if not emit_events:
+      return
+    elif events:
+      self.AddEventAttributes(events)
+    else:
+      parent_events_class = self._shared.GetParentEventsClass(self._interface)
+      self._EmitEventGetter('_' + parent_events_class + 'Impl')
+
   def _EmitFactoryProvider(self, interface_name, constructor_info):
     template_file = 'factoryprovider_%s.darttemplate' % interface_name
     template = self._system._templates.TryLoad(template_file)
@@ -1303,10 +1360,11 @@ class HtmlDartiumInterfaceGenerator(object):
     return method_name
 
   def AddAttribute(self, getter, setter):
+    dom_name = DartDomNameOfAttribute(getter or setter)
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'get:')
+        self._interface, dom_name, 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, getter.id, 'set:')
+        self._interface, dom_name, 'set:')
 
     if getter and html_getter_name:
       self._AddGetter(getter, html_getter_name)
@@ -1318,26 +1376,27 @@ class HtmlDartiumInterfaceGenerator(object):
       self._members_emitter.Emit(
           '\n'
           '  $TYPE get $(HTML_NAME)() => '
-          '_FixHtmlDocumentReference(_wrap($(THIS).$NAME));\n',
-          NAME=attr.id,
+          '_FixHtmlDocumentReference(_wrap($(THIS).$DOM_NAME));\n',
           HTML_NAME=html_name,
+          DOM_NAME=DartDomNameOfAttribute(attr),
           TYPE=DartType(attr.type.id),
           THIS=self.DomObjectName())
     else:
       self._members_emitter.Emit(
         '\n'
-        '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$NAME);\n',
-        NAME=attr.id,
+        '  $TYPE get $(HTML_NAME)() => _wrap($(THIS).$DOM_NAME);\n',
         HTML_NAME=html_name,
+        DOM_NAME=DartDomNameOfAttribute(attr),
         TYPE=DartType(attr.type.id),
         THIS=self.DomObjectName())
 
   def _AddSetter(self, attr, html_name):
     self._members_emitter.Emit(
         '\n'
-        '  void set $(HTML_NAME)($TYPE value) { $(THIS).$NAME = _unwrap(value); }\n',
-        NAME=attr.id,
+        '  void set $(HTML_NAME)($TYPE value) { '
+        '$(THIS).$DOM_NAME = _unwrap(value); }\n',
         HTML_NAME=html_name,
+        DOM_NAME=DartDomNameOfAttribute(attr),
         TYPE=DartType(attr.type.id),
         THIS=self.DomObjectName())
 
@@ -1353,23 +1412,11 @@ class HtmlDartiumInterfaceGenerator(object):
     event_attrs = _DomToHtmlEvents(self._interface.id, event_attrs)
     events_class = '_' + self._interface.id + 'EventsImpl'
     events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE get on() {\n'
-        '    if (_on == null) _on = new $TYPE($EVENTTARGET);\n'
-        '    return _on;\n'
-        '  }\n',
-        TYPE=events_class,
-        EVENTTARGET='_wrappedDocumentPtr' if self._interface.id == 'Document'
-            else 'this')
+    self._EmitEventGetter(events_class)
 
     self._shared._event_classes.add(self._interface.id)
 
-    parent_event_classes = self._shared.GetParentsEventsClasses(
-        self._interface)
-    if len(parent_event_classes) != 1:
-      raise Exception('Only one parent event class allowed '
-          + self._interface.id)
+    parent_event_class = self._shared.GetParentEventsClass(self._interface)
 
     # TODO(jacobr): specify the type of _ptr as EventTarget
     events_members = self._dart_code.Emit(
@@ -1379,7 +1426,7 @@ class HtmlDartiumInterfaceGenerator(object):
         '$!MEMBERS}\n',
         CLASSNAME=events_class,
         INTERFACE=events_interface,
-        SUPER='_' + parent_event_classes[0] + 'Impl')
+        SUPER='_' + parent_event_class + 'Impl')
 
     for event_name in event_attrs:
       if event_name in _html_event_names:
@@ -1390,6 +1437,17 @@ class HtmlDartiumInterfaceGenerator(object):
             NAME=_html_event_names[event_name])
       else:
         raise Exception('No known html even name for event: ' + event_name)
+
+  def _EmitEventGetter(self, events_class):
+    self._members_emitter.Emit(
+        '\n'
+        '  $TYPE get on() {\n'
+        '    if (_on == null) _on = new $TYPE($EVENTTARGET);\n'
+        '    return _on;\n'
+        '  }\n',
+        TYPE=events_class,
+        EVENTTARGET='_wrappedDocumentPtr' if self._interface.id == 'Document'
+            else 'this')
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

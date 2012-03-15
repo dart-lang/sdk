@@ -223,12 +223,12 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     OS::Print("'%s': Failed type check: line %d pos %d: ",
               String::Handle(script.url()).ToCString(), line, column);
     if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
-      OS::Print("type '%s' is not assignable to type '%s' of '%s'.\n",
+      OS::Print("type '%s' is not a subtype of type '%s' of '%s'.\n",
                 src_type_name.ToCString(),
                 dst_type_name.ToCString(),
                 dst_name.ToCString());
     } else {
-      OS::Print("malformed type used in type test.\n",
+      OS::Print("malformed type used.\n",
                 String::Handle(script.url()).ToCString(),
                 line, column);
     }
@@ -298,47 +298,64 @@ void Exceptions::ThrowByType(
 
 RawObject* Exceptions::Create(
     ExceptionType type, const GrowableArray<const Object*>& arguments) {
+  Library& library = Library::Handle();
   String& class_name = String::Handle();
   switch (type) {
     case kIndexOutOfRange:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("IndexOutOfRangeException");
       break;
     case kIllegalArgument:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("IllegalArgumentException");
       break;
     case kNoSuchMethod:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("NoSuchMethodException");
       break;
     case kClosureArgumentMismatch:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("ClosureArgumentMismatchException");
       break;
     case kObjectNotClosure:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("ObjectNotClosureException");
       break;
     case kBadNumberFormat:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("BadNumberFormatException");
       break;
     case kStackOverflow:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("StackOverflowException");
       break;
     case kOutOfMemory:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("OutOfMemoryException");
       break;
     case kWrongArgumentCount:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("WrongArgumentCountException");
       break;
     case kInternalError:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("InternalError");
       break;
     case kNullPointer:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("NullPointerException");
       break;
     case kIllegalJSRegExp:
+      library = Library::CoreLibrary();
       class_name = String::NewSymbol("IllegalJSRegExpException");
+      break;
+    case kIsolateSpawn:
+      library = Library::IsolateLibrary();
+      class_name = String::NewSymbol("IsolateSpawnException");
       break;
   }
 
-  return DartLibraryCalls::ExceptionCreate(class_name, arguments);
+  return DartLibraryCalls::ExceptionCreate(library, class_name, arguments);
 }
 
 }  // namespace dart

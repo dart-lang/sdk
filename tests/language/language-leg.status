@@ -6,42 +6,33 @@
 *: Skip
 
 
-[ $component == leg ]
+[ $component == leg || $component == legium ]
+AdjacentConstStringLiteralsTest: Crash # Issue 2110
+AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
-
-
-GetSyntaxTest/none: Fail # TODO(ahe): investigate.
-GetSetSyntaxTest/none: Fail # TODO(ahe): investigate.
-SuperImplicitClosureTest: Fail # TODO(ahe): investigate.
-FinalSyntaxTest/none: Fail # TODO(ahe): investigate.
+CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
+CompileTimeConstantFTest: Fail # We don't handle constants with optional arguments yet.
+CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
+StringInterpolation8Test: Fail # Issue 2127
 
 # Compilation errors.
 BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
-CallThroughGetterTest: Fail # Internal Error: Cannot find value
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
-ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
-DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
-DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
-DoubleToStringAsExponentialTest: Fail # -0.0 is printed as 0.0.
-DoubleToStringAsFixedTest: Fail # -0.0 is printed as 0.0.
-DoubleToStringAsPrecisionTest: Fail # -0.0 is printed as 0.0.
 DynamicTest: Fail # cannot resolve type F1
-EmptyBlockCaseTest: Fail # switch cases are not implemented
 Factory3Test: Fail # Handling of compile-time constants.
-ForTest: Fail # SsaBuilder for loop without condition not implemented
-FunctionSyntaxTest: Fail # Internal Error: Cannot find value
+FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
 FunctionTypeAlias4Test: Fail # cannot resolve type F
@@ -50,21 +41,18 @@ FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional pa
 FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
 GenericTest: Fail # cannot resolve type T
+GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
-Issue1363Test: Fail # lib is not a type
 Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
-Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
-LibrarySameNameUsedTest: Fail # lib2 is not a type
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
 MapLiteral4Test: Fail # map not implemented
-MapLiteralTest: Fail # Unexpected token ','
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-MethodNameTest: Fail # Unexpected token '('
+MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
 NamedArgumentInConstCreationTest: Fail # CompileTimeConstantEvaluator not implemented
 NamedParameters2Test: Fail # Unimplemented non-matching static call
@@ -76,31 +64,18 @@ NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-Prefix101Test: Fail # duplicate definition
-Prefix14Test: Fail # prefixes not implemented
-Prefix15Test: Fail # lib12 is not a type
-Prefix21Test: Fail # Internal Error: Element.computeType.
-Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 ResourceTest: Fail # #resource tag not recognized - issue 1807
 StatementTest: Fail # switch cases are not implemented
-StaticFieldTest: Fail # cannot resolve setValues
-StaticFinalFieldTest: Fail # map not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
+SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperTest: Fail # cannot find tokens to produce error message for i++.
-SwitchFallthruTest: Fail # switch cases are not implemented
 SwitchLabelTest: Fail # switch cases are not implemented
-SwitchTest: Fail # switch cases are not implemented
-TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
-TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
-ToplevelCollision2Test/none: Fail # duplicate definition
 TypeDartcTest: Fail # non-empty instruction stack
-WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
-WrongNumberTypeArgumentsTest*: Skip # multiple error annotations are required
 
 
 # Implementation errors (library or generated code).
@@ -124,13 +99,10 @@ Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
 ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
-LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
-PrivateMemberTest: Fail # uncaught exception in toString
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-TypedMessageTest: Fail # SyntaxError: Unexpected token this
 
 
 #
@@ -166,6 +138,7 @@ ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
 ConstInitNegativeTest: Fail, OK # Negative language test.
+ConstOptionalArgsNegativeTest: Fail, OK # 'const' keyword is not verified in literal maps.
 ConstSyntaxTest/01: Fail, OK # Negative language test.
 ConstSyntaxTest/02: Fail, OK # Negative language test.
 ConstSyntaxTest/03: Fail, OK # Negative language test.
@@ -229,6 +202,7 @@ Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
 Prefix9NegativeTest: Fail, OK # Negative language test.
+PrivateMember2NegativeTest: Fail, OK # Negative language test.
 PrivateMember3NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
@@ -259,13 +233,12 @@ StaticTopLevelTest/03: Fail, OK # Negative language test.
 StaticTopLevelTest/04: Fail, OK # Negative language test.
 StaticTopLevelTest/05: Fail, OK # Negative language test.
 StringInterpolation7NegativeTest: Fail, OK # Negative language test.
-Switch3NegativeTest: Fail, OK # Negative language test.
-Switch7NegativeTest: Fail, OK # Negative language test.
 SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
-TypeVariableBoundsTest*: Skip # multiple error annotations are required
-TypeVariableBounds2Test*: Skip # multiple error annotations are required
+TypeVariableBoundsTest/00: Fail, OK # Negative language test.
+TypeVariableBoundsTest/07: Fail, OK # Negative language test.
+TypeVariableBoundsTest/08: Fail, OK # Negative language test.
 TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
@@ -273,6 +246,7 @@ TypeVariableScopeTest/02: Fail, OK # Negative language test.
 TypeVariableScopeTest/03: Fail, OK # Negative language test.
 TypeVariableScopeTest/04: Fail, OK # Negative language test.
 TypeVariableScopeTest/05: Fail, OK # Negative language test.
+WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.
@@ -281,16 +255,12 @@ TypeVMTest: Fail, OK # VM specific test.
 DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
+RegExp3Test: Fail, OK # Expects exception from const constructor.
+
+
 # TODO(ahe): Categorize these failures.
-ClosureBreak1Test: Fail
-ClosureBreak2Test: Fail
-ClosureBreakTest: Fail
 ExecuteFinally3Test: Fail
-ExecuteFinally9Test: Fail
 
 
 [ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
-
-[ $component == legium ]
-*: Skip

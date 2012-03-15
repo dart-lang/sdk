@@ -55,7 +55,7 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   private static CoreTypeProvider setupTypeProvider(DartUnit unit, TestCompilerContext context, Scope scope) {
-    new TopLevelElementBuilder().exec(unit, context);
+    new TopLevelElementBuilder().exec(unit.getLibrary(), unit, context);
     new TopLevelElementBuilder().fillInUnitScope(unit, context, scope);
     ClassElement object = (ClassElement) scope.findElement(null, "Object");
     assertNotNull("Cannot resolve Object", object);
@@ -134,7 +134,7 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   /**
-   * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
+   * Look for  DartIdentifier nodes in the tree whose elements are null.  They should all either
    * be resolved, or marked as an unresolved element.
    */
   static class ResolverAuditVisitor extends ASTVisitor<Void> {
@@ -143,9 +143,14 @@ abstract class ResolverTestCase extends TestCase {
     @Override
     public Void visitIdentifier(DartIdentifier node) {
 
-      if (node.getSymbol() == null) {
-        failures.add("Identifier: " + node.getTargetName() + " has null symbol @ ("
-            + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+      if (node.getElement() == null) {
+        failures.add("Identifier: "
+            + node.getName()
+            + " has null element @ ("
+            + node.getSourceInfo().getLine()
+            + ":"
+            + node.getSourceInfo().getColumn()
+            + ")");
       }
       return null;
     }
@@ -159,7 +164,7 @@ abstract class ResolverTestCase extends TestCase {
       root.accept(visitor);
       List<String> results = visitor.getFailures();
       if (results.size() > 0) {
-        StringBuilder out = new StringBuilder("Missing symbols found in AST\n");
+        StringBuilder out = new StringBuilder("Missing elements found in AST\n");
         Joiner.on("\n").appendTo(out, results);
         fail(out.toString());
       }
@@ -341,11 +346,8 @@ abstract class ResolverTestCase extends TestCase {
 
   protected DartUnit parseUnit(String string) {
     DartSourceString source = new DartSourceString("<source string>", string);
-    return getParser(string).parseUnit(source);
-  }
-
-  private DartParser getParser(String string) {
-    return new DartParser(new DartScannerParserContext(null, string, getListener()));
+    DartParser parser = new DartParser(new DartScannerParserContext(source, string, getListener()));
+    return parser.parseUnit(source);
   }
 
   private DartCompilerListener getListener() {

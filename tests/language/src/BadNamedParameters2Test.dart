@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing bad named parameters.
@@ -19,7 +19,8 @@ class BadNamedParameters2Test {
     bool caught;
     try {
       caught = false;
-      np.foo(b:25);  // No formal parameter named b.
+      // No formal parameter named b.
+      np.foo(b:25);  /// static type warning
     } catch (NoSuchMethodException e) {
       caught = true;
     }

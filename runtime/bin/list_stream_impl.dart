@@ -42,7 +42,7 @@ class _ListInputStream extends _BaseDataInputStream implements ListInputStream {
 }
 
 
-class _ListOutputStream implements ListOutputStream {
+class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   _ListOutputStream() : _bufferList = new _BufferList();
 
   List<int> contents() => _bufferList.readBytes(_bufferList.length);

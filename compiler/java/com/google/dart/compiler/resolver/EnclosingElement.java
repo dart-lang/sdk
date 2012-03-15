@@ -5,7 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 public interface EnclosingElement extends Element {
-  Iterable<Element> getMembers();
+  Iterable<? extends Element> getMembers();
 
   Element lookupLocalElement(String name);
 

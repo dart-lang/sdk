@@ -6,6 +6,7 @@
 #define BIN_DARTUTILS_H_
 
 #include "bin/builtin.h"
+#include "bin/utils.h"
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
@@ -56,17 +57,19 @@ class CommandLineOptions {
 
 class DartUtils {
  public:
+  // TODO(turnidge): Clean up the implementations of these so that
+  // they allow for proper error propagation.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
   static const char* GetStringValue(Dart_Handle str_obj);
   static bool GetBooleanValue(Dart_Handle bool_obj);
-  static void SetIntegerInstanceField(Dart_Handle handle,
-                                      const char* name,
-                                      intptr_t val);
-  static intptr_t GetIntegerInstanceField(Dart_Handle handle,
-                                          const char* name);
-  static void SetStringInstanceField(Dart_Handle handle,
-                                     const char* name,
-                                     const char* val);
+  static void SetIntegerField(Dart_Handle handle,
+                              const char* name,
+                              intptr_t val);
+  static intptr_t GetIntegerField(Dart_Handle handle,
+                                  const char* name);
+  static void SetStringField(Dart_Handle handle,
+                             const char* name,
+                             const char* val);
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
@@ -85,6 +88,11 @@ class DartUtils {
                                 Dart_Handle import_map);
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
+
+  // Create a new Dart OSError object with the current OS error.
+  static Dart_Handle NewDartOSError();
+  // Create a new Dart OSError object with the provided OS error.
+  static Dart_Handle NewDartOSError(OSError* os_error);
 
   static const char* kDartScheme;
   static const char* kDartExtensionScheme;
@@ -152,6 +160,11 @@ class CObject {
   static Dart_CObject* NewByteArray(int length);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
+
+  // Create a new CObject array with an illegal arguments error.
+  static CObject* IllegalArgumentError();
+  // Create a new CObject array with the current OS error.
+  static CObject* NewOSError();
 
  protected:
   CObject() : cobject_(NULL) {}

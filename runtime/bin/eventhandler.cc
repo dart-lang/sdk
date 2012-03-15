@@ -19,7 +19,9 @@ static EventHandler* GetEventHandler(Dart_Handle handle) {
   intptr_t value = 0;
   Dart_Handle result = Dart_GetNativeInstanceField(
       handle, kNativeEventHandlerFieldIndex, &value);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
   EventHandler* event_handler = reinterpret_cast<EventHandler*>(value);
   ASSERT(event_handler != NULL);
   return event_handler;
@@ -62,7 +64,7 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   handle = Dart_GetNativeArgument(args, 2);
   Dart_Port dart_port =
-      DartUtils::GetIntegerInstanceField(handle, DartUtils::kIdFieldName);
+      DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);
   intptr_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   event_handler->SendData(id, dart_port, data);
   Dart_ExitScope();

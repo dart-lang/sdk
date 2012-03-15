@@ -14,11 +14,12 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.common.SourceInfo;
 
 import java.util.List;
 
 /**
- * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
+ * Look for  DartIdentifier nodes in the tree whose elements are null.  They should all either
  * be resolved, or marked as an unresolved element.
  */
 public class ResolverAuditVisitor extends ASTVisitor<Void> {
@@ -27,7 +28,7 @@ public class ResolverAuditVisitor extends ASTVisitor<Void> {
     root.accept(visitor);
     List<String> results = visitor.getFailures();
     if (results.size() > 0) {
-      StringBuilder out = new StringBuilder("Missing symbols found in AST\n");
+      StringBuilder out = new StringBuilder("Missing elements found in AST\n");
       Joiner.on("\n").appendTo(out, results);
       ResolverTestCase.fail(out.toString());
     }
@@ -48,9 +49,15 @@ public class ResolverAuditVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    if (node.getSymbol() == null) {
-      failures.add("Identifier: " + node.getTargetName() + " has null symbol @ ("
-          + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+    if (node.getElement() == null) {
+      SourceInfo sourceInfo = node.getSourceInfo();
+      failures.add("Identifier: "
+          + node.getName()
+          + " has null element @ ("
+          + sourceInfo.getLine()
+          + ":"
+          + sourceInfo.getColumn()
+          + ")");
     }
     return null;
   }

@@ -88,7 +88,7 @@ class LineProcessorClient {
 
   void processLine(int y) {
     _out.then((SendPort p) {
-      p.call(y).receive((List<int> message, SendPort replyTo) {
+      p.call(y).then((List<int> message) {
         _state.notifyProcessedLine(this, y, message);
       });
     });

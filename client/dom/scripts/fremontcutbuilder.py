@@ -26,10 +26,12 @@ def main():
 
   # Import WebKit IDL files:
   webkit_dirs = [
+      'Modules/speech',
       'Modules/indexeddb',
       'css',
       'dom',
       'fileapi',
+      'Modules/filesystem',
       'html',
       'html/canvas',
       'inspector',
@@ -41,6 +43,7 @@ def main():
       'page',
       'plugins',
       'storage',
+      'Modules/webdatabase',
       'svg',
       'webaudio',
       'Modules/websockets',
@@ -97,6 +100,7 @@ def main():
       'ENABLE_REQUEST_ANIMATION_FRAME',
       'ENABLE_RUBY',
       'ENABLE_SANDBOX',
+      'ENABLE_SCRIPTED_SPEECH',
       'ENABLE_SHADOW_DOM',
       'ENABLE_SHARED_WORKERS',
       'ENABLE_SMOOTH_SCROLLING',

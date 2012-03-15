@@ -10,6 +10,8 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.HasSourceInfoSetter;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.State;
 
@@ -93,18 +95,15 @@ public class DartScannerParserContext implements ParserContext {
    * @param startPos
    */
   private <T> void setSourcePosition(T result, DartScanner.Position startPos) {
-    if (result instanceof HasSourceInfo) {
-      HasSourceInfo node = (HasSourceInfo) result;
+    if (result instanceof HasSourceInfoSetter) {
+      HasSourceInfoSetter hasSourceInfoSetter = (HasSourceInfoSetter) result;
       int start = startPos.getPos();
       int end = getEndLocation().getPos();
       if (start != -1 && end < start) {
         // handle 0-length tokens, including where there is trailing whitespace
         end = start;
       }
-      node.setSourceLocation(
-          source,
-          startPos.getLine(), startPos.getCol(),
-          start, end - start);
+      hasSourceInfoSetter.setSourceInfo(new SourceInfo(source, start, end - start));
     }
   }
 

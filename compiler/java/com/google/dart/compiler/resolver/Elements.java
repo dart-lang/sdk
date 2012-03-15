@@ -12,10 +12,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
-import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -24,12 +21,9 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedTypeNode;
-import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -87,37 +81,47 @@ public class Elements {
     return new MethodElementImplementation(node, name, Modifiers.NONE);
   }
 
-  public static TypeVariableElement typeVariableElement(DartNode node, String name, Element owner) {
-    return new TypeVariableElementImplementation(node, name, owner);
+  public static TypeVariableElement typeVariableElement(String name, Type bound) {
+    return new TypeVariableElementImplementation(name, bound);
   }
 
-  public static VariableElement variableElement(DartVariable node, String name,
-                                                Modifiers modifiers) {
-    return new VariableElementImplementation(node, name, ElementKind.VARIABLE, modifiers, false,
-                                             null);
+  public static VariableElement variableElement(EnclosingElement owner,
+      DartVariable node,
+      String name,
+      Modifiers modifiers) {
+    return new VariableElementImplementation(owner,
+        node,
+        node.getName().getSourceInfo(),
+        name,
+        ElementKind.VARIABLE,
+        modifiers,
+        false,
+        null);
   }
 
-  public static VariableElement parameterElement(DartParameter node, String name,
-                                                 Modifiers modifiers) {
-    return new VariableElementImplementation(node, name, ElementKind.PARAMETER, modifiers,
-                                             node.getModifiers().isNamed(),
-                                             node.getDefaultExpr());
-  }
-
-  public static VariableElement makeVariable(String name) {
-    return new VariableElementImplementation(null, name,
-                                             ElementKind.VARIABLE, Modifiers.NONE, false, null);
+  public static VariableElement parameterElement(EnclosingElement owner,
+      DartParameter node,
+      String name,
+      Modifiers modifiers) {
+    return new VariableElementImplementation(owner,
+        node,
+        node.getName().getSourceInfo(),
+        name,
+        ElementKind.PARAMETER,
+        modifiers,
+        node.getModifiers().isNamed(),
+        node.getDefaultExpr());
   }
 
   public static SuperElement superElement(DartSuperExpression node, ClassElement cls) {
     return new SuperElementImplementation(node, cls);
   }
 
-  static void addConstructor(ClassElement cls, ConstructorElement constructor) {
+  static void addConstructor(ClassElement cls, ConstructorNodeElement constructor) {
     ((ClassElementImplementation) cls).addConstructor(constructor);
   }
 
-  static void addField(EnclosingElement holder, FieldElement field) {
+  static void addField(EnclosingElement holder, FieldNodeElement field) {
     if (ElementKind.of(holder).equals(ElementKind.CLASS)) {
       ((ClassElementImplementation) holder).addField(field);
     } else if (ElementKind.of(holder).equals(ElementKind.LIBRARY)) {
@@ -128,7 +132,7 @@ public class Elements {
   }
 
   @VisibleForTesting
-  public static void addMethod(EnclosingElement holder, MethodElement method) {
+  public static void addMethod(EnclosingElement holder, MethodNodeElement method) {
     if (ElementKind.of(holder).equals(ElementKind.CLASS)) {
       ((ClassElementImplementation) holder).addMethod(method);
     } else if (ElementKind.of(holder).equals(ElementKind.LIBRARY)) {
@@ -154,13 +158,12 @@ public class Elements {
     return MethodElementImplementation.fromFunctionExpression(node, modifiers);
   }
 
-  @VisibleForTesting
-  public static MethodElement methodFromMethodNode(DartMethodDefinition node,
+  public static MethodNodeElement methodFromMethodNode(DartMethodDefinition node,
       EnclosingElement holder) {
     return MethodElementImplementation.fromMethodNode(node, holder);
   }
 
-  static ConstructorElement constructorFromMethodNode(DartMethodDefinition node,
+  static ConstructorNodeElement constructorFromMethodNode(DartMethodDefinition node,
                                                       String name,
                                                       ClassElement declaringClass,
                                                       ClassElement constructorType) {
@@ -170,7 +173,7 @@ public class Elements {
 
   @VisibleForTesting
   public static void setType(Element element, Type type) {
-    ((AbstractElement) element).setType(type);
+    ((AbstractNodeElement) element).setType(type);
   }
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
@@ -186,7 +189,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return ClassElementImplementation.named(name);
   }
 
-  static TypeVariableElement typeVariableFromNode(DartTypeParameter node, Element element) {
+  static TypeVariableElement typeVariableFromNode(DartTypeParameter node, EnclosingElement element) {
     return TypeVariableElementImplementation.fromNode(node, element);
   }
 
@@ -213,11 +216,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return ((ClassElementImplementation) cls).lookupLocalField(name);
   }
 
-  static ConstructorElement constructorNamed(String name, ClassElement declaringClass,
-                                             ClassElement constructorType) {
-    return ConstructorElementImplementation.named(name, declaringClass, constructorType);
-  }
-
   public static FunctionAliasElement functionTypeAliasFromNode(DartFunctionTypeAlias node,
                                                                LibraryElement library) {
     return FunctionAliasElementImplementation.fromNode(node, library);
@@ -228,33 +226,9 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         parameter in {@link DartMethodDefinition}.
    */
   public static boolean isConstructorParameter(Element element) {
-    if (element instanceof VariableElement) {
-      DartNode parentNode = element.getNode().getParent();
-      if (parentNode instanceof DartFunction
-          && parentNode.getParent() instanceof DartMethodDefinition) {
-        DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
-        if (parentMethod.getSymbol().isConstructor()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * @return <code>true</code> if given {@link Element} represents {@link VariableElement} for
-   *         parameter in identically named setter {@link DartMethodDefinition}.
-   */
-  public static boolean isParameterOfSameNameSetter(Element element) {
-    if (element instanceof VariableElement) {
-      DartNode parentNode = element.getNode().getParent();
-      if (parentNode instanceof DartFunction
-          && parentNode.getParent() instanceof DartMethodDefinition) {
-        DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
-        if (parentMethod.getSymbol().getName().equals(element.getName())) {
-          return true;
-        }
-      }
+    Element parent = element.getEnclosingElement();
+    if (parent instanceof MethodElement) {
+      return ((MethodElement) parent).isConstructor();
     }
     return false;
   }
@@ -265,13 +239,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         as body.
    */
   public static boolean isParameterOfMethodWithoutBody(Element element) {
-    if (element instanceof VariableElementImplementation) {
-      DartNode parentNode = element.getNode().getParent();
-      if (parentNode instanceof DartFunction) {
-        DartFunction parentFunction = (DartFunction) parentNode;
-        if (parentFunction.getBody() == null || parentFunction.getBody() instanceof DartNativeBlock) {
-          return true;
-        }
+    if (element instanceof VariableElement) {
+      Element parent = element.getEnclosingElement();
+      if (parent instanceof MethodElement) {
+        MethodElement parentMethod = (MethodElement) parent;
+        return !parentMethod.hasBody();
       }
     }
     return false;
@@ -338,26 +310,25 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         {@link DartClassMember} or part of top level declaration.
    */
   public static boolean isStaticContext(Element element) {
-    DartNode node = element.getNode();
-    while (node != null) {
-      // Found DartUnit, so top level element was given.
-      if (node instanceof DartUnit) {
-        return true;
-      }
-      // Found DartClass, so not top level element, can not be static.
-      if (node instanceof DartClass) {
-        break;
-      }
-      // May be static method or field.
-      if (node instanceof DartClassMember) {
-        if (((DartClassMember<?>) node).getModifiers().isStatic()) {
+    while (element != null) {
+      if (element instanceof MethodElement) {
+        MethodElement methodElement = (MethodElement) element;
+        if (methodElement.isStatic()) {
           return true;
         }
       }
-      // Go to parent.
-      node = node.getParent();
+      if (element instanceof FieldElement) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.isStatic()) {
+          return true;
+        }
+      }
+      if (element instanceof ClassElement) {
+        return false;
+      }
+      element = element.getEnclosingElement();
     }
-    return false;
+    return true;
   }
 
   public static boolean isNonFactoryConstructor(Element method) {
@@ -370,7 +341,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   static List<TypeVariable> makeTypeVariables(List<DartTypeParameter> parameterNodes,
-                                              Element element) {
+                                              EnclosingElement element) {
     if (parameterNodes == null) {
       return Arrays.<TypeVariable>asList();
     }
@@ -380,7 +351,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
       TypeVariable typeVariable =
           Elements.typeVariableFromNode(parameterNode, element).getTypeVariable();
       typeVariables[i++] = typeVariable;
-      parameterNode.getName().setSymbol(typeVariable.getElement());
+      parameterNode.getName().setElement(typeVariable.getElement());
     }
     return Arrays.asList(typeVariables);
   }
@@ -417,25 +388,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         corresponds the given {@link MethodElement}.
    */
   public static String getRawMethodName(MethodElement methodElement) {
-    DartMethodDefinition method = (DartMethodDefinition) methodElement.getNode();
-    // Synthetic method (implicit default constructor).
-    if (method == null) {
-      return methodElement.getEnclosingElement().getName();
+    if (methodElement instanceof ConstructorElement) {
+      ConstructorElement constructorElement = (ConstructorElement) methodElement;
+      return constructorElement.getRawName();
     }
-    // Real method.
-    DartExpression nameExpression = method.getName();
-    return getRawName(nameExpression);
-  }
-
-  private static String getRawName(DartNode name) {
-    if (name instanceof DartIdentifier) {
-      return ((DartIdentifier) name).getTargetName();
-    } else if (name instanceof DartParameterizedTypeNode) {
-      return getRawName(((DartParameterizedTypeNode) name).getExpression());
-    } else {
-      DartPropertyAccess propertyAccess = (DartPropertyAccess) name;
-      return getRawName(propertyAccess.getQualifier()) + "." + getRawName(propertyAccess.getName());
-    }
+    return methodElement.getName();
   }
 
   /**
@@ -480,23 +437,6 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
-   * @return the {@link DartNode} which is name of underlying {@link Element}, or just its
-   *         {@link DartNode} if name can not be found.
-   */
-  @SuppressWarnings("unchecked")
-  public static DartNode getNameNode(Element element) {
-    DartNode node = element.getNode();
-    if (node instanceof DartDeclaration) {
-      node = ((DartDeclaration<DartExpression>) node).getName();
-    }
-    if (node instanceof DartFunctionExpression) {
-      node = ((DartFunctionExpression) node).getName();
-    }
-    return node;
-  }
-
-
-  /**
    * @return the {@link String} which contains user-readable description of "target" {@link Element}
    *         location relative to "source".
    */
@@ -504,16 +444,15 @@ static FieldElementImplementation fieldFromNode(DartField node,
     // Prepare "target" SourceInfo.
     SourceInfo targetInfo;
     {
-      DartNode targetNode = getNameNode(target);
-      if (targetNode == null) {
+      targetInfo = target.getNameLocation();
+      if (targetInfo == null) {
         return "unknown";
       }
-      targetInfo = targetNode.getSourceInfo();
     }
     // Prepare path to the target unit from source unit.
     String targetPath;
     {
-      SourceInfo sourceInfo = source.getNode().getSourceInfo();
+      SourceInfo sourceInfo = source.getSourceInfo();
       targetPath = getRelativeSourcePath(sourceInfo, targetInfo);
     }
     // Prepare (may be empty) target class name.
@@ -527,8 +466,8 @@ static FieldElementImplementation fieldFromNode(DartField node,
         "{0}:{1}:{2}:{3}",
         targetPath,
         targetClassName,
-        targetInfo.getSourceLine(),
-        targetInfo.getSourceColumn());
+        targetInfo.getLine(),
+        targetInfo.getColumn());
   }
 
   /**
@@ -560,15 +499,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         may be <code>null</code> if top level element.
    */
   public static ClassElement getEnclosingClassElement(Element element) {
-    DartNode node = element.getNode();
-    if (node != null) {
-      node = node.getParent();
-      while (node != null) {
-        if (node instanceof DartClass) {
-          return ((DartClass) node).getSymbol();
-        }
-        node = node.getParent();
+    while (element != null) {
+      if (element instanceof ClassElement) {
+        return (ClassElement) element;
       }
+      element = element.getEnclosingElement();
     }
     return null;
   }
@@ -606,15 +541,16 @@ static FieldElementImplementation fieldFromNode(DartField node,
    *         constructor.
    */
   public static boolean isSyntheticConstructor(ConstructorElement element) {
-    return element != null && element.getNode() == null;
+    return element != null && element.isSynthetic();
   }
 
   /**
    * @return <code>true</code> if the given {@link ConstructorElement} is a default constructor.
    */
   public static boolean isDefaultConstructor(ConstructorElement element) {
-    return element != null && element.getParameters().isEmpty()
-        && Elements.getRawMethodName(element).equals(element.getEnclosingElement().getName());
+    return element != null
+        && element.getParameters().isEmpty()
+        && getRawMethodName(element).equals(element.getEnclosingElement().getName());
   }
 
   /**
@@ -623,7 +559,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    */
   private static String getIdentifierName(DartNode identifier) {
     if (identifier != null && identifier instanceof DartIdentifier) {
-      return ((DartIdentifier) identifier).getTargetName();
+      return ((DartIdentifier) identifier).getName();
     }
     return null;
   }

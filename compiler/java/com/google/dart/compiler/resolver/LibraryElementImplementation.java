@@ -8,7 +8,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 
 import java.util.Collection;
 
-class LibraryElementImplementation extends AbstractElement implements LibraryElement {
+class LibraryElementImplementation extends AbstractNodeElement implements LibraryElement {
 
   private final Scope scope = new Scope("library", this);
   private LibraryUnit libraryUnit;

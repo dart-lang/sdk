@@ -9,6 +9,7 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,9 @@ public class CPParserTest extends CompilerTestCase {
   private List<String> extractComments(List<DartComment> cms) {
     List<String> comments = new ArrayList<String>();
     for (DartComment cm : cms) {
-      comments.add(source.substring(cm.getSourceStart(), cm.getSourceStart()+cm.getSourceLength()));
+      SourceInfo sourceInfo = cm.getSourceInfo();
+      comments.add(source.substring(sourceInfo.getOffset(), sourceInfo.getOffset()
+          + sourceInfo.getLength()));
     }
     return comments;
   }

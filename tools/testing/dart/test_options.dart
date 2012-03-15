@@ -5,6 +5,8 @@
 #library("test_options_parser");
 
 #import("dart:io");
+#import("dart:builtin");
+#import("drt_updater.dart");
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
@@ -62,7 +64,7 @@ is 'dart file.dart' and you specify special command
           new _TestOptionSpecification(
               'component',
               '''
-Controls how dart code is compiled and executed. 
+Controls how dart code is compiled and executed.
 
    vm: Run dart code on the standalone dart vm.
 
@@ -77,8 +79,6 @@ Controls how dart code is compiled and executed.
 
    dartium: Run dart code in a type="application/dart" script tag in a
        dartium build of DumpRenderTree.
-
-   chromium: Obsolete, not used, will be removed.
 
    frogium: Compile dart code by running frog on the standalone dart vm,
        and run the resulting javascript in a javascript script tag in
@@ -96,8 +96,8 @@ Controls how dart code is compiled and executed.
        execute dart code).
 ''',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'dartium', 'chromium', 'frogium', 'legium', 'webdriver'],
+              ['most', 'vm', 'frog', 'leg', 'frogsh', 'dartium',  'frogium',
+               'legium', 'webdriver', 'dartc'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -115,6 +115,13 @@ Controls how dart code is compiled and executed.
               'checked',
               'Run tests in checked mode',
               ['--checked'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
+              'host_checked',
+              'Run compiler in checked mode',
+              ['--host-checked'],
               [],
               false,
               'bool'),
@@ -217,10 +224,10 @@ Controls how dart code is compiled and executed.
               'Path to frog library',
               ['--froglib'],
               [],
-              ''), 
+              ''),
           new _TestOptionSpecification(
               'noBatch',
-              'Do not run browser tests in batch mode', 
+              'Do not run browser tests in batch mode',
               ['-n', '--nobatch'],
               [],
               false,
@@ -386,9 +393,10 @@ Controls how dart code is compiled and executed.
       configuration['progress'] = 'verbose';
     }
 
-    // Create the artificial 'unchecked' option that test status files
+    // Create the artificial 'unchecked' options that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
+    configuration['host_unchecked'] = !configuration['host_checked'];
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
@@ -456,6 +464,11 @@ Controls how dart code is compiled and executed.
         result.addAll(_expandConfigurations(newConfiguration));
       }
       return result;
+    } else {
+      // All components eventually go through this path, after expansion.
+      if (DumpRenderTreeUpdater.componentRequiresDRT(components)) {
+        DumpRenderTreeUpdater.update();
+      }
     }
 
     // Adjust default timeout based on mode and component.
@@ -463,7 +476,6 @@ Controls how dart code is compiled and executed.
       var timeout = 60;
       switch (configuration['component']) {
         case 'dartc':
-        case 'chromium':
         case 'dartium':
         case 'frogium':
         case 'legium':
@@ -473,6 +485,9 @@ Controls how dart code is compiled and executed.
         case 'leg':
         case 'frog':
           if (configuration['mode'] == 'debug') {
+            timeout *= 4;
+          }
+          if (configuration['host_checked']) {
             timeout *= 4;
           }
           break;

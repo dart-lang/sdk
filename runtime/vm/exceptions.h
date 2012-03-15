@@ -58,6 +58,7 @@ class Exceptions : AllStatic {
     kInternalError,
     kNullPointer,
     kIllegalJSRegExp,
+    kIsolateSpawn
   };
 
   static void ThrowByType(ExceptionType type,

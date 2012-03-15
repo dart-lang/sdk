@@ -4,11 +4,15 @@
 
 #include "bin/extensions.h"
 
-#include "include/dart_api.h"
-#include "platform/assert.h"
+void* Extensions::LoadExtensionLibrary(const char* library_path,
+                                       const char* extension_name) {
+  const char* strings[5] = { library_path, "/", extension_name, ".dll", NULL };
+  char* library_file = Concatenate(strings);
+  void* lib_handle = LoadLibrary(library_file);
+  free(library_file);
+  return lib_handle;
+}
 
-Dart_Handle Extensions::LoadExtension(const char* extension_url,
-                                      Dart_Handle parent_library) {
-  UNIMPLEMENTED();
-  return NULL;
+void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
 }

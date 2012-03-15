@@ -19,7 +19,5 @@ public interface TypeVariableElement extends Element {
 
   Type getBound();
 
-  void setBound(Type bound);
-
   Element getDeclaringElement();
 }

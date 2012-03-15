@@ -248,10 +248,12 @@ class AsynchronousTestCase extends TestCase {
 
   void addRunning(TestResult result) {
     if (running++ == 0) {
-      keepalive = new ReceivePort.singleShot();
-      keepalive.receive((message, replyTo) {
+      final port = new ReceivePort();
+      port.receive((message, replyTo) {
+        port.close();
         result.runner.done(result);
       });
+      keepalive = port;
     }
   }
 

@@ -278,4 +278,3 @@ DEFINE_NATIVE_ENTRY(Double_isNegative, 1) {
 // Add here only functions using/referring to old-style casts.
 
 }  // namespace dart
-

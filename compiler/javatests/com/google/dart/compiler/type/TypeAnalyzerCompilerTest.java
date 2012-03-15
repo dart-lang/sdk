@@ -33,12 +33,10 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -74,15 +72,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartInvocation invocation = findInvocationSimple(unit, "f()");
     assertNotNull(invocation);
     // referenced Element should be resolved to MethodElement
-    Element methodElement = invocation.getReferencedElement();
+    Element methodElement = invocation.getElement();
     assertNotNull(methodElement);
     assertSame(ElementKind.METHOD, methodElement.getKind());
-    assertEquals("f", ((MethodElement) methodElement).getOriginalSymbolName());
+    assertEquals("f", ((MethodElement) methodElement).getOriginalName());
     // enclosing Element of MethodElement is ClassElement
-    EnclosingElement classElement = methodElement.getEnclosingElement();
+    Element classElement = methodElement.getEnclosingElement();
     assertNotNull(classElement);
     assertSame(ElementKind.CLASS, classElement.getKind());
-    assertEquals("Test", ((ClassElement) classElement).getOriginalSymbolName());
+    assertEquals("Test", ((ClassElement) classElement).getOriginalName());
   }
 
   /**
@@ -109,19 +107,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartInvocation invocation = findInvocationSimple(unit, "f()");
     assertNotNull(invocation);
     // referenced Element should be resolved to MethodElement
-    Element functionElement = invocation.getReferencedElement();
+    Element functionElement = invocation.getElement();
     assertNotNull(functionElement);
     assertSame(ElementKind.FUNCTION_OBJECT, functionElement.getKind());
-    assertEquals("f", ((MethodElement) functionElement).getOriginalSymbolName());
+    assertEquals("f", ((MethodElement) functionElement).getOriginalName());
     // enclosing Element of this FUNCTION_OBJECT is enclosing method
-    EnclosingElement enclosingMethodElement = functionElement.getEnclosingElement();
-    assertNotNull(enclosingMethodElement);
-    assertSame(ElementKind.METHOD, enclosingMethodElement.getKind());
-    assertEquals("foo", ((MethodElement) enclosingMethodElement).getName());
+    MethodElement methodElement = (MethodElement) functionElement.getEnclosingElement();
+    assertNotNull(methodElement);
+    assertSame(ElementKind.METHOD, methodElement.getKind());
+    assertEquals("foo", ((MethodElement) methodElement).getName());
     // use EnclosingElement methods implementations in MethodElement
-    assertEquals(false, enclosingMethodElement.isInterface());
-    assertEquals(true, Iterables.isEmpty(enclosingMethodElement.getMembers()));
-    assertEquals(null, enclosingMethodElement.lookupLocalElement("f"));
+    assertEquals(false, methodElement.isInterface());
+    assertEquals(true, Iterables.isEmpty(methodElement.getMembers()));
+    assertEquals(null, methodElement.lookupLocalElement("f"));
   }
 
   /**
@@ -137,7 +135,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertNotNull(factory);
     // this factory has name, which is allowed for normal method
     assertEquals(true, factory.getName() instanceof DartIdentifier);
-    assertEquals("foo", ((DartIdentifier) factory.getName()).getTargetName());
+    assertEquals("foo", ((DartIdentifier) factory.getName()).getName());
     // compilation error expected
     assertBadTopLevelFactoryError(libraryResult);
   }
@@ -217,7 +215,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // "new I.foo()" - resolved, but we produce error.
     {
       DartNewExpression newExpression = findNewExpression(unit, "new I.foo(0)");
-      DartNode constructorNode = newExpression.getSymbol().getNode();
+      DartNode constructorNode = newExpression.getElement().getNode();
       assertEquals(true, constructorNode.toSource().contains("F.foo("));
     }
   }
@@ -245,7 +243,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       DartClass classF = (DartClass) unit.getTopLevelNodes().get(1);
       DartMethodDefinition methodF = (DartMethodDefinition) classF.getMembers().get(1);
       DartParameter parameter = methodF.getFunction().getParameters().get(0);
-      assertEquals("int", parameter.getSymbol().getType().toString());
+      assertEquals("int", parameter.getElement().getType().toString());
     }
     // No errors or type warnings.
     assertErrors(libraryResult.getCompilationErrors());
@@ -769,9 +767,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
     // Check that unqualified foo() invocation is resolved to the top-level (library) function.
-    Symbol symbol = invocation.getTarget().getSymbol();
-    assertNotNull(symbol);
-    assertSame(unit, symbol.getNode().getParent());
+    Element element = invocation.getTarget().getElement();
+    assertNotNull(element);
+    assertSame(unit, element.getNode().getParent());
   }
 
   /**

@@ -5,18 +5,16 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
 import java.util.ArrayList;
@@ -51,52 +49,13 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     return element;
   }
 
-  private void bindReturnGenerics(DartTypeNode node) {
-    for (DartTypeNode typeNode : node.getTypeArguments()) {
-      if (ElementKind.of(typeNode.getType().getElement()) != ElementKind.TYPE_VARIABLE) {
-        bindReturnGenerics(typeNode);
-        continue;
-      }
-      bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
-    }
-  }
-
   final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {
-    // The purpose of this to find generic types and make sure they are bound to object.
-    DartTypeNode returnNode = node.getReturnTypeNode();
-    if (returnNode != null) {
-      bindReturnGenerics(returnNode);
-    }
-    FunctionAliasElement funcAlias = node.getSymbol();
+    FunctionAliasElement funcAlias = node.getElement();
     for (Type type : funcAlias.getTypeParameters()) {
       TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
       getContext().getScope().declareElement(typeVar.getName(), typeVar);
     }
     return null;
-  }
-
-  void bindTypeVariable(TypeVariableElement variable) {
-    DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
-    DartTypeNode boundNode = typeParameterNode.getBound();
-    Type bound;
-    if (boundNode != null) {
-      bound = getContext().resolveType(boundNode, true, isFactoryContext(), ResolverErrorCode.NO_SUCH_TYPE);
-      boundNode.setType(bound);
-    } else {
-      bound = typeProvider.getObjectType();
-    }
-    variable.setBound(bound);
-  }
-
-  void bindTypeVariables(List<TypeVariable> typeVariables) {
-    if (typeVariables == null) {
-      return;
-    }
-    for (TypeVariable typeParameter : typeVariables) {
-      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
-      bindTypeVariable(variable);
-      getContext().getScope().declareElement(variable.getName(), variable);
-    }
   }
 
   abstract boolean isStaticContext();
@@ -110,8 +69,12 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
             ? ResolverErrorCode.NO_SUCH_TYPE
             : TypeErrorCode.NO_SUCH_TYPE;
     Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), typeErrorCode);
-    VariableElement element = Elements.parameterElement(node, node.getParameterName(),
-                                                        node.getModifiers());
+    VariableElement element =
+        Elements.parameterElement(
+            getEnclosingElement(),
+            node,
+            node.getParameterName(),
+            node.getModifiers());
     List<DartParameter> functionParameters = node.getFunctionParameters();
     if (functionParameters != null) {
       List<VariableElement> parameterElements =
@@ -124,6 +87,10 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
     }
     Elements.setType(element, type);
     return recordElement(node, element);
+  }
+  
+  protected EnclosingElement getEnclosingElement() {
+    return null;
   }
 
   final Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory,
@@ -147,7 +114,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       // TypeAnalyzer will diagnose unresolved identifiers.
       return null;
     }
-    node.setSymbol(element);
+    node.setElement(element);
     return element;
   }
 

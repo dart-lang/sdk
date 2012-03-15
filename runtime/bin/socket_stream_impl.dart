@@ -83,7 +83,8 @@ class _SocketInputStream implements SocketInputStream {
 }
 
 
-class _SocketOutputStream implements SocketOutputStream {
+class _SocketOutputStream
+    extends _BaseOutputStream implements SocketOutputStream {
   _SocketOutputStream(Socket socket)
       : _socket = socket, _pendingWrites = new _BufferList();
 

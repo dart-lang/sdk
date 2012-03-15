@@ -144,9 +144,22 @@ interface Directory default _Directory {
 }
 
 
-class DirectoryException {
-  const DirectoryException([String this.message, int this.errorCode = 0]);
-  String toString() => "DirectoryException: $message";
+class DirectoryIOException implements Exception {
+  const DirectoryIOException([String this.message = "",
+                              OSError this.osError = null]);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add("DirectoryIOException");
+    if (!message.isEmpty()) {
+      sb.add(": $message");
+      if (osError != null) {
+        sb.add(" ($osError)");
+      }
+    } else if (osError != null) {
+      sb.add(": $osError");
+    }
+    return sb.toString();
+  }
   final String message;
-  final int errorCode;
+  final OSError osError;
 }

@@ -542,6 +542,9 @@ class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
 
+  _BodyElementEventsImpl get on() =>
+    new _BodyElementEventsImpl(this);
+
   String aLink;
 
   String background;
@@ -551,9 +554,6 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTML
   String link;
 
   String vLink;
-
-  _BodyElementEventsImpl get on() =>
-    new _BodyElementEventsImpl(this);
 }
 
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
@@ -803,12 +803,6 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
-
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -4182,6 +4176,9 @@ class _DListElementImpl extends _ElementImpl implements DListElement native "*HT
 
 class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicationCache native "*DOMApplicationCache" {
 
+  _DOMApplicationCacheEventsImpl get on() =>
+    new _DOMApplicationCacheEventsImpl(this);
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -4195,9 +4192,6 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
   static final int UPDATEREADY = 4;
 
   final int status;
-
-  _DOMApplicationCacheEventsImpl get on() =>
-    new _DOMApplicationCacheEventsImpl(this);
 
   void abort() native;
 
@@ -4561,6 +4555,51 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayN
   final _AudioParamImpl delayTime;
 }
 
+class _DeprecatedPeerConnectionImpl implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final _MediaStreamListImpl localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final _MediaStreamListImpl remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void addStream(_MediaStreamImpl stream) native;
+
+  void close() native;
+
+  bool dispatchEvent(_EventImpl event) native;
+
+  void processSignalingMessage(String message) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void removeStream(_MediaStreamImpl stream) native;
+
+  void send(String text) native;
+}
+
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement native "*HTMLDetailsElement" {
 
   bool open;
@@ -4633,6 +4672,9 @@ class _DocumentImpl extends _ElementImpl
     implements Document
     native "*HTMLHtmlElement" {
 
+  _DocumentEventsImpl get on() =>
+    new _DocumentEventsImpl(_jsDocument);
+
   _ElementImpl get activeElement() native "return this.parentNode.activeElement;";
 
   _ElementImpl get body() native "return this.parentNode.body;";
@@ -4681,9 +4723,6 @@ class _DocumentImpl extends _ElementImpl
 
   String get webkitVisibilityState() native "return this.parentNode.webkitVisibilityState;";
 
-  _DocumentEventsImpl get on() =>
-    new _DocumentEventsImpl(_jsDocument);
-
   _RangeImpl caretRangeFromPoint(int x, int y) native "return this.parentNode.caretRangeFromPoint(x, y);";
 
   _CDATASectionImpl createCDATASection(String data) native "return this.parentNode.createCDATASection(data);";
@@ -4691,6 +4730,8 @@ class _DocumentImpl extends _ElementImpl
   _DocumentFragmentImpl createDocumentFragment() native "return this.parentNode.createDocumentFragment();";
 
   _ElementImpl _createElement(String tagName) native "return this.parentNode.createElement(tagName);";
+
+  _ElementImpl _createElementNS(String namespaceURI, String qualifiedName) native "return this.parentNode.createElementNS(namespaceURI, qualifiedName);";
 
   _EventImpl _createEvent(String eventType) native "return this.parentNode.createEvent(eventType);";
 
@@ -4846,12 +4887,355 @@ class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
 
   EventListenerList get touchStart() => _get('touchstart');
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class FilteredElementList implements ElementList {
+  final Node _node;
+  final NodeList _childNodes;
+
+  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+
+  // We can't memoize this, since it's possible that children will be messed
+  // with externally to this class.
+  //
+  // TODO(nweiz): Do we really need to copy the list to make the types work out?
+  List<Element> get _filtered() =>
+    new List.from(_childNodes.filter((n) => n is Element));
+
+  // Don't use _filtered.first so we can short-circuit once we find an element.
+  Element get first() {
+    for (final node in _childNodes) {
+      if (node is Element) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  void forEach(void f(Element element)) {
+    _filtered.forEach(f);
+  }
+
+  void operator []=(int index, Element value) {
+    this[index].replaceWith(value);
+  }
+
+  void set length(int newLength) {
+    final len = this.length;
+    if (newLength >= len) {
+      return;
+    } else if (newLength < 0) {
+      throw const IllegalArgumentException("Invalid list length");
+    }
+
+    removeRange(newLength - 1, len - newLength);
+  }
+
+  void add(Element value) {
+    _childNodes.add(value);
+  }
+
+  void addAll(Collection<Element> collection) {
+    collection.forEach(add);
+  }
+
+  void addLast(Element value) {
+    add(value);
+  }
+
+  void sort(int compare(Element a, Element b)) {
+    throw const UnsupportedOperationException('TODO(jacobr): should we impl?');
+  }
+
+  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+    throw const NotImplementedException();
+  }
+
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
+
+  void removeRange(int start, int length) {
+    _filtered.getRange(start, length).forEach((el) => el.remove());
+  }
+
+  void insertRange(int start, int length, [initialValue = null]) {
+    throw const NotImplementedException();
+  }
+
+  void clear() {
+    // Currently, ElementList#clear clears even non-element nodes, so we follow
+    // that behavior.
+    _childNodes.clear();
+  }
+
+  Element removeLast() {
+    final last = this.last();
+    if (last != null) {
+      last.remove();
+    }
+    return last;
+  }
+
+  Collection map(f(Element element)) => _filtered.map(f);
+  Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
+  bool every(bool f(Element element)) => _filtered.every(f);
+  bool some(bool f(Element element)) => _filtered.some(f);
+  bool isEmpty() => _filtered.isEmpty();
+  int get length() => _filtered.length;
+  Element operator [](int index) => _filtered[index];
+  Iterator<Element> iterator() => _filtered.iterator();
+  List<Element> getRange(int start, int length) =>
+    _filtered.getRange(start, length);
+  int indexOf(Element element, [int start = 0]) =>
+    _filtered.indexOf(element, start);
+
+  int lastIndexOf(Element element, [int start = null]) {
+    if (start === null) start = length - 1;
+    return _filtered.lastIndexOf(element, start);
+  }
+
+  Element last() => _filtered.last();
+}
+
+Future<CSSStyleDeclaration> _emptyStyleFuture() {
+  return _createMeasurementFuture(() => new Element.tag('div').style,
+                                  new Completer<CSSStyleDeclaration>());
+}
+
+class EmptyElementRect implements ElementRect {
+  final ClientRect client = const _SimpleClientRect(0, 0, 0, 0);
+  final ClientRect offset = const _SimpleClientRect(0, 0, 0, 0);
+  final ClientRect scroll = const _SimpleClientRect(0, 0, 0, 0);
+  final ClientRect bounding = const _SimpleClientRect(0, 0, 0, 0);
+  final List<ClientRect> clientRects = const <ClientRect>[];
+
+  const EmptyElementRect();
+}
 
 class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native "*DocumentFragment" {
+  ElementList _elements;
+
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new FilteredElementList(this);
+    }
+    return _elements;
+  }
+
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value) {
+    // Copy list first since we don't want liveness during iteration.
+    List copy = new List.from(value);
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(copy);
+  }
+
+  ElementList queryAll(String selectors) =>
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+
+  String get innerHTML() {
+    final e = new Element.tag("div");
+    e.nodes.add(this.clone(true));
+    return e.innerHTML;
+  }
+
+  String get outerHTML() => innerHTML;
+
+  // TODO(nweiz): Do we want to support some variant of innerHTML for XML and/or
+  // SVG strings?
+  void set innerHTML(String value) {
+    this.nodes.clear();
+
+    final e = new Element.tag("div");
+    e.innerHTML = value;
+
+    // Copy list first since we don't want liveness during iteration.
+    List nodes = new List.from(e.nodes);
+    this.nodes.addAll(nodes);
+  }
+
+  Node _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case "beforebegin": return null;
+      case "afterend": return null;
+      case "afterbegin":
+        this.insertBefore(node, this.nodes.first);
+        return node;
+      case "beforeend":
+        this.nodes.add(node);
+        return node;
+      default:
+        throw new IllegalArgumentException("Invalid position ${where}");
+    }
+  }
+
+  Element insertAdjacentElement(String where, Element element)
+    => this._insertAdjacentNode(where, element);
+
+  void insertAdjacentText(String where, String text) {
+    this._insertAdjacentNode(where, new Text(text));
+  }
+
+  void insertAdjacentHTML(String where, String text) {
+    this._insertAdjacentNode(where, new DocumentFragment.html(text));
+  }
+
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
+  }
+
+  // If we can come up with a semi-reasonable default value for an Element
+  // getter, we'll use it. In general, these return the same values as an
+  // element that has no parent.
+  String get contentEditable() => "false";
+  bool get isContentEditable() => false;
+  bool get draggable() => false;
+  bool get hidden() => false;
+  bool get spellcheck() => false;
+  bool get translate() => false;
+  int get tabIndex() => -1;
+  String get id() => "";
+  String get title() => "";
+  String get tagName() => "";
+  String get webkitdropzone() => "";
+  String get webkitRegionOverflow() => "";
+  Element get firstElementChild() => elements.first();
+  Element get lastElementChild() => elements.last();
+  Element get nextElementSibling() => null;
+  Element get previousElementSibling() => null;
+  Element get offsetParent() => null;
+  Element get parent() => null;
+  Map<String, String> get attributes() => const {};
+  // Issue 174: this should be a const set.
+  Set<String> get classes() => new Set<String>();
+  Map<String, String> get dataAttributes() => const {};
+  CSSStyleDeclaration get style() => new Element.tag('div').style;
+  Future<CSSStyleDeclaration> get computedStyle() =>
+      _emptyStyleFuture();
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+      _emptyStyleFuture();
+  bool matchesSelector(String selectors) => false;
+
+  // Imperative Element methods are made into no-ops, as they are on parentless
+  // elements.
+  void blur() {}
+  void focus() {}
+  void click() {}
+  void scrollByLines(int lines) {}
+  void scrollByPages(int pages) {}
+  void scrollIntoView([bool centerIfNeeded]) {}
+  void webkitRequestFullScreen(int flags) {}
+
+  // Setters throw errors rather than being no-ops because we aren't going to
+  // retain the values that were set, and erroring out seems clearer.
+  void set attributes(Map<String, String> value) {
+    throw new UnsupportedOperationException(
+      "Attributes can't be set for document fragments.");
+  }
+
+  void set classes(Collection<String> value) {
+    throw new UnsupportedOperationException(
+      "Classes can't be set for document fragments.");
+  }
+
+  void set dataAttributes(Map<String, String> value) {
+    throw new UnsupportedOperationException(
+      "Data attributes can't be set for document fragments.");
+  }
+
+  void set contentEditable(String value) {
+    throw new UnsupportedOperationException(
+      "Content editable can't be set for document fragments.");
+  }
+
+  String get dir() {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support text direction.");
+  }
+
+  void set dir(String value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support text direction.");
+  }
+
+  void set draggable(bool value) {
+    throw new UnsupportedOperationException(
+      "Draggable can't be set for document fragments.");
+  }
+
+  void set hidden(bool value) {
+    throw new UnsupportedOperationException(
+      "Hidden can't be set for document fragments.");
+  }
+
+  void set id(String value) {
+    throw new UnsupportedOperationException(
+      "ID can't be set for document fragments.");
+  }
+
+  String get lang() {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support language.");
+  }
+
+  void set lang(String value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support language.");
+  }
+
+  void set scrollLeft(int value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support scrolling.");
+  }
+
+  void set scrollTop(int value) {
+    throw new UnsupportedOperationException(
+      "Document fragments don't support scrolling.");
+  }
+
+  void set spellcheck(bool value) {
+     throw new UnsupportedOperationException(
+      "Spellcheck can't be set for document fragments.");
+  }
+
+  void set translate(bool value) {
+     throw new UnsupportedOperationException(
+      "Spellcheck can't be set for document fragments.");
+  }
+
+  void set tabIndex(int value) {
+    throw new UnsupportedOperationException(
+      "Tab index can't be set for document fragments.");
+  }
+
+  void set title(String value) {
+    throw new UnsupportedOperationException(
+      "Title can't be set for document fragments.");
+  }
+
+  void set webkitdropzone(String value) {
+    throw new UnsupportedOperationException(
+      "WebKit drop zone can't be set for document fragments.");
+  }
+
+  void set webkitRegionOverflow(String value) {
+    throw new UnsupportedOperationException(
+      "WebKit region overflow can't be set for document fragments.");
+  }
+
+
+  _ElementEventsImpl get on() =>
+    new _ElementEventsImpl(this);
 
   _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
 
   _NodeListImpl _querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+
 }
 
 class _DocumentTypeImpl extends _NodeImpl implements DocumentType native "*DocumentType" {
@@ -4878,6 +5262,13 @@ class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsComp
   final _AudioParamImpl reduction;
 
   final _AudioParamImpl threshold;
+}
+
+class _EXTTextureFilterAnisotropicImpl implements EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4978,7 +5369,7 @@ class _ChildrenElementList implements ElementList {
 
   Iterator<Element> iterator() => _toList().iterator();
 
-  void addAll(Collection<_ElementImpl> collection) {
+  void addAll(Collection<Element> collection) {
     for (_ElementImpl element in collection) {
       _element._appendChild(element);
     }
@@ -5414,18 +5805,19 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   }
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(() =>
-            window._getComputedStyle(this, pseudoElement),
+    return _createMeasurementFuture(
+        () => _window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
+
+  _ElementEventsImpl get on() =>
+    new _ElementEventsImpl(this);
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int get _childElementCount() native "return this.childElementCount;";
 
   _HTMLCollectionImpl get _children() native "return this.children;";
-
-  final _DOMTokenListImpl classList;
 
   String get _className() native "return this.className;";
 
@@ -5502,9 +5894,6 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   final String webkitRegionOverflow;
 
   String webkitdropzone;
-
-  _ElementEventsImpl get on() =>
-    new _ElementEventsImpl(this);
 
   void blur() native;
 
@@ -5864,6 +6253,9 @@ class _EventExceptionImpl implements EventException native "*EventException" {
 
 class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*EventSource" {
 
+  _EventSourceEventsImpl get on() =>
+    new _EventSourceEventsImpl(this);
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -5875,9 +6267,6 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
   final int readyState;
 
   final String url;
-
-  _EventSourceEventsImpl get on() =>
-    new _EventSourceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -5970,6 +6359,10 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement native "*HTMLFieldSetElement" {
 
   final _FormElementImpl form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -6437,12 +6830,12 @@ class _FrameElementImpl extends _ElementImpl implements FrameElement native "*HT
 
 class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement native "*HTMLFrameSetElement" {
 
+  _FrameSetElementEventsImpl get on() =>
+    new _FrameSetElementEventsImpl(this);
+
   String cols;
 
   String rows;
-
-  _FrameSetElementEventsImpl get on() =>
-    new _FrameSetElementEventsImpl(this);
 }
 
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
@@ -7006,6 +7399,9 @@ class _ImageElementImpl extends _ElementImpl implements ImageElement native "*HT
 
 class _InputElementImpl extends _ElementImpl implements InputElement native "*HTMLInputElement" {
 
+  _InputElementEventsImpl get on() =>
+    new _InputElementEventsImpl(this);
+
   String accept;
 
   String align;
@@ -7095,9 +7491,6 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool webkitdirectory;
 
   final bool willValidate;
-
-  _InputElementEventsImpl get on() =>
-    new _InputElementEventsImpl(this);
 
   bool checkValidity() native;
 
@@ -8253,14 +8646,16 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
   // TODO(jacobr): should we throw an exception if parent is already null?
   _NodeImpl remove() {
     if (this.parent != null) {
-      this.parent._removeChild(this);
+      final _NodeImpl parent = this.parent;
+      parent._removeChild(this);
     }
     return this;
   }
 
   _NodeImpl replaceWith(Node otherNode) {
     try {
-      this.parent._replaceChild(otherNode, this);
+      final _NodeImpl parent = this.parent;
+      parent._replaceChild(otherNode, this);
     } catch(var e) {
       
     };
@@ -8587,12 +8982,12 @@ class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
 
 class _NotificationImpl extends _EventTargetImpl implements Notification native "*Notification" {
 
+  _NotificationEventsImpl get on() =>
+    new _NotificationEventsImpl(this);
+
   String dir;
 
   String replaceId;
-
-  _NotificationEventsImpl get on() =>
-    new _NotificationEventsImpl(this);
 
   void cancel() native;
 
@@ -8810,51 +9205,6 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement native "*HT
   String value;
 
   String valueType;
-}
-
-class _PeerConnectionImpl implements PeerConnection native "*PeerConnection" {
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final _MediaStreamListImpl localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final _MediaStreamListImpl remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  void addStream(_MediaStreamImpl stream) native;
-
-  void close() native;
-
-  bool dispatchEvent(_EventImpl event) native;
-
-  void processSignalingMessage(String message) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  void removeStream(_MediaStreamImpl stream) native;
-
-  void send(String text) native;
 }
 
 class _PerformanceImpl implements Performance native "*Performance" {
@@ -9683,8 +10033,58 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument native "*SVG
 
   _EventImpl _createEvent(String eventType) native "return this.createEvent(eventType);";
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _AttributeClassSet extends _CssClassSet {
+  _AttributeClassSet(element) : super(element);
+
+  String _className() => _element.attributes['class'];
+
+  void _write(Set s) {
+    _element.attributes['class'] = _formatSet(s);
+  }
+}
 
 class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGElement" {
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _AttributeClassSet(_ptr);
+    }
+    return _cssClassSet;
+  }
+
+  ElementList get elements() => new FilteredElementList(this);
+
+  void set elements(Collection<Element> value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.add(clone);
+    return container.innerHTML;
+  }
+
+  String get innerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.addAll(clone.elements);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String svg) {
+    final container = new Element.tag("div");
+    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
+    // HTMLElements.
+    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    this.elements = container.elements.first.elements;
+  }
+
 
   // Shadowing definition.
   String get id() native "return this.id;";
@@ -9696,9 +10096,13 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
   final _SVGElementImpl viewportElement;
 
   String xmlbase;
+
 }
 
 class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance native "*SVGElementInstance" {
+
+  _SVGElementInstanceEventsImpl get on() =>
+    new _SVGElementInstanceEventsImpl(this);
 
   final _SVGElementInstanceListImpl childNodes;
 
@@ -9715,9 +10119,6 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
   final _SVGElementInstanceImpl parentNode;
 
   final _SVGElementInstanceImpl previousSibling;
-
-  _SVGElementInstanceEventsImpl get on() =>
-    new _SVGElementInstanceEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -12668,6 +13069,8 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   int selectedIndex;
 
+  final _HTMLCollectionImpl selectedOptions;
+
   int size;
 
   final String type;
@@ -12695,6 +13098,8 @@ class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*
 }
 
 class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native "*ShadowRoot" {
+
+  final _ElementImpl activeElement;
 
   final _ElementImpl host;
 
@@ -12733,6 +13138,24 @@ class _SourceElementImpl extends _ElementImpl implements SourceElement native "*
 class _SpanElementImpl extends _ElementImpl implements SpanElement native "*HTMLSpanElement" {
 }
 
+class _SpeechGrammarImpl implements SpeechGrammar native "*SpeechGrammar" {
+
+  String src;
+
+  num weight;
+}
+
+class _SpeechGrammarListImpl implements SpeechGrammarList native "*SpeechGrammarList" {
+
+  final int length;
+
+  void addFromString(String string, [num weight = null]) native;
+
+  void addFromUri(String src, [num weight = null]) native;
+
+  _SpeechGrammarImpl item(int index) native;
+}
+
 class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent native "*SpeechInputEvent" {
 
   final _SpeechInputResultListImpl results;
@@ -12750,6 +13173,65 @@ class _SpeechInputResultListImpl implements SpeechInputResultList native "*Speec
   final int length;
 
   _SpeechInputResultImpl item(int index) native;
+}
+
+class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
+
+  final num confidence;
+
+  final String transcript;
+}
+
+class _SpeechRecognitionErrorImpl implements SpeechRecognitionError native "*SpeechRecognitionError" {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+
+class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
+
+  final _SpeechRecognitionErrorImpl error;
+
+  final _SpeechRecognitionResultImpl result;
+
+  final _SpeechRecognitionResultListImpl resultHistory;
+
+  final int resultIndex;
+}
+
+class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*SpeechRecognitionResult" {
+
+  bool get finalValue() native "return this.final;";
+
+  final int length;
+
+  _SpeechRecognitionAlternativeImpl item(int index) native;
+}
+
+class _SpeechRecognitionResultListImpl implements SpeechRecognitionResultList native "*SpeechRecognitionResultList" {
+
+  final int length;
+
+  _SpeechRecognitionResultImpl item(int index) native;
 }
 
 class _StorageImpl implements Storage native "*Storage" {
@@ -13370,7 +13852,9 @@ class _TrackElementImpl extends _ElementImpl implements TrackElement native "*HT
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool get defaultValue() native "return this.default;";
+
+  void set defaultValue(bool value) native "this.default = value;";
 
   String kind;
 
@@ -14766,6 +15250,9 @@ class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" 
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
 
+  _WebSocketEventsImpl get on() =>
+    new _WebSocketEventsImpl(this);
+
   static final int CLOSED = 3;
 
   static final int CLOSING = 2;
@@ -14787,9 +15274,6 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
   final int readyState;
 
   final String url;
-
-  _WebSocketEventsImpl get on() =>
-    new _WebSocketEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -14862,6 +15346,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     _addMeasurementFrameCallback(callback);
   }
 
+
+  _WindowEventsImpl get on() =>
+    new _WindowEventsImpl(this);
 
   static final int PERSISTENT = 1;
 
@@ -14964,9 +15451,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
-
-  _WindowEventsImpl get on() =>
-    new _WindowEventsImpl(this);
 
   void _addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
 
@@ -15311,6 +15795,9 @@ class _WorkerNavigatorImpl implements WorkerNavigator native "*WorkerNavigator" 
 
 class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest native "*XMLHttpRequest" {
 
+  _XMLHttpRequestEventsImpl get on() =>
+    new _XMLHttpRequestEventsImpl(this);
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -15344,9 +15831,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
   final _XMLHttpRequestUploadImpl upload;
 
   bool withCredentials;
-
-  _XMLHttpRequestEventsImpl get on() =>
-    new _XMLHttpRequestEventsImpl(this);
 
   void abort() native;
 
@@ -15583,6 +16067,14 @@ class _DOMURLFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
+      '''return new DeprecatedPeerConnection(serverConfiguration, signalingCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) native
       '''return new EventSource(scriptUrl);''';
@@ -15646,14 +16138,6 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
-      '''return new PeerConnection(serverConfiguration, signalingCallback);''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) native
       '''return new ShadowRoot(host);''';
@@ -15667,6 +16151,22 @@ class _SharedWorkerFactoryProvider {
       if (name == null) return new SharedWorker(scriptURL);
       return new SharedWorker(scriptURL, name);
     ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() native
+      '''return new SpeechGrammar();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() native
+      '''return new SpeechGrammarList();''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15734,12 +16234,6 @@ class _XSLTProcessorFactoryProvider {
 interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface AbstractWorkerEvents extends Events {
@@ -16391,6 +16885,8 @@ interface BlobBuilder default _BlobBuilderFactoryProvider {
 
 interface BodyElement extends Element {
 
+  BodyElementEvents get on();
+
   String aLink;
 
   String background;
@@ -16400,8 +16896,6 @@ interface BodyElement extends Element {
   String link;
 
   String vLink;
-
-  BodyElementEvents get on();
 }
 
 interface BodyElementEvents extends ElementEvents {
@@ -16707,12 +17201,6 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
-
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -19226,6 +19714,8 @@ interface DListElement extends Element {
 
 interface DOMApplicationCache extends EventTarget {
 
+  DOMApplicationCacheEvents get on();
+
   static final int CHECKING = 2;
 
   static final int DOWNLOADING = 3;
@@ -19240,15 +19730,7 @@ interface DOMApplicationCache extends EventTarget {
 
   final int status;
 
-  DOMApplicationCacheEvents get on();
-
   void abort();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void swapCache();
 
@@ -19718,6 +20200,58 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+
+  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface DetailsElement extends Element {
 
   bool open;
@@ -19829,6 +20363,8 @@ interface DivElement extends Element {
 interface Document extends HtmlElement {
 
 
+  DocumentEvents get on();
+
   final Element activeElement;
 
   Element body;
@@ -19867,25 +20403,15 @@ interface Document extends HtmlElement {
 
   final String webkitVisibilityState;
 
-  DocumentEvents get on();
-
   Range caretRangeFromPoint(int x, int y);
 
   CDATASection createCDATASection(String data);
 
   DocumentFragment createDocumentFragment();
 
-  Element _createElement(String tagName);
-
-  Event _createEvent(String eventType);
-
   Range createRange();
 
-  Text _createTextNode(String data);
-
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
-
-  TouchList _createTouchList();
 
   Element elementFromPoint(int x, int y);
 
@@ -20009,13 +20535,25 @@ interface DocumentEvents extends ElementEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface DocumentFragment extends Element default _DocumentFragmentFactoryProvider {
 
-interface DocumentFragment extends Node, NodeSelector {
+  DocumentFragment();
+
+  DocumentFragment.html(String html);
+
+  // TODO(nweiz): enable this when XML is ported
+  // /** WARNING: Currently this doesn't work on Dartium (issue 649). */
+  // DocumentFragment.xml(String xml);
+
+  DocumentFragment.svg(String svg);
+
+  DocumentFragment clone(bool deep);
+
+
+  ElementEvents get on();
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20052,6 +20590,18 @@ interface DynamicsCompressorNode extends AudioNode {
   final AudioParam reduction;
 
   final AudioParam threshold;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20352,31 +20902,15 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element get parent();
 
 
+  ElementEvents get on();
+
   static final int ALLOW_KEYBOARD_INPUT = 1;
-
-  final int _childElementCount;
-
-  final HTMLCollection _children;
-
-  final DOMTokenList classList;
-
-  String _className;
-
-  final int _clientHeight;
-
-  final int _clientLeft;
-
-  final int _clientTop;
-
-  final int _clientWidth;
 
   String contentEditable;
 
   String dir;
 
   bool draggable;
-
-  final Element _firstElementChild;
 
   bool hidden;
 
@@ -20392,27 +20926,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   final Element nextElementSibling;
 
-  final int _offsetHeight;
-
-  final int _offsetLeft;
-
   final Element offsetParent;
-
-  final int _offsetTop;
-
-  final int _offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
-
-  final int _scrollHeight;
-
-  int _scrollLeft;
-
-  int _scrollTop;
-
-  final int _scrollWidth;
 
   bool spellcheck;
 
@@ -20430,21 +20948,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String webkitdropzone;
 
-  ElementEvents get on();
-
   void blur();
 
   void click();
 
   void focus();
-
-  String _getAttribute(String name);
-
-  ClientRect _getBoundingClientRect();
-
-  ClientRectList _getClientRects();
-
-  bool _hasAttribute(String name);
 
   Element insertAdjacentElement(String where, Element element);
 
@@ -20454,17 +20962,11 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
-
-  void _removeAttribute(String name);
-
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
   void scrollIntoView([bool centerIfNeeded]);
-
-  void _setAttribute(String name, String value);
 
   bool matchesSelector(String selectors);
 
@@ -20841,8 +21343,6 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
-
   void preventDefault();
 
   void stopImmediatePropagation();
@@ -20879,6 +21379,8 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   EventSource(String scriptUrl);
 
+  EventSourceEvents get on();
+
   static final int CLOSED = 2;
 
   static final int CONNECTING = 0;
@@ -20891,15 +21393,7 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   final String url;
 
-  EventSourceEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close();
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface EventSourceEvents extends Events {
@@ -20932,12 +21426,6 @@ interface EventTarget {
 
   final Events on;
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event event);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20948,6 +21436,10 @@ interface EventTarget {
 interface FieldSetElement extends Element {
 
   final FormElement form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -21372,11 +21864,11 @@ interface FrameElement extends Element {
 
 interface FrameSetElement extends Element {
 
+  FrameSetElementEvents get on();
+
   String cols;
 
   String rows;
-
-  FrameSetElementEvents get on();
 }
 
 interface FrameSetElementEvents extends ElementEvents {
@@ -22011,6 +22503,8 @@ interface ImageElement extends Element {
 
 interface InputElement extends Element {
 
+  InputElementEvents get on();
+
   String accept;
 
   String align;
@@ -22100,8 +22594,6 @@ interface InputElement extends Element {
   bool webkitdirectory;
 
   final bool willValidate;
-
-  InputElementEvents get on();
 
   bool checkValidity();
 
@@ -22844,15 +23336,9 @@ interface MessagePort extends EventTarget {
 
   MessagePortEvents get on();
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close();
 
-  bool _dispatchEvent(Event evt);
-
   void postMessage(String message, [List messagePorts]);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -22981,8 +23467,6 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   final int x;
 
   final int y;
-
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23158,10 +23642,6 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  final NamedNodeMap _attributes;
-
-  final NodeList _childNodes;
-
   final Node nextNode;
 
   final Document document;
@@ -23172,8 +23652,6 @@ interface Node extends EventTarget {
 
   String text;
 
-  Node _appendChild(Node newChild);
-
   Node clone(bool deep);
 
   bool contains(Node other);
@@ -23181,10 +23659,6 @@ interface Node extends EventTarget {
   bool hasChildNodes();
 
   Node insertBefore(Node newChild, Node refChild);
-
-  Node _removeChild(Node oldChild);
-
-  Node _replaceChild(Node newChild, Node oldChild);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23287,8 +23761,6 @@ interface NodeSelector {
 
   Element query(String selectors);
 
-  NodeList _querySelectorAll(String selectors);
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23310,11 +23782,11 @@ interface Notation extends Node {
 
 interface Notification extends EventTarget {
 
+  NotificationEvents get on();
+
   String dir;
 
   String replaceId;
-
-  NotificationEvents get on();
 
   void cancel();
 
@@ -23613,58 +24085,6 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection default _PeerConnectionFactoryProvider {
-
-  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface Performance {
 
   final MemoryInfo memory;
@@ -23743,7 +24163,7 @@ interface PerformanceTiming {
 
   final int unloadEventStart;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24548,16 +24968,18 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
-
-  Event _createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface SVGElement extends Element default _SVGElementFactoryProvider {
 
-interface SVGElement extends Element {
+  SVGElement.tag(String tag);
+  SVGElement.svg(String svg);
+
+  SVGElement clone(bool deep);
+
 
   String id;
 
@@ -24566,6 +24988,7 @@ interface SVGElement extends Element {
   final SVGElement viewportElement;
 
   String xmlbase;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24574,6 +24997,8 @@ interface SVGElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface SVGElementInstance extends EventTarget {
+
+  SVGElementInstanceEvents get on();
 
   final SVGElementInstanceList childNodes;
 
@@ -24590,14 +25015,6 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  SVGElementInstanceEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event event);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -26310,9 +26727,10 @@ interface SVGRenderingIntent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
+    default _SVGSVGElementFactoryProvider {
+  SVGSVGElement();
 
-interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
 
   String contentScriptType;
 
@@ -26387,6 +26805,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
   void unsuspendRedraw(int suspendHandleId);
 
   void unsuspendRedrawAll();
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26447,8 +26866,6 @@ interface SVGStringList {
 // WARNING: Do not edit - generated code.
 
 interface SVGStylable {
-
-  final SVGAnimatedString _svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -26922,6 +27339,8 @@ interface SelectElement extends Element {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -26961,6 +27380,8 @@ interface ShadowElement extends Element {
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
+
+  final Element activeElement;
 
   final Element host;
 
@@ -27004,7 +27425,7 @@ interface SharedWorkerContext extends WorkerContext {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, PeerConnection source);
+typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27026,6 +27447,38 @@ interface SourceElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface SpanElement extends Element {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammar default _SpeechGrammarFactoryProvider {
+
+  SpeechGrammar();
+
+  String src;
+
+  num weight;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
+
+  SpeechGrammarList();
+
+  final int length;
+
+  void addFromString(String string, [num weight]);
+
+  void addFromUri(String src, [num weight]);
+
+  SpeechGrammar item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27060,6 +27513,90 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionAlternative {
+
+  final num confidence;
+
+  final String transcript;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionError {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionEvent extends Event {
+
+  final SpeechRecognitionError error;
+
+  final SpeechRecognitionResult result;
+
+  final SpeechRecognitionResultList resultHistory;
+
+  final int resultIndex;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResult {
+
+  final bool finalValue;
+
+  final int length;
+
+  SpeechRecognitionAlternative item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResultList {
+
+  final int length;
+
+  SpeechRecognitionResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27699,7 +28236,7 @@ interface TrackElement extends Element {
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool defaultValue;
 
   String kind;
 
@@ -29038,7 +29575,11 @@ interface WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket extends EventTarget {
+interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+
+  WebSocket(String url);
+
+  WebSocketEvents get on();
 
   static final int CLOSED = 3;
 
@@ -29062,15 +29603,7 @@ interface WebSocket extends EventTarget {
 
   final String url;
 
-  WebSocketEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void close([int code, String reason]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }
@@ -29144,6 +29677,8 @@ interface Window extends EventTarget {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
+
+  WindowEvents get on();
 
   static final int PERSISTENT = 1;
 
@@ -29247,10 +29782,6 @@ interface Window extends EventTarget {
 
   final Window window;
 
-  WindowEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
   void alert(String message);
 
   String atob(String string);
@@ -29269,13 +29800,9 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
-  bool _dispatchEvent(Event evt);
-
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
-
-  CSSStyleDeclaration _getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
@@ -29298,8 +29825,6 @@ interface Window extends EventTarget {
   String prompt(String message, String defaultValue);
 
   void releaseEvents();
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 
@@ -29621,6 +30146,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
+  XMLHttpRequestEvents get on();
+
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -29653,13 +30180,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   bool withCredentials;
 
-  XMLHttpRequestEvents get on();
-
   void abort();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
 
   String getAllResponseHeaders();
 
@@ -29668,8 +30189,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
 
@@ -29733,12 +30252,6 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
-
-  void _addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool _dispatchEvent(Event evt);
-
-  void _removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface XMLHttpRequestUploadEvents extends Events {
@@ -30674,13 +31187,13 @@ void _completeMeasurementFutures() {
 
 class _TextFactoryProvider {
 
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) => _document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
   factory Event(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    _EventImpl e = document._createEvent("Event");
+    final _EventImpl e = _document._createEvent("Event");
     e._initEvent(type, canBubble, cancelable);
     return e;
   }
@@ -30692,7 +31205,7 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = document._createEvent("MouseEvent");
+    final e = _document._createEvent("MouseEvent");
     e._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -30702,7 +31215,7 @@ class _MouseEventFactoryProvider {
 
 class _CSSStyleDeclarationFactoryProvider {
   factory CSSStyleDeclaration.css(String css) {
-    var style = new Element.tag('div').style;
+    final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   } 
@@ -30745,8 +31258,7 @@ class _ElementFactoryProvider {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
-    _ElementImpl temp = document._createElement(parentTag);
+    final _ElementImpl temp = new Element.tag(parentTag);
     temp.innerHTML = html;
 
     Element element;
@@ -30766,8 +31278,73 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  factory Element.tag(String tag) {
-    return document._createElement(tag);
+  factory Element.tag(String tag) => _document._createElement(tag);
+}
+
+class _DocumentFragmentFactoryProvider {
+  /** @domName Document.createDocumentFragment */
+  factory DocumentFragment() => document.createDocumentFragment();
+
+  factory DocumentFragment.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHTML = html;
+    return fragment;
+  }
+
+  // TODO(nweiz): enable this when XML is ported.
+  // factory DocumentFragment.xml(String xml) {
+  //   final fragment = new DocumentFragment();
+  //   final e = new XMLElement.tag("xml");
+  //   e.innerHTML = xml;
+  //
+  //   // Copy list first since we don't want liveness during iteration.
+  //   final List nodes = new List.from(e.nodes);
+  //   fragment.nodes.addAll(nodes);
+  //   return fragment;
+  // }
+
+  factory DocumentFragment.svg(String svg) {
+    final fragment = new DocumentFragment();
+    final e = new SVGSVGElement();
+    e.innerHTML = svg;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+}
+
+class _SVGElementFactoryProvider {
+  factory SVGElement.tag(String tag) {
+    final Element temp =
+      _document._createElementNS("http://www.w3.org/2000/svg", tag);
+    return temp;
+  }
+
+  factory SVGElement.svg(String svg) {
+    Element parentTag;
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    if (match != null && match.group(1).toLowerCase() == 'svg') {
+      parentTag = new Element.tag('div');
+    } else {
+      parentTag = new SVGSVGElement();
+    }
+
+    parentTag.innerHTML = svg;
+    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
+
+    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+        'top-level elements but 1 expected');
+  }
+}
+
+class _SVGSVGElementFactoryProvider {
+  factory SVGSVGElement() {
+    final el = new SVGElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = "1.1";
+    return el;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30837,6 +31414,11 @@ class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
 }
+
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) native '''return new WebSocket(url);''';
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -30847,10 +31429,12 @@ class _PointFactoryProvider {
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._addEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
-    target._removeEventListener(type, listener, useCapture);
+    final _EventTargetImpl targetImpl = target;
+    targetImpl._removeEventListener(type, listener, useCapture);
   }
 
 }// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

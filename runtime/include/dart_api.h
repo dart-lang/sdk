@@ -238,6 +238,15 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
  * explicitly deallocated by calling Dart_DeletePersistentHandle.
  *
  * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected.
+ *
+ * \return Success if the weak persistent handle was
+ *   created. Otherwise, returns an error.
  */
 DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
@@ -251,6 +260,43 @@ DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
  */
 DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
 
+/**
+ * Allocates a prologue weak persistent handle for an object.
+ *
+ * Prologue weak persistent handles are similar to weak persistent
+ * handles but exhibit different behavior during garbage collections
+ * that invoke the prologue and epilogue callbacks.  While weak
+ * persistent handles always weakly reference their referents,
+ * prologue weak persistent handles weakly reference their referents
+ * only during a garbage collection that invokes the prologue and
+ * epilogue callbacks.  During all other garbage collections, prologue
+ * weak persistent handles strongly reference their referents.
+ *
+ * This handle has the lifetime of the current isolate unless it is
+ * explicitly deallocated by calling Dart_DeletePersistentHandle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected.
+ *
+ * \return Success if the prologue weak persistent handle was created.
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback);
+
+/**
+ * Is this object a prologue weak persistent handle?
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(Dart_Handle object);
 
 /**
  * Constructs a set of weak references from the Cartesian product of
@@ -1655,6 +1701,34 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
 // --- Methods and Fields ---
 
 /**
+ * Invokes a method or function.
+ *
+ * The 'target' parameter may be an object, class, or library.  If
+ * 'target' is an object, then this function will invoke an instance
+ * method.  If 'target' is a class, then this function will invoke a
+ * static method.  If 'target' is a library, then this function will
+ * invoke a top-level function from that library.
+ *
+ * This function ignores visibility (leading underscores in names).
+ *
+ * May generate an unhandled exception error.
+ *
+ * \param target An object, class, or library.
+ * \param name The name of the function or method to invoke.
+ * \param number_of_arguments Size of the arguments array.
+ * \param arguments An array of arguments to the function.
+ *
+ * \return If the function or method is called and completes
+ *   successfully, then the return value is returned. If an error
+ *   occurs during execution, then an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
+                                    Dart_Handle name,
+                                    int number_of_arguments,
+                                    Dart_Handle* arguments);
+/**
+ * DEPRECATED: Use Dart_Invoke instead.
+ *
  * Invokes a static method with the given arguments.
  *
  * May generate an unhandled exception error.
@@ -1670,6 +1744,8 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library,
                                           Dart_Handle* arguments);
 
 /**
+ * DEPRECATED: Use Dart_Invoke instead.
+ *
  * Invokes an instance method with the given arguments.
  *
  * May generate an unhandled exception error.
@@ -1686,18 +1762,18 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
 /**
  * Gets the value of a field.
  *
- * The 'container' parameter may actually be an object, class, or
- * library.  If 'container' is an object, then this function will
- * access an instance field.  If 'container' is a class, then this
- * function will access a static field.  If 'container' is a library,
- * then this function will access a top-level variable.
+ * The 'container' parameter may be an object, class, or library.  If
+ * 'container' is an object, then this function will access an
+ * instance field.  If 'container' is a class, then this function will
+ * access a static field.  If 'container' is a library, then this
+ * function will access a top-level variable.
  *
  * This function ignores field visibility (leading underscores in names).
  *
  * May generate an unhandled exception error.
  *
  * \param container An object, class, or library.
- * \param name A field name
+ * \param name A field name.
  *
  * \return If no error occurs, then the value of the field is
  *   returned. Otherwise an error handle is returned.
@@ -1719,8 +1795,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container,
  * May generate an unhandled exception error.
  *
  * \param container An object, class, or library.
- * \param name A field name
- * \param value The new field value
+ * \param name A field name.
+ * \param value The new field value.
  *
  * \return A valid handle if no error occurs.
  */
@@ -1939,10 +2015,14 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name);
+// TODO(turnidge): Consider returning Dart_Null() when the class is
+// not found to distinguish that from a true error case.
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
+// TODO(turnidge): Consider returning Dart_Null() when the library is
+// not found to distinguish that from a true error case.
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source,

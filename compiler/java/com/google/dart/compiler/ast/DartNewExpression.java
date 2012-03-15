@@ -4,9 +4,8 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 
 import java.util.List;
@@ -14,10 +13,10 @@ import java.util.List;
 /**
  * Represents a Dart 'new' expression.
  */
-public class DartNewExpression extends DartInvocation implements HasSymbol {
+public class DartNewExpression extends DartInvocation {
 
   private DartNode constructor;
-  private ConstructorElement typeSymbol;
+  private ConstructorElement element;
   private final boolean isConst;
 
   public DartNewExpression(DartNode constructor, List<DartExpression> args, boolean isConst) {
@@ -40,8 +39,8 @@ public class DartNewExpression extends DartInvocation implements HasSymbol {
   }
 
   @Override
-  public ConstructorElement getSymbol() {
-    return typeSymbol;
+  public ConstructorElement getElement() {
+    return element;
   }
 
   public void setConstructor(DartExpression newConstructor) {
@@ -49,8 +48,8 @@ public class DartNewExpression extends DartInvocation implements HasSymbol {
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.typeSymbol = (ConstructorElement) symbol;
+  public void setElement(Element element) {
+    this.element = (ConstructorElement) element;
   }
 
   @Override

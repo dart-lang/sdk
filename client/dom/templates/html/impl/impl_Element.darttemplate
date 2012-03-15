@@ -97,7 +97,7 @@ class _ChildrenElementList implements ElementList {
 
   Iterator<Element> iterator() => _toList().iterator();
 
-  void addAll(Collection<_ElementImpl> collection) {
+  void addAll(Collection<Element> collection) {
     for (_ElementImpl element in collection) {
       _element._appendChild(element);
     }
@@ -533,8 +533,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
-    return _createMeasurementFuture(() =>
-            window._getComputedStyle(this, pseudoElement),
+    return _createMeasurementFuture(
+        () => _window._getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
 $!MEMBERS

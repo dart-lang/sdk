@@ -19,6 +19,12 @@ class _EventSourceFactoryProvider {
       FactoryProviderImplementation.createEventSource(scriptUrl);
 }
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration,
+                         SignalingCallback signalingCallback) =>
+      FactoryProviderImplementation.createDeprecatedPeerConnection(serverConfiguration, signalingCallback);
+}
+
 class _FileReaderFactoryProvider {
   factory FileReader() => FactoryProviderImplementation.createFileReader();
 }
@@ -50,13 +56,6 @@ class _MessageChannelFactoryProvider {
   factory MessageChannel() => FactoryProviderImplementation.createMessageChannel();
 }
 
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration,
-                         SignalingCallback signalingCallback) =>
-      FactoryProviderImplementation.createPeerConnection(serverConfiguration,
-                                                         signalingCallback);
-}
-
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) =>
       FactoryProviderImplementation.createShadowRoot(host);
@@ -65,6 +64,14 @@ class _ShadowRootFactoryProvider {
 class _SharedWorkerFactoryProvider {
   factory SharedWorker(String scriptURL, [String name]) =>
       FactoryProviderImplementation.createSharedWorker(scriptURL, name);
+}
+
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() => FactoryProviderImplementation.createSpeechGrammar();
+}
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() => FactoryProviderImplementation.createSpeechGrammarList();
 }
 
 class _TextTrackCueFactoryProvider {

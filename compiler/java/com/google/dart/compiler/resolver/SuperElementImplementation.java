@@ -9,7 +9,7 @@ import com.google.dart.compiler.ast.DartSuperExpression;
 /**
  * Resolved element for a Dart 'super' expression.
  */
-public class SuperElementImplementation extends AbstractElement implements SuperElement {
+public class SuperElementImplementation extends AbstractNodeElement implements SuperElement {
 
   public ClassElement classElement;
 

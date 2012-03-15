@@ -31,6 +31,7 @@ have the generated javascript.
 import logging
 import optparse
 import os.path
+import platform
 import re
 import subprocess
 import sys
@@ -117,6 +118,9 @@ DIRECTIVE_RE = re.compile(r"^#(import|source|native)\([\"']([^\"']*)[\"']")
 # id of script tag that holds name of the top dart file to be compiled,
 # (This file name passed will be passed to the frog compiler by frogpad.dart.)
 MAIN_ID = "main_id"
+
+# id of the script tag that holds the name of the frog directory
+FROGDIR_ID = "frogdir_id"
 
 DART_LIBRARIES = {
     "core": "lib/corelib.dart",
@@ -222,12 +226,18 @@ class Pad(object):
     for f in self.id_to_file.values():
       tags.append(self._create_tag(f.id, f.contents))
     tags.append(self._create_tag(MAIN_ID, self.main_file))
+    tags.append(self._create_tag(FROGDIR_ID, self.frog_dir))
     html = HTML.replace("{{script_tags}}", "".join(tags))
     html = html.replace("{{FROGPAD_JS}}", read_file(self.frogpad_js))
     return html
 
   def generate_js(self):
     drt = os.path.join(self.dart_dir, "client/tests/drt/DumpRenderTree")
+    if platform.system() == 'Darwin':
+      drt += ".app"
+    elif platform.system() == 'Windows':
+      raise Exception("frogpad does not run on Windows")
+
     check_exists(drt)
     args = []
     args.append(drt)
@@ -282,10 +292,7 @@ class File(object):
     Generates an id (based on the file name) for the <script> tag that will
     hold the contents of this file.
     """
-    (dirname, name) = os.path.split(self.name)
-    dirname = os.path.basename(dirname)
-    name = name.replace(".", "_")
-    return dirname + "_" + name
+    return self.name.replace("/", "_").replace(".", "_")
 
   def directives(self):
     """Load files referenced by #source, #import and #native directives."""
@@ -339,16 +346,16 @@ def run_command(args):
   """
 
   command = format_command(args)
-  logging.debug("RUNNING " + command)
+  logging.info("RUNNING: '%s'" % command)
   child = subprocess.Popen(args,
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       close_fds=True)
   (stdout, stderr) = child.communicate()
-  for line in stderr.splitlines():
-    logging.info(level, '%s: %s', args[0], line)
-  exitcode = child.wait()
-  if exitcode:
+  exit_code = child.wait()
+  if exit_code:
+    for line in stderr.splitlines():
+      logging.info(line)
     msg = "FAILURE (exit_code=%d): '%s'" % (exit_code, command)
     logging.error(msg)
     raise CommandFailedException(msg)

@@ -35,10 +35,12 @@ namespace dart {
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(PcDescriptors)                                                             \
+  V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(ICData)                                                                    \
   V(Error)                                                                     \
     V(ApiError)                                                                \
     V(LanguageError)                                                           \
@@ -68,7 +70,6 @@ namespace dart {
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
-    V(ICData)                                                                  \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -688,6 +689,32 @@ class RawPcDescriptors : public RawObject {
 };
 
 
+// Stackmap is an immutable representation of the layout of the stack at
+// a PC. The stack map representation consists of a bit map which marks
+// each stack slot index starting from the FP (frame pointer) as an object
+// or regular untagged value.
+// The Stackmap also consists of a link to code object corresponding to
+// the frame which the stack map is describing.
+// The bit map representation is optimized for dense and small bit maps,
+// without any upper bound.
+class RawStackmap : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Stackmap);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+  }
+  RawCode* code_;  // Code object corresponding to the frame described.
+  RawSmi* bitmap_size_in_bytes_;  // Size of the bit map in bytes.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->bitmap_size_in_bytes_);
+  }
+  uword pc_;  // PC corresponding to this stack map representation.
+
+  // Variable length data follows here (bitmap of the stack layout).
+  uint8_t data_[0];
+};
+
+
 class RawLocalVarDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
 
@@ -757,6 +784,23 @@ class RawContextScope : public RawObject {
     intptr_t data_length = num_vars * (sizeof(VariableDesc)/kWordSize);
     return reinterpret_cast<RawObject**>(&ptr()->data_[data_length - 1]);
   }
+};
+
+
+class RawICData : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->function_);
+  }
+  RawFunction* function_;  // Parent/calling function of this IC.
+  RawString* target_name_;  // Name of target function.
+  RawArray* ic_data_;  // Contains test classes and target function.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+  }
+  intptr_t id_;  // Parser node id corresponding to this IC.
+  intptr_t num_args_tested_;  // Number of arguments tested in IC.
 };
 
 
@@ -1002,7 +1046,7 @@ class RawGrowableObjectArray : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
   RawSmi* length_;
   RawArray* data_;
@@ -1121,26 +1165,6 @@ class RawJSRegExp : public RawInstance {
   // Variable length data follows here.
   uint8_t data_[0];
 };
-
-
-class RawICData : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->function_);
-  }
-
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
-  }
-
-  RawFunction* function_;  // Parent/calling function of this IC.
-  RawString* target_name_;  // Name of target function.
-  RawArray* ic_data_;  // Contains test classes and target function.
-  intptr_t id_;  // Parser node id corresponding to this IC.
-  intptr_t num_args_tested_;  // Number of arguments tested in IC.
-};
-
 
 }  // namespace dart
 

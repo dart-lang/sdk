@@ -145,7 +145,7 @@ public class NegativeParserTest extends CompilerTestCase {
     assertNotNull(factory);
     // this factory has name, which is allowed for normal method
     assertEquals(true, factory.getName() instanceof DartIdentifier);
-    assertEquals("foo", ((DartIdentifier) factory.getName()).getTargetName());
+    assertEquals("foo", ((DartIdentifier) factory.getName()).getName());
   }
 
   public void test_defaultParameterValue_inInterfaceMethod() {

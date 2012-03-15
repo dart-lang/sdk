@@ -5,9 +5,9 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.HasSourceInfo;
 
 public interface ResolutionErrorListener {
 
-  void onError(DartNode node, ErrorCode errorCode, Object... arguments);
+  void onError(HasSourceInfo hasSourceInfo, ErrorCode errorCode, Object... arguments);
 }

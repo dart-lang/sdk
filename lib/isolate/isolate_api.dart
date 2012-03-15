@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class IsolateSpawnException implements Exception {
+  const IsolateSpawnException(String this._s);
+  String toString() => "IsolateSpawnException: '$_s'";
+  final String _s;
+}
+
 /**
  * The initial [ReceivePort] available by default for this isolate. This
  * [ReceivePort] is created automatically and it is commonly used to establish
@@ -51,21 +57,34 @@ SendPort spawnUri(String uri) {
 interface SendPort extends Hashable {
 
   /**
-   * Sends an asynchronous [message] to this send port. The message is
-   * copied to the receiving isolate. If the message contains any
-   * receive ports, they are translated to the corresponding send port
-   * before being transmitted. If specified, the [replyTo] port will be
-   * provided to the receiver to facilitate exchanging sequences of
-   * messages.
+   * Sends an asynchronous [message] to this send port. The message is copied to
+   * the receiving isolate. If specified, the [replyTo] port will be provided to
+   * the receiver to facilitate exchanging sequences of messages.
+   *
+   * The content of [message] can be: primitive values (null, num, bool, double,
+   * String), instances of [SendPort], and lists and maps whose elements are any
+   * of these. List and maps are also allowed to be cyclic.
+   *
+   * In the special circumstances when two isolates share the same code and are
+   * running in the same process (e.g. isolates created via [spawnFunction]), it
+   * is also possible to send object instances (which would be copied in the
+   * process). This is currently only supported by the dartvm.  For now, the
+   * frog compiler only supports the restricted messages described above.
+   *
+   * Deprecation note: it is no longer valid to transmit a [ReceivePort] in a
+   * message. Previously they were translated to the corresponding send port
+   * before being transmitted.
    */
   void send(var message, [SendPort replyTo]);
 
   /**
-   * Creates a new single-shot receive port, sends a message to this
-   * send port with replyTo set to the opened port, and returns the
-   * receive port.
+   * Sends a message to this send port and returns a [Future] of the reply.
+   * Basically, this internally creates a new receive port, sends a
+   * message to this send port with replyTo set to such receive port, and, when
+   * a reply is received, it closes the receive port and completes the returned
+   * future.
    */
-  ReceivePort call(var message);
+  Future call(var message);
 
   /**
    * Tests whether [other] is a [SendPort] pointing to the same
@@ -97,14 +116,6 @@ interface ReceivePort default _ReceivePortFactory {
    * must be explicitly closed through [ReceivePort.close].
    */
   ReceivePort();
-
-  /**
-   * Opens a single-shot reply port. Once a message has been received
-   * on this port, it is automatically closed -- obviously without
-   * throwing the message away before it can be processed. This
-   * constructor is used indirectly through [SendPort.call].
-   */
-  ReceivePort.singleShot();
 
   /**
    * Sets up a callback function for receiving pending or future

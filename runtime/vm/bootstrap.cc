@@ -48,6 +48,16 @@ RawScript* Bootstrap::LoadIsolateScript()  {
 }
 
 
+RawScript* Bootstrap::LoadMirrorsScript()  {
+  const String& url = String::Handle(String::New("dart:mirrors", Heap::kOld));
+  const String& src = String::Handle(String::New(mirrors_source_, Heap::kOld));
+
+  const Script& result =
+      Script::Handle(Script::New(url, src, RawScript::kSource));
+  return result.raw();
+}
+
+
 RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   if (FLAG_print_bootstrap) {
     OS::Print("Bootstrap source '%s':\n%s\n",

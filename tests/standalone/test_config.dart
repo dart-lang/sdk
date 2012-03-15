@@ -11,7 +11,8 @@ class StandaloneTestSuite extends StandardTestSuite {
       : super(configuration,
               "standalone",
               "tests/standalone/src",
-              ["tests/standalone/standalone.status"]);
+              ["tests/standalone/standalone.status",
+               "tests/standalone/standalone-leg.status"]);
 
   bool listRecursively() => true;
 }

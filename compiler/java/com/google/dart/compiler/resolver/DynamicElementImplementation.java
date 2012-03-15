@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Dummy element corresponding to {@link DynamicType}.
  */
-class DynamicElementImplementation extends AbstractElement implements DynamicElement {
+class DynamicElementImplementation extends AbstractNodeElement implements DynamicElement {
 
   private DynamicElementImplementation() {
     super(null, "<dynamic>");
@@ -92,6 +92,11 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   public boolean isConstructor() {
     return false;
   }
+  
+  @Override
+  public boolean isSynthetic() {
+    return true;
+  }
 
   @Override
   public ConstructorElement getDefaultConstructor() {
@@ -105,6 +110,11 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
 
   @Override
   public boolean isStatic() {
+    return false;
+  }
+
+  @Override
+  public boolean hasBody() {
     return false;
   }
 
@@ -137,6 +147,11 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   public boolean isObject() {
     return false;
   }
+  
+  @Override
+  public String getDeclarationNameWithTypeParameters() {
+    return "Dynamic";
+  }
 
   @Override
   public boolean isObjectChild() {
@@ -156,10 +171,6 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   @Override
   public LibraryElement getLibrary() {
     return null;
-  }
-
-  @Override
-  public void setBound(Type bound) {
   }
 
   @Override
@@ -250,9 +261,23 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   public ClassElement getConstructorType() {
     return this;
   }
+  
+  @Override
+  public String getRawName() {
+    return getName();
+  }
 
   @Override
   public void setType(Type type) {
     super.setType(type);
+  }
+  
+  @Override
+  public Type getConstantType() {
+    return null;
+  }
+  @Override
+  public List<Element> getUnimplementedMembers() {
+    return null;
   }
 }

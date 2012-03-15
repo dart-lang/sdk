@@ -28,8 +28,12 @@ class CallThroughGetterTest {
     Expect.equals(1, TOP_LEVEL_CONST_REF);
     Expect.equals(2, topLevel());
 
-    expectThrowsNotClosure(() { TOP_LEVEL_CONST(); });
-    expectThrowsNotClosure(() { (TOP_LEVEL_CONST)(); });
+    expectThrowsNotClosure(() { 
+      TOP_LEVEL_CONST(); /// static type warning
+    });
+    expectThrowsNotClosure(() { 
+      (TOP_LEVEL_CONST)();  /// static type warning
+    });
   }
 
   static void testField() {

@@ -4,23 +4,32 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
-
 import java.util.List;
 
 /**
- * Method invocation AST node. The name of the method must not be
- * null. The receiver is an expression, super, or a classname.
+ * Method invocation AST node. The name of the method must not be null. The receiver is an
+ * expression, super, or a classname.
+ * <p>
+ * {@link DartMethodInvocation} may be created at the parsing time not only for invocation of actual
+ * method, but also for invocation of function object in some object. For example:
+ * 
+ * <pre>
+ *  class A {
+ *    Function run;
+ *  }
+ *  test(A a) {
+ *    a.run();
+ *  }
+ * </pre>
  */
 public class DartMethodInvocation extends DartInvocation {
 
   private DartExpression target;
   private DartIdentifier functionName;
-  private Symbol targetSymbol;
 
   public DartMethodInvocation(DartExpression target,
-                              DartIdentifier functionName,
-                              List<DartExpression> args) {
+      DartIdentifier functionName,
+      List<DartExpression> args) {
     super(args);
     functionName.getClass(); // Quick null-check.
     this.target = becomeParentOf(target);
@@ -33,7 +42,7 @@ public class DartMethodInvocation extends DartInvocation {
   }
 
   public String getFunctionNameString() {
-    return functionName.getTargetName();
+    return functionName.getName();
   }
 
   public DartIdentifier getFunctionName() {
@@ -43,15 +52,6 @@ public class DartMethodInvocation extends DartInvocation {
   public void setFunctionName(DartIdentifier newName) {
     newName.getClass(); // Quick null-check.
     functionName = becomeParentOf(newName);
-  }
-
-  @Override
-  public void setSymbol(Symbol symbol) {
-    this.targetSymbol = symbol;
-  }
-
-  public Symbol getTargetSymbol() {
-    return targetSymbol;
   }
 
   @Override

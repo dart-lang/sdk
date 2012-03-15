@@ -309,7 +309,7 @@ public abstract class BaseASTWriter {
 
     @Override
     public Object visitField(DartField node) {
-      write("DartField", node, node.getName().getTargetName());
+      write("DartField", node, node.getName().getName());
       visitChildren(node);
       return null;
     }
@@ -359,7 +359,7 @@ public abstract class BaseASTWriter {
 
     @Override
     public Object visitIdentifier(DartIdentifier node) {
-      write("DartIdentifier", node, node.getTargetName());
+      write("DartIdentifier", node, node.getName());
       visitChildren(node);
       return null;
     }

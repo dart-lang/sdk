@@ -20,7 +20,7 @@ void test(TestExpectation expect) {
     remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
     remote.send(const ["Hello", "World", 0xffffffffff], null);
     // Shutdown the LogRunner.
-    remote.call(-1).receive(expect.runs2((int message, SendPort replyTo) {
+    remote.call(-1).then(expect.runs1((int message) {
       Expect.equals(6, message);
       expect.succeeded();
     }));

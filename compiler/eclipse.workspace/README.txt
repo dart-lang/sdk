@@ -12,8 +12,6 @@ HOW TO
 3. Add the following "Path Variable" to your workspace:
    (Open Preferences... > General > Workspace > Linked Resources)
    DART_TRUNK: point to the root of your checkout
-   D8_EXEC: for example DART_TRUNK/compiler/out/Debug_dartc/d8
-            or on a mac DART_TRUNK/compiler/xcodebuild/Debug_dashc/d8
   
 
 4. Add a "Classpath Variable" to your workspace called DART_TRUNK
@@ -33,27 +31,19 @@ HOW TO
 9. Click Finish. (At this point Eclipse may get stuck, if so, exit
    Eclipse by right-clicking on the dock icon, and restart).
 
-10. Repeat steps 5-9, to import the project in third_party/closure-compiler-src
-
-11. Open the "build.xml" file in the "closure-compiler-src" project.
-
-12. In the Outline view, right-click on the "jar [default]" target, and select
-    "Run as..." > "Ant Build". (This will build its version of Rhino and JarJar 
-    it).
-
-13. Open Preferences... > Java > Compiler > Errors/Warnings > Potential
+10. Open Preferences... > Java > Compiler > Errors/Warnings > Potential
     programming problems. Change "Serializable class without
     serialVersionUID" to "Ignore".
 
-14. Import the launch configuration (File > Import... > Run/Debug >
+11. Import the launch configuration (File > Import... > Run/Debug >
     Launch Configurations).
 
-15. Click "Next >"
+12. Click "Next >"
 
-16. In SVN, browse to: compiler/eclipse.workspace/tests.
+13. In SVN, browse to: compiler/eclipse.workspace/tests.
 
-17. Select "tests".
+14. Select "tests".
 
-18. Click Finish.
+15. Click Finish.
 
-19. Try running the tests: Run > Run History > dartc test suites.
+16. Try running the tests: Run > Run History > dartc test suites.

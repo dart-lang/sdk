@@ -4,7 +4,8 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.LabelElement;
 
 /**
  * Base class of {@link DartBreakStatement} and {@link DartContinueStatement}.
@@ -12,7 +13,7 @@ import com.google.dart.compiler.common.Symbol;
 public abstract class DartGotoStatement extends DartStatement {
 
   private DartIdentifier label;
-  private Symbol targetSymbol;
+  private LabelElement element;
 
   public DartGotoStatement(DartIdentifier label) {
     this.label = becomeParentOf(label);
@@ -26,11 +27,7 @@ public abstract class DartGotoStatement extends DartStatement {
     if (label == null) {
       return null;
     }
-    return label.getTargetName();
-  }
-
-  public Symbol getTargetSymbol() {
-    return targetSymbol;
+    return label.getName();
   }
 
   public void setLabel(DartIdentifier newLabel) {
@@ -38,8 +35,13 @@ public abstract class DartGotoStatement extends DartStatement {
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.targetSymbol = symbol;
+  public LabelElement getElement() {
+    return element;
+  }
+
+  @Override
+  public void setElement(Element element) {
+    this.element = (LabelElement) element;
   }
 
   @Override

@@ -4,27 +4,34 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
 /**
- * Represention of a type variable.
- *
- * <p>For example, in {@code class Foo<T> { ... }}, {@code T} is a
- * type variable.
+ * Representation of a type variable.
+ * 
+ * <p>
+ * For example, in {@code class Foo<T> ... } , {@code T} is a type variable.
  */
-class TypeVariableElementImplementation extends AbstractElement implements TypeVariableElement {
+class TypeVariableElementImplementation extends AbstractNodeElement implements TypeVariableNodeElement {
 
-  private final Element owner;
+  private final EnclosingElement owner;
   private TypeVariable type;
   private Type bound;
+  private final DartTypeNode boundNode;
 
-  TypeVariableElementImplementation(DartNode node, String name, Element owner) {
+  TypeVariableElementImplementation(String name, Type bound) {
+    this(null, name, null);
+    this.bound = bound;
+  }
+
+  TypeVariableElementImplementation(DartTypeParameter node, String name, EnclosingElement owner) {
     super(node, name);
     this.owner = owner;
+    this.boundNode = node != null ? node.getBound() : null;
   }
 
   @Override
@@ -37,9 +44,9 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
     return ElementKind.TYPE_VARIABLE;
   }
 
-  static TypeVariableElementImplementation fromNode(DartTypeParameter node, Element owner) {
+  static TypeVariableElementImplementation fromNode(DartTypeParameter node, EnclosingElement owner) {
     TypeVariableElementImplementation element =
-      new TypeVariableElementImplementation(node, node.getName().getTargetName(), owner);
+        new TypeVariableElementImplementation(node, node.getName().getName(), owner);
     element.setType(Types.typeVariable(element));
     return element;
   }
@@ -55,17 +62,26 @@ class TypeVariableElementImplementation extends AbstractElement implements TypeV
   }
 
   @Override
-  public void setBound(Type bound) {
-    this.bound = bound;
-  }
-
-  @Override
   public Type getBound() {
+    if (boundNode != null) {
+      return boundNode.getType();
+    }
+    // no explicit bound, try to get Object
+    if (bound == null) {
+      if (owner instanceof ClassElement) {
+        bound = ((ClassElement) owner).getLibrary().lookupLocalElement("Object").getType();
+      }
+    }
     return bound;
   }
 
   @Override
   public Element getDeclaringElement() {
+    return owner;
+  }
+
+  @Override
+  public EnclosingElement getEnclosingElement() {
     return owner;
   }
 }

@@ -127,7 +127,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
 
   // If the URL starts with "dart:" then it is handled specially.
@@ -175,15 +175,24 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
   // We only support canonicalization of "dart:".
   if (DartUtils::IsDartSchemeURL(url_string)) {
     if (tag == kCanonicalizeUrl) {
       return url;
     }
-    // TODO(iposva): Make sure only the known libraries are being added.
-    return Dart_True();
+    ASSERT(tag == kImportTag);
+    // Handle imports of other built-in libraries present in the SDK.
+    if (DartUtils::IsDartIOLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+    } else if (DartUtils::IsDartJsonLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+    } else if (DartUtils::IsDartUriLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+    } else if (DartUtils::IsDartUtfLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUtfLibrary);
+    }
   }
   return Dart_Error("unexpected tag encountered %d", tag);
 }

@@ -77,10 +77,9 @@ class PingPongClient {
         // TODO(asiva): remove this local var idx once thew new for-loop
         // semantics for closures is implemented.
         var idx = i;
-        remote.call(sentObject).receive(expect.runs2(
-            (var receivedObject, SendPort replyTo) {
-              MessageTest.VerifyObject(idx, receivedObject);
-            }));
+        remote.call(sentObject).then(expect.runs1((var receivedObject) {
+          MessageTest.VerifyObject(idx, receivedObject);
+        }));
       }
 
       // Send recursive objects and receive them back.
@@ -93,27 +92,25 @@ class PingPongClient {
       sendObject[2] = local_list2;
       sendObject[3] = sendObject;
       sendObject[4] = local_list3;
-      remote.call(sendObject).receive(
-          (var replyObject, SendPort replyTo) {
-            Expect.equals(true, sendObject is List);
-            Expect.equals(true, replyObject is List);
-            Expect.equals(sendObject.length, replyObject.length);
-            Expect.equals(true, replyObject[1] === replyObject);
-            Expect.equals(true, replyObject[3] === replyObject);
-            Expect.equals(true, replyObject[0] === replyObject[2][1]);
-            Expect.equals(true, replyObject[0] === replyObject[2][2]);
-            Expect.equals(true, replyObject[2] === replyObject[4][0]);
-            Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
-            // Bigint literals are not canonicalized so do a == check.
-            Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
-          });
+      remote.call(sendObject).then((var replyObject) {
+          Expect.equals(true, sendObject is List);
+          Expect.equals(true, replyObject is List);
+          Expect.equals(sendObject.length, replyObject.length);
+          Expect.equals(true, replyObject[1] === replyObject);
+          Expect.equals(true, replyObject[3] === replyObject);
+          Expect.equals(true, replyObject[0] === replyObject[2][1]);
+          Expect.equals(true, replyObject[0] === replyObject[2][2]);
+          Expect.equals(true, replyObject[2] === replyObject[4][0]);
+          Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
+          // Bigint literals are not canonicalized so do a == check.
+          Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
+        });
 
       // Shutdown the MessageServer.
-      remote.call(-1).receive(expect.runs2(
-          (int message, SendPort replyTo) {
-            Expect.equals(MessageTest.elms.length + 1, message);
-            expect.succeeded();
-          }));
+      remote.call(-1).then(expect.runs1((int message) {
+          Expect.equals(MessageTest.elms.length + 1, message);
+          expect.succeeded();
+        }));
     });
   }
 }

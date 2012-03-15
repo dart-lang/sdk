@@ -396,13 +396,6 @@ class DartGenerator(object):
       for generator in generators:
         generator.AddAttribute(getter, setter)
 
-    events = set([attr for attr in interface.attributes
-                  if self._IsEventAttribute(interface, attr)])
-
-    if events:
-      for generator in generators:
-        generator.AddEventAttributes(events)
-
     # The implementation should define an indexer if the interface directly
     # extends List.
     element_type = MaybeListElementType(interface)

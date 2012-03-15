@@ -24,11 +24,11 @@ class FlowGraphBuilder: public ValueObject {
 
   void BuildGraph();
 
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+
   const GrowableArray<BlockEntryInstr*>* blocks() const {
     return &postorder_block_entries_;
   }
-
-  const ParsedFunction& parsed_function() const { return parsed_function_; }
 
   void Bailout(const char* reason);
 
@@ -114,6 +114,19 @@ class EffectGraphVisitor : public AstNodeVisitor {
                             intptr_t token_index,
                             int start_index);
 
+  // Creates type arguments (one or two values in 'args') used in preparation
+  // of a constructor or factory call.
+  // For factory call instantiates and returns type argument vector in 'args'.
+  // For constructor call returns type arguments and type arguments of the
+  // instantiator.
+  // May be called only if allocating an object of a parameterized class.
+  void BuildTypeArguments(ConstructorCallNode* node,
+                          ZoneGrowableArray<Value*>* args);
+
+  // Returns the value of the type arguments of the instantiator.
+  Value* GenerateInstantiatorTypeArguments(intptr_t token_index,
+                                           intptr_t type_arguments);
+
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
@@ -148,9 +161,13 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
-  virtual void VisitLoadLocalNode(LoadLocalNode* node);
+  virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);
+  virtual void VisitConstructorCallNode(ConstructorCallNode* node);
+  virtual void VisitBinaryOpNode(BinaryOpNode* node);
+  virtual void VisitConditionalExprNode(ConditionalExprNode* node);
+  virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
   Value* value() const { return value_; }
 

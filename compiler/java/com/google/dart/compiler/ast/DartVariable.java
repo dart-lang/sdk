@@ -4,16 +4,15 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.common.HasSymbol;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.VariableElement;
 
 /**
  * Represents a single variable declaration in a {@link DartVariableStatement}.
  */
-public class DartVariable extends DartDeclaration<DartIdentifier> implements HasSymbol {
+public class DartVariable extends DartDeclaration<DartIdentifier> {
 
-  private Element symbol;
+  private VariableElement element;
 
   private DartExpression value;
 
@@ -23,12 +22,12 @@ public class DartVariable extends DartDeclaration<DartIdentifier> implements Has
   }
 
   public String getVariableName() {
-    return getName().getTargetName();
+    return getName().getName();
   }
 
   @Override
-  public Element getSymbol() {
-    return symbol;
+  public VariableElement getElement() {
+    return element;
   }
 
   public DartExpression getValue() {
@@ -36,8 +35,8 @@ public class DartVariable extends DartDeclaration<DartIdentifier> implements Has
   }
 
   @Override
-  public void setSymbol(Symbol symbol) {
-    this.symbol = (Element) symbol;
+  public void setElement(Element element) {
+    this.element = (VariableElement) element;
   }
 
   @Override

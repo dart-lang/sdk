@@ -9,22 +9,27 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 
-class FieldElementImplementation extends AbstractElement implements FieldElement {
+class FieldElementImplementation extends AbstractNodeElement implements FieldElement, FieldNodeElement {
   private final EnclosingElement holder;
+  private final SourceInfo nameLocation;
   private Modifiers modifiers;
   private Type type;
-  private MethodElement getter;
-  private MethodElement setter;
+  private MethodNodeElement getter;
+  private MethodNodeElement setter;
+  private Type constantType;
 
   FieldElementImplementation(DartNode node,
-                             String name,
-                             EnclosingElement holder,
-                             Modifiers modifiers) {
+      SourceInfo nameLocation,
+      String name,
+      EnclosingElement holder,
+      Modifiers modifiers) {
     super(node, name);
     this.holder = holder;
     this.modifiers = modifiers;
+    this.nameLocation = nameLocation;
   }
 
   @Override
@@ -43,6 +48,11 @@ class FieldElementImplementation extends AbstractElement implements FieldElement
   }
 
   @Override
+  public SourceInfo getNameLocation() {
+    return nameLocation;
+  }
+
+  @Override
   public EnclosingElement getEnclosingElement() {
     return holder;
   }
@@ -58,35 +68,50 @@ class FieldElementImplementation extends AbstractElement implements FieldElement
   }
 
   public static FieldElementImplementation fromNode(DartField node,
-                                                    EnclosingElement holder,
-                                                    Modifiers modifiers) {
-    return new FieldElementImplementation(node, node.getName().getTargetName(), holder, modifiers);
+      EnclosingElement holder,
+      Modifiers modifiers) {
+    return new FieldElementImplementation(node,
+        node.getName().getSourceInfo(),
+        node.getName().getName(),
+        holder,
+        modifiers);
   }
 
   public static FieldElementImplementation fromNode(DartMethodDefinition node,
-                                                    EnclosingElement holder,
-                                                    Modifiers modifiers) {
+      EnclosingElement holder,
+      Modifiers modifiers) {
     return new FieldElementImplementation(node,
-                                          ((DartIdentifier) node.getName()).getTargetName(),
-                                          holder,
-                                          modifiers);
+        node.getName().getSourceInfo(),
+        ((DartIdentifier) node.getName()).getName(),
+        holder,
+        modifiers);
   }
 
   @Override
-  public MethodElement getGetter() {
+  public MethodNodeElement getGetter() {
     return getter;
   }
 
   @Override
-  public MethodElement getSetter() {
+  public MethodNodeElement getSetter() {
     return setter;
   }
 
-  void setGetter(MethodElement getter) {
+  void setGetter(MethodNodeElement getter) {
     this.getter = getter;
   }
 
-  void setSetter(MethodElement setter) {
+  void setSetter(MethodNodeElement setter) {
     this.setter = setter;
+  }
+  
+  @Override
+  public Type getConstantType() {
+    return constantType;
+  }
+  
+  @Override
+  public void setConstantType(Type type) {
+    constantType = type;
   }
 }

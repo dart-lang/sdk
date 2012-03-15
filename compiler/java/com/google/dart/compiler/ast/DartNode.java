@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.common.AbstractNode;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 import com.google.dart.compiler.util.DefaultTextOutput;
@@ -25,11 +25,11 @@ public abstract class DartNode extends AbstractNode {
     return out.toString();
   }
 
-  public Symbol getSymbol() {
-    return  null;
+  public Element getElement() {
+    return null;
   }
 
-  public void setSymbol(Symbol symbol) {
+  public void setElement(Element element) {
     throw new UnsupportedOperationException(getClass().getSimpleName());
   }
 
@@ -74,43 +74,6 @@ public abstract class DartNode extends AbstractNode {
       parent = root.getParent();
     }
     return root;
-  }
-
-  /**
-   * Returns the length in characters of the original source file indicating
-   * where the source fragment corresponding to this node ends.
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it
-   * creates.
-   *
-   * @return a (possibly 0) length, or <code>0</code> if no source startPosition
-   *         information is recorded for this node
-   * @see #getStartPosition()
-   * @see #setSourceRange(int, int)
-   * @deprecated
-   */
-  @Deprecated
-  public int getLength() {
-    return getSourceLength();
-  }
-
-  /**
-   * Returns the character index into the original source file indicating where
-   * the source fragment corresponding to this node begins.
-   * <p>
-   * The parser supplies useful well-defined source ranges to the nodes it
-   * creates. See {@link ASTParser#setKind(int)} for details on precisely where
-   * source ranges begin and end.
-   *
-   * @return the 0-based character index, or <code>-1</code> if no source
-   *         startPosition information is recorded for this node
-   * @see #getLength()
-   * @see #setSourceRange(int, int)
-   * @deprecated
-   */
-  @Deprecated
-  public int getStartPosition() {
-    return getSourceStart();
   }
 
   protected <T extends DartNode> T becomeParentOf(T child) {

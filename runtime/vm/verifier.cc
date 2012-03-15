@@ -41,7 +41,8 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
 
 
 void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
-  WeakPersistentHandle* handle = reinterpret_cast<WeakPersistentHandle*>(addr);
+  FinalizablePersistentHandle* handle =
+      reinterpret_cast<FinalizablePersistentHandle*>(addr);
   RawObject* raw_obj = handle->raw();
   visitor_->VisitPointer(&raw_obj);
 }
@@ -51,10 +52,14 @@ void VerifyPointersVisitor::VerifyPointers() {
   NoGCScope no_gc;
   Isolate* isolate = Isolate::Current();
   VerifyPointersVisitor visitor;
+  // Visit all strongly reachable objects.
   isolate->VisitObjectPointers(&visitor,
+                               false,  // skip prologue weak handles
                                StackFrameIterator::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
-  isolate->VisitWeakPersistentHandles(&weak_visitor);
+  // Visit weak handles and prologue weak handles.
+  isolate->VisitWeakPersistentHandles(&weak_visitor,
+                                      true);  // visit prologue weak handles
 }
 
 }  // namespace dart

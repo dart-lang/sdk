@@ -11,12 +11,12 @@ class A extends C {
 
 class C {
   foo() {
-    print(a);
-    return a;
+    print(a); /// static type warning
+    return a; /// static type warning
   }
   bar() {
-    print(b.a);
-    return b.a;
+    print(b.a); /// static type warning
+    return b.a; /// static type warning
   }
 }
 

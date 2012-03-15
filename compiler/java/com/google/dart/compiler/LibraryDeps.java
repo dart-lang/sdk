@@ -137,7 +137,7 @@ public class LibraryDeps {
     public void addAllSymbol(String symbol) {
       allSymbols.add(symbol);
     }
-    
+
     /**
      * Adds new hole for {@link #getHoles()}.
      */
@@ -243,7 +243,8 @@ public class LibraryDeps {
    */
   public void update(DartCompilerMainContext context, DartUnit unit) {
     Source source = new Source();
-    String relPath = unit.getSource().getRelativePath();
+    DartSource unitSource = (DartSource) unit.getSourceInfo().getSource();
+    String relPath = unitSource.getRelativePath();
     putSource(relPath, source);
     // Remember dependencies.
     LibraryDepsVisitor.exec(unit, source);
@@ -255,7 +256,7 @@ public class LibraryDeps {
       source.addTopSymbol(name);
     }
     // Analyze errors and see if any of them should force recompilation.
-    List<DartCompilationError> sourceErrors = context.getSourceErrors(unit.getSource());
+    List<DartCompilationError> sourceErrors = context.getSourceErrors(unitSource);
     for (DartCompilationError error : sourceErrors) {
       if (error.getErrorCode().needsRecompilation()) {
         source.shouldRecompileOnAnyTopLevelChange = true;

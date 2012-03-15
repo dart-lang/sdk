@@ -4,6 +4,7 @@
 // Dart test for capturing.
 
 // Regression test for issue 5991015.
+// @static-clean
 
 class V {
 

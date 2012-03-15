@@ -67,6 +67,18 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER,
         ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER);
   }
+  
+  public void test_circularReference() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class A {",
+            "  static final A = B;",
+            "  static final B = A;",
+            "}"),
+            errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 3, 20, 1),
+            errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 4, 20, 1));
+  }
 
   public void testConstantBinaryExpression12() {
     // Multiple binary expressions
@@ -288,7 +300,6 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   }
 
   public void testConstantConstructorAssign1() {
-
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
         "class A {",

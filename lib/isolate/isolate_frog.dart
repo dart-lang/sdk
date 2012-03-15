@@ -46,18 +46,3 @@
 #source("frog/ports.dart");
 #source("frog/messages.dart");
 #native("frog/natives.js");
-
-ReceivePort _port;
-
-SendPort _spawnFunction(void topLevelFunction()) {
-  final name = _IsolateNatives._getJSFunctionName(topLevelFunction);
-  if (name == null) {
-    throw new UnsupportedOperationException(
-        "only top-level functions can be spawned.");
-  }
-  return _IsolateNatives._spawn2(name, null, false);
-}
-
-SendPort _spawnUri(String uri) {
-  return _IsolateNatives._spawn2(null, uri, false);
-}

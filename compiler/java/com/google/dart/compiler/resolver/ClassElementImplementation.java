@@ -4,10 +4,13 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 
@@ -20,23 +23,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-class ClassElementImplementation extends AbstractElement implements ClassElement {
+class ClassElementImplementation extends AbstractNodeElement implements ClassNodeElement {
   private InterfaceType type;
   private InterfaceType supertype;
   private InterfaceType defaultClass;
-  private List<InterfaceType> interfaces;
+  private final List<InterfaceType> interfaces = Lists.newArrayList();
   private final boolean isInterface;
   private final String nativeName;
   private final Modifiers modifiers;
   private final AtomicReference<List<InterfaceType>> allSupertypes =
       new AtomicReference<List<InterfaceType>>();
+  private final SourceInfo nameLocation;
+  private final String declarationNameWithTypeParameter;
+  private List<Element> unimplementedMembers;
 
   // declared volatile for thread-safety
   @SuppressWarnings("unused")
   private volatile Set<InterfaceType> subtypes;
 
-  private final List<ConstructorElement> constructors;
-  private final ElementMap members;
+  private final List<ConstructorNodeElement> constructors = Lists.newArrayList();
+  private final ElementMap members = new ElementMap();
 
   private final LibraryElement library;
 
@@ -52,21 +58,27 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     super(node, name);
     this.nativeName = nativeName;
     this.library = library;
-    constructors = new ArrayList<ConstructorElement>();
-    members = new ElementMap();
-    interfaces = new ArrayList<InterfaceType>();
     if (node != null) {
       isInterface = node.isInterface();
       modifiers = node.getModifiers();
+      nameLocation = node.getName().getSourceInfo();
+      declarationNameWithTypeParameter = new DartParameterizedTypeNode(node.getName(), node.getTypeParameters()).toSource();
     } else {
       isInterface = false;
       modifiers = Modifiers.NONE;
+      nameLocation = SourceInfo.UNKNOWN;
+      declarationNameWithTypeParameter = "";
     }
   }
 
   @Override
   public DartDeclaration<?> getNode() {
     return (DartClass) super.getNode();
+  }
+  
+  @Override
+  public SourceInfo getNameLocation() {
+    return nameLocation;
   }
 
   @Override
@@ -104,8 +116,8 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   }
 
   @Override
-  public Iterable<Element> getMembers() {
-    return new Iterable<Element>() {
+  public Iterable<NodeElement> getMembers() {
+    return new Iterable<NodeElement>() {
       // The only use case for calling getMembers() is for iterating through the
       // members. You should not be able to add or remove members through the
       // object returned by this method. Returning members or members.value()
@@ -118,14 +130,14 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
       // Strictly speaking, we should also wrap the iterator as we don't want
       // the method Iterator.remove to be used either.
       @Override
-      public Iterator<Element> iterator() {
+      public Iterator<NodeElement> iterator() {
         return members.values().iterator();
       }
     };
   }
 
   @Override
-  public List<ConstructorElement> getConstructors() {
+  public List<ConstructorNodeElement> getConstructors() {
     return constructors;
   }
 
@@ -158,8 +170,13 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   public String getNativeName() {
     return nativeName;
   }
+  
+  @Override
+  public String getDeclarationNameWithTypeParameters() {
+    return declarationNameWithTypeParameter;
+  }
 
-  void addMethod(MethodElement member) {
+  void addMethod(MethodNodeElement member) {
     String name = member.getName();
     if (member.getModifiers().isOperator()) {
       name = "operator " + name;
@@ -167,11 +184,11 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     members.add(name, member);
   }
 
-  void addConstructor(ConstructorElement member) {
+  void addConstructor(ConstructorNodeElement member) {
     constructors.add(member);
   }
 
-  void addField(FieldElement member) {
+  void addField(FieldNodeElement member) {
     members.add(member.getName(), member);
   }
 
@@ -340,5 +357,15 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
         throw new DuplicatedInterfaceException(existing, intf);
       }
     }
+  }
+  
+  @Override
+  public List<Element> getUnimplementedMembers() {
+    return unimplementedMembers;
+  }
+  
+  @Override
+  public void setUnimplementedMembers(List<Element> members) {
+    this.unimplementedMembers = members;
   }
 }

@@ -14,5 +14,5 @@ class Cat {
   String toString() => 'cat $x';
 
   // Implements (a != null) ? a : b using a native C++ function and the API.
-  static int ifNull(a, b) native 'Cat_IfNull';
+  static int ifNull(a, b) native 'TestExtension_IfNull';
 }

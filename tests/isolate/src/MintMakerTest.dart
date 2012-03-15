@@ -49,7 +49,7 @@ class MintWrapper {
   MintWrapper(SendPort this.mint_) {}
 
   void createPurse(int balance, handlePurse(PurseWrapper purse)) {
-    mint_.call(balance).receive((var message, SendPort replyTo) {
+    mint_.call(balance).then((var message) {
       SendPort purse = message[0];
       handlePurse(new PurseWrapper(purse));
     });
@@ -137,14 +137,14 @@ class PurseWrapper {
   PurseWrapper(SendPort this.purse_) {}
 
   void queryBalance(handleBalance(int balance)) {
-    purse_.call([ "balance" ]).receive((var message, SendPort replyTo) {
+    purse_.call([ "balance" ]).then((var message) {
       int balance = message;
       handleBalance(balance);
     });
   }
 
   void sproutPurse(handleSprouted(PurseWrapper sprouted)) {
-    purse_.call([ "sprout" ]).receive((var message, SendPort replyTo) {
+    purse_.call([ "sprout" ]).then((var message) {
       SendPort sprouted = message[0];
       handleSprouted(new PurseWrapper(sprouted));
     });
@@ -179,7 +179,7 @@ class MintMakerWrapper {
 
   void makeMint(handleMint(MintWrapper mint)) {
     port_.then((SendPort port) {
-      port.call(null).receive((var message, SendPort replyTo) {
+      port.call(null).then((var message) {
         SendPort mint = message[0];
         handleMint(new MintWrapper(mint));
       });

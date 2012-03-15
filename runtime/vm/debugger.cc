@@ -308,7 +308,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
   token_index_ = desc.TokenIndex(pc_desc_index);
-  ASSERT(token_index_ > 0);
+  ASSERT(token_index_ >= 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
@@ -415,7 +415,8 @@ Debugger::Debugger()
       bp_handler_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
-      resume_action_(kContinue) {
+      resume_action_(kContinue),
+      ignore_breakpoints_(false) {
 }
 
 
@@ -484,8 +485,27 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
-void Debugger::InstrumentForStepping(const Function &target_function) {
-  if (!target_function.HasCode()) {
+// Deoptimize function if necessary. Does not patch return addresses on the
+// stack. If there are activation frames of this function on the stack,
+// the optimized code will be executed when the callee returns.
+void Debugger::EnsureFunctionIsDeoptimized(const Function& func) {
+  if (func.HasOptimizedCode()) {
+    if (verbose) {
+      OS::Print("Deoptimizing function %s\n",
+                String::Handle(func.name()).ToCString());
+    }
+    func.set_usage_counter(0);
+    func.set_deoptimization_counter(func.deoptimization_counter() + 1);
+    Compiler::CompileFunction(func);
+    ASSERT(!func.HasOptimizedCode());
+  }
+}
+
+
+void Debugger::InstrumentForStepping(const Function& target_function) {
+  if (target_function.HasCode()) {
+    EnsureFunctionIsDeoptimized(target_function);
+  } else {
     Compiler::CompileFunction(target_function);
     // If there were any errors, ignore them silently and return without
     // adding breakpoints to target.
@@ -493,7 +513,6 @@ void Debugger::InstrumentForStepping(const Function &target_function) {
       return;
     }
   }
-  ASSERT(!target_function.HasOptimizedCode());
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -522,11 +541,26 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  intptr_t best_fit_index = -1;
+  intptr_t best_fit = INT_MAX;
   for (int i = 0; i < desc.Length(); i++) {
-    if (desc.TokenIndex(i) < token_index) {
+    intptr_t desc_token_index = desc.TokenIndex(i);
+    if (desc_token_index < token_index) {
       continue;
     }
-    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
+    PcDescriptors::Kind kind = desc.DescriptorKind(i);
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kReturn)) {
+      if ((desc_token_index - token_index) < best_fit) {
+        best_fit = desc_token_index - token_index;
+        ASSERT(best_fit >= 0);
+        best_fit_index = i;
+      }
+    }
+  }
+  if (best_fit_index >= 0) {
+    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
     // We should only ever have one code breakpoint at the same address.
     // If we find an existing breakpoint, it must be an internal one which
     // is used for stepping.
@@ -535,21 +569,16 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
       return bpt;
     }
 
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kFuncCall) ||
-        (kind == PcDescriptors::kReturn)) {
-      bpt = new CodeBreakpoint(func, i);
-      if (verbose) {
-        OS::Print("Setting breakpoint in function '%s' (%s:%d)  (PC %p)\n",
-                  String::Handle(func.name()).ToCString(),
-                  String::Handle(bpt->SourceUrl()).ToCString(),
-                  bpt->LineNumber(),
-                  bpt->pc());
-      }
-      RegisterCodeBreakpoint(bpt);
-      return bpt;
+    bpt = new CodeBreakpoint(func, best_fit_index);
+    if (verbose) {
+      OS::Print("Setting breakpoint in function '%s' (%s:%d) (PC %p)\n",
+                String::Handle(func.name()).ToCString(),
+                String::Handle(bpt->SourceUrl()).ToCString(),
+                bpt->LineNumber(),
+                bpt->pc());
     }
+    RegisterCodeBreakpoint(bpt);
+    return bpt;
   }
   return NULL;
 }
@@ -562,6 +591,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     // The given token position is not within the target function.
     return NULL;
   }
+  EnsureFunctionIsDeoptimized(target_function);
   SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_index);
   if (bpt != NULL) {
     // A breakpoint for this location already exists, return it.
@@ -673,6 +703,8 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   LongJump* base = isolate_->long_jump_base();
   LongJump jump;
   isolate_->set_long_jump_base(&jump);
+  bool saved_ignore_flag = ignore_breakpoints_;
+  ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
     GrowableArray<const Object*> noArguments;
     const Array& noArgumentNames = Array::Handle();
@@ -681,6 +713,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   } else {
     result = isolate_->object_store()->sticky_error();
   }
+  ignore_breakpoints_ = saved_ignore_flag;
   isolate_->set_long_jump_base(base);
   return result.raw();
 }
@@ -696,6 +729,8 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   LongJump* base = isolate_->long_jump_base();
   LongJump jump;
   isolate_->set_long_jump_base(&jump);
+  bool saved_ignore_flag = ignore_breakpoints_;
+  ignore_breakpoints_ = true;
   if (setjmp(*jump.Set()) == 0) {
     GrowableArray<const Object*> noArguments;
     const Array& noArgumentNames = Array::Handle();
@@ -703,6 +738,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   } else {
     result = isolate_->object_store()->sticky_error();
   }
+  ignore_breakpoints_ = saved_ignore_flag;
   isolate_->set_long_jump_base(base);
   return result.raw();
 }
@@ -798,6 +834,10 @@ void Debugger::SetBreakpointHandler(BreakpointHandler* handler) {
 
 void Debugger::BreakpointCallback() {
   ASSERT(initialized_);
+
+  if (ignore_breakpoints_) {
+    return;
+  }
   DartFrameIterator iterator;
   DartFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
@@ -805,10 +845,10 @@ void Debugger::BreakpointCallback() {
   ASSERT(bpt != NULL);
   if (verbose) {
     OS::Print(">>> %s breakpoint at %s:%d (Address %p)\n",
-        bpt->IsInternal() ? "hit internal" : "hit user",
-        bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
-        bpt ? bpt->LineNumber() : 0,
-        frame->pc());
+              bpt->IsInternal() ? "hit internal" : "hit user",
+              bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
+              bpt ? bpt->LineNumber() : 0,
+              frame->pc());
   }
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   while (frame != NULL) {

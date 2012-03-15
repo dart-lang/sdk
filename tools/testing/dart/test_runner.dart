@@ -12,6 +12,7 @@
 #library("test_runner");
 
 #import("dart:io");
+#import("dart:builtin");
 #import("status_file_parser.dart");
 #import("test_progress.dart");
 #import("test_suite.dart");
@@ -59,7 +60,7 @@ class TestCase {
    * it. Some isolate tests might even have three, if they require compiling
    * multiple sources that are run in isolation.
    */
-  final List<Command> commands;
+  List<Command> commands;
 
   Map configuration;
   String displayName;
@@ -89,8 +90,8 @@ class TestCase {
       Expect.isTrue(specialCommand.contains('@'),
                     "special-command must contain a '@' char");
       var specialCommandSplit = specialCommand.split('@');
-      var prefix = specialCommandSplit[0];
-      var suffix = specialCommandSplit[1];
+      var prefix = specialCommandSplit[0].trim();
+      var suffix = specialCommandSplit[1].trim();
       List<Command> newCommands = [];
       for (Command c in commands) {
         var newExecutablePath;
@@ -105,17 +106,18 @@ class TestCase {
           }
           newArguments.add(c.executable);
         }
-        newArguments.addAll(arguments);
+        newArguments.addAll(c.arguments);
         var suffixSplit = suffix.split(' ');
         suffixSplit.forEach((e) {
           if (!e.isEmpty()) newArguments.add(e);
         });
         final newCommand = new Command(newExecutablePath, newArguments);
         newCommands.add(newCommand);
-        Expect.stringEquals('$prefix ${c.commandLine} $suffix',
+        // If there are extra spaces inside the prefix or suffix, this fails.
+        Expect.stringEquals('$prefix ${c.commandLine} $suffix'.trim(),
             newCommand.commandLine);
       }
-      commands = newCommand;
+      commands = newCommands;
     }
   }
 
@@ -171,7 +173,7 @@ class BrowserTestCase extends TestCase {
  * the time the process took to run.  It also contains a pointer to the
  * [TestCase] this is the output of.
  */
-interface TestOutput default TestOutputImpl { 
+interface TestOutput default TestOutputImpl {
   TestOutput.fromCase(TestCase testCase, int exitCode, bool timedOut,
     List<String> stdout, List<String> stderr, Duration time);
 
@@ -181,9 +183,15 @@ interface TestOutput default TestOutputImpl {
 
   bool get hasCrashed();
 
-  bool get hasTimedOut(); 
+  bool get hasTimedOut();
 
   bool get didFail();
+
+  Duration get time();
+
+  List<String> get stdout();
+
+  List<String> get stderr();
 
   List<String> get diagnostics();
 }
@@ -204,16 +212,20 @@ class TestOutputImpl implements TestOutput {
    */
   bool requestRetry = false;
 
-  // Don't call  this constructor, call TestOutput.fromCase() to 
+  // Don't call  this constructor, call TestOutput.fromCase() to
   // get anew TestOutput instance.
-  TestOutputImpl(this.testCase, this.exitCode, this.timedOut, this.stdout,
-             this.stderr, this.time) {
+  TestOutputImpl(TestCase this.testCase,
+                 int this.exitCode,
+                 bool this.timedOut,
+                 List<String> this.stdout,
+                 List<String> this.stderr,
+                 Duration this.time) {
     testCase.output = this;
     diagnostics = [];
   }
 
-  factory TestOutputImpl.fromCase (testCase, exitCode, timedOut, stdout, stderr, 
-    time) {
+  factory TestOutputImpl.fromCase (TestCase testCase, int exitCode, bool timedOut,
+                                   List<String> stdout, List<String> stderr, Duration time) {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
@@ -256,7 +268,7 @@ class TestOutputImpl implements TestOutput {
 }
 
 class BrowserTestOutputImpl extends TestOutputImpl {
-  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+  BrowserTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
     super(testCase, exitCode, timedOut, stdout, stderr, time);
 
   bool get didFail() {
@@ -265,7 +277,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
     // and the virtual framebuffer X server didn't hook up, or DRT crashed with
     // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
     // so we have to do this check first.
-    for (String line in stderr) {
+    for (String line in super.stderr) {
       if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
         line.contains('Failed to run command. return code=1')) {
         // If we get the X server error, or DRT crashes with a core dump, retry
@@ -280,7 +292,7 @@ class BrowserTestOutputImpl extends TestOutputImpl {
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
     String previous_line = '';
-    for (String line in stdout) {
+    for (String line in super.stdout) {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
         return (exitCode != 0 && !hasCrashed);
       }
@@ -290,13 +302,13 @@ class BrowserTestOutputImpl extends TestOutputImpl {
   }
 }
 
-// The static analyzer does not actaully execute code, so 
+// The static analyzer does not actually execute code, so
 // the criteria for success now depend on the text sent
 // to stderr.
 class AnalysisTestOutputImpl extends TestOutputImpl {
-  boolean alreadyComputed = false;
-  boolean failResult;
-  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) : 
+  bool alreadyComputed = false;
+  bool failResult;
+  AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
     super(testCase, exitCode, timedOut, stdout, stderr, time) {
   }
 
@@ -315,7 +327,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     List<String> staticWarnings = [];
 
     // Read the returned list of errors and stuff them away.
-    for (String line in stderr) {
+    for (String line in super.stderr) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
       if (fields[0] == 'ERROR') {
@@ -325,11 +337,11 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
         // ignore all others
         if (fields[1] == 'STATIC_TYPE') {
           staticWarnings.add(fields);
-        } 
+        }
       }
       // OK to Skip error output that doesn't match the machine format
     }
-    if (testCase.info != null 
+    if (testCase.info != null
         && testCase.info.optionsFromFile['isMultitest']) {
       return _didMultitestFail(errors, staticWarnings);
     }
@@ -337,10 +349,15 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
   }
 
   bool _didMultitestFail(List errors, List staticWarnings) {
-    String outcome = testCase.info.multitestOutcome;
-    if ((outcome == '' || outcome == 'compile-time error') && errors.length > 0) {
+    Set<String> outcome = testCase.info.multitestOutcome;
+    Expect.isNotNull(outcome);
+    if (outcome.contains('compile-time error') && errors.length > 0) {
       return true;
-    } else if (outcome == 'static type error' && staticWarnings.length > 0) {
+    } else if (outcome.contains('static type warning') 
+        && staticWarnings.length > 0) {
+      return true;
+    } else if (outcome.isEmpty()
+        && (errors.length > 0 || staticWarnings.length > 0)) {
       return true;
     }
     return false;
@@ -391,7 +408,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       return true;
     }
 
-    if (numCompileTimeAnnotations > 0 
+    if (numCompileTimeAnnotations > 0
         && numCompileTimeAnnotations < errors.length) {
 
       // Expected compile-time errors were not returned.  The test did not 'fail' in the way
@@ -410,7 +427,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
       return false;
     } else if (errors.length != 0) {
       return true;
-    } 
+    }
     return false;
   }
 
@@ -459,13 +476,13 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
-  bool allowRetries = false;
+  bool allowRetries;
 
   /** Which command of [testCase.commands] is currently being executed. */
   int currentStep;
 
   RunningProcess(TestCase this.testCase,
-      [this.allowRetries, this.processQueue]);
+      [this.allowRetries = false, this.processQueue]);
 
   /**
    * Called when all commands are executed. [exitCode] is 0 if all command
@@ -481,9 +498,8 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (allowRetries != null && allowRetries
-        && testCase.usesWebDriver && testCase.output.unexpectedOutput 
-        && testCase.numRetries > 0) {
+    if (allowRetries && testCase.usesWebDriver 
+        && testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
@@ -639,7 +655,7 @@ class BatchRunnerProcess {
         _process.stdin.write('--terminate\n'.charCodes());
 
         // In case the run_selenium process didn't close, kill it after 30s
-        bool shutdownMillisecs = 30000;
+        int shutdownMillisecs = 30000;
         new Timer(shutdownMillisecs, (e) { if (!closed) _process.kill(); });
       } else {
         _process.kill();
@@ -677,7 +693,7 @@ class BatchRunnerProcess {
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = -10;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT", 
+    new TestOutput.fromCase(_currentTest, exitCode, outcome == "TIMEOUT",
                    _testStdout, _testStderr, new Date.now().difference(_startTime));
     // Move on when both stdout and stderr has been drained. If the test
     // crashed, we restarted the process and therefore do not attempt to
@@ -824,10 +840,13 @@ class ProcessQueue {
                Date startTime,
                bool printTiming,
                Function this._enqueueMoreWork,
-               [bool this._verbose = false,
-                bool this._listTests = false,
-                bool this._keepGeneratedTests = false])
-      : _tests = new Queue<TestCase>(),
+               [bool verbose = false,
+                bool listTests = false,
+                bool keepGeneratedTests = false])
+      : _verbose = verbose,
+        _listTests = listTests,
+        _keepGeneratedTests = keepGeneratedTests,
+        _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
@@ -864,54 +883,12 @@ class ProcessQueue {
   }
 
   /**
-   * Sometimes Webdriver doesn't close every browser window when it's done
-   * with a test. At the end of all tests we clear out any neglected processes
-   * that are still running.
-   */
-  void killZombieBrowsers() {
-    String chromeName = 'chrome';
-    if (new Platform().operatingSystem() == 'macos') {
-      chromeName = 'Google\ Chrome';
-    }
-    Map<String, List<String>> processNames = {'ie': ['iexplore'],
-        'safari': ['Safari'], 'ff': ['firefox', 'firefox-bin'],
-        'chrome': ['chromedriver', chromeName]};
-    for (String name in processNames[browserUsed]) {
-      Process process = null;
-      if (new Platform().operatingSystem() == 'windows') {
-        process = new Process.start(
-            'C:\\Windows\\System32\\taskkill.exe', ['/F', '/IM', name + '.exe',
-            '/T']);
-      } else {
-        process = new Process.start('killall', ['-9', name]);
-      }
-
-      if (name == processNames[browserUsed].last()) {
-        process.onExit = (exitCode) {
-          process.close();
-          _progress.allDone();
-        };
-        process.onError = (error) {
-          _progress.allDone();
-        };
-      } else {
-        process.onExit = (exitCode) {
-          process.close();
-        };
-      }
-    }
-  }
-
-  /**
    * Perform any cleanup needed once all tests in a TestSuite have completed
    * and notify our progress indicator that we are done.
    */
   void _cleanupAndMarkDone() {
-    if (browserUsed != '' && _progress is BuildbotProgressIndicator) {
-      killZombieBrowsers();
-      if (_seleniumServer != null) {
+    if (browserUsed != '' && _seleniumServer != null) {
         _seleniumServer.kill();
-      }
     } else {
       _progress.allDone();
     }
@@ -959,11 +936,11 @@ class ProcessQueue {
       browserUsed == 'safari';
 
   /** True if the Selenium Server is ready to be used. */
-  bool get _isSeleniumAvailable() => _seleniumServer != null || 
+  bool get _isSeleniumAvailable() => _seleniumServer != null ||
       _seleniumAlreadyRunning;
 
   /**
-   * Restart all the processes that have been waiting/stopped for the server to 
+   * Restart all the processes that have been waiting/stopped for the server to
    * start up. If we just call this once we end up with a single-"threaded" run.
    */
   void resumeTesting() {
@@ -983,7 +960,7 @@ class ProcessQueue {
         arg.add('/v');
       }
       Process p = new Process.start(cmd, arg);
-      final StringInputStream stdoutStringStream = 
+      final StringInputStream stdoutStringStream =
           new StringInputStream(p.stdout);
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
@@ -1049,7 +1026,7 @@ class ProcessQueue {
         // Heads up: there seems to an obscure data race of some form in
         // the VM between launching the server process and launching the test
         // tasks that disappears when you read IO (which is convenient, since
-        // that is our condition for knowing that the server is ready). 
+        // that is our condition for knowing that the server is ready).
         StringInputStream stdoutStringStream =
             new StringInputStream(_seleniumServer.stdout);
         StringInputStream stderrStringStream =
@@ -1107,7 +1084,13 @@ class ProcessQueue {
         _tests.addFirst(test);
         return;
       }
-      if (_verbose) print(test.commands.last().commandLine);
+      if (_verbose) {
+        int i = 1;
+        for (Command command in test.commands) {
+          print('$i. ${command.commandLine}');
+          i++;
+        }
+      }
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {

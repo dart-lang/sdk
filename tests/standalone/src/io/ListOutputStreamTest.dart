@@ -85,9 +85,34 @@ void testListOutputStream2() {
   donePort.receive((x,y) => donePort.close());
 }
 
+void testListOutputStream3() {
+  OutputStream stream = new ListOutputStream();
+  ReceivePort donePort = new ReceivePort();
+  void onNoPendingWrites() {
+    stream.writeString("abcdABCD");
+    stream.writeString("abcdABCD", Encoding.UTF_8);
+    stream.writeString("abcdABCD", Encoding.ISO_8859_1);
+    stream.writeString("abcdABCD", Encoding.ASCII);
+    stream.writeString("æøå", Encoding.UTF_8);
+    stream.close();
+  }
+
+  void onClosed() {
+    var contents = stream.contents();
+    Expect.equals(38, contents.length);
+    donePort.toSendPort().send(null);
+  }
+
+  stream.onNoPendingWrites = onNoPendingWrites;
+  stream.onClosed = onClosed;
+
+  donePort.receive((x,y) => donePort.close());
+}
+
 main() {
   testEmptyListOutputStream1();
   testEmptyListOutputStream2();
   testListOutputStream1();
   testListOutputStream2();
+  testListOutputStream3();
 }

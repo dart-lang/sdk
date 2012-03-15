@@ -13,6 +13,8 @@ public interface MethodElement extends Element, EnclosingElement {
   boolean isConstructor();
 
   boolean isStatic();
+  
+  boolean hasBody();
 
   List<VariableElement> getParameters();
 

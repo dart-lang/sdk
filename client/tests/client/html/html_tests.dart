@@ -9,26 +9,24 @@
 
 #source('util.dart');
 #source('CSSStyleDeclarationTests.dart');
-// #source('DocumentFragmentTests.dart');
+#source('DocumentFragmentTests.dart');
 #source('ElementTests.dart');
 // #source('EventTests.dart');
 #source('LocalStorageTests.dart');
 #source('MeasurementTests.dart');
 #source('NodeTests.dart');
-// #source('SVGElementTests.dart');
+#source('SVGElementTests.dart');
 #source('XHRTests.dart');
 
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
-  // TODO(nwiez): enable once DocumentFragment is ready -- Dart issue 1998.
-  // group('DocumentFragment', testDocumentFragment);
+  group('DocumentFragment', testDocumentFragment);
   group('Element', testElement);
   // TODO(nweiz): enable once event constructors are ported -- Dart issue 1996.
   // group('Event', testEvents);
   group('LocalStorage', testLocalStorage);
   group('Measurement', testMeasurement);
   group('Node', testNode);
-  // TODO(nweiz): enable once this code is ported -- Dart issue 1997.
-  // group('SVGElement', testSVGElement);
+  group('SVGElement', testSVGElement);
   group('XHR', testXHR);
 }

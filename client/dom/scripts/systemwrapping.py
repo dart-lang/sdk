@@ -171,7 +171,9 @@ class WrappingInterfaceGenerator(object):
         '\n'
         '  $TYPE get $NAME() { return $METHOD(this); }\n'
         '  static $TYPE $METHOD(var _this) native;\n',
-        NAME=attr.id, TYPE=DartType(attr.type.id), METHOD=method_name)
+        NAME=DartDomNameOfAttribute(attr),
+        TYPE=DartType(attr.type.id),
+        METHOD=method_name)
 
   def _AddSetter(self, attr):
     # FIXME: See comment on getter.
@@ -180,7 +182,9 @@ class WrappingInterfaceGenerator(object):
         '\n'
         '  void set $NAME($TYPE value) { $METHOD(this, value); }\n'
         '  static void $METHOD(var _this, $TYPE value) native;\n',
-        NAME=attr.id, TYPE=DartType(attr.type.id), METHOD=method_name)
+        NAME=DartDomNameOfAttribute(attr),
+        TYPE=DartType(attr.type.id),
+        METHOD=method_name)
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
@@ -189,9 +193,6 @@ class WrappingInterfaceGenerator(object):
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
     self.AddOperation(info)
-
-  def AddEventAttributes(self, event_attrs):
-    pass
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

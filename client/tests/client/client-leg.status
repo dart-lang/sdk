@@ -2,28 +2,32 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == legium ]
+[ $component == leg ]
+*: Fail, OK # Needs to run inside browser, compiled to detect crashes.
 
-dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
-dom/WrapperTest: Fail # Expect.stringEquals(expected: <HTMLCanvasElement>", <null>) fails
-dom/EventsTest: Fail # CONSOLE MESSAGE: line 7608: Uncaught TypeError: Cannot read property 'is$ExpectException' of undefined
+
+[ $component == legium ]
 
 # DOM can return null or undefined
 dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
 dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
 dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
 
-# Missing constant map support
-dom/HiddenDom1Test: Fail # CompileTimeConstantEvaluator map not implemented
-dom/HiddenDom2Test: Fail # CompileTimeConstantEvaluator map not implemented
-html/html_tests: Fail # CompileTimeConstantEvaluator map not implemented
-samples/smoketest/dartWebBase_tests: Fail # CompileTimeConstantEvaluator map not implemented
+# ConstantHandler with arguments not implemented
+dom/HiddenDom1Test: Fail
+dom/HiddenDom2Test: Fail
+html/html_tests: Fail
+samples/smoketest/dartWebBase_tests: Fail
 
 # DOM errors
 dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
 dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
 
-# Missing Isolate support
+
+# We don't support is checks with generic types.
+dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
+
+# TODO(ngeoffray): Investigate
+dom/IsolatesTest: Skip # Timeout
+dom/IsolateLightTest: Skip # Timeout
 dom/DOMIsolatesTest: Fail # cannot read dart:isolate
-dom/IsolatesTest: Fail # cannot read dart:isolate
-dom/IsolateLightTest: Fail # cannot read dart:isolate

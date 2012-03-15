@@ -27,6 +27,15 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 
+static void CheckedModeHandler(bool value) {
+  FLAG_enable_asserts = value;
+  FLAG_enable_type_checks = value;
+}
+
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    enable_checked_mode,
+                    "Enabled checked mode.");
+
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kTypeErrorName = "TypeError";
@@ -100,6 +109,42 @@ static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
   return new ThrowNode(token_pos,
                        new LiteralNode(token_pos, exception),
                        new LiteralNode(token_pos, stack_trace));
+}
+
+
+void ParsedFunction::AllocateVariables() {
+  LocalScope* scope = node_sequence()->scope();
+  const int fixed_parameter_count = function().num_fixed_parameters();
+  const int optional_parameter_count = function().num_optional_parameters();
+  const int parameter_count = fixed_parameter_count + optional_parameter_count;
+  // Compute start indices to parameters and locals, and the number of
+  // parameters to copy.
+  if (optional_parameter_count == 0) {
+    // Parameter i will be at fp[1 + parameter_count - i] and local variable
+    // j will be at fp[-1 - j].
+    first_parameter_index_ = 1 + parameter_count;
+    first_stack_local_index_ = -1;
+    copied_parameter_count_ = 0;
+  } else {
+    // Parameter i will be at fp[-1 - i] and local variable j will be at
+    // fp[-1 - parameter_count - j].
+    first_parameter_index_ = -1;
+    first_stack_local_index_ = -1 - parameter_count;
+    copied_parameter_count_ = parameter_count;
+  }
+
+  // Allocate parameters and local variables, either in the local frame or
+  // in the context(s).
+  LocalScope* context_owner = NULL;  // No context needed yet.
+  int next_free_frame_index =
+      scope->AllocateVariables(first_parameter_index_,
+                               parameter_count,
+                               first_stack_local_index_,
+                               scope,
+                               &context_owner);
+  // Frame indices are relative to the frame pointer and are decreasing.
+  ASSERT(next_free_frame_index <= first_stack_local_index_);
+  stack_local_count_ = first_stack_local_index_ - next_free_frame_index;
 }
 
 
@@ -848,7 +893,11 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   // At this point, we must see an identifier for the parameter name.
   parameter.name_pos = token_index_;
   parameter.name = ExpectIdentifier("parameter name expected");
-
+  if (params->has_named_optional_parameters &&
+      (parameter.name->CharAt(0) == '_')) {
+    Warning(parameter.name_pos,
+            "named optional parameters may not start with '_'\n");
+  }
   if (parameter.is_field_initializer) {
     params->has_field_initializer = true;
   }
@@ -2952,7 +3001,11 @@ void Parser::ParseTypeParameters(const Class& cls) {
       bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
-        bound = ParseType(ClassFinalizer::kTryResolve);
+        // A bound may refer to the owner of the type parameter it applies to,
+        // i.e. to the class or interface currently being parsed.
+        // Postpone resolution in order to avoid resolving the class and its
+        // type parameters, as they are not fully parsed yet.
+        bound = ParseType(ClassFinalizer::kDoNotResolve);
       }
       type_parameters_array.Add(type_parameter);
       bounds_array.Add(bound);
@@ -5538,8 +5591,8 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   arguments->Add(new LiteralNode(type_pos, Instance::ZoneHandle()));
   // Dst type name argument.
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
-      String::NewSymbol("malformed type"))));
-  // Dst type name argument.
+      String::NewSymbol("malformed"))));
+  // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
     String::NewSymbol(""))));
   // Malformed type error.
@@ -7038,10 +7091,11 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         Error& malformed_error = Error::Handle();
         if (!element_type.IsInstantiated() ||
             !element->IsLiteralNode() ||
-            !element->AsLiteralNode()->literal().
-                IsAssignableTo(element_type,
-                               TypeArguments::Handle(),
-                               &malformed_error)) {
+            (!element->AsLiteralNode()->literal().IsNull() &&
+             !element->AsLiteralNode()->literal().IsInstanceOf(
+                 element_type,
+                 TypeArguments::Handle(),
+                 &malformed_error))) {
           element = new AssignableNode(element_pos,
                                        element,
                                        element_type,
@@ -7071,8 +7125,9 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       ASSERT(elem->IsLiteralNode());
       if (FLAG_enable_type_checks &&
           !element_type.IsDynamicType() &&
-          !elem->AsLiteralNode()->literal().IsAssignableTo(
-              element_type, TypeArguments::Handle(), &malformed_error)) {
+          (!elem->AsLiteralNode()->literal().IsNull() &&
+           !elem->AsLiteralNode()->literal().IsInstanceOf(
+               element_type, TypeArguments::Handle(), &malformed_error))) {
         // If the failure is due to a malformed type error, display it instead.
         if (!malformed_error.IsNull()) {
           ErrorMsg(malformed_error);
@@ -7223,8 +7278,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       Error& malformed_error = Error::Handle();
       if (!value_type.IsInstantiated() ||
           !value->IsLiteralNode() ||
-          !value->AsLiteralNode()->literal().IsAssignableTo(
-              value_type, TypeArguments::Handle(), &malformed_error)) {
+          (!value->AsLiteralNode()->literal().IsNull() &&
+           !value->AsLiteralNode()->literal().IsInstanceOf(
+               value_type, TypeArguments::Handle(), &malformed_error))) {
         value = new AssignableNode(value_pos,
                                    value,
                                    value_type,
@@ -7258,8 +7314,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       if (FLAG_enable_type_checks &&
           ((i % 2) == 1) &&  // Check values only, not keys.
           !value_type.IsDynamicType() &&
-          !arg->AsLiteralNode()->literal().IsAssignableTo(
-              value_type, TypeArguments::Handle(), &malformed_error)) {
+          (!arg->AsLiteralNode()->literal().IsNull() &&
+           !arg->AsLiteralNode()->literal().IsInstanceOf(
+               value_type, TypeArguments::Handle(), &malformed_error))) {
         // If the failure is due to a malformed type error, display it instead.
         if (!malformed_error.IsNull()) {
           ErrorMsg(malformed_error);
@@ -7341,6 +7398,11 @@ AstNode* Parser::ParseCompoundLiteral() {
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle(
       ParseTypeArguments(&malformed_error,
                          ClassFinalizer::kFinalizeWellFormed));
+  // Map and List interfaces do not declare bounds on their type parameters, so
+  // we should never see a malformed type error here.
+  // Note that a bound error is the only possible malformed type error returned
+  // when requesting kFinalizeWellFormed type finalization.
+  ASSERT(malformed_error.IsNull());
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -7380,12 +7442,12 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
   intptr_t type_pos = token_index_;
-
-  // TODO(regis): Bounds error should not result in a compile time error,
-  // but in a dynamic type error. Requesting kFinalizeWellFormed below is too
-  // strict. See co19 issue 96.
   const AbstractType& type = AbstractType::Handle(
       ParseType(ClassFinalizer::kFinalizeWellFormed));
+  // Malformed bounds never result in a compile time error, therefore, the
+  // parsed type may be malformed although we requested kFinalizeWellFormed.
+  // In that case, we throw a dynamic type error instead of calling the
+  // constructor.
   if (type.IsTypeParameter()) {
     ErrorMsg(type_pos,
              "type parameter '%s' cannot be instantiated",
@@ -7548,6 +7610,10 @@ AstNode* Parser::ParseNewOperator() {
       ErrorMsg("'const' requires const constructor: '%s'",
           String::Handle(constructor.name()).ToCString());
     }
+    if (type.IsMalformed()) {
+      // Compile the throw of a dynamic type error due to a bound error.
+      return ThrowTypeError(type_pos, type);
+    }
     const Object& constructor_result = Object::Handle(
         EvaluateConstConstructorCall(constructor_class,
                                      type_arguments,
@@ -7568,6 +7634,10 @@ AstNode* Parser::ParseNewOperator() {
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
       CaptureReceiver();
+    }
+    if (type.IsMalformed()) {
+      // Compile the throw of a dynamic type error due to a bound error.
+      return ThrowTypeError(type_pos, type);
     }
     // TODO(regis): If the type argument vector is not instantiated, we need to
     // verify in checked mode at runtime that it is within its declared bounds.
@@ -7643,9 +7713,6 @@ AstNode* Parser::ParseStringLiteral() {
         (CurrentToken() == Token::kINTERPOL_START)) {
       AstNode* expr = NULL;
       const intptr_t expr_pos = token_index_;
-      // TODO(hausner): Remove the statement below when we allow interpolated
-      // strings to be compile time constants.
-      is_compiletime_const = false;
       if (CurrentToken() == Token::kINTERPOL_VAR) {
         expr = ResolveVarOrField(token_index_, *CurrentLiteral());
         ASSERT(!expr->IsPrimaryNode());

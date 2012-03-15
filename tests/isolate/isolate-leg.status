@@ -1,0 +1,14 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $component == leg || $component == legium ]
+APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
+APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
+ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
+SerializationTest: Fail, OK # tests frog-specific serialization code
+
+[ $component == leg ]
+# Browser tests only supported on browser components.
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip

@@ -87,7 +87,7 @@ class PageSpace {
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   // Collect the garbage in the page space using mark-sweep.
-  void MarkSweep();
+  void MarkSweep(bool invoke_api_callbacks);
 
   static HeapPage* PageFor(RawObject* raw_obj) {
     return reinterpret_cast<HeapPage*>(

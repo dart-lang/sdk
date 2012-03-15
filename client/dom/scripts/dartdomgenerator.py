@@ -99,15 +99,7 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
   generator.FilterMembersWithUnidentifiedTypes(common_database)
   webkit_database = common_database.Clone()
 
-  generated_output_dir = os.path.join(output_dir,
-      '../html/generated' if generate_html_systems else 'generated')
-  if os.path.exists(generated_output_dir):
-    _logger.info('Cleaning output directory %s' % generated_output_dir)
-    shutil.rmtree(generated_output_dir)
-
-
   # Generate Dart interfaces for the WebKit DOM.
-  webkit_output_dir = generated_output_dir
   generator.FilterInterfaces(database = webkit_database,
                              or_annotations = ['WebKit', 'Dart'],
                              exclude_displaced = ['WebKit'],
@@ -124,7 +116,7 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
   webkit_renames_inverse = dict((v,k) for k, v in _webkit_renames.iteritems())
 
   generator.Generate(database = webkit_database,
-                     output_dir = webkit_output_dir,
+                     output_dir = output_dir,
                      lib_dir = output_dir,
                      module_source_preference = ['WebKit', 'Dart'],
                      source_filter = ['WebKit', 'Dart'],
@@ -138,17 +130,28 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
 
   if 'frog' in systems:
     _logger.info('Copy dom_frog to frog/')
-    subprocess.call(['cd .. ; ../tools/copy_dart.py frog dom_frog.dart'],
+    subprocess.call(['cd ../generated ; '
+                     '../../tools/copy_dart.py ../frog dom_frog.dart'],
                     shell=True);
 
   if 'htmlfrog' in systems:
     _logger.info('Copy html_frog to ../html/frog/')
-    subprocess.call(['cd ../../html ; ../tools/copy_dart.py frog html_frog.dart'],
+    subprocess.call(['cd ../../html/generated ; '
+                     '../../tools/copy_dart.py ../frog html_frog.dart'],
                     shell=True);
 
   if 'htmldartium' in systems:
     _logger.info('Copy html_dartium to ../html/dartium/')
-    subprocess.call(['cd ../../html ; ../tools/copy_dart.py dartium html_dartium.dart'],
+    subprocess.call(['cd ../../html/generated ; '
+                     '../../tools/copy_dart.py ../dartium html_dartium.dart'],
+                    shell=True);
+
+  # Copy dummy DOM where dartc build expects it.
+  if 'dummy' in systems:
+    _logger.info('Copy dom_dummy to dom.dart')
+    subprocess.call(['cd ../generated ; '
+                     '../../tools/copy_dart.py dummy dom_dummy.dart ;'
+                     'cp dummy/dom_dummy.dart ../dom.dart'],
                     shell=True);
 
 def main():
@@ -179,19 +182,13 @@ def main():
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
 
   if dom_systems:
-    output_dir = options.output_dir or os.path.join(current_dir, '..')
+    output_dir = options.output_dir or os.path.join(current_dir,
+        '../generated')
     GenerateDOM(dom_systems, False, output_dir, use_database_cache)
 
-    # Copy dummy DOM where dartc build expects it.
-    if 'dummy' in systems:
-      # TODO(sra): Make other tools pick this up directly, or do a copy_dart into
-      # a specific directory.
-      source = os.path.join(output_dir, 'dom_dummy.dart')
-      target = os.path.join(output_dir, 'dom.dart')
-      shutil.copyfile(source, target)
-
   if html_systems:
-    output_dir = options.output_dir or os.path.join(current_dir, '../../html')
+    output_dir = options.output_dir or os.path.join(current_dir,
+        '../../html/generated')
     GenerateDOM(html_systems, True, output_dir, use_database_cache or dom_systems)
 
 if __name__ == '__main__':

@@ -68,6 +68,15 @@ public class DartSourceString implements DartSource {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    try {
+      return new URI(null, null, getName(), null).normalize().toString();
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  @Override
   public URI getUri() {
     try {
       return new URI(null, null, getName(), null).normalize();

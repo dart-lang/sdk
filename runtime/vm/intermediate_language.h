@@ -21,7 +21,9 @@ class LocalVariable;
 // <Computation> ::=
 //   <Value>
 // | AssertAssignable <Value> <AbstractType>
-// | InstanceCall <AstNode> <String> <Value> ...
+// | CurrentContext
+// | ClosureCall <ClosureCallNode> <Value> <Value> ...
+// | InstanceCall <String> <Value> ...
 // | StaticCall <StaticCallNode> <Value> ...
 // | LoadLocal <LocalVariable>
 // | StoreLocal <LocalVariable> <Value>
@@ -35,6 +37,13 @@ class LocalVariable;
 // | StoreStaticField <Field> <Value>
 // | BooleanNegate <Value>
 // | InstanceOf <Value> <Type>
+// | CreateArray <ArrayNode> <Value> ...
+// | CreateClosure <ClosureNode>
+// | AllocateObject <ConstructorCallNode>
+// | Throw <Value>
+// | ReThrow <Value> <Value>
+// | NativeLoadField <Value> <intptr_t>
+// | ExtractTypeArgumentsComp <ConstructorCallNode> <Value>
 //
 // <Value> ::=
 //   Temp <int>
@@ -52,6 +61,8 @@ class LocalVariable;
 #define FOR_EACH_COMPUTATION(M)                                                \
   FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
+  M(CurrentContext, CurrentContextComp)                                        \
+  M(ClosureCall, ClosureCallComp)                                              \
   M(InstanceCall, InstanceCallComp)                                            \
   M(StaticCall, StaticCallComp)                                                \
   M(LoadLocal, LoadLocalComp)                                                  \
@@ -65,7 +76,14 @@ class LocalVariable;
   M(LoadStaticField, LoadStaticFieldComp)                                      \
   M(StoreStaticField, StoreStaticFieldComp)                                    \
   M(BooleanNegate, BooleanNegateComp)                                          \
-  M(InstanceOf, InstanceOfComp)
+  M(InstanceOf, InstanceOfComp)                                                \
+  M(CreateArray, CreateArrayComp)                                              \
+  M(CreateClosure, CreateClosureComp)                                          \
+  M(AllocateObject, AllocateObjectComp)                                        \
+  M(Throw, ThrowComp)                                                          \
+  M(ReThrow, ReThrowComp)                                                      \
+  M(NativeLoadField, NativeLoadFieldComp)                                      \
+  M(ExtractTypeArguments, ExtractTypeArgumentsComp)                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -127,16 +145,16 @@ class TempVal : public Value {
 
 class ConstantVal: public Value {
  public:
-  explicit ConstantVal(const Instance& instance) : instance_(instance) {
-    ASSERT(instance.IsZoneHandle());
+  explicit ConstantVal(const Object& value) : value_(value) {
+    ASSERT(value.IsZoneHandle());
   }
 
   DECLARE_VALUE(Constant)
 
-  const Instance& instance() const { return instance_; }
+  const Object& value() const { return value_; }
 
  private:
-  const Instance& instance_;
+  const Object& value_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantVal);
 };
@@ -159,6 +177,48 @@ class AssertAssignableComp : public Computation {
   const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableComp);
+};
+
+
+// Denotes the current context, normally held in a register.  This is
+// a computation, not a value, because it's mutable.
+class CurrentContextComp : public Computation {
+ public:
+  CurrentContextComp() { }
+
+  DECLARE_COMPUTATION(CurrentContext)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
+};
+
+
+class ClosureCallComp : public Computation {
+ public:
+  ClosureCallComp(ClosureCallNode* node,
+                  Value* context,
+                  ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node),
+        context_(context),
+        arguments_(arguments) {
+    ASSERT(context->IsTemp());
+  }
+
+  DECLARE_COMPUTATION(ClosureCall)
+
+  const Array& argument_names() const { return ast_node_.arguments()->names(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+  Value* context() const { return context_; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
+
+ private:
+  const ClosureCallNode& ast_node_;
+  Value* context_;
+  ZoneGrowableArray<Value*>* arguments_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
 };
 
 
@@ -186,8 +246,8 @@ class InstanceCallComp : public Computation {
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
   const String& function_name() const { return function_name_; }
-  int ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
@@ -227,21 +287,32 @@ class StrictCompareComp : public Computation {
 
 class StaticCallComp : public Computation {
  public:
-  StaticCallComp(StaticCallNode* node, ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), arguments_(arguments) { }
+  StaticCallComp(intptr_t token_index,
+                 const Function& function,
+                 const Array& argument_names,
+                 ZoneGrowableArray<Value*>* arguments)
+      : token_index_(token_index),
+        function_(function),
+        argument_names_(argument_names),
+        arguments_(arguments) {
+    ASSERT(function.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle());
+  }
 
   DECLARE_COMPUTATION(StaticCall)
 
   // Accessors forwarded to the AST node.
-  const Function& function() const { return ast_node_.function(); }
-  const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  const Function& function() const { return function_; }
+  const Array& argument_names() const { return argument_names_; }
+  intptr_t token_index() const { return token_index_; }
 
-  int ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
  private:
-  const StaticCallNode& ast_node_;
+  const intptr_t token_index_;
+  const Function& function_;
+  const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);
@@ -287,8 +358,20 @@ class NativeCallComp : public Computation {
 
   DECLARE_COMPUTATION(NativeCall)
 
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
   const String& native_name() const {
     return ast_node_.native_c_function_name();
+  }
+
+  NativeFunction native_c_function() const {
+    return ast_node_.native_c_function();
+  }
+
+  intptr_t argument_count() const { return ast_node_.argument_count(); }
+
+  bool has_optional_parameters() const {
+    return ast_node_.has_optional_parameters();
   }
 
  private:
@@ -305,7 +388,7 @@ class LoadInstanceFieldComp : public Computation {
     ASSERT(instance_ != NULL);
   }
 
-  DECLARE_COMPUTATION(LoadInstanceFieldComp)
+  DECLARE_COMPUTATION(LoadInstanceField)
 
   const Field& field() const { return ast_node_.field(); }
 
@@ -329,7 +412,7 @@ class StoreInstanceFieldComp : public Computation {
     ASSERT(value_ != NULL);
   }
 
-  DECLARE_COMPUTATION(StoreInstanceFieldComp)
+  DECLARE_COMPUTATION(StoreInstanceField)
 
   intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
@@ -351,7 +434,7 @@ class LoadStaticFieldComp : public Computation {
  public:
   explicit LoadStaticFieldComp(const Field& field) : field_(field) {}
 
-  DECLARE_COMPUTATION(LoadStaticFieldComp);
+  DECLARE_COMPUTATION(LoadStaticField);
 
   const Field& field() const { return field_; }
 
@@ -371,7 +454,7 @@ class StoreStaticFieldComp : public Computation {
     ASSERT(value != NULL);
   }
 
-  DECLARE_COMPUTATION(StoreStaticFieldComp);
+  DECLARE_COMPUTATION(StoreStaticField);
 
   const Field& field() const { return field_; }
   Value* value() const { return value_; }
@@ -457,7 +540,7 @@ class BooleanNegateComp : public Computation {
  public:
   explicit BooleanNegateComp(Value* value) : value_(value) {}
 
-  DECLARE_COMPUTATION(BooleanNegateComp)
+  DECLARE_COMPUTATION(BooleanNegate)
 
   Value* value() const { return value_; }
 
@@ -481,11 +564,13 @@ class InstanceOfComp : public Computation {
         type_(type),
         negate_result_(negate_result) {}
 
-  DECLARE_COMPUTATION(InstanceOfComp)
+  DECLARE_COMPUTATION(InstanceOf)
 
   Value* value() const { return value_; }
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
 
  private:
   const intptr_t node_id_;
@@ -495,6 +580,166 @@ class InstanceOfComp : public Computation {
   const bool negate_result_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfComp);
+};
+
+
+class AllocateObjectComp : public Computation {
+ public:
+  AllocateObjectComp(ConstructorCallNode* node,
+                     ZoneGrowableArray<Value*>* arguments)
+      : ast_node_(*node), arguments_(arguments) {
+    // Either no arguments or one type-argument and one instantiator.
+    ASSERT(arguments->is_empty() || (arguments->length() == 2));
+  }
+
+  DECLARE_COMPUTATION(AllocateObject)
+
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  ZoneGrowableArray<Value*>* const arguments_;
+  DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
+};
+
+
+class CreateArrayComp : public Computation {
+ public:
+  CreateArrayComp(ArrayNode* node, ZoneGrowableArray<Value*>* elements)
+      : ast_node_(*node), elements_(elements) { }
+
+  DECLARE_COMPUTATION(CreateArray)
+
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  intptr_t ElementCount() const { return elements_->length(); }
+  Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
+
+ private:
+  const ArrayNode& ast_node_;
+  ZoneGrowableArray<Value*>* const elements_;
+
+  DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
+};
+
+
+class CreateClosureComp : public Computation {
+ public:
+  explicit CreateClosureComp(ClosureNode* node) : ast_node_(*node) { }
+
+  DECLARE_COMPUTATION(CreateClosure)
+
+  intptr_t token_index() const { return ast_node_.token_index(); }
+  const Function& function() const { return ast_node_.function(); }
+
+ private:
+  const ClosureNode& ast_node_;
+
+  DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
+};
+
+
+class ThrowComp : public Computation {
+ public:
+  explicit ThrowComp(intptr_t node_id,
+                     intptr_t token_index,
+                     Value* exception)
+      : node_id_(node_id), token_index_(token_index), exception_(exception) {
+    ASSERT(exception_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(Throw)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowComp);
+};
+
+
+class ReThrowComp : public Computation {
+ public:
+  ReThrowComp(intptr_t node_id,
+              intptr_t token_index,
+              Value* exception,
+              Value* stack_trace)
+      : node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception),
+        stack_trace_(stack_trace) {
+    ASSERT(exception_ != NULL);
+    ASSERT(stack_trace_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ReThrow)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+  Value* stack_trace() const { return stack_trace_; }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+  Value* stack_trace_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReThrowComp);
+};
+
+
+class NativeLoadFieldComp : public Computation {
+ public:
+  NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
+      : value_(value), offset_in_bytes_(offset_in_bytes) {
+    ASSERT(value != NULL);
+  }
+
+  DECLARE_COMPUTATION(NativeLoadFieldComp)
+
+  Value* value() const { return value_; }
+  intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+ private:
+  Value* value_;
+  intptr_t offset_in_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeLoadFieldComp);
+};
+
+
+class ExtractTypeArgumentsComp : public Computation {
+ public:
+  ExtractTypeArgumentsComp(ConstructorCallNode* ast_node, Value* instantiator)
+      : ast_node_(*ast_node), instantiator_(instantiator) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractTypeArgumentsComp)
+
+  Value* instantiator() const { return instantiator_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractTypeArgumentsComp);
 };
 
 

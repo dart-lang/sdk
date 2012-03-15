@@ -5,6 +5,7 @@
 #library("test_progress");
 
 #import("dart:io");
+#import("dart:builtin");
 #import("test_runner.dart");
 #import("test_suite.dart");
 
@@ -129,8 +130,8 @@ class ProgressIndicator {
       for (var s in test.output.diagnostics) {
         output.add('$prefix ${s}');
         prefix = '   ';
-      }      
-    }    
+      }
+    }
     if (!test.output.stdout.isEmpty()) {
       output.add('');
       output.add('stdout:');
@@ -198,6 +199,8 @@ class SilentProgressIndicator extends ProgressIndicator {
   void testAdded() { }
   void start(TestCase test) { }
   void done(TestCase test) { }
+  void _printStartProgress(TestCase test) { }
+  void _printDoneProgress(TestCase test) { }
   void allTestsKnown() { }
   void allDone() {
     exit(0);

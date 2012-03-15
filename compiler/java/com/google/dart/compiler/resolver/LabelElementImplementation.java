@@ -6,7 +6,7 @@ package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartLabel;
 
-class LabelElementImplementation extends AbstractElement implements LabelElement {
+class LabelElementImplementation extends AbstractNodeElement implements LabelElement {
 
   private MethodElement enclosingFunction;
 
@@ -23,10 +23,5 @@ class LabelElementImplementation extends AbstractElement implements LabelElement
   @Override
   public MethodElement getEnclosingFunction() {
     return enclosingFunction;
-  }
-
-  @Override
-  public void setNode(DartLabel node) {
-    super.setNode(node);
   }
 }

@@ -11,9 +11,9 @@
 namespace dart {
 
 class ApiState;
+class FinalizablePersistentHandle;
 class LocalHandle;
 class PersistentHandle;
-class WeakPersistentHandle;
 
 const char* CanonicalFunction(const char* func);
 
@@ -94,7 +94,13 @@ class Api : AllStatic {
                                                     Dart_Handle object);
 
   // Validates and converts the passed in handle as a weak persistent handle.
-  static WeakPersistentHandle* UnwrapAsWeakPersistentHandle(
+  static FinalizablePersistentHandle* UnwrapAsWeakPersistentHandle(
+      const ApiState& state,
+      Dart_Handle object);
+
+  // Validates and converts the passed in handle as a prologue weak
+  // persistent handle.
+  static FinalizablePersistentHandle* UnwrapAsPrologueWeakPersistentHandle(
       const ApiState& state,
       Dart_Handle object);
 

@@ -18,7 +18,7 @@
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_Current, 0)                                                      \
-  V(Directory_CreateTemp, 2)                                                   \
+  V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_NewServicePort, 0)                                               \
   V(EventHandler_Start, 1)                                                     \
@@ -101,7 +101,11 @@ void Builtin::PrintString(FILE* out, Dart_Handle str) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str, &cstring);
   if (Dart_IsError(result)) {
-      cstring = Dart_GetError(result);
+    // TODO(turnidge): Consider propagating some errors here.  What if
+    // an isolate gets interrupted by the embedder in the middle of
+    // Dart_StringToCString?  We need to make sure not to swallow the
+    // interrupt.
+    cstring = Dart_GetError(result);
   }
   fprintf(out, "%s\n", cstring);
   fflush(out);

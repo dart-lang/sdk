@@ -55,6 +55,6 @@ public class FunctionAliasElementImplementation extends ClassElementImplementati
   public static FunctionAliasElement fromNode(DartFunctionTypeAlias node,
                                               LibraryElement library) {
     return new FunctionAliasElementImplementation(
-        node, node.getName().getTargetName(), library);
+        node, node.getName().getName(), library);
   }
 }

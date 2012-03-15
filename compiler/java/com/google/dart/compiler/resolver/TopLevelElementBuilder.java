@@ -9,15 +9,13 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -44,12 +42,12 @@ public class TopLevelElementBuilder {
     }
   }
 
-  public void exec(DartUnit unit, DartCompilerContext context) {
-    unit.accept(new Builder());
+  public void exec(LibraryUnit library, DartUnit unit, DartCompilerContext context) {
+    unit.accept(new Builder(library.getElement()));
   }
 
-  public void exec(DartClass cls, DartCompilerContext context) {
-    cls.accept(new Builder());
+  public void exec(LibraryUnit library, DartClass cls, DartCompilerContext context) {
+    cls.accept(new Builder(library.getElement()));
   }
 
   /**
@@ -85,15 +83,15 @@ public class TopLevelElementBuilder {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          declare(field.getSymbol(), listener, scope);
+          declare(field.getElement(), listener, scope);
         }
       } else {
-        declare((Element) node.getSymbol(), listener, scope);
+        declare((Element) node.getElement(), listener, scope);
       }
     }
   }
 
-  void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
+  private void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
                         Object... args) {
     DartCompilationError error = new DartCompilationError(node, errorCode, args);
     listener.onError(error);
@@ -122,17 +120,12 @@ public class TopLevelElementBuilder {
   /**
    * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DEFINITION} for given named element.
    */
-  @SuppressWarnings("unchecked")
   private void reportDuplicateDeclaration(DartCompilerListener listener, Element element) {
-    DartNode node = element.getNode();
-    if (node instanceof DartDeclaration) {
-      DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
-      compilationError(
-          listener,
-          nameNode,
-          ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
-          nameNode);
-    }
+    compilationError(
+        listener,
+        element.getNameLocation(),
+        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
+        element.getName());
   }
 
   /**
@@ -141,10 +134,6 @@ public class TopLevelElementBuilder {
   private class Builder extends ASTVisitor<Void> {
 
     private LibraryElement library;
-
-    public Builder() {
-      this(null);
-    }
 
     public Builder(LibraryElement library) {
       this.library = library;
@@ -158,8 +147,8 @@ public class TopLevelElementBuilder {
       element.setType(Types.interfaceType(
           element,
           Collections.<Type>unmodifiableList(typeVariables)));
-      node.setSymbol(element);
-      node.getName().setSymbol(element);
+      node.setElement(element);
+      node.getName().setElement(element);
       return null;
     }
 
@@ -169,13 +158,13 @@ public class TopLevelElementBuilder {
       List<DartTypeParameter> parameterNodes = node.getTypeParameters();
       element.setType(Types.functionAliasType(element,
                                               Elements.makeTypeVariables(parameterNodes, element)));
-      node.setSymbol(element);
+      node.setElement(element);
       return null;
     }
 
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
-      node.setSymbol(Elements.methodFromMethodNode(node, library));
+      node.setElement(Elements.methodFromMethodNode(node, library));
       return null;
     }
 
@@ -186,7 +175,7 @@ public class TopLevelElementBuilder {
         // final toplevel fields are implicitly compile-time constants.
         modifiers = modifiers.makeConstant();
       }
-      node.setSymbol(Elements.fieldFromNode(node, library, modifiers));
+      node.setElement(Elements.fieldFromNode(node, library, modifiers));
       return null;
     }
   }

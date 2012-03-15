@@ -9,7 +9,7 @@
 void test(TestExpectation expect) {
   SpawnedIsolate isolate = new SpawnedIsolate();
   expect.completes(isolate.spawn()).then((SendPort port) {
-    port.call(42).receive(expect.runs2((message, replyTo) {
+    port.call(42).then(expect.runs1((message) {
       Expect.equals(42, message);
       expect.succeeded();
     }));

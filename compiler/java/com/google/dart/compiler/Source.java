@@ -37,6 +37,13 @@ public interface Source {
   Reader getSourceReader() throws IOException;
 
   /**
+   * Return an identifier that will uniquely identify this source.
+   *
+   * @return the unique identifier for this source.
+   */
+  String getUniqueIdentifier();
+
+  /**
    * Gets the identifier for this source. This is used to uniquely identify the
    * source, but should not be used to obtain the source content. Use
    * {@link #getSourceReader()} to obtain the source content.

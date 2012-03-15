@@ -66,8 +66,7 @@ const char* IsolateMessageHandler::name() const {
 void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   if (priority >= Message::kOOBPriority) {
     // Handle out of band messages even if the isolate is busy.
-    // isolate_->ScheduleInterrupts(Isolate::kMessageInterrupt);
-    UNIMPLEMENTED();
+    isolate_->ScheduleInterrupts(Isolate::kMessageInterrupt);
   }
   Dart_MessageNotifyCallback callback = isolate_->message_notify_callback();
   if (callback) {
@@ -394,26 +393,36 @@ RawError* Isolate::StandardRunLoop() {
     Zone zone(this);
     HandleScope handle_scope(this);
 
+    // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
     Message* message = message_handler()->queue()->Dequeue(0);
     if (message != NULL) {
-      if (message->priority() >= Message::kOOBPriority) {
-        // TODO(turnidge): Out of band messages will not go through the
-        // regular message handler.  Instead they will be dispatched to
-        // special vm code.  Implement.
-        UNIMPLEMENTED();
-      }
       const Instance& msg =
           Instance::Handle(DeserializeMessage(message->data()));
-      const Object& result = Object::Handle(
-          DartLibraryCalls::HandleMessage(
-              message->dest_port(), message->reply_port(), msg));
-      delete message;
-      if (result.IsError()) {
-        Error& error = Error::Handle();
-        error ^= result.raw();
-        return error.raw();
+      if (message->priority() >= Message::kOOBPriority) {
+        // For now the only OOB messages are Mirrors messages.
+        const Object& result = Object::Handle(
+            DartLibraryCalls::HandleMirrorsMessage(
+                message->dest_port(), message->reply_port(), msg));
+        delete message;
+        if (result.IsError()) {
+          // TODO(turnidge): Propagating the error is probably wrong here.
+          Error& error = Error::Handle();
+          error ^= result.raw();
+          return error.raw();
+        }
+        ASSERT(result.IsNull());
+      } else {
+        const Object& result = Object::Handle(
+            DartLibraryCalls::HandleMessage(
+                message->dest_port(), message->reply_port(), msg));
+        delete message;
+        if (result.IsError()) {
+          Error& error = Error::Handle();
+          error ^= result.raw();
+          return error.raw();
+        }
+        ASSERT(result.IsNull());
       }
-      ASSERT(result.IsNull());
     }
   }
 
@@ -423,6 +432,7 @@ RawError* Isolate::StandardRunLoop() {
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
+                                  bool visit_prologue_weak_handles,
                                   bool validate_frames) {
   ASSERT(visitor != NULL);
 
@@ -445,7 +455,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
-    api_state()->VisitObjectPointers(visitor);
+    api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
   }
 
   // Visit all objects in the code index table.
@@ -461,9 +471,10 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
+void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
+                                         bool visit_prologue_weak_handles) {
   if (api_state() != NULL) {
-    api_state()->VisitWeakHandles(visitor);
+    api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
   }
 }
 

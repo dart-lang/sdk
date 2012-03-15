@@ -27,7 +27,7 @@ class T2 {
   A get field() { return getterField; }
 
   // Type C is not assignable to A
-  void set field(C arg) { setterField = arg; } /// 01: static type error
+  void set field(C arg) { setterField = arg; } /// 01: static type warning
 }
 
 class T3 {
@@ -53,7 +53,7 @@ main() {
   Expect.equals(37, result);
 
   // Type 'A' has no method named 'b'
-  instance1.field.b(); /// 02: static type error
+  instance1.field.b(); /// 02: static type warning
 
   instance3.field = new B();
   result = instance3.field.a();

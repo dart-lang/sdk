@@ -12,6 +12,7 @@
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
+#include "vm/message.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -412,13 +413,25 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
 }
 
 
-// Check that the type of the given instance is assignable to the given type.
+// For error reporting simplify type name, e.g, all integer types (Smi, Mint,
+// Bigint) a re reported as 'int'.
+static RawString* GetSimpleTypeName(const Instance& value) {
+  if (value.IsInteger()) {
+    return String::NewSymbol("int");
+  } else {
+    return Type::Handle(value.GetType()).Name();
+  }
+}
+
+
+// Check that the type of the given instance is a subtype of the given type and
+// can therefore be assigned.
 // Arg0: index of the token of the assignment (source location).
 // Arg1: instance being assigned.
 // Arg2: type being assigned to.
 // Arg3: type arguments of the instantiator of the type being assigned to.
-// Arg4: name of instance being assigned to.
-// Return value: instance if assignable, otherwise throw a TypeError.
+// Arg4: name of variable being assigned to.
+// Return value: instance if a subtype, otherwise throw a TypeError.
 DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
   // TODO(regis): Get the token index from the PcDesc (via DartFrame).
@@ -429,28 +442,29 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
       AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& dst_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
 
   Error& malformed_error = Error::Handle();
-  const bool is_assignable = src_instance.IsAssignableTo(
+  const bool is_instance_of = src_instance.IsInstanceOf(
       dst_type, dst_type_instantiator, &malformed_error);
 
   if (FLAG_trace_type_checks) {
     const Type& src_type = Type::Handle(src_instance.GetType());
     if (dst_type.IsInstantiated()) {
-      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s'.\n",
+      OS::Print("TypeCheck: type '%s' %s a subtype of type '%s' of '%s'.\n",
                 String::Handle(src_type.Name()).ToCString(),
-                is_assignable ? "is" : "is not",
+                is_instance_of ? "is" : "is not",
                 String::Handle(dst_type.Name()).ToCString(),
                 dst_name.ToCString());
     } else {
       // Instantiate dst_type before printing.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(dst_type_instantiator));
-      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s' "
+      OS::Print("TypeCheck: type '%s' %s a subtype of type '%s' of '%s' "
                 "instantiated from '%s'.\n",
                 String::Handle(src_type.Name()).ToCString(),
-                is_assignable ? "is" : "is not",
+                is_instance_of ? "is" : "is not",
                 String::Handle(instantiated_dst_type.Name()).ToCString(),
                 dst_name.ToCString(),
                 String::Handle(dst_type.Name()).ToCString());
@@ -462,9 +476,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
         caller_frame->LookupDartFunction());
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
-  if (!is_assignable) {
-    const Type& src_type = Type::Handle(src_instance.GetType());
-    const String& src_type_name = String::Handle(src_type.Name());
+  if (!is_instance_of) {
+    String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
     String& dst_type_name = String::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
@@ -499,8 +512,7 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolInterface());
-  const Type& src_type = Type::Handle(src_instance.GetType());
-  const String& src_type_name = String::Handle(src_type.Name());
+  const String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
   const String& bool_type_name = String::Handle(bool_interface.Name());
   const String& expr = String::Handle(String::NewSymbol("boolean expression"));
   const String& no_malformed_type_error =  String::Handle();
@@ -525,14 +537,15 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
   const String& dst_name = String::CheckedHandle(arguments.At(2));
   const String& malformed_error = String::CheckedHandle(arguments.At(3));
   const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
-  const String& src_type_name =
-      String::Handle(Type::Handle(src_value.GetType()).Name());
+  const String& src_type_name = String::Handle(GetSimpleTypeName(src_value));
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
   UNREACHABLE();
 }
 
 
+// TODO(regis): Function rest arguments are not supported anymore, but they may
+// come back.
 // Check that the type of each element of the given array is assignable to the
 // given type.
 // Arg0: index of the token of the rest argument declaration (source location).
@@ -553,6 +566,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const String& rest_name = String::CheckedHandle(arguments.At(4));
   ASSERT(!element_type.IsDynamicType());  // No need to check assignment.
+  ASSERT(!element_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!rest_array.IsNull());
 
   Instance& elem = Instance::Handle();
@@ -562,15 +576,14 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
     // The previous successful type check may have set malformed_error.
     // Note that a returned malformed_error is ignored if a type check succeeds.
     malformed_error = Error::null();
-    if (!elem.IsNull() && !elem.IsAssignableTo(element_type,
-                                               element_type_instantiator,
-                                               &malformed_error)) {
+    if (!elem.IsNull() && !elem.IsInstanceOf(element_type,
+                                             element_type_instantiator,
+                                             &malformed_error)) {
       // Allocate and throw a new instance of TypeError.
       char buf[256];
       OS::SNPrint(buf, sizeof(buf), "%s[%d]",
                   rest_name.ToCString(), static_cast<int>(i));
-      const String& src_type_name =
-          String::Handle(Type::Handle(elem.GetType()).Name());
+      const String& src_type_name = String::Handle(GetSimpleTypeName(elem));
       String& dst_type_name = String::Handle();
       if (!element_type.IsInstantiated()) {
         // Instantiate element_type before reporting the error.
@@ -1127,6 +1140,20 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 }
 
 
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsMessageSnapshot());
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
@@ -1145,7 +1172,28 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
   if (interrupt_bits & Isolate::kMessageInterrupt) {
-    // UNIMPLEMENTED();
+    while (true) {
+      // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
+      Message* message =
+          isolate->message_handler()->queue()->DequeueNoWaitWithPriority(
+              Message::kOOBPriority);
+      if (message == NULL) {
+        // No more OOB messages to handle.
+        break;
+      }
+      const Instance& msg =
+          Instance::Handle(DeserializeMessage(message->data()));
+      // For now the only OOB messages are Mirrors messages.
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMirrorsMessage(
+              message->dest_port(), message->reply_port(), msg));
+      delete message;
+      if (result.IsError()) {
+        // TODO(turnidge): Propagating the error is probably wrong here.
+        Exceptions::PropagateError(result);
+      }
+      ASSERT(result.IsNull());
+    }
   }
   if (interrupt_bits & Isolate::kApiInterrupt) {
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
@@ -1168,6 +1216,12 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.Count() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  if (isolate->debugger()->IsActive()) {
+    // We cannot set breakpoints in optimized code, so do not optimize
+    // the function.
+    function.set_usage_counter(0);
+    return;
+  }
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     // TODO(srdjan): Investigate excessive deoptimization.

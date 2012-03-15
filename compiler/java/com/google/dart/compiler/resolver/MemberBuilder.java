@@ -7,21 +7,24 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
@@ -58,6 +61,7 @@ public class MemberBuilder {
    */
   private class MemberElementBuilder extends ResolveVisitor {
     EnclosingElement currentHolder;
+    private EnclosingElement enclosingElement;
     private ResolutionContext context;
     private boolean isStatic;
     private boolean isFactory;
@@ -82,12 +86,20 @@ public class MemberBuilder {
     boolean isFactoryContext() {
       return isFactory;
     }
+    
+    @Override
+    protected EnclosingElement getEnclosingElement() {
+      return enclosingElement;
+    }
 
     @Override
     public Element visitClass(DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       beginClassContext(node);
+      EnclosingElement previousEnclosingElement = enclosingElement;
+      enclosingElement = node.getElement();
       this.visit(node.getMembers());
+      enclosingElement = previousEnclosingElement;
       endClassContext();
       return null;
     }
@@ -97,7 +109,7 @@ public class MemberBuilder {
       isStatic = false;
       isFactory = false;
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
-      FunctionAliasElement element = node.getSymbol();
+      FunctionAliasElement element = node.getElement();
       currentHolder = element;
       context = context.extend((ClassElement) currentHolder); // Put type variables in scope.
       visit(node.getTypeParameters());
@@ -118,14 +130,14 @@ public class MemberBuilder {
     public Element visitMethodDefinition(final DartMethodDefinition method) {
       isFactory = method.getModifiers().isFactory();
       isStatic = method.getModifiers().isStatic() || isFactory;
-      MethodElement element = method.getSymbol();
+      MethodNodeElement element = method.getElement();
       if (element == null) {
         switch (getMethodKind(method)) {
           case NONE:
           case CONSTRUCTOR:
             element = buildConstructor(method);
             checkConstructor(element, method);
-            addConstructor((ClassElement) currentHolder, (ConstructorElement) element);
+            addConstructor((ClassElement) currentHolder, (ConstructorNodeElement) element);
             break;
 
           case METHOD:
@@ -144,7 +156,10 @@ public class MemberBuilder {
         recordElement(method, element);
         ResolutionContext previous = context;
         context = context.extend(element.getName());
+        EnclosingElement previousEnclosingElement = enclosingElement;
+        enclosingElement = element;
         resolveFunction(method.getFunction(), element);
+        enclosingElement = previousEnclosingElement;
         context = previous;
       }
       return null;
@@ -172,7 +187,7 @@ public class MemberBuilder {
 
     private void beginClassContext(final DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
-      currentHolder = node.getSymbol();
+      currentHolder = node.getElement();
       context = context.extend((ClassElement) currentHolder);
     }
 
@@ -217,7 +232,7 @@ public class MemberBuilder {
       });
     }
 
-    private MethodElement buildConstructor(final DartMethodDefinition method) {
+    private MethodNodeElement buildConstructor(final DartMethodDefinition method) {
       // Resolve the constructor's name and class name.
       Element e = resolveConstructorName(method);
 
@@ -232,7 +247,7 @@ public class MemberBuilder {
           break;
 
         case CONSTRUCTOR:
-          return (ConstructorElement) e;
+          return (ConstructorNodeElement) e;
       }
       // If the constructor name resolves to a class or there was an error,
       // create the unnamed constructor.
@@ -250,7 +265,7 @@ public class MemberBuilder {
         // types of constant expressions.
         modifiers = modifiers.makeConstant();
       }
-      FieldElement fieldElement = fieldNode.getSymbol();
+      FieldNodeElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
         fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);
         addField(currentHolder, fieldElement);
@@ -311,11 +326,14 @@ public class MemberBuilder {
       assert fieldNode.getModifiers().isAbstractField();
       boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
-      MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
+      MethodNodeElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
+      EnclosingElement previousEnclosingElement = enclosingElement;
+      enclosingElement = accessorElement;
       recordElement(accessorNode, accessorElement);
       resolveFunction(accessorNode.getFunction(), accessorElement);
+      enclosingElement = previousEnclosingElement;
 
-      String name = fieldNode.getName().getTargetName();
+      String name = fieldNode.getName().getName();
       Element element = null;
       if (currentHolder != null) {
           element = currentHolder.lookupLocalElement(name);
@@ -367,21 +385,21 @@ public class MemberBuilder {
       return recordElement(fieldNode, fieldElement);
     }
 
-    private void addField(EnclosingElement holder, FieldElement element) {
+    private void addField(EnclosingElement holder, FieldNodeElement element) {
       if (holder != null) {
         checkUniqueName(holder, element);
         Elements.addField(holder, element);
       }
     }
 
-    private void addMethod(EnclosingElement holder, MethodElement element) {
+    private void addMethod(EnclosingElement holder, MethodNodeElement element) {
       checkUniqueName(holder, element);
       Elements.addMethod(holder, element);
     }
 
-    private void addConstructor(ClassElement cls, MethodElement element) {
+    private void addConstructor(ClassElement cls, ConstructorNodeElement element) {
       checkUniqueName(cls, element);
-      Elements.addConstructor(cls, (ConstructorElement) element);
+      Elements.addConstructor(cls, element);
     }
 
     private ElementKind getMethodKind(DartMethodDefinition method) {
@@ -395,7 +413,7 @@ public class MemberBuilder {
 
       DartExpression name = method.getName();
       if (name instanceof DartIdentifier) {
-        if (((DartIdentifier) name).getTargetName().equals(currentHolder.getName())) {
+        if (((DartIdentifier) name).getName().equals(currentHolder.getName())) {
           return ElementKind.CONSTRUCTOR;
         } else {
           return ElementKind.METHOD;
@@ -404,7 +422,7 @@ public class MemberBuilder {
         DartPropertyAccess property = (DartPropertyAccess) name;
         if (property.getQualifier() instanceof DartIdentifier) {
           DartIdentifier qualifier = (DartIdentifier) property.getQualifier();
-          if (qualifier.getTargetName().equals(currentHolder.getName())) {
+          if (qualifier.getName().equals(currentHolder.getName())) {
             return ElementKind.CONSTRUCTOR;
           }
           resolutionError(method.getName(),
@@ -437,11 +455,13 @@ public class MemberBuilder {
         if (modifiers.isAbstract()) {
           resolutionError(method.getName(), ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT);
         }
-        // TODO(ngeoffray): This is already checked in the parser.
-        // Like operators/getters/setters. Should we all check them here?
-        if (modifiers.isConstant() && method.getFunction().getBody() != null) {
-          resolutionError(method.getName(),
-              ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+        if (modifiers.isConstant()) {
+          // Allow const ... native ... ; type of constructors.  Used in core libraries.
+          DartBlock dartBlock = method.getFunction().getBody();
+          if (dartBlock != null && !(dartBlock instanceof DartNativeBlock)) {
+            resolutionError(method.getName(),
+                            ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY);
+          }
         }
       }
 
@@ -452,10 +472,13 @@ public class MemberBuilder {
         if (modifiers.isAbstract()) {
           resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
         }
-        // TODO(ngeoffray): This is already checked in the parser.
-        // Like operators/getters/setters. Should we all check them here?
+
         if (modifiers.isConstant()) {
-          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
+          // Allow const factory ... native ... ; type of constructors, used in core libraries
+          DartBlock dartBlock = method.getFunction().getBody();
+          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) { 
+            resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
+          }
         }
       }
       // TODO(ngeoffray): Add more checks on the modifiers. For
@@ -524,20 +547,23 @@ public class MemberBuilder {
       return element;
     }
 
-    void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
+    void resolutionError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
+      resolutionError(node.getSourceInfo(), errorCode, arguments);
+    }
+
+    void resolutionError(SourceInfo node, ErrorCode errorCode, Object... arguments) {
       topLevelContext.onError(node, errorCode, arguments);
     }
 
     /**
      * Reports duplicate declaration for given named element.
      */
-    @SuppressWarnings("unchecked")
     private void reportDuplicateDeclaration(ErrorCode errorCode, Element element) {
-      DartNode node = element.getNode();
-      if (node instanceof DartDeclaration) {
-        DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
-        resolutionError(nameNode, errorCode, nameNode);
-      }
+      String name =
+          element instanceof MethodElement
+              ? Elements.getRawMethodName((MethodElement) element)
+              : element.getName();
+      resolutionError(element.getNameLocation(), errorCode, name);
     }
   }
 }

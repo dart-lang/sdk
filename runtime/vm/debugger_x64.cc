@@ -12,9 +12,10 @@
 
 namespace dart {
 
+// TODO(hausner): Implement this. For now just return null instead
+// of hitting UNIMPLEMENTED.
 RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
-  UNIMPLEMENTED();
-  return NULL;
+  return Instance::null();
 }
 
 

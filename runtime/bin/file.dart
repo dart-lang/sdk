@@ -7,10 +7,10 @@
  * FileMode describes the modes in which a file can be opened.
  */
 class FileMode {
-  static final READ = const FileMode(0);
-  static final WRITE = const FileMode(1);
-  static final APPEND = const FileMode(2);
-  const FileMode(int this._mode);
+  static final READ = const FileMode._internal(0);
+  static final WRITE = const FileMode._internal(1);
+  static final APPEND = const FileMode._internal(2);
+  const FileMode._internal(int this._mode);
   final int _mode;
 }
 
@@ -163,38 +163,37 @@ interface File default _File {
   List<int> readAsBytesSync();
 
   /**
-   * Read the entire file contents as text using the given [encoding]
-   * ('UTF-8', 'ISO-8859-1', 'ASCII').
+   * Read the entire file contents as text using the given
+   * [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    *
    * When the operation completes the callback is called. The
    * [onError] function registered on the file object is called if the
    * operation fails.
    */
-  void readAsText(String encoding, void callback(String text));
+  void readAsText(Encoding encoding, void callback(String text));
 
   /**
    * Synchronously read the entire file contents as text using the
-   * given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
-   * encoding is 'UTF-8'.
+   * given [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    */
-  String readAsTextSync([String encoding]);
+  String readAsTextSync([Encoding encoding]);
 
   /**
    * Read the entire file contents as lines of text using the give
-   * [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII').
+   * [encoding]. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    *
    * When the operation completes the callback is called. The
    * [onError] function registered on the file object is called if the
    * operation fails.
    */
-  void readAsLines(String encoding, void callback(List<String> lines));
+  void readAsLines(Encoding encoding, void callback(List<String> lines));
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
-   * default the encoding is 'UTF-8'.
+   * using the given [encoding] The default encoding is UTF-8 -
+   * [:Encoding.UTF_8:].
    */
-  List<String> readAsLinesSync([String encoding]);
+  List<String> readAsLinesSync([Encoding encoding]);
 
   /**
    * Get the name of the file.
@@ -205,7 +204,7 @@ interface File default _File {
    * Sets the handler that gets called when errors occur during
    * operations on this file.
    */
-  void set onError(void handler(String error));
+  void set onError(void handler(Exception e));
 }
 
 
@@ -276,19 +275,21 @@ interface RandomAccessFile {
   int writeListSync(List<int> buffer, int offset, int bytes);
 
   /**
-   * Write a string to the file. If the string cannot be written the
-   * [onError] is called. When all pending write operations have
-   * finished [onNoPendingWrites] is called.
+   * Write a string to the file using the given [encoding]. If the
+   * string cannot be written [onError] is called. The default
+   * encoding is UTF-8 - [:Encoding.UTF_8:].
+   *
+   * When all pending write operations have finished
+   * [onNoPendingWrites] is called.
    */
-  // TODO(ager): writeString should take an encoding.
-  void writeString(String string);
+  void writeString(String string, [Encoding encoding]);
 
   /**
-   * Synchronously write a single string to the file. Returns the number
-   * of characters successfully written.
+   * Synchronously write a single string to the file using the given
+   * [encoding]. Returns the number of characters successfully
+   * written. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    */
-  // TODO(ager): writeStringSync should take an encoding.
-  int writeStringSync(String string);
+  int writeStringSync(String string, [Encoding encoding]);
 
   /**
    * Get the current byte position in the file. When the operation
@@ -365,7 +366,21 @@ interface RandomAccessFile {
 
 
 class FileIOException implements Exception {
-  const FileIOException([String this.message = ""]);
-  String toString() => "FileIOException: $message";
+  const FileIOException([String this.message = "",
+                         OSError this.osError = null]);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add("FileIOException");
+    if (!message.isEmpty()) {
+      sb.add(": $message");
+      if (osError != null) {
+        sb.add(" ($osError)");
+      }
+    } else if (osError != null) {
+      sb.add(": osError");
+    }
+    return sb.toString();
+  }
   final String message;
+  final OSError osError;
 }

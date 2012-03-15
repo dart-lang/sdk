@@ -60,6 +60,7 @@ class Scavenger {
 
   // Collect the garbage in this scavenger.
   void Scavenge();
+  void Scavenge(bool invoke_api_callbacks);
 
   // Accessors to generate code for inlined allocation.
   uword* TopAddress() { return &top_; }
@@ -73,11 +74,15 @@ class Scavenger {
 
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
-  void Prologue();
-  void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  void Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  void IterateRoots(Isolate* isolate,
+                    ObjectPointerVisitor* visitor,
+                    bool visit_prologue_weak_persistent_handles);
+  void IterateWeakRoots(Isolate* isolate,
+                        HandleVisitor* visitor,
+                        bool visit_prologue_weak_persistent_handles);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
-  void Epilogue();
+  void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
 
   // During a scavenge we need to remember the promoted objects.
   // This is implemented as a stack of objects at the end of the to space. As

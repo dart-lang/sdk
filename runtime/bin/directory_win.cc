@@ -338,69 +338,53 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-int Directory::CreateTemp(const char* const_template,
-                          char** path,
-                          char* os_error_message,
-                          int os_error_message_len) {
+char* Directory::CreateTemp(const char* const_template) {
   // Returns a new, unused directory name, modifying the contents of
   // dir_template.  Creates this directory, with a default security
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
-  *path = static_cast<char*>(malloc(MAX_PATH));
+  char* path = static_cast<char*>(malloc(MAX_PATH));
   int path_length;
   if (0 == strncmp(const_template, "", 1)) {
-    path_length = GetTempPath(MAX_PATH, *path);
+    path_length = GetTempPath(MAX_PATH, path);
     if (path_length == 0) {
-      free(*path);
-      *path = NULL;
-      int error_code =
-          SetOsErrorMessage(os_error_message, os_error_message_len);
-      return error_code;
+      free(path);
+      return NULL;
     }
   } else {
-    snprintf(*path, MAX_PATH, "%s", const_template);
-    path_length = strlen(*path);
+    snprintf(path, MAX_PATH, "%s", const_template);
+    path_length = strlen(path);
   }
   // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
   if (path_length > MAX_PATH - 44) {
-    free(*path);
-    *path = NULL;
-    return -1;
+    free(path);
+    return NULL;
   }
-  if ((*path)[path_length - 1] == '\\') {
+  if ((path)[path_length - 1] == '\\') {
     // No base name for the directory - use "tempdir".
-    snprintf(*path + path_length, MAX_PATH - path_length, "tempdir");
-    path_length = strlen(*path);
+    snprintf(path + path_length, MAX_PATH - path_length, "tempdir");
+    path_length = strlen(path);
   }
 
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
   if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
-    free(*path);
-    *path = NULL;
-    int error_code =
-        SetOsErrorMessage(os_error_message, os_error_message_len);
-    return error_code;
+    free(path);
+    return NULL;
   }
   RPC_CSTR uuid_string;
   status = UuidToString(&uuid, &uuid_string);
   if (status != RPC_S_OK) {
-    free(*path);
-    *path = NULL;
-    int error_code =
-        SetOsErrorMessage(os_error_message, os_error_message_len);
-    return error_code;
+    free(path);
+    return NULL;
   }
 
-  snprintf(*path + path_length, MAX_PATH - path_length, "-%s", uuid_string);
-  if (!CreateDirectory(*path, NULL)) {
-    free(*path);
-    *path = NULL;
-    int error_code =
-        SetOsErrorMessage(os_error_message, os_error_message_len);
-    return error_code;
+  snprintf(path + path_length, MAX_PATH - path_length, "-%s", uuid_string);
+  if (!CreateDirectory(path, NULL)) {
+    free(path);
+    return NULL;
   }
-  return 0;
+  return path;
 }
 
 

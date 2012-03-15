@@ -32,6 +32,15 @@ String msg4 = "4 now?";
 String msg5 = "5 Now.";
 String msg6 = "6 Great. Bye";
 
+void _call(SendPort p, msg, void onreceive(m, replyTo)) {
+  final replyTo = new ReceivePort();
+  p.send(msg, replyTo.toSendPort());
+  replyTo.receive((m, r) {
+    replyTo.close();
+    onreceive(m, r);
+  });
+}
+
 class IsolateB extends Isolate {
   IsolateB() : super.heavy();
 
@@ -40,33 +49,33 @@ class IsolateB extends Isolate {
       this.port.close();
       // Do a little ping-pong dance to give the intermediate isolate time to
       // die.
-      mainPort.call(msg0).receive((msg, replyTo) {
+      _call(mainPort, msg0, ((msg, replyTo) {
         Expect.equals("1", msg[0]);
-        replyTo.call(msg2).receive((msg, replyTo) {
-              Expect.equals("3", msg[0]);
-              replyTo.call(msg4).receive((msg, replyTo) {
-                Expect.equals("5", msg[0]);
-                replyTo.send(msg6, null);
-              });
-            });
-      });
+        _call(replyTo, msg2, ((msg, replyTo) {
+          Expect.equals("3", msg[0]);
+          _call(replyTo, msg4, ((msg, replyTo) {
+            Expect.equals("5", msg[0]);
+            replyTo.send(msg6, null);
+          }));
+        }));
+      }));
     });
   }
 }
 
 test(TestExpectation expect) {
   expect.completes(new IsolateA().spawn()).then((SendPort port) {
-    port.call("launch nested!").receive(expect.runs2((msg, replyTo) {
+    _call(port, "launch nested!", expect.runs2((msg, replyTo) {
       Expect.equals("0", msg[0]);
-      replyTo.call(msg1).receive(expect.runs2((msg, replyTo) {
+      _call(replyTo, msg1, expect.runs2((msg, replyTo) {
         Expect.equals("2", msg[0]);
-        replyTo.call(msg3).receive(expect.runs2((msg, replyTo) {
-              Expect.equals("4", msg[0]);
-              replyTo.call(msg5).receive(expect.runs2((msg, replyTo) {
-                Expect.equals("6", msg[0]);
-                expect.succeeded();
-              }));
-            }));
+        _call(replyTo, msg3, expect.runs2((msg, replyTo) {
+          Expect.equals("4", msg[0]);
+          _call(replyTo, msg5, expect.runs2((msg, replyTo) {
+            Expect.equals("6", msg[0]);
+            expect.succeeded();
+          }));
+        }));
       }));
     }));
   });

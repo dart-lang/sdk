@@ -199,7 +199,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return script_name_name;
   }
   Dart_Handle set_script_name =
-      Dart_SetStaticField(runtime_options_class, script_name_name, dart_script);
+      Dart_SetField(runtime_options_class, script_name_name, dart_script);
   if (Dart_IsError(set_script_name)) {
     return set_script_name;
   }
@@ -208,9 +208,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return native_name;
   }
 
-  return Dart_SetStaticField(runtime_options_class,
-                             native_name,
-                             dart_arguments);
+  return Dart_SetField(runtime_options_class, native_name, dart_arguments);
 }
 
 
@@ -246,28 +244,35 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   const char* url_string = NULL;
   Dart_Handle result = Dart_StringToCString(url, &url_string);
   if (Dart_IsError(result)) {
-    return Dart_Error("accessing url characters failed");
+    return result;
   }
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
   bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
   if (tag == kCanonicalizeUrl) {
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
-    if (is_dart_scheme_url || is_dart_extension_url) {
+    if (is_dart_scheme_url) {
       return url;
     }
     // Resolve the url within the context of the library's URL.
     Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
-      return Dart_Error("accessing library url failed");
+      return library_url;
     }
     Dart_Handle dart_args[2];
     dart_args[0] = library_url;
     dart_args[1] = url;
-    return Dart_InvokeStatic(builtin_lib,
-                             Dart_NewString(""), Dart_NewString("resolveUri"),
-                             2, dart_args);
+    if (is_dart_extension_url) {
+      return Dart_InvokeStatic(builtin_lib,
+                               Dart_NewString(""),
+                               Dart_NewString("resolveExtensionUri"),
+                               2, dart_args);
+    } else {
+      return Dart_InvokeStatic(builtin_lib,
+                               Dart_NewString(""), Dart_NewString("resolveUri"),
+                               2, dart_args);
+    }
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
@@ -331,7 +336,7 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
                                              3, dart_args);
   if (Dart_IsError(script_url)) {
     fprintf(stderr, "%s", Dart_GetError(script_url));
-    return false;
+    return script_url;
   }
   if (original_script_url == NULL) {
     const char* script_url_cstr;
@@ -391,12 +396,25 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
 
-  // Prepare builtin for use to resolve URIs.
+  // Prepare builtin and its dependent libraries for use to resolve URIs.
+  Dart_Handle uri_lib = Builtin::LoadLibrary(Builtin::kUriLibrary);
+  if (Dart_IsError(uri_lib)) {
+    *error = strdup(Dart_GetError(uri_lib));
+    return false;
+  }
   Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
-  Builtin::ImportLibrary(builtin_lib, Builtin::kUriLibrary);
+  if (Dart_IsError(builtin_lib)) {
+    *error = strdup(Dart_GetError(builtin_lib));
+    return false;
+  }
+  Dart_Handle library = Dart_LibraryImportLibrary(builtin_lib, uri_lib);
+  if (Dart_IsError(library)) {
+    *error = strdup(Dart_GetError(library));
+    return false;
+  }
 
   // Load the specified application script into the newly created isolate.
-  Dart_Handle library = LoadScript(builtin_lib, import_map_options);
+  library = LoadScript(builtin_lib, import_map_options);
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     Dart_ExitScope();

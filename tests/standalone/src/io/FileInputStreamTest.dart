@@ -65,8 +65,8 @@ void testStringInputStreamAsync(String name, int length) {
 
 void testChunkedInputStream() {
   // Force the test to timeout if it does not finish.
-  ReceivePort done = new ReceivePort.singleShot();
-  done.receive((message, replyTo) {});
+  ReceivePort done = new ReceivePort();
+  done.receive((message, replyTo) { done.close(); });
 
   String fileName = getFilename("tests/standalone/src/io/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")

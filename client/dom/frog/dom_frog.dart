@@ -403,12 +403,6 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
 
   static final int CSS_URI = 20;
 
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
-
   final int primitiveType;
 
   _CounterJs getCounterValue() native;
@@ -1484,6 +1478,51 @@ class _DelayNodeJs extends _AudioNodeJs implements DelayNode native "*DelayNode"
   final _AudioParamJs delayTime;
 }
 
+class _DeprecatedPeerConnectionJs extends _DOMTypeJs implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final _MediaStreamListJs localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final _MediaStreamListJs remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void addStream(_MediaStreamJs stream) native;
+
+  void close() native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void processSignalingMessage(String message) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void removeStream(_MediaStreamJs stream) native;
+
+  void send(String text) native;
+}
+
 class _DeviceMotionEventJs extends _EventJs implements DeviceMotionEvent native "*DeviceMotionEvent" {
 
   final num interval;
@@ -1722,6 +1761,13 @@ class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompress
   final _AudioParamJs reduction;
 
   final _AudioParamJs threshold;
+}
+
+class _EXTTextureFilterAnisotropicJs extends _DOMTypeJs implements EXTTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 
 class _ElementJs extends _NodeJs implements Element native "*Element" {
@@ -2787,6 +2833,8 @@ class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLD
 
   String fgColor;
 
+  final int height;
+
   String linkColor;
 
   final _HTMLCollectionJs plugins;
@@ -2794,6 +2842,8 @@ class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLD
   final _HTMLCollectionJs scripts;
 
   String vlinkColor;
+
+  final int width;
 
   void captureEvents() native;
 
@@ -2883,6 +2933,10 @@ class _HTMLEmbedElementJs extends _HTMLElementJs implements HTMLEmbedElement nat
 class _HTMLFieldSetElementJs extends _HTMLElementJs implements HTMLFieldSetElement native "*HTMLFieldSetElement" {
 
   final _HTMLFormElementJs form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -3665,6 +3719,8 @@ class _HTMLSelectElementJs extends _HTMLElementJs implements HTMLSelectElement n
 
   int selectedIndex;
 
+  final _HTMLCollectionJs selectedOptions;
+
   int size;
 
   final String type;
@@ -3928,7 +3984,8 @@ class _HTMLTrackElementJs extends _HTMLElementJs implements HTMLTrackElement nat
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool get defaultValue() native "return this.default;";
+  void set defaultValue(bool value) native "this.default = value;";
 
   String kind;
 
@@ -5475,51 +5532,6 @@ class _OverflowEventJs extends _EventJs implements OverflowEvent native "*Overfl
 class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent native "*PageTransitionEvent" {
 
   final bool persisted;
-}
-
-class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*PeerConnection" {
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final _MediaStreamListJs localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final _MediaStreamListJs remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  void addStream(_MediaStreamJs stream) native;
-
-  void close() native;
-
-  bool dispatchEvent(_EventJs event) native;
-
-  void processSignalingMessage(String message) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  void removeStream(_MediaStreamJs stream) native;
-
-  void send(String text) native;
 }
 
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
@@ -9171,6 +9183,8 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
 
 class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*ShadowRoot" {
 
+  final _ElementJs activeElement;
+
   final _ElementJs host;
 
   String innerHTML;
@@ -9196,6 +9210,24 @@ class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerCon
   EventListener onconnect;
 }
 
+class _SpeechGrammarJs extends _DOMTypeJs implements SpeechGrammar native "*SpeechGrammar" {
+
+  String src;
+
+  num weight;
+}
+
+class _SpeechGrammarListJs extends _DOMTypeJs implements SpeechGrammarList native "*SpeechGrammarList" {
+
+  final int length;
+
+  void addFromString(String string, [num weight = null]) native;
+
+  void addFromUri(String src, [num weight = null]) native;
+
+  _SpeechGrammarJs item(int index) native;
+}
+
 class _SpeechInputEventJs extends _EventJs implements SpeechInputEvent native "*SpeechInputEvent" {
 
   final _SpeechInputResultListJs results;
@@ -9213,6 +9245,65 @@ class _SpeechInputResultListJs extends _DOMTypeJs implements SpeechInputResultLi
   final int length;
 
   _SpeechInputResultJs item(int index) native;
+}
+
+class _SpeechRecognitionAlternativeJs extends _DOMTypeJs implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
+
+  final num confidence;
+
+  final String transcript;
+}
+
+class _SpeechRecognitionErrorJs extends _DOMTypeJs implements SpeechRecognitionError native "*SpeechRecognitionError" {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+
+class _SpeechRecognitionEventJs extends _EventJs implements SpeechRecognitionEvent native "*SpeechRecognitionEvent" {
+
+  final _SpeechRecognitionErrorJs error;
+
+  final _SpeechRecognitionResultJs result;
+
+  final _SpeechRecognitionResultListJs resultHistory;
+
+  final int resultIndex;
+}
+
+class _SpeechRecognitionResultJs extends _DOMTypeJs implements SpeechRecognitionResult native "*SpeechRecognitionResult" {
+
+  bool get finalValue() native "return this.final;";
+
+  final int length;
+
+  _SpeechRecognitionAlternativeJs item(int index) native;
+}
+
+class _SpeechRecognitionResultListJs extends _DOMTypeJs implements SpeechRecognitionResultList native "*SpeechRecognitionResultList" {
+
+  final int length;
+
+  _SpeechRecognitionResultJs item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11553,6 +11644,14 @@ class _DOMURLFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _DeprecatedPeerConnectionFactoryProvider {
+  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
+      '''return new DeprecatedPeerConnection(serverConfiguration, signalingCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) native
       '''return new EventSource(scriptUrl);''';
@@ -11628,14 +11727,6 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _PeerConnectionFactoryProvider {
-  factory PeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
-      '''return new PeerConnection(serverConfiguration, signalingCallback);''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) native
       '''return new ShadowRoot(host);''';
@@ -11650,6 +11741,22 @@ class _SharedWorkerFactoryProvider {
 if (name == null) return new SharedWorker(scriptURL);
 return new SharedWorker(scriptURL, name);
 ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarFactoryProvider {
+  factory SpeechGrammar() native
+      '''return new SpeechGrammar();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechGrammarListFactoryProvider {
+  factory SpeechGrammarList() native
+      '''return new SpeechGrammarList();''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12268,12 +12375,6 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
-
-  static final int CSS_VH = 27;
-
-  static final int CSS_VMIN = 28;
-
-  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -13537,6 +13638,58 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+
+  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface DeviceMotionEvent extends Event {
 
   final num interval;
@@ -13820,6 +13973,18 @@ interface DynamicsCompressorNode extends AudioNode {
   final AudioParam reduction;
 
   final AudioParam threshold;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface EXTTextureFilterAnisotropic {
+
+  static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
+
+  static final int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14941,6 +15106,8 @@ interface HTMLDocument extends Document {
 
   String fgColor;
 
+  final int height;
+
   String linkColor;
 
   final HTMLCollection plugins;
@@ -14948,6 +15115,8 @@ interface HTMLDocument extends Document {
   final HTMLCollection scripts;
 
   String vlinkColor;
+
+  final int width;
 
   void captureEvents();
 
@@ -15052,6 +15221,10 @@ interface HTMLEmbedElement extends HTMLElement {
 interface HTMLFieldSetElement extends HTMLElement {
 
   final HTMLFormElement form;
+
+  String name;
+
+  final String type;
 
   final String validationMessage;
 
@@ -16007,6 +16180,8 @@ interface HTMLSelectElement extends HTMLElement {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -16335,7 +16510,7 @@ interface HTMLTrackElement extends HTMLElement {
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool defaultValue;
 
   String kind;
 
@@ -17797,58 +17972,6 @@ interface OverflowEvent extends Event {
 interface PageTransitionEvent extends Event {
 
   final bool persisted;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PeerConnection default _PeerConnectionFactoryProvider {
-
-  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20934,6 +21057,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   ShadowRoot(Element host);
 
+  final Element activeElement;
+
   final Element host;
 
   String innerHTML;
@@ -20979,7 +21104,39 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, PeerConnection source);
+typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammar default _SpeechGrammarFactoryProvider {
+
+  SpeechGrammar();
+
+  String src;
+
+  num weight;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
+
+  SpeechGrammarList();
+
+  final int length;
+
+  void addFromString(String string, [num weight]);
+
+  void addFromUri(String src, [num weight]);
+
+  SpeechGrammar item(int index);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21013,6 +21170,90 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionAlternative {
+
+  final num confidence;
+
+  final String transcript;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionError {
+
+  static final int ABORTED = 2;
+
+  static final int AUDIO_CAPTURE = 3;
+
+  static final int BAD_GRAMMAR = 7;
+
+  static final int LANGUAGE_NOT_SUPPORTED = 8;
+
+  static final int NETWORK = 4;
+
+  static final int NOT_ALLOWED = 5;
+
+  static final int NO_SPEECH = 1;
+
+  static final int OTHER = 0;
+
+  static final int SERVICE_NOT_ALLOWED = 6;
+
+  final int code;
+
+  final String message;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionEvent extends Event {
+
+  final SpeechRecognitionError error;
+
+  final SpeechRecognitionResult result;
+
+  final SpeechRecognitionResultList resultHistory;
+
+  final int resultIndex;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResult {
+
+  final bool finalValue;
+
+  final int length;
+
+  SpeechRecognitionAlternative item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognitionResultList {
+
+  final int length;
+
+  SpeechRecognitionResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

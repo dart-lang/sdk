@@ -349,7 +349,7 @@ public abstract class CompilerTestCase extends TestCase {
     rootNode.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-        if (node.getName().getTargetName().equals(name)) {
+        if (node.getName().getName().equals(name)) {
           result[0] = node;
         }
         return null;

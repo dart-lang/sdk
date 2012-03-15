@@ -338,6 +338,189 @@ void CodeGenerator::GenerateInstanceCall(
 }
 
 
+// Check that no fewer than num_fixed_params positional arguments are passed
+// in and that no more than num_params arguments are passed in.
+// Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+void CodeGenerator::CopyParameters() {
+  const Function& function = parsed_function_.function();
+  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_params = function.num_optional_parameters();
+
+  ASSERT(parsed_function_.first_parameter_index() == -1);
+  // Copy positional arguments.
+  // Check that no fewer than num_fixed_params positional arguments are passed
+  // in and that no more than num_params arguments are passed in.
+  // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+  const int num_params = num_fixed_params + num_opt_params;
+
+  // Total number of args is the first Smi in args descriptor array (R10).
+  __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+  // Check that num_args <= num_params.
+  Label wrong_num_arguments;
+  __ cmpq(RBX, Immediate(Smi::RawValue(num_params)));
+  __ j(GREATER, &wrong_num_arguments);
+  // Number of positional args is the second Smi in descriptor array (R10).
+  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+  // Check that num_pos_args >= num_fixed_params.
+  __ cmpq(RCX, Immediate(Smi::RawValue(num_fixed_params)));
+  __ j(LESS, &wrong_num_arguments);
+  // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
+  // Let RBX point to the last passed positional argument, i.e. to
+  // fp[1 + num_args - (num_pos_args - 1)].
+  __ subq(RBX, RCX);
+  __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
+  // Let RDI point to the last copied positional argument, i.e. to
+  // fp[-1 - (num_pos_args - 1)].
+  __ SmiUntag(RCX);
+  __ movq(RAX, RCX);
+  __ negq(RAX);
+  __ leaq(RDI, Address(RBP, RAX, TIMES_8, 0));
+  Label loop, loop_condition;
+  __ jmp(&loop_condition, Assembler::kNearJump);
+  // We do not use the final allocation index of the variable here, i.e.
+  // scope->VariableAt(i)->index(), because captured variables still need
+  // to be copied to the context that is not yet allocated.
+  const Address argument_addr(RBX, RCX, TIMES_8, 0);
+  const Address copy_addr(RDI, RCX, TIMES_8, 0);
+  __ Bind(&loop);
+  __ movq(RAX, argument_addr);
+  __ movq(copy_addr, RAX);
+  __ Bind(&loop_condition);
+  __ decq(RCX);
+  __ j(POSITIVE, &loop, Assembler::kNearJump);
+
+  // Copy or initialize optional named arguments.
+  ASSERT(num_opt_params > 0);  // Or we would not have to copy arguments.
+  // Start by alphabetically sorting the names of the optional parameters.
+  LocalVariable** opt_param = new LocalVariable*[num_opt_params];
+  int* opt_param_position = new int[num_opt_params];
+  for (int pos = num_fixed_params; pos < num_params; pos++) {
+    LocalVariable* parameter = scope->VariableAt(pos);
+    const String& opt_param_name = parameter->name();
+    int i = pos - num_fixed_params;
+    while (--i >= 0) {
+      LocalVariable* param_i = opt_param[i];
+      const intptr_t result = opt_param_name.CompareTo(param_i->name());
+      ASSERT(result != 0);
+      if (result > 0) break;
+      opt_param[i + 1] = opt_param[i];
+      opt_param_position[i + 1] = opt_param_position[i];
+    }
+    opt_param[i + 1] = parameter;
+    opt_param_position[i + 1] = pos;
+  }
+  // Generate code handling each optional parameter in alphabetical order.
+  // Total number of args is the first Smi in args descriptor array (R10).
+  __ movq(RBX, FieldAddress(R10, Array::data_offset()));
+  // Number of positional args is the second Smi in descriptor array (R10).
+  __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
+  __ SmiUntag(RCX);
+  // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
+  __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
+  // Let EDI point to the name/pos pair of the first named argument.
+  __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
+  for (int i = 0; i < num_opt_params; i++) {
+    // Handle this optional parameter only if k or fewer positional arguments
+    // have been passed, where k is the position of this optional parameter in
+    // the formal parameter list.
+    Label load_default_value, assign_optional_parameter, next_parameter;
+    const int param_pos = opt_param_position[i];
+    __ cmpq(RCX, Immediate(param_pos));
+    __ j(GREATER, &next_parameter, Assembler::kNearJump);
+    // Check if this named parameter was passed in.
+    __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
+    __ CompareObject(RAX, opt_param[i]->name());
+    __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
+    // Load RAX with passed-in argument at provided arg_pos, i.e. at
+    // fp[1 + argc - arg_pos].
+    __ movq(RAX, Address(RDI, kWordSize));  // RAX is arg_pos as Smi.
+    __ addq(RDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
+    __ negq(RAX);
+    Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
+    __ movq(RAX, argument_addr);
+    __ jmp(&assign_optional_parameter, Assembler::kNearJump);
+    __ Bind(&load_default_value);
+    // Load RAX with default argument at pos.
+    const Object& value = Object::ZoneHandle(
+        parsed_function_.default_parameter_values().At(
+            param_pos - num_fixed_params));
+    __ LoadObject(RAX, value);
+    __ Bind(&assign_optional_parameter);
+    // Assign RAX to fp[-1 - param_pos].
+    // We do not use the final allocation index of the variable here, i.e.
+    // scope->VariableAt(i)->index(), because captured variables still need
+    // to be copied to the context that is not yet allocated.
+    const Address param_addr(RBP, (-1 - param_pos) * kWordSize);
+    __ movq(param_addr, RAX);
+    __ Bind(&next_parameter);
+  }
+  delete[] opt_param;
+  delete[] opt_param_position;
+  // Check that RDI now points to the null terminator in the array descriptor.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label all_arguments_processed;
+  __ cmpq(Address(RDI, 0), raw_null);
+  __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
+
+  __ Bind(&wrong_num_arguments);
+  if (function.IsClosureFunction()) {
+    GenerateCallRuntime(AstNode::kNoId,
+                        0,
+                        kClosureArgumentMismatchRuntimeEntry);
+  } else {
+    // Invoke noSuchMethod function.
+    const int kNumArgsChecked = 1;
+    ICData& ic_data = ICData::ZoneHandle();
+    ic_data = ICData::New(parsed_function().function(),
+                          String::Handle(function.name()),
+                          AstNode::kNoId,
+                          kNumArgsChecked);
+    __ LoadObject(RBX, ic_data);
+    // RBP : points to previous frame pointer.
+    // RBP + 8 : points to return address.
+    // RBP + 16 : address of last argument (arg n-1).
+    // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
+    // RBX : ic-data.
+    // R10 : arguments descriptor array.
+    __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+  }
+
+  if (FLAG_trace_functions) {
+    __ pushq(RAX);  // Preserve result.
+    __ PushObject(Function::ZoneHandle(function.raw()));
+    GenerateCallRuntime(AstNode::kNoId,
+                        0,
+                        kTraceFunctionExitRuntimeEntry);
+    __ popq(RAX);  // Remove argument.
+    __ popq(RAX);  // Restore result.
+  }
+  __ LeaveFrame();
+  __ ret();
+
+  __ Bind(&all_arguments_processed);
+  // Nullify originally passed arguments only after they have been copied and
+  // checked, otherwise noSuchMethod would not see their original values.
+  // This step can be skipped in case we decide that formal parameters are
+  // implicitly final, since garbage collecting the unmodified value is not
+  // an issue anymore.
+
+  // R10 : arguments descriptor array.
+  // Total number of args is the first Smi in args descriptor array (R10).
+  __ movq(RCX, FieldAddress(R10, Array::data_offset()));
+  __ SmiUntag(RCX);
+  Label null_args_loop, null_args_loop_condition;
+  __ jmp(&null_args_loop_condition, Assembler::kNearJump);
+  const Address original_argument_addr(RBP, RCX, TIMES_8, 2 * kWordSize);
+  __ Bind(&null_args_loop);
+  __ movq(original_argument_addr, raw_null);
+  __ Bind(&null_args_loop_condition);
+  __ decq(RCX);
+  __ j(POSITIVE, &null_args_loop, Assembler::kNearJump);
+}
+
+
 // Call to generate entry code:
 // - compute frame size and setup frame.
 // - allocate local variables on stack.
@@ -353,54 +536,28 @@ void CodeGenerator::GenerateEntryCode() {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const Function& function = parsed_function_.function();
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
-  const int num_fixed_params = function.num_fixed_parameters();
-  const int num_opt_params = function.num_optional_parameters();
-  const int num_params = num_fixed_params + num_opt_params;
-  int first_param_index;
-  int first_local_index;
-  int num_copied_params;
-  // Assign indices to parameters and locals.
-  if (num_params == num_fixed_params) {
-    // No need to copy incoming arguments.
-    // The body of the function will access parameter i at fp[1 + num_fixed - i]
-    // and local variable j at fp[-1 - j].
-    first_param_index = 1 + num_params;
-    first_local_index = -1;
-    num_copied_params = 0;
-  } else {
-    // The body of the function will access copied parameter i at fp[-1 - i]
-    // and local j at fp[-1 - num_params - j].
-    first_param_index = -1;
-    first_local_index = -1 - num_params;
-    num_copied_params = num_params;
-    ASSERT(num_copied_params > 0);
-  }
 
-  // Allocate parameters and local variables, either in the local frame or in
-  // the context(s).
-  LocalScope* context_owner = NULL;  // No context needed so far.
-  int first_free_frame_index =
-      scope->AllocateVariables(first_param_index,
-                               num_params,
-                               first_local_index,
-                               scope,  // Initial loop owner.
-                               &context_owner);
-  // Frame indices are relative to the frame pointer and are decreasing.
-  ASSERT(first_free_frame_index <= first_local_index);
-  const int num_locals = first_local_index - first_free_frame_index;
-
-  // Reserve local space for copied incoming and default arguments and locals.
+  // 1. Compute the frame size and enter the frame (reserving local space
+  // for copied incoming and default arguments and stack-allocated local
+  // variables).
+  //
   // TODO(regis): We may give up reserving space on stack for args/locals
   // because pushes of initial values may be more effective than moves.
-  set_locals_space_size((num_copied_params + num_locals) * kWordSize);
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_params = function.num_optional_parameters();
+  const int num_copied_params = parsed_function_.copied_parameter_count();
+  const int stack_slot_count =
+      num_copied_params + parsed_function_.stack_local_count();
+  set_locals_space_size(stack_slot_count * kWordSize);
   __ EnterFrame(locals_space_size());
 
-  // We check the number of passed arguments when we have to copy them due to
-  // the presence of optional named parameters.
-  // No such checking code is generated if only fixed parameters are declared,
-  // unless we are debug mode or unless we are compiling a closure.
+  // 2. Optionally check if the number of arguments matches.  We check the
+  // number of passed arguments when we have to copy them due to the
+  // presence of optional named parameters.  No such checking code is
+  // generated if only fixed parameters are declared, unless we are in debug
+  // mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
+    ASSERT(num_opt_params == 0);
 #if defined(DEBUG)
     const bool check_arguments = true;  // Always check arguments in debug mode.
 #else
@@ -414,14 +571,8 @@ void CodeGenerator::GenerateEntryCode() {
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (R10).
       __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-      if (num_opt_params == 0) {
-        __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
-      } else {
-        __ subq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ cmpq(RAX, Immediate(Smi::RawValue(num_opt_params)));
-        __ j(BELOW_EQUAL, &argc_in_range, Assembler::kNearJump);
-      }
+      __ cmpq(RAX, Immediate(Smi::RawValue(num_fixed_params)));
+      __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
                             0,
@@ -432,188 +583,23 @@ void CodeGenerator::GenerateEntryCode() {
       __ Bind(&argc_in_range);
     }
   } else {
-    ASSERT(first_param_index == -1);
-    // Copy positional arguments.
-    // Check that no fewer than num_fixed_params positional arguments are passed
-    // in and that no more than num_params arguments are passed in.
-    // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
-
-    // Total number of args is the first Smi in args descriptor array (R10).
-    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
-    // Check that num_args <= num_params.
-    Label wrong_num_arguments;
-    __ cmpq(RBX, Immediate(Smi::RawValue(num_params)));
-    __ j(GREATER, &wrong_num_arguments);
-    // Number of positional args is the second Smi in descriptor array (R10).
-    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
-    // Check that num_pos_args >= num_fixed_params.
-    __ cmpq(RCX, Immediate(Smi::RawValue(num_fixed_params)));
-    __ j(LESS, &wrong_num_arguments);
-    // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
-    // Let RBX point to the last passed positional argument, i.e. to
-    // fp[1 + num_args - (num_pos_args - 1)].
-    __ subq(RBX, RCX);
-    __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
-    // Let RDI point to the last copied positional argument, i.e. to
-    // fp[-1 - (num_pos_args - 1)].
-    __ SmiUntag(RCX);
-    __ movq(RAX, RCX);
-    __ negq(RAX);
-    __ leaq(RDI, Address(RBP, RAX, TIMES_8, 0));
-    Label loop, loop_condition;
-    __ jmp(&loop_condition, Assembler::kNearJump);
-    // We do not use the final allocation index of the variable here, i.e.
-    // scope->VariableAt(i)->index(), because captured variables still need
-    // to be copied to the context that is not yet allocated.
-    const Address argument_addr(RBX, RCX, TIMES_8, 0);
-    const Address copy_addr(RDI, RCX, TIMES_8, 0);
-    __ Bind(&loop);
-    __ movq(RAX, argument_addr);
-    __ movq(copy_addr, RAX);
-    __ Bind(&loop_condition);
-    __ decq(RCX);
-    __ j(POSITIVE, &loop, Assembler::kNearJump);
-
-    // Copy or initialize optional named arguments.
-    ASSERT(num_opt_params > 0);  // Or we would not have to copy arguments.
-    // Start by alphabetically sorting the names of the optional parameters.
-    LocalVariable** opt_param = new LocalVariable*[num_opt_params];
-    int* opt_param_position = new int[num_opt_params];
-    for (int pos = num_fixed_params; pos < num_params; pos++) {
-      LocalVariable* parameter = scope->VariableAt(pos);
-      const String& opt_param_name = parameter->name();
-      int i = pos - num_fixed_params;
-      while (--i >= 0) {
-        LocalVariable* param_i = opt_param[i];
-        const intptr_t result = opt_param_name.CompareTo(param_i->name());
-        ASSERT(result != 0);
-        if (result > 0) break;
-        opt_param[i + 1] = opt_param[i];
-        opt_param_position[i + 1] = opt_param_position[i];
-      }
-      opt_param[i + 1] = parameter;
-      opt_param_position[i + 1] = pos;
-    }
-    // Generate code handling each optional parameter in alphabetical order.
-    // Total number of args is the first Smi in args descriptor array (R10).
-    __ movq(RBX, FieldAddress(R10, Array::data_offset()));
-    // Number of positional args is the second Smi in descriptor array (R10).
-    __ movq(RCX, FieldAddress(R10, Array::data_offset() + (1 * kWordSize)));
-    __ SmiUntag(RCX);
-    // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
-    __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
-    // Let EDI point to the name/pos pair of the first named argument.
-    __ leaq(RDI, FieldAddress(R10, Array::data_offset() + (2 * kWordSize)));
-    for (int i = 0; i < num_opt_params; i++) {
-      // Handle this optional parameter only if k or fewer positional arguments
-      // have been passed, where k is the position of this optional parameter in
-      // the formal parameter list.
-      Label load_default_value, assign_optional_parameter, next_parameter;
-      const int param_pos = opt_param_position[i];
-      __ cmpq(RCX, Immediate(param_pos));
-      __ j(GREATER, &next_parameter, Assembler::kNearJump);
-      // Check if this named parameter was passed in.
-      __ movq(RAX, Address(RDI, 0));  // Load RAX with the name of the argument.
-      __ CompareObject(RAX, opt_param[i]->name());
-      __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
-      // Load RAX with passed-in argument at provided arg_pos, i.e. at
-      // fp[1 + argc - arg_pos].
-      __ movq(RAX, Address(RDI, kWordSize));  // RAX is arg_pos as Smi.
-      __ addq(RDI, Immediate(2 * kWordSize));  // Point to next name/pos pair.
-      __ negq(RAX);
-      Address argument_addr(RBX, RAX, TIMES_4, 0);  // RAX is a negative Smi.
-      __ movq(RAX, argument_addr);
-      __ jmp(&assign_optional_parameter, Assembler::kNearJump);
-      __ Bind(&load_default_value);
-      // Load RAX with default argument at pos.
-      const Object& value = Object::ZoneHandle(
-          parsed_function_.default_parameter_values().At(
-              param_pos - num_fixed_params));
-      __ LoadObject(RAX, value);
-      __ Bind(&assign_optional_parameter);
-      // Assign RAX to fp[-1 - param_pos].
-      // We do not use the final allocation index of the variable here, i.e.
-      // scope->VariableAt(i)->index(), because captured variables still need
-      // to be copied to the context that is not yet allocated.
-      const Address param_addr(RBP, (-1 - param_pos) * kWordSize);
-      __ movq(param_addr, RAX);
-      __ Bind(&next_parameter);
-    }
-    delete[] opt_param;
-    delete[] opt_param_position;
-    // Check that RDI now points to the null terminator in the array descriptor.
-    Label all_arguments_processed;
-    __ cmpq(Address(RDI, 0), raw_null);
-    __ j(EQUAL, &all_arguments_processed, Assembler::kNearJump);
-
-    __ Bind(&wrong_num_arguments);
-    if (function.IsClosureFunction()) {
-      GenerateCallRuntime(AstNode::kNoId,
-                          0,
-                          kClosureArgumentMismatchRuntimeEntry);
-    } else {
-      // Invoke noSuchMethod function.
-      const int kNumArgsChecked = 1;
-      ICData& ic_data = ICData::ZoneHandle();
-      ic_data = ICData::New(parsed_function().function(),
-                            String::Handle(function.name()),
-                            AstNode::kNoId,
-                            kNumArgsChecked);
-      __ LoadObject(RBX, ic_data);
-      // RBP : points to previous frame pointer.
-      // RBP + 8 : points to return address.
-      // RBP + 16 : address of last argument (arg n-1).
-      // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-      // RBX : ic-data.
-      // R10 : arguments descriptor array.
-      __ call(&StubCode::CallNoSuchMethodFunctionLabel());
-    }
-
-    if (FLAG_trace_functions) {
-      __ pushq(RAX);  // Preserve result.
-      __ PushObject(Function::ZoneHandle(function.raw()));
-      GenerateCallRuntime(AstNode::kNoId,
-                          0,
-                          kTraceFunctionExitRuntimeEntry);
-      __ popq(RAX);  // Remove argument.
-      __ popq(RAX);  // Restore result.
-    }
-    __ LeaveFrame();
-    __ ret();
-
-    __ Bind(&all_arguments_processed);
-    // Nullify originally passed arguments only after they have been copied and
-    // checked, otherwise noSuchMethod would not see their original values.
-    // This step can be skipped in case we decide that formal parameters are
-    // implicitly final, since garbage collecting the unmodified value is not
-    // an issue anymore.
-
-    // R10 : arguments descriptor array.
-    // Total number of args is the first Smi in args descriptor array (R10).
-    __ movq(RCX, FieldAddress(R10, Array::data_offset()));
-    __ SmiUntag(RCX);
-    Label null_args_loop, null_args_loop_condition;
-    __ jmp(&null_args_loop_condition, Assembler::kNearJump);
-    const Address original_argument_addr(RBP, RCX, TIMES_8, 2 * kWordSize);
-    __ Bind(&null_args_loop);
-    __ movq(original_argument_addr, raw_null);
-    __ Bind(&null_args_loop_condition);
-    __ decq(RCX);
-    __ j(POSITIVE, &null_args_loop, Assembler::kNearJump);
+    CopyParameters();
   }
 
-  // Initialize locals.
+  // 3. Initialize (non-argument) stack-allocated locals to null.
+  //
   // TODO(regis): For now, always unroll the init loop. Decide later above
-  // which threshold to implement a loop.
-  // Consider emitting pushes instead of moves.
-  for (int index = first_local_index; index > first_free_frame_index; index--) {
-    if (index == first_local_index) {
+  // which threshold to implement a loop.  Consider emitting pushes instead
+  // of moves.
+  const int base = parsed_function_.first_stack_local_index();
+  for (int index = 0; index < parsed_function_.stack_local_count(); ++index) {
+    if (index == 0) {
       __ movq(RAX, raw_null);
     }
-    __ movq(Address(RBP, index * kWordSize), RAX);
+    __ movq(Address(RBP, (base - index) * kWordSize), RAX);
   }
 
-  // Generate stack overflow check.
+  // 4. Generate the stack overflow check.
   __ movq(TMP, Immediate(Isolate::Current()->stack_limit_address()));
   __ cmpq(RSP, Address(TMP, 0));
   Label no_stack_overflow;
@@ -629,8 +615,15 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
   int context_level = state()->context_level();
   ASSERT(context_level >= 0);
-  while (context_level-- > 0) {
-    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  if (!parsed_function_.function().IsClosureFunction()) {
+    if (context_level > 0) {
+      // CTX on entry was saved on the stack, but not linked as context parent.
+      __ popq(CTX);
+    }
+  } else {
+    while (context_level-- > 0) {
+      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
@@ -752,18 +745,20 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {
-    const int current_context_level = state()->context_level();
-    const ContextScope& context_scope = ContextScope::ZoneHandle(
-        node->scope()->PreserveOuterScope(current_context_level));
-    ASSERT(!function.HasCode());
-    ASSERT(function.context_scope() == ContextScope::null());
-    function.set_context_scope(context_scope);
-  } else {
-    ASSERT(function.context_scope() != ContextScope::null());
-    if (function.IsImplicitInstanceClosureFunction()) {
-      node->receiver()->Visit(this);
+    // The context scope may have already been set by the new non-optimizing
+    // compiler.  If it was not, set it here.
+    if (function.context_scope() == ContextScope::null()) {
+      const int current_context_level = state()->context_level();
+      const ContextScope& context_scope = ContextScope::ZoneHandle(
+          node->scope()->PreserveOuterScope(current_context_level));
+      ASSERT(!function.HasCode());
+      function.set_context_scope(context_scope);
     }
+  } else if (function.IsImplicitInstanceClosureFunction()) {
+    node->receiver()->Visit(this);
   }
+  ASSERT(function.context_scope() != ContextScope::null());
+
   // The function type of a closure may have type arguments. In that case, pass
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
@@ -818,6 +813,18 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
                               StubCode::AllocateContextEntryPoint());
     GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
 
+    // If this node_sequence is the body of the function being compiled, and if
+    // this function is not a closure, do not link the current context as the
+    // parent of the newly allocated context, as it is not accessible. Instead,
+    // save it on the stack and restore it on exit.
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ pushq(CTX);
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movq(CTX, raw_null);
+    }
+
     // Chain the new context in RAX to its parent in CTX.
     __ StoreIntoObject(RAX,
                        FieldAddress(RAX, Context::parent_offset()),
@@ -865,12 +872,22 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   }
   if (num_context_variables > 0) {
     // Unchain the previously allocated context.
-    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popq(CTX);
+    } else {
+      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
   if (node_sequence->label() != NULL) {
     __ Bind(node_sequence->label()->break_label());
+    if ((num_context_variables > 0) &&
+        (node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popq(CTX);
+    }
   }
 }
 
@@ -1420,7 +1437,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
-  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
+  if (!dst_type.IsMalformed() &&
+      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
     return;
   }
 
@@ -1455,6 +1473,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
     // We should never return here.
     __ int3();
+
+    __ Bind(&done);  // For a null object.
     return;
   }
 
@@ -2526,6 +2546,12 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   ASSERT(locals_space_size() >= 0);
   __ movq(RSP, RBP);
   __ subq(RSP, Immediate(locals_space_size()));
+
+  if ((state()->context_level() > 0) &&
+      !parsed_function_.function().IsClosureFunction()) {
+    // CTX was saved on entry.
+    __ subq(RSP, Immediate(kWordSize));
+  }
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in RAX (kExceptionObjectReg)

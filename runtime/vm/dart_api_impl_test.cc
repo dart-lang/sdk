@@ -1561,6 +1561,64 @@ TEST_CASE(ObjectGroups) {
 }
 
 
+TEST_CASE(PrologueWeakPersistentHandles) {
+  Dart_Handle old_pwph = Dart_Null();
+  EXPECT(Dart_IsNull(old_pwph));
+  Dart_Handle new_pwph = Dart_Null();
+  EXPECT(Dart_IsNull(new_pwph));
+  Dart_EnterScope();
+  {
+    DARTSCOPE(Isolate::Current());
+    String& str = String::Handle();
+    str ^= String::New("new space prologue weak", Heap::kNew);
+    new_pwph = Dart_NewPrologueWeakPersistentHandle(Api::NewLocalHandle(str),
+                                                    NULL,
+                                                    NULL);
+    EXPECT_VALID(new_pwph);
+    EXPECT(!Dart_IsNull(new_pwph));
+    str ^= String::New("old space prologue weak", Heap::kOld);
+    old_pwph = Dart_NewPrologueWeakPersistentHandle(Api::NewLocalHandle(str),
+                                                    NULL,
+                                                    NULL);
+    EXPECT_VALID(old_pwph);
+    EXPECT(!Dart_IsNull(old_pwph));
+    str ^= String::null();
+  }
+  Dart_ExitScope();
+  EXPECT_VALID(new_pwph);
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(Dart_IsPrologueWeakPersistentHandle(new_pwph));
+  EXPECT_VALID(old_pwph);
+  EXPECT(!Dart_IsNull(old_pwph));
+  EXPECT(Dart_IsPrologueWeakPersistentHandle(old_pwph));
+  // Garbage collect new space without invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kIgnoreApiCallbacks);
+  // Both prologue weak handles should be preserved.
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  // Garbage collect old space without invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kIgnoreApiCallbacks);
+  // Both prologue weak handles should be preserved.
+  EXPECT(!Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  // Garbage collect new space invoking API callbacks.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kInvokeApiCallbacks);
+  // The prologue weak handle with a new space referent should now be
+  // cleared.  The old space referent should be preserved.
+  EXPECT(Dart_IsNull(new_pwph));
+  EXPECT(!Dart_IsNull(old_pwph));
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kInvokeApiCallbacks);
+  // The prologue weak handle with an old space referent should now be
+  // cleared.  The new space referent should remain cleared.
+  EXPECT(Dart_IsNull(new_pwph));
+  EXPECT(Dart_IsNull(old_pwph));
+}
+
+
 TEST_CASE(ImplicitReferences) {
   Dart_Handle strong = Dart_Null();
   EXPECT(Dart_IsNull(strong));
@@ -2303,6 +2361,41 @@ TEST_CASE(FieldAccess) {
 }
 
 
+TEST_CASE(SetField_FunnyValue) {
+  const char* kScriptChars =
+      "var top;\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle name = Dart_NewString("top");
+  bool value;
+
+  // Test that you can set the field to a good value.
+  EXPECT_VALID(Dart_SetField(lib, name, Dart_True()));
+  Dart_Handle result = Dart_GetField(lib, name);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsBoolean(result));
+  EXPECT_VALID(Dart_BooleanValue(result, &value));
+  EXPECT(value);
+
+  // Test that you can set the field to null
+  EXPECT_VALID(Dart_SetField(lib, name, Dart_Null()));
+  result = Dart_GetField(lib, name);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNull(result));
+
+  // Pass a non-instance handle.
+  result = Dart_SetField(lib, name, lib);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_SetField expects argument 'value' to be of type Instance.",
+               Dart_GetError(result));
+
+  // Pass an error handle.  The error is contagious.
+  result = Dart_SetField(lib, name, Api::NewError("myerror"));
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
+}
+
+
 TEST_CASE(FieldAccessOld) {
   const char* kScriptChars =
       "class Fields  {\n"
@@ -2734,7 +2827,6 @@ TEST_CASE(NativeFieldAccess) {
       "    return obj;\n"
       "  }\n"
       "}\n";
-  Dart_Handle result;
   const int kNumNativeFields = 4;
 
   // Create a test library.
@@ -2742,10 +2834,11 @@ TEST_CASE(NativeFieldAccess) {
                                              native_field_lookup);
 
   // Create a native wrapper class with native fields.
-  result = Dart_CreateNativeWrapperClass(
+  Dart_Handle result = Dart_CreateNativeWrapperClass(
       lib,
       Dart_NewString("NativeFieldsWrapper"),
       kNumNativeFields);
+  EXPECT_VALID(result);
 
   // Load up a test script in it.
 
@@ -2955,6 +3048,147 @@ TEST_CASE(StaticFieldNotFound) {
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Specified field is not found in the class",
                Dart_GetError(result));
+}
+
+
+TEST_CASE(Invoke) {
+  const char* kScriptChars =
+      "class BaseMethods {\n"
+      "  inheritedMethod(arg) => 'inherited $arg';\n"
+      "  static nonInheritedMethod(arg) => 'noninherited $arg';\n"
+      "}\n"
+      "\n"
+      "class Methods extends BaseMethods {\n"
+      "  instanceMethod(arg) => 'instance $arg';\n"
+      "  _instanceMethod(arg) => 'hidden instance $arg';\n"
+      "  static staticMethod(arg) => 'static $arg';\n"
+      "  static _staticMethod(arg) => 'hidden static $arg';\n"
+      "}\n"
+      "\n"
+      "topMethod(arg) => 'top $arg';\n"
+      "_topMethod(arg) => 'hidden top $arg';\n"
+      "\n"
+      "Methods test() {\n"
+      "  return new Methods();\n"
+      "}\n";
+
+  // Shared setup.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Methods"));
+  EXPECT_VALID(cls);
+  Dart_Handle instance = Dart_Invoke(lib, Dart_NewString("test"), 0, NULL);
+  EXPECT_VALID(instance);
+  Dart_Handle args[1];
+  args[0] = Dart_NewString("!!!");
+  Dart_Handle result;
+  Dart_Handle name;
+  const char* str;
+
+  // Instance method.
+  name = Dart_NewString("instanceMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  result = Dart_Invoke(instance, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("instance !!!", str);
+
+  // Hidden instance method.
+  name = Dart_NewString("_instanceMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  result = Dart_Invoke(instance, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hidden instance !!!", str);
+
+  // Inherited method.
+  name = Dart_NewString("inheritedMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  result = Dart_Invoke(instance, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("inherited !!!", str);
+
+  // Static method.
+  name = Dart_NewString("staticMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
+  result = Dart_Invoke(cls, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("static !!!", str);
+
+  // Hidden static method.
+  name = Dart_NewString("_staticMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
+  result = Dart_Invoke(cls, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hidden static !!!", str);
+
+  // Static non-inherited method.  Not found at any level.
+  name = Dart_NewString("non_inheritedMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+
+  // Top-Level method.
+  name = Dart_NewString("topMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
+  result = Dart_Invoke(lib, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("top !!!", str);
+
+  // Hidden top-level method.
+  name = Dart_NewString("_topMethod");
+  EXPECT(Dart_IsError(Dart_Invoke(cls, name, 1, args)));
+  EXPECT(Dart_IsError(Dart_Invoke(instance, name, 1, args)));
+  result = Dart_Invoke(lib, name, 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hidden top !!!", str);
+}
+
+
+TEST_CASE(Invoke_FunnyArgs) {
+  const char* kScriptChars =
+      "test(arg) => 'hello $arg';\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle args[1];
+  const char* str;
+
+  // Make sure that valid args yield valid results.
+  args[0] = Dart_NewString("!!!");
+  Dart_Handle result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hello !!!", str);
+
+  // Make sure that null is legal.
+  args[0] = Dart_Null();
+  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("hello null", str);
+
+  // Pass a non-instance handle.
+  args[0] = lib;
+  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_Invoke expects argument 0 to be an instance of Object.",
+               Dart_GetError(result));
+
+  // Pass an error handle.  The error is contagious.
+  args[0] = Api::NewError("myerror");
+  result = Dart_Invoke(lib, Dart_NewString("test"), 1, args);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("myerror", Dart_GetError(result));
 }
 
 
@@ -4200,7 +4434,7 @@ UNIT_TEST_CASE(NewNativePort) {
   const char* kScriptChars =
       "#import('dart:isolate');\n"
       "void callPort(SendPort port) {\n"
-      "    port.call(null).receive((message, replyTo) {\n"
+      "    port.call(null).then((message) {\n"
       "      throw new Exception(message);\n"
       "    });\n"
       "}\n";
@@ -4272,7 +4506,7 @@ static bool RunLoopTestCallback(const char* name_prefix,
       "\n"
       "void main(exc_child, exc_parent) {\n"
       "  new MyIsolate().spawn().then((port) {\n"
-      "    port.call(exc_child).receive((message, replyTo) {\n"
+      "    port.call(exc_child).then((message) {\n"
       "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
       "      if (exc_parent) throw new Exception('MakeParentExit');\n"
       "    });\n"

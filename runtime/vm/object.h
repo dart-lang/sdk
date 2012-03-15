@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/bitmap.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -152,15 +153,16 @@ class Object {
     kCodeClass,
     kInstructionsClass,
     kPcDescriptorsClass,
+    kStackmapClass,
     kLocalVarDescriptorsClass,
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
+    kICDataClass,
     kApiErrorClass,
     kLanguageErrorClass,
     kUnhandledExceptionClass,
     kUnwindErrorClass,
-    kICDataClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -288,6 +290,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
@@ -323,11 +326,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static const ObjectKind kInstanceKind = kObject;
-
-  enum TypeTestKind {
-    kIsSubtypeOf,
-    kIsAssignableTo
-  };
 
  protected:
   // Used for extracting the C++ vtable during bringup.
@@ -400,15 +398,16 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* api_error_class_;  // Class of ApiError.
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
-  static RawClass* icdata_class_;  // Class of ICData.
 
   friend void RawObject::Validate() const;
   friend class SnapshotReader;
@@ -571,36 +570,11 @@ class Class : public Object {
   // alias as defined in a typedef.
   bool IsCanonicalSignatureClass() const;
 
-  // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(
-      const AbstractTypeArguments& type_arguments,
-      const Class& other,
-      const AbstractTypeArguments& other_type_arguments,
-      Error* malformed_error) const;
-
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Class& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
-    return TestType(kIsSubtypeOf,
-                    type_arguments,
-                    other,
-                    other_type_arguments,
-                    malformed_error);
-  }
-
-  // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
-                      const Class& dst,
-                      const AbstractTypeArguments& dst_type_arguments,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo,
-                    type_arguments,
-                    dst,
-                    dst_type_arguments,
-                    malformed_error);
-  }
+                   Error* malformed_error) const;
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -717,13 +691,6 @@ class Class : public Object {
   RawArray* canonical_types() const;
 
   void CalculateFieldOffsets() const;
-
-  // Check the subtype or assignability relationship.
-  bool TestType(TypeTestKind test,
-                const AbstractTypeArguments& type_arguments,
-                const Class& other,
-                const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -862,20 +829,8 @@ class AbstractType : public Object {
     return !cls.IsNull() && cls.is_interface();
   }
 
-  // Check the "more specific than" relationship.
-  bool IsMoreSpecificThan(const AbstractType& other,
-                          Error* malformed_error) const;
-
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const {
-    return Test(kIsSubtypeOf, other, malformed_error);
-  }
-
-  // Check the assignability relationship.
-  bool IsAssignableTo(const AbstractType& dst,
-                      Error* malformed_error) const {
-    return Test(kIsAssignableTo, dst, malformed_error);
-  }
+  bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
 
   static RawAbstractType* NewTypeParameter(intptr_t index,
                                            const String& name,
@@ -886,11 +841,6 @@ class AbstractType : public Object {
       const AbstractTypeArguments& instantiator_type_arguments);
 
  protected:
-  // Check the subtype or assignability relationship.
-  bool Test(TypeTestKind test,
-            const AbstractType& other,
-            Error* malformed_error) const;
-
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
   friend class Class;
 };
@@ -1101,11 +1051,10 @@ class AbstractTypeArguments : public Object {
                         const AbstractTypeArguments& bounds_instantiator,
                         Error* malformed_error) const;
 
-  // Check the "more specific than" relationship, considering only a prefix of
-  // length 'len'.
-  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
-                          intptr_t len,
-                          Error* malformed_error) const;
+  // Check the subtype relationship, considering only a prefix of length 'len'.
+  bool IsSubtypeOf(const AbstractTypeArguments& other,
+                   intptr_t len,
+                   Error* malformed_error) const;
 
   bool Equals(const AbstractTypeArguments& other) const;
 
@@ -1411,26 +1360,7 @@ class Function : public Object {
   bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
                    const Function& other,
                    const AbstractTypeArguments& other_type_arguments,
-                   Error* malformed_error) const {
-    return TestType(kIsSubtypeOf,
-                    type_arguments,
-                    other,
-                    other_type_arguments,
-                    malformed_error);
-  }
-
-  // Returns true if the type of this function can be assigned to the type of
-  // the destination function.
-  bool IsAssignableTo(const AbstractTypeArguments& type_arguments,
-                      const Function& dst,
-                      const AbstractTypeArguments& dst_type_arguments,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo,
-                    type_arguments,
-                    dst,
-                    dst_type_arguments,
-                    malformed_error);
-  }
+                   Error* malformed_error) const;
 
   // Returns true if this function represents a (possibly implicit) closure
   // function.
@@ -1503,14 +1433,6 @@ class Function : public Object {
 
   RawString* BuildSignature(bool instantiate,
                             const AbstractTypeArguments& instantiator) const;
-
-  // Checks the subtype or assignability relationship between the type of this
-  // function and the type of the other function.
-  bool TestType(TypeTestKind test,
-                const AbstractTypeArguments& type_arguments,
-                const Function& other,
-                const AbstractTypeArguments& other_type_arguments,
-                Error* malformed_error) const;
 
   // Checks the type of the formal parameter at the given position for
   // assignability relationship between the type of this function and the type
@@ -1810,9 +1732,11 @@ class Library : public Object {
 
   static void InitCoreLibrary(Isolate* isolate);
   static void InitIsolateLibrary(Isolate* isolate);
+  static void InitMirrorsLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
   static RawLibrary* IsolateLibrary();
+  static RawLibrary* MirrorsLibrary();
   static void InitNativeWrappersLibrary(Isolate* isolate);
   static RawLibrary* NativeWrappersLibrary();
 
@@ -2064,6 +1988,49 @@ class PcDescriptors : public Object {
 };
 
 
+class Stackmap : public Object {
+ public:
+  static const intptr_t kNoMaximum = -1;
+  static const intptr_t kNoMinimum = -1;
+
+  bool IsObject(intptr_t offset) const {
+    return InRange(offset) && GetBit(offset);
+  }
+  uword pc() const { return raw_ptr()->pc_; }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t size) {
+    return RoundedAllocationSize(sizeof(RawStackmap) + (size * kWordSize));
+  }
+  static RawStackmap* New(uword pc, const Code& code, BitmapBuilder* bmap);
+
+ private:
+  inline intptr_t SizeInBits() const;
+
+  bool InRange(intptr_t offset) const { return offset < SizeInBits(); }
+
+  bool GetBit(intptr_t bit_offset) const;
+  void SetBit(intptr_t bit_offset, bool value) const;
+
+  // Return the offset of the highest stack slot that has an object.
+  intptr_t Maximum() const;
+
+  // Return the offset of the lowest stack slot that has an object.
+  intptr_t Minimum() const;
+
+  void set_bitmap_size_in_bytes(intptr_t value) const;
+  void set_pc(uword value) const;
+  void set_code(const Code& code) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
+  friend class Class;
+  friend class BitmapBuilder;
+};
+
+
 class ExceptionHandlers : public Object {
  public:
   intptr_t Length() const;
@@ -2199,7 +2166,7 @@ class Code : public Object {
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
   void ExtractIcDataArraysAtCalls(
       GrowableArray<intptr_t>* node_ids,
-      GrowableArray<const ICData*>* ic_data_objs) const;
+      const GrowableObjectArray& ic_data_objs) const;
 
  private:
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
@@ -2236,7 +2203,7 @@ class Context : public Object {
  public:
   RawContext* parent() const { return raw_ptr()->parent_; }
   void set_parent(const Context& parent) const {
-    ASSERT(parent.isolate() == Isolate::Current());
+    ASSERT(parent.IsNull() || parent.isolate() == Isolate::Current());
     StorePointer(&raw_ptr()->parent_, parent.raw());
   }
   static intptr_t parent_offset() { return OFFSET_OF(RawContext, parent_); }
@@ -2347,6 +2314,78 @@ class ContextScope : public Object {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
+  friend class Class;
+};
+
+
+// Object holding information about an IC: test classes and their
+// corresponding classes.
+class ICData : public Object {
+ public:
+  RawFunction* function() const {
+    return raw_ptr()->function_;
+  }
+
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  intptr_t num_args_tested() const {
+    return raw_ptr()->num_args_tested_;
+  }
+
+  intptr_t id() const {
+    return raw_ptr()->id_;
+  }
+
+  intptr_t NumberOfChecks() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawICData));
+  }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawICData, target_name_);
+  }
+
+  static intptr_t num_args_tested_offset() {
+    return OFFSET_OF(RawICData, num_args_tested_);
+  }
+
+  static intptr_t ic_data_offset() {
+    return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  static intptr_t function_offset() {
+    return OFFSET_OF(RawICData, function_);
+  }
+
+  void AddCheck(const GrowableArray<const Class*>& classes,
+                const Function& target) const;
+  void GetCheckAt(intptr_t index,
+                  GrowableArray<const Class*>* classes,
+                  Function* target) const;
+  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
+
+  static RawICData* New(const Function& caller_function,
+                        const String& target_name,
+                        intptr_t id,
+                        intptr_t num_args_tested);
+
+ private:
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
+  void set_function(const Function& value) const;
+  void set_target_name(const String& value) const;
+  void set_id(intptr_t value) const;
+  void set_num_args_tested(intptr_t value) const;
+  void set_ic_data(const Array& value) const;
+
+  intptr_t TestEntryLength() const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
 };
 
@@ -2483,19 +2522,10 @@ class Instance : public Object {
   virtual RawAbstractTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const;
 
-  // Check if this instance is an instance of the given type.
+  // Check if the type of this instance is a subtype of the given type.
   bool IsInstanceOf(const AbstractType& type,
                     const AbstractTypeArguments& type_instantiator,
-                    Error* malformed_error) const {
-    return TestType(kIsSubtypeOf, type, type_instantiator, malformed_error);
-  }
-
-  // Check if this instance is assignable to the given type.
-  bool IsAssignableTo(const AbstractType& type,
-                      const AbstractTypeArguments& type_instantiator,
-                      Error* malformed_error) const {
-    return TestType(kIsAssignableTo, type, type_instantiator, malformed_error);
-  }
+                    Error* malformed_error) const;
 
   bool IsValidNativeIndex(int index) const;
 
@@ -2531,13 +2561,6 @@ class Instance : public Object {
     StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
   bool IsValidFieldOffset(int offset) const;
-
-  // Check the subtype or assignability relationship between the type of this
-  // instance and the given type.
-  bool TestType(TypeTestKind test,
-                const AbstractType& type,
-                const AbstractTypeArguments& type_instantiator,
-                Error* malformed_error) const;
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
@@ -2918,6 +2941,8 @@ class String : public Instance {
   static RawString* NewSymbol(const String& str,
                               intptr_t begin_index,
                               intptr_t length);
+
+  static RawString* NewFormatted(const char* format, ...);
 
  protected:
   bool HasHash() const {
@@ -3785,78 +3810,6 @@ class JSRegExp : public Instance {
 };
 
 
-// Object holding information about an IC: test classes and their
-// corresponding classes.
-class ICData : public Instance {
- public:
-  RawFunction* function() const {
-    return raw_ptr()->function_;
-  }
-
-  RawString* target_name() const {
-    return raw_ptr()->target_name_;
-  }
-
-  intptr_t num_args_tested() const {
-    return raw_ptr()->num_args_tested_;
-  }
-
-  intptr_t id() const {
-    return raw_ptr()->id_;
-  }
-
-  intptr_t NumberOfChecks() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawICData));
-  }
-
-  static intptr_t target_name_offset() {
-    return OFFSET_OF(RawICData, target_name_);
-  }
-
-  static intptr_t num_args_tested_offset() {
-    return OFFSET_OF(RawICData, num_args_tested_);
-  }
-
-  static intptr_t ic_data_offset() {
-    return OFFSET_OF(RawICData, ic_data_);
-  }
-
-  static intptr_t function_offset() {
-    return OFFSET_OF(RawICData, function_);
-  }
-
-  void AddCheck(const GrowableArray<const Class*>& classes,
-                const Function& target) const;
-  void GetCheckAt(intptr_t index,
-                  GrowableArray<const Class*>* classes,
-                  Function* target) const;
-  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
-
-  static RawICData* New(const Function& caller_function,
-                        const String& target_name,
-                        intptr_t id,
-                        intptr_t num_args_tested);
-
- private:
-  RawArray* ic_data() const {
-    return raw_ptr()->ic_data_;
-  }
-
-  void set_function(const Function& value) const;
-  void set_target_name(const String& value) const;
-  void set_id(intptr_t value) const;
-  void set_num_args_tested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
-
-  intptr_t TestEntryLength() const;
-
-  HEAP_OBJECT_IMPLEMENTATION(ICData, Instance);
-  friend class Class;
-};
-
-
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);
@@ -3926,6 +3879,11 @@ Token::Kind TokenStream::KindAt(intptr_t index) const {
 
 void Context::SetAt(intptr_t index, const Instance& value) const {
   StorePointer(InstanceAddr(index), value.raw());
+}
+
+
+intptr_t Stackmap::SizeInBits() const {
+  return (Smi::Value(raw_ptr()->bitmap_size_in_bytes_) * kBitsPerByte);
 }
 
 }  // namespace dart

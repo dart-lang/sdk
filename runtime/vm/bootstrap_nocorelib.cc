@@ -33,6 +33,12 @@ RawScript* Bootstrap::LoadIsolateScript() {
 }
 
 
+RawScript* Bootstrap::LoadMirrorsScript() {
+  UNREACHABLE();
+  return Script::null();
+}
+
+
 RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   UNREACHABLE();
   return Error::null();

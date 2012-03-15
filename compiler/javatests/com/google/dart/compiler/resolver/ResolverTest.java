@@ -403,6 +403,16 @@ public class ResolverTest extends ResolverTestCase {
         "}"));
   }
 
+  public void testDefaultTypeArgs10() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object{}",
+        "interface List<T> {}",
+        "class A<T, U, V> {}",
+        "interface I2<T> default B<T extends A> {}",
+        "class B<T extends A> {}",
+        ""));
+  }
+
 
   public void testDefaultTypeArgsNew() {
     // Invoke constructor in factory method with type args

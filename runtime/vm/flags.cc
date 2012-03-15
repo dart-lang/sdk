@@ -24,11 +24,15 @@ class Flag {
     kBoolean,
     kInteger,
     kString,
+    kFunc,
     kNumFlagTypes
   };
 
   Flag(const char* name, const char* comment, void* addr, FlagType type)
       : name_(name), comment_(comment), addr_(addr), type_(type) {
+  }
+  Flag(const char* name, const char* comment, FlagHandler handler)
+      : name_(name), comment_(comment), handler_(handler), type_(kFunc) {
   }
 
   void Print() {
@@ -54,6 +58,10 @@ class Flag {
         }
         break;
       }
+      case kFunc: {
+        OS::Print("%s: (%s)\n", name_, comment_);
+        break;
+      }
       default:
         UNREACHABLE();
         break;
@@ -72,6 +80,7 @@ class Flag {
     bool* bool_ptr_;
     int* int_ptr_;
     charp* charp_ptr_;
+    FlagHandler handler_;
   };
   FlagType type_;
 };
@@ -129,6 +138,17 @@ const char* Flags::Register_charp(charp* addr,
 }
 
 
+bool Flags::Register_func(FlagHandler handler,
+                          const char* name,
+                          const char* comment) {
+  ASSERT(Lookup(name) == NULL);
+  Flag* flag = new Flag(name, comment, handler);
+  flag->next_ = Flags::flags_;
+  Flags::flags_ = flag;
+  return false;
+}
+
+
 static void Normalize(char* s) {
   intptr_t len = strlen(s);
   for (intptr_t i = 0; i < len; i++) {
@@ -152,10 +172,15 @@ void Flags::Parse(const char* option) {
   if (*equals != '=') {
     // No explicit option argument. Determine if there is a "no_" prefix
     // preceding the name.
-    const char* kNoPrefix = "no_";
-    const intptr_t kNoPrefixLen = strlen(kNoPrefix);
-    if (strncmp(option, kNoPrefix, kNoPrefixLen) == 0) {
-      option += kNoPrefixLen;  // Skip the "no_" when looking up the name.
+    const char* kNo1Prefix = "no_";
+    const char* kNo2Prefix = "no-";
+    const intptr_t kNo1PrefixLen = strlen(kNo1Prefix);
+    const intptr_t kNo2PrefixLen = strlen(kNo2Prefix);
+    if (strncmp(option, kNo1Prefix, kNo1PrefixLen) == 0) {
+      option += kNo1PrefixLen;  // Skip the "no_" when looking up the name.
+      argument = "false";
+    } else if (strncmp(option, kNo2Prefix, kNo2PrefixLen) == 0) {
+      option += kNo2PrefixLen;  // Skip the "no-" when looking up the name.
       argument = "false";
     } else {
       argument = "true";
@@ -203,6 +228,16 @@ void Flags::Parse(const char* option) {
           int val = strtol(argument, &endptr, 10);
           if (endptr != argument) {
             *flag->int_ptr_ = val;
+          }
+          break;
+        }
+        case Flag::kFunc: {
+          if (strcmp(argument, "true") == 0) {
+            (flag->handler_)(true);
+          } else if (strcmp(argument, "false") == 0) {
+            (flag->handler_)(false);
+          } else {
+            OS::Print("Ignoring flag: %s is a bool flag.\n", name);
           }
           break;
         }

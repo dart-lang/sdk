@@ -7,6 +7,7 @@
     'builtin_in_cc_file': '../bin/builtin_in.cc',
     'corelib_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_gen.cc',
     'corelib_impl_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_impl_gen.cc',
+    'mirrors_cc_file': '<(SHARED_INTERMEDIATE_DIR)/mirrors_gen.cc',
     'isolate_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.cc',
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
@@ -51,11 +52,13 @@
         'generate_corelib_cc_file',
         'generate_corelib_impl_cc_file',
         'generate_isolate_cc_file',
+        'generate_mirrors_cc_file',
       ],
       'includes': [
         '../lib/lib_sources.gypi',
         '../lib/lib_impl_sources.gypi',
         '../lib/isolate_sources.gypi',
+        '../lib/mirrors_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -63,6 +66,7 @@
         '<(corelib_cc_file)',
         '<(corelib_impl_cc_file)',
         '<(isolate_cc_file)',
+        '<(mirrors_cc_file)',
       ],
       'include_dirs': [
         '..',
@@ -75,6 +79,7 @@
         '../lib/lib_sources.gypi',
         '../lib/lib_impl_sources.gypi',
         '../lib/isolate_sources.gypi',
+        '../lib/mirrors_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocorelib.cc',
@@ -170,6 +175,49 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(corelib_impl_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_mirrors_cc_file',
+      'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
+      'includes': [
+        # Load the shared core library sources.
+        '../lib/mirrors_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_mirrors_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(mirrors_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(mirrors_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::mirrors_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(mirrors_cc_file)'' file.'
         },
       ]
     },

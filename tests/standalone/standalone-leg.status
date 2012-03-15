@@ -1,0 +1,15 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $component == leg ]
+AssertTest: Fail, OK # Do not crash.
+ByteArrayTest: Fail, OK # Do not crash.
+DeoptimizationTest: Fail, OK # Do not crash.
+io/*: Fail, OK # Do not crash.
+io/HttpDateTest: Pass
+io/ProcessExitNegativeTest: Pass
+io/UrlEncodingTest: Pass
+MediumIntegerTest: Fail, OK # Do not crash.
+OutOfMemoryTest: Fail, OK # Do not crash.
+StatusExpressionTest: Fail, OK # Do not crash.

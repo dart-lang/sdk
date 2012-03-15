@@ -1,19 +1,17 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -41,13 +39,13 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Element target = node.getTargetSymbol();
+    Element target = node.getElement();
     ElementKind kind = ElementKind.of(target);
     // Add dependency on the field or method.
     switch (kind) {
       case FIELD:
       case METHOD: {
-        EnclosingElement enclosing = target.getEnclosingElement();
+        Element enclosing = target.getEnclosingElement();
         addHoleIfSuper(node, enclosing);
         if (enclosing.getKind().equals(ElementKind.LIBRARY)) {
           addElementDependency(target);
@@ -78,15 +76,14 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   public Void visitPropertyAccess(DartPropertyAccess node) {
     if (node.getQualifier() instanceof DartIdentifier) {
       DartIdentifier qualifier = (DartIdentifier) node.getQualifier();
-      Element target = qualifier.getTargetSymbol();
+      Element target = qualifier.getElement();
       if (target != null && target.getKind() == ElementKind.LIBRARY) {
-        // Handle library prefixes normally (the prefix part of the qualifier
-        // doesn't contain any resolvable library source info)
+        // Handle library prefixes normally.
+        // The prefix part of the qualifier doesn't contain any resolvable library source info.
         return super.visitPropertyAccess(node);
       }
     }
-    // Skip rhs of property accesses, so that all identifiers we visit will be 
-    // unqualified.
+    // Skip rhs of property accesses, so that all identifiers we visit will be unqualified.
     return node.getQualifier().accept(this);
   }
 
@@ -125,21 +122,22 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
    * superclass members.
    */
   private void addHoleIfSuper(DartIdentifier node, Element holder) {
-    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getSymbol()) {
-      source.addHole(node.getTargetName());
+    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getElement()) {
+      source.addHole(node.getName());
     }
   }
 
   /**
    * Adds a direct dependency on the unit providing given {@link Element}.
    */
-  private void addElementDependency(Element elem) {
-    DartNode node = elem.getNode();
-    if (node != null) {
-      DartSource unitSource = (DartSource) node.getSource();
-      URI libUri = unitSource.getLibrary().getUri();
+  private void addElementDependency(Element element) {
+    DartSource elementSource = (DartSource) element.getSourceInfo().getSource();
+    if (elementSource != null) {
+      URI libUri = elementSource.getLibrary().getUri();
       LibraryDeps.Dependency dep =
-          new LibraryDeps.Dependency(libUri, unitSource.getName(), unitSource.getLastModified());
+          new LibraryDeps.Dependency(libUri,
+              elementSource.getName(),
+              elementSource.getLastModified());
       source.addDep(dep);
     }
   }

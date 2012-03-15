@@ -338,12 +338,6 @@ void CodeGenerator::GenerateInstanceCall(
 }
 
 
-// Call to generate entry code:
-// - compute frame size and setup frame.
-// - allocate local variables on stack.
-// - optionally check if number of arguments match.
-// - initialize all non-argument locals to null.
-//
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of last argument (arg n-1).
@@ -353,54 +347,29 @@ void CodeGenerator::GenerateEntryCode() {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   const Function& function = parsed_function_.function();
+
+  // 1. Compute the frame size and enter the frame (reserving local space
+  // for copied incoming and default arguments and stack-allocated local
+  // variables).
+  //
+  // TODO(regis): We may give up reserving space on stack for args/locals
+  // because pushes of initial values may be more effective than moves.
   LocalScope* scope = parsed_function_.node_sequence()->scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
-  const int num_params = num_fixed_params + num_opt_params;
-  int first_param_index;
-  int first_local_index;
-  int num_copied_params;
-  // Assign indices to parameters and locals.
-  if (num_params == num_fixed_params) {
-    // No need to copy incoming arguments.
-    // The body of the function will access parameter i at fp[1 + num_fixed - i]
-    // and local variable j at fp[-1 - j].
-    first_param_index = 1 + num_params;
-    first_local_index = -1;
-    num_copied_params = 0;
-  } else {
-    // The body of the function will access copied parameter i at fp[-1 - i]
-    // and local j at fp[-1 - num_params - j].
-    first_param_index = -1;
-    first_local_index = -1 - num_params;
-    num_copied_params = num_params;
-    ASSERT(num_copied_params > 0);
-  }
-
-  // Allocate parameters and local variables, either in the local frame or in
-  // the context(s).
-  LocalScope* context_owner = NULL;  // No context needed so far.
-  int first_free_frame_index =
-      scope->AllocateVariables(first_param_index,
-                               num_params,
-                               first_local_index,
-                               scope,  // Initial loop owner.
-                               &context_owner);
-  // Frame indices are relative to the frame pointer and are decreasing.
-  ASSERT(first_free_frame_index <= first_local_index);
-  const int num_locals = first_local_index - first_free_frame_index;
-
-  // Reserve local space for copied incoming and default arguments and locals.
-  // TODO(regis): We may give up reserving space on stack for args/locals
-  // because pushes of initial values may be more effective than moves.
-  set_locals_space_size((num_copied_params + num_locals) * kWordSize);
+  const int num_copied_params = parsed_function_.copied_parameter_count();
+  const int stack_slot_count =
+      num_copied_params + parsed_function_.stack_local_count();
+  set_locals_space_size(stack_slot_count * kWordSize);
   __ EnterFrame(locals_space_size());
 
-  // We check the number of passed arguments when we have to copy them due to
-  // the presence of optional named parameters.
-  // No such checking code is generated if only fixed parameters are declared,
-  // unless we are debug mode or unless we are compiling a closure.
+  // 2. Optionally check if the number of arguments matches.  We check the
+  // number of passed arguments when we have to copy them due to the
+  // presence of optional named parameters.  No such checking code is
+  // generated if only fixed parameters are declared, unless we are in debug
+  // mode or unless we are compiling a closure.
   if (num_copied_params == 0) {
+    ASSERT(num_opt_params == 0);
 #if defined(DEBUG)
     const bool check_arguments = true;  // Always check arguments in debug mode.
 #else
@@ -414,14 +383,8 @@ void CodeGenerator::GenerateEntryCode() {
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (EDX).
       __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-      if (num_opt_params == 0) {
-        __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
-      } else {
-        __ subl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
-        __ cmpl(EAX, Immediate(Smi::RawValue(num_opt_params)));
-        __ j(BELOW_EQUAL, &argc_in_range, Assembler::kNearJump);
-      }
+      __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
+      __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
                             0,
@@ -432,11 +395,12 @@ void CodeGenerator::GenerateEntryCode() {
       __ Bind(&argc_in_range);
     }
   } else {
-    ASSERT(first_param_index == -1);
+    ASSERT(parsed_function_.first_parameter_index() == -1);
     // Copy positional arguments.
     // Check that no fewer than num_fixed_params positional arguments are passed
     // in and that no more than num_params arguments are passed in.
     // Passed argument i at fp[1 + argc - i] copied to fp[-1 - i].
+    const int num_params = num_fixed_params + num_opt_params;
 
     // Total number of args is the first Smi in args descriptor array (EDX).
     __ movl(EBX, FieldAddress(EDX, Array::data_offset()));
@@ -602,18 +566,20 @@ void CodeGenerator::GenerateEntryCode() {
     __ j(POSITIVE, &null_args_loop, Assembler::kNearJump);
   }
 
-  // Initialize locals.
+  // 3. Initialize (non-argument) stack-allocated locals to null.
+  //
   // TODO(regis): For now, always unroll the init loop. Decide later above
-  // which threshold to implement a loop.
-  // Consider emitting pushes instead of moves.
-  for (int index = first_local_index; index > first_free_frame_index; index--) {
-    if (index == first_local_index) {
+  // which threshold to implement a loop.  Consider emitting pushes instead
+  // of moves.
+  const int base = parsed_function_.first_stack_local_index();
+  for (int index = 0; index < parsed_function_.stack_local_count(); ++index) {
+    if (index == 0) {
       __ movl(EAX, raw_null);
     }
-    __ movl(Address(EBP, index * kWordSize), EAX);
+    __ movl(Address(EBP, (base - index) * kWordSize), EAX);
   }
 
-  // Generate stack overflow check.
+  // 4. Generate the stack overflow check.
   __ cmpl(ESP,
           Address::Absolute(Isolate::Current()->stack_limit_address()));
   Label no_stack_overflow;
@@ -629,8 +595,15 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
   int context_level = state()->context_level();
   ASSERT(context_level >= 0);
-  while (context_level-- > 0) {
-    __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
+  if (!parsed_function_.function().IsClosureFunction()) {
+    if (context_level > 0) {
+      // CTX on entry was saved on the stack, but not linked as context parent.
+      __ popl(CTX);
+    }
+  } else {
+    while (context_level-- > 0) {
+      __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
 #ifdef DEBUG
   // Check that the entry stack size matches the exit stack size.
@@ -766,18 +739,20 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
 void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
   if (function.IsNonImplicitClosureFunction()) {
-    const int current_context_level = state()->context_level();
-    const ContextScope& context_scope = ContextScope::ZoneHandle(
-        node->scope()->PreserveOuterScope(current_context_level));
-    ASSERT(!function.HasCode());
-    ASSERT(function.context_scope() == ContextScope::null());
-    function.set_context_scope(context_scope);
-  } else {
-    ASSERT(function.context_scope() != ContextScope::null());
-    if (function.IsImplicitInstanceClosureFunction()) {
-      node->receiver()->Visit(this);
+    // The context scope may have already been set by the new non-optimizing
+    // compiler.  If it was not, set it here.
+    if (function.context_scope() == ContextScope::null()) {
+      const int current_context_level = state()->context_level();
+      const ContextScope& context_scope = ContextScope::ZoneHandle(
+          node->scope()->PreserveOuterScope(current_context_level));
+      ASSERT(!function.HasCode());
+      function.set_context_scope(context_scope);
     }
+  } else if (function.IsImplicitInstanceClosureFunction()) {
+    node->receiver()->Visit(this);
   }
+  ASSERT(function.context_scope() != ContextScope::null());
+
   // The function type of a closure may have type arguments. In that case, pass
   // the type arguments of the instantiator.
   const Class& cls = Class::Handle(function.signature_class());
@@ -832,6 +807,18 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
                               StubCode::AllocateContextEntryPoint());
     GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
 
+    // If this node_sequence is the body of the function being compiled, and if
+    // this function is not a closure, do not link the current context as the
+    // parent of the newly allocated context, as it is not accessible. Instead,
+    // save it on the stack and restore it on exit.
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ pushl(CTX);
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movl(CTX, raw_null);
+    }
+
     // Chain the new context in EAX to its parent in CTX.
     __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     // Set new context as current context.
@@ -877,12 +864,22 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   }
   if (num_context_variables > 0) {
     // Unchain the previously allocated context.
-    __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
+    if ((node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popl(CTX);
+    } else {
+      __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
+    }
   }
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
   if (node_sequence->label() != NULL) {
     __ Bind(node_sequence->label()->break_label());
+    if ((num_context_variables > 0) &&
+        (node_sequence == parsed_function_.node_sequence()) &&
+         !parsed_function_.function().IsClosureFunction()) {
+      __ popl(CTX);
+    }
   }
 }
 
@@ -1432,7 +1429,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
 
   // Any expression is assignable to the Dynamic type and to the Object type.
   // Skip the test.
-  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
+  if (!dst_type.IsMalformed() &&
+      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
     return;
   }
 
@@ -1467,6 +1465,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
     // We should never return here.
     __ int3();
+
+    __ Bind(&done);  // For a null object.
     return;
   }
 
@@ -2538,6 +2538,12 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   ASSERT(locals_space_size() >= 0);
   __ movl(ESP, EBP);
   __ subl(ESP, Immediate(locals_space_size()));
+
+  if ((state()->context_level() > 0) &&
+      !parsed_function_.function().IsClosureFunction()) {
+    // CTX was saved on entry.
+    __ subl(ESP, Immediate(kWordSize));
+  }
 
   // The JumpToExceptionHandler trampoline code sets up
   // - the exception object in EAX (kExceptionObjectReg)

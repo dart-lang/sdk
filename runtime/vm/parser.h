@@ -34,7 +34,11 @@ class ParsedFunction : ValueObject {
       : function_(function),
         node_sequence_(NULL),
         instantiator_(NULL),
-        default_parameter_values_(Array::Handle()) { }
+        default_parameter_values_(Array::Handle()),
+        first_parameter_index_(0),
+        first_stack_local_index_(0),
+        copied_parameter_count_(0),
+        stack_local_count_(0) { }
 
   const Function& function() const { return function_; }
 
@@ -57,11 +61,23 @@ class ParsedFunction : ValueObject {
     default_parameter_values_ = default_parameter_values.raw();
   }
 
+  int first_parameter_index() const { return first_parameter_index_; }
+  int first_stack_local_index() const { return first_stack_local_index_; }
+  int copied_parameter_count() const { return copied_parameter_count_; }
+  int stack_local_count() const { return stack_local_count_; }
+
+  void AllocateVariables();
+
  private:
   const Function& function_;
   SequenceNode* node_sequence_;
   AstNode* instantiator_;
   Array& default_parameter_values_;
+
+  int first_parameter_index_;
+  int first_stack_local_index_;
+  int copied_parameter_count_;
+  int stack_local_count_;
 
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };

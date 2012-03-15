@@ -20,10 +20,14 @@
 // to compile.
 final String MAIN_ID = "main_id";
 
+// id of script element containing name of the frog directory
+final String FROGDIR_ID = "frogdir_id";
+
 void main() {
   String warnings = "";
   HtmlFileSystem fs = new HtmlFileSystem();
-  String mainFile = getText(MAIN_ID); 
+  String frogDir = getText(FROGDIR_ID);
+  String mainFile = getText(MAIN_ID);
   setText("input", fs.readAll(mainFile));
 
   int time1 = new Date.now().value;
@@ -33,7 +37,7 @@ void main() {
       "--enable_type_checks",
       "--enable_asserts",
     mainFile];
-  parseOptions("dummy_home_dir", args, fs);
+  parseOptions(frogDir, args, fs);
 
   options.useColors = false;
 
@@ -95,35 +99,24 @@ class HtmlFileSystem implements FileSystem {
   /**
    * Returns the id of the <script> element that contains
    * the contents of this file.
-   * The id is constructed by taking the last directory
-   * of the path, plus the file name, and using _ as a 
-   * separator.  So, for example, the file name:
+   * The id is constructed by taking the filename and replacing
+   * all slashes and dots with underscores.  For example, the file name:
    *  
    *   "/usr/local/src/dart/frog/lang.dart" 
    * 
    * becomes:
    * 
-   *   "frog_lang_dart"
+   *   "_usr_local_src_dart_frog_lang_dart"
    *  
    * And, so this file's contents will be found in a <script>
    * element that looks like this:
    *
-   *   <script type=application/inert id="frog_lang_dart">
+   *   <script type=application/inert id="_usr_local_src_dart_frog_lang_dart">
    *      ... contents of file lang.dart placed here ...
    *   etc.
    */    
   String idOfFilename(String filename) {
-    List<String> components = filename.split("/");
-    if (components.isEmpty()) {
-      throw new Exception("bad filename");
-    }
-    // Grab the last two components (the directory name and file name).
-    int startIndex = Math.max(0, components.length - 2);
-    int length = components.length - startIndex;;
-    components = components.getRange(startIndex, length);
-    
-    // Join components with underscore, and replace dots with underscore.
-    return Strings.join(components, "_").replaceAll(".", "_");    
+    return filename.replaceAll("/", "_").replaceAll(".", "_");
   }
 
   void writeString(String outfile, String text) {

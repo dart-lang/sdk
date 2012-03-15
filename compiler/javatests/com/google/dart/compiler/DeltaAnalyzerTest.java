@@ -32,12 +32,12 @@ public class DeltaAnalyzerTest extends TestCase {
                             "m() {}");
     DartUnit change = analyzeNoChange(librarySource);
     assertEquals(2, change.getTopLevelNodes().size());
-    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
+    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
     Element element = change.getLibrary().getElement().lookupLocalElement("Foo");
     assertEquals(cls, element);
-    MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getSymbol();
+    MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getElement();
     assertNotNull(method);
     assertEquals("m", method.getName());
     element = change.getLibrary().getElement().lookupLocalElement("m");
@@ -53,13 +53,13 @@ public class DeltaAnalyzerTest extends TestCase {
                             "class Bar {}");
     DartUnit change = analyzeNoChange(librarySource);
     assertEquals(2, change.getTopLevelNodes().size());
-    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
+    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
     assertNotNull(change.getLibrary().getElement().lookupLocalElement("Foo"));
     assertEquals("Bar", cls.getSupertype().toString());
     assertNotNull(change.getLibrary().getElement().lookupLocalElement("Bar"));
-    MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getSymbol();
+    MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getElement();
     assertNotNull(method);
     assertEquals("m", method.getName());
     Element element = change.getLibrary().getElement().lookupLocalElement("m");
@@ -79,7 +79,7 @@ public class DeltaAnalyzerTest extends TestCase {
     assertNull(element);
     element = change.getLibrary().getElement().lookupLocalElement("Foo");
     assertNotNull(element);
-    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
+    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
     assertEquals("Foo", cls.getName());
     assertSame(cls, element);
   }
@@ -96,7 +96,7 @@ public class DeltaAnalyzerTest extends TestCase {
     DartUnit change = analyze(librarySource, sourceBefore, sourceAfter);
     assertEquals(1, change.getTopLevelNodes().size());
     assertNull(change.getLibrary().getElement().lookupLocalElement("m"));
-    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
+    ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getElement();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
     assertEquals("Bar", cls.getSupertype().toString());

@@ -19,6 +19,9 @@ typedef const char* charp;
                                             default_value,                     \
                                             comment)
 
+#define DEFINE_FLAG_HANDLER(handler, name, comment)                            \
+  bool DUMMY_##name = Flags::Register_func(handler, #name, comment)
+
 
 #if defined(DEBUG)
 #define DECLARE_DEBUG_FLAG(type, name) DECLARE_FLAG(type, name)
@@ -30,6 +33,8 @@ typedef const char* charp;
 #endif
 
 namespace dart {
+
+typedef void (*FlagHandler)(bool value);
 
 // Forward declaration.
 class Flag;
@@ -50,6 +55,10 @@ class Flags {
                                     const char* name,
                                     const char* default_value,
                                     const char* comment);
+
+  static bool Register_func(FlagHandler handler,
+                            const char* name,
+                            const char* comment);
 
   static bool ProcessCommandLineFlags(int argc, const char** argv);
 

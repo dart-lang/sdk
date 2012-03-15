@@ -57,14 +57,16 @@ def render(idl_node, indent_str='  '):
       end_indent()
       wln('};')
     elif isinstance(node, IDLInterface):
-      w(node.annotations)
-      w(node.ext_attrs)
+      wln(node.annotations)
+      wln(node.ext_attrs)
       w('interface %s' % node.id)
+      begin_indent()
       begin_indent()
       if node.parents:
         wln(' :')
         w(node.parents, ',\n')
       wln(' {')
+      end_indent()
       if node.constants:
         wln()
         wln('/* Constants */')

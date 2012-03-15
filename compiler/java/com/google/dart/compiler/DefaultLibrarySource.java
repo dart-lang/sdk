@@ -171,6 +171,11 @@ public class DefaultLibrarySource extends UrlSource implements LibrarySource {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return "string://" + wrappedName;
+  }
+
+  @Override
   public URI getUri() {
     try {
       // A bogus uri (but which ends with our wrappedName)

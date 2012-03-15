@@ -5,6 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.common.SourceInfo;
 
 public class DartComment extends DartNode {
 
@@ -17,7 +18,7 @@ public class DartComment extends DartNode {
   private Style style;
 
   public DartComment(Source source, int start, int length, int line, int col, Style style) {
-    setSourceLocation(source, line, col, start, length);
+    setSourceInfo(new SourceInfo(source, start, length));
     this.style = style;
   }
 

@@ -103,6 +103,11 @@ public class DartCompiler {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      throw new AssertionError();
+    }
+
+    @Override
     public URI getUri() {
       throw new AssertionError();
     }
@@ -522,7 +527,7 @@ public class DartCompiler {
           // Parse units that are out-of-date with respect to their dependencies.
           for (DartUnit unit : lib.getUnits()) {
             if (unit.isDiet()) {
-              String relPath = unit.getSource().getRelativePath();
+              String relPath = ((DartSource) unit.getSourceInfo().getSource()).getRelativePath();
               LibraryDeps.Source source = deps.getSource(relPath);
               if (isUnitOutOfDate(lib, source)) {
                 filesHaveChanged = true;
@@ -566,7 +571,7 @@ public class DartCompiler {
           return true;
         }
         // May be unit modified.
-        if (depUnit.getSource().getLastModified() != dep.getLastModified()) {
+        if (depUnit.getSourceInfo().getSource().getLastModified() != dep.getLastModified()) {
           return true;
         }
       }
@@ -636,19 +641,18 @@ public class DartCompiler {
             }
           }
           if (!foundLibraryDirective) {
-            // find the imported path node (which corresponds to the import
-            // directive node)
+            // find the imported path node (which corresponds to the import directive node)
             SourceInfo info = null;
             for (LibraryNode importPath : lib.getImportPaths()) {
               if (importPath.getText().equals(importedLib.getSelfSourcePath().getText())) {
-                info = importPath;
+                info = importPath.getSourceInfo();
                 break;
               }
             }
             if (info != null) {
               context.onError(new DartCompilationError(info,
-                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE, unit.getSource()
-                      .getRelativePath()));
+                  DartCompilerErrorCode.MISSING_LIBRARY_DIRECTIVE,
+                  ((DartSource) unit.getSourceInfo().getSource()).getRelativePath()));
             }
           }
         }
@@ -666,10 +670,11 @@ public class DartCompiler {
                 // skip the special synthetic selfSourcePath node
                 continue;
               }
-              if (unit.getSource().getRelativePath().equals(sourceNode.getText())) {
+              DartSource dartSource = (DartSource) unit.getSourceInfo().getSource();
+              if (dartSource.getRelativePath().equals(sourceNode.getText())) {
                 context.onError(new DartCompilationError(unit.getDirectives().get(0),
-                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT, unit.getSource()
-                        .getRelativePath()));
+                    DartCompilerErrorCode.ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT,
+                    dartSource.getRelativePath()));
               }
             }
           }
@@ -691,13 +696,13 @@ public class DartCompiler {
           MethodElement methodElement = (MethodElement) element;
           Modifiers modifiers = methodElement.getModifiers();
           if (modifiers.isGetter()) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER, MAIN_ENTRY_POINT_NAME));
           } else if (modifiers.isSetter()) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER, MAIN_ENTRY_POINT_NAME));
           } else if (methodElement.getParameters().size() > 0) {
-            context.onError(new DartCompilationError(element.getNode(),
+            context.onError(new DartCompilationError(element,
                 DartCompilerErrorCode.ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS,
                 MAIN_ENTRY_POINT_NAME));
           } else {
@@ -706,7 +711,7 @@ public class DartCompiler {
           break;
 
         default:
-          context.onError(new DartCompilationError(element.getNode(),
+          context.onError(new DartCompilationError(element,
               ResolverErrorCode.NOT_A_STATIC_METHOD, MAIN_ENTRY_POINT_NAME));
           break;
       }
@@ -786,7 +791,8 @@ public class DartCompiler {
 
     private void updateAnalysisTimestamp(DartUnit unit) throws IOException {
       // Update timestamp.
-      Writer writer = context.getArtifactWriter(unit.getSource(), "", EXTENSION_TIMESTAMP);
+      Writer writer =
+          context.getArtifactWriter(unit.getSourceInfo().getSource(), "", EXTENSION_TIMESTAMP);
       String timestampData = String.format("%d\n", System.currentTimeMillis());
       writer.write(timestampData);
       writer.close();

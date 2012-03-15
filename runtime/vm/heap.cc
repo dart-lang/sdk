@@ -129,17 +129,18 @@ void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void Heap::CollectGarbage(Space space) {
+void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
+  bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
     case kNew:
-      new_space_->Scavenge();
+      new_space_->Scavenge(invoke_api_callbacks);
       break;
     case kOld:
-      old_space_->MarkSweep();
+      old_space_->MarkSweep(invoke_api_callbacks);
       break;
     case kExecutable:
       UNIMPLEMENTED();
-      code_space_->MarkSweep();
+      code_space_->MarkSweep(invoke_api_callbacks);
       break;
     default:
       UNREACHABLE();
@@ -147,11 +148,22 @@ void Heap::CollectGarbage(Space space) {
 }
 
 
+void Heap::CollectGarbage(Space space) {
+  ApiCallbacks api_callbacks;
+  if (space == kNew || space == kExecutable) {
+    api_callbacks = kIgnoreApiCallbacks;
+  } else {
+    api_callbacks = kInvokeApiCallbacks;
+  }
+  CollectGarbage(space, api_callbacks);
+}
+
+
 void Heap::CollectAllGarbage() {
-  new_space_->Scavenge();
-  old_space_->MarkSweep();
+  new_space_->Scavenge(kInvokeApiCallbacks);
+  old_space_->MarkSweep(kInvokeApiCallbacks);
   // TODO(iposva): Merge old and code space.
-  // code_space_->MarkSweep();
+  // code_space_->MarkSweep(kInvokeApiCallbacks);
 }
 
 

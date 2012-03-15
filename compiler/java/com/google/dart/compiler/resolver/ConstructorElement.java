@@ -14,6 +14,10 @@ public interface ConstructorElement extends MethodElement {
    * @return the {@link ConstructorElement} in default factory class, may be <code>null</code>.
    */
   ConstructorElement getDefaultConstructor();
+  
+  boolean isSynthetic();
+  
+  String getRawName();
 
   /**
    * Sets {@link ConstructorElement} in default factory class, may be <code>null</code>.

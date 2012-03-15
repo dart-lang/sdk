@@ -41,6 +41,16 @@ interface OutputStream {
   bool writeFrom(List<int> buffer, [int offset, int len]);
 
   /**
+   * Write a string to the stream using the given [encoding].The
+   * default encoding is UTF-8 - [:Encoding.UTF_8:].
+   *
+   * Returns true if the data could be written to the underlying
+   * communication channel immediately. Otherwise the data is buffered
+   * by the output stream and will be sent as soon as possible.
+   */
+  bool writeString(String string, [Encoding encoding]);
+
+  /**
    * Indicate that all data has been written to the output
    * stream. When all data has been written to the communication
    * channel it will be closed.

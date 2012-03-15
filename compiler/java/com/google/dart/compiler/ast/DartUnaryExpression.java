@@ -6,16 +6,17 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.MethodElement;
 
 /**
  * Represents a Dart unary expression.
  */
-public class DartUnaryExpression extends DartExpression implements ElementReference {
+public class DartUnaryExpression extends DartExpression {
 
   private final Token operator;
   private DartExpression arg;
   private final boolean isPrefix;
-  private Element referencedElement;
+  private MethodElement element;
 
   public DartUnaryExpression(Token operator, DartExpression arg, boolean isPrefix) {
     assert operator.isUnaryOperator() || operator == Token.SUB;
@@ -48,12 +49,12 @@ public class DartUnaryExpression extends DartExpression implements ElementRefere
   }
 
   @Override
-  public Element getReferencedElement() {
-    return referencedElement;
+  public MethodElement getElement() {
+    return element;
   }
 
   @Override
-  public void setReferencedElement(Element referencedElement) {
-    this.referencedElement = referencedElement;
+  public void setElement(Element element) {
+    this.element = (MethodElement) element;
   }
 }

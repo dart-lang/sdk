@@ -3,65 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class MathNatives {
-  static int parseInt(String str) {
-    if (str is !String) {
-      throw "Wrong argument";
-    }
-    return _parseInt(str);
-  }
-  static double parseDouble(String str) {
-    if (str is !String) {
-      throw "Wrong argument";
-    }
-    return _parseDouble(str);
-  }
-  static double sqrt(num value) {
-    return _sqrt(_asDouble(value));
-  }
-  static double sin(num value) {
-    return _sin(_asDouble(value));
-  }
-  static double cos(num value) {
-    return _cos(_asDouble(value));
-  }
-  static double tan(num value) {
-    return _tan(_asDouble(value));
-  }
-  static double acos(num value) {
-    return _acos(_asDouble(value));
-  }
-  static double asin(num value) {
-    return _asin(_asDouble(value));
-  }
-  static double atan(num value) {
-    return _atan(_asDouble(value));
-  }
-  static double atan2(num a, num b) {
-    return _atan2(_asDouble(a), _asDouble(b));
-  }
-  static double exp(num value) {
-    return _exp(_asDouble(value));
-  }
-  static double log(num value) {
-    return _log(_asDouble(value));
-  }
   static num pow(num value, num exponent) {
     if (exponent is int) {
       return value.pow(exponent);
     }
     // Double.pow will call exponent.toDouble().
-    return _asDouble(value).pow(exponent);
+    return value.toDouble().pow(exponent);
   }
-  static double random() {
-    return _random();
-  }
-  static double _asDouble(num value) {
-    double result = value.toDouble();
-    if (result is !double) {
-      throw "Wrong argument";
-    }
-    return result;
-  }
+  static double random() => _random();
+  static double sqrt(num value) => _sqrt(value.toDouble());
+  static double sin(num value) => _sin(value.toDouble());
+  static double cos(num value) => _cos(value.toDouble());
+  static double tan(num value) => _tan(value.toDouble());
+  static double acos(num value) => _acos(value.toDouble());
+  static double asin(num value) => _asin(value.toDouble());
+  static double atan(num value) => _atan(value.toDouble());
+  static double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
+  static double exp(num value) => _exp(value.toDouble());
+  static double log(num value) => _log(value.toDouble());
+  static int parseInt(String str) => _parseInt(str);
+  static double parseDouble(String str) => _parseDouble(str);
+
   static double _random() native "MathNatives_random";
   static double _sqrt(double value) native "MathNatives_sqrt";
   static double _sin(double value) native "MathNatives_sin";

@@ -41,9 +41,9 @@ main() {
     new PingPongIsolate().spawn().then((isolate.SendPort port) {
       final msg1 = 'foo';
       final msg2 = 'bar';
-      port.call(msg1).receive((response, _) {
+      port.call(msg1).then((response) {
         Expect.equals(PingPongIsolate.responseFor(msg1), response);
-        port.call(msg2).receive((response, _) {
+        port.call(msg2).then((response) {
           Expect.equals(PingPongIsolate.responseFor(msg2), response);
           callbackDone();
         });

@@ -30,8 +30,4 @@ class _ReceivePortFactory {
   factory ReceivePort() {
     throw new NotImplementedException();
   }
-
-  factory ReceivePort.singleShot() {
-    throw new NotImplementedException();
-  }
 }

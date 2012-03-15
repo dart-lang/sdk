@@ -21,7 +21,7 @@ public class DartInitializer extends DartNode {
     if (name == null) {
       return null;
     }
-    return name.getTargetName();
+    return name.getName();
   }
 
   public DartIdentifier getName() {

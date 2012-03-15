@@ -1,0 +1,54 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _AttributeClassSet extends _CssClassSet {
+  _AttributeClassSet(element) : super(element);
+
+  String _className() => _element.attributes['class'];
+
+  void _write(Set s) {
+    _element.attributes['class'] = _formatSet(s);
+  }
+}
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _AttributeClassSet(_ptr);
+    }
+    return _cssClassSet;
+  }
+
+  ElementList get elements() => new FilteredElementList(this);
+
+  void set elements(Collection<Element> value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.add(clone);
+    return container.innerHTML;
+  }
+
+  String get innerHTML() {
+    final container = new Element.tag("div");
+    final SVGElement clone = this.clone(true);
+    container.elements.addAll(clone.elements);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String svg) {
+    final container = new Element.tag("div");
+    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
+    // HTMLElements.
+    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    this.elements = container.elements.first.elements;
+  }
+
+$!MEMBERS
+}

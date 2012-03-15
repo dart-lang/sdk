@@ -5,18 +5,17 @@
 #import("dart:io");
 
 class FileTest {
-  static void testOpenInvalidArgs(name, [writable = false]) {
+  static void testOpenInvalidArgs(name) {
     var file = new File(name);
     try {
       file.openSync();
       Expect.fail('exception expected');
     } catch (var e) {
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('open file'));
+      Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (s) {
-      Expect.isTrue(s.contains('open file'));
+    file.onError = (e) {
+      Expect.isTrue(e is IllegalArgumentException);
     };
     file.open(FileMode.READ, (opened) {
       Expect.fail('non-string name open');
@@ -29,12 +28,11 @@ class FileTest {
       file.existsSync();
       Expect.fail('exception expected');
     } catch (var e) {
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('is not a string'));
+      Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (s) {
-      Expect.isTrue(s.contains('is not a string'));
+    file.onError = (e) {
+      Expect.isTrue(e is IllegalArgumentException);
     };
     file.exists((bool) {
       Expect.fail('non-string name exists');
@@ -47,16 +45,11 @@ class FileTest {
       file.createSync();
       Expect.fail('exception expected');
     } catch (var e) {
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('Cannot create file'));
+      Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (s) {
-      Expect.isTrue(s.contains('Cannot create file'));
-    };
-    file.create((created) {
-      Expect.fail('non-string name exists');
-    });
+    file.onError = (e) => Expect.isTrue(e is IllegalArgumentException);
+    file.create(() => Expect.fail('non-string name exists'));
   }
 
   static void testReadListInvalidArgs(buffer, offset, length) {
@@ -169,12 +162,11 @@ class FileTest {
       file.fullPathSync();
       Expect.fail('exception expected');
     } catch (var e) {
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('fullPath failed'));
+      Expect.isTrue(e is IllegalArgumentException);
     }
 
-    file.onError = (s) {
-      Expect.isTrue(s.contains('fullPath failed'));
+    file.onError = (e) {
+      Expect.isTrue(e is IllegalArgumentException);
     };
     file.fullPath((path) {
       Expect.fail('full path invalid argument');
@@ -187,7 +179,6 @@ class FileTest {
 
 main() {
   FileTest.testOpenInvalidArgs(0);
-  FileTest.testOpenInvalidArgs('name', 0);
   FileTest.testExistsInvalidArgs(0);
   FileTest.testCreateInvalidArgs(0);
   FileTest.testReadListInvalidArgs(12, 0, 1);

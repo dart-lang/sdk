@@ -13,6 +13,7 @@
 
     'buffer_list.dart',
     'chunked_stream.dart',
+    'common.dart',
     'directory.dart',
     'directory_impl.dart',
     'eventhandler.dart',

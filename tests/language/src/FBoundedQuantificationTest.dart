@@ -12,5 +12,5 @@ class SubBar extends Bar {}
 
 main() {
   FBound<Bar> fb = new FBound<Bar>();
-  FBound<SubBar> fsb = new FBound<SubBar>();  /// 01: static type error
+  FBound<SubBar> fsb = new FBound<SubBar>();  /// 01: static type warning
 }

@@ -11,7 +11,8 @@ int test(int a, [int b]) {
 main() {
   bool foundError = false;
   try {
-    test(10, 25, b: 26);  // Parameter b passed twice, as positional and named.
+    // Parameter b passed twice, as positional and named.
+    test(10, 25, b: 26);  /// static type warning
   } catch (Exception e) {
     foundError = true;
   }

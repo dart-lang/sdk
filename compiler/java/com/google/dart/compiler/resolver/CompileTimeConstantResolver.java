@@ -47,8 +47,8 @@ public class CompileTimeConstantResolver {
           DartIdentifier qualifierIdent = (DartIdentifier) qualifierNode;
           qualifier = getContext().getScope().findElement(libraryElement,
                                                           qualifierIdent
-                                                              .getTargetName());
-          qualifierNode.setSymbol(qualifier);
+                                                              .getName());
+          qualifierNode.setElement(qualifier);
         }
 
         if (qualifier != null) {
@@ -83,7 +83,7 @@ public class CompileTimeConstantResolver {
         x.visitChildren(this);
 
         Element element = getContext().getScope()
-            .findElement(libraryElement, x.getTargetName());
+            .findElement(libraryElement, x.getName());
         if (element != null) {
           recordElement(x, element);
         }
@@ -94,7 +94,7 @@ public class CompileTimeConstantResolver {
       public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation x) {
         x.visitChildren(this);
 
-        String name = x.getName() == null ? "" : x.getName().getTargetName();
+        String name = x.getName() == null ? "" : x.getName().getName();
         InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
         ConstructorElement element = (supertype == null) ?
             null : Elements.lookupConstructor(supertype.getElement(), name);
@@ -108,7 +108,7 @@ public class CompileTimeConstantResolver {
       public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation x) {
         x.visitChildren(this);
 
-        String name = x.getName() == null ? "" : x.getName().getTargetName();
+        String name = x.getName() == null ? "" : x.getName().getName();
         InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
         ConstructorElement element = (supertype == null) ?
             null : Elements.lookupConstructor(supertype.getElement(), name);
@@ -137,7 +137,7 @@ public class CompileTimeConstantResolver {
 
     private void beginClassContext(final DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
-      currentHolder = node.getSymbol();
+      currentHolder = node.getElement();
       context = context.extend((ClassElement) currentHolder);
     }
 
@@ -183,17 +183,17 @@ public class CompileTimeConstantResolver {
 
     @Override
     public Element visitMethodDefinition(DartMethodDefinition node) {
-      MethodElement member = node.getSymbol();
+      MethodElement member = node.getElement();
       ResolutionContext previousContext = context;
       context = context.extend(member.getName());
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParameters();
       for (DartParameter parameter : parameters) {
-        getContext().declare(parameter.getSymbol(), null, null);
+        getContext().declare(parameter.getElement(), null, null);
         // Then resolve the default values.
         resolveConstantExpression(parameter.getDefaultExpr());
       }
-      Element element = node.getSymbol();
+      Element element = node.getElement();
       if (ElementKind.of(element) == ElementKind.CONSTRUCTOR &&
         node.getModifiers().isConstant()) {
         for (DartInitializer initializer : node.getInitializers()) {

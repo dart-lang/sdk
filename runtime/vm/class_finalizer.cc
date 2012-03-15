@@ -527,6 +527,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     return type.raw();
   }
   ASSERT(type.IsResolved());
+  ASSERT((finalization == kFinalize) || (finalization == kFinalizeWellFormed));
 
   if (FLAG_trace_type_finalization) {
     OS::Print("Finalize type '%s'\n", String::Handle(type.Name()).ToCString());
@@ -668,9 +669,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         // The type argument vector of the type is not within bounds. The type
         // is malformed. Prepend malformed_error to new malformed type error in
         // order to report both locations.
+        // Note that malformed bounds never result in a compile time error, even
+        // in checked mode. Therefore, overwrite finalization with kFinalize
+        // when finalizing the malformed type.
         FinalizeMalformedType(
             malformed_error,
-            cls, parameterized_type, finalization,
+            cls, parameterized_type, kFinalize,
             "type arguments of type '%s' are not within bounds",
             String::Handle(parameterized_type.Name()).ToCString());
         return parameterized_type.raw();
@@ -693,6 +697,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     // The parser sets the factory result type to a type with an unresolved
     // class whose name matches the factory name.
     result_finalization = kFinalizeWellFormed;
+    // TODO(regis): Gilad asks if this compile-time error could be relaxed.
+    // The result type of such a factory method would simply be malformed.
   }
   ResolveType(cls, type, result_finalization);
   type = FinalizeType(cls, type, result_finalization);
@@ -757,7 +763,7 @@ void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
          (bounds.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
     bound = bounds.TypeAt(i);
-    if (bound.IsDynamicType()) {
+    if (bound.IsFinalized()) {
       continue;
     }
     ResolveType(cls, bound, kFinalize);
@@ -1213,16 +1219,17 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
       ReportError(error);
     }
   }
-  // Replace malformed type with Dynamic type.
-  type.set_type_class(Class::Handle(Object::dynamic_class()));
-  type.set_arguments(AbstractTypeArguments::Handle());
   if (FLAG_enable_type_checks) {
     // In checked mode, mark type as malformed.
     type.set_malformed_error(error);
+  } else {
+     // In production mode, replace malformed type with Dynamic type.
+    type.set_type_class(Class::Handle(Object::dynamic_class()));
+    type.set_arguments(AbstractTypeArguments::Handle());
   }
   if (!type.IsFinalized()) {
     type.set_is_finalized();
-    type.Canonicalize();
+    // Do not canonicalize malformed types, since they may not be resolved.
   } else {
     // The only case where the malformed type was already finalized is when its
     // type arguments are not within bounds. In that case, we have a prev_error.

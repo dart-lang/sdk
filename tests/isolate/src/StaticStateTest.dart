@@ -32,12 +32,12 @@ void test(TestExpectation expect) {
   Expect.equals("foo", TestIsolate.state);
 
   expect.completes(new TestIsolate().spawn()).then((SendPort remote) {
-    remote.call("bar").receive(expect.runs2((reply, replyTo) {
+    remote.call("bar").then(expect.runs1((reply) {
       Expect.equals("foo", TestIsolate.state);
       Expect.equals(null, reply);
 
       TestIsolate.state = "baz";
-      remote.call("exit").receive(expect.runs2((reply, replyTo) {
+      remote.call("exit").then(expect.runs1((reply) {
         Expect.equals("baz", TestIsolate.state);
         Expect.equals("bar", reply);
         expect.succeeded();

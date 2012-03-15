@@ -360,7 +360,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("C", error.dstType);
-      Expect.equals("Smi", error.srcType);
+      Expect.equals("int", error.srcType);
       Expect.equals("function result", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {

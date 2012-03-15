@@ -52,7 +52,7 @@ public class SupertypeResolver {
   private class ClassElementResolver extends ASTVisitor<Void> {
     @Override
     public Void visitClass(DartClass node) {
-      ClassElement classElement = node.getSymbol();
+      ClassElement classElement = node.getElement();
 
       // Make sure that the type parameters are in scope before resolving the
       // super class and interfaces
@@ -72,7 +72,7 @@ public class SupertypeResolver {
       }
       if (supertype != null) {
         if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
-            && !isCoreLibrarySource(node.getSource())) {
+            && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
           topLevelContext.onError(
               superclassNode,
               ResolverErrorCode.BLACK_LISTED_EXTENDS,
@@ -97,7 +97,7 @@ public class SupertypeResolver {
           Elements.addInterface(classElement, intElement);
           // Dynamic can not be used as interface.
           if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
-              && !isCoreLibrarySource(node.getSource())) {
+              && !isCoreLibrarySource(node.getSourceInfo().getSource())) {
             topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
             continue;
           }
@@ -113,9 +113,9 @@ public class SupertypeResolver {
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      ResolutionContext resolutionContext = topLevelContext.extend(node.getSymbol());
-      Elements.addInterface(node.getSymbol(), typeProvider.getFunctionType());
-      setBoundsOnTypeParameters(node.getSymbol().getTypeParameters(), resolutionContext);
+      ResolutionContext resolutionContext = topLevelContext.extend(node.getElement());
+      Elements.addInterface(node.getElement(), typeProvider.getFunctionType());
+      setBoundsOnTypeParameters(node.getElement().getTypeParameters(), resolutionContext);
       return null;
     }
   }
@@ -123,22 +123,18 @@ public class SupertypeResolver {
   private void setBoundsOnTypeParameters(List<Type> typeParameters,
                                          ResolutionContext resolutionContext) {
     for (Type typeParameter : typeParameters) {
-      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
+      TypeVariableNodeElement variable = (TypeVariableNodeElement) typeParameter.getElement();
       DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
       DartTypeNode boundNode = typeParameterNode.getBound();
-      Type bound;
       if (boundNode != null) {
-        bound =
+        Type bound =
             resolutionContext.resolveType(
                 boundNode,
                 false,
                 false,
                 ResolverErrorCode.NO_SUCH_TYPE);
         boundNode.setType(bound);
-      } else {
-        bound = typeProvider.getObjectType();
       }
-      variable.setBound(bound);
     }
   }
 

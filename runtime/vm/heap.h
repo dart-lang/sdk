@@ -32,6 +32,11 @@ class Heap {
     kExecutable
   };
 
+  enum ApiCallbacks {
+    kIgnoreApiCallbacks,
+    kInvokeApiCallbacks
+  };
+
   // Default allocation sizes in MB for the old gen and code heaps.
   static const intptr_t kHeapSizeInMB = 512;
   static const intptr_t kCodeHeapSizeInMB = 8;
@@ -80,6 +85,7 @@ class Heap {
   void IterateCodePointers(ObjectPointerVisitor* visitor);
 
   void CollectGarbage(Space space);
+  void CollectGarbage(Space space, ApiCallbacks api_callbacks);
   void CollectAllGarbage();
 
   // Accessors for inlined allocation in generated code.

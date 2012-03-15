@@ -28,7 +28,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values can not be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
-  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING, 
+  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING,
       "Deprecated use of the 'factory' keyword: use 'default' instead"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
@@ -46,6 +46,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_PREFIX_IDENTIFIER("Prefix string can only contain valid identifier characters"),
   EXPECTED_SEMICOLON("Expected ';'"),
   EXPECTED_STRING_LITERAL("Expected string literal"),
+  EXPECTED_STRING_LITERAL_MAP_ENTRY_KEY("Expected string literal for map entry key"),
   EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
   EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
   EXPORTED_FUNCTIONS_MUST_BE_STATIC("Exported functions must be static"),

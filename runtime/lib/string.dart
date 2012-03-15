@@ -198,24 +198,37 @@ class StringBase {
     return other.allMatches(this.substring(startIndex)).iterator().hasNext();
   }
 
-  String replaceFirst(Pattern from, String to) {
-    if (from is RegExp) {
-      throw "Unimplemented String.replace with RegExp";
+  String replaceFirst(Pattern pattern, String to) {
+    if (pattern is RegExp) {
+      StringBuffer buffer = new StringBuffer();
+      int startIndex = 0;
+      Match match = pattern.firstMatch(this);
+      if (match != null) {
+        buffer.add(this.substring(startIndex, match.start())).add(to);
+        startIndex = match.end();
+      }
+      return buffer.add(this.substring(startIndex)).toString();
     }
-    int pos = this.indexOf(from, 0);
+    int pos = this.indexOf(pattern, 0);
     if (pos < 0) {
       return this;
     }
     String s1 = this.substring(0, pos);
-    String s2 = this.substring(pos + from.length, this.length);
+    String s2 = this.substring(pos + pattern.length, this.length);
     return s1.concat(to.concat(s2));
   }
 
-  String replaceAll(Pattern from_, String to) {
-    if (from_ is RegExp) {
-      throw "Unimplemented String.replaceAll with RegExp";
+  String replaceAll(Pattern pattern, String to) {
+    if (pattern is RegExp) {
+      StringBuffer buffer = new StringBuffer();
+      int startIndex = 0;
+      for (Match match in pattern.allMatches(this)) {
+        buffer.add(this.substring(startIndex, match.start())).add(to);
+        startIndex = match.end();
+      }
+      return buffer.add(this.substring(startIndex)).toString();
     }
-    String from = from_;
+    String from = pattern;
     int fromLength = from.length;
     int toLength = to.length;
     int thisLength = this.length;
@@ -301,10 +314,16 @@ class StringBase {
   }
 
   List<String> split(Pattern pattern) {
-    if (pattern is RegExp) {
-      throw "Unimplemented split with RegExp";
-    }
     List<String> result = new List<String>();
+    if (pattern is RegExp) {
+      int startIndex = 0;
+      for (Match match in pattern.allMatches(this)) {
+        result.add(this.substring(startIndex, match.start()));
+        startIndex = match.end();
+      }
+      result.add(this.substring(startIndex));
+      return result;
+    }
     if (pattern.isEmpty()) {
       for (int i = 0; i < this.length; i++) {
         result.add(this.substring(i, i+1));

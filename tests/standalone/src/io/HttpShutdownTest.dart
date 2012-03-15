@@ -37,7 +37,7 @@ void test2(int totalConnections) {
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, totalConnections);
   server.onRequest = (HttpRequest request, HttpResponse response) {
-    response.writeString("!dlrow ,olleH");
+    response.outputStream.writeString("!dlrow ,olleH");
     response.outputStream.close();
   };
 
@@ -46,7 +46,7 @@ void test2(int totalConnections) {
   for (int i = 0; i < totalConnections; i++) {
     HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
     conn.onRequest = (HttpClientRequest request) {
-      request.writeString("Hello, world!");
+      request.outputStream.writeString("Hello, world!");
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {
@@ -66,7 +66,7 @@ void test3(int totalConnections) {
   server.listen("127.0.0.1", 0, totalConnections);
   server.onRequest = (HttpRequest request, HttpResponse response) {
     request.inputStream.onClosed = () {
-      response.writeString("!dlrow ,olleH");
+      response.outputStream.writeString("!dlrow ,olleH");
       response.outputStream.close();
     };
   };
@@ -76,7 +76,7 @@ void test3(int totalConnections) {
   for (int i = 0; i < totalConnections; i++) {
     HttpClientConnection conn = client.get("127.0.0.1", server.port, "/");
     conn.onRequest = (HttpClientRequest request) {
-      request.writeString("Hello, world!");
+      request.outputStream.writeString("Hello, world!");
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {

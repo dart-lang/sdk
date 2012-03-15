@@ -15,7 +15,7 @@ class IsolateA extends Isolate {
     this.port.receive((msg, replyTo) {
       Expect.equals("launch nested!", msg);
       new IsolateB().spawn().then((SendPort p) {
-        p.call("alive?").receive((msg, ignored) {
+        p.call("alive?").then((msg) {
           Expect.equals("and kicking", msg);
           replyTo.send(499, null);
           this.port.close();
@@ -39,7 +39,7 @@ class IsolateB extends Isolate {
 
 test(TestExpectation expect) {
   expect.completes(new IsolateA().spawn()).then((SendPort port) {
-    port.call("launch nested!").receive(expect.runs2((msg, ignored) {
+    port.call("launch nested!").then(expect.runs1((msg) {
       Expect.equals(499, msg);
       expect.succeeded();
     }));

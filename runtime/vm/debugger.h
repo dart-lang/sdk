@@ -236,7 +236,8 @@ class Debugger {
     kStepOut
   };
 
-  void InstrumentForStepping(const Function &target_function);
+  void EnsureFunctionIsDeoptimized(const Function& func);
+  void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t token_index);
   void RemoveInternalBreakpoints();
@@ -261,6 +262,11 @@ class Debugger {
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
+
+  // Do not call back to breakpoint handler if this flag is set.
+  // Effectively this means ignoring breakpoints. Set when Dart code may
+  // be run as a side effect of getting values of fields.
+  bool ignore_breakpoints_;
 
   friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);

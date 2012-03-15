@@ -9,6 +9,15 @@ class A {
   A.named(x, int y) : this(x + y);
   A.named2(int x, int y, z) : this.named(staticFun(x, y), z);
 
+  // The following is a bit tricky. It is a compile-time error to
+  // refer to this (implicitly or explicitly) from an initializer.
+  // When we remove the line with moreStaticFun, staticFun is really a
+  // static function and it is legal to call it. This is what will
+  // happen in the /none version of this test. However, in /01,
+  // staticFun isn't really a static function and should cause a
+  // compile-time error.
+  static
+  moreStaticFun() {} /// 01: compile-time error
   int staticFun(int v1, int v2) {
     return v1 * v2;
   }

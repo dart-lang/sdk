@@ -112,10 +112,105 @@ class BoolTest {
     Expect.equals(false, !isTrue);
   }
 
+  static void testLogicalOp() {
+    testOr(a, b, onTypeError) {
+      try {
+        return a || b;
+      } catch (TypeError t) {
+        return onTypeError;
+      }
+    }
+    testAnd(a, b, onTypeError) {
+      try {
+        return a && b;
+      } catch (TypeError t) {
+        return onTypeError;
+      }
+    }
+
+    var isTrue = true;
+    var isFalse = false;
+    Expect.equals(true, testAnd(isTrue, isTrue, false));
+    Expect.equals(false, testAnd(isTrue, 0, false));
+    Expect.equals(false, testAnd(isTrue, 1, false));
+    Expect.equals(false, testAnd(isTrue, "true", false));
+    Expect.equals(false, testAnd(0, isTrue, false));
+    Expect.equals(false, testAnd(1, isTrue, false));
+
+    Expect.equals(true, testOr(isTrue, isTrue, false));
+    Expect.equals(true, testOr(isFalse, isTrue, false));
+    Expect.equals(true, testOr(isTrue, isFalse, false));
+    Expect.equals(true, testOr(isTrue, 0, true));
+    Expect.equals(true, testOr(isTrue, 1, true));
+    Expect.equals(false, testOr(isFalse, 0, false));
+    Expect.equals(false, testOr(isFalse, 1, false));
+    Expect.equals(true, testOr(0, isTrue, true));
+    Expect.equals(true, testOr(1, isTrue, true));
+    Expect.equals(false, testOr(0, isFalse, false));
+    Expect.equals(false, testOr(1, isFalse, false));
+    
+    // Test side effects.
+    int trueCount = 0, falseCount = 0;
+      
+    trueFunc() {
+      trueCount++;
+      return true;
+    }
+    
+    falseFunc() {
+      falseCount++;
+      return false;
+    }
+
+    Expect.equals(0, trueCount);
+    Expect.equals(0, falseCount);
+  
+    trueFunc() && trueFunc();
+    Expect.equals(2, trueCount);
+    Expect.equals(0, falseCount);
+
+    trueCount = falseCount = 0;
+    falseFunc() && trueFunc();
+    Expect.equals(0, trueCount);
+    Expect.equals(1, falseCount);
+
+    trueCount = falseCount = 0;
+    trueFunc() && falseFunc();
+    Expect.equals(1, trueCount);
+    Expect.equals(1, falseCount);
+
+    trueCount = falseCount = 0;
+    falseFunc() && falseFunc();
+    Expect.equals(0, trueCount);
+    Expect.equals(1, falseCount);
+    
+    trueCount = falseCount = 0;
+    trueFunc() || trueFunc();
+    Expect.equals(1, trueCount);
+    Expect.equals(0, falseCount);
+
+    trueCount = falseCount = 0;
+    falseFunc() || trueFunc();
+    Expect.equals(1, trueCount);
+    Expect.equals(1, falseCount);
+
+    trueCount = falseCount = 0;
+    trueFunc() || falseFunc();
+    Expect.equals(1, trueCount);
+    Expect.equals(0, falseCount);
+
+    trueCount = falseCount = 0;
+    falseFunc() || falseFunc();
+    Expect.equals(0, trueCount);
+    Expect.equals(2, falseCount);
+  }
+  
+
   static void testMain() {
     testEquality();
     testNegate(true, false);
     testToString();
+    testLogicalOp();
   }
 }
 

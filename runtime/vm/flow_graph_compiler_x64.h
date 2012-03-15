@@ -42,8 +42,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
     Label label;
   };
 
-  int stack_local_count() const { return stack_local_count_; }
-  void set_stack_local_count(int count) { stack_local_count_ = count; }
   BlockEntryInstr* current_block() const { return current_block_; }
 
   // Bail out of the flow graph compiler.  Does not return to the caller.
@@ -65,8 +63,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
 
-  // Emit code to load a Value into register RAX.
-  void LoadValue(Value* value);
+  // Emit code to load a Value into register 'dst'.
+  void LoadValue(Register dst, Value* value);
 
   // Emit an instance call.
   void EmitInstanceCall(intptr_t node_id,
@@ -92,6 +90,17 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                                 const AbstractType& dst_type,
                                 const String& dst_name);
 
+  void GenerateInstanceOf(intptr_t node_id,
+                          intptr_t token_index,
+                          const AbstractType& type,
+                          bool negate_result);
+
+  void GenerateInstantiatorTypeArguments(intptr_t token_index);
+
+  void CopyParameters();
+
+  intptr_t StackSize() const;
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>* blocks_;
@@ -103,7 +112,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   BlockEntryInstr* current_block_;
 
   CodeGenerator::DescriptorList* pc_descriptors_list_;
-  int stack_local_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

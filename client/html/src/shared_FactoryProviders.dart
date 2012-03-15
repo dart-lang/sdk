@@ -4,13 +4,13 @@
 
 class _TextFactoryProvider {
 
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) => _document._createTextNode(data);
 }
 
 class _EventFactoryProvider {
   factory Event(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    _EventImpl e = document._createEvent("Event");
+    final _EventImpl e = _document._createEvent("Event");
     e._initEvent(type, canBubble, cancelable);
     return e;
   }
@@ -22,7 +22,7 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = document._createEvent("MouseEvent");
+    final e = _document._createEvent("MouseEvent");
     e._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -32,7 +32,7 @@ class _MouseEventFactoryProvider {
 
 class _CSSStyleDeclarationFactoryProvider {
   factory CSSStyleDeclaration.css(String css) {
-    var style = new Element.tag('div').style;
+    final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   } 
@@ -75,8 +75,7 @@ class _ElementFactoryProvider {
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
-    _ElementImpl temp = document._createElement(parentTag);
+    final _ElementImpl temp = new Element.tag(parentTag);
     temp.innerHTML = html;
 
     Element element;
@@ -96,7 +95,72 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  factory Element.tag(String tag) {
-    return document._createElement(tag);
+  factory Element.tag(String tag) => _document._createElement(tag);
+}
+
+class _DocumentFragmentFactoryProvider {
+  /** @domName Document.createDocumentFragment */
+  factory DocumentFragment() => document.createDocumentFragment();
+
+  factory DocumentFragment.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHTML = html;
+    return fragment;
+  }
+
+  // TODO(nweiz): enable this when XML is ported.
+  // factory DocumentFragment.xml(String xml) {
+  //   final fragment = new DocumentFragment();
+  //   final e = new XMLElement.tag("xml");
+  //   e.innerHTML = xml;
+  //
+  //   // Copy list first since we don't want liveness during iteration.
+  //   final List nodes = new List.from(e.nodes);
+  //   fragment.nodes.addAll(nodes);
+  //   return fragment;
+  // }
+
+  factory DocumentFragment.svg(String svg) {
+    final fragment = new DocumentFragment();
+    final e = new SVGSVGElement();
+    e.innerHTML = svg;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
+}
+
+class _SVGElementFactoryProvider {
+  factory SVGElement.tag(String tag) {
+    final Element temp =
+      _document._createElementNS("http://www.w3.org/2000/svg", tag);
+    return temp;
+  }
+
+  factory SVGElement.svg(String svg) {
+    Element parentTag;
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    if (match != null && match.group(1).toLowerCase() == 'svg') {
+      parentTag = new Element.tag('div');
+    } else {
+      parentTag = new SVGSVGElement();
+    }
+
+    parentTag.innerHTML = svg;
+    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
+
+    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+        'top-level elements but 1 expected');
+  }
+}
+
+class _SVGSVGElementFactoryProvider {
+  factory SVGSVGElement() {
+    final el = new SVGElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = "1.1";
+    return el;
   }
 }

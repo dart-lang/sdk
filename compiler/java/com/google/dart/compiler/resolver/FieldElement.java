@@ -14,4 +14,9 @@ public interface FieldElement extends Element {
   MethodElement getGetter();
 
   MethodElement getSetter();
+
+  /**
+   * @return the inferred {@link Type} of this constant, may be <code>null</code> if not set yet.
+   */
+  Type getConstantType();
 }

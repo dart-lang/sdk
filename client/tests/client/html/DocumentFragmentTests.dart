@@ -37,9 +37,13 @@ testDocumentFragment() {
     // Expect.isNull(style.getPropertyCSSValue('color'));
     // Expect.isNull(style.getPropertyShorthand('color'));
     // Expect.isFalse(style.isPropertyImplicit('color'));
-    expectUnsupported(() => style.cssText = '* {color: blue}');
-    expectUnsupported(() => style.removeProperty('color'));
-    expectUnsupported(() => style.setProperty('color', 'blue'));
+
+    // Ideally these would throw errors, but it's not possible to create a class
+    // that'll intercept these calls without implementing the entire
+    // CSSStyleDeclaration interface, so we'll settle for them being no-ops.
+    style.cssText = '* {color: blue}';
+    style.removeProperty('color');
+    style.setProperty('color', 'blue');
   }
 
   group('constructors', () {
@@ -53,10 +57,10 @@ testDocumentFragment() {
       Expect.isTrue(fragment.elements.first is AnchorElement);
     });
 
-    test('.svg parses input as SVG', () {
-      final fragment = new DocumentFragment.svg('<a>foo</a>');
-      Expect.isTrue(fragment.elements.first is SVGAElement);
-    });
+    // test('.svg parses input as SVG', () {
+    //   final fragment = new DocumentFragment.svg('<a>foo</a>');
+    //   Expect.isTrue(fragment.elements.first is SVGAElement);
+    // });
   });
 
   test('Unsupported operations throw errors', () {
@@ -75,9 +79,11 @@ testDocumentFragment() {
     expectUnsupported(() => emptyFragment.scrollLeft = 10);
     expectUnsupported(() => emptyFragment.scrollTop = 10);
     expectUnsupported(() => emptyFragment.spellcheck = true);
+    expectUnsupported(() => emptyFragment.translate = true);
     expectUnsupported(() => emptyFragment.tabIndex = 5);
     expectUnsupported(() => emptyFragment.title = "foo");
     expectUnsupported(() => emptyFragment.webkitdropzone = "foo");
+    expectUnsupported(() => emptyFragment.webkitRegionOverflow = "foo");
   });
 
   group('elements', () {
@@ -263,9 +269,11 @@ testDocumentFragment() {
     fragment.on.click.add((e) => null);
     fragment.blur();
     fragment.focus();
+    fragment.click();
     fragment.scrollByLines(2);
     fragment.scrollByPages(2);
     fragment.scrollIntoView();
+    fragment.webkitRequestFullScreen(2);
   });
 
   asyncTest('default values', 1, () {
@@ -284,10 +292,12 @@ testDocumentFragment() {
     Expect.equals("", fragment.title);
     Expect.equals("", fragment.tagName);
     Expect.equals("", fragment.webkitdropzone);
+    Expect.equals("", fragment.webkitRegionOverflow);
     Expect.isFalse(fragment.isContentEditable);
     Expect.isFalse(fragment.draggable);
     Expect.isFalse(fragment.hidden);
     Expect.isFalse(fragment.spellcheck);
+    Expect.isFalse(fragment.translate);
     Expect.isNull(fragment.nextElementSibling);
     Expect.isNull(fragment.previousElementSibling);
     Expect.isNull(fragment.offsetParent);
@@ -307,13 +317,6 @@ testDocumentFragment() {
       expectEmptyStyleDeclaration(computedStyle);
       callbackDone();
     });
-  });
-
-  test('setters throw errors', () {
-    var style = new DocumentFragment().style;
-    expectUnsupported(() => style.cssText = '* {color: blue}');
-    expectUnsupported(() => style.removeProperty('color'));
-    expectUnsupported(() => style.setProperty('color', 'blue'));
   });
 
   // TODO(nweiz): re-enable when const is better supported in dartc and/or frog
