@@ -236,25 +236,12 @@ class TestGraphVisitor : public ValueGraphVisitor {
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
-  bool can_be_true() const {
-    // Either both successors are set or neither is set.
-    ASSERT((true_successor_address_ == NULL) ==
-           (false_successor_address_ == NULL));
-    return true_successor_address_ != NULL;
-  }
-  bool can_be_false() const {
-    // Either both successors are set or neither is set.
-    ASSERT((true_successor_address_ == NULL) ==
-           (false_successor_address_ == NULL));
-    return false_successor_address_ != NULL;
-  }
-
   BlockEntryInstr** true_successor_address() const {
-    ASSERT(can_be_true());
+    ASSERT(true_successor_address_ != NULL);
     return true_successor_address_;
   }
   BlockEntryInstr** false_successor_address() const {
-    ASSERT(can_be_false());
+    ASSERT(false_successor_address_ != NULL);
     return false_successor_address_;
   }
 
