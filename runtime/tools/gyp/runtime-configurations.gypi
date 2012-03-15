@@ -11,6 +11,11 @@
           'DEBUG',
         ],
       },
+      'Debug': {
+        'defines': [
+          'DEBUG',
+        ],
+      },
     },
   },
 }
