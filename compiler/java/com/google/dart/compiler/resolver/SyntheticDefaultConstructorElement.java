@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class SyntheticDefaultConstructorElement extends AbstractNodeElement
     implements
-      ConstructorElement {
+      ConstructorNodeElement {
   private final ClassElement enclosingClass;
   private final FunctionType functionType;
   private ConstructorElement defaultConstructor;

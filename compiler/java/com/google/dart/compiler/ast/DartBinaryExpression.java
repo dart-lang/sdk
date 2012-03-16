@@ -6,7 +6,7 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.MethodNodeElement;
 
 /**
  * Represents a Dart binary expression.
@@ -16,7 +16,7 @@ public class DartBinaryExpression extends DartExpression {
   private final Token op;
   private DartExpression arg1;
   private DartExpression arg2;
-  private MethodElement element;
+  private MethodNodeElement element;
 
   public DartBinaryExpression(Token op, DartExpression arg1, DartExpression arg2) {
     assert op.isBinaryOperator() : op;
@@ -50,12 +50,12 @@ public class DartBinaryExpression extends DartExpression {
   }
 
   @Override
-  public MethodElement getElement() {
+  public MethodNodeElement getElement() {
     return element;
   }
 
   @Override
   public void setElement(Element element) {
-    this.element = (MethodElement) element;
+    this.element = (MethodNodeElement) element;
   }
 }

@@ -5,6 +5,7 @@
 package com.google.dart.compiler.type;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -19,6 +20,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.Elements;
@@ -40,7 +42,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -169,17 +170,17 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     return node;
   }
 
-  protected ClassElement analyzeClass(ClassElement cls, int expectedErrorCount) {
+  protected ClassElement analyzeClass(ClassNodeElement cls, int expectedErrorCount) {
     setExpectedTypeErrorCount(expectedErrorCount);
     analyzeToplevel(cls.getNode());
     checkExpectedTypeErrorCount(cls.getName());
     return cls;
   }
 
-  protected Map<String, ClassElement> analyzeClasses(Map<String, ClassElement> classes,
+  protected Map<String, ClassNodeElement> analyzeClasses(Map<String, ClassNodeElement> classes,
                                                    ErrorCode... codes) {
     setExpectedTypeErrorCount(codes.length);
-    for (ClassElement cls : classes.values()) {
+    for (ClassNodeElement cls : classes.values()) {
       analyzeToplevel(cls.getNode());
     }
     List<ErrorCode> errorCodes = context.getErrorCodes();
@@ -291,13 +292,13 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     return cls;
   }
 
-  protected Map<String, ClassElement> loadFile(final String name) {
+  protected Map<String, ClassNodeElement> loadFile(final String name) {
     String source = getResource(name);
     return loadSource(source);
   }
 
-  protected Map<String, ClassElement> loadSource(String source) {
-    Map<String, ClassElement> classes = new LinkedHashMap<String, ClassElement>();
+  protected Map<String, ClassNodeElement> loadSource(String source) {
+    Map<String, ClassNodeElement> classes = Maps.newLinkedHashMap();
     DartUnit unit = parseUnit(source);
     Scope scope = getMockScope("<test toplevel>");
     LibraryElement libraryElement = scope.getLibrary();
@@ -308,7 +309,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartClass) {
         DartClass classNode = (DartClass) node;
-        final ClassElement classElement = classNode.getElement();
+        ClassNodeElement classElement = classNode.getElement();
         String className = classElement.getName();
         coreElements.put(className, classElement);
         classes.put(className, classElement);
@@ -326,7 +327,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     return classes;
   }
 
-  protected Map<String, ClassElement> loadSource(String firstLine, String secondLine,
+  protected Map<String, ClassNodeElement> loadSource(String firstLine, String secondLine,
                                                String... rest) {
     return loadSource(Joiner.on('\n').join(firstLine, secondLine, (Object[]) rest).toString());
   }

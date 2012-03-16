@@ -4,8 +4,14 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.resolver.NodeElement;
+
 /**
  * Base class for directives.
  */
 public abstract class DartDirective extends DartNode {
+  @Override
+  public NodeElement getElement() {
+    throw new UnsupportedOperationException(getClass().getSimpleName());
+  }
 }

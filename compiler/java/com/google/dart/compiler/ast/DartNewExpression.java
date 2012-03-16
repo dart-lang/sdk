@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.ConstructorNodeElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 
@@ -16,7 +16,7 @@ import java.util.List;
 public class DartNewExpression extends DartInvocation {
 
   private DartNode constructor;
-  private ConstructorElement element;
+  private ConstructorNodeElement element;
   private final boolean isConst;
 
   public DartNewExpression(DartNode constructor, List<DartExpression> args, boolean isConst) {
@@ -39,7 +39,7 @@ public class DartNewExpression extends DartInvocation {
   }
 
   @Override
-  public ConstructorElement getElement() {
+  public ConstructorNodeElement getElement() {
     return element;
   }
 
@@ -49,7 +49,7 @@ public class DartNewExpression extends DartInvocation {
 
   @Override
   public void setElement(Element element) {
-    this.element = (ConstructorElement) element;
+    this.element = (ConstructorNodeElement) element;
   }
 
   @Override

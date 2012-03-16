@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.ConstructorNodeElement;
 import com.google.dart.compiler.resolver.Element;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 public class DartRedirectConstructorInvocation extends DartInvocation {
 
   private DartIdentifier name;
-  private ConstructorElement element;
+  private ConstructorNodeElement element;
 
   public DartRedirectConstructorInvocation(DartIdentifier name, List<DartExpression> args) {
     super(args);
@@ -28,11 +28,11 @@ public class DartRedirectConstructorInvocation extends DartInvocation {
 
   @Override
   public void setElement(Element element) {
-    this.element = (ConstructorElement) element;
+    this.element = (ConstructorNodeElement) element;
   }
 
   @Override
-  public ConstructorElement getElement() {
+  public ConstructorNodeElement getElement() {
     return element;
   }
 

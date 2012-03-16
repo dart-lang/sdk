@@ -6,6 +6,7 @@ package com.google.dart.compiler.type;
 
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
 import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -25,7 +26,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=348
    */
   public void test_cyclicDeclaration() {
-    Map<String, ClassElement> source = loadSource(
+    Map<String, ClassNodeElement> source = loadSource(
         "class Foo extends Bar {",
         "}",
         "class Bar extends Foo {",
@@ -204,7 +205,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testBitOperators() {
-    Map<String, ClassElement> source = loadSource(
+    Map<String, ClassNodeElement> source = loadSource(
         "class ClassWithBitops {",
         "  num n;",
         "  int i;",
@@ -269,7 +270,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testConstructorForwarding() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class MissingArgument {",
         "  MissingArgument() : this.bar() {}",
         "  MissingArgument.bar(int i) {}",
@@ -304,7 +305,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testCyclicTypeVariable() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "interface A<T> { }",
         "typedef funcType<T>(T arg);",
         "class B<T extends T> {}",
@@ -312,13 +313,13 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "class D<T extends funcType<T>> {}");
     analyzeClasses(classes,
         TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE);
-    ClassElement B = classes.get("B");
+    ClassNodeElement B = classes.get("B");
     analyzeClass(B, 1);
     assertEquals(1, B.getType().getArguments().size());
-    ClassElement C = classes.get("C");
+    ClassNodeElement C = classes.get("C");
     analyzeClass(C, 0);
     assertEquals(1, C.getType().getArguments().size());
-    ClassElement D = classes.get("D");
+    ClassNodeElement D = classes.get("D");
     analyzeClass(D, 0);
     assertEquals(1, D.getType().getArguments().size());
 
@@ -399,7 +400,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testFieldInitializers() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class Good {",
         "  String string;",
         "  int i;",
@@ -419,7 +420,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testForEachStatement() {
-    Map<String, ClassElement> invalidReturnType = loadSource(
+    Map<String, ClassNodeElement> invalidReturnType = loadSource(
         "class A {",
         "  Iterator<int> iterator() {}",
         "}",
@@ -430,7 +431,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testForEachStatement_Negative1() {
-    Map<String, ClassElement> fieldNotMethod = loadSource(
+    Map<String, ClassNodeElement> fieldNotMethod = loadSource(
         "class A {",
         "  int iterator;",
         "}",
@@ -441,7 +442,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testForEachStatement_Negative2() {
-    Map<String, ClassElement> invalidReturnType = loadSource(
+    Map<String, ClassNodeElement> invalidReturnType = loadSource(
         "class A {",
         "  int iterator() {}",
         "}",
@@ -481,7 +482,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testFunctionTypeAlias() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "typedef void VoidFunction();",
         "typedef String StringFunction();",
         "typedef String IntToStringFunction(int i);",
@@ -535,7 +536,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testGetAllSupertypes()
       throws CyclicDeclarationException, DuplicatedInterfaceException {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class A extends B<String> {",
         "}",
         "class B<T> extends C<G<T>> implements I<int>, I1<T> {",
@@ -636,7 +637,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testInitializedFields() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class GoodField {",
         "  static final int i = 1;",
         "}");
@@ -869,7 +870,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testOddStuff() {
-    Map<String, ClassElement> classes = analyzeClasses(loadSource(
+    Map<String, ClassNodeElement> classes = analyzeClasses(loadSource(
         "class Class {",
         "  Class() {}",
         "  var field;",
@@ -912,7 +913,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testParameterInitializers() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class C1 { int i; C1(this.i) {} }",
         "class C2 { String s; C2(int this.s) {} }",
         "class C3 { int i; C3(double this.i) {} }",
@@ -1023,7 +1024,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testSuperConstructorInvocation() {
-    Map<String, ClassElement> classes = loadSource(
+    Map<String, ClassNodeElement> classes = loadSource(
         "class Super {",
         "  Super(int x) {}",
         "  Super.foo() {}",
@@ -1082,7 +1083,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testThis() {
-    Map<String, ClassElement> classes = loadFile("class_with_supertypes.dart");
+    Map<String, ClassNodeElement> classes = loadFile("class_with_supertypes.dart");
     ClassElement superclass = classes.get("Superclass");
     assertNotNull("unable to locate Superclass", superclass);
     ClassElement subclass = classes.get("ClassWithSupertypes");
@@ -1127,7 +1128,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testDefaultTypeArgs() {
-    Map<String, ClassElement> source = loadSource(
+    Map<String, ClassNodeElement> source = loadSource(
         "class Object{}",
         "interface List<T> {}",
         "interface A<K,V> default B<K, V extends List<K>> {}",
@@ -1137,7 +1138,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testUnaryOperators() {
-    Map<String, ClassElement> source = loadSource(
+    Map<String, ClassNodeElement> source = loadSource(
         "class Foo {",
         "  Foo foo;",
         "  bool b;",
@@ -1363,7 +1364,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testValidateFactoryBounds() {
-    Map<String, ClassElement> source = loadSource(
+    Map<String, ClassNodeElement> source = loadSource(
         "class Object {}",
         "interface Foo {}",
         "interface Bar extends Foo {}",

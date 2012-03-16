@@ -5,6 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.NodeElement;
 
 /**
  * Represents a Dart identifier expression.
@@ -12,7 +13,7 @@ import com.google.dart.compiler.resolver.Element;
 public class DartIdentifier extends DartExpression {
 
   private final String name;
-  private Element element;
+  private NodeElement element;
 
   public DartIdentifier(String name) {
     assert name != null;
@@ -24,7 +25,7 @@ public class DartIdentifier extends DartExpression {
   }
 
   @Override
-  public Element getElement() {
+  public NodeElement getElement() {
     return element;
   }
 
@@ -39,7 +40,7 @@ public class DartIdentifier extends DartExpression {
 
   @Override
   public void setElement(Element element) {
-    this.element = (Element) element;
+    this.element = (NodeElement) element;
   }
 
   @Override

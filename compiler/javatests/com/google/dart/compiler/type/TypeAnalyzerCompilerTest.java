@@ -38,6 +38,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
@@ -741,6 +742,40 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getTypeErrors());
   }
 
+  /**
+   * Test for variants of {@link DartMethodDefinition} return types.
+   */
+  public void test_methodReturnTypes() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "int fA() {}",
+                "Dynamic fB() {}",
+                "void fC() {}",
+                "fD() {}",
+                ""));
+    assertErrors(libraryResult.getTypeErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    {
+      DartMethodDefinition fA = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+      assertEquals("int", fA.getElement().getReturnType().getElement().getName());
+    }
+    {
+      DartMethodDefinition fB = (DartMethodDefinition) unit.getTopLevelNodes().get(1);
+      assertEquals("<dynamic>", fB.getElement().getReturnType().getElement().getName());
+    }
+    {
+      DartMethodDefinition fC = (DartMethodDefinition) unit.getTopLevelNodes().get(2);
+      assertEquals("void", fC.getElement().getReturnType().getElement().getName());
+    }
+    {
+      DartMethodDefinition fD = (DartMethodDefinition) unit.getTopLevelNodes().get(3);
+      assertEquals("<dynamic>", fD.getElement().getReturnType().getElement().getName());
+    }
+  }
+
   public void test_bindToLibraryFunctionFirst() throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
@@ -767,7 +802,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       invocation = (DartUnqualifiedInvocation) stmt.getExpression();
     }
     // Check that unqualified foo() invocation is resolved to the top-level (library) function.
-    Element element = invocation.getTarget().getElement();
+    NodeElement element = invocation.getTarget().getElement();
     assertNotNull(element);
     assertSame(unit, element.getNode().getParent());
   }
@@ -1000,8 +1035,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  A get field() { return getterField; }",
             "  void set field(B arg) { setterField = arg; }",
             "}");
-    assertErrors(result.getErrors(),
-                 errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 8, 18, 5));
   }
 
   public void test_typeVariableBoundsMismatch() throws Exception {
@@ -1011,8 +1045,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "interface I<T extends num> { }",
             "class A<T extends num> implements I<T> { }",
             "class B<T> implements I<T> { }"); // static type error B.T not assignable to num
-    assertErrors(result.getErrors(),
-                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 25, 1));
   }
 
   public void test_typeVariableBoundsMismatch2() throws Exception {
@@ -1022,8 +1055,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class C<T extends num> { }",
             "class A<T extends num> extends C<T> { }",
             "class B<T> extends C<T> { }"); // static type error B.T not assignable to num
-    assertErrors(result.getErrors(),
-                 errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
+    assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
   }
 
   private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
