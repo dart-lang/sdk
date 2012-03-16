@@ -33,23 +33,7 @@ compileToJs() {
 compileToJs "client-static"
 compileToJs "client-live-nav"
 
-# Clean the output directory.
-if [ -d "docs" ]; then
-    rm -r docs
-fi
-mkdir docs
-
-# Copy the static files over.
-cp ../../lib/dartdoc/static/* docs
-# Overlay any apidoc-specific ones.
-cp static/* docs
-
-# Ditch the first arg so we can pass any extra arguments to dartdoc.
-shift
-
-# Figure out where the dart VM executable is.
-
 # Generate the user's docs.
-dart ../apidoc/apidoc.dart $@
+dart apidoc.dart $@
 
 popd >>/dev/null

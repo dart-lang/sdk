@@ -41,15 +41,6 @@ compileToJs() {
 compileToJs "client-static"
 compileToJs "client-live-nav"
 
-# Clean the output directory.
-if [ -d "docs" ]; then
-  rm -r docs
-fi
-mkdir docs
-
-# Copy the static files over.
-cp -R static/* docs
-
 # Ditch the first arg so we can pass any extra arguments to dartdoc.
 shift
 

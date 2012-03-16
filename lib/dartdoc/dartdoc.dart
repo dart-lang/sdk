@@ -26,9 +26,6 @@
 #source('comment_map.dart');
 #source('utils.dart');
 
-/** Path to generate HTML files into. */
-final _outdir = 'docs';
-
 /**
  * Generates completely static HTML containing everything you need to browse
  * the docs. The only client side behavior is trivial stuff like syntax
@@ -56,15 +53,14 @@ final MODE_LIVE_NAV = 1;
 void main() {
   final args = new Options().arguments;
 
-  // The entrypoint of the library to generate docs for.
-  final entrypoint = args[args.length - 1];
-
   // Parse the dartdoc options.
-  bool includeSource = true;
-  var mode = MODE_LIVE_NAV;
+  bool includeSource;
+  String mode;
+  String outputDir;
 
-  for (int i = 2; i < args.length - 1; i++) {
+  for (int i = 0; i < args.length - 1; i++) {
     final arg = args[i];
+
     switch (arg) {
       case '--no-code':
         includeSource = false;
@@ -79,9 +75,18 @@ void main() {
         break;
 
       default:
-        print('Unknown option: $arg');
+        if (arg.startsWith('--out=')) {
+          outputDir = arg.substring('--out='.length);
+        } else {
+          print('Unknown option: $arg');
+          return;
+        }
+        break;
     }
   }
+
+  // The entrypoint of the library to generate docs for.
+  final entrypoint = args[args.length - 1];
 
   final files = new VMFileSystem();
   // TODO(rnystrom): Note that the following line gets munged by create-sdk to
@@ -93,8 +98,15 @@ void main() {
   var dartdoc;
   final elapsed = time(() {
     dartdoc = new Dartdoc();
-    dartdoc.includeSource = includeSource;
-    dartdoc.mode = mode;
+
+    if (includeSource != null) dartdoc.includeSource = includeSource;
+    if (mode != null) dartdoc.mode = mode;
+    if (outputDir != null) dartdoc.outputDir = outputDir;
+
+    cleanOutputDirectory(outputDir);
+
+    // TODO(rnystrom): Use platform-specific path separator.
+    copyFiles('$scriptDir/static', outputDir);
 
     dartdoc.document(entrypoint);
   });
@@ -102,6 +114,51 @@ void main() {
   print('Documented ${dartdoc._totalLibraries} libraries, ' +
       '${dartdoc._totalTypes} types, and ' +
       '${dartdoc._totalMembers} members in ${elapsed}msec.');
+}
+
+/**
+ * Gets the full path to the directory containing the entrypoint of the current
+ * script. In other words, if you invoked dartdoc, directly, it will be the
+ * path to the directory containing `dartdoc.dart`. If you're running a script
+ * that imports dartdoc, it will be the path to that script.
+ */
+String get scriptDir() {
+  return dirname(new File(new Options().script).fullPathSync());
+}
+
+/**
+ * Deletes and recreates the output directory at [path] if it exists.
+ */
+void cleanOutputDirectory(String path) {
+  final outputDir = new Directory(path);
+  if (outputDir.existsSync()) {
+    outputDir.deleteRecursivelySync();
+    outputDir.createSync();
+  }
+}
+
+/**
+ * Copies all of the files in the directory [from] to [to]. Does *not*
+ * recursively copy subdirectories.
+ *
+ * Note: runs asynchronously, so you won't see any files copied until after the
+ * event loop has had a chance to pump (i.e. after `main()` has returned).
+ */
+void copyFiles(String from, String to) {
+  final fromDir = new Directory(from);
+  fromDir.onFile = (path) {
+    final name = basename(path);
+    // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
+    if (name.startsWith('.')) return;
+
+    new File(path).readAsBytes((bytes) {
+      final outFile = new File('$to/$name');
+      final stream = outFile.openOutputStream(FileMode.WRITE);
+      stream.write(bytes, copyBuffer: false);
+      stream.close();
+    });
+  };
+  fromDir.list(recursive: false);
 }
 
 class Dartdoc {
@@ -114,6 +171,9 @@ class Dartdoc {
    * the `MODE_` constants.
    */
   int mode = MODE_LIVE_NAV;
+
+  /** Path to generate HTML files into. */
+  String outputDir = 'docs';
 
   /**
    * The title used for the overall generated output. Set this to change it.
@@ -245,7 +305,7 @@ class Dartdoc {
   }
 
   void endFile() {
-    final outPath = '$_outdir/$_filePath';
+    final outPath = '$outputDir/$_filePath';
     final dir = new Directory(dirname(outPath));
     if (!dir.existsSync()) {
       dir.createSync();

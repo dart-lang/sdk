@@ -19,6 +19,33 @@ HtmlDiff _diff;
 final GET_PREFIX = 'get:';
 
 void main() {
+  final args = new Options().arguments;
+
+  var outputDir = 'docs';
+
+  // Use the output directory if provided.
+  if (args.length > 1) {
+    print('Usage: apidoc [--out=<output directory>]');
+    return;
+  } else if (args.length == 1) {
+    final arg = args[0];
+    if (arg.startsWith('--out=')) {
+      outputDir = arg.substring('--out='.length);
+    } else {
+      print('Unknown option: $arg');
+      return;
+    }
+  }
+
+  doc.cleanOutputDirectory(outputDir);
+
+  // TODO(rnystrom): Use platform-specific path separator.
+  // The basic dartdoc-provided static content.
+  doc.copyFiles('${doc.scriptDir}/../../lib/dartdoc/static', outputDir);
+
+  // The apidoc-specific static content.
+  doc.copyFiles('${doc.scriptDir}/static', outputDir);
+
   var files = new VMFileSystem();
   parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
   initializeWorld(files);
@@ -38,7 +65,7 @@ void main() {
   world.getOrAddLibrary('dart:io');
 
   print('Generating docs...');
-  final apidoc = new Apidoc(mdn);
+  final apidoc = new Apidoc(mdn, outputDir);
   apidoc.document('html');
 }
 
@@ -53,7 +80,9 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn) {
+  Apidoc(this.mdn, String outputDir) {
+    this.outputDir = outputDir;
+
     mainTitle = 'Dart API Reference';
     mainUrl = 'http://dartlang.org';
 
