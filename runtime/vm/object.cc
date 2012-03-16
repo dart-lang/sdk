@@ -8303,6 +8303,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   Array& new_array = Array::Handle(isolate, Array::Empty());
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
+  NoGCScope no_gc;
 
   // Update the size in the header field and length of the array object.
   uword tags = 0;
@@ -8318,7 +8319,6 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   // just a plain object (depending on the amount of left over space) so
   // that it can be traversed over successfully during garbage collection.
   if (capacity_size != used_size) {
-    NoGCScope no_gc;
     ASSERT(capacity_len > used_len);
     intptr_t leftover_size = capacity_size - used_size;
 
@@ -8326,20 +8326,21 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
     if (leftover_size >= Array::InstanceSize(0)) {
       // As we have enough space to use an array object, update the leftover
       // space as an Array object.
-      new_array.raw_ = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
-      new_array.raw_ptr()->class_ = isolate->object_store()->array_class();
+      RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
+      raw->ptr()->class_ = isolate->object_store()->array_class();
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      new_array.raw_ptr()->tags_ = tags;
+      raw->ptr()->tags_ = tags;
       intptr_t leftover_len =
           ((leftover_size - Array::InstanceSize(0)) / kWordSize);
-      new_array.SetLength(leftover_len);
+      raw->ptr()->tags_ = tags;
+      raw->ptr()->length_ = Smi::New(leftover_len);
     } else {
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
-      Object& new_object = Object::Handle(isolate, RawObject::FromAddr(addr));
-      new_object.raw()->ptr()->class_ = isolate->object_store()->object_class();
+      RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
+      raw->ptr()->class_ = isolate->object_store()->object_class();
       tags = RawObject::SizeTag::update(leftover_size, tags);
-      new_object.raw()->ptr()->tags_ = tags;
+      raw->ptr()->tags_ = tags;
     }
   }
   return array.raw();
