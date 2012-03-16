@@ -893,11 +893,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   // At this point, we must see an identifier for the parameter name.
   parameter.name_pos = token_index_;
   parameter.name = ExpectIdentifier("parameter name expected");
-  if (params->has_named_optional_parameters &&
-      (parameter.name->CharAt(0) == '_')) {
-    Warning(parameter.name_pos,
-            "named optional parameters may not start with '_'\n");
-  }
   if (parameter.is_field_initializer) {
     params->has_field_initializer = true;
   }
