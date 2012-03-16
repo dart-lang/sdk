@@ -24,8 +24,8 @@ class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>* blocks)
-      : parsed_function_(parsed_function) {
+                    const GrowableArray<BlockEntryInstr*>& blocks)
+      : FlowGraphVisitor(blocks), parsed_function_(parsed_function) {
   }
 
   virtual ~FlowGraphCompiler() { }
