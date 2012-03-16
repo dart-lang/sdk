@@ -18,6 +18,11 @@ handlers:
   static_files: static/\1
   upload: static/(.*\.js)
 
+- url: /(.*\.txt)
+  mime_type: text/html
+  static_files: static/\1
+  upload: static/(.*\.txt)
+
 - url: /(.*\.json)
   mime_type: application/json
   static_files: static/\1
@@ -45,6 +50,18 @@ handlers:
 - url: /graphs/(.*)
   static_files: static/graphs/\1
   upload: static/graphs/(.*)
+
+- url: /data/browser-perf/macos/(.*)
+  static_files: static/data/browser-perf/macos/\1
+  upload: static/data/browser-perf/macos/(.*)
+
+- url: /data/code-time-size/macos/(.*)
+  static_files: static/data/code-time-size/macos/\1
+  upload: static/data/code-time-size/macos/(.*)
+
+- url: /data/cl-results/macos/(.*)
+  static_files: static/data/cl-results/macos/\1
+  upload: static/data/cl-results/macos/(.*)
 
 # site root
 - url: /

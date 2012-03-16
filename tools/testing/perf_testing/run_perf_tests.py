@@ -5,6 +5,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import datetime
+import getpass
 import math
 from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
@@ -28,12 +29,12 @@ the server, and will sync and run the performance tests if so."""
 
 DART_INSTALL_LOCATION = os.path.join(dirname(abspath(__file__)),
     '..', '..', '..')
-V8_MEAN = 'V8 Mean'
-FROG_MEAN = 'frog Mean'
+JS_MEAN = 'JS Mean'
+FROG_MEAN = 'frog js Mean'
 COMMAND_LINE = 'commandline'
-V8 = 'v8'
+JS = 'js'
 FROG = 'frog'
-V8_AND_FROG = [V8, FROG]
+JS_AND_FROG = [JS, FROG]
 CORRECTNESS = 'Percent passing'
 COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'black']
 GRAPH_OUT_DIR = 'graphs'
@@ -155,7 +156,7 @@ def get_browsers():
   return browsers
 
 def get_versions():
-  return V8_AND_FROG
+  return JS_AND_FROG
 
 def get_benchmarks():
   return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
@@ -173,24 +174,61 @@ def get_os_directory():
   else:
     return 'linux'
 
-def upload_to_app_engine():
-  """Upload our results to our appengine server."""
+def upload_to_app_engine(username, password):
+  """Upload our results to our appengine server.
+  Arguments:
+    username: App Engine username for uploading data to dartperf.googleplex.com
+    password: App Engine password
+  """
   # TODO(efortuna): This is the most basic way to get the data up 
   # for others to view. Revisit this once we're serving nicer graphs (Google
   # Chart Tools) and from multiple perfbots and once we're in a position to
   # organize the data in a useful manner(!!).
   os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
       'perf_testing'))
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF]:
+    path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
+    shutil.rmtree(path, ignore_errors=True)
+    os.makedirs(path)
+    files = []
+    # Copy the 1000 most recent trace files to be uploaded.
+    for f in os.listdir(data):
+      files += [(os.path.getmtime(os.path.join(data, f)), f)]
+    files.sort()
+    for f in files[-1000]:
+      shutil.copyfile(os.path.join(data, f[1]), 
+          os.path.join(path, f[1]+'.txt'))
+  # Generate directory listing.
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF]:
+    path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
+    out = open(os.path.join('appengine', 'static', 
+        '%s-%s.html' % (data, utils.GuessOS())), 'w')
+    out.write('<html>\n  <body>\n    <ul>\n')
+    for f in os.listdir(path):
+      if not f.startswith('.'):
+        out.write('      <li><a href=data' + \
+            '''/%(data)s/%(os)s/%(file)s>%(file)s</a></li>\n''' % \
+            {'data': data, 'os': utils.GuessOS(), 'file': f})
+    out.write('    </ul>\n  </body>\n</html>')
+    out.close()
+
   shutil.rmtree(os.path.join('appengine', 'static', 'graphs'), 
       ignore_errors=True)
   shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
   shutil.copyfile('index.html', os.path.join('appengine', 'static', 
       'index.html'))
-  run_cmd(['../../../third_party/appengine-python/1.5.4/appcfg.py', 'update', 
-      'appengine/'])
+  shutil.copyfile('data.html', os.path.join('appengine', 'static', 
+      'data.html'))
+  p = subprocess.Popen([os.path.join('..', '..', '..', 'third_party', 
+      'appengine-python', 'appcfg.py'), 'update', 
+      'appengine/'], shell=HAS_SHELL, stdin=subprocess.PIPE)
+  p.stdin.write(username + '\n')
+  p.stdin.write(password + '\n')
+  p.communicate()
+
 
 class TestRunner(object):
-  """The base clas to provide shared code for different tests we will run and
+  """The base class to provide shared code for different tests we will run and
   graph."""
 
   def __init__(self, result_folder_name, platform_list, v8_and_or_frog_list, 
@@ -223,9 +261,9 @@ class TestRunner(object):
         for val in values_list:
           self.revision_dict[platform][f][val] = []
           self.values_dict[platform][f][val] = []
-      if V8 in v8_and_or_frog_list:
-        self.revision_dict[platform][V8][V8_MEAN] = []
-        self.values_dict[platform][V8][V8_MEAN] = []
+      if JS in v8_and_or_frog_list:
+        self.revision_dict[platform][JS][JS_MEAN] = []
+        self.values_dict[platform][JS][JS_MEAN] = []
       if FROG in v8_and_or_frog_list:
         self.revision_dict[platform][FROG][FROG_MEAN] = []
         self.values_dict[platform][FROG][FROG_MEAN] = []
@@ -290,49 +328,15 @@ class TestRunner(object):
       if not search_for_revision(['git', 'svn', 'info']):
         run_cmd(['echo', 'Revision: unknown'], outfile)
 
-  def write_html(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
-      cleanFile=False):
-    """Adds an html table to the webpage to display the data values. This method
-    will be removed when we have a nicer way to display data values."""
-    #TODO(efortuna): fix this.
-    return
-    #TODO(efortuna): Take this method out when have finalized where the data is
-    # going to be displayed.
-    f = ''
-    out = ''
-    if cleanFile:
-      f = open('template.html')
-    else:
-      shutil.copy('index.html', 'temp.html')
-      f = open('temp.html')
-    out = open('index.html', 'w')
-    inTable = False
-    for line in f.readlines():
-      if not inTable:
-        out.write(line)
-      if delimiter in line:
-        inTable = not inTable
-        if inTable:
-          out.write('<table border="1"> <tr> <td> svn revision </td>')
-          for revision in rev_nums:
-            out.write('<td>%d</td>' % revision)
-          out.write('</tr>\n<tr><td> %s</td>' % label_1)
-          for perf in dict_1:
-            out.write('<td>%f</td>' % perf)
-          out.write('</tr>\n<tr><td> %s</td>' % label_2)
-          for perf in dict_2:
-            out.write('<td>%f</td>' % perf)
-          out.write('</tr> </table>')
-
   def calculate_geometric_mean(self, platform, frog_or_v8, svn_revision):
-    """Calculate the aggregate geometric mean for V8 and frog benchmark sets,
+    """Calculate the aggregate geometric mean for JS and frog benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0
     for benchmark in get_benchmarks():
       geo_mean += math.log(self.values_dict[platform][frog_or_v8][benchmark][
           len(self.values_dict[platform][frog_or_v8][benchmark]) - 1])
  
-    mean = V8_MEAN
+    mean = JS_MEAN
     if frog_or_v8 == FROG:
        mean = FROG_MEAN
     self.values_dict[platform][frog_or_v8][mean] += \
@@ -347,6 +351,7 @@ class TestRunner(object):
     ensure_output_directory(self.result_folder_name)
     ensure_output_directory(GRAPH_OUT_DIR)
     self.run_tests()
+    
     os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
     
     # TODO(efortuna): You will want to make this only use a subset of the files
@@ -369,24 +374,24 @@ class PerformanceTest(TestRunner):
 
   def plot_all_perf(self, png_filename):
     """Create a plot that shows the performance changes of individual benchmarks
-    run by V8 and generated by frog, over svn history."""
+    run by JS and generated by frog, over svn history."""
     for benchmark in get_benchmarks():
       self.style_and_save_perf_plot(
-          'Performance of %s over time on the %s' % (benchmark,
-          self.platform_type), 'Speed (bigger = better)', 16, 14, 'lower left', 
-          benchmark + png_filename, self.platform_list, get_versions(), 
-          [benchmark])
+          'Performance of %s over time on the %s on %s' % (benchmark,
+          self.platform_type, utils.GuessOS()), 'Speed (bigger = better)', 16, 
+          14, 'lower left', benchmark + png_filename, self.platform_list, 
+          get_versions(), [benchmark])
 
   def plot_avg_perf(self, png_filename):
     """Generate a plot that shows the performance changes of the geomentric mean
-    of V8 and frog benchmark performance over svn history."""
+    of JS and frog benchmark performance over svn history."""
     (title, y_axis, size_x, size_y, loc, filename) = \
         ('Geometric Mean of benchmark %s performance' % self.platform_type, 
-        'Speed (bigger = better)', 16, 5, 'center', 'avg'+png_filename)
+        'Speed (bigger = better)', 16, 5, 'lower left', 'avg'+png_filename)
     clear_axis = True
     for platform in self.platform_list:
       self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc, 
-          filename, [platform], [V8], [V8_MEAN], clear_axis)
+          filename, [platform], [JS], [JS_MEAN], clear_axis)
       clear_axis = False
       self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc, 
           filename, [platform], [FROG], [FROG_MEAN], clear_axis)
@@ -408,6 +413,8 @@ class CommandLinePerformanceTest(PerformanceTest):
 
     Args:
       afile: The filename string we will be processing."""
+    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+        'perf_testing'))
     f = open(os.path.join(self.result_folder_name, afile))
     tabulate_data = False
     revision_num = 0
@@ -428,14 +435,14 @@ class CommandLinePerformanceTest(PerformanceTest):
           #count it in our numbers.
           return
         benchmark = tokens[0]
-        self.revision_dict[COMMAND_LINE][V8][benchmark] += [revision_num]
-        self.values_dict[COMMAND_LINE][V8][benchmark] += [v8_value]
+        self.revision_dict[COMMAND_LINE][JS][benchmark] += [revision_num]
+        self.values_dict[COMMAND_LINE][JS][benchmark] += [v8_value]
         self.revision_dict[COMMAND_LINE][FROG][benchmark] += [revision_num]
         self.values_dict[COMMAND_LINE][FROG][benchmark] += [frog_value]
     f.close()
 
     self.calculate_geometric_mean(COMMAND_LINE, FROG, revision_num)
-    self.calculate_geometric_mean(COMMAND_LINE, V8, revision_num)
+    self.calculate_geometric_mean(COMMAND_LINE, JS, revision_num)
   
   def run_tests(self):
     """Run a performance test on our updated system."""
@@ -475,6 +482,8 @@ class BrowserPerformanceTest(PerformanceTest):
 
   def process_file(self, afile):
     """Comb through the html to find the performance results."""
+    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+        'perf_testing'))
     parts = afile.split('-')
     browser = parts[2] 
     version = parts[3]
@@ -485,7 +494,7 @@ class BrowserPerformanceTest(PerformanceTest):
     revision_num = 0
     while '<div id="results">' not in line and i < len(lines):
       if 'Revision' in line:
-        revision_num = int(line.split()[1])
+        revision_num = int(line.split()[1].strip('"'))
       line = lines[i]
       i += 1
 
@@ -506,8 +515,9 @@ class BrowserPerformanceTest(PerformanceTest):
         break
       name = name_and_score[0].strip()
       score = name_and_score[1].strip()
-      if version == V8:
-        bench_dict = self.values_dict[browser][V8]
+      if version == JS or version == 'v8':
+        version = JS
+        bench_dict = self.values_dict[browser][JS]
       else:
         bench_dict = self.values_dict[browser][FROG]
       bench_dict[name] += [float(score)]
@@ -515,11 +525,6 @@ class BrowserPerformanceTest(PerformanceTest):
 
     f.close()
     self.calculate_geometric_mean(browser, version, revision_num)
-
-  def write_html(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
-      cleanFile=False):
-      #TODO(efortuna)
-      pass
 
       
 class BrowserCorrectnessTest(TestRunner):
@@ -546,7 +551,7 @@ class BrowserCorrectnessTest(TestRunner):
           '--component=webdriver', 
           '--browser=%s' % browser, '--frog=%s' % os.path.join(dart_sdk, 'bin',
           'frogc'), '--froglib=%s' % os.path.join(dart_sdk, 'lib'), '--report',
-          '--timeout=20', '--progress=color', '--mode=release', '-j1',
+          '--timeout=20', '--progress=color', '--mode=release',
           self.test_type], self.trace_file, append=True)
 
   def process_file(self, afile):
@@ -555,6 +560,8 @@ class BrowserCorrectnessTest(TestRunner):
     
     Arguments:
       afile: the filename string"""
+    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+        'perf_testing'))
     browser = afile.rpartition('-')[2]
     f = open(os.path.join(self.result_folder_name, afile))
     revision_num = 0
@@ -657,6 +664,8 @@ class CompileTimeAndSizeTest(TestRunner):
 
     Args:
       afile: is the filename string we will be processing."""
+    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+        'perf_testing'))
     f = open(os.path.join(self.result_folder_name, afile))
     tabulate_data = False
     revision_num = 0
@@ -689,48 +698,48 @@ class CompileTimeAndSizeTest(TestRunner):
 
   def plot_results(self, png_filename):
     self.style_and_save_perf_plot('Compiled minfrog Sizes', 
-        'Size (in bytes)', 10, 10, 'center', png_filename, [COMMAND_LINE],
+        'Size (in bytes)', 10, 10, 'lower left', png_filename, [COMMAND_LINE],
         [FROG], ['swarm', 'total', 'minfrog'])
-    self.write_html('bar', self.revision_dict[COMMAND_LINE][FROG]['minfrog'], 
-        'minfrog size', self.values_dict[COMMAND_LINE][FROG]['minfrog'], '', [])
 
     self.style_and_save_perf_plot('Time to compile and bootstrap', 
-        'Seconds', 10, 10, 'center', '2' + png_filename, [COMMAND_LINE], [FROG],
-        ['Bootstrapping', 'Compiling on Dart VM'])
-    self.write_html('baz',
-        self.revision_dict[COMMAND_LINE][FROG]['Bootstrapping'], 
-        'Bootstrapping', self.values_dict[COMMAND_LINE][FROG]['Bootstrapping'],
-        'Compiling on Dart VM', 
-        self.values_dict[COMMAND_LINE][FROG]['Compiling on Dart VM'])
-
+        'Seconds', 10, 10, 'lower left', '2' + png_filename, [COMMAND_LINE], 
+        [FROG], ['Bootstrapping', 'Compiling on Dart VM'])
 
 def parse_args():
   parser = optparse.OptionParser()
   parser.add_option('--command-line', '-c', dest='cl', 
-      help = 'Run the command line tests', 
-      action = 'store_true', default = False) 
-  parser.add_option('--size-time', '-s', dest = 'size', 
-      help = 'Run the code size and timing tests', 
-      action = 'store_true', default = False)
-  parser.add_option('--language', '-l', dest = 'language', 
-      help = 'Run the language correctness tests', 
-      action = 'store_true', default = False)
-  parser.add_option('--browser-perf', '-b', dest = 'perf',
-      help = 'Run the browser performance tests',
-      action = 'store_true', default = False)
-  parser.add_option('--forever', '-f', dest = 'continuous',
+      help='Run the command line tests', 
+      action='store_true', default=False) 
+  parser.add_option('--size-time', '-s', dest='size', 
+      help='Run the code size and timing tests', 
+      action='store_true', default=False)
+  parser.add_option('--language', '-l', dest='language', 
+      help='Run the language correctness tests', 
+      action='store_true', default=False)
+  parser.add_option('--browser-perf', '-b', dest='perf',
+      help='Run the browser performance tests',
+      action='store_true', default=False)
+  parser.add_option('--forever', '-f', dest='continuous',
       help = 'Run this script forever, always checking for the next svn '
-      'checkin', action = 'store_true', default = False)
-  parser.add_option('--verbose', '-v', dest = 'verbose',
-      help = 'Print extra debug output', action = 'store_true', default = False)
+      'checkin', action='store_true', default=False)
+  parser.add_option('--verbose', '-v', dest='verbose',
+      help = 'Print extra debug output', action='store_true', default=False)
+  parser.add_option('--user', '-u', dest='username', 
+      help='Username for submitting new data to App Engine', default='')
 
   args, ignored = parser.parse_args()
+  password = ''
+  if args.username != '':
+    password = getpass.getpass("App Engine Password: ")
+  else:
+    print 'Warning: performance data will not be uploaded to App Engine' + \
+        ' if you do not provide a username.'
   if not (args.cl or args.size or args.language or args.perf):
     args.cl = args.size = args.language = args.perf = True
   return (args.cl, args.size, args.language, args.perf, args.continuous,
-      args.verbose)
+      args.verbose, args.username, password)
 
-def run_test_sequence(cl, size, language, perf):
+def run_test_sequence(cl, size, language, perf, username, password):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
   if sync_and_build() == 1:
@@ -744,22 +753,21 @@ def run_test_sequence(cl, size, language, perf):
   if perf:
     BrowserPerformanceTest(BROWSER_PERF).run()
 
-  # TODO(efortuna): Temporarily disabled until you make a safe way to provide
-  # your username/password for the uploading process.
-  #upload_to_app_engine()
+  if username != '':
+    upload_to_app_engine(username, password)
 
 def main():
   global VERBOSE
-  (cl, size, language, perf, continuous, verbose) = parse_args()
+  (cl, size, language, perf, continuous, verbose, username, password) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(cl, size, language, perf)
+        run_test_sequence(cl, size, language, perf, username, password)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(cl, size, language, perf)
+    run_test_sequence(cl, size, language, perf, username, password)
 
 if __name__ == '__main__':
   main()
