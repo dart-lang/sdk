@@ -242,11 +242,11 @@ class TestGraphVisitor : public ValueGraphVisitor {
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
-  BlockEntryInstr** true_successor_address() const {
+  TargetEntryInstr** true_successor_address() const {
     ASSERT(true_successor_address_ != NULL);
     return true_successor_address_;
   }
-  BlockEntryInstr** false_successor_address() const {
+  TargetEntryInstr** false_successor_address() const {
     ASSERT(false_successor_address_ != NULL);
     return false_successor_address_;
   }
@@ -264,8 +264,8 @@ class TestGraphVisitor : public ValueGraphVisitor {
   }
 
   // Output parameters.
-  BlockEntryInstr** true_successor_address_;
-  BlockEntryInstr** false_successor_address_;
+  TargetEntryInstr** true_successor_address_;
+  TargetEntryInstr** false_successor_address_;
 };
 
 }  // namespace dart

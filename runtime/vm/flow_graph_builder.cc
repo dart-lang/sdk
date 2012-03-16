@@ -722,7 +722,9 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     body_exit->SetSuccessor(target_entry);
   }
 
-  *for_test.true_successor_address() = join;
+  TargetEntryInstr* back_target_entry = new TargetEntryInstr();
+  *for_test.true_successor_address() = back_target_entry;
+  back_target_entry->SetSuccessor(join);
   exit_ = *for_test.false_successor_address() = new TargetEntryInstr();
 }
 

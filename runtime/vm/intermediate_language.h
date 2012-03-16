@@ -1118,11 +1118,11 @@ class BranchInstr : public Instruction {
   DECLARE_INSTRUCTION(Branch)
 
   Value* value() const { return value_; }
-  BlockEntryInstr* true_successor() const { return true_successor_; }
-  BlockEntryInstr* false_successor() const { return false_successor_; }
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
 
-  BlockEntryInstr** true_successor_address() { return &true_successor_; }
-  BlockEntryInstr** false_successor_address() { return &false_successor_; }
+  TargetEntryInstr** true_successor_address() { return &true_successor_; }
+  TargetEntryInstr** false_successor_address() { return &false_successor_; }
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
@@ -1132,8 +1132,8 @@ class BranchInstr : public Instruction {
 
  private:
   Value* value_;
-  BlockEntryInstr* true_successor_;
-  BlockEntryInstr* false_successor_;
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
