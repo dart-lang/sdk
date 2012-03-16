@@ -34,6 +34,9 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $component == leg ]
+Language/10_Expressions/01_Constants_A17_t03: Skip # Cycle reference. Times out.
+
+
 # Issues with co19 test suite.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
@@ -237,6 +240,8 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # E
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
+Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
+Language/09_Generics/09_Generics_A01_t10: Fail # TODO(ahe): Please categorize.
 
 
 #
@@ -419,7 +424,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A01_t04: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail, OK # @compile-error
@@ -443,16 +447,11 @@ Language/08_Interfaces/3_Factories_and_Constructors_A10_t04: Fail, OK # @compile
 Language/08_Interfaces/3_Factories_and_Constructors_A10_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A10_t06: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A01_t02: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A01_t03: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t01: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t02: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t03: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t04: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A01_t05: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A01_t08: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A01_t10: Fail, OK # @compile-error
-Language/09_Generics/09_Generics_A01_t11: Fail, OK # @compile-error
 Language/10_Expressions/01_Constants_A15_t03: Fail, OK # 'const' keyword is not verified in literal maps.
 Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # @compile-error
@@ -464,7 +463,6 @@ Language/10_Expressions/03_Numbers_A04_t02: Fail, OK # @compile-error
 Language/10_Expressions/03_Numbers_A04_t03: Fail, OK # @compile-error
 Language/10_Expressions/04_Booleans_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/04_Booleans_A03_t02: Fail, OK # @compile-error
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings_A02_t20: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings_A02_t24: Fail, OK # @compile-error
@@ -491,39 +489,16 @@ Language/10_Expressions/10_Instance_Creation_A04_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t03: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t04: Fail, OK # @compile-error
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A05_t05: Fail, OK # @compile-error
-Language/10_Expressions/17_Conditional_A01_t14: Fail, OK # @compile-error
-Language/10_Expressions/17_Conditional_A01_t15: Fail, OK # @compile-error
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t14: Fail, OK # @compile-error
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t15: Fail, OK # @compile-error
-Language/10_Expressions/19_Bitwise_Expressions_A01_t16: Fail, OK # @compile-error
-Language/10_Expressions/19_Bitwise_Expressions_A01_t17: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t15: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t16: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t17: Fail, OK # @compile-error
 Language/10_Expressions/20_Equality_A01_t18: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t23: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t24: Fail, OK # @compile-error
 Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail, OK # @compile-error
 Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail, OK # @compile-error
 Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail, OK # @compile-error
 Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t22: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t23: Fail, OK # @compile-error
-Language/10_Expressions/22_Shift_A01_t13: Fail, OK # @compile-error
-Language/10_Expressions/22_Shift_A01_t14: Fail, OK # @compile-error
-Language/10_Expressions/23_Additive_Expressions_A01_t13: Fail, OK # @compile-error
-Language/10_Expressions/23_Additive_Expressions_A01_t14: Fail, OK # @compile-error
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t16: Fail, OK # @compile-error
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t17: Fail, OK # @compile-error
-Language/10_Expressions/25_Unary_Expressions_A01_t05: Fail, OK # @compile-error
-Language/10_Expressions/25_Unary_Expressions_A01_t20: Fail, OK # @compile-error
-Language/10_Expressions/25_Unary_Expressions_A01_t21: Fail, OK # @compile-error
-Language/10_Expressions/25_Unary_Expressions_A01_t22: Fail, OK # @compile-error
-Language/10_Expressions/26_Postfix_Expressions_A01_t05: Fail, OK # @compile-error
-Language/10_Expressions/27_Assignable_Expressions_A01_t08: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail, OK # @compile-error
 Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A04_t03: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
 Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
 Language/11_Statements/09_Try_A01_t14: Fail, OK # @compile-error
@@ -538,4 +513,3 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail, OK # @compile-err
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail, OK # @compile-error
 Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error
-Language/13_Types/7_Type_Void_A01_t09: Fail, OK # @compile-error

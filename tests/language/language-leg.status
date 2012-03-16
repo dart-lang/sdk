@@ -194,7 +194,6 @@ OverrideFieldMethod6NegativeTest: Fail, OK # Negative language test.
 OverrideFieldTest/01: Fail, OK # Negative language test.
 OverrideFieldTest/04: Fail, OK # Negative language test.
 OverrideMethodWithFieldTest/01: Fail, OK # Negative language test.
-Prefix10NegativeTest: Fail, OK # Negative language test.
 Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
@@ -237,7 +236,6 @@ TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
 TypeVariableBoundsTest/07: Fail, OK # Negative language test.
 TypeVariableBoundsTest/08: Fail, OK # Negative language test.
-TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
 TypeVariableScopeTest/02: Fail, OK # Negative language test.
