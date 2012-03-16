@@ -350,7 +350,7 @@ def Main(argv):
     if filename.endswith('.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
   # include the missing print function
-  dest_file.write('void print(String arg) { /* native */ }\n')
+  dest_file.write('void print(Object arg) { /* native */ }\n')
   dest_file.close()
 
   #
