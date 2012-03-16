@@ -490,13 +490,6 @@ Language/10_Expressions/10_Instance_Creation_A04_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t03: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t04: Fail, OK # @compile-error
-Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t02: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t02: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t03: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t02: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t03: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t02: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t03: Fail, OK # @compile-error
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A05_t05: Fail, OK # @compile-error
 Language/10_Expressions/17_Conditional_A01_t14: Fail, OK # @compile-error
 Language/10_Expressions/17_Conditional_A01_t15: Fail, OK # @compile-error

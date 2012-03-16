@@ -12,7 +12,6 @@ AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
-CompileTimeConstantFTest: Fail # We don't handle constants with optional arguments yet.
 CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
 StringInterpolation8Test: Fail # Issue 2127
 
@@ -54,7 +53,6 @@ MapLiteral4Test: Fail # map not implemented
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
-NamedArgumentInConstCreationTest: Fail # CompileTimeConstantEvaluator not implemented
 NamedParameters2Test: Fail # Unimplemented non-matching static call
 NamedParameters3Test: Fail # Unimplemented non-matching static call
 NamedParameters4Test: Fail # Unimplemented non-matching static call

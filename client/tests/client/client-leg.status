@@ -8,18 +8,15 @@
 
 [ $component == legium ]
 
-# DOM can return null or undefined
+# DOM can return null or undefined.
 dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
 dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
 dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
 
-# ConstantHandler with arguments not implemented
-dom/HiddenDom1Test: Fail
-dom/HiddenDom2Test: Fail
+# Unknown error - should investigate.
 html/html_tests: Fail
-samples/smoketest/dartWebBase_tests: Fail
 
-# DOM errors
+# DOM errors.
 dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
 dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
 
