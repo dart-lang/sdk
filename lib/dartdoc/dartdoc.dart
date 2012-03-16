@@ -592,7 +592,9 @@ class Dartdoc {
     endFile();
 
     for (final type in library.types.getValues()) {
-      if (!type.isTop) docType(type);
+      if (type.isTop) continue;
+      if (type.name.startsWith('_')) continue;
+      docType(type);
     }
   }
 
