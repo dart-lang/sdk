@@ -195,7 +195,7 @@ def upload_to_app_engine(username, password):
     for f in os.listdir(data):
       files += [(os.path.getmtime(os.path.join(data, f)), f)]
     files.sort()
-    for f in files[-1000]:
+    for f in files[-1000:]:
       shutil.copyfile(os.path.join(data, f[1]), 
           os.path.join(path, f[1]+'.txt'))
   # Generate directory listing.
@@ -386,8 +386,9 @@ class PerformanceTest(TestRunner):
     """Generate a plot that shows the performance changes of the geomentric mean
     of JS and frog benchmark performance over svn history."""
     (title, y_axis, size_x, size_y, loc, filename) = \
-        ('Geometric Mean of benchmark %s performance' % self.platform_type, 
-        'Speed (bigger = better)', 16, 5, 'lower left', 'avg'+png_filename)
+        ('Geometric Mean of benchmark %s performance on %s ' % 
+        (self.platform_type, utils.GuessOS()), 'Speed (bigger = better)', 16, 5,
+        'lower left', 'avg'+png_filename)
     clear_axis = True
     for platform in self.platform_list:
       self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc, 
