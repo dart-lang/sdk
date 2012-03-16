@@ -1261,20 +1261,30 @@ void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 //                            nodes: <Statement>*
 //                            label: SourceLabel }
 void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
+  LocalScope* scope = node->scope();
+  const intptr_t num_context_variables =
+      (scope != NULL) ? scope->num_context_variables() : 0;
+  int previous_context_level = owner()->context_level();
+  if (num_context_variables > 0) {
+    // The loop local scope declares variables that are captured.
+    // Allocate and chain a new context.
+    // Allocate context computation.
+    // Chain Context computation (maybe introduce a new variable).
+    Bailout("Sequence needs a context.  Gotta have a context.");
+  }
+
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function().node_sequence())) {
     Bailout("VisitSequenceNode GenerateArgumentTypeChecks()");
   }
-  if ((node->scope() != NULL) &&
-      (node->scope()->num_context_variables() != 0)) {
-    Bailout("Sequence needs a context.  Gotta have a context.");
-  }
+
   intptr_t i = 0;
   while (is_open() && (i < node->length())) {
     EffectGraphVisitor for_effect(owner(), temp_index());
     node->NodeAt(i++)->Visit(&for_effect);
     Append(for_effect);
   }
+  owner()->set_context_level(previous_context_level);
 }
 
 

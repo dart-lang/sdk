@@ -32,9 +32,13 @@ class FlowGraphBuilder: public ValueObject {
 
   void Bailout(const char* reason);
 
+  void set_context_level(intptr_t value) { context_level_ = value; }
+  intptr_t context_level() const { return context_level_; }
+
  private:
   const ParsedFunction& parsed_function_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;
+  intptr_t context_level_;
 };
 
 

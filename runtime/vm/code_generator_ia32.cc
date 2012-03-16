@@ -39,13 +39,9 @@ CodeGeneratorState::CodeGeneratorState(CodeGenerator* codegen)
       parent_(codegen->state()) {
   if (parent_ != NULL) {
     root_node_ = parent_->root_node_;
-    loop_level_ = parent_->loop_level_;
-    context_level_ = parent_->context_level_;
     current_try_index_ = parent_->current_try_index_;
   } else {
     root_node_ = NULL;
-    loop_level_ = 0;
-    context_level_ = 0;
     current_try_index_ = CatchClauseNode::kInvalidTryIndex;
   }
   codegen_->set_state(this);
@@ -113,7 +109,8 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
       state_(NULL),
       pc_descriptors_list_(NULL),
       exception_handlers_list_(NULL),
-      try_index_(CatchClauseNode::kInvalidTryIndex) {
+      try_index_(CatchClauseNode::kInvalidTryIndex),
+      context_level_(0) {
   ASSERT(assembler_ != NULL);
   ASSERT(parsed_function.node_sequence() != NULL);
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
@@ -236,7 +233,7 @@ void CodeGenerator::GenerateLoadVariable(Register dst,
                                          const LocalVariable& variable) {
   if (variable.is_captured()) {
     // The variable lives in the context.
-    int delta = state()->context_level() - variable.owner()->context_level();
+    intptr_t delta = context_level() - variable.owner()->context_level();
     ASSERT(delta >= 0);
     Register base = CTX;
     while (delta-- > 0) {
@@ -257,7 +254,7 @@ void CodeGenerator::GenerateStoreVariable(const LocalVariable& variable,
                                           Register scratch) {
   if (variable.is_captured()) {
     // The variable lives in the context.
-    int delta = state()->context_level() - variable.owner()->context_level();
+    intptr_t delta = context_level() - variable.owner()->context_level();
     ASSERT(delta >= 0);
     Register base = CTX;
     while (delta-- > 0) {
@@ -279,7 +276,7 @@ void CodeGenerator::GeneratePushVariable(const LocalVariable& variable,
                                          Register scratch) {
   if (variable.is_captured()) {
     // The variable lives in the context.
-    int delta = state()->context_level() - variable.owner()->context_level();
+    intptr_t delta = context_level() - variable.owner()->context_level();
     ASSERT(delta >= 0);
     Register base = CTX;
     while (delta-- > 0) {
@@ -593,15 +590,15 @@ void CodeGenerator::GenerateEntryCode() {
 
 void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
-  int context_level = state()->context_level();
-  ASSERT(context_level >= 0);
+  intptr_t current_context_level = context_level();
+  ASSERT(current_context_level >= 0);
   if (!parsed_function_.function().IsClosureFunction()) {
-    if (context_level > 0) {
+    if (current_context_level > 0) {
       // CTX on entry was saved on the stack, but not linked as context parent.
       __ popl(CTX);
     }
   } else {
-    while (context_level-- > 0) {
+    while (current_context_level-- > 0) {
       __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
     }
   }
@@ -742,7 +739,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
     // The context scope may have already been set by the new non-optimizing
     // compiler.  If it was not, set it here.
     if (function.context_scope() == ContextScope::null()) {
-      const int current_context_level = state()->context_level();
+      const intptr_t current_context_level = context_level();
       const ContextScope& context_scope = ContextScope::ZoneHandle(
           node->scope()->PreserveOuterScope(current_context_level));
       ASSERT(!function.HasCode());
@@ -799,6 +796,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   LocalScope* scope = node_sequence->scope();
   const intptr_t num_context_variables =
       (scope != NULL) ? scope->num_context_variables() : 0;
+  intptr_t previous_context_level = context_level();
   if (num_context_variables > 0) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
@@ -823,7 +821,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     // Set new context as current context.
     __ movl(CTX, EAX);
-    state()->set_context_level(scope->context_level());
+    set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
     // the captured parameters from the frame into the context.
@@ -881,6 +879,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
       __ popl(CTX);
     }
   }
+  set_context_level(previous_context_level);
 }
 
 
@@ -1857,7 +1856,7 @@ void CodeGenerator::VisitJumpNode(JumpNode* node) {
   // Unchain the context(s) up to the outer context level of the scope which
   // contains the destination label.
   ASSERT(label->owner() != NULL);
-  int target_context_level = 0;
+  intptr_t target_context_level = 0;
   LocalScope* target_scope = label->owner();
   if (target_scope->num_context_variables() > 0) {
     // The scope of the target label allocates a context, therefore its outer
@@ -1875,9 +1874,9 @@ void CodeGenerator::VisitJumpNode(JumpNode* node) {
     }
   }
   ASSERT(target_context_level >= 0);
-  int context_level = state()->context_level();
-  ASSERT(context_level >= target_context_level);
-  while (context_level-- > target_context_level) {
+  int current_context_level = context_level();
+  ASSERT(current_context_level >= target_context_level);
+  while (current_context_level-- > target_context_level) {
     __ movl(CTX, FieldAddress(CTX, Context::parent_offset()));
   }
 
@@ -2539,7 +2538,7 @@ void CodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
   __ movl(ESP, EBP);
   __ subl(ESP, Immediate(locals_space_size()));
 
-  if ((state()->context_level() > 0) &&
+  if ((context_level() > 0) &&
       !parsed_function_.function().IsClosureFunction()) {
     // CTX was saved on entry.
     __ subl(ESP, Immediate(kWordSize));
