@@ -239,6 +239,7 @@ Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
 CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
+CompileTimeConstantETest: Fail
 CompileTimeConstantGTest: Fail # compile time constants with super calls to optional arguments.
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
