@@ -32,7 +32,7 @@
             'FavorSizeOrSpeed': '0',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            'OmitFramePointers': 'true',
+            'OmitFramePointers': 'false',
             'StringPooling': 'true',
           },
           'VCLinkerTool': {
