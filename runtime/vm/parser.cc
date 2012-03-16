@@ -3907,11 +3907,22 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
   }
-  Function& function = Function::ZoneHandle(
-      Function::NewClosureFunction(*function_name,
-                                   current_function(),
-                                   token_index_));
-  function.set_result_type(result_type);
+  intptr_t function_pos = token_index_;
+
+  // Check whether we have parsed this closure before, in a previous
+  // compilation. If so, reuse the function object, else create a new one
+  // and register it in the current class.
+  Function& function = Function::ZoneHandle();
+  bool is_new_closure = false;
+  function = current_class().LookupClosureFunction(function_pos);
+  if (function.IsNull() || (function.token_index() != function_pos)) {
+    is_new_closure = true;
+    function = Function::NewClosureFunction(*function_name,
+                                          current_function(),
+                                          function_pos);
+    function.set_result_type(result_type);
+    current_class().AddClosureFunction(function);
+  }
 
   // The function type does not need to be determined at compile time, unless
   // the closure is assigned to a function variable and type checks are enabled.
@@ -3950,6 +3961,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   Array& default_parameter_values = Array::Handle();
   SequenceNode* statements = Parser::ParseFunc(function,
                                                default_parameter_values);
+  ASSERT(is_new_closure || (function.end_token_index() == token_index_));
+  function.set_end_token_index(token_index_);
 
   // Now that the local function has formal parameters, lookup the signature
   // class in the current library (but not in its imports) and only create a new
@@ -3957,18 +3970,24 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   const String& signature = String::Handle(function.Signature());
   Class& signature_class = Class::ZoneHandle(
       library_.LookupLocalClass(signature));
+
   if (signature_class.IsNull()) {
+    // If we don't have a signature class yet, this must be a closure we
+    // have not parsed before.
+    ASSERT(is_new_closure);
     signature_class = Class::NewSignatureClass(signature,
                                                function,
                                                script_);
     // Record the function signature class in the current library.
     library_.AddClass(signature_class);
-  } else {
+  } else if (is_new_closure) {
     function.set_signature_class(signature_class);
   }
   ASSERT(function.signature_class() == signature_class.raw());
-  // Local functions are not registered in the enclosing class, which is already
-  // finalized.
+
+  // Local functions are registered in the enclosing class, but
+  // ignored during class finalization. The enclosing class has
+  // already been finalized.
   ASSERT(current_class().is_finalized());
 
   // Make sure that the instantiator is captured.

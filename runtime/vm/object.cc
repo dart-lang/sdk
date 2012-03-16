@@ -944,6 +944,47 @@ void Class::SetFunctions(const Array& value) const {
 }
 
 
+void Class::AddClosureFunction(const Function& function) const {
+  GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
+  if (closures.IsNull()) {
+    closures = GrowableObjectArray::New(4);
+    StorePointer(&raw_ptr()->closure_functions_, closures.raw());
+  }
+  ASSERT(function.IsNonImplicitClosureFunction());
+  closures.Add(function);
+}
+
+
+// Lookup the innermost closure function that contains token at token_index.
+RawFunction* Class::LookupClosureFunction(intptr_t token_index) const {
+  if (raw_ptr()->closure_functions_ == GrowableObjectArray::null()) {
+    return Function::null();
+  }
+  const GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
+  Function& closure = Function::Handle();
+  intptr_t num_closures = closures.Length();
+  intptr_t best_fit_token_index = -1;
+  intptr_t best_fit_index = -1;
+  for (intptr_t i = 0; i < num_closures; i++) {
+    closure ^= closures.At(i);
+    ASSERT(!closure.IsNull());
+    if ((closure.token_index() <= token_index) &&
+        (token_index < closure.end_token_index()) &&
+        (best_fit_token_index < closure.token_index())) {
+      best_fit_index = i;
+      best_fit_token_index = closure.token_index();
+    }
+  }
+  closure = Function::null();
+  if (best_fit_index >= 0) {
+    closure ^= closures.At(best_fit_index);
+  }
+  return closure.raw();
+}
+
+
 void Class::set_signature_function(const Function& value) const {
   ASSERT(value.IsClosureFunction() || value.IsSignatureFunction());
   StorePointer(&raw_ptr()->signature_function_, value.raw());
@@ -1689,8 +1730,12 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 RawFunction* Class::LookupFunctionAtToken(intptr_t token_index) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
-  Array& funcs = Array::Handle(functions());
   Function& func = Function::Handle();
+  func = LookupClosureFunction(token_index);
+  if (!func.IsNull()) {
+    return func.raw();
+  }
+  Array& funcs = Array::Handle(functions());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
@@ -1699,7 +1744,6 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_index) const {
       return func.raw();
     }
   }
-
   // No function found.
   return Function::null();
 }
@@ -4427,28 +4471,28 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
 
 RawFunction* Library::LookupFunctionInScript(const Script& script,
                                              intptr_t token_index) const {
-  Object& entry = Object::Handle();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
-  DictionaryIterator it(*this);
+  ClassDictionaryIterator it(*this);
   while (it.HasNext()) {
-    entry = it.GetNext();
-    if (entry.IsFunction()) {
-      func ^= entry.raw();
-      cls = func.owner();
-      if (script.raw() == cls.script()) {
-        if ((func.token_index() <= token_index) &&
-            (token_index < func.end_token_index())) {
-          return func.raw();
-        }
+    cls = it.GetNextClass();
+    if (script.raw() == cls.script()) {
+      func = cls.LookupFunctionAtToken(token_index);
+      if (!func.IsNull()) {
+        return func.raw();
       }
-    } else if (entry.IsClass()) {
-      cls ^= entry.raw();
-      if (script.raw() == cls.script()) {
-        func = cls.LookupFunctionAtToken(token_index);
-        if (!func.IsNull()) {
-          return func.raw();
-        }
+    }
+  }
+  // Look in anonymous classes for toplevel functions.
+  Array& anon_classes = Array::Handle(this->raw_ptr()->anonymous_classes_);
+  intptr_t num_anonymous = raw_ptr()->num_anonymous_;
+  for (int i = 0; i < num_anonymous; i++) {
+    cls ^= anon_classes.At(i);
+    ASSERT(!cls.IsNull());
+    if (script.raw() == cls.script()) {
+      func = cls.LookupFunctionAtToken(token_index);
+      if (!func.IsNull()) {
+        return func.raw();
       }
     }
   }

@@ -73,6 +73,11 @@ intptr_t SourceBreakpoint::LineNumber() {
 }
 
 
+void SourceBreakpoint::set_function(const Function& func) {
+  function_ = func.raw();
+}
+
+
 void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
@@ -936,23 +941,39 @@ void Debugger::NotifyCompilation(const Function& func) {
     return;
   }
   Function& lookup_function = Function::Handle(func.raw());
-  if (func.IsClosureFunction()) {
-    // If the newly compiled function is a closure, we need to use
-    // the closure's parent function to see whether there are any
-    // breakpoints.
+  if (func.IsImplicitClosureFunction()) {
+    // If the newly compiled function is a an implicit closure (a closure that
+    // was formed by assigning a static or instance method to a function
+    // object), we need to use the closure's parent function to see whether
+    // there are any breakpoints. The parent function is the actual method on
+    // which the user sets breakpoints.
     lookup_function = func.parent_function();
+    ASSERT(!lookup_function.IsNull());
   }
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     if (lookup_function.raw() == bpt->function()) {
-      if (verbose) {
-        OS::Print("Enable latent breakpoint for function '%s'\n",
-                  String::Handle(lookup_function.name()).ToCString());
-      }
-      // Set breakpoint in newly compiled code of function func.
-      CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
-      if (cbpt != NULL) {
-        cbpt->set_src_bpt(bpt);
+      // Check if the breakpoint is inside a closure or local function
+      // within the newly compiled function.
+      Class& owner = Class::Handle(lookup_function.owner());
+      Function& closure =
+          Function::Handle(owner.LookupClosureFunction(bpt->token_index()));
+      if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {
+        if (verbose) {
+          OS::Print("Resetting pending breakpoint to function %s\n",
+                    String::Handle(closure.name()).ToCString());
+        }
+        bpt->set_function(closure);
+      } else {
+        if (verbose) {
+          OS::Print("Enable pending breakpoint for function '%s'\n",
+                    String::Handle(lookup_function.name()).ToCString());
+        }
+        // Set breakpoint in newly compiled code of function func.
+        CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
+        if (cbpt != NULL) {
+          cbpt->set_src_bpt(bpt);
+        }
       }
       bpt->Enable();  // Enables the code breakpoint as well.
     }

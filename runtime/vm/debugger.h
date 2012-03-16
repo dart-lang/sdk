@@ -37,6 +37,7 @@ class SourceBreakpoint {
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  void set_function(const Function& func);
   void set_next(SourceBreakpoint* value) { next_ = value; }
   SourceBreakpoint* next() const { return this->next_; }
 

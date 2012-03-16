@@ -585,6 +585,9 @@ class Class : public Object {
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
 
+  void AddClosureFunction(const Function& function) const;
+  RawFunction* LookupClosureFunction(intptr_t token_index) const;
+
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupConstructor(const String& name) const;
