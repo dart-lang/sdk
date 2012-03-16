@@ -19,6 +19,7 @@ from systemhtml import *
 from systeminterface import *
 from systemnative import *
 from systemwrapping import *
+from templateloader import TemplateLoader
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -282,7 +283,8 @@ class DartGenerator(object):
     if 'htmlfrog' in systems:
       html_system = HtmlFrogSystem(
           TemplateLoader(self._template_dir,
-              ['html/frog', 'html/impl', 'html', '']),
+                         ['html/frog', 'html/impl', 'html', ''],
+                         {'DARTIUM': False, 'FROG': True}),
           self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system
@@ -291,7 +293,8 @@ class DartGenerator(object):
     if 'htmldartium' in systems:
       html_system = HtmlDartiumSystem(
           TemplateLoader(self._template_dir,
-              ['html/dartium', 'html/impl', 'html', '']),
+                         ['html/dartium', 'html/impl', 'html', ''],
+                         {'DARTIUM': True, 'FROG': False}),
           self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system
@@ -540,44 +543,6 @@ def _PairUpAttributes(attributes):
     elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
       setters[attr.id] = attr
   return [(getters.get(id), setters.get(id)) for id in names]
-
-# ------------------------------------------------------------------------------
-
-class TemplateLoader(object):
-  """Loads template files from a path."""
-
-  def __init__(self, root, subpaths):
-    """Initializes loader.
-
-    Args:
-      root - a string, the directory under which the templates are stored.
-      subpaths - a list of strings, subpaths of root in search order.
-    """
-    self._root = root
-    self._subpaths = subpaths
-    self._cache = {}
-
-  def TryLoad(self, name):
-    """Returns content of template file as a string, or None of not found."""
-    if name in self._cache:
-      return self._cache[name]
-
-    for subpath in self._subpaths:
-      template_file = os.path.join(self._root, subpath, name)
-      if os.path.exists(template_file):
-        template = ''.join(open(template_file).readlines())
-        self._cache[name] = template
-        return template
-
-    return None
-
-  def Load(self, name):
-    """Returns contents of template file as a string, or raises an exception."""
-    template = self.TryLoad(name)
-    if template is not None:  # Can be empty string
-      return template
-    raise Exception("Could not find template '%s' on %s / %s" % (
-        name, self._root, self._subpaths))
 
 # ------------------------------------------------------------------------------
 

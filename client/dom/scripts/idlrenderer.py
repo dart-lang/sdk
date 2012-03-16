@@ -12,7 +12,6 @@ def render(idl_node, indent_str='  '):
 
   def begin_indent():
     indent_stack.append(indent_str)
-
   def end_indent():
     indent_stack.pop()
 
@@ -23,6 +22,13 @@ def render(idl_node, indent_str='  '):
     """Writes the given node and adds a new line."""
     w(node)
     output.append('\n')
+
+  def wsp(node):
+    """Writes the given node and adds a space if there was output."""
+    mark = len(output)
+    w(node)
+    if mark != len(output):
+      w(' ')
 
   def w(node, list_separator=None):
     """Writes the given node.
@@ -48,8 +54,8 @@ def render(idl_node, indent_str='  '):
       w(node.modules)
       w(node.interfaces)
     elif isinstance(node, IDLModule):
-      w(node.annotations)
-      w(node.ext_attrs)
+      wsp(node.annotations)
+      wsp(node.ext_attrs)
       wln('module %s {' % node.id)
       begin_indent()
       w(node.interfaces)
@@ -57,8 +63,10 @@ def render(idl_node, indent_str='  '):
       end_indent()
       wln('};')
     elif isinstance(node, IDLInterface):
-      wln(node.annotations)
-      wln(node.ext_attrs)
+      if node.annotations:
+        wln(node.annotations)
+      if node.ext_attrs:
+        wln(node.ext_attrs)
       w('interface %s' % node.id)
       begin_indent()
       begin_indent()
@@ -82,10 +90,13 @@ def render(idl_node, indent_str='  '):
       end_indent()
       wln('};')
     elif isinstance(node, IDLParentInterface):
-      w(node.annotations)
+      wsp(node.annotations)
       w(node.type.id)
     elif isinstance(node, IDLAnnotations):
+      sep = ''
       for (name, annotation) in sorted(node.items()):
+        w(sep)
+        sep = ' '
         if annotation and len(annotation):
           subRes = []
           for (argName, argValue) in sorted(annotation.items()):
@@ -96,7 +107,6 @@ def render(idl_node, indent_str='  '):
           w('@%s(%s)' % (name, ', '.join(subRes)))
         else:
           w('@%s' % name)
-        w(' ')
     elif isinstance(node, IDLExtAttrs):
       if len(node):
         w('[')
@@ -114,7 +124,7 @@ def render(idl_node, indent_str='  '):
             else:
               w('=%s' % v.__str__())
           i += 1
-        w('] ')
+        w(']')
     elif isinstance(node, IDLExtAttrFunctionValue):
       if node.id:
         w(node.id)
@@ -122,8 +132,8 @@ def render(idl_node, indent_str='  '):
       w(node.arguments, ', ')
       w(')')
     elif isinstance(node, IDLAttribute):
-      w(node.annotations)
-      w(node.ext_attrs)
+      wsp(node.annotations)
+      wsp(node.ext_attrs)
       if node.is_fc_getter:
         w('getter ')
       if node.is_fc_setter:
@@ -137,12 +147,12 @@ def render(idl_node, indent_str='  '):
         w(' setraises (%s)' % node.set_raises.id)
       wln(';')
     elif isinstance(node, IDLConstant):
-      w(node.annotations)
-      w(node.ext_attrs)
+      wsp(node.annotations)
+      wsp(node.ext_attrs)
       wln('const %s %s = %s;' % (node.type.id, node.id, node.value))
     elif isinstance(node, IDLOperation):
-      w(node.annotations)
-      w(node.ext_attrs)
+      wsp(node.annotations)
+      wsp(node.ext_attrs)
       if node.is_static:
         w('static ')
       if node.specials:
@@ -157,7 +167,7 @@ def render(idl_node, indent_str='  '):
         w(' raises (%s)' % node.raises.id)
       wln(';')
     elif isinstance(node, IDLArgument):
-      w(node.ext_attrs)
+      wsp(node.ext_attrs)
       w('in ')
       if node.is_optional:
         w('optional ')
