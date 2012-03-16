@@ -82,10 +82,9 @@ Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
 
 
 // Default implementation of visiting basic blocks.  Can be overridden.
-void FlowGraphVisitor::VisitBlocks(
-    const GrowableArray<BlockEntryInstr*>& block_order) {
-  for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
-    Instruction* current = block_order[i]->Accept(this);
+void FlowGraphVisitor::VisitBlocks() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    Instruction* current = block_order_[i]->Accept(this);
     while ((current != NULL) && !current->IsBlockEntry()) {
       current = current->Accept(this);
     }
@@ -94,78 +93,98 @@ void FlowGraphVisitor::VisitBlocks(
 
 
 // ==== Postorder graph traversal.
-void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void JoinEntryInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
+  // JoinEntryInstr is the only instruction that can have more than one
+  // predecessor, so it is the only one that could be reached more than once
+  // during the traversal.
+  //
+  // Use the presence of a preorder number to indicate that it has already
+  // been reached.
+  if (preorder_number() >= 0) return;
+  set_preorder_number(preorder->length());
+  preorder->Add(this);
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
+  successor_->DepthFirstSearch(preorder, postorder);
+  set_postorder_number(postorder->length());
+  postorder->Add(this);
 }
 
 
-void TargetEntryInstr::Postorder(
-    GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void TargetEntryInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
+  ASSERT(preorder_number() == -1);
+  set_preorder_number(preorder->length());
+  preorder->Add(this);
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
+  successor_->DepthFirstSearch(preorder, postorder);
+  set_postorder_number(postorder->length());
+  postorder->Add(this);
 }
 
 
-void PickTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void PickTempInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  successor_->DepthFirstSearch(preorder, postorder);
 }
 
 
-void TuckTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void TuckTempInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  successor_->DepthFirstSearch(preorder, postorder);
 }
 
 
-void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void DoInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  successor_->DepthFirstSearch(preorder, postorder);
 }
 
 
-void BindInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void BindInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  successor_->DepthFirstSearch(preorder, postorder);
 }
 
 
-void ReturnInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void ReturnInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
 }
 
 
-void ThrowInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void ThrowInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
 }
 
 
-void ReThrowInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void ReThrowInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
 }
 
 
-void BranchInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void BranchInstr::DepthFirstSearch(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder) {
   // Visit the false successor before the true successor so they appear in
-  // true/false order in reverse postorder.
-  ASSERT(false_successor_ != NULL);
+  // true/false order in reverse postorder used as the block ordering in the
+  // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
-  if (false_successor_->mark() != mark()) {
-    false_successor_->Postorder(block_entries);
-  }
-  if (true_successor_->mark() != mark()) {
-    true_successor_->Postorder(block_entries);
-  }
+  ASSERT(false_successor_ != NULL);
+  false_successor_->DepthFirstSearch(preorder, postorder);
+  true_successor_->DepthFirstSearch(preorder, postorder);
 }
 
 

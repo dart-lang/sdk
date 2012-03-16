@@ -1328,14 +1328,16 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 // Graph printing.
 class FlowGraphPrinter : public FlowGraphVisitor {
  public:
-  explicit FlowGraphPrinter(const Function& function) : function_(function) { }
+  FlowGraphPrinter(const Function& function,
+                   const GrowableArray<BlockEntryInstr*>& block_order)
+      : FlowGraphVisitor(block_order), function_(function) { }
 
   virtual ~FlowGraphPrinter() {}
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
   // another block and that block is not next in reverse postorder.
-  void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+  void VisitBlocks();
 
   // Visiting a computation prints it with no indentation or newline.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
@@ -1360,13 +1362,12 @@ class FlowGraphPrinter : public FlowGraphVisitor {
 };
 
 
-void FlowGraphPrinter::VisitBlocks(
-    const GrowableArray<BlockEntryInstr*>& block_order) {
+void FlowGraphPrinter::VisitBlocks() {
   OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
 
-  for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
-    Instruction* current = block_order[i]->Accept(this);
+    Instruction* current = block_order_[i]->Accept(this);
     // And all the successors until an exit, branch, or a block entry.
     while ((current != NULL) && !current->IsBlockEntry()) {
       OS::Print("\n");
@@ -1375,7 +1376,10 @@ void FlowGraphPrinter::VisitBlocks(
     BlockEntryInstr* successor =
         (current == NULL) ? NULL : current->AsBlockEntry();
     if (successor != NULL) {
-      OS::Print(" goto %d", successor->block_number());
+      // For readability label blocks with their reverse postorder index,
+      // not their postorder block number, so the first block is 0 (not
+      // n-1).
+      OS::Print(" goto %d", reverse_index(successor->postorder_number()));
     }
     OS::Print("\n");
   }
@@ -1589,12 +1593,12 @@ void FlowGraphPrinter::VisitExtractConstructorInstantiator(
 
 
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
-  OS::Print("%2d: [join]", instr->block_number());
+  OS::Print("%2d: [join]", reverse_index(instr->postorder_number()));
 }
 
 
 void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
-  OS::Print("%2d: [target]", instr->block_number());
+  OS::Print("%2d: [target]", reverse_index(instr->postorder_number()));
 }
 
 
@@ -1645,8 +1649,9 @@ void FlowGraphPrinter::VisitReThrow(ReThrowInstr* instr) {
 void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
   OS::Print("    if ");
   instr->value()->Accept(this);
-  OS::Print(" goto(%d, %d)", instr->true_successor()->block_number(),
-            instr->false_successor()->block_number());
+  OS::Print(" goto(%d, %d)",
+            reverse_index(instr->true_successor()->postorder_number()),
+            reverse_index(instr->false_successor()->postorder_number()));
 }
 
 
@@ -1662,17 +1667,19 @@ void FlowGraphBuilder::BuildGraph() {
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   if (for_effect.entry() != NULL) {
-    // Accumulate basic block entries via postorder traversal.
-    for_effect.entry()->Postorder(&postorder_block_entries_);
-    // Number the blocks in reverse postorder starting with 0.
-    intptr_t last_index = postorder_block_entries_.length() - 1;
-    for (intptr_t i = last_index; i >= 0; --i) {
-      postorder_block_entries_[i]->set_block_number(last_index - i);
-    }
+    // Perform a depth-first traversal of the graph to build preorder and
+    // postorder block orders.
+    for_effect.entry()->DepthFirstSearch(&preorder_block_entries_,
+                                         &postorder_block_entries_);
   }
   if (FLAG_print_flow_graph) {
-    FlowGraphPrinter printer(function);
-    printer.VisitBlocks(postorder_block_entries_);
+    intptr_t length = postorder_block_entries_.length();
+    GrowableArray<BlockEntryInstr*> reverse_postorder(length);
+    for (intptr_t i = length - 1; i >= 0; --i) {
+      reverse_postorder.Add(postorder_block_entries_[i]);
+    }
+    FlowGraphPrinter printer(function, reverse_postorder);
+    printer.VisitBlocks();
   }
 }
 

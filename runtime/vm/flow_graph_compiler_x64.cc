@@ -24,14 +24,14 @@ DECLARE_FLAG(bool, trace_functions);
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>* blocks)
-    : assembler_(assembler),
+    const GrowableArray<BlockEntryInstr*>& block_order)
+    : FlowGraphVisitor(block_order),
+      assembler_(assembler),
       parsed_function_(parsed_function),
-      blocks_(blocks),
-      block_info_(blocks->length()),
+      block_info_(block_order.length()),
       current_block_(NULL),
       pc_descriptors_list_(new CodeGenerator::DescriptorList()) {
-  for (int i = 0; i < blocks->length(); ++i) {
+  for (int i = 0; i < block_order.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
 }
@@ -730,11 +730,10 @@ void FlowGraphCompiler::VisitExtractConstructorInstantiator(
 }
 
 
-void FlowGraphCompiler::VisitBlocks(
-    const GrowableArray<BlockEntryInstr*>& blocks) {
-  for (intptr_t i = blocks.length() - 1; i >= 0; --i) {
+void FlowGraphCompiler::VisitBlocks() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Compile the block entry.
-    current_block_ = blocks[i];
+    current_block_ = block_order_[i];
     Instruction* instr = current_block()->Accept(this);
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
@@ -746,8 +745,9 @@ void FlowGraphCompiler::VisitBlocks(
     if (successor != NULL) {
       // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
-      if (i == 0 || (blocks[i - 1] != successor)) {
-        __ jmp(&block_info_[successor->block_number()]->label);
+      if ((i == block_order_.length() - 1) ||
+          (block_order_[i + 1] != successor)) {
+        __ jmp(&block_info_[successor->postorder_number()]->label);
       }
     }
   }
@@ -755,12 +755,12 @@ void FlowGraphCompiler::VisitBlocks(
 
 
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
-  __ Bind(&block_info_[instr->block_number()]->label);
+  __ Bind(&block_info_[instr->postorder_number()]->label);
 }
 
 
 void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
-  __ Bind(&block_info_[instr->block_number()]->label);
+  __ Bind(&block_info_[instr->postorder_number()]->label);
 }
 
 
@@ -867,20 +867,19 @@ void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
   // Determine if the true branch is fall through (!negated) or the false
   // branch is.  They cannot both be backwards branches.
-  intptr_t index = blocks_->length() - current_block()->block_number() - 1;
-  ASSERT(index > 0);
-
-  bool negated = ((*blocks_)[index - 1] == instr->false_successor());
-  ASSERT(!negated == ((*blocks_)[index - 1] == instr->true_successor()));
+  intptr_t index = reverse_index(current_block()->postorder_number());
+  bool negated = (block_order_[index + 1] == instr->false_successor());
+  ASSERT(!negated == (block_order_[index + 1] == instr->true_successor()));
 
   LoadValue(RAX, instr->value());
   __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
   __ cmpq(RAX, RDX);
   if (negated) {
-    __ j(EQUAL, &block_info_[instr->true_successor()->block_number()]->label);
+    intptr_t target_index = instr->true_successor()->postorder_number();
+    __ j(EQUAL, &block_info_[target_index]->label);
   } else {
-    __ j(NOT_EQUAL,
-         &block_info_[instr->false_successor()->block_number()]->label);
+    intptr_t target_index = instr->false_successor()->postorder_number();
+    __ j(NOT_EQUAL, &block_info_[target_index]->label);
   }
 }
 
@@ -1136,7 +1135,7 @@ void FlowGraphCompiler::CompileGraph() {
     AstPrinter::PrintFunctionScope(parsed_function_);
   }
 
-  VisitBlocks(*blocks_);
+  VisitBlocks();
 
   __ int3();
   // Emit function patching code. This will be swapped with the first 13 bytes

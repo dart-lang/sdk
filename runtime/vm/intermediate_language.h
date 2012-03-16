@@ -792,7 +792,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : mark_(false) { }
+  Instruction() { }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -806,13 +806,9 @@ class Instruction : public ZoneAllocated {
   // Perform a postorder traversal of the instruction graph reachable from
   // this instruction.  Accumulate basic block entries in the order visited
   // in the in/out parameter 'block_entries'.
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries) = 0;
-
-  // Mark bit to support non-reentrant recursive traversal (i.e.,
-  // identification of cycles).  Before and after a traversal, all the nodes
-  // must have the same mark.
-  bool mark() const { return mark_; }
-  void flip_mark() { mark_ = !mark_; }
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder) = 0;
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -821,8 +817,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
 
  private:
-  bool mark_;
-
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -835,14 +829,18 @@ class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
 
-  intptr_t block_number() const { return block_number_; }
-  void set_block_number(intptr_t number) { block_number_ = number; }
+  intptr_t preorder_number() const { return preorder_number_; }
+  void set_preorder_number(intptr_t number) { preorder_number_ = number; }
+
+  intptr_t postorder_number() const { return postorder_number_; }
+  void set_postorder_number(intptr_t number) { postorder_number_ = number; }
 
  protected:
-  BlockEntryInstr() : Instruction(), block_number_(-1) { }
+  BlockEntryInstr() : preorder_number_(-1), postorder_number_(-1) { }
 
  private:
-  intptr_t block_number_;
+  intptr_t preorder_number_;
+  intptr_t postorder_number_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -859,7 +857,9 @@ class JoinEntryInstr : public BlockEntryInstr {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   Instruction* successor_;
@@ -880,7 +880,9 @@ class TargetEntryInstr : public BlockEntryInstr {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   Instruction* successor_;
@@ -899,7 +901,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 class PickTempInstr : public Instruction {
  public:
   PickTempInstr(intptr_t dst, intptr_t src)
-      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+      : destination_(dst), source_(src), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(PickTemp)
 
@@ -911,7 +913,9 @@ class PickTempInstr : public Instruction {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   const intptr_t destination_;
@@ -934,7 +938,7 @@ class PickTempInstr : public Instruction {
 class TuckTempInstr : public Instruction {
  public:
   TuckTempInstr(intptr_t dst, intptr_t src)
-      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+      : destination_(dst), source_(src), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(TuckTemp)
 
@@ -946,7 +950,9 @@ class TuckTempInstr : public Instruction {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   const intptr_t destination_;
@@ -960,7 +966,7 @@ class TuckTempInstr : public Instruction {
 class DoInstr : public Instruction {
  public:
   explicit DoInstr(Computation* comp)
-      : Instruction(), computation_(comp), successor_(NULL) { }
+      : computation_(comp), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Do)
 
@@ -971,7 +977,9 @@ class DoInstr : public Instruction {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   Computation* computation_;
@@ -984,10 +992,7 @@ class DoInstr : public Instruction {
 class BindInstr : public Instruction {
  public:
   BindInstr(intptr_t temp_index, Computation* computation)
-      : Instruction(),
-        temp_index_(temp_index),
-        computation_(computation),
-        successor_(NULL) { }
+      : temp_index_(temp_index), computation_(computation), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Bind)
 
@@ -999,7 +1004,9 @@ class BindInstr : public Instruction {
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   const intptr_t temp_index_;
@@ -1013,7 +1020,7 @@ class BindInstr : public Instruction {
 class ReturnInstr : public Instruction {
  public:
   ReturnInstr(Value* value, intptr_t token_index)
-      : Instruction(), value_(value), token_index_(token_index) {
+      : value_(value), token_index_(token_index) {
     ASSERT(value_ != NULL);
   }
 
@@ -1024,7 +1031,9 @@ class ReturnInstr : public Instruction {
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   Value* value_;
@@ -1037,10 +1046,7 @@ class ReturnInstr : public Instruction {
 class ThrowInstr : public Instruction {
  public:
   ThrowInstr(intptr_t node_id, intptr_t token_index, Value* exception)
-      : Instruction(),
-        node_id_(node_id),
-        token_index_(token_index),
-        exception_(exception) {
+      : node_id_(node_id), token_index_(token_index), exception_(exception) {
     ASSERT(exception_ != NULL);
   }
 
@@ -1052,7 +1058,9 @@ class ThrowInstr : public Instruction {
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   intptr_t node_id_;
@@ -1086,7 +1094,9 @@ class ReThrowInstr : public Instruction {
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   intptr_t node_id_;
@@ -1101,8 +1111,7 @@ class ReThrowInstr : public Instruction {
 class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(Value* value)
-      : Instruction(),
-        value_(value),
+      : value_(value),
         true_successor_(NULL),
         false_successor_(NULL) { }
 
@@ -1117,7 +1126,9 @@ class BranchInstr : public Instruction {
 
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DepthFirstSearch(
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder);
 
  private:
   Value* value_;
@@ -1134,12 +1145,13 @@ class BranchInstr : public Instruction {
 // graph as defined by a reversed list of basic blocks.
 class FlowGraphVisitor : public ValueObject {
  public:
-  FlowGraphVisitor() { }
+  explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
+      : block_order_(block_order) { }
   virtual ~FlowGraphVisitor() { }
 
-  // Visit each block in the array list in reverse, and for each block its
+  // Visit each block in the block order, and for each block its
   // instructions in order from the block entry to exit.
-  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+  virtual void VisitBlocks();
 
   // Visit functions for instruction and computation classes, with empty
   // default implementations.
@@ -1154,6 +1166,16 @@ class FlowGraphVisitor : public ValueObject {
 
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
+
+ protected:
+  // Map a block number in a forward iteration into the block number in the
+  // corresponding reverse iteration.  Used to obtain an index into
+  // block_order for reverse iterations.
+  intptr_t reverse_index(intptr_t index) {
+    return block_order_.length() - index - 1;
+  }
+
+  const GrowableArray<BlockEntryInstr*>& block_order_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);

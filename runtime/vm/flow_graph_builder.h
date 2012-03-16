@@ -20,14 +20,15 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function)
       : parsed_function_(parsed_function),
+        preorder_block_entries_(),
         postorder_block_entries_() { }
 
   void BuildGraph();
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
-  const GrowableArray<BlockEntryInstr*>* blocks() const {
-    return &postorder_block_entries_;
+  const GrowableArray<BlockEntryInstr*>& postorder_block_entries() const {
+    return postorder_block_entries_;
   }
 
   void Bailout(const char* reason);
@@ -37,6 +38,7 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   const ParsedFunction& parsed_function_;
+  GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;
   intptr_t context_level_;
 };
