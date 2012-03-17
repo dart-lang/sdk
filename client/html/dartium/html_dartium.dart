@@ -243,6 +243,7 @@ _wrap(raw) {
     case "IDBVersionChangeEvent": return new _IDBVersionChangeEventImpl._wrap(domObject);
     case "IDBVersionChangeRequest": return new _IDBVersionChangeRequestImpl._wrap(domObject);
     case "HTMLIFrameElement": return new _IFrameElementImpl._wrap(domObject);
+    case "IceCandidate": return new _IceCandidateImpl._wrap(domObject);
     case "ImageData": return new _ImageDataImpl._wrap(domObject);
     case "HTMLImageElement": return new _ImageElementImpl._wrap(domObject);
     case "HTMLInputElement": return new _InputElementImpl._wrap(domObject);
@@ -10312,6 +10313,16 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
   }
 }
 
+class _IceCandidateImpl extends _DOMTypeBase implements IceCandidate {
+  _IceCandidateImpl._wrap(ptr) : super._wrap(ptr);
+
+  String get label() => _wrap(_ptr.label);
+
+  String toSdp() {
+    return _wrap(_ptr.toSdp());
+  }
+}
+
 class _ImageDataImpl extends _DOMTypeBase implements ImageData {
   _ImageDataImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -12540,8 +12551,6 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
   EventListenerList get click() => _get('click');
 
   EventListenerList get close() => _get('close');
-
-  EventListenerList get display() => _get('display');
 
   EventListenerList get error() => _get('error');
 
@@ -20220,10 +20229,6 @@ class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
   _WebKitNamedFlowImpl._wrap(ptr) : super._wrap(ptr);
 
   bool get overflow() => _wrap(_ptr.overflow);
-
-  NodeList getRegionsByContentNode(Node contentNode) {
-    return _wrap(_ptr.getRegionsByContentNode(_unwrap(contentNode)));
-  }
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
@@ -21516,6 +21521,14 @@ class _FileReaderFactoryProvider {
 class _FileReaderSyncFactoryProvider {
   factory FileReaderSync() =>
       _wrap(new dom.FileReaderSync());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _IceCandidateFactoryProvider {
+  factory IceCandidate(String label, String candidateLine) =>
+      _wrap(new dom.IceCandidate(_unwrap(label), _unwrap(candidateLine)));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27848,6 +27861,20 @@ interface IFrameElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface IceCandidate default _IceCandidateFactoryProvider {
+
+  IceCandidate(String label, String candidateLine);
+
+  final String label;
+
+  String toSdp();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface ImageData {
 
   final CanvasPixelArray data;
@@ -29205,8 +29232,6 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
-
-  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -34973,8 +34998,6 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitNamedFlow {
 
   final bool overflow;
-
-  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

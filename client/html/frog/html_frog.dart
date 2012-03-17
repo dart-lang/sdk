@@ -7347,6 +7347,13 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   _SVGDocumentImpl getSVGDocument() native;
 }
 
+class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
+
+  final String label;
+
+  String toSdp() native;
+}
+
 class _ImageDataImpl implements ImageData native "*ImageData" {
 
   final _CanvasPixelArrayImpl data;
@@ -9000,8 +9007,6 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
   EventListenerList get click() => _get('click');
 
   EventListenerList get close() => _get('close');
-
-  EventListenerList get display() => _get('display');
 
   EventListenerList get error() => _get('error');
 
@@ -15244,8 +15249,6 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final bool overflow;
-
-  _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -16094,6 +16097,14 @@ class _FileReaderFactoryProvider {
 class _FileReaderSyncFactoryProvider {
   factory FileReaderSync() native
       '''return new FileReaderSync();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _IceCandidateFactoryProvider {
+  factory IceCandidate(String label, String candidateLine) native
+      '''return new IceCandidate(label, candidateLine);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22441,6 +22452,20 @@ interface IFrameElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface IceCandidate default _IceCandidateFactoryProvider {
+
+  IceCandidate(String label, String candidateLine);
+
+  final String label;
+
+  String toSdp();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface ImageData {
 
   final CanvasPixelArray data;
@@ -23798,8 +23823,6 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
-
-  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -29566,8 +29589,6 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitNamedFlow {
 
   final bool overflow;
-
-  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
