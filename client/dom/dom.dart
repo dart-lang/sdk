@@ -69,13 +69,6 @@ class _HTMLOptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _IceCandidateFactoryProvider {
-  factory IceCandidate(String label, String candidateLine) => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _dummy();
 }
@@ -5308,20 +5301,6 @@ interface IDBVersionChangeEvent extends Event {
 interface IDBVersionChangeRequest extends IDBRequest {
 
   EventListener onblocked;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface IceCandidate default _IceCandidateFactoryProvider {
-
-  IceCandidate(String label, String candidateLine);
-
-  final String label;
-
-  String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11466,6 +11445,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

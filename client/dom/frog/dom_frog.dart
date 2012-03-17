@@ -4338,13 +4338,6 @@ class _IDBVersionChangeRequestJs extends _IDBRequestJs implements IDBVersionChan
   EventListener onblocked;
 }
 
-class _IceCandidateJs extends _DOMTypeJs implements IceCandidate native "*IceCandidate" {
-
-  final String label;
-
-  String toSdp() native;
-}
-
 class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
 
   final _CanvasPixelArrayJs data;
@@ -11265,6 +11258,8 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final bool overflow;
+
+  _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -11703,14 +11698,6 @@ if (defaultSelected == null) return new Option(data, value);
 if (selected == null) return new Option(data, value, defaultSelected);
 return new Option(data, value, defaultSelected, selected);
 ''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _IceCandidateFactoryProvider {
-  factory IceCandidate(String label, String candidateLine) native
-      '''return new IceCandidate(label, candidateLine);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16976,20 +16963,6 @@ interface IDBVersionChangeEvent extends Event {
 interface IDBVersionChangeRequest extends IDBRequest {
 
   EventListener onblocked;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface IceCandidate default _IceCandidateFactoryProvider {
-
-  IceCandidate(String label, String candidateLine);
-
-  final String label;
-
-  String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23134,6 +23107,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 interface WebKitNamedFlow {
 
   final bool overflow;
+
+  NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
