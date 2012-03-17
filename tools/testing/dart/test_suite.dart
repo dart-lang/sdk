@@ -1108,7 +1108,7 @@ class TestUtils {
       case 'frogium':
       case 'legium':
       case 'webdriver':
-        return 'frog/bin/frog$suffix';
+        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
