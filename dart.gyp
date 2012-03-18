@@ -4,7 +4,7 @@
 
 {
   'variables': {
-    # These variables are used in the creation of the .vcproj file on 
+    # These variables are used in the creation of the .vcproj file on
     # Windows.
     'cygwin_dir': 'third_party/cygwin',
   },
@@ -24,20 +24,6 @@
         'runtime/dart-runtime.gyp:dart',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
-      ],
-    },
-    {
-      'target_name': 'frog',
-      'type': 'none',
-      'dependencies': [
-        'frog/dart-frog.gyp:frog',
-      ],
-    },
-    {
-      'target_name': 'frogsh',
-      'type': 'none',
-      'dependencies': [
-        'frog/dart-frog.gyp:frogsh',
       ],
     },
     {
@@ -111,6 +97,12 @@
       'type': 'none',
       'dependencies': [
         'utils/compiler/compiler.gyp:dart2js',
+
+        # TODO(ahe): Remove dependencies on frog and frogsh, they are
+        # just here to simplify
+        # frog/scripts/buildbot_annotated_steps.py temporarily.
+        'frog/dart-frog.gyp:frog',
+        'frog/dart-frog.gyp:frogsh',
       ],
     },
   ],

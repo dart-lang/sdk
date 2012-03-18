@@ -9,73 +9,61 @@ main() {
   List<String> arguments = new Options().arguments;
   Uri uri = new Uri(scheme: 'file', path: '${arguments[0]}/');
   String dartVmLocation = uri.resolve(arguments[1]).path;
-  String productionLauncherLocation = uri.resolve(arguments[2]).path;
-  String developerLauncherLocation = uri.resolve(arguments[3]).path;
-  String productionLaunch = '#!$dartVmLocation\n';
-  String developerLaunch = '#!$dartVmLocation --enable_checked_mode\n';
-  String launcherScript = """
+  Uri productionLauncher = uri.resolve(arguments[2]);
+  Uri developerLauncher = uri.resolve(arguments[3]);
+  String launcherScript = buildScript(uri);
+
+  writeScript(productionLauncher,
+              ['#!$dartVmLocation\n',
+               launcherScript]);
+  writeScript(developerLauncher,
+              ['#!$dartVmLocation --enable_checked_mode\n',
+               launcherScript]);
+}
+
+writeScript(Uri uri, List<String> chunks) {
+  var f = new File(uri.path);
+  var stream = f.openSync(FileMode.WRITE);
+  for (String chunk in chunks) {
+    stream.writeStringSync(chunk);
+  }
+  stream.closeSync();
+
+  // TODO(ahe): Make script executable.
+  // TODO(ahe): Also make a .bat file for Windows.
+}
+
+buildScript(Uri uri) {
+  return """
 
 #import('dart:io');
 
-#import('${uri.resolve('../../frog/file_system_vm.dart').path}', prefix: 'fs');
-#import('${uri.resolve('../../frog/lang.dart').path}', prefix: 'lang');
-#import('${uri.resolve('../../frog/leg/frog_leg.dart').path}', prefix: 'leg');
+#import('${uri.resolve('../../utils/compiler/dart2js.dart').path}');
 
-void main() {
-  lang.legCompile = leg.compile;
-  try {
-
-    List<String> argv = (new Options()).arguments;
-
-    // Infer --out if there is none defined.
-    var outFileDefined = false;
-    for (var arg in argv) {
-      if (arg.startsWith('--out=')) outFileDefined = true;
-    }
-
-    if (!outFileDefined) {
-      argv.insertRange(0, 1, '--out=' + argv[argv.length-1] + '.js');
-    }
-
-    // TODO(dgrove) we're simulating node by placing the arguments to frogc
-    // starting at index 2.
-    argv.insertRange(0, 4, null);
-
-    argv[2] = '--leg';
-    argv[3] = '--libdir=${uri.resolve('../../frog/lib').path}';
-
-    // TODO(dgrove) Until we have a way of getting the executable's path, we'll
-    // run from '.'
-    var homedir = (new File('.')).fullPathSync();
-
-    if (!lang.compile(homedir, argv, new fs.VMFileSystem())) {
-      print('Compilation failed');
-      exit(1);
-    }
-  } catch (var exception, var trace) {
+class Helper {
+  void run() {
     try {
-      print('Internal error: \$exception');
-    } catch (var ignored) {
-      print('Internal error: error while printing exception');
-    }
-    try {
-      print(trace);
-    } finally {
-      exit(253);
+      List<String> argv =
+        ['--library-root=${uri.resolve('../../frog/leg/lib').path}'];
+      argv.addAll(new Options().arguments);
+      compile(argv);
+    } catch (var exception, var trace) {
+      try {
+        print('Internal error: \$exception');
+      } catch (var ignored) {
+        print('Internal error: error while printing exception');
+      }
+      try {
+        print(trace);
+      } finally {
+        exit(253); // 253 is recognized as a crash by our test scripts.
+      }
     }
   }
 }
+
+void main() {
+  new Helper().run();
+}
 """;
-  var f = new File(productionLauncherLocation);
-  var stream = f.openSync(FileMode.WRITE);
-  stream.writeStringSync(productionLaunch);
-  stream.writeStringSync(launcherScript);
-  stream.closeSync();
-  f = new File(developerLauncherLocation);
-  stream = f.openSync(FileMode.WRITE);
-  stream.writeStringSync(developerLaunch);
-  stream.writeStringSync(launcherScript);
-  stream.closeSync();
-  // TODO(ahe): Make scripts executable.
-  // TODO(ahe): Also make .bat files for Windows.
 }

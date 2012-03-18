@@ -2,43 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jimhug): This should be an interface to work better with tools.
+#library('source_file');
+
+#import('../../frog/leg/colors.dart');
+
 /**
  * Represents a file of source code.
  */
-class SourceFile implements Comparable {
-  // TODO(terry): This filename for in memory buffer.  May need to rework if
-  //              filename is used for more than informational.
-  static String IN_MEMORY_FILE = '<buffer>';
+class SourceFile {
 
   /** The name of the file. */
   final String filename;
 
   /** The text content of the file. */
-  String _text;
-
-  /**
-   * The order of the source file in a given library. This is used while we're
-   * writing code for a library. A single source file can be used
-   */
-  // TODO(jmesserly): I don't like having properties that are only valid
-  // sometimes. An alternative would be to store it in a Map that's used by
-  // WorldGenerator while it's emitting code. This seems simpler.
-  int orderInLibrary;
+  final String text;
 
   List<int> _lineStarts;
 
-  SourceFile(this.filename, this._text);
-
-  String get text() => _text;
-
-  set text(String newText) {
-    if (newText != _text) {
-      _text = newText;
-      _lineStarts = null;
-      orderInLibrary = null;
-    }
-  }
+  SourceFile(this.filename, this.text);
 
   List<int> get lineStarts() {
     if (_lineStarts == null) {
@@ -73,7 +54,7 @@ class SourceFile implements Comparable {
    * in the file.
    */
   String getLocationMessage(String message, int start,
-      [int end, bool includeText=false]) {
+      [int end, bool includeText=false, bool useColors = true]) {
     var line = getLine(start);
     var column = getColumn(line, start);
 
@@ -90,11 +71,11 @@ class SourceFile implements Comparable {
       }
 
       int toColumn = Math.min(column + (end-start), textLine.length);
-      if (options.useColors) {
+      if (useColors) {
         buf.add(textLine.substring(0, column));
-        buf.add(_RED_COLOR);
+        buf.add(RED_COLOR);
         buf.add(textLine.substring(column, toColumn));
-        buf.add(_NO_COLOR);
+        buf.add(NO_COLOR);
         buf.add(textLine.substring(toColumn));
       } else {
         buf.add(textLine);
@@ -105,82 +86,13 @@ class SourceFile implements Comparable {
         buf.add(' ');
       }
 
-      if (options.useColors) buf.add(_RED_COLOR);
+      if (useColors) buf.add(RED_COLOR);
       for (; i < toColumn; i++) {
         buf.add('^');
       }
-      if (options.useColors) buf.add(_NO_COLOR);
+      if (useColors) buf.add(NO_COLOR);
     }
 
     return buf.toString();
-  }
-
-  /** Compares two source files. */
-  int compareTo(SourceFile other) {
-    if (orderInLibrary != null && other.orderInLibrary != null) {
-      return orderInLibrary - other.orderInLibrary;
-    } else {
-      return filename.compareTo(other.filename);
-    }
-  }
-}
-
-
-/**
- * A range of characters in a [SourceFile].  Used to represent the source
- * positions of [Token]s and [Node]s for error reporting or other tooling
- * work.
- */
- // TODO(jmesserly): Rename to Span - but first write cool refactoring tool
-class SourceSpan implements Comparable {
-  /** The [SourceFile] that contains this span. */
-  final SourceFile file;
-
-  /** The character position of the start of this span. */
-  final int start;
-
-  /** The character position of the end of this span. */
-  final int end;
-
-  SourceSpan(this.file, this.start, this.end);
-
-  /** Returns the source text corresponding to this [Span]. */
-  String get text() {
-    return file.text.substring(start, end);
-  }
-
-  toMessageString(String message) {
-    return file.getLocationMessage(message, start, end: end, includeText: true);
-  }
-
-  int get line() {
-    return file.getLine(start);
-  }
-
-  int get column() {
-    return file.getColumn(line, start);
-  }
-
-  int get endLine() {
-    return file.getLine(end);
-  }
-
-  int get endColumn() {
-    return file.getColumn(endLine, end);
-  }
-
-  String get locationText() {
-    var line = file.getLine(start);
-    var column = file.getColumn(line, start);
-    return '${file.filename}:${line + 1}:${column + 1}';
-  }
-
-  /** Compares two source spans by file and position. Handles nulls. */
-  int compareTo(SourceSpan other) {
-    if (file == other.file) {
-      int d = start - other.start;
-      return d == 0 ? (end - other.end) : d;
-    }
-    return file.compareTo(other.file);
   }
 }
