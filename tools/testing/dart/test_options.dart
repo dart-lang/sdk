@@ -485,10 +485,10 @@ Controls how dart code is compiled and executed.
         case 'leg':
         case 'frog':
           if (configuration['mode'] == 'debug') {
-            timeout *= 4;
+            timeout *= 8;
           }
           if (configuration['host_checked']) {
-            timeout *= 8;
+            timeout *= 16;
           }
           break;
         default:
