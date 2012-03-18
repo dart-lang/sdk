@@ -6,7 +6,6 @@
 APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
 APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
 ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
-SerializationTest: Fail, OK # tests frog-specific serialization code
 
 [ $component == leg ]
 # Browser tests only supported on browser components.

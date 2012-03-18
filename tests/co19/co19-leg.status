@@ -229,9 +229,6 @@ Language/13_Types/5_Function_Types_A01_t14: Fail # Expect.isTrue(false) fails.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
-LibTest/core/Map/containsValue_A01_t01: Fail # Expect.isTrue(false) fails.
-LibTest/core/Map/forEach_A01_t07: Fail # Expect.isTrue(false) fails.
-LibTest/core/Map/operator_subscripted_assignment_A01_t01: Fail # Expect.isTrue(false) fails.
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
 LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
