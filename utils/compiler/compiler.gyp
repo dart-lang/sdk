@@ -10,30 +10,30 @@
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
       ],
-      'actions': [
-        {
-          'action_name': 'build_dart2js',
-          'inputs': [
-            '<(PRODUCT_DIR)/dart',
-            'build_helper.dart',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/dart2js',
-            '<(PRODUCT_DIR)/dart2js_developer',
-          ],
-          'conditions': [
-            ['OS!="win"', {
-              'action': [
+      'conditions': [
+        ['OS!="win"', {
+          'actions': [
+            {
+              'action_name': 'build_dart2js',
+              'inputs': [
                 '<(PRODUCT_DIR)/dart',
                 'build_helper.dart',
-                '<(PRODUCT_DIR)',
-                'dart',
-                'dart2js',
-                'dart2js_developer',
               ],
-            }],
+              'outputs': [
+                '<(PRODUCT_DIR)/dart2js',
+                '<(PRODUCT_DIR)/dart2js_developer',
+              ],
+                  'action': [
+                    '<(PRODUCT_DIR)/dart',
+                    'build_helper.dart',
+                    '<(PRODUCT_DIR)',
+                    'dart',
+                    'dart2js',
+                    'dart2js_developer',
+                  ],
+            },
           ],
-        },
+        }],
       ],
     },
   ],
