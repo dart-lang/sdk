@@ -3,6 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'conditions': [
+    ['OS=="win"', {'variables': { 'exec_suffix': '.exe', }}],
+    ['OS!="win"', {'variables': { 'exec_suffix': '', }}],
+  ],
   'targets': [
     {
       'target_name': 'dart2js',
@@ -14,7 +18,7 @@
         {
           'action_name': 'build_dart2js',
           'inputs': [
-            '<(PRODUCT_DIR)/dart',
+            '<(PRODUCT_DIR)/dart<(exec_suffix)',
             'build_helper.dart',
           ],
           'outputs': [
@@ -22,7 +26,7 @@
             '<(PRODUCT_DIR)/dart2js_developer',
           ],
           'action': [
-            '<(PRODUCT_DIR)/dart',
+            '<(PRODUCT_DIR)/dart<(exec_suffix)',
             'build_helper.dart',
             '<(PRODUCT_DIR)',
             'dart',
