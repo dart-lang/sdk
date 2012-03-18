@@ -366,6 +366,7 @@ Prefix11NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 PrivateMemberTest: Fail
+PrivateMember1NegativeTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
 PrivateTest: Fail
