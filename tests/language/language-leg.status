@@ -91,8 +91,6 @@ Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
 ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
-Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
-PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 
@@ -193,8 +191,6 @@ Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
 Prefix9NegativeTest: Fail, OK # Negative language test.
-PrivateMember2NegativeTest: Fail, OK # Negative language test.
-PrivateMember3NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
 PseudoKWIllegalTest/04: Fail, OK # Negative language test.
@@ -240,6 +236,7 @@ WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.
+DisablePrivacyTest: Fail, OK # VM specific test.
 
 
 DivByZeroTest: Fail, OK # Leg only has doubles.

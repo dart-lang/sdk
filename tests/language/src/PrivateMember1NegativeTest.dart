@@ -4,7 +4,7 @@
 
 #library('PrivateMemberLibA');
 
-#import('PrivateMemberLibB1.dart');
+#import('PrivateMember1LibB.dart');
 
 class A {}
 
