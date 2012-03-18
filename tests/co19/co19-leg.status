@@ -175,14 +175,11 @@ LibTest/core/String/charCodes_A01_t01: Fail # compiler cancelled: Unhandled non-
 
 
 Language/05_Variables/05_Variables_A03_t09: Fail # Expect.isTrue(false) fails.
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail # Expect.equals(expected: <yxd4d3C.namedD.named>, actual: <d4d3yxC.namedD.named>) fails.
 Language/10_Expressions/03_Numbers_A01_t06: Fail # Expect.equals(expected: <9223372036854775807>, actual: <9223372036854776000>) fails.
 Language/10_Expressions/03_Numbers_A01_t09: Fail # Expect.equals(expected: <1234567899876543210>, actual: <1234567899876543200>) fails.
 Language/10_Expressions/06_Lists_A07_t01: Fail # Expect.isTrue(false) fails.
 Language/10_Expressions/07_Maps_A05_t01: Fail # Expect.fail('Exception is expected')
 Language/10_Expressions/07_Maps_A06_t01: Fail # Expect.isTrue(false) fails.
-Language/10_Expressions/10_Instance_Creation/1_New_A09_t04: Fail # Expect.equals(expected: <123456>, actual: <124356>) fails.
-Language/10_Expressions/10_Instance_Creation/1_New_A09_t06: Fail # Expect.equals(expected: <123456>, actual: <124356>) fails.
 Language/10_Expressions/10_Instance_Creation/2_Const_A08_t03: Fail # Expect.isTrue(false) fails.
 Language/10_Expressions/10_Instance_Creation/2_Const_A08_t04: Fail # Expect.isTrue(false) fails.
 Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # Expect.equals(expected: <static superclass method>, actual: <library function>) fails.

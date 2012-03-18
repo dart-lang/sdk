@@ -23,7 +23,6 @@ CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
-Constructor5Test: Fail # no matching constructor found
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
@@ -70,7 +69,6 @@ SuperFieldTest: Fail # no method named city in class B
 SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-SuperTest: Fail # cannot find tokens to produce error message for i++.
 SwitchLabelTest: Fail # switch cases are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 
@@ -81,9 +79,6 @@ BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
 ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
 ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-Constructor2Test: Fail # Expect.equals(expected: <1-2-3-4-5-6-7->, actual: <1-2-3-5-4-6-7->) fails.
-Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-3-5-6->) fails.
-ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 FunctionTest: Fail # continue not implemented
