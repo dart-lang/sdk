@@ -5,7 +5,6 @@
 [ $component == leg ]
 DartdocTest: Fail
 MarkdownTest: Fail
-UriTest: Fail
 
 [ $arch == simarm ]
 *: Skip

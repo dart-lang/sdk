@@ -12,4 +12,3 @@ io/ProcessExitNegativeTest: Pass
 io/UrlEncodingTest: Pass
 MediumIntegerTest: Fail, OK # Do not crash.
 OutOfMemoryTest: Fail, OK # Do not crash.
-StatusExpressionTest: Fail, OK # Do not crash.

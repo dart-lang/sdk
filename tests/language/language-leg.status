@@ -13,6 +13,7 @@ Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
 CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
+Factory2Test: Fail # We don't handle constants with super calls.
 StringInterpolation8Test: Fail # Issue 2127
 
 # Compilation errors.
