@@ -8,11 +8,6 @@
 
 [ $component == legium ]
 
-# DOM can return null or undefined.
-dom/SVG3Test: Fail # TypeError: Cannot read property 'is$CSSValue' of null
-dom/StorageTest: Fail # TypeError: Cannot read property 'constructor' of null
-dom/InnerFrameTest: Fail # TypeError: Cannot read property 'constructor' of null
-
 # Unknown error - should investigate.
 html/html_tests: Fail
 
