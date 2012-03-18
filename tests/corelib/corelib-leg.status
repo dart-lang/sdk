@@ -13,12 +13,10 @@ MathParseDoubleTest: Fail
 # Compilation errors.
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
 CoreRuntimeTypesTest: Fail # map not implemented
-DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
 ListTest: Fail # Internal Error: Cannot find value
 SetTest: Fail # Internal Error: Cannot find value
-SplayTreeTest: Fail # Internal Error: Cannot find value
 StringTest: Fail # Internal Error: Cannot find value
 
 

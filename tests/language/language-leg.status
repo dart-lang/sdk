@@ -16,7 +16,6 @@ CompileTimeConstantGTest: Fail # We don't handle constants with optional argumen
 StringInterpolation8Test: Fail # Issue 2127
 
 # Compilation errors.
-BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
