@@ -488,7 +488,7 @@ Controls how dart code is compiled and executed.
             timeout *= 4;
           }
           if (configuration['host_checked']) {
-            timeout *= 4;
+            timeout *= 8;
           }
           break;
         default:
