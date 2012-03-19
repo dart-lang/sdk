@@ -63,7 +63,6 @@ NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 PseudoKWTest: Fail # Unexpected token '('
 ResourceTest: Fail # #resource tag not recognized - issue 1807
-StatementTest: Fail # switch cases are not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
@@ -244,10 +243,6 @@ DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
 RegExp3Test: Fail, OK # Expects exception from const constructor.
-
-
-# TODO(ahe): Categorize these failures.
-ExecuteFinally3Test: Fail
 
 
 [ $component == dart2js && $mode == release ]
