@@ -113,10 +113,6 @@ AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 AssignInstanceMethodNegativeTest: Fail
 BadNamedParametersTest: Fail      # Issue 1941
 BadNamedParameters2Test: Fail     # Issue 1941
-AssignStaticTypeTest/01: Fail # Issue 1957
-AssignStaticTypeTest/02: Fail # Issue 1957
-AssignStaticTypeTest/03: Fail # Issue 1957
-AssignStaticTypeTest/04: Fail # Issue 1957
 BodyLessConstructorWrongArgNegativeTest: Fail
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654

@@ -1726,6 +1726,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartMethodDefinition accessor = node.getAccessor();
       if (accessor != null) {
         return typeOf(accessor);
+      } else if (node.getElement().getConstantType() != null) {
+        checkAssignable(node, node.getElement().getType(), node.getElement().getConstantType());
+        return node.getElement().getType();
       } else {
         return checkInitializedDeclaration(node, node.getValue());
       }
