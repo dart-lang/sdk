@@ -35,6 +35,7 @@ class ParsedFunction : ValueObject {
         node_sequence_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::Handle()),
+        saved_context_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         copied_parameter_count_(0),
@@ -61,6 +62,12 @@ class ParsedFunction : ValueObject {
     default_parameter_values_ = default_parameter_values.raw();
   }
 
+  LocalVariable* saved_context_var() const { return saved_context_var_; }
+  void set_saved_context_var(LocalVariable* saved_context_var) {
+    ASSERT(saved_context_var != NULL);
+    saved_context_var_ = saved_context_var;
+  }
+
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int copied_parameter_count() const { return copied_parameter_count_; }
@@ -73,6 +80,7 @@ class ParsedFunction : ValueObject {
   SequenceNode* node_sequence_;
   AstNode* instantiator_;
   Array& default_parameter_values_;
+  LocalVariable* saved_context_var_;
 
   int first_parameter_index_;
   int first_stack_local_index_;

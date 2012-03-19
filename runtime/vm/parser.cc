@@ -142,6 +142,22 @@ void ParsedFunction::AllocateVariables() {
                                first_stack_local_index_,
                                scope,
                                &context_owner);
+
+  // If this function is not a closure function and if it contains captured
+  // variables, the context needs to be saved on entry and restored on exit.
+  // Add and allocate a local variable to this purpose.
+  if ((context_owner != NULL) && !function().IsClosureFunction()) {
+    const String& context_var_name =
+        String::ZoneHandle(String::NewSymbol(":saved_entry_context_var"));
+    LocalVariable* context_var =
+        new LocalVariable(function().token_index(),
+                          context_var_name,
+                          Type::ZoneHandle(Type::DynamicType()));
+    context_var->set_index(next_free_frame_index--);
+    scope->AddVariable(context_var);
+    set_saved_context_var(context_var);
+  }
+
   // Frame indices are relative to the frame pointer and are decreasing.
   ASSERT(next_free_frame_index <= first_stack_local_index_);
   stack_local_count_ = first_stack_local_index_ - next_free_frame_index;
