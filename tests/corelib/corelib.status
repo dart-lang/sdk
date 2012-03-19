@@ -32,7 +32,7 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
-[ $component == frogsh ]
+[ $component == frogsh || $component == webdriver || $component = frogium ]
 DoubleCompareTest: Fail
 
 [ $component == webdriver && ($browser == ff || $browser == ie) ]

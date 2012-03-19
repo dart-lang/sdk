@@ -208,7 +208,7 @@ StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
 
 
-[ $component == frogsh ]
+[ $component == frogsh || $component == frogium || $component == webdriver ]
 ArithmeticTest: Fail # Issue 1470
 IntrinsifiedMethodsTest: Fail # Issue 1470
 
