@@ -170,6 +170,22 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
 }
 
 
+void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
+                                       const Function& function,
+                                       intptr_t argument_count,
+                                       const Array& argument_names) {
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+  __ LoadObject(RBX, function);
+  __ LoadObject(R10, arguments_descriptor);
+
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
+  __ addq(RSP, Immediate(argument_count * kWordSize));
+}
+
+
 void FlowGraphCompiler::VisitCurrentContext(CurrentContextComp* comp) {
   __ movq(RAX, CTX);
 }
@@ -226,21 +242,12 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
 }
 
 
-
 void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
   ASSERT(VerifyCallComputation(comp));
-
-  int argument_count = comp->ArgumentCount();
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count,
-                                         comp->argument_names());
-  __ LoadObject(RBX, comp->function());
-  __ LoadObject(R10, arguments_descriptor);
-
-  GenerateCall(comp->token_index(),
-               &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kFuncCall);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  EmitStaticCall(comp->token_index(),
+                 comp->function(),
+                 comp->ArgumentCount(),
+                 comp->argument_names());
 }
 
 
@@ -329,18 +336,31 @@ void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
 
 void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
   // Preserve the second argument under the arguments as the result of the
-  // computation, then call the getter.
+  // computation, then call the setter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(comp->field_name()));
 
   // Insert a copy of the second (last) argument under the arguments.
   __ popq(RAX);  // Value.
-  __ popq(RBX);  // Reciever.
+  __ popq(RBX);  // Receiver.
   __ pushq(RAX);
   __ pushq(RBX);
   __ pushq(RAX);
   EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 2,
                    Array::ZoneHandle(), 1);
+  __ popq(RAX);
+}
+
+
+void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
+  // Preserve the argument as the result of the computation,
+  // then call the setter.
+
+  // Duplicate the argument.
+  __ movq(RAX, Address(RSP, 0));
+  __ pushq(RAX);
+  EmitStaticCall(comp->token_index(), comp->setter_function(), 1,
+                 Array::ZoneHandle());
   __ popq(RAX);
 }
 

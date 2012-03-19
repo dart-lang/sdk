@@ -2080,6 +2080,8 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
                                             interpolate_arg,
                                             kNoArgumentNames);
     if (concatenated.IsUnhandledException()) {
+      // TODO(hausner): Shouldn't we generate a throw?
+      // Then remove unused CodeGenerator::ErrorMsg().
       ErrorMsg(node->token_index(),
           "Exception thrown in CodeGenerator::VisitStringConcatNode");
     }
@@ -2444,10 +2446,7 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
   const String& getter_name = String::Handle(Field::GetterName(field_name));
   const Function& function =
       Function::ZoneHandle(field_class.LookupStaticFunction(getter_name));
-  if (function.IsNull()) {
-    ErrorMsg(token_index, "Static getter does not exist: %s",
-        getter_name.ToCString());
-  }
+  ASSERT(!function.IsNull());
   __ LoadObject(ECX, function);
   const int kNumberOfArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
@@ -2478,6 +2477,7 @@ void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
   const String& setter_name = String::Handle(Field::SetterName(field_name));
   const Function& function =
       Function::ZoneHandle(field_class.LookupStaticFunction(setter_name));
+  ASSERT(!function.IsNull());
   __ LoadObject(ECX, function);
   const int kNumberOfArguments = 1;  // value.
   const Array& kNoArgumentNames = Array::Handle();

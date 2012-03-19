@@ -16,39 +16,6 @@ namespace dart {
 class FlowGraphVisitor;
 class LocalVariable;
 
-// Computations and values.
-//
-// <Computation> ::=
-//   <Value>
-// | AssertAssignable <Value> <AbstractType>
-// | CurrentContext
-// | ClosureCall <ClosureCallNode> <Value> <Value> ...
-// | InstanceCall <String> <Value> ...
-// | StaticCall <StaticCallNode> <Value> ...
-// | LoadLocal <LocalVariable>
-// | StoreLocal <LocalVariable> <Value>
-// | StrictCompare <Token::kind> <Value> <Value>
-// | NativeCall <NativeBodyNode>
-// | StoreIndexed <Value> <Value> <Value>
-// | InstanceSetter <String> <Value> <Value>
-// | LoadInstanceField <LoadInstanceFieldNode> <Value>
-// | StoreInstanceField <StoreInstanceFieldNode> <Value> <Value>
-// | LoadStaticField <Field>
-// | StoreStaticField <Field> <Value>
-// | BooleanNegate <Value>
-// | InstanceOf <Value> <Type>
-// | CreateArray <ArrayNode> <Value> ...
-// | CreateClosure <ClosureNode>
-// | AllocateObject <ConstructorCallNode>
-// | NativeLoadField <Value> <intptr_t>
-// | ExtractFactoryTypeArgumentsComp <ConstructorCallNode> <Value>
-// | ExtractConstructorTypeArgumentsComp <ConstructorCallNode> <Value>
-// | ExtractConstructorInstantiatorComp <ConstructorCallNode> <Value> <Value>
-//
-// <Value> ::=
-//   Temp <int>
-// | Constant <Instance>
-
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
@@ -71,6 +38,7 @@ class LocalVariable;
   M(NativeCall, NativeCallComp)                                                \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
+  M(StaticSetter, StaticSetterComp)                                            \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -532,6 +500,32 @@ class InstanceSetterComp : public Computation {
   Value* const value_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
+};
+
+
+// Not simply a StaticCall because it has somewhat more complicated
+// semantics: the value operand is preserved before the call.
+class StaticSetterComp : public Computation {
+ public:
+  StaticSetterComp(intptr_t token_index,
+                   const Function& setter_function,
+                   Value* value)
+      : token_index_(token_index),
+        setter_function_(setter_function),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(StaticSetter)
+
+  intptr_t token_index() const { return token_index_; }
+  const Function& setter_function() const { return setter_function_; }
+  Value* value() const { return value_; }
+
+ private:
+  const intptr_t token_index_;
+  const Function& setter_function_;
+  Value* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StaticSetterComp);
 };
 
 

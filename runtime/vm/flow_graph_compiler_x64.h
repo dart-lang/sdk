@@ -74,6 +74,12 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                         const Array& argument_names,
                         intptr_t checked_argument_count);
 
+  // Emit a static call.
+  void EmitStaticCall(intptr_t token_index,
+                      const Function& function,
+                      intptr_t argument_count,
+                      const Array& argument_names);
+
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
                     const ExternalLabel* label,

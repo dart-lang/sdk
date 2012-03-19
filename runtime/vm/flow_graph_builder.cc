@@ -1110,12 +1110,33 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
-  Bailout("EffectGraphVisitor::VisitStaticGetterNode");
+  const String& getter_name =
+      String::Handle(Field::GetterName(node->field_name()));
+  const Function& getter_function =
+      Function::ZoneHandle(node->cls().LookupStaticFunction(getter_name));
+  ASSERT(!getter_function.IsNull());
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
+  StaticCallComp* call = new StaticCallComp(node->token_index(),
+                                            getter_function,
+                                            Array::ZoneHandle(),  // No names.
+                                            values);
+  ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
-  Bailout("EffectGraphVisitor::VisitStaticSetterNode");
+  const String& setter_name =
+      String::Handle(Field::SetterName(node->field_name()));
+  const Function& setter_function =
+      Function::ZoneHandle(node->cls().LookupStaticFunction(setter_name));
+  ASSERT(!setter_function.IsNull());
+  ArgumentGraphVisitor for_value(owner(), temp_index());
+  node->value()->Visit(&for_value);
+  Append(for_value);
+  StaticSetterComp* call = new StaticSetterComp(node->token_index(),
+                                                setter_function,
+                                                for_value.value());
+  ReturnComputation(call);
 }
 
 
@@ -1516,6 +1537,13 @@ void FlowGraphPrinter::VisitInstanceSetter(InstanceSetterComp* comp) {
   OS::Print("InstanceSetter(");
   comp->receiver()->Accept(this);
   OS::Print(", ");
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitStaticSetter(StaticSetterComp* comp) {
+  OS::Print("StaticSetter(");
   comp->value()->Accept(this);
   OS::Print(")");
 }
