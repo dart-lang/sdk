@@ -27,19 +27,19 @@ template TopSearches(var persons) {
     }
   }
   <div class="all-list">
-    ${#each persons}
+    ${#each persons person}
       <div class="person-item">
-        <span>${name},&nbsp;</span>
+        <span>${person.name},&nbsp;</span>
         <span>age&nbsp;=&nbsp;</span>
-        <span>${age}</span>
+        <span>${person.age}</span>
       </div>
       <div>
-        ${#each persons.searches}
-          <div class="search-item">query=${query},&nbsp;rank=${rank},&nbsp;total=${total}</div>
-          ${#each searches.metrics}
+        ${#each person.searches search}
+          <div class="search-item">query=${search.query},&nbsp;rank=${search.rank},&nbsp;total=${search.total}</div>
+          ${#each search.metrics metric}
             <div class="metrics-item">
-              <span>${country}</span>
-              <span class="total-hits">${quantity}</span>
+              <span>${metric.country}</span>
+              <span class="total-hits">${metric.quantity}</span>
             </div>
           ${/each}
         ${/each}

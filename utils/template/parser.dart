@@ -371,13 +371,17 @@ class Parser {
           }
         }
       } else if (_maybeEat(TokenKind.START_COMMAND)) {
-        if (_peekIdentifier()) {
-          var commandName = identifier();
+        Identifier commandName = processAsIdentifier();
+        if (commandName != null) {
           switch (commandName.name) {
             case "each":
             case "with":
-              if (_peekIdentifier()) {
-                var listName = identifier();
+              var listName = processAsIdentifier();
+              if (listName != null) {
+                var loopItem = processAsIdentifier();
+                // Is the optional item name specified?
+                //    #each lists [item]
+                //    #with expression [item]
 
                 _eat(TokenKind.RBRACE);
 
@@ -389,9 +393,11 @@ class Parser {
                   var span = _makeSpan(start);
                   var cmd;
                   if (commandName.name == "each") {
-                    cmd = new TemplateEachCommand(listName, docFrag, span);
+                    cmd = new TemplateEachCommand(listName, loopItem, docFrag,
+                        span);
                   } else if (commandName.name == "with") {
-                    cmd = new TemplateWithCommand(listName, docFrag, span);
+                    cmd = new TemplateWithCommand(listName, loopItem, docFrag,
+                        span);
                   }
 
                   stack.top().add(cmd);
@@ -444,8 +450,25 @@ class Parser {
             case "else":
               break;
             default:
-              _error("Unknown template command");
-          }
+              // Calling another template.
+              int startPos = this._previousToken.end;
+              // Gobble up everything until we hit }
+              while (_peek() != TokenKind.RBRACE &&
+                     _peek() != TokenKind.END_OF_FILE) {
+                _next(false);
+              }
+
+              if (_peek() == TokenKind.RBRACE) {
+                int endPos = this._previousToken.end;
+                TemplateCall callNode = new TemplateCall(commandName.name,
+                    source.text.substring(startPos, endPos), _makeSpan(start));
+                stack.top().add(callNode);
+
+                _next(false);
+              } else {
+                _error("Unknown template command");
+              }
+          }  // End of switch/case
         }
       } else if (_peekKind(TokenKind.END_COMMAND)) {
         break;
@@ -525,8 +548,23 @@ class Parser {
     bool inExpression = false;
     StringBuffer stringValue = new StringBuffer();
 
+    // Any text chars between close of tag and text node?
+    if (_previousToken.kind == TokenKind.GREATER_THAN) {
+      // If the next token is } could be the close template token.  If user
+      // needs } as token in text node use the entity &125;
+      // TODO(terry): Probably need a &RCURLY entity instead of 125.
+      if (_peek() == TokenKind.ERROR) {
+        // Backup, just past previous token, & rescan we're outside of the tag.
+        tokenizer.index = _previousToken.end;
+        _next(false);
+      } else if (_peek() != TokenKind.RBRACE) {
+        // Yes, grab the chars after the >
+        stringValue.add(_previousToken.source.text.substring(
+            this._previousToken.end, this._peekToken.start));
+      }
+    }
+
     // Gobble up everything until we hit <
-    int runningStart = _peekToken.start;
     while (_peek() != TokenKind.LESS_THAN &&
            (_peek() != TokenKind.RBRACE ||
             (_peek() == TokenKind.RBRACE && inExpression)) &&

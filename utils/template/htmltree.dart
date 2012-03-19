@@ -209,26 +209,45 @@ class TemplateExpression extends ASTNode {
 
 class TemplateEachCommand extends ASTNode {
   String listName;
+  String loopItem;
   TemplateDocument documentFragment;
 
-  TemplateEachCommand(this.listName, this.documentFragment, SourceSpan span):
-    super(span);
+  TemplateEachCommand(this.listName, this.loopItem, this.documentFragment,
+      SourceSpan span): super(span);
+
+  bool get hasLoopItem() => loopItem != null;
+  String get loopNameOptional() => hasLoopItem ? " ${loopItem}" : "";
 
   visit(TreeVisitor visitor) => visitor.visitTemplateEachCommand(this);
 
-  String toString() => "\$\{#each ${listName}}";
+  String toString() => "\$\{#each ${listName}${loopNameOptional}}";
 }
 
 class TemplateWithCommand extends ASTNode {
   String objectName;
+  String blockItem;
   TemplateDocument documentFragment;
 
-  TemplateWithCommand(this.objectName, this.documentFragment, SourceSpan span):
-    super(span);
+  TemplateWithCommand(this.objectName, this.blockItem, this.documentFragment,
+      SourceSpan span): super(span);
+
+  bool get hasBlockItem() => blockItem != null;
+  String get blockNameOptional() => hasBlockItem ? " ${blockItem}" : "";
 
   visit(TreeVisitor visitor) => visitor.visitTemplateWithCommand(this);
 
-  String toString() => "\$\{#with ${objectName}}";
+  String toString() => "\$\{#with ${objectName}${blockNameOptional}}";
+}
+
+class TemplateCall extends ASTNode {
+  String toCall;
+  String params;
+
+  TemplateCall(this.toCall, this.params, SourceSpan span): super(span);
+
+  visit(TreeVisitor visitor) => visitor.visitTemplateCall(this);
+
+  String toString() => "\$\{#${toCall}${params}}";
 }
 
 interface TreeVisitor {
@@ -246,6 +265,7 @@ interface TreeVisitor {
   void visitTemplateExpression(TemplateExpression node);
   void visitTemplateEachCommand(TemplateEachCommand node);
   void visitTemplateWithCommand(TemplateWithCommand node);
+  void visitTemplateCall(TemplateCall node);
 }
 
 class TreePrinter implements TreeVisitor {
@@ -344,5 +364,12 @@ class TreePrinter implements TreeVisitor {
     output.writeValue('object', node.objectName);
     visitTemplateDocument(node.documentFragment);
   }
+
+  void visitTemplateCall(TemplateCall node) {
+    output.heading('#call template', node.span);
+    output.writeValue('templateToCall', node.toCall);
+    output.writeValue('params', node.params);
+  }
+
 }
 

@@ -1,0 +1,12 @@
+template ProductView(Person person) {
+  <div>
+    ${#with person p}
+      <div>
+        <span>${p.name}</span>
+        <span>-</span>
+        <span>${p.age}</span>
+      </div>
+    ${/with}
+  </div>
+}
+  

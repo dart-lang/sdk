@@ -19,12 +19,12 @@ template TopSearches(Person person, var searches) {
         <span>${age}</span>
       </div>
       <div>
-        ${#each searches}
-          <div>query=${query},&nbsp;rank=${rank},&nbsp;total=${total}</div>
-          ${#each searches.metrics}
+        ${#each searches search}
+          <div>query=${search.query},&nbsp;rank=${search.rank},&nbsp;total=${search.total}</div>
+          ${#each search.metrics metric}
             <div class="metrics-item">
-              <span>${country}</span>
-              <span class="total-hits">${quantity}</span>
+              <span>${metric.country}</span>
+              <span class="total-hits">${metric.quantity}</span>
             </div>
           ${/each}
         ${/each}

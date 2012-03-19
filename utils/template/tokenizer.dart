@@ -43,7 +43,11 @@ class Tokenizer extends TokenizerBase {
       case tmplTokens.tokens[TokenKind.TAB]:
       case tmplTokens.tokens[TokenKind.NEWLINE]:
       case tmplTokens.tokens[TokenKind.RETURN]:
-        return finishWhitespace();
+        if (inTag) {
+          return finishWhitespace();
+        } else {
+          return _finishToken(TokenKind.WHITESPACE);
+        }
       case tmplTokens.tokens[TokenKind.END_OF_FILE]:
         return _finishToken(TokenKind.END_OF_FILE);
       case tmplTokens.tokens[TokenKind.LPAREN]:

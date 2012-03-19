@@ -6,10 +6,10 @@ template TopSearches(Person person, var searches) {
         <span>age&nbsp;=&nbsp;</span>
         <span>${age}</span>
       </div>
-      ${#each searches}
+      ${#each searches search}
         <div>
-          <span style="margin-left: 10px;">query=${query}</span>
-          <span style="margin-left: 20px;">hits=${total}</span>
+          <span style="margin-left: 10px;">query=${search.query}</span>
+          <span style="margin-left: 20px;">hits=${search.total}</span>
         </div>
       ${/each}
     ${/with}

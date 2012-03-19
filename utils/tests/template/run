@@ -20,6 +20,16 @@ then
     ./../../template/template name_entry_css.tmpl name_entry.dart
     cd ../../../frog
     ./frog.py --html -- ../utils/tests/template/test_simple.dart
+  elif [[ $1 == "simple4" ]];
+  then
+    ./../../template/template name_entry_text.tmpl name_entry.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_simple.dart
+  elif [[ $1 == "simplecall" ]];
+  then
+    ./../../template/template callview.tmpl name_entry.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_simple.dart
   elif [[ $1 == "with1" ]];
   then
     ./../../template/template productview.tmpl productview.dart
@@ -30,6 +40,16 @@ then
     ./../../template/template productview2.tmpl productview.dart
     cd ../../../frog
     ./frog.py --html -- ../utils/tests/template/test_with.dart
+  elif [[ $1 == "with3" ]];
+  then
+    ./../../template/template productview_localname.tmpl productview.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_with.dart
+  elif [[ $1 == "nested" ]];
+  then
+    ./../../template/template nestedview.tmpl nestedview.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_nested.dart
   elif [[ $1 == "list" ]];
   then
     ./../../template/template applications.tmpl applications.dart
@@ -62,6 +82,8 @@ then
     rm -f name_entry.dart
     echo "rm productview.dart"
     rm -f productview.dart
+    echo "rm nestedview.dart"
+    rm -f nestedview.dart
     echo "rm applications.dart"
     rm -f applications.dart
     echo "rm top_searches.dart"
@@ -78,8 +100,12 @@ else
   echo -e "  simple1"
   echo -e "  simple2"
   echo -e "  simple3"
+  echo -e "  simple4"
+  echo -e "  simplecall"
   echo -e "  with1"
   echo -e "  with2"
+  echo -e "  with3"
+  echo -e "  nested"
   echo -e "  list"
   echo -e "  complex"
   echo -e "  complexcss"

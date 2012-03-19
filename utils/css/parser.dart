@@ -760,6 +760,7 @@ class Parser {
       } catch (HexNumberException hne) {
         _error('Bad hex number', _makeSpan(start));
       }
+      break;
     case TokenKind.INTEGER:
       t = _next();
       value = Math.parseInt("${unary}${t.text}");

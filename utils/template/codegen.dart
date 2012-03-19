@@ -9,6 +9,7 @@ class CGBlock {
                               // #each.  If so then any element marked with a
                               // var attribute is repeated therefore the var
                               // is a List type instead of an Element type.
+  String _localName;          // optional local name for #each or #with
   List<CGStatement> _stmts;
   int localIndex;             // Local variable index (e.g., e0, e1, etc.)
 
@@ -19,7 +20,8 @@ class CGBlock {
 
   CGBlock([this._indent = 4,
            this._blockType = CGBlock.CONSTRUCTOR,
-           this._inEach = false]) :
+           this._inEach = false,
+           this._localName = null]) :
       _stmts = new List<CGStatement>(), localIndex = 0 {
     assert(_blockType >= CGBlock.CONSTRUCTOR && _blockType <= CGBlock.WITH);
   }
@@ -27,6 +29,9 @@ class CGBlock {
   bool get isConstructor() => _blockType == CGBlock.CONSTRUCTOR;
   bool get isEach() => _blockType == CGBlock.EACH;
   bool get isWith() => _blockType == CGBlock.WITH;
+
+  bool get hasLocalName() => _localName != null;
+  String get localName() => _localName;
 
   CGStatement push(var elem, var parentName, [bool exact = false]) {
     var varName;
@@ -113,7 +118,7 @@ class CGStatement {
   bool _exact;                  // If True not HTML construct instead exact stmt
   bool _repeating;              // Stmt in a #each this block or nested block.
   StringBuffer _buff;
-  TemplateElement _elem;
+  var _elem;
   int _indent;
   var parentName;
   String varName;
@@ -142,7 +147,7 @@ class CGStatement {
     if (hasGlobalVariable) {
       String spaces = Codegen.spaces(_indent);
       return (_repeating) ?
-        "  List ${varName};    // Repeated elements.\r" : "  var ${varName};\r";
+        "  List ${varName};    // Repeated elements.\n" : "  var ${varName};\n";
     }
 
     return "";
@@ -150,7 +155,7 @@ class CGStatement {
 
   String globalInitializers() {
     if (hasGlobalVariable && _repeating) {
-      return "    ${varName} = [];\r";
+      return "    ${varName} = [];\n";
     }
 
     return "";
@@ -175,7 +180,7 @@ class CGStatement {
     String spaces = Codegen.spaces(_indent);
 
     if (_exact) {
-      statement.add("${spaces}${_buff.toString()};\r");
+      statement.add("${spaces}${_buff.toString()};\n");
     } else {
       String localVar = "";
       String tmpRepeat;
@@ -205,20 +210,34 @@ class CGStatement {
             var eNNN = new Element.html('HTML GOES HERE');
             parent.elements.add(eNNN);
        */
-      if (tmpRepeat == null) {
-        statement.add("${spaces}${localVar}${varName} = new Element.html('");
+      if (_elem is TemplateCall) {
+        // Call template NameEntry2
+        String cls = _elem.toCall;
+        String params = _elem.params;
+        statement.add("\n${spaces}// Call template ${cls}.\n");
+        statement.add(
+            "${spaces}${localVar}${varName} = new ${cls}${params};\n");
+        statement.add(
+            "${spaces}${parentName}.elements.add(${varName}.root);\n");
       } else {
-        statement.add("${spaces}${localVar}${tmpRepeat} = new Element.html('");
-      }
-      statement.add(_buff.toString());
+        bool isTextNode = _elem is TemplateText;
+        String createType = isTextNode ? "Text" : "Element.html";
+        if (tmpRepeat == null) {
+          statement.add("${spaces}${localVar}${varName} = new ${createType}('");
+        } else {
+          statement.add(
+              "${spaces}${localVar}${tmpRepeat} = new ${createType}('");
+        }
+        statement.add(isTextNode ? _buff.toString().trim() : _buff.toString());
 
-      if (tmpRepeat == null) {
-        statement.add(
-          "');\r${spaces}${parentName}.elements.add(${varName});\r");
-      } else {
-        statement.add(
-          "');\r${spaces}${parentName}.elements.add(${tmpRepeat});\r");
-        statement.add("${spaces}${varName}.add(${tmpRepeat});\r");
+        if (tmpRepeat == null) {
+          statement.add(
+            "');\n${spaces}${parentName}.elements.add(${varName});\n");
+        } else {
+          statement.add(
+            "');\n${spaces}${parentName}.elements.add(${tmpRepeat});\n");
+          statement.add("${spaces}${varName}.add(${tmpRepeat});\n");
+        }
       }
     }
 
@@ -250,13 +269,13 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
     int injectId = 0;         // Inject function id
 
-    buff.add("// Generated Dart class from HTML template.\r");
-    buff.add("// DO NOT EDIT.\r\r");
+    buff.add("// Generated Dart class from HTML template.\n");
+    buff.add("// DO NOT EDIT.\n\n");
 
-    buff.add("String safeHTML(String html) {\r");
-    buff.add("  // TODO(terry): Escaping for XSS vulnerabilities TBD.\r");
-    buff.add("  return html;\r");
-    buff.add("}\r\r");
+    buff.add("String safeHTML(String html) {\n");
+    buff.add("  // TODO(terry): Escaping for XSS vulnerabilities TBD.\n");
+    buff.add("  return html;\n");
+    buff.add("}\n\n");
 
     String addStylesheetFuncName = "add_${filename}_templatesStyles";
     
@@ -271,25 +290,25 @@ class Codegen {
     //              bound to this template file not global to the app.
 
     // Emit the stylesheet aggregator.
-    buff.add("\r\r// Inject all templates stylesheet once into the head.\r");
-    buff.add("bool ${filename}_stylesheet_added = false;\r");
-    buff.add("void ${addStylesheetFuncName}() {\r");
-    buff.add("  if (!${filename}_stylesheet_added) {\r");
-    buff.add("    StringBuffer styles = new StringBuffer();\r\r");
+    buff.add("\n\n// Inject all templates stylesheet once into the head.\n");
+    buff.add("bool ${filename}_stylesheet_added = false;\n");
+    buff.add("void ${addStylesheetFuncName}() {\n");
+    buff.add("  if (!${filename}_stylesheet_added) {\n");
+    buff.add("    StringBuffer styles = new StringBuffer();\n\n");
 
-    buff.add("    // All templates stylesheet.\r");
+    buff.add("    // All templates stylesheet.\n");
 
     for (final template in templates) {
       TemplateSignature sig = template.signature;
-      buff.add("    styles.add(${sig.name}.stylesheet);\r");
+      buff.add("    styles.add(${sig.name}.stylesheet);\n");
     }
 
-    buff.add("\r    ${filename}_stylesheet_added = true;\r");
+    buff.add("\n    ${filename}_stylesheet_added = true;\n");
 
     buff.add("    document.head.elements.add(new Element.html('<style>"
-             "\${styles.toString()}</style>'));\r");
-    buff.add("  }\r");
-    buff.add("}\r");
+             "\${styles.toString()}</style>'));\n");
+    buff.add("  }\n");
+    buff.add("}\n");
 
     return buff.toString();
   }
@@ -332,10 +351,10 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
     if (classes.length > 0) {
       assert(classes.length == dartNames.length);
-      buff.add("\r  // CSS class selectors for this template.\r");
+      buff.add("\n  // CSS class selectors for this template.\n");
       for (int i = 0; i < classes.length; i++) {
         buff.add(
-          "  static String get ${dartNames[i]}() => \"${classes[i]}\";\r");
+          "  static String get ${dartNames[i]}() => \"${classes[i]}\";\n");
       }
     }
 
@@ -349,29 +368,42 @@ class Codegen {
     StringBuffer buff = new StringBuffer();
 
     // Emit the template class.
-    buff.add("class ${className} {\r");
+    buff.add("class ${className} {\n");
 
-    buff.add("  Element _fragment;\r\r");
+    buff.add("  Map<String, Object> _scopes;\n");
+    buff.add("  Element _fragment;\n\n");
 
     bool anyParams = false;
     for (final param in params) {
-      buff.add("  ${param['type']} ${param['name']};\r");
+      buff.add("  ${param['type']} ${param['name']};\n");
       anyParams = true;
     }
-    if (anyParams) buff.add("\r");
+    if (anyParams) buff.add("\n");
 
     ElemCG ecg = new ElemCG();
 
-    ecg.pushBlock();
+    if (!ecg.pushBlock()) {
+      world.error("Error at ${content}");
+    }
 
-    // TODO(terry): Only supports singlely rooted need to fix.
-    ecg.emitConstructHtml(content.html.children[0], "", "_fragment");
+    var root = content.html.children[0];
+    bool firstTime = true;
+    for (var child in root.children) {
+      if (child is TemplateText) {
+        if (!firstTime) {
+          ecg.closeStatement();
+        }
+        CGStatement stmt = ecg.pushStatement(child, "_fragment");
+      }
+      ecg.emitConstructHtml(child, "", "_fragment");
+      firstTime = false;
+    }
 
     // Create all element names marked with var.
     String decls = ecg.globalDeclarations;
     if (decls.length > 0) {
-      buff.add("\r  // Elements bound to a variable:\r");
-      buff.add("${decls}\r");
+      buff.add("\n  // Elements bound to a variable:\n");
+      buff.add("${decls}\n");
     }
 
     // Create the constructor.
@@ -384,58 +416,58 @@ class Codegen {
       buff.add("this.${param['name']}");
       firstParam = false;
     }
-    buff.add(") {\r");
+    buff.add(") : _scopes = new Map<String, Object>() {\n");
 
     String initializers = ecg.globalInitializers;
     if (initializers.length > 0) {
-      buff.add("    //Global initializers.\r");
-      buff.add("${initializers}\r");
+      buff.add("    //Global initializers.\n");
+      buff.add("${initializers}\n");
     }
 
-    buff.add("    // Insure stylesheet for template exist in the document.\r");
-    buff.add("    ${addStylesheetFuncName}();\r\r");
+    buff.add("    // Insure stylesheet for template exist in the document.\n");
+    buff.add("    ${addStylesheetFuncName}();\n\n");
 
-    buff.add("    _fragment = new Element.tag('div');\r");
+    buff.add("    _fragment = new DocumentFragment();\n");
 
     buff.add(ecg.codeBody);     // HTML for constructor to build.
 
-    buff.add("  }\r\r");        // End constructor
+    buff.add("  }\n\n");        // End constructor
 
-    buff.add("  Element get root() => _fragment.nodes.first;\r");
+    buff.add("  Element get root() => _fragment;\n");
 
     // Emit all CSS class selectors:
     buff.add(_emitCSSSelectors(content.css));
 
     // Emit the injection functions.
-    buff.add("\r  // Injection functions:");
+    buff.add("\n  // Injection functions:");
     for (final expr in ecg.expressions) {
       buff.add("${expr}");
     }
 
-    buff.add("\r  // Each functions:\r");
+    buff.add("\n  // Each functions:\n");
     for (var eachFunc in ecg.eachs) {
-      buff.add("${eachFunc}\r");
+      buff.add("${eachFunc}\n");
     }
 
-    buff.add("\r  // With functions:\r");
+    buff.add("\n  // With functions:\n");
     for (var withFunc in ecg.withs) {
-      buff.add("${withFunc}\r");
+      buff.add("${withFunc}\n");
     }
 
-    buff.add("\r  // CSS for this template.\r");
+    buff.add("\n  // CSS for this template.\n");
     buff.add("  static final String stylesheet = ");
 
     if (content.css != null) {
-      buff.add("\'\'\'\r    ${content.css.toString()}\r");
-      buff.add("  \'\'\';\r\r");
+      buff.add("\'\'\'\n    ${content.css.toString()}\n");
+      buff.add("  \'\'\';\n\n");
 
       // TODO(terry): Emit all known selectors for this template.
-      buff.add("  // Stylesheet class selectors:\r");
+      buff.add("  // Stylesheet class selectors:\n");
     } else {
-      buff.add("\"\";\r");
+      buff.add("\"\";\n");
     }
 
-    buff.add("}\r");              // End class
+    buff.add("}\n");              // End class
 
     return buff.toString();
   }
@@ -468,6 +500,61 @@ class ElemCG {
     return block.isConstructor;
   }
 
+  List<String> activeBlocksLocalNames() {
+    List<String> result = [];
+
+    for (final CGBlock block in _cgBlocks) {
+      if (block.isEach || block.isWith) {
+        if (block.hasLocalName) {
+          result.add(block.localName);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Active block with this localName.
+   */ 
+  bool matchBlocksLocalName(String name) {
+    for (final CGBlock block in _cgBlocks) {
+      if (block.isEach || block.isWith) {
+        if (block.hasLocalName && block.localName == name) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Any active blocks?
+   */
+  bool isNestedBlock() {
+    for (final CGBlock block in _cgBlocks) {
+      if (block.isEach || block.isWith) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Any active blocks with localName?
+   */
+  bool isNestedNamedBlock() {
+    for (final CGBlock block in _cgBlocks) {
+      if ((block.isEach || block.isWith) && block.hasLocalName) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Any current active #each blocks.
   bool anyEachBlocks(int blockToCreateType) {
     bool result = blockToCreateType == CGBlock.EACH;
@@ -481,9 +568,22 @@ class ElemCG {
     return result;
   }
 
-  void pushBlock([int indent = 4, int blockType = CGBlock.CONSTRUCTOR]) {
+  bool pushBlock([int indent = 4, int blockType = CGBlock.CONSTRUCTOR,
+                  String itemName = null]) {
     closeStatement();
-    _cgBlocks.add(new CGBlock(indent, blockType, anyEachBlocks(blockType)));
+    if (itemName != null && matchBlocksLocalName(itemName)) {
+      world.error("Active block already exist with local name: ${itemName}.");
+      return false;
+    } else if (itemName == null && this.isNestedBlock()) {
+      world.error('''
+Nested #each or #with must have a localName;
+ \n  #each list [localName]\n  #with object [localName]''');
+      return false;
+    }
+    _cgBlocks.add(
+        new CGBlock(indent, blockType, anyEachBlocks(blockType), itemName));
+
+    return true;
   }
 
   void popBlock() {
@@ -568,16 +668,23 @@ class ElemCG {
           emitElement(childElem, scopeName, parentVarOrIdx);
         }
       }
+
+      // Close this tag.
+      closeStatement();
     } else if (elem is TemplateText) {
       add("${elem.value}");
     } else if (elem is TemplateExpression) {
       emitExpressions(elem, scopeName);
     } else if (elem is TemplateEachCommand) {
       // Signal to caller new block coming in, returns "each_" prefix
-      emitEach(elem, "List", elem.listName.name, "parent", immediateNestedEach);
+      emitEach(elem, "List", elem.listName.name, "parent", immediateNestedEach,
+          elem.hasLoopItem ? elem.loopItem.name : null);
     } else if (elem is TemplateWithCommand) {
       // Signal to caller new block coming in, returns "each_" prefix
-      emitWith(elem, "var", elem.objectName.name, "parent");
+      emitWith(elem, "var", elem.objectName.name, "parent",
+          elem.hasBlockItem ? elem.blockItem.name : null);
+    } else if (elem is TemplateCall) {
+      emitCall(elem, parentVarOrIdx);
     }
   }
 
@@ -631,11 +738,6 @@ class ElemCG {
                           var varIndex = 0,
                           bool immediateNestedEach = false]) {
     if (elem is TemplateElement) {
-      // Never look at the root node (fragment) get it's children.
-      if (elem.isFragment) {
-        elem = elem.children[0];
-      }
-
       CGStatement stmt = pushStatement(elem, parentName);
       emitElement(elem, scopeName, stmt.hasGlobalVariable ?
           stmt.variableName : varIndex);
@@ -651,7 +753,7 @@ class ElemCG {
     String newName = iterName;
     var dotForIter = iterName.indexOf('.');
     if (dotForIter >= 0) {
-      newName = "item${iterName.substring(dotForIter)}";
+      newName = "_item${iterName.substring(dotForIter)}";
     }
 
     return newName;
@@ -661,26 +763,38 @@ class ElemCG {
     StringBuffer func = new StringBuffer();
 
     String newExpr = elem.expression;
-    if (scopeName.length > 0) {
+    bool anyNesting = isNestedNamedBlock();
+    if (scopeName.length > 0 && !anyNesting) {
       // In a block #command need the scope passed in.
-      add("\$\{inject_${expressions.length}(item)\}");
-      func.add("\r  String inject_${expressions.length}(var item) {\r");
+      add("\$\{inject_${expressions.length}(_item)\}");
+      func.add("\n  String inject_${expressions.length}(var _item) {\n");
       // Escape all single-quotes, this expression is embedded as a string 
       // parameter for the call to safeHTML.
-      newExpr = _resolveNames(newExpr.replaceAll("'", "\\'"), "item");
+      newExpr = _resolveNames(newExpr.replaceAll("'", "\\'"), "_item");
     } else {
       // Not in a block #command item isn't passed in.
       add("\$\{inject_${expressions.length}()\}");
-      func.add("\r  String inject_${expressions.length}() {\r");
+      func.add("\n  String inject_${expressions.length}() {\n");
+
+      if (anyNesting) {
+        func.add(defineScopes());
+      }
     }
 
-    func.add("    return safeHTML('\$\{${newExpr}\}');\r");
-    func.add("  }\r");
+    // Construct the active scope names for name resolution.
+
+    func.add("    return safeHTML('\$\{${newExpr}\}');\n");
+    func.add("  }\n");
 
     expressions.add(func.toString());
   }
+
+  emitCall(TemplateCall elem, String scopeName) {
+    pushStatement(elem, scopeName);
+  }
+
   emitEach(TemplateEachCommand elem, String iterType, String iterName,
-      var parentVarOrIdx, bool nestedImmediateEach) {
+      var parentVarOrIdx, bool nestedImmediateEach, [String itemName = null]) {
     TemplateDocument docFrag = elem.documentFragment;
 
     int eachIndex = eachs.length;
@@ -690,10 +804,19 @@ class ElemCG {
     // Prepare function call "each_N(iterName," parent param computed later.
     String funcName = "each_${eachIndex}";
 
-    funcBuff.add("  ${funcName}(${iterType} items, Element parent) {\r");
-    funcBuff.add("    for (var item in items) {\r");
+    funcBuff.add("  ${funcName}(${iterType} items, Element parent) {\n");
 
-    pushBlock(6, CGBlock.EACH);
+    String paramName = injectParamName(itemName);
+    if (paramName == null) {
+      world.error("Use a different local name; ${itemName} is reserved.");
+    }
+    funcBuff.add("    for (var ${paramName} in items) {\n");
+
+    if (!pushBlock(6, CGBlock.EACH, itemName)) {
+      world.error("Error at ${elem}");
+    }
+
+    addScope(6, funcBuff, itemName);
 
     TemplateElement docFragChild = docFrag.children[0];
     var children = docFragChild.isFragment ?
@@ -708,10 +831,12 @@ class ElemCG {
 
     funcBuff.add(codeBody);
 
+    removeScope(6, funcBuff, itemName);
+
     popBlock();
 
-    funcBuff.add("    }\r");
-    funcBuff.add("  }\r");
+    funcBuff.add("    }\n");
+    funcBuff.add("  }\n");
 
     eachs[eachIndex] = funcBuff.toString();
 
@@ -723,11 +848,13 @@ class ElemCG {
 
     // Setup call to each func as "each_n(xxxxx, " the parent param is filled
     // in later when we known the parent variable.
-    add("${funcName}(${eachIterNameToItem(iterName)}, ${varName})");
-  }
+    String eachParam =
+        (itemName == null) ? eachIterNameToItem(iterName) : iterName;
+    add("${funcName}(${eachParam}, ${varName})");
+}
 
   emitWith(TemplateWithCommand elem, String withType, String withName,
-      var parentVarIndex) {
+      var parentVarIndex, [String itemName = null]) {
     TemplateDocument docFrag = elem.documentFragment;
 
     int withIndex = withs.length;
@@ -737,9 +864,15 @@ class ElemCG {
     // Prepare function call "each_N(iterName," parent param computed later.
     String funcName = "with_${withIndex}";
 
-    funcBuff.add("  ${funcName}(${withType} item, Element parent) {\r");
+    String paramName = injectParamName(itemName);
+    if (paramName == null) {
+      world.error("Use a different local name; ${itemName} is reserved.");
+    }
+    funcBuff.add("  ${funcName}(${withType} ${paramName}, Element parent) {\n");
 
-    pushBlock(CGBlock.WITH);
+    if (!pushBlock(4, CGBlock.WITH, itemName)) {
+      world.error("Error at ${elem}");
+    }
 
     TemplateElement docFragChild = docFrag.children[0];
     var children = docFragChild.isFragment ?
@@ -748,11 +881,13 @@ class ElemCG {
       emitConstructHtml(child, withName, "parent");
     }
 
+    addScope(4, funcBuff, itemName);
     funcBuff.add(codeBody);
+    removeScope(4, funcBuff, itemName);
 
     popBlock();
 
-    funcBuff.add("  }\r");
+    funcBuff.add("  }\n");
 
     withs[withIndex] = funcBuff.toString();
 
@@ -764,4 +899,48 @@ class ElemCG {
     // in later when we known the parent variable.
     add("${funcName}(${withName}, ${varName})");
   }
+
+  String injectParamName(String name) {
+    // Local name _item is reserved.
+    if (name != null && name == "_item") {
+      return null;    // Local name is not valid.
+    }
+
+    return (name == null) ? "_item" : name;
+  }
+
+  addScope(int indent, StringBuffer buff, String item) {
+    String spaces = Codegen.spaces(indent);
+
+    if (item == null) {
+      item = "_item";
+    }
+    buff.add("${spaces}_scopes[\"${item}\"] = ${item};\n");
+  }
+
+  removeScope(int indent, StringBuffer buff, String item) {
+    String spaces = Codegen.spaces(indent);
+
+    if (item == null) {
+      item = "_item";
+    }
+    buff.add("${spaces}_scopes.remove(\"${item}\");\n");
+  }
+
+  String defineScopes() {
+    StringBuffer buff = new StringBuffer();
+
+    // Construct the active scope names for name resolution.
+    List<String> names = activeBlocksLocalNames();
+    if (names.length > 0) {
+      buff.add("    // Local scoped block names.\n");
+      for (String name in names) {
+        buff.add("    var ${name} = _scopes[\"${name}\"];\n");
+      }
+      buff.add("\n");
+    }
+
+    return buff.toString();
+  }
+
 }
