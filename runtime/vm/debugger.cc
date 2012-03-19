@@ -317,12 +317,23 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
+  ASSERT((breakpoint_kind_ == PcDescriptors::kIcCall) ||
+         (breakpoint_kind_ == PcDescriptors::kFuncCall) ||
+         (breakpoint_kind_ == PcDescriptors::kReturn));
 }
 
 
 CodeBreakpoint::~CodeBreakpoint() {
   // Make sure we don't leave patched code behind.
   ASSERT(!IsEnabled());
+  // Poison the data so we catch use after free errors.
+#ifdef DEBUG
+  function_ = Function::null();
+  pc_ = 0ul;
+  src_bpt_ = NULL;
+  next_ = NULL;
+  breakpoint_kind_ = PcDescriptors::kOther;
+#endif
 }
 
 
@@ -880,17 +891,17 @@ void Debugger::BreakpointCallback() {
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
         func = caller->DartFunction().raw();
-        RemoveInternalBreakpoints();
       }
     }
+    RemoveInternalBreakpoints();  // *bpt is now invalid.
     InstrumentForStepping(func);
   } else if (resume_action_ == kStepInto) {
-    RemoveInternalBreakpoints();
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       int num_args, num_named_args;
       uword target;
       CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
           &num_args, &num_named_args, &target);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       Instance& receiver = Instance::Handle(
           top_frame->GetInstanceCallReceiver(num_args));
@@ -904,9 +915,11 @@ void Debugger::BreakpointCallback() {
       Function& callee = Function::Handle();
       uword target;
       CodePatcher::GetStaticCallAt(bpt->pc_, &callee, &target);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       InstrumentForStepping(callee);
     } else {
       ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       // Treat like stepping out to caller.
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
@@ -915,8 +928,8 @@ void Debugger::BreakpointCallback() {
     }
   } else {
     ASSERT(resume_action_ == kStepOut);
+    RemoveInternalBreakpoints();  // *bpt is now invalid.
     // Set stepping breakpoints in the caller.
-    RemoveInternalBreakpoints();
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
       InstrumentForStepping(caller->DartFunction());
