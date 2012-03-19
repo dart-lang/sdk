@@ -42,3 +42,17 @@
 #source("frog/isolateimpl.dart");
 #source("frog/ports.dart");
 #source("frog/messages.dart");
+
+/**
+ * Called by the compiler to support switching
+ * between isolates when we get a callback from the DOM.
+ */
+void _callInIsolate(IsolateContext isolate, Function function) {
+  isolate.eval(function);
+  _globalState.topEventLoop.run();
+}
+
+/**
+ * Called by the compiler to fetch the current isolate context.
+ */
+void _currentIsolate() => _globalState.currentContext;

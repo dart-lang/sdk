@@ -19,7 +19,7 @@ dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'g
 # We don't support is checks with generic types.
 dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
 
-# TODO(ngeoffray): Investigate
-dom/IsolatesTest: Skip # Timeout
-dom/IsolateLightTest: Skip # Timeout
-dom/DOMIsolatesTest: Fail # cannot read dart:isolate
+dom/IsolatesTest: Skip # Timeout because leg does not support web workers.
+
+# Uses 'exploratory API' (see client/dom/src/spawnDomIsolate).
+dom/DOMIsolatesTest: Fail, OK # error: cannot resolve spawnDomIsolate
