@@ -101,7 +101,8 @@ class HttpParserTest {
                                  [int expectedContentLength = 0,
                                   int expectedBytesReceived = 0,
                                   Map expectedHeaders = null,
-                                  bool chunked = false]) {
+                                  bool chunked = false,
+                                  bool close = false]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
@@ -124,7 +125,7 @@ class HttpParserTest {
       };
       httpParser.headersComplete = () {
         Expect.isFalse(headersCompleteCalled);
-        if (!chunked) {
+        if (!chunked && !close) {
           Expect.equals(expectedContentLength, httpParser.contentLength);
         } else {
           Expect.equals(-1, httpParser.contentLength);
@@ -166,6 +167,7 @@ class HttpParserTest {
         int writeLength = Math.min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);
       }
+      if (close) httpParser.connectionClosed();
       checkExpectations();
     }
 
@@ -186,28 +188,28 @@ class HttpParserTest {
   static void testParseRequest() {
     String request;
     Map headers;
-    request = "GET / HTTP/1.1\r\n\r\n";
+    request = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "GET", "/");
 
-    request = "POST / HTTP/1.1\r\n\r\n";
+    request = "POST / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "POST", "/");
 
-    request = "GET /index.html HTTP/1.1\r\n\r\n";
+    request = "GET /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "GET", "/index.html");
 
-    request = "POST /index.html HTTP/1.1\r\n\r\n";
+    request = "POST /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "POST", "/index.html");
 
-    request = "H /index.html HTTP/1.1\r\n\r\n";
+    request = "H /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "H", "/index.html");
 
-    request = "HT /index.html HTTP/1.1\r\n\r\n";
+    request = "HT /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "HT", "/index.html");
 
-    request = "HTT /index.html HTTP/1.1\r\n\r\n";
+    request = "HTT /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "HTT", "/index.html");
 
-    request = "HTTP /index.html HTTP/1.1\r\n\r\n";
+    request = "HTTP /index.html HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
     _testParseRequest(request, "HTTP", "/index.html");
 
     request = """
@@ -227,6 +229,7 @@ content-length: 0\r
 
     request = """
 POST /test HTTP/1.1\r
+Content-Length: 0\r
 Header-A: AAA\r
 X-Header-B: bbb\r
 \r
@@ -234,10 +237,11 @@ X-Header-B: bbb\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", 0, 0, headers);
+    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
+Content-Length: 0\r
 Header-A:   AAA\r
 X-Header-B:\t \t bbb\r
 \r
@@ -245,10 +249,11 @@ X-Header-B:\t \t bbb\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", 0, 0, headers);
+    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
+Content-Length: 0\r
 Header-A:   AA\r
  A\r
 X-Header-B:           b\r
@@ -259,14 +264,18 @@ X-Header-B:           b\r
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";
-    _testParseRequest(request, "POST", "/test", 0, 0, headers);
+    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
 
     request = """
 POST /test HTTP/1.1\r
 Content-Length: 10\r
 \r
 0123456789""";
-    _testParseRequest(request, "POST", "/test", 10, 10);
+    _testParseRequest(request,
+                      "POST",
+                      "/test",
+                      expectedContentLength: 10,
+                      expectedBytesReceived: 10);
 
     // Test chunked encoding.
     request = """
@@ -278,7 +287,12 @@ Transfer-Encoding: chunked\r
 5\r
 56789\r
 0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test", -1, 10, null, true);
+    _testParseRequest(request,
+                      "POST",
+                      "/test",
+                      expectedContentLength: -1,
+                      expectedBytesReceived: 10,
+                      chunked: true);
 
     // Test mixing chunked encoding and content length (content length
     // is ignored).
@@ -292,7 +306,12 @@ Transfer-Encoding: chunked\r
 5\r
 56789\r
 0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test", -1, 10, null, true);
+    _testParseRequest(request,
+                      "POST",
+                      "/test",
+                      expectedContentLength: -1,
+                      expectedBytesReceived: 10,
+                      chunked: true);
 
     // Test mixing chunked encoding and content length (content length
     // is ignored).
@@ -306,7 +325,12 @@ Content-Length: 3\r
 5\r
 56789\r
 0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test", -1, 10, null, true);
+    _testParseRequest(request,
+                      "POST",
+                      "/test",
+                      expectedContentLength: -1,
+                      expectedBytesReceived: 10,
+                      chunked: true);
 
     // Test upper and lower case hex digits in chunked encoding.
     request = """
@@ -318,19 +342,24 @@ Transfer-Encoding: chunked\r
 1e\r
 012345678901234567890123456789\r
 0\r\n\r\n""";
-    _testParseRequest(request, "POST", "/test", -1, 60, null, true);
+    _testParseRequest(request,
+                      "POST",
+                      "/test",
+                      expectedContentLength: -1,
+                      expectedBytesReceived: 60,
+                      chunked: true);
   }
 
   static void testParseResponse() {
     String response;
     Map headers;
-    response = "HTTP/1.1 200 OK\r\n\r\n";
+    response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n";
     _testParseResponse(response, 200, "OK");
 
-    response = "HTTP/1.1 404 Not found\r\n\r\n";
+    response = "HTTP/1.1 404 Not found\r\nContent-Length: 0\r\n\r\n";
     _testParseResponse(response, 404, "Not found");
 
-    response = "HTTP/1.1 500 Server error\r\n\r\n";
+    response = "HTTP/1.1 500 Server error\r\nContent-Length: 0\r\n\r\n";
     _testParseResponse(response, 500, "Server error");
 
     // Test content.
@@ -340,7 +369,12 @@ Content-Length: 20\r
 \r
 01234567890123456789""";
 
-    _testParseResponse(response, 200, "OK", 20, 20);
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: 20,
+                       expectedBytesReceived: 20);
+
     // Test upper and lower case hex digits in chunked encoding.
     response = """
 HTTP/1.1 200 OK\r
@@ -351,7 +385,27 @@ Transfer-Encoding: chunked\r
 1f\r
 0123456789012345678901234567890\r
 0\r\n\r\n""";
-    _testParseResponse(response, 200, "OK", -1, 57, null, true);
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: -1,
+                       expectedBytesReceived: 57,
+                       chunked: true);
+
+    // Test HTTP response without any transfer length indications
+    // where closing the connections indicated end of body.
+    response = """
+HTTP/1.1 200 OK\r
+\r
+01234567890123456789012345
+0123456789012345678901234567890
+""";
+  _testParseResponse(response,
+                     200,
+                     "OK",
+                     expectedContentLength: -1,
+                     expectedBytesReceived: 59,
+                     close: true);
   }
 }
 
