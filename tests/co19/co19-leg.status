@@ -151,21 +151,14 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # compiler cance
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # compiler cancelled: expected ';', but got ':'
 Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # compiler cancelled: internal error: super property read not implemented
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # compiler cancelled: unexpected token ';'
-Language/10_Expressions/29_Type_Test_A02_t01: Fail # compiler cancelled: cannot resolve type Dynamic
-Language/10_Expressions/29_Type_Test_A03_t01: Fail # compiler cancelled: cannot resolve type Dynamic
-Language/11_Statements/03_Variable_Declaration_A02_t01: Fail # compiler cancelled: cannot resolve type Dynamic
-Language/11_Statements/03_Variable_Declaration_A02_t02: Fail # compiler cancelled: cannot resolve type Dynamic
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A03_t03: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/11_Statements/13_Continue_A03_t05: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # compiler cancelled: cannot resolve type MalformedType
 Language/13_Types/4_Interface_Types_A05_t04: Fail # compiler cancelled: cannot resolve type T
-Language/13_Types/4_Interface_Types_A07_t01: Fail # compiler cancelled: cannot resolve type Dynamic
-Language/13_Types/4_Interface_Types_A07_t02: Fail # compiler cancelled: cannot resolve type Dynamic
 Language/13_Types/4_Interface_Types_A08_t01: Fail # compiler cancelled: cannot resolve type S
 Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpected token 'call'
-Language/13_Types/6_Type_Dynamic_A01_t01: Fail # compiler cancelled: cannot resolve type Dynamic
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
@@ -447,19 +440,9 @@ Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
 Language/10_Expressions/01_Constants_A15_t03: Fail, OK # 'const' keyword is not verified in literal maps.
 Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A02_t02: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A02_t03: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A03_t02: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A03_t03: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A04_t02: Fail, OK # @compile-error
-Language/10_Expressions/03_Numbers_A04_t03: Fail, OK # @compile-error
-Language/10_Expressions/04_Booleans_A03_t01: Fail, OK # @compile-error
-Language/10_Expressions/04_Booleans_A03_t02: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings_A02_t20: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings_A02_t24: Fail, OK # @compile-error
-Language/10_Expressions/05_Strings_A17_t01: Fail, OK # @compile-error
-Language/10_Expressions/05_Strings_A17_t02: Fail, OK # @compile-error
 Language/10_Expressions/06_Lists_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/06_Lists_A04_t01: Fail, OK # @compile-error
 Language/10_Expressions/07_Maps_A02_t02: Fail, OK # @compile-error
