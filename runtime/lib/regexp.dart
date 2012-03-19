@@ -64,19 +64,25 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Iterable<Match> allMatches(String str) {
-    var jsregexMatches = new List<JSRegExpMatch>();
-    List match = _ExecuteMatch(str, 0);
-    if (match !== null) {
-      jsregexMatches.add(new JSRegExpMatch(this, str, match));
-      while (true) {
-        match = _ExecuteMatch(str, match[1]);
-        if (match === null) {
-          break;
-        }
-        jsregexMatches.add(new JSRegExpMatch(this, str, match));
+    List<Match> result = new List<Match>();
+    int length = str.length;
+    int startIndex = 0;
+    while (true) {
+      List match = _ExecuteMatch(str, startIndex);
+      if (match == null) {
+        break;
+      }
+      result.add(new JSRegExpMatch(this, str, match));
+      int endIndex = match[1];
+      if (endIndex == length) {
+        break;
+      } else if (match[0] == endIndex) {
+        ++startIndex;  // empty match, advance and restart
+      } else {
+        startIndex = endIndex;
       }
     }
-    return jsregexMatches;
+    return result;
   }
 
   bool hasMatch(String str) {

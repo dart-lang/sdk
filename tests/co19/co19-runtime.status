@@ -226,7 +226,8 @@ LibTest/core/List/lastIndexOf_A03_t01: Fail
 LibTest/core/ReceivePort/receive_A01_t02: Fail
 LibTest/core/SendPort/send_A02_t01: Fail
 LibTest/core/String/contains_A01_t02: Fail
-
+LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
+LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
 
 [ $component == vm && $arch == ia32 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail
