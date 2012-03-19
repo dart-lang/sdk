@@ -13,6 +13,10 @@ interface int extends num {
   int operator <<(int shiftAmount);
   int operator >>(int shiftAmount);
 
+  // Testers.
+  bool isEven();
+  bool isOdd();
+
   // Specializations of super-interface.
   int operator negate();
   int abs();
