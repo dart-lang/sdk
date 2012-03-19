@@ -93,98 +93,159 @@ void FlowGraphVisitor::VisitBlocks() {
 
 
 // ==== Postorder graph traversal.
-void JoinEntryInstr::DepthFirstSearch(
+void JoinEntryInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
-  // JoinEntryInstr is the only instruction that can have more than one
-  // predecessor, so it is the only one that could be reached more than once
-  // during the traversal.
-  //
-  // Use the presence of a preorder number to indicate that it has already
-  // been reached.
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  // The global graph entry is a TargetEntryInstr, so we can assume
+  // current_block is non-null and preorder array is non-empty.
+  ASSERT(current_block != NULL);
+  ASSERT(!preorder->is_empty());
+
+  // 1. Record control-flow-graph basic-block predecessors.
+  predecessors_.Add(current_block);
+
+  // 2. If the block has already been reached by the traversal, we are done.
   if (preorder_number() >= 0) return;
+
+  // 3. The last entry in the preorder array is the spanning-tree parent.
+  parent->Add(preorder->Last());
+
+  // 4. Assign preorder number and add the block entry to the list.
   set_preorder_number(preorder->length());
   preorder->Add(this);
+  // The preorder and parent arrays are both indexed by preorder block
+  // number, so they should stay in lockstep.
+  ASSERT(preorder->length() == parent->length());
+
+  // 5. Recursively visit the successor.
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(this, preorder, postorder, parent);
+
+  // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
   postorder->Add(this);
 }
 
 
-void TargetEntryInstr::DepthFirstSearch(
+void TargetEntryInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  // 1. Record control-flow-graph basic-block predecessors.
+  ASSERT(predecessor_ == NULL);
+  predecessor_ = current_block;  // Might be NULL (for the graph entry).
+
+  // 2. There is a single predecessor, so we should only reach this block once.
   ASSERT(preorder_number() == -1);
+
+  // 3. The last entry in the preorder array is the spanning-tree parent.
+  // The global graph entry has a NULL parent.
+  parent->Add(preorder->is_empty() ? NULL : preorder->Last());
+
+  // 4. Assign preorder number and add the block entry to the list.
   set_preorder_number(preorder->length());
   preorder->Add(this);
+  // The preorder and parent arrays are indexed by preorder block number, so
+  // they should stay in lockstep.
+  ASSERT(preorder->length() == parent->length());
+
+  // 5. Recursively visit the successor.
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(this, preorder, postorder, parent);
+
+  // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
   postorder->Add(this);
 }
 
 
-void PickTempInstr::DepthFirstSearch(
+void PickTempInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 
-void TuckTempInstr::DepthFirstSearch(
+void TuckTempInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 
-void DoInstr::DepthFirstSearch(
+void DoInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 
-void BindInstr::DepthFirstSearch(
+void BindInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   ASSERT(successor_ != NULL);
-  successor_->DepthFirstSearch(preorder, postorder);
+  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 
-void ReturnInstr::DepthFirstSearch(
+void ReturnInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
 }
 
 
-void ThrowInstr::DepthFirstSearch(
+void ThrowInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
 }
 
 
-void ReThrowInstr::DepthFirstSearch(
+void ReThrowInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
 }
 
 
-void BranchInstr::DepthFirstSearch(
+void BranchInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder) {
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder used as the block ordering in the
   // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
-  false_successor_->DepthFirstSearch(preorder, postorder);
-  true_successor_->DepthFirstSearch(preorder, postorder);
+  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
+  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 

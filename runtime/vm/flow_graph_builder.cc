@@ -1671,8 +1671,11 @@ void FlowGraphBuilder::BuildGraph() {
   if (for_effect.entry() != NULL) {
     // Perform a depth-first traversal of the graph to build preorder and
     // postorder block orders.
-    for_effect.entry()->DepthFirstSearch(&preorder_block_entries_,
-                                         &postorder_block_entries_);
+    GrowableArray<BlockEntryInstr*> parent;
+    for_effect.entry()->DiscoverBlocks(NULL,  // Entry block predecessor.
+                                       &preorder_block_entries_,
+                                       &postorder_block_entries_,
+                                       &parent);
   }
   if (FLAG_print_flow_graph) {
     intptr_t length = postorder_block_entries_.length();
