@@ -35,7 +35,7 @@
 # ......dom/
 # ........dom.dart
 # ......frog/
-# ......html/ 
+# ......html/
 # ........html_frog.dart
 # ........html_dartium.dart
 # ......json/
@@ -164,7 +164,7 @@ def Main(argv):
   copyfile(join(HOME, 'runtime', 'bin', 'builtin.dart'),
            join(builtin_dest_dir, 'builtin_runtime.dart'))
   #
-  # rename the print function in dart:builtin 
+  # rename the print function in dart:builtin
   # so that it does not conflict with the print function in dart:core
   #
   ReplaceInFiles([
@@ -282,17 +282,14 @@ def Main(argv):
   copytree(dartdoc_src_dir, dartdoc_dest_dir,
            ignore=ignore_patterns('.svn', 'docs'))
   ReplaceInFiles([
-      join(LIB, 'dartdoc', 'dartdoc')
-    ], [
-      ("../../frog/minfrog", "../../bin/frogc"),
-      ("--libdir=../../frog/lib", "--libdir=../")
-    ])
-  ReplaceInFiles([
       join(LIB, 'dartdoc', 'dartdoc.dart')
     ], [
       ("#import\('../../frog", "#import('../frog"),
-      ("'../../frog'", "'../frog'"),
-      ("'--libdir=../../frog/lib'", "'--libdir=../'")
+      ("joinPaths\(scriptDir, '../../frog/'\)",
+          "joinPaths(scriptDir, '../frog/')"),
+      ("joinPaths\(frogPath, 'lib'\)", "joinPaths(frogPath, '..')"),
+      ("joinPaths\(frogPath, 'minfrog'\)",
+          "joinPaths(scriptDir, '../../bin/frogc')")
     ])
   ReplaceInFiles([
       join(LIB, 'dartdoc', 'classify.dart'),

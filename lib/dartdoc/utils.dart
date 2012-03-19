@@ -4,15 +4,6 @@
 
 // Generic utility functions.
 
-/** Invokes [callback] and returns how long it took to execute in ms. */
-num time(callback()) {
-  final watch = new Stopwatch();
-  watch.start();
-  callback();
-  watch.stop();
-  return watch.elapsedInMs();
-}
-
 /** Turns [name] into something that's safe to use as a file name. */
 String sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
 
