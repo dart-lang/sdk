@@ -2,13 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == leg && $system == macos ]
+[ $component == dart2js && $system == macos ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
 
-[ $component == leg ]
+[ $component == dart2js ]
 # These classes have been removed, co19 issue 79.
 LibTest/core/Dispatcher/*: Fail, OK
 LibTest/core/List/every_A03_t01: Fail, OK
@@ -24,7 +24,7 @@ LibTest/core/SendPort/*: Fail, OK
 LibTest/core/ReceivePort/*: Fail, OK
 
 
-[ $component == leg && $checked ]
+[ $component == dart2js && $checked ]
 # Leg does not support checked mode yet.
 *: Skip
 
@@ -33,7 +33,7 @@ LibTest/core/ReceivePort/*: Fail, OK
 *: Skip
 
 
-[ $component == leg ]
+[ $component == dart2js ]
 Language/10_Expressions/01_Constants_A17_t03: Skip # Cycle reference. Times out.
 
 

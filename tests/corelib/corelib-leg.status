@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == leg && $checked ]
+[ $component == dart2js && $checked ]
 *: Skip
 
 
-[ $component == leg || $component == legium ]
+[ $component == dart2js || $component == legium ]
 MathParseDoubleTest: Fail
 
 

@@ -71,8 +71,8 @@ Controls how dart code is compiled and executed.
    frog: Compile dart code by running frog on the standalone dart vm, and
        run the resulting javascript on D8.
 
-   leg: Compile dart code by running leg on the standalone dart vm, and
-       run the resulting javascript on D8.
+   dart2js: Compile dart code by running dart2js on the standalone
+       dart vm, and run the resulting javascript on D8.
 
    frogsh: Compile dart code by running frog on node.js, and run the
        resulting javascript on the same instance of node.js.
@@ -84,9 +84,9 @@ Controls how dart code is compiled and executed.
        and run the resulting javascript in a javascript script tag in
        a dartium build of DumpRenderTree.
 
-   legium: Compile dart code by running leg on the standalone dart vm,
-       and run the resulting javascript in a javascript script tag in
-       a dartium build of DumpRenderTree.
+   legium: Compile dart code by running dart2js on the standalone dart
+       vm, and run the resulting javascript in a javascript script tag
+       in a dartium build of DumpRenderTree.
 
    webdriver: Compile dart code by running frog on the standalone dart vm,
        and then run the resulting javascript in the browser that is specified
@@ -96,7 +96,7 @@ Controls how dart code is compiled and executed.
        execute dart code).
 ''',
               ['-c', '--component'],
-              ['most', 'vm', 'frog', 'leg', 'frogsh', 'dartium',  'frogium',
+              ['most', 'vm', 'frog', 'dart2js', 'frogsh', 'dartium',  'frogium',
                'legium', 'webdriver', 'dartc'],
               'vm'),
           new _TestOptionSpecification(
@@ -482,7 +482,7 @@ Controls how dart code is compiled and executed.
         case 'webdriver':
           timeout *= 4;
           break;
-        case 'leg':
+        case 'dart2js':
         case 'frog':
           if (configuration['mode'] == 'debug') {
             timeout *= 8;

@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == leg && $checked ]
+[ $component == dart2js && $checked ]
 *: Skip
 
 
-[ $component == leg || $component == legium ]
+[ $component == dart2js || $component == legium ]
 AdjacentConstStringLiteralsTest: Crash # Issue 2110
 AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
 Constructor6Test: Crash
@@ -250,5 +250,5 @@ RegExp3Test: Fail, OK # Expects exception from const constructor.
 ExecuteFinally3Test: Fail
 
 
-[ $component == leg && $mode == release ]
+[ $component == dart2js && $mode == release ]
 AssignTopMethodNegativeTest: Crash
