@@ -119,9 +119,17 @@ void JoinEntryInstr::DiscoverBlocks(
   // number, so they should stay in lockstep.
   ASSERT(preorder->length() == parent->length());
 
-  // 5. Recursively visit the successor.
+  // 5. Iterate straight-line successors until a branch instruction or
+  // another basic block entry instruction, and visit that instruction.
   ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(this, preorder, postorder, parent);
+  Instruction* next = successor_;
+  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+    set_last_instruction(next);
+    next = next->StraightLineSuccessor();
+  }
+  if (next != NULL) {
+    next->DiscoverBlocks(this, preorder, postorder, parent);
+  }
 
   // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
@@ -152,84 +160,21 @@ void TargetEntryInstr::DiscoverBlocks(
   // they should stay in lockstep.
   ASSERT(preorder->length() == parent->length());
 
-  // 5. Recursively visit the successor.
+  // 5. Iterate straight-line successors until a branch instruction or
+  // another basic block entry instruction, and visit that instruction.
   ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(this, preorder, postorder, parent);
+  Instruction* next = successor_;
+  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+    set_last_instruction(next);
+    next = next->StraightLineSuccessor();
+  }
+  if (next != NULL) {
+    next->DiscoverBlocks(this, preorder, postorder, parent);
+  }
 
   // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
   postorder->Add(this);
-}
-
-
-void PickTempInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-  ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
-}
-
-
-void TuckTempInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-  ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
-}
-
-
-void DoInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-  ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
-}
-
-
-void BindInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-  ASSERT(successor_ != NULL);
-  successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
-}
-
-
-void ReturnInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-}
-
-
-void ThrowInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
-}
-
-
-void ReThrowInstr::DiscoverBlocks(
-    BlockEntryInstr* current_block,
-    GrowableArray<BlockEntryInstr*>* preorder,
-    GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
-  current_block->set_last_instruction(this);
 }
 
 

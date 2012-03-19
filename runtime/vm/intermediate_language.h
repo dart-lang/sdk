@@ -802,6 +802,7 @@ class Instruction : public ZoneAllocated {
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
 
+  virtual Instruction* StraightLineSuccessor() const = 0;
   virtual void SetSuccessor(Instruction* instr) = 0;
 
   // Discover basic-block structure by performing a recursive depth first
@@ -819,7 +820,10 @@ class Instruction : public ZoneAllocated {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent) = 0;
+      GrowableArray<BlockEntryInstr*>* parent) {
+    // Never called for instructions except block entries and branches.
+    UNREACHABLE();
+  }
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -873,6 +877,9 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(JoinEntry)
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
@@ -899,6 +906,9 @@ class TargetEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(TargetEntry)
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
@@ -935,16 +945,13 @@ class PickTempInstr : public Instruction {
   intptr_t destination() const { return destination_; }
   intptr_t source() const { return source_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL && instr != NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   const intptr_t destination_;
@@ -974,16 +981,13 @@ class TuckTempInstr : public Instruction {
   intptr_t destination() const { return destination_; }
   intptr_t source() const { return source_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL && instr != NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   const intptr_t destination_;
@@ -1003,16 +1007,13 @@ class DoInstr : public Instruction {
 
   Computation* computation() const { return computation_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   Computation* computation_;
@@ -1032,16 +1033,13 @@ class BindInstr : public Instruction {
   intptr_t temp_index() const { return temp_index_; }
   Computation* computation() const { return computation_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   const intptr_t temp_index_;
@@ -1064,13 +1062,8 @@ class ReturnInstr : public Instruction {
   Value* value() const { return value_; }
   intptr_t token_index() const { return token_index_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   Value* value_;
@@ -1093,13 +1086,8 @@ class ThrowInstr : public Instruction {
   intptr_t token_index() const { return token_index_; }
   Value* exception() const { return exception_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   intptr_t node_id_;
@@ -1131,13 +1119,8 @@ class ReThrowInstr : public Instruction {
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
-  virtual void DiscoverBlocks(
-      BlockEntryInstr* current_block,
-      GrowableArray<BlockEntryInstr*>* preorder,
-      GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   intptr_t node_id_;
@@ -1165,6 +1148,7 @@ class BranchInstr : public Instruction {
   TargetEntryInstr** true_successor_address() { return &true_successor_; }
   TargetEntryInstr** false_successor_address() { return &false_successor_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
   virtual void DiscoverBlocks(
