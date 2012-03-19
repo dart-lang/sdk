@@ -16,6 +16,7 @@ CompileTimeConstantGTest: Fail # We don't handle constants with optional argumen
 Factory2Test: Fail # We don't handle constants with super calls.
 StringInterpolation8Test: Fail # Issue 2127
 
+
 # Compilation errors.
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
@@ -90,7 +91,6 @@ InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actu
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
-ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 
@@ -243,6 +243,9 @@ DivByZeroTest: Fail, OK # Leg only has doubles.
 
 
 RegExp3Test: Fail, OK # Expects exception from const constructor.
+
+
+ListTest: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
 
 [ $component == dart2js && $mode == release ]

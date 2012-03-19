@@ -7,17 +7,14 @@
 
 
 [ $component == dart2js || $component == legium ]
-MathParseDoubleTest: Fail
+MathParseDoubleTest: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
+StringTest: Fail # Expect.equals(expected: <5>, actual: <4>) fails.
 
 
 # Compilation errors.
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
-CoreRuntimeTypesTest: Fail # map not implemented
 ForInTest: Fail # visitContinueStatement not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
-ListTest: Fail # Internal Error: Cannot find value
-SetTest: Fail # Internal Error: Cannot find value
-StringTest: Fail # Internal Error: Cannot find value
 
 
 # Bad test, assumes RegExp.allMatches returns a Collection.
