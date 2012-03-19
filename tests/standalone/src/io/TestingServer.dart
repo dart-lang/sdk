@@ -11,8 +11,8 @@ class TestingServer extends Isolate {
   abstract void onConnection();
 
   void main() {
-    void errorHandlerServer() {
-      Expect.fail("Server socket error");
+    void errorHandlerServer(Exception e) {
+      Expect.fail("Server socket error $e");
     }
 
     this.port.receive((message, SendPort replyTo) {

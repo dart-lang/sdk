@@ -74,8 +74,8 @@ class TestServer extends TestingServer {
       connection.close();
     }
 
-    void errorHandler() {
-      print("Socket error");
+    void errorHandler(Exception e) {
+      print("Socket error $e");
       connection.close();
     }
 

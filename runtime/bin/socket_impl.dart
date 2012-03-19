@@ -63,7 +63,12 @@ class _SocketBase {
           if ((i == _IN_EVENT) && (this is _Socket) && (available() == 0)) {
             continue;
           }
-          eventHandler();
+          if (i == _ERROR_EVENT) {
+            eventHandler(new SocketIOException(""));
+            close();
+          } else {
+            eventHandler();
+          }
         }
       }
     }
@@ -71,7 +76,7 @@ class _SocketBase {
     _activateHandlers();
   }
 
-  void _setHandler(int event, void callback()) {
+  void _setHandler(int event, Function callback) {
     if (callback == null) {
       _handlerMask &= ~(1 << event);
     } else {
@@ -93,7 +98,7 @@ class _SocketBase {
 
   int _getPort() native "Socket_GetPort";
 
-  void set onError(void callback()) {
+  void set onError(void callback(Exception e)) {
     _setHandler(_ERROR_EVENT, callback);
   }
 
@@ -257,17 +262,33 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
 
 class _Socket extends _SocketBase implements Socket {
-  // Constructor for socket. First a socket object is allocated
-  // in which the native socket is stored. After that _createConnect is
-  // called which creates a file discriptor and connects to the given
-  // host on the given port. Null is returned if file descriptor creation
-  // or connect failed.
+  static final kSuccessResponse = 0;
+  static final kIllegalArgumentResponse = 1;
+  static final kOSErrorResponse = 2;
+
+  static final kHostNameLookup = 0;
+
+  // Constructs a new socket. During the construction an asynchronous
+  // host name lookup is initiated. The returned socket is not yet
+  // connected but ready for registration of callbacks.
   factory _Socket(String host, int port) {
-    _Socket socket = new _Socket._internal();
-    if (!socket._createConnect(host, port)) {
-      socket.close();
-      return null;
-    }
+    Socket socket = new _Socket._internal();
+    _ensureSocketService();
+    List request = new List(2);
+    request[0] = kHostNameLookup;
+    request[1] = host;
+    _socketService.call(request).then((response) {
+      if (socket._isErrorResponse(response)) {
+        socket._reportError(response, "Failed host name lookup");
+      } else {
+        if (!socket._createConnect(response, port)) {
+          socket.close();
+          socket._reportError(null, "Connection failed");
+        } else {
+          socket._activateHandlers();
+        }
+      }
+    });
     return socket;
   }
 
@@ -301,7 +322,7 @@ class _Socket extends _SocketBase implements Socket {
       }
       int result = _readList(buffer, offset, bytes);
       if (result < 0) {
-        _reportError();
+        _reportError(null, "Read failed");
       }
       return result;
     }
@@ -352,7 +373,7 @@ class _Socket extends _SocketBase implements Socket {
         // If writing fails we return 0 as the number of bytes and
         // report the error on the error handler.
         bytes_written = 0;
-        _reportError();
+        _reportError(null, "Write failed");
       }
       return bytes_written;
     }
@@ -363,14 +384,35 @@ class _Socket extends _SocketBase implements Socket {
   int _writeList(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
 
-  void _reportError() {
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _FileUtils.kSuccessResponse;
+  }
+
+  bool _reportError(response, String message) {
+    if (response != null) {
+      assert(_isErrorResponse(response));
+    }
     // For all errors we close the socket, call the error handler and
     // disable further calls of the error handler.
     close();
     var onError = _handlerMap[_ERROR_EVENT];
     if (onError != null) {
-      onError();
-      _setHandler(_ERROR_EVENT, null);
+      if (response != null) {
+        switch (response[0]) {
+          case _FileUtils.kIllegalArgumentResponse:
+            onError(new IllegalArgumentException());
+            break;
+          case _FileUtils.kOSErrorResponse:
+            onError(new SocketIOException(
+                message, new OSError(response[2], response[1])));
+            break;
+          default:
+            onError(new Exception("Unknown error"));
+            break;
+        }
+      } else {
+        onError(new SocketIOException(message));
+      }
     }
   }
 
@@ -404,7 +446,7 @@ class _Socket extends _SocketBase implements Socket {
 
   void set onClosed(void callback()) {
     if (_inputStream != null) throw new StreamException(
-            "Cannot set close handler when input stream is used");
+           "Cannot set close handler when input stream is used");
     _onClosed = callback;
   }
 
@@ -477,11 +519,19 @@ class _Socket extends _SocketBase implements Socket {
     }
   }
 
+  static SendPort _newServicePort() native "Socket_NewServicePort";
+
+  static void _ensureSocketService() {
+    if (_socketService == null) {
+      _socketService = _Socket._newServicePort();
+    }
+  }
+
   bool _seenFirstOutEvent = false;
   bool _pipe = false;
   Function _clientConnectHandler;
   Function _clientWriteHandler;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
+  static SendPort _socketService;
 }
-

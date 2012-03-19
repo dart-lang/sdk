@@ -18,7 +18,7 @@ interface ServerSocket default _ServerSocket {
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set onError(void callback());
+  void set onError(void callback(Exception e));
 
   /**
    * Returns the port used by this socket.
@@ -34,8 +34,9 @@ interface ServerSocket default _ServerSocket {
 
 interface Socket extends Hashable default _Socket {
   /**
-   * Constructs a new socket and connects it to the given host on the given
-   * port.
+   * Constructs a new socket and initiate connecting it to the given
+   * host on the given port. The returned socket is not yet connected
+   * but ready for registration of callbacks.
    */
   Socket(String host, int port);
 
@@ -88,7 +89,7 @@ interface Socket extends Hashable default _Socket {
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set onError(void callback());
+  void set onError(void callback(Exception e));
 
   /**
    * Returns input stream to the socket.
@@ -122,7 +123,21 @@ interface Socket extends Hashable default _Socket {
 
 
 class SocketIOException implements Exception {
-  const SocketIOException([String this.message = ""]);
-  String toString() => "SocketIOException: $message";
+  const SocketIOException([String this.message = "",
+                           OSError this.osError = null]);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add("SocketIOException");
+    if (!message.isEmpty()) {
+      sb.add(": $message");
+      if (osError != null) {
+        sb.add(" ($osError)");
+      }
+    } else if (osError != null) {
+      sb.add(": osError");
+    }
+    return sb.toString();
+  }
   final String message;
+  final OSError osError;
 }

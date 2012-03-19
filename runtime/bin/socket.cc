@@ -1,14 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/socket.h"
 #include "bin/dartutils.h"
-
+#include "bin/thread.h"
+#include "bin/utils.h"
+#include "platform/thread.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"
 
+dart::Mutex Socket::mutex_;
+int Socket::service_ports_size_ = 0;
+Dart_Port* Socket::service_ports_ = NULL;
+int Socket::service_ports_index_ = 0;
 
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -173,5 +179,85 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
         socketobj, DartUtils::kIdFieldName, newSocket);
   }
   Dart_SetReturnValue(args, Dart_NewBoolean(newSocket >= 0));
+  Dart_ExitScope();
+}
+
+
+static CObject* LookupRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString host(request[1]);
+    CObject* result = NULL;
+    OSError* os_error = NULL;
+    const char* ip_address =
+        Socket::LookupIPv4Address(host.CString(), &os_error);
+    if (ip_address != NULL) {
+      result = new CObjectString(CObject::NewString(ip_address));
+      free(const_cast<char*>(ip_address));
+    } else {
+      result = CObject::NewOSError(os_error);
+      delete os_error;
+    }
+    return result;
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+void SocketService(Dart_Port dest_port_id,
+                   Dart_Port reply_port_id,
+                   Dart_CObject* message) {
+  CObject* response = CObject::False();
+  CObjectArray request(message);
+  if (message->type == Dart_CObject::kArray) {
+    if (request.Length() > 1 && request[0]->IsInt32()) {
+      CObjectInt32 requestType(request[0]);
+      switch (requestType.Value()) {
+        case Socket::kLookupRequest:
+          response = LookupRequest(request);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    }
+  }
+
+  Dart_PostCObject(reply_port_id, response->AsApiCObject());
+}
+
+
+Dart_Port Socket::GetServicePort() {
+  MutexLocker lock(&mutex_);
+  if (service_ports_size_ == 0) {
+    ASSERT(service_ports_ == NULL);
+    service_ports_size_ = 16;
+    service_ports_ = new Dart_Port[service_ports_size_];
+    service_ports_index_ = 0;
+    for (int i = 0; i < service_ports_size_; i++) {
+      service_ports_[i] = kIllegalPort;
+    }
+  }
+
+  Dart_Port result = service_ports_[service_ports_index_];
+  if (result == kIllegalPort) {
+    result = Dart_NewNativePort("SocketService",
+                                SocketService,
+                                true);
+    ASSERT(result != kIllegalPort);
+    service_ports_[service_ports_index_] = result;
+  }
+  service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
+  return result;
+}
+
+
+void FUNCTION_NAME(Socket_NewServicePort)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_Port service_port = Socket::GetServicePort();
+  if (service_port != kIllegalPort) {
+    // Return a send port for the service port.
+    Dart_Handle send_port = Dart_NewSendPort(service_port);
+    Dart_SetReturnValue(args, send_port);
+  }
   Dart_ExitScope();
 }

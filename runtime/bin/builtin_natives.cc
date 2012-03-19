@@ -57,7 +57,8 @@
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_GetPort, 1)                                                         \
-  V(Socket_GetStdioHandle, 2)
+  V(Socket_GetStdioHandle, 2)                                                  \
+  V(Socket_NewServicePort, 0)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
