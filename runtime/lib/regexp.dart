@@ -14,26 +14,34 @@ class JSRegExpMatch implements Match {
   }
 
   int _start(int group) {
-    return _match[(group * _kMatchPair)];
+    return _match[(group * MATCH_PAIR)];
   }
 
   int _end(int group) {
-    return _match[(group * _kMatchPair) + 1];
+    return _match[(group * MATCH_PAIR) + 1];
   }
 
   String group(int group) {
-    return str.substringUnchecked_(_start(group), _end(group));
+    if (group < 0 || group > regexp._groupCount) {
+      throw new IndexOutOfRangeException(group);
+    }
+    int startIndex = _start(group);
+    int endIndex = _end(group);
+    if (startIndex == -1) {
+      assert(endIndex == -1);
+      return null;
+    }
+    return str.substringUnchecked_(startIndex, endIndex);
   }
 
   String operator [](int group) {
-    return str.substringUnchecked_(_start(group), _end(group));
+    return this.group(group);
   }
 
   List<String> groups(List<int> groups) {
     var groupsList = new List<String>(groups.length);
     for (int i = 0; i < groups.length; i++) {
-      int grp_idx = groups[i];
-      groupsList[i] = str.substringUnchecked_(_start(grp_idx), _end(grp_idx));
+      groupsList[i] = group(groups[i]);
     }
     return groupsList;
   }
@@ -45,7 +53,7 @@ class JSRegExpMatch implements Match {
   final RegExp regexp;
   final String str;
   final List<int> _match;
-  static final int _kMatchPair = 2;
+  static final int MATCH_PAIR = 2;
 }
 
 
@@ -64,19 +72,25 @@ class JSSyntaxRegExp implements RegExp {
   }
 
   Iterable<Match> allMatches(String str) {
-    var jsregexMatches = new List<JSRegExpMatch>();
-    List match = _ExecuteMatch(str, 0);
-    if (match !== null) {
-      jsregexMatches.add(new JSRegExpMatch(this, str, match));
-      while (true) {
-        match = _ExecuteMatch(str, match[1]);
-        if (match === null) {
-          break;
-        }
-        jsregexMatches.add(new JSRegExpMatch(this, str, match));
+    List<Match> result = new List<Match>();
+    int length = str.length;
+    int startIndex = 0;
+    while (true) {
+      List match = _ExecuteMatch(str, startIndex);
+      if (match == null) {
+        break;
+      }
+      result.add(new JSRegExpMatch(this, str, match));
+      int endIndex = match[1];
+      if (endIndex == length) {
+        break;
+      } else if (match[0] == endIndex) {
+        ++startIndex;  // empty match, advance and restart
+      } else {
+        startIndex = endIndex;
       }
     }
-    return jsregexMatches;
+    return result;
   }
 
   bool hasMatch(String str) {

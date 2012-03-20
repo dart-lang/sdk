@@ -2,22 +2,20 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == leg && $checked ]
+[ $component == dart2js && $checked ]
 *: Skip
 
 
-[ $component == leg || $component == legium ]
-AdjacentConstStringLiteralsTest: Crash # Issue 2110
-AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
+[ $component == dart2js || $component == legium ]
+AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
-CompileTimeConstantFTest: Fail # We don't handle constants with optional arguments yet.
 CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
-StringInterpolation8Test: Fail # Issue 2127
+Factory2Test: Fail # We don't handle constants with super calls.
+
 
 # Compilation errors.
-BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
@@ -25,7 +23,6 @@ CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
-Constructor5Test: Fail # no matching constructor found
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
@@ -54,7 +51,6 @@ MapLiteral4Test: Fail # map not implemented
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
-NamedArgumentInConstCreationTest: Fail # CompileTimeConstantEvaluator not implemented
 NamedParameters2Test: Fail # Unimplemented non-matching static call
 NamedParameters3Test: Fail # Unimplemented non-matching static call
 NamedParameters4Test: Fail # Unimplemented non-matching static call
@@ -66,14 +62,12 @@ NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 PseudoKWTest: Fail # Unexpected token '('
 ResourceTest: Fail # #resource tag not recognized - issue 1807
-StatementTest: Fail # switch cases are not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
 SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperOperatorTest: Fail # no method named + in class A
 SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-SuperTest: Fail # cannot find tokens to produce error message for i++.
 SwitchLabelTest: Fail # switch cases are not implemented
 TypeDartcTest: Fail # non-empty instruction stack
 
@@ -84,9 +78,6 @@ BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
 ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
 ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-Constructor2Test: Fail # Expect.equals(expected: <1-2-3-4-5-6-7->, actual: <1-2-3-5-4-6-7->) fails.
-Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-3-5-6->) fails.
-ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 FunctionTest: Fail # continue not implemented
@@ -98,9 +89,6 @@ InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actu
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
-ListTest: Fail # TypeError: Object ,,, has no method 'copyFrom$4'
-Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
-PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 
@@ -113,18 +101,6 @@ AbstractStaticNegativeTest: Fail, OK # Negative language test.
 AbstractSyntaxTest/01: Fail, OK # Negative language test.
 AbstractSyntaxTest/02: Fail, OK # Negative language test.
 AssignTopMethodNegativeTest: Fail, OK # Negative language test.
-BlackListedTest/01: Fail, OK # Negative language test.
-BlackListedTest/02: Fail, OK # Negative language test.
-BlackListedTest/03: Fail, OK # Negative language test.
-BlackListedTest/04: Fail, OK # Negative language test.
-BlackListedTest/05: Fail, OK # Negative language test.
-BlackListedTest/06: Fail, OK # Negative language test.
-BlackListedTest/07: Fail, OK # Negative language test.
-BlackListedTest/08: Fail, OK # Negative language test.
-BlackListedTest/09: Fail, OK # Negative language test.
-BlackListedTest/10: Fail, OK # Negative language test.
-BlackListedTest/11: Fail, OK # Negative language test.
-BlackListedTest/12: Fail, OK # Negative language test.
 ClassCycleNegativeTest: Fail, OK # Negative language test.
 ClassExtendsNegativeTest: Fail, OK # Negative language test.
 ClassOverrideNegativeTest: Fail, OK # Negative language test.
@@ -196,17 +172,13 @@ OverrideFieldMethod6NegativeTest: Fail, OK # Negative language test.
 OverrideFieldTest/01: Fail, OK # Negative language test.
 OverrideFieldTest/04: Fail, OK # Negative language test.
 OverrideMethodWithFieldTest/01: Fail, OK # Negative language test.
-Prefix10NegativeTest: Fail, OK # Negative language test.
 Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
 Prefix9NegativeTest: Fail, OK # Negative language test.
-PrivateMember2NegativeTest: Fail, OK # Negative language test.
-PrivateMember3NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
-PseudoKWIllegalTest/04: Fail, OK # Negative language test.
 PseudoKWIllegalTest/05: Fail, OK # Negative language test.
 PseudoKWIllegalTest/06: Fail, OK # Negative language test.
 PseudoKWIllegalTest/07: Fail, OK # Negative language test.
@@ -239,7 +211,6 @@ TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
 TypeVariableBoundsTest/07: Fail, OK # Negative language test.
 TypeVariableBoundsTest/08: Fail, OK # Negative language test.
-TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
 TypeVariableScopeTest/02: Fail, OK # Negative language test.
@@ -250,6 +221,7 @@ WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.
+DisablePrivacyTest: Fail, OK # VM specific test.
 
 
 DivByZeroTest: Fail, OK # Leg only has doubles.
@@ -258,9 +230,8 @@ DivByZeroTest: Fail, OK # Leg only has doubles.
 RegExp3Test: Fail, OK # Expects exception from const constructor.
 
 
-# TODO(ahe): Categorize these failures.
-ExecuteFinally3Test: Fail
+ListTest: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
 
-[ $component == leg && $mode == release ]
+[ $component == dart2js && $mode == release ]
 AssignTopMethodNegativeTest: Crash

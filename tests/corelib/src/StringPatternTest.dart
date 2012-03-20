@@ -58,7 +58,7 @@ testTwoMatches() {
 testEmptyPattern() {
   String pattern = "";
   Iterable<Match> matches = pattern.allMatches(str);
-  Expect.isFalse(matches.iterator().hasNext());
+  Expect.isTrue(matches.iterator().hasNext());
 }
 
 testEmptyString() {
@@ -72,5 +72,5 @@ testEmptyPatternAndString() {
   String pattern = "";
   String str = "";
   Iterable<Match> matches = pattern.allMatches(str);
-  Expect.isFalse(matches.iterator().hasNext());
+  Expect.isTrue(matches.iterator().hasNext());
 }

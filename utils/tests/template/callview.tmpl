@@ -1,0 +1,18 @@
+template NameEntry(String name, int age) {
+  <div var=topDiv attr="test" attr1=test1 attr2='test2' attr3=test3>
+    <span var=spanElem>${name}</span>
+    <span> - </span>
+    <span>${age}</span>
+    ${#NameEntry2(name, age)}
+  </div>
+}
+
+template NameEntry2(String name, int age) {
+  <div var=topDiv2 style="background-color: yellow;">
+    <span var=spanElem2>${name}</span>
+    <span> - </span>
+    <span>${age}</span>
+  </div>
+}
+
+

@@ -1,0 +1,106 @@
+template DivisionSales(var divisions) {
+  css {
+    .division-item {
+      background-color: #bbb;
+      border-top: 2px solid white;
+      line-height: 20pt;
+      padding-left: 5px;
+    }
+    .product-item {
+      background-color: lightgray;
+      margin-left: 10px;
+      border-top: 2px solid white;
+      line-height: 20pt;
+    }
+    .product-title {
+      position: absolute;
+      left: 45px;
+    }
+    .product-name {
+      font-weight: bold;
+      position: absolute;
+      left: 100px;
+    }
+    .product-users {
+      position: absolute;
+      left: 150px;
+      font-style: italic;
+      color: gray;
+      width: 110px;
+    }
+    .expand-collapse {
+      margin-left: 5px;
+      margin-right: 5px;
+      vertical-align: top;
+      cursor: pointer;
+    }
+    .expand {
+      font-size: 9pt;
+    }
+    .collapse {
+      font-size: 8pt;
+    }
+    .show-sales {
+      display: inherit;
+    }
+    .hide-sales {
+      display: none;
+    }
+    .sales-item {
+      font-family: arial;
+      background-color: lightgray;
+      margin-left: 10px;
+      border-top: 1px solid white;
+      line-height: 18pt;
+      padding-left: 5px;
+    }
+    .ytd-sales {
+      position: absolute;
+      left: 100px;
+    }
+  }
+  <div>
+    ${#each divisions div}
+      <div class="division-item">
+        <span>${div.name}</span>
+        <span>-</span>
+        <span>${div.id}</span>
+      </div>
+      <div>
+        ${#each div.products prod}
+          <div class="product-item">
+            <span var=productZippy class="expand-collapse expand">&#9660;</span>
+            <span class='product-title'>Product</span>
+            <span class="product-name">${prod.name}</span>
+            <span class="product-users" align=right>${prod.users}&nbsp;users</span>
+            <div class="show-sales">
+              ${#each prod.sales sale}
+                <div class="sales-item">
+                  <span>${sale.country}</span>
+                  <span class="ytd-sales">\$${sale.yearly}</span>
+                </div>
+              ${/each}
+            </div>
+          </div>
+        ${/each}
+      </div>
+    ${/each}
+  </div>
+}
+
+template Header(String company, Date date) {
+  css {
+    .header {
+      background-color: slateGray;
+      font-family: arial;
+      color: lightgray;
+      font-weight: bold;
+      padding-top: 20px;
+    }
+  }
+  <div class='header' align=center>
+    <h2>${company}</h2>
+    <div align=right>${date}</div>
+  </div>
+}
+

@@ -1,0 +1,27 @@
+template NestedView(Person person1, Person person2) {
+  <div>
+    <span var=a1>
+      <h1>
+        ${#with person1 p1}
+          <div>
+            <span>${p1.name}</span>
+            <span>-</span>
+            <span>${p1.age}</span>
+            <div style="background-color:yellow;">
+              ${#with person2 p2}
+                <div>
+                  <span style="color:green;">${p2.age}</span>
+                  <span>-</span>
+                  <span style="color:green;">${p2.name}</span>
+                  <div style="color:blue;font-weight:bold">${p1.name}=${p2.age}</div>
+                </div>
+              ${/with}
+              <div style="background-color:green; color: red;">${p1.name}</div>
+            </div>
+          </div>
+        ${/with}
+      </h1>
+    </span>
+  </div>
+}
+

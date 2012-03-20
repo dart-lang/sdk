@@ -6,7 +6,7 @@
 
 #include "bin/utils.h"
 
-OSError::OSError() : code_(0), message_(NULL) {
+OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(GetLastError());
 
   static const int kMaxMessageLength = 256;

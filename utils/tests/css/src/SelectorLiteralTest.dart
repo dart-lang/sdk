@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../css/css.dart");
-#import('../../../../frog/lang.dart', prefix:'lang');
 
 class SelectorLiteralTest {
   static final String ERROR = 'CompilerException: <buffer>:';
 
   static testMain() {
     initCssWorld();
-    lang.options.useColors = false;
+    options.useColors = false;
 
     testSimpleClassSelectorSuccesses();
     testSimpleClassSelectorFailures();
@@ -90,7 +89,7 @@ class SelectorLiteralTest {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
     } catch (final e) {
-      Expect.equals("${ERROR}1:11: fatal: expected }, but found double(.1)\n" +
+      Expect.equals("${ERROR}1:11: fatal: parsing error expected }\n" +
           "${css}\n          ^^", e.toString());
     }
 

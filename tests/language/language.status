@@ -113,10 +113,6 @@ AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 AssignInstanceMethodNegativeTest: Fail
 BadNamedParametersTest: Fail      # Issue 1941
 BadNamedParameters2Test: Fail     # Issue 1941
-AssignStaticTypeTest/01: Fail # Issue 1957
-AssignStaticTypeTest/02: Fail # Issue 1957
-AssignStaticTypeTest/03: Fail # Issue 1957
-AssignStaticTypeTest/04: Fail # Issue 1957
 BodyLessConstructorWrongArgNegativeTest: Fail
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
@@ -239,6 +235,7 @@ Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
 CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
+CompileTimeConstantETest: Fail
 CompileTimeConstantGTest: Fail # compile time constants with super calls to optional arguments.
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
@@ -365,6 +362,7 @@ Prefix11NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
 PrivateMemberTest: Fail
+PrivateMember1NegativeTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
 PrivateTest: Fail

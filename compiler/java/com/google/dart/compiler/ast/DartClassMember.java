@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
-import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.NodeElement;
 
 /**
  * Base class for class members (fields and methods).
@@ -23,7 +23,7 @@ public abstract class DartClassMember<N extends DartExpression> extends DartDecl
   }
 
   @Override
-  public abstract Element getElement();
+  public abstract NodeElement getElement();
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {

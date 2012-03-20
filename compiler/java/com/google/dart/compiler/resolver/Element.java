@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
@@ -12,8 +11,6 @@ import com.google.dart.compiler.type.Type;
 
 public interface Element extends HasSourceInfo {
   String getOriginalName();
-
-  DartNode getNode();
 
   String getName();
 

@@ -154,6 +154,33 @@ static void PrintStackTrace(Dart_StackTrace trace) {
 }
 
 
+static void VerifyStackTrace(Dart_StackTrace trace,
+                             const char* func_names[],
+                             int names_len) {
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  Dart_Handle func_name;
+  EXPECT_NOT_ERROR(res);
+  for (int i = 0; i < trace_len; i++) {
+    Dart_ActivationFrame frame;
+    res = Dart_GetActivationFrame(trace, i, &frame);
+    EXPECT_NOT_ERROR(res);
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    EXPECT_NOT_ERROR(res);
+    EXPECT(Dart_IsString(func_name));
+    const char* func_name_chars;
+    Dart_StringToCString(func_name, &func_name_chars);
+    if (i < names_len) {
+      EXPECT_STREQ(func_name_chars, func_names[i]);
+      if (strcmp(func_name_chars, func_names[i]) != 0) {
+        OS::Print("Stack frame %d: expected function %s, but found %s\n",
+            i, func_names[i], func_name_chars);
+      }
+    }
+  }
+}
+
+
 void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
@@ -580,6 +607,47 @@ TEST_CASE(Debug_ClosureBreakpoint) {
   Dart_IntegerToInt64(retval, &int_value);
   EXPECT_EQ(442, int_value);
   EXPECT_EQ(2, breakpoint_hit_counter);
+}
+
+
+static void ExprClosureBreakpointHandler(Dart_Breakpoint bpt,
+                                         Dart_StackTrace trace) {
+  static const char* expected_trace[] = {"add", "main", ""};
+  breakpoint_hit_counter++;
+  PrintStackTrace(trace);
+  VerifyStackTrace(trace, expected_trace, 2);
+}
+
+
+TEST_CASE(Debug_ExprClosureBreakpoint) {
+  const char* kScriptChars =
+      "var c;                 \n"
+      "                       \n"
+      "main() {               \n"
+      "  c = add(a, b) {      \n"
+      "    return a + b;      \n"
+      "  };                   \n"
+      "  return c(10, 20);    \n"
+      "}                      \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&ExprClosureBreakpointHandler);
+
+  Dart_Handle script_url = Dart_NewString(TestCase::url());
+  Dart_Handle line_no = Dart_NewInteger(5);  // In closure 'add'.
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtLine(script_url, line_no, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT_NOT_ERROR(retval);
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(30, int_value);
+  EXPECT_EQ(1, breakpoint_hit_counter);
 }
 
 

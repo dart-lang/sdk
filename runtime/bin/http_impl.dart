@@ -343,7 +343,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       case HttpStatus.GATEWAY_TIMEOUT: return "Gateway Time-out";
       case HttpStatus.HTTP_VERSION_NOT_SUPPORTED:
         return "Http Version not supported";
-      default: return "Status " + statusCode.toString();
+      default: return "Status $statusCode";
     }
   }
 
@@ -509,11 +509,11 @@ class _HttpConnectionBase implements Hashable {
     if (_onDisconnectCallback != null) _onDisconnectCallback();
   }
 
-  void _onError() {
+  void _onError(Exception e) {
     // If an error occours, treat the socket as closed.
     _onClosed();
     if (_onErrorCallback != null) {
-      _onErrorCallback("Connection closed while sending data to client.");
+      _onErrorCallback("Connection closed while sending data to client ($e).");
     }
   }
 
@@ -1086,7 +1086,7 @@ class _HttpClient implements HttpClient {
         _activeSockets.add(socketConn);
         _connectionOpened(socketConn, connection);
       };
-      socket.onError = () {
+      socket.onError = (Exception e) {
         if (_onError !== null) {
           _onError(HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
         }

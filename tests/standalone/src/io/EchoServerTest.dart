@@ -75,8 +75,8 @@ class EchoServerGame {
       handleRead();
     }
 
-    void errorHandler() {
-      Expect.fail("Socket error");
+    void errorHandler(Exception e) {
+      Expect.fail("Socket error $e");
     }
 
     void connectHandler() {
@@ -183,8 +183,8 @@ class EchoServer extends TestingServer {
       connection.close();
     }
 
-    void errorHandler() {
-      Expect.fail("Socket error");
+    void errorHandler(Exception e) {
+      Expect.fail("Socket error $e");
     }
 
     connection.onData = messageHandler;

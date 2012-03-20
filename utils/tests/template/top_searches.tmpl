@@ -1,0 +1,18 @@
+template TopSearches(Person person, var searches) {
+  <div>
+    ${#with person}
+      <div>
+        <span>${name},&nbsp;</span>
+        <span>age&nbsp;=&nbsp;</span>
+        <span>${age}</span>
+      </div>
+      ${#each searches search}
+        <div>
+          <span style="margin-left: 10px;">query=${search.query}</span>
+          <span style="margin-left: 20px;">hits=${search.total}</span>
+        </div>
+      ${/each}
+    ${/with}
+  </div>
+}
+

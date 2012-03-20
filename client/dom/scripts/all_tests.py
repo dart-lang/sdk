@@ -11,6 +11,7 @@ import unittest
 if __name__ == '__main__':
   logging.config.fileConfig('logging.conf')
   suite = unittest.TestLoader().loadTestsFromNames([
+      'templateloader_test',
       'pegparser_test',
       'idlparser_test',
       'idlnode_test',

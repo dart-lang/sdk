@@ -142,9 +142,16 @@ static RawError* CompileFunctionHelper(const Function& function,
         graph_builder.BuildGraph();
 
         Assembler assembler;
-        FlowGraphCompiler graph_compiler(&assembler,
-                                         parsed_function,
-                                         graph_builder.blocks());
+        // The non-optimizing compiler compiles blocks in reverse postorder,
+        // because it is a 'natural' order for the human reader of the
+        // generated code.
+        intptr_t length = graph_builder.postorder_block_entries().length();
+        GrowableArray<BlockEntryInstr*> block_order(length);
+        for (intptr_t i = length - 1; i >= 0; --i) {
+          block_order.Add(graph_builder.postorder_block_entries()[i]);
+        }
+        FlowGraphCompiler graph_compiler(&assembler, parsed_function,
+                                         block_order);
         graph_compiler.CompileGraph();
         const Code& code =
             Code::Handle(Code::FinalizeCode(function_fullname, &assembler));

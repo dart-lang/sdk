@@ -16,39 +16,6 @@ namespace dart {
 class FlowGraphVisitor;
 class LocalVariable;
 
-// Computations and values.
-//
-// <Computation> ::=
-//   <Value>
-// | AssertAssignable <Value> <AbstractType>
-// | CurrentContext
-// | ClosureCall <ClosureCallNode> <Value> <Value> ...
-// | InstanceCall <String> <Value> ...
-// | StaticCall <StaticCallNode> <Value> ...
-// | LoadLocal <LocalVariable>
-// | StoreLocal <LocalVariable> <Value>
-// | StrictCompare <Token::kind> <Value> <Value>
-// | NativeCall <NativeBodyNode>
-// | StoreIndexed <Value> <Value> <Value>
-// | InstanceSetter <String> <Value> <Value>
-// | LoadInstanceField <LoadInstanceFieldNode> <Value>
-// | StoreInstanceField <StoreInstanceFieldNode> <Value> <Value>
-// | LoadStaticField <Field>
-// | StoreStaticField <Field> <Value>
-// | BooleanNegate <Value>
-// | InstanceOf <Value> <Type>
-// | CreateArray <ArrayNode> <Value> ...
-// | CreateClosure <ClosureNode>
-// | AllocateObject <ConstructorCallNode>
-// | Throw <Value>
-// | ReThrow <Value> <Value>
-// | NativeLoadField <Value> <intptr_t>
-// | ExtractTypeArgumentsComp <ConstructorCallNode> <Value>
-//
-// <Value> ::=
-//   Temp <int>
-// | Constant <Instance>
-
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
@@ -71,6 +38,7 @@ class LocalVariable;
   M(NativeCall, NativeCallComp)                                                \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
+  M(StaticSetter, StaticSetterComp)                                            \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -80,10 +48,10 @@ class LocalVariable;
   M(CreateArray, CreateArrayComp)                                              \
   M(CreateClosure, CreateClosureComp)                                          \
   M(AllocateObject, AllocateObjectComp)                                        \
-  M(Throw, ThrowComp)                                                          \
-  M(ReThrow, ReThrowComp)                                                      \
   M(NativeLoadField, NativeLoadFieldComp)                                      \
-  M(ExtractTypeArguments, ExtractTypeArgumentsComp)                            \
+  M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
+  M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
+  M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -535,6 +503,32 @@ class InstanceSetterComp : public Computation {
 };
 
 
+// Not simply a StaticCall because it has somewhat more complicated
+// semantics: the value operand is preserved before the call.
+class StaticSetterComp : public Computation {
+ public:
+  StaticSetterComp(intptr_t token_index,
+                   const Function& setter_function,
+                   Value* value)
+      : token_index_(token_index),
+        setter_function_(setter_function),
+        value_(value) { }
+
+  DECLARE_COMPUTATION(StaticSetter)
+
+  intptr_t token_index() const { return token_index_; }
+  const Function& setter_function() const { return setter_function_; }
+  Value* value() const { return value_; }
+
+ private:
+  const intptr_t token_index_;
+  const Function& setter_function_;
+  Value* const value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StaticSetterComp);
+};
+
+
 // Note overrideable, built-in: value? false : true.
 class BooleanNegateComp : public Computation {
  public:
@@ -643,61 +637,6 @@ class CreateClosureComp : public Computation {
 };
 
 
-class ThrowComp : public Computation {
- public:
-  explicit ThrowComp(intptr_t node_id,
-                     intptr_t token_index,
-                     Value* exception)
-      : node_id_(node_id), token_index_(token_index), exception_(exception) {
-    ASSERT(exception_ != NULL);
-  }
-
-  DECLARE_COMPUTATION(Throw)
-
-  intptr_t node_id() const { return node_id_; }
-  intptr_t token_index() const { return token_index_; }
-  Value* exception() const { return exception_; }
-
- private:
-  intptr_t node_id_;
-  intptr_t token_index_;
-  Value* exception_;
-
-  DISALLOW_COPY_AND_ASSIGN(ThrowComp);
-};
-
-
-class ReThrowComp : public Computation {
- public:
-  ReThrowComp(intptr_t node_id,
-              intptr_t token_index,
-              Value* exception,
-              Value* stack_trace)
-      : node_id_(node_id),
-        token_index_(token_index),
-        exception_(exception),
-        stack_trace_(stack_trace) {
-    ASSERT(exception_ != NULL);
-    ASSERT(stack_trace_ != NULL);
-  }
-
-  DECLARE_COMPUTATION(ReThrow)
-
-  intptr_t node_id() const { return node_id_; }
-  intptr_t token_index() const { return token_index_; }
-  Value* exception() const { return exception_; }
-  Value* stack_trace() const { return stack_trace_; }
-
- private:
-  intptr_t node_id_;
-  intptr_t token_index_;
-  Value* exception_;
-  Value* stack_trace_;
-
-  DISALLOW_COPY_AND_ASSIGN(ReThrowComp);
-};
-
-
 class NativeLoadFieldComp : public Computation {
  public:
   NativeLoadFieldComp(Value* value, intptr_t offset_in_bytes)
@@ -705,7 +644,7 @@ class NativeLoadFieldComp : public Computation {
     ASSERT(value != NULL);
   }
 
-  DECLARE_COMPUTATION(NativeLoadFieldComp)
+  DECLARE_COMPUTATION(NativeLoadField)
 
   Value* value() const { return value_; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -718,14 +657,41 @@ class NativeLoadFieldComp : public Computation {
 };
 
 
-class ExtractTypeArgumentsComp : public Computation {
+class ExtractFactoryTypeArgumentsComp : public Computation {
  public:
-  ExtractTypeArgumentsComp(ConstructorCallNode* ast_node, Value* instantiator)
+  ExtractFactoryTypeArgumentsComp(ConstructorCallNode* ast_node,
+                                  Value* instantiator)
       : ast_node_(*ast_node), instantiator_(instantiator) {
     ASSERT(instantiator_ != NULL);
   }
 
-  DECLARE_COMPUTATION(ExtractTypeArgumentsComp)
+  DECLARE_COMPUTATION(ExtractFactoryTypeArguments)
+
+  Value* instantiator() const { return instantiator_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& factory() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractFactoryTypeArgumentsComp);
+};
+
+
+class ExtractConstructorTypeArgumentsComp : public Computation {
+ public:
+  ExtractConstructorTypeArgumentsComp(ConstructorCallNode* ast_node,
+                                      Value* instantiator)
+      : ast_node_(*ast_node), instantiator_(instantiator) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractConstructorTypeArguments)
 
   Value* instantiator() const { return instantiator_; }
   const AbstractTypeArguments& type_arguments() const {
@@ -739,7 +705,38 @@ class ExtractTypeArgumentsComp : public Computation {
   const ConstructorCallNode& ast_node_;
   Value* instantiator_;
 
-  DISALLOW_COPY_AND_ASSIGN(ExtractTypeArgumentsComp);
+  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsComp);
+};
+
+
+class ExtractConstructorInstantiatorComp : public Computation {
+ public:
+  ExtractConstructorInstantiatorComp(ConstructorCallNode* ast_node,
+                                     Value* instantiator,
+                                     Value* discard_value)
+      : ast_node_(*ast_node),
+        instantiator_(instantiator),
+        discard_value_(discard_value) {
+    ASSERT(instantiator_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ExtractConstructorInstantiator)
+
+  Value* instantiator() const { return instantiator_; }
+  Value* discard_value() const { return discard_value_; }
+  const AbstractTypeArguments& type_arguments() const {
+    return ast_node_.type_arguments();
+  }
+  const Function& constructor() const { return ast_node_.constructor(); }
+  intptr_t node_id() const { return ast_node_.id(); }
+  intptr_t token_index() const { return ast_node_.token_index(); }
+
+ private:
+  const ConstructorCallNode& ast_node_;
+  Value* instantiator_;
+  Value* discard_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorComp);
 };
 
 
@@ -768,6 +765,8 @@ class ExtractTypeArgumentsComp : public Computation {
   M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Return)                                                                    \
+  M(Throw)                                                                     \
+  M(ReThrow)                                                                   \
   M(Branch)                                                                    \
 
 
@@ -787,7 +786,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : mark_(false) { }
+  Instruction() { }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -797,17 +796,28 @@ class Instruction : public ZoneAllocated {
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
 
+  virtual Instruction* StraightLineSuccessor() const = 0;
   virtual void SetSuccessor(Instruction* instr) = 0;
-  // Perform a postorder traversal of the instruction graph reachable from
-  // this instruction.  Accumulate basic block entries in the order visited
-  // in the in/out parameter 'block_entries'.
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries) = 0;
 
-  // Mark bit to support non-reentrant recursive traversal (i.e.,
-  // identification of cycles).  Before and after a traversal, all the nodes
-  // must have the same mark.
-  bool mark() const { return mark_; }
-  void flip_mark() { mark_ = !mark_; }
+  // Discover basic-block structure by performing a recursive depth first
+  // traversal of the instruction graph reachable from this instruction.  As
+  // a side effect, the block entry instructions in the graph are assigned
+  // numbers in both preorder and postorder.  The array 'preorder' maps
+  // preorder block numbers to the block entry instruction with that number
+  // and analogously for the array 'postorder'.  The depth first spanning
+  // tree is recorded in the array 'parent', which maps preorder block
+  // numbers to the preorder number of the block's spanning-tree parent.  As
+  // a side effect, the set of basic block predecessors (e.g., block entry
+  // instructions of predecessor blocks) and also the last instruction in
+  // the block is recorded in each entry instruction.
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<BlockEntryInstr*>* parent) {
+    // Never called for instructions except block entries and branches.
+    UNREACHABLE();
+  }
 
 #define INSTRUCTION_TYPE_CHECK(type)                                           \
   virtual bool Is##type() const { return false; }                              \
@@ -816,8 +826,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
 
  private:
-  bool mark_;
-
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -830,14 +838,25 @@ class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
 
-  intptr_t block_number() const { return block_number_; }
-  void set_block_number(intptr_t number) { block_number_ = number; }
+  intptr_t preorder_number() const { return preorder_number_; }
+  void set_preorder_number(intptr_t number) { preorder_number_ = number; }
+
+  intptr_t postorder_number() const { return postorder_number_; }
+  void set_postorder_number(intptr_t number) { postorder_number_ = number; }
+
+  Instruction* last_instruction() const { return last_instruction_; }
+  void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
  protected:
-  BlockEntryInstr() : Instruction(), block_number_(-1) { }
+  BlockEntryInstr()
+      : preorder_number_(-1),
+        postorder_number_(-1),
+        last_instruction_(NULL) { }
 
  private:
-  intptr_t block_number_;
+  intptr_t preorder_number_;
+  intptr_t postorder_number_;
+  Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -845,18 +864,29 @@ class BlockEntryInstr : public Instruction {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr() : BlockEntryInstr(), successor_(NULL) { }
+  JoinEntryInstr()
+      : BlockEntryInstr(),
+        predecessors_(2),  // Two is the assumed to be the common case.
+        successor_(NULL) { }
 
   DECLARE_INSTRUCTION(JoinEntry)
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
+  ZoneGrowableArray<BlockEntryInstr*> predecessors_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
@@ -865,19 +895,27 @@ class JoinEntryInstr : public BlockEntryInstr {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr() : BlockEntryInstr(), successor_(NULL) {
-  }
+  TargetEntryInstr()
+      : BlockEntryInstr(), predecessor_(NULL), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
+  BlockEntryInstr* predecessor_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
@@ -894,19 +932,20 @@ class TargetEntryInstr : public BlockEntryInstr {
 class PickTempInstr : public Instruction {
  public:
   PickTempInstr(intptr_t dst, intptr_t src)
-      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+      : destination_(dst), source_(src), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(PickTemp)
 
   intptr_t destination() const { return destination_; }
   intptr_t source() const { return source_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL && instr != NULL);
     successor_ = instr;
   }
-
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   const intptr_t destination_;
@@ -929,19 +968,20 @@ class PickTempInstr : public Instruction {
 class TuckTempInstr : public Instruction {
  public:
   TuckTempInstr(intptr_t dst, intptr_t src)
-      : Instruction(), destination_(dst), source_(src), successor_(NULL) { }
+      : destination_(dst), source_(src), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(TuckTemp)
 
   intptr_t destination() const { return destination_; }
   intptr_t source() const { return source_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL && instr != NULL);
     successor_ = instr;
   }
-
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   const intptr_t destination_;
@@ -955,18 +995,19 @@ class TuckTempInstr : public Instruction {
 class DoInstr : public Instruction {
  public:
   explicit DoInstr(Computation* comp)
-      : Instruction(), computation_(comp), successor_(NULL) { }
+      : computation_(comp), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Do)
 
   Computation* computation() const { return computation_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   Computation* computation_;
@@ -979,22 +1020,20 @@ class DoInstr : public Instruction {
 class BindInstr : public Instruction {
  public:
   BindInstr(intptr_t temp_index, Computation* computation)
-      : Instruction(),
-        temp_index_(temp_index),
-        computation_(computation),
-        successor_(NULL) { }
+      : temp_index_(temp_index), computation_(computation), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Bind)
 
   intptr_t temp_index() const { return temp_index_; }
   Computation* computation() const { return computation_; }
 
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
   virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
-
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   const intptr_t temp_index_;
@@ -1008,16 +1047,17 @@ class BindInstr : public Instruction {
 class ReturnInstr : public Instruction {
  public:
   ReturnInstr(Value* value, intptr_t token_index)
-      : Instruction(), value_(value), token_index_(token_index) { }
+      : value_(value), token_index_(token_index) {
+    ASSERT(value_ != NULL);
+  }
 
   DECLARE_INSTRUCTION(Return)
 
   Value* value() const { return value_; }
   intptr_t token_index() const { return token_index_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   Value* value_;
@@ -1027,31 +1067,94 @@ class ReturnInstr : public Instruction {
 };
 
 
+class ThrowInstr : public Instruction {
+ public:
+  ThrowInstr(intptr_t node_id, intptr_t token_index, Value* exception)
+      : node_id_(node_id), token_index_(token_index), exception_(exception) {
+    ASSERT(exception_ != NULL);
+  }
+
+  DECLARE_INSTRUCTION(Throw)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+
+  DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
+};
+
+
+class ReThrowInstr : public Instruction {
+ public:
+  ReThrowInstr(intptr_t node_id,
+              intptr_t token_index,
+              Value* exception,
+              Value* stack_trace)
+      : node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception),
+        stack_trace_(stack_trace) {
+    ASSERT(exception_ != NULL);
+    ASSERT(stack_trace_ != NULL);
+  }
+
+  DECLARE_INSTRUCTION(ReThrow)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* exception() const { return exception_; }
+  Value* stack_trace() const { return stack_trace_; }
+
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+ private:
+  intptr_t node_id_;
+  intptr_t token_index_;
+  Value* exception_;
+  Value* stack_trace_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
+};
+
+
 class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(Value* value)
-      : Instruction(),
-        value_(value),
+      : value_(value),
         true_successor_(NULL),
         false_successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Branch)
 
   Value* value() const { return value_; }
-  BlockEntryInstr* true_successor() const { return true_successor_; }
-  BlockEntryInstr* false_successor() const { return false_successor_; }
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
 
-  BlockEntryInstr** true_successor_address() { return &true_successor_; }
-  BlockEntryInstr** false_successor_address() { return &false_successor_; }
+  TargetEntryInstr** true_successor_address() { return &true_successor_; }
+  TargetEntryInstr** false_successor_address() { return &false_successor_; }
 
+  virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+  virtual void DiscoverBlocks(
+      BlockEntryInstr* current_block,
+      GrowableArray<BlockEntryInstr*>* preorder,
+      GrowableArray<BlockEntryInstr*>* postorder,
+      GrowableArray<BlockEntryInstr*>* parent);
 
  private:
   Value* value_;
-  BlockEntryInstr* true_successor_;
-  BlockEntryInstr* false_successor_;
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -1063,12 +1166,13 @@ class BranchInstr : public Instruction {
 // graph as defined by a reversed list of basic blocks.
 class FlowGraphVisitor : public ValueObject {
  public:
-  FlowGraphVisitor() { }
+  explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
+      : block_order_(block_order) { }
   virtual ~FlowGraphVisitor() { }
 
-  // Visit each block in the array list in reverse, and for each block its
+  // Visit each block in the block order, and for each block its
   // instructions in order from the block entry to exit.
-  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+  virtual void VisitBlocks();
 
   // Visit functions for instruction and computation classes, with empty
   // default implementations.
@@ -1083,6 +1187,16 @@ class FlowGraphVisitor : public ValueObject {
 
 #undef DECLARE_VISIT_COMPUTATION
 #undef DECLARE_VISIT_INSTRUCTION
+
+ protected:
+  // Map a block number in a forward iteration into the block number in the
+  // corresponding reverse iteration.  Used to obtain an index into
+  // block_order for reverse iterations.
+  intptr_t reverse_index(intptr_t index) {
+    return block_order_.length() - index - 1;
+  }
+
+  const GrowableArray<BlockEntryInstr*>& block_order_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);

@@ -64,13 +64,9 @@ class _State {
  * Currently only HTTP requests with Content-Length header are supported.
  */
 class _HttpParser {
-  _HttpParser()
-      : _state = _State.START,
-        _failure = false,
-        _headerField = new StringBuffer(),
-        _headerValue = new StringBuffer(),
-        _method_or_status_code = new StringBuffer(),
-        _uri_or_reason_phrase = new StringBuffer();
+  _HttpParser() {
+    _reset();
+  }
 
   // From RFC 2616.
   // generic-message = start-line
@@ -88,10 +84,6 @@ class _HttpParser {
       int byte = buffer[index];
       switch (_state) {
         case _State.START:
-          _contentLength = 0;
-          _keepAlive = false;
-          _chunked = false;
-
           if (byte == _Const.HTTP11[0]) {
             // Start parsing HTTP method.
             _httpVersionIndex = 1;
@@ -164,6 +156,7 @@ class _HttpParser {
             _state = _State.RESPONSE_LINE_REASON_PHRASE;
           } else {
             if (byte < 0x30 && 0x39 < byte) {
+              if (error != null) error("Failed to parse HTTP");
               _failure = true;
             } else {
               _method_or_status_code.addCharCode(byte);
@@ -279,7 +272,9 @@ class _HttpParser {
             _remainingContent = _contentLength;
             _state = _State.BODY;
           } else {
-            // TODO(sgjesse): Error handling.
+            // Neither chunked nor content length. End of body
+            // indicated by close.
+            _state = _State.BODY;
           }
           break;
 
@@ -319,14 +314,14 @@ class _HttpParser {
         case _State.CHUNKED_BODY_DONE_LF:
           _expect(byte, _CharCode.LF);
           if (dataEnd != null) dataEnd();
-          _state = _State.START;
+          _reset();
           break;
 
         case _State.BODY:
           // The body is not handled one byte at the time but in blocks.
           int dataAvailable = lastIndex - index;
           ByteArray data;
-          if (dataAvailable <= _remainingContent) {
+          if (_remainingContent == null || dataAvailable <= _remainingContent) {
             data = new ByteArray(dataAvailable);
             data.setRange(0, dataAvailable, buffer, index);
           } else {
@@ -335,12 +330,14 @@ class _HttpParser {
           }
 
           if (dataReceived != null) dataReceived(data);
-          _remainingContent -= data.length;
+          if (_remainingContent != null) {
+            _remainingContent -= data.length;
+          }
           index += data.length;
           if (_remainingContent == 0) {
             if (!_chunked) {
               if (dataEnd != null) dataEnd();
-              _state = _State.START;
+              _reset();
             } else {
               _state = _State.CHUNK_SIZE_STARTING_CR;
             }
@@ -363,8 +360,32 @@ class _HttpParser {
     return index - offset;
   }
 
+  int connectionClosed() {
+    if (!_chunked && _contentLength == -1) {
+      if (dataEnd != null) dataEnd();
+    } else {
+      if (error != null) {
+        error("Connection closed before full body was received");
+      }
+    }
+  }
+
   int get contentLength() => _contentLength;
   bool get keepAlive() => _keepAlive;
+
+  _reset() {
+    _state = _State.START;
+    _failure = false;
+    _headerField = new StringBuffer();
+    _headerValue = new StringBuffer();
+    _method_or_status_code = new StringBuffer();
+    _uri_or_reason_phrase = new StringBuffer();
+
+    _contentLength = -1;
+    _keepAlive = false;
+    _chunked = false;
+    _remainingContent = null;
+  }
 
   int _toLowerCase(int byte) {
     final int aCode = "A".charCodeAt(0);
@@ -375,6 +396,7 @@ class _HttpParser {
 
   int _expect(int val1, int val2) {
     if (val1 != val2) {
+      if (error != null) error("Failed to parse HTTP");
       _failure = true;
     }
   }
@@ -413,4 +435,5 @@ class _HttpParser {
   Function headersComplete;
   Function dataReceived;
   Function dataEnd;
+  Function error;
 }

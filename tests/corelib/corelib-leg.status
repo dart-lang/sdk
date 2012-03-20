@@ -2,24 +2,19 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == leg && $checked ]
+[ $component == dart2js && $checked ]
 *: Skip
 
 
-[ $component == leg || $component == legium ]
-MathParseDoubleTest: Fail
+[ $component == dart2js || $component == legium ]
+MathParseDoubleTest: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
+StringTest: Fail # Expect.equals(expected: <5>, actual: <4>) fails.
 
 
 # Compilation errors.
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
-CoreRuntimeTypesTest: Fail # map not implemented
-DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
-ListTest: Fail # Internal Error: Cannot find value
-SetTest: Fail # Internal Error: Cannot find value
-SplayTreeTest: Fail # Internal Error: Cannot find value
-StringTest: Fail # Internal Error: Cannot find value
 
 
 # Bad test, assumes RegExp.allMatches returns a Collection.
@@ -32,3 +27,5 @@ BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.
 GrowableObjectArrayVMTest: Fail, OK # VM specific test.
 StringBaseVMTest: Fail, OK # VM specific test.
+
+StringPatternTest: Fail

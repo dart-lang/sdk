@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * To use it, from this directory, run:
+ * To generate docs for a library, run this script with the path to an
+ * entrypoint .dart file, like:
  *
- *     $ ./dartdoc <path to .dart file>
+ *     $ dart dartdoc.dart foo.dart
  *
  * This will create a "docs" directory with the docs for your libraries. To
  * create these beautiful docs, dartdoc parses your library and every library
@@ -25,9 +26,6 @@
 
 #source('comment_map.dart');
 #source('utils.dart');
-
-/** Path to generate HTML files into. */
-final _outdir = 'docs';
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -56,15 +54,14 @@ final MODE_LIVE_NAV = 1;
 void main() {
   final args = new Options().arguments;
 
-  // The entrypoint of the library to generate docs for.
-  final entrypoint = args[args.length - 1];
-
   // Parse the dartdoc options.
-  bool includeSource = true;
-  var mode = MODE_LIVE_NAV;
+  bool includeSource;
+  String mode;
+  String outputDir;
 
-  for (int i = 2; i < args.length - 1; i++) {
+  for (int i = 0; i < args.length - 1; i++) {
     final arg = args[i];
+
     switch (arg) {
       case '--no-code':
         includeSource = false;
@@ -79,29 +76,115 @@ void main() {
         break;
 
       default:
-        print('Unknown option: $arg');
+        if (arg.startsWith('--out=')) {
+          outputDir = arg.substring('--out='.length);
+        } else {
+          print('Unknown option: $arg');
+          return;
+        }
+        break;
     }
   }
 
+  // The entrypoint of the library to generate docs for.
+  final entrypoint = args[args.length - 1];
+
   final files = new VMFileSystem();
-  // TODO(rnystrom): Note that the following line gets munged by create-sdk to
-  // work with the SDK's different file layout. If you change it here, make
-  // sure SDK builds still work.
-  parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
+
+  // TODO(rnystrom): Note that the following lines get munged by create-sdk to
+  // work with the SDK's different file layout. If you change, be sure to test
+  // that dartdoc still works when run from the built SDK directory.
+  final frogPath = joinPaths(scriptDir, '../../frog/');
+  final libDir = joinPaths(frogPath, 'lib');
+  final compilerPath = joinPaths(frogPath, 'minfrog');
+
+  parseOptions(frogPath, ['', '', '--libdir=$libDir'], files);
   initializeWorld(files);
 
-  var dartdoc;
-  final elapsed = time(() {
-    dartdoc = new Dartdoc();
-    dartdoc.includeSource = includeSource;
-    dartdoc.mode = mode;
+  final dartdoc = new Dartdoc();
 
-    dartdoc.document(entrypoint);
-  });
+  if (includeSource != null) dartdoc.includeSource = includeSource;
+  if (mode != null) dartdoc.mode = mode;
+  if (outputDir != null) dartdoc.outputDir = outputDir;
+
+  cleanOutputDirectory(dartdoc.outputDir);
+
+  // Compile the client-side code to JS.
+  final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
+  compileScript(compilerPath, libDir, '$scriptDir/client-$clientScript.dart',
+               '${dartdoc.outputDir}/client-$clientScript.js');
+
+  copyFiles('$scriptDir/static', dartdoc.outputDir);
+
+  dartdoc.document(entrypoint);
 
   print('Documented ${dartdoc._totalLibraries} libraries, ' +
       '${dartdoc._totalTypes} types, and ' +
-      '${dartdoc._totalMembers} members in ${elapsed}msec.');
+      '${dartdoc._totalMembers} members.');
+}
+
+/**
+ * Gets the full path to the directory containing the entrypoint of the current
+ * script. In other words, if you invoked dartdoc, directly, it will be the
+ * path to the directory containing `dartdoc.dart`. If you're running a script
+ * that imports dartdoc, it will be the path to that script.
+ */
+String get scriptDir() {
+  return dirname(new File(new Options().script).fullPathSync());
+}
+
+/**
+ * Deletes and recreates the output directory at [path] if it exists.
+ */
+void cleanOutputDirectory(String path) {
+  final outputDir = new Directory(path);
+  if (outputDir.existsSync()) {
+    outputDir.deleteRecursivelySync();
+    outputDir.createSync();
+  }
+}
+
+/**
+ * Copies all of the files in the directory [from] to [to]. Does *not*
+ * recursively copy subdirectories.
+ *
+ * Note: runs asynchronously, so you won't see any files copied until after the
+ * event loop has had a chance to pump (i.e. after `main()` has returned).
+ */
+void copyFiles(String from, String to) {
+  final fromDir = new Directory(from);
+  fromDir.onFile = (path) {
+    final name = basename(path);
+    // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
+    if (name.startsWith('.')) return;
+
+    new File(path).readAsBytes((bytes) {
+      final outFile = new File('$to/$name');
+      final stream = outFile.openOutputStream(FileMode.WRITE);
+      stream.write(bytes, copyBuffer: false);
+      stream.close();
+    });
+  };
+  fromDir.list(recursive: false);
+}
+
+/**
+ * Compiles the given Dart script to a JavaScript file at [jsPath] using the
+ * Dart-to-JS compiler located at [compilerPath].
+ */
+void compileScript(String compilerPath, String libDir,
+    String dartPath, String jsPath) {
+  final process = new Process.start(compilerPath, [
+    '--libdir=$libDir', '--out=$jsPath',
+    '--compile-only', '--enable-type-checks', '--warnings-as-errors',
+    dartPath]);
+
+  process.stdout.pipe(stdout, close: false);
+
+  process.onError = (error) {
+    print('Failed to compile $dartPath. Error:');
+    print(error);
+  };
 }
 
 class Dartdoc {
@@ -114,6 +197,9 @@ class Dartdoc {
    * the `MODE_` constants.
    */
   int mode = MODE_LIVE_NAV;
+
+  /** Path to generate HTML files into. */
+  String outputDir = 'docs';
 
   /**
    * The title used for the overall generated output. Set this to change it.
@@ -180,43 +266,15 @@ class Dartdoc {
             member: _currentMember));
   }
 
-  void document(String entrypoint) {
+  void document([String entrypoint]) {
     var oldDietParse = options.dietParse;
     try {
       options.dietParse = true;
 
-      // Handle the built-in entrypoints.
-      switch (entrypoint) {
-        case 'corelib':
-          world.getOrAddLibrary('dart:core');
-          world.getOrAddLibrary('dart:coreimpl');
-          world.getOrAddLibrary('dart:json');
-          world.getOrAddLibrary('dart:isolate');
-          world.process();
-          break;
-
-        case 'dom':
-          world.getOrAddLibrary('dart:core');
-          world.getOrAddLibrary('dart:coreimpl');
-          world.getOrAddLibrary('dart:json');
-          world.getOrAddLibrary('dart:dom');
-          world.getOrAddLibrary('dart:isolate');
-          world.process();
-          break;
-
-        case 'html':
-          world.getOrAddLibrary('dart:core');
-          world.getOrAddLibrary('dart:coreimpl');
-          world.getOrAddLibrary('dart:json');
-          world.getOrAddLibrary('dart:dom');
-          world.getOrAddLibrary('dart:html');
-          world.getOrAddLibrary('dart:isolate');
-          world.process();
-          break;
-
-        default:
-          // Normal entrypoint script.
-          world.processDartScript(entrypoint);
+      // If we have an entrypoint, process it. Otherwise, just use whatever
+      // libraries have been previously loaded by the calling code.
+      if (entrypoint != null) {
+        world.processDartScript(entrypoint);
       }
 
       world.resolveAll();
@@ -245,7 +303,7 @@ class Dartdoc {
   }
 
   void endFile() {
-    final outPath = '$_outdir/$_filePath';
+    final outPath = '$outputDir/$_filePath';
     final dir = new Directory(dirname(outPath));
     if (!dir.existsSync()) {
       dir.createSync();
@@ -532,7 +590,9 @@ class Dartdoc {
     endFile();
 
     for (final type in library.types.getValues()) {
-      if (!type.isTop) docType(type);
+      if (type.isTop) continue;
+      if (type.name.startsWith('_')) continue;
+      docType(type);
     }
   }
 

@@ -23,7 +23,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>* blocks);
+                    const GrowableArray<BlockEntryInstr*>& block_order);
 
   virtual ~FlowGraphCompiler();
 
@@ -47,7 +47,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
 
-  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& blocks);
+  virtual void VisitBlocks();
 
   // Emit code to perform a computation, leaving its value in RAX.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
@@ -73,6 +73,12 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                         intptr_t argument_count,
                         const Array& argument_names,
                         intptr_t checked_argument_count);
+
+  // Emit a static call.
+  void EmitStaticCall(intptr_t token_index,
+                      const Function& function,
+                      intptr_t argument_count,
+                      const Array& argument_names);
 
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
@@ -103,10 +109,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
-  const GrowableArray<BlockEntryInstr*>* blocks_;
 
-  // Compiler specific per-block state.  Indexed by block number, so not
-  // necessarily the same order as the array of blocks.
+  // Compiler specific per-block state.  Indexed by postorder block number
+  // for convenience.  This is not the block's index in the block order,
+  // which is reverse postorder.
   GrowableArray<BlockInfo*> block_info_;
 
   BlockEntryInstr* current_block_;

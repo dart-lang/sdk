@@ -74,8 +74,7 @@ class _Directory implements Directory {
         _path = result;
         callback();
       } else if (_onError != null) {
-        _onError("Could not create temporary directory [$_path]: " +
-                 "${result[1]}");
+        _onError("Could not create temporary directory [$_path]: ${result[1]}");
       }
     });
   }

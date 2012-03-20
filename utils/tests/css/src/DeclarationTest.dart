@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("../../../css/css.dart");
-#import('../../../../frog/lang.dart', prefix:'lang');
 
 class DeclarationTest {
 
@@ -46,7 +45,7 @@ class DeclarationTest {
       "}\n";
 
     Parser parser =
-        new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, input));
+        new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, input));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -80,7 +79,7 @@ class DeclarationTest {
         "}\n";
 
     Parser parser =
-      new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, input));
+      new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, input));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -111,7 +110,7 @@ class DeclarationTest {
       "}\n";
 
     Parser parser =
-      new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, input));
+      new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, input));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -143,7 +142,7 @@ class DeclarationTest {
       "  }\n" +
       "}\n";
     Parser parser =
-      new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, input));
+      new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, input));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -183,7 +182,7 @@ class DeclarationTest {
       "}\n";
 
     Parser parser =
-      new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, input));
+      new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, input));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);
@@ -242,7 +241,7 @@ class DeclarationTest {
       "}\n";
 
     Parser parser =
-      new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE, scss));
+      new Parser(new SourceFile(SourceFile.IN_MEMORY_FILE, scss));
 
     Stylesheet stylesheet = parser.parse();
     Expect.isNotNull(stylesheet);

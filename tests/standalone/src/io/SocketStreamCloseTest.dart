@@ -94,7 +94,7 @@ class SocketClose {
       }
     }
 
-    void errorHandler() {
+    void errorHandler(Exception e) {
       _errorEvents++;
       _socket.close();
     }
@@ -299,7 +299,7 @@ class SocketCloseServer extends Isolate {
         connection.outputStream.close();
       }
 
-      void errorHandler() {
+      void errorHandler(Exception e) {
         Expect.fail("Socket error");
       }
 
@@ -310,7 +310,7 @@ class SocketCloseServer extends Isolate {
       connection.onError = errorHandler;
     }
 
-    void errorHandlerServer() {
+    void errorHandlerServer(Exception e) {
       Expect.fail("Server socket error");
     }
 

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# To pre-process CSS files, run this script with the path to a .scss file, like:
+#
+# $ $DART/utils/css/css foo.scss foo.css
+#
+# To use your Dart VM must be on your $PATH e.g.,
+#
+# export PATH=$PATH:/home/<your name>/dart-all/dart/out/Release_ia32/
+
+
+SRCFILE=$PWD/$1
+OUTPUT=$PWD/$2
+if [[ $1 == $2 ]]
+then
+  echo -e "\033[31msource file must be different then output file\033[0m"
+  exit 1
+fi
+
+# Path of this bash script.
+BASE_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+# Pre-process the file
+dart $BASE_DIR/tool.dart $SRCFILE $OUTPUT
+

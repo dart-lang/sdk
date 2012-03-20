@@ -20,21 +20,27 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function)
       : parsed_function_(parsed_function),
+        preorder_block_entries_(),
         postorder_block_entries_() { }
 
   void BuildGraph();
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
-  const GrowableArray<BlockEntryInstr*>* blocks() const {
-    return &postorder_block_entries_;
+  const GrowableArray<BlockEntryInstr*>& postorder_block_entries() const {
+    return postorder_block_entries_;
   }
 
   void Bailout(const char* reason);
 
+  void set_context_level(intptr_t value) { context_level_ = value; }
+  intptr_t context_level() const { return context_level_; }
+
  private:
   const ParsedFunction& parsed_function_;
+  GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;
+  intptr_t context_level_;
 };
 
 
@@ -98,13 +104,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // receiver and loads the value.  The receiver will be named with
   // start_index, the temporary index of the value is returned (always
   // start_index+1).
-  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, int start_index);
+  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, intptr_t start_index);
 
   // Build the load part of an indexed increment.  Translates the receiver
   // and index and loads the value.  The receiver will be named with
   // start_index, the index with start_index+1, and the temporary index of
   // the value is returned (always start_index+2).
-  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, int start_index);
+  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, intptr_t start_index);
 
   // Build the increment part of an increment operation (add or subtract 1).
   // The original value is expected to be named with start_index-1, and the
@@ -112,20 +118,25 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildIncrOpIncrement(Token::Kind kind,
                             intptr_t node_id,
                             intptr_t token_index,
-                            int start_index);
+                            intptr_t start_index);
 
-  // Creates type arguments (one or two values in 'args') used in preparation
-  // of a constructor or factory call.
-  // For factory call instantiates and returns type argument vector in 'args'.
-  // For constructor call returns type arguments and type arguments of the
-  // instantiator.
+  // Creates an instantiated type argument vector used in preparation of a
+  // factory call.
   // May be called only if allocating an object of a parameterized class.
-  void BuildTypeArguments(ConstructorCallNode* node,
-                          ZoneGrowableArray<Value*>* args);
+  Value* BuildFactoryTypeArguments(ConstructorCallNode* node,
+                                   intptr_t start_index);
+
+  // Creates a possibly uninstantiated type argument vector and the type
+  // argument vector of the instantiator (two values in 'args') used in
+  // preparation of a constructor call.
+  // May be called only if allocating an object of a parameterized class.
+  void BuildConstructorTypeArguments(ConstructorCallNode* node,
+                                     intptr_t start_index,
+                                     ZoneGrowableArray<Value*>* args);
 
   // Returns the value of the type arguments of the instantiator.
-  Value* GenerateInstantiatorTypeArguments(intptr_t token_index,
-                                           intptr_t type_arguments);
+  Value* BuildInstantiatorTypeArguments(intptr_t token_index,
+                                        intptr_t start_index);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
@@ -231,25 +242,12 @@ class TestGraphVisitor : public ValueGraphVisitor {
   virtual void VisitLiteralNode(LiteralNode* node);
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
 
-  bool can_be_true() const {
-    // Either both successors are set or neither is set.
-    ASSERT((true_successor_address_ == NULL) ==
-           (false_successor_address_ == NULL));
-    return true_successor_address_ != NULL;
-  }
-  bool can_be_false() const {
-    // Either both successors are set or neither is set.
-    ASSERT((true_successor_address_ == NULL) ==
-           (false_successor_address_ == NULL));
-    return false_successor_address_ != NULL;
-  }
-
-  BlockEntryInstr** true_successor_address() const {
-    ASSERT(can_be_true());
+  TargetEntryInstr** true_successor_address() const {
+    ASSERT(true_successor_address_ != NULL);
     return true_successor_address_;
   }
-  BlockEntryInstr** false_successor_address() const {
-    ASSERT(can_be_false());
+  TargetEntryInstr** false_successor_address() const {
+    ASSERT(false_successor_address_ != NULL);
     return false_successor_address_;
   }
 
@@ -266,8 +264,8 @@ class TestGraphVisitor : public ValueGraphVisitor {
   }
 
   // Output parameters.
-  BlockEntryInstr** true_successor_address_;
-  BlockEntryInstr** false_successor_address_;
+  TargetEntryInstr** true_successor_address_;
+  TargetEntryInstr** false_successor_address_;
 };
 
 }  // namespace dart

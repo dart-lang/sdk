@@ -125,7 +125,7 @@ public class Resolver {
    * @param member the member to resolve.
    * @param context a resolution context corresponding to classElement.
    */
-  public void resolveMember(ClassElement classElement, Element member, ResolutionContext context) {
+  public void resolveMember(ClassNodeElement classElement, NodeElement member, ResolutionContext context) {
     ResolveElementsVisitor visitor;
     if(member == null) {
       return;
@@ -638,7 +638,8 @@ public class Resolver {
         resolve(expression);
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
-        if (expression.getType() != null) {
+        if (expression.getType() != null 
+            && element.getType().equals(typeProvider.getDynamicType())) {
           Elements.setType(element, expression.getType());
         }
       } else if (isFinal) {

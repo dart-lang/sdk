@@ -3,7 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Generates the complete set of corelib reference documentation.
+ * This generates the reference documentation for the core libraries that come
+ * with dart. It is built on top of dartdoc, which is a general-purpose library
+ * for generating docs from any Dart code. This library extends that to include
+ * additional information and styling specific to our standard library.
+ *
+ * Usage:
+ *
+ *     $ dart apidoc.dart [--out=<output directory>]
  */
 #library('apidoc');
 
@@ -19,8 +26,43 @@ HtmlDiff _diff;
 final GET_PREFIX = 'get:';
 
 void main() {
+  final args = new Options().arguments;
+
+  var outputDir = 'docs';
+
+  // Use the output directory if provided.
+  if (args.length > 1) {
+    print('Usage: apidoc [--out=<output directory>]');
+    return;
+  } else if (args.length == 1) {
+    final arg = args[0];
+    if (arg.startsWith('--out=')) {
+      outputDir = arg.substring('--out='.length);
+    } else {
+      print('Unknown option: $arg');
+      return;
+    }
+  }
+
+  final frogPath = joinPaths(doc.scriptDir, '../../frog/');
+
+  doc.cleanOutputDirectory(outputDir);
+
+  // Compile the client-side code to JS.
+  // TODO(bob): Right path.
+  doc.compileScript(frogPath,
+      '${doc.scriptDir}/../../lib/dartdoc/client-live-nav.dart',
+      '${outputDir}/client-live-nav.js');
+
+  // TODO(rnystrom): Use platform-specific path separator.
+  // The basic dartdoc-provided static content.
+  doc.copyFiles('${doc.scriptDir}/../../lib/dartdoc/static', outputDir);
+
+  // The apidoc-specific static content.
+  doc.copyFiles('${doc.scriptDir}/static', outputDir);
+
   var files = new VMFileSystem();
-  parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
+  parseOptions(frogPath, ['', '', '--libdir=$frogPath/lib'], files);
   initializeWorld(files);
 
   print('Parsing MDN data...');
@@ -32,14 +74,21 @@ void main() {
   _diff.run();
   world.reset();
 
-  // TODO(rnystrom): Cram in the the IO libraries. This is hackish right now.
-  // We should probably move corelib stuff completely out of dartdoc and have it
-  // all here.
-  world.getOrAddLibrary('io_libs.dart');
+  // Add all of the core libraries.
+  world.getOrAddLibrary('dart:core');
+  world.getOrAddLibrary('dart:coreimpl');
+  world.getOrAddLibrary('dart:json');
+  world.getOrAddLibrary('dart:dom');
+  world.getOrAddLibrary('dart:html');
+  world.getOrAddLibrary('dart:io');
+  world.getOrAddLibrary('dart:isolate');
+  world.getOrAddLibrary('dart:uri');
+  world.getOrAddLibrary('dart:utf');
+  world.process();
 
   print('Generating docs...');
-  final apidoc = new Apidoc(mdn);
-  apidoc.document('html');
+  final apidoc = new Apidoc(mdn, outputDir);
+  apidoc.document();
 }
 
 class Apidoc extends doc.Dartdoc {
@@ -53,7 +102,9 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn) {
+  Apidoc(this.mdn, String outputDir) {
+    this.outputDir = outputDir;
+
     mainTitle = 'Dart API Reference';
     mainUrl = 'http://dartlang.org';
 

@@ -38,7 +38,7 @@ class Validate {
 
   // Validate the @{css expression} only .class and #elementId are valid inside
   // of @{...}.
-  static template(List<lang.Node> selectors, CssWorld cssWorld) {
+  static template(List<ASTNode> selectors, CssWorld cssWorld) {
     var errorSelector;                  // signal which selector didn't match.
     bool found = false;                 // signal if a selector is matched.
     int matches = 0;                    // < 0 IdSelectors, > 0 ClassSelector
@@ -56,7 +56,6 @@ class Validate {
           if (!simpleSelector.name.startsWith('_')) {
             // TODO(terry): For now iterate through all classes look for faster
             //              mechanism hash map, etc.
-            var className;
             for (final className in cssWorld.classes) {
               if (selector.simpleSelector.name == className) {
                 matches = _classNameCheck(selector, matches);
@@ -106,8 +105,9 @@ class Validate {
     }
 
     // Every selector must match.
+    var selector = selectors[0];
     assert((matches >= 0 ? matches : -matches) ==
-        selectors[0].simpleSelectorSequences.length);
+        selector.simpleSelectorSequences.length);
   }
 }
 

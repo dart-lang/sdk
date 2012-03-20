@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.MethodNodeElement;
 
 /**
  * Represents a Dart array access expression (a[b]).
@@ -14,7 +14,7 @@ public class DartArrayAccess extends DartExpression {
 
   private DartExpression target;
   private DartExpression key;
-  private MethodElement element;
+  private MethodNodeElement element;
 
   public DartArrayAccess(DartExpression target, DartExpression key) {
     this.target = becomeParentOf(target);
@@ -46,12 +46,12 @@ public class DartArrayAccess extends DartExpression {
   }
 
   @Override
-  public MethodElement getElement() {
+  public MethodNodeElement getElement() {
     return element;
   }
 
   @Override
   public void setElement(Element element) {
-    this.element = (MethodElement) element;
+    this.element = (MethodNodeElement) element;
   }
 }

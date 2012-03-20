@@ -1,0 +1,64 @@
+template TopSearches(var persons) {
+  css {
+    .all-list {
+      font-family: arial;
+    }
+    .person-item {
+      padding: 4px 0px 4px 5px;
+      background-color: slateGray;
+      color: white;
+      font-weight: bold;
+    }
+    .search-item {
+      font-size: 11pt;
+      padding: 3px 0px 3px 15px;
+      background-color: #aaa;
+      font-weight: bold;
+    }
+    .metrics-item {
+      font-size: 10pt;
+      padding: 2px 0px 2px 25px;
+      background-color: lightgray;
+      border-bottom: 1px solid white;
+    }
+    .total-hits {
+      position: absolute;
+      left: 100px;
+    }
+  }
+  <div class="all-list">
+    ${#each persons person}
+      <div class="person-item">
+        <span>${person.name},&nbsp;</span>
+        <span>age&nbsp;=&nbsp;</span>
+        <span>${person.age}</span>
+      </div>
+      <div>
+        ${#each person.searches search}
+          <div class="search-item">query=${search.query},&nbsp;rank=${search.rank},&nbsp;total=${search.total}</div>
+          ${#each search.metrics metric}
+            <div class="metrics-item">
+              <span>${metric.country}</span>
+              <span class="total-hits">${metric.quantity}</span>
+            </div>
+          ${/each}
+        ${/each}
+      </div>
+    ${/each}
+  </div>
+}
+
+template NameEntry(String name, int age) {
+  css {
+    .name-item {
+      font-size: 18pt;
+      font-weight: bold;
+    }
+  }
+  <div var=topDiv class="name-item" attr="test" attr1=test1 attr2='test2' attr3=test3>
+    <span var=spanElem>${name}</span>
+    <span> - </span>
+    <span>${age}</span>
+  </div>
+}
+

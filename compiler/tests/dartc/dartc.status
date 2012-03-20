@@ -25,7 +25,7 @@ corelib/SharedTests: Skip
 *: Skip
 
 
-[ $component == leg ]
+[ $component == dart2js ]
 *: Skip
 
 

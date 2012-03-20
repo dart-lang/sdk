@@ -63,6 +63,18 @@ Instruction* ReturnInstr::Accept(FlowGraphVisitor* visitor) {
 }
 
 
+Instruction* ThrowInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitThrow(this);
+  return NULL;
+}
+
+
+Instruction* ReThrowInstr::Accept(FlowGraphVisitor* visitor) {
+  visitor->VisitReThrow(this);
+  return NULL;
+}
+
+
 Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
   visitor->VisitBranch(this);
   return NULL;
@@ -70,10 +82,9 @@ Instruction* BranchInstr::Accept(FlowGraphVisitor* visitor) {
 
 
 // Default implementation of visiting basic blocks.  Can be overridden.
-void FlowGraphVisitor::VisitBlocks(
-    const GrowableArray<BlockEntryInstr*>& block_order) {
-  for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
-    Instruction* current = block_order[i]->Accept(this);
+void FlowGraphVisitor::VisitBlocks() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    Instruction* current = block_order_[i]->Accept(this);
     while ((current != NULL) && !current->IsBlockEntry()) {
       current = current->Accept(this);
     }
@@ -82,68 +93,104 @@ void FlowGraphVisitor::VisitBlocks(
 
 
 // ==== Postorder graph traversal.
-void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void JoinEntryInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  // The global graph entry is a TargetEntryInstr, so we can assume
+  // current_block is non-null and preorder array is non-empty.
+  ASSERT(current_block != NULL);
+  ASSERT(!preorder->is_empty());
+
+  // 1. Record control-flow-graph basic-block predecessors.
+  predecessors_.Add(current_block);
+
+  // 2. If the block has already been reached by the traversal, we are done.
+  if (preorder_number() >= 0) return;
+
+  // 3. The last entry in the preorder array is the spanning-tree parent.
+  parent->Add(preorder->Last());
+
+  // 4. Assign preorder number and add the block entry to the list.
+  set_preorder_number(preorder->length());
+  preorder->Add(this);
+  // The preorder and parent arrays are both indexed by preorder block
+  // number, so they should stay in lockstep.
+  ASSERT(preorder->length() == parent->length());
+
+  // 5. Iterate straight-line successors until a branch instruction or
+  // another basic block entry instruction, and visit that instruction.
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
+  Instruction* next = successor_;
+  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+    set_last_instruction(next);
+    next = next->StraightLineSuccessor();
+  }
+  if (next != NULL) {
+    next->DiscoverBlocks(this, preorder, postorder, parent);
+  }
+
+  // 6. Assign postorder number and add the block entry to the list.
+  set_postorder_number(postorder->length());
+  postorder->Add(this);
 }
 
 
-void TargetEntryInstr::Postorder(
-    GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void TargetEntryInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  // 1. Record control-flow-graph basic-block predecessors.
+  ASSERT(predecessor_ == NULL);
+  predecessor_ = current_block;  // Might be NULL (for the graph entry).
+
+  // 2. There is a single predecessor, so we should only reach this block once.
+  ASSERT(preorder_number() == -1);
+
+  // 3. The last entry in the preorder array is the spanning-tree parent.
+  // The global graph entry has a NULL parent.
+  parent->Add(preorder->is_empty() ? NULL : preorder->Last());
+
+  // 4. Assign preorder number and add the block entry to the list.
+  set_preorder_number(preorder->length());
+  preorder->Add(this);
+  // The preorder and parent arrays are indexed by preorder block number, so
+  // they should stay in lockstep.
+  ASSERT(preorder->length() == parent->length());
+
+  // 5. Iterate straight-line successors until a branch instruction or
+  // another basic block entry instruction, and visit that instruction.
   ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-  block_entries->Add(this);
+  Instruction* next = successor_;
+  while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+    set_last_instruction(next);
+    next = next->StraightLineSuccessor();
+  }
+  if (next != NULL) {
+    next->DiscoverBlocks(this, preorder, postorder, parent);
+  }
+
+  // 6. Assign postorder number and add the block entry to the list.
+  set_postorder_number(postorder->length());
+  postorder->Add(this);
 }
 
 
-void PickTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-}
-
-
-void TuckTempInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-}
-
-
-void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-}
-
-
-void BindInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-  ASSERT(successor_ != NULL);
-  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
-}
-
-
-void ReturnInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
-}
-
-
-void BranchInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
-  flip_mark();
+void BranchInstr::DiscoverBlocks(
+    BlockEntryInstr* current_block,
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<BlockEntryInstr*>* postorder,
+    GrowableArray<BlockEntryInstr*>* parent) {
+  current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
-  // true/false order in reverse postorder.
-  ASSERT(false_successor_ != NULL);
+  // true/false order in reverse postorder used as the block ordering in the
+  // nonoptimizing compiler.
   ASSERT(true_successor_ != NULL);
-  if (false_successor_->mark() != mark()) {
-    false_successor_->Postorder(block_entries);
-  }
-  if (true_successor_->mark() != mark()) {
-    true_successor_->Postorder(block_entries);
-  }
+  ASSERT(false_successor_ != NULL);
+  false_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
+  true_successor_->DiscoverBlocks(current_block, preorder, postorder, parent);
 }
 
 

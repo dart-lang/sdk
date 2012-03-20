@@ -1091,7 +1091,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frog':
-      case 'leg':
+      case 'dart2js':
           return 'frog/bin/frog$suffix';
       case 'frogsh':
         return 'frog/bin/frogsh$suffix';
@@ -1166,7 +1166,7 @@ class TestUtils {
       args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
-    if (configuration["component"] == "leg"
+    if (configuration["component"] == "dart2js"
         || configuration["component"] == "legium") {
       args.add("--verbose");
       args.add("--leg");

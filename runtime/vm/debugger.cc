@@ -73,6 +73,11 @@ intptr_t SourceBreakpoint::LineNumber() {
 }
 
 
+void SourceBreakpoint::set_function(const Function& func) {
+  function_ = func.raw();
+}
+
+
 void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
@@ -312,12 +317,23 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
+  ASSERT((breakpoint_kind_ == PcDescriptors::kIcCall) ||
+         (breakpoint_kind_ == PcDescriptors::kFuncCall) ||
+         (breakpoint_kind_ == PcDescriptors::kReturn));
 }
 
 
 CodeBreakpoint::~CodeBreakpoint() {
   // Make sure we don't leave patched code behind.
   ASSERT(!IsEnabled());
+  // Poison the data so we catch use after free errors.
+#ifdef DEBUG
+  function_ = Function::null();
+  pc_ = 0ul;
+  src_bpt_ = NULL;
+  next_ = NULL;
+  breakpoint_kind_ = PcDescriptors::kOther;
+#endif
 }
 
 
@@ -875,17 +891,17 @@ void Debugger::BreakpointCallback() {
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
         func = caller->DartFunction().raw();
-        RemoveInternalBreakpoints();
       }
     }
+    RemoveInternalBreakpoints();  // *bpt is now invalid.
     InstrumentForStepping(func);
   } else if (resume_action_ == kStepInto) {
-    RemoveInternalBreakpoints();
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       int num_args, num_named_args;
       uword target;
       CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
           &num_args, &num_named_args, &target);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       Instance& receiver = Instance::Handle(
           top_frame->GetInstanceCallReceiver(num_args));
@@ -899,9 +915,11 @@ void Debugger::BreakpointCallback() {
       Function& callee = Function::Handle();
       uword target;
       CodePatcher::GetStaticCallAt(bpt->pc_, &callee, &target);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       InstrumentForStepping(callee);
     } else {
       ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
+      RemoveInternalBreakpoints();  // *bpt is now invalid.
       // Treat like stepping out to caller.
       if (stack_trace->Length() > 1) {
         ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
@@ -910,8 +928,8 @@ void Debugger::BreakpointCallback() {
     }
   } else {
     ASSERT(resume_action_ == kStepOut);
+    RemoveInternalBreakpoints();  // *bpt is now invalid.
     // Set stepping breakpoints in the caller.
-    RemoveInternalBreakpoints();
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
       InstrumentForStepping(caller->DartFunction());
@@ -936,23 +954,39 @@ void Debugger::NotifyCompilation(const Function& func) {
     return;
   }
   Function& lookup_function = Function::Handle(func.raw());
-  if (func.IsClosureFunction()) {
-    // If the newly compiled function is a closure, we need to use
-    // the closure's parent function to see whether there are any
-    // breakpoints.
+  if (func.IsImplicitClosureFunction()) {
+    // If the newly compiled function is a an implicit closure (a closure that
+    // was formed by assigning a static or instance method to a function
+    // object), we need to use the closure's parent function to see whether
+    // there are any breakpoints. The parent function is the actual method on
+    // which the user sets breakpoints.
     lookup_function = func.parent_function();
+    ASSERT(!lookup_function.IsNull());
   }
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     if (lookup_function.raw() == bpt->function()) {
-      if (verbose) {
-        OS::Print("Enable latent breakpoint for function '%s'\n",
-                  String::Handle(lookup_function.name()).ToCString());
-      }
-      // Set breakpoint in newly compiled code of function func.
-      CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
-      if (cbpt != NULL) {
-        cbpt->set_src_bpt(bpt);
+      // Check if the breakpoint is inside a closure or local function
+      // within the newly compiled function.
+      Class& owner = Class::Handle(lookup_function.owner());
+      Function& closure =
+          Function::Handle(owner.LookupClosureFunction(bpt->token_index()));
+      if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {
+        if (verbose) {
+          OS::Print("Resetting pending breakpoint to function %s\n",
+                    String::Handle(closure.name()).ToCString());
+        }
+        bpt->set_function(closure);
+      } else {
+        if (verbose) {
+          OS::Print("Enable pending breakpoint for function '%s'\n",
+                    String::Handle(lookup_function.name()).ToCString());
+        }
+        // Set breakpoint in newly compiled code of function func.
+        CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
+        if (cbpt != NULL) {
+          cbpt->set_src_bpt(bpt);
+        }
       }
       bpt->Enable();  // Enables the code breakpoint as well.
     }

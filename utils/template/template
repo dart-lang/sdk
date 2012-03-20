@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# To process a template, run this script with the path to a .tmpl file, e.g.,
+#
+# $ $DART/utils/template/template srcfile [outfile]
+#
+# where:
+#    srcfile - the template file file.tmpl (if .tmpl missing .tmpl is assumed).
+#    outfile - the Dart class file to generate, if outfile not specified then
+#              outfile is srcfile.dart (srcfile name w/o ext).
+#
+# To use your Dart VM must be on your $PATH e.g.,
+#
+# export PATH=$PATH:/home/<your name>/dart-all/dart/out/Release_ia32/
+
+
+# Minimum/Maximum number of arguments
+MINARGS=1
+MAXARGS=2
+
+# get the number of command-line arguments given
+ARGC=$#
+
+SRCFILE=
+OUTFILE=
+
+# check to make sure enough arguments were given or exit
+if [[ $ARGC -eq $MINARGS ]];
+then
+  SRCFILE=$1
+  IDX=`expr index "$SRCFILE" .` 
+  if [[ $IDX -eq 0 ]];
+  then
+    # No extension
+    FILENAME=$SRCFILE
+    EXT=
+  else
+    FILENAME=${SRCFILE:0:(IDX-1)}
+    EXT=${SRCFILE:IDX}
+  fi
+
+  TMPL_EXT='tmpl'
+  if [ "$EXT" = "$TMPL_EXT" ];
+  then
+    SRCFILE="$PWD/$1"
+    OUTFILE="$PWD/$FILENAME.dart"
+  else 
+    SRCFILE="$PWD/$1.$TMPL_EXT"
+    OUTFILE="$PWD/$FILENAME.dart"
+  fi
+elif [[ $ARGC -eq 2 ]]
+then
+  SRCFILE="$PWD/$1"
+  OUTFILE="$PWD/$2"
+elif [[ $ARGC -lt $MINARGS ]];
+then
+ echo -e "\033[31mToo few arguments given (Minimum $MINARGS argument)\033[0m"
+ exit 1
+elif [[ $ARGC -gt $MAXARGS ]];
+then
+ echo -e "\033[31mToo many arguments\033[0m"
+ exit 1
+fi
+
+if [ "$SRCFILE" = "$OUTFILE" ];
+then
+  echo -e "\033[31msource file must be different from the output file \033[0m"
+  echo -e "source file: $SRCFILE"
+  echo -e "output file: $OUTFILE"
+  exit 1
+fi
+
+# Path of this bash script.
+BASE_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+# Pre-process the file
+dart $BASE_DIR/tool.dart $SRCFILE $OUTFILE
+

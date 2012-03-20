@@ -11,6 +11,7 @@ import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.Source;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -66,8 +67,9 @@ public final class SourceInfo implements Serializable {
    *         <code>null</code>.
    */
   private static LinesInfo createLinesInfo(Source source) {
+    BufferedReader reader = null;
     try {
-      BufferedReader reader = new BufferedReader(source.getSourceReader());
+      reader = new BufferedReader(source.getSourceReader());
       int offset = 0;
       boolean ignoreLF = false;
       List<Integer> lineOffsets = Lists.newArrayList(0);
@@ -86,6 +88,14 @@ public final class SourceInfo implements Serializable {
       return new LinesInfo(lineOffsets);
     } catch (Throwable e) {
       return new LinesInfo(ImmutableList.of(0));
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          // Ignored
+        }
+      }
     }
   }
 

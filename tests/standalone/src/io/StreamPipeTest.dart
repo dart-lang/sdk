@@ -152,7 +152,7 @@ class PipeServerGame {
 // stream to its output stream.
 class PipeServer extends TestingServer {
   void onConnection(Socket connection) {
-    connection.onError = () { Expect.fail("Socket error"); };
+    connection.onError = (Exception e) { Expect.fail("Socket error $e"); };
     connection.inputStream.pipe(connection.outputStream);
   }
 }

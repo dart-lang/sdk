@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[$component == leg || $component == legium || $component == frogium || ($component == webdriver && ($browser == ie || $browser == safari || $browser == ff || $browser == chrome))]
+[$component == dart2js || $component == legium || $component == frogium || ($component == webdriver && ($browser == ie || $browser == safari || $browser == ff || $browser == chrome))]
 # #-directives not supported by test architecture
 DeclarationTest: Fail
 ExpressionTest: Fail

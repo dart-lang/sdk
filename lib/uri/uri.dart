@@ -44,23 +44,23 @@ class Uri {
 
   // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
   static final RegExp _splitRe = const RegExp(
-      '^' +
-      '(?:' +
-        '([^:/?#.]+)' +                 // scheme - ignore special characters
+      '^'
+      '(?:'
+        '([^:/?#.]+)'                   // scheme - ignore special characters
                                         // used by other URL parts such as :,
                                         // ?, /, #, and .
-      ':)?' +
-      '(?://' +
-        '(?:([^/?#]*)@)?' +             // userInfo
-        '([\\w\\d\\-\\u0100-\\uffff.%]*)' +
+      ':)?'
+      '(?://'
+        '(?:([^/?#]*)@)?'               // userInfo
+        '([\\w\\d\\-\\u0100-\\uffff.%]*)'
                                         // domain - restrict to letters,
                                         // digits, dashes, dots, percent
                                         // escapes, and unicode characters.
-        '(?::([0-9]+))?' +              // port
-      ')?' +
-      '([^?#]+)?' +                     // path
-      '(?:\\?([^#]*))?' +               // query
-      '(?:#(.*))?' +                    // fragment
+        '(?::([0-9]+))?'                // port
+      ')?'
+      '([^?#]+)?'                       // path
+      '(?:\\?([^#]*))?'                 // query
+      '(?:#(.*))?'                      // fragment
       '\$');
 
   static final _COMPONENT_SCHEME = 1;
@@ -192,7 +192,7 @@ class Uri {
 
 String merge(String base, String reference) {
   if (base == "") return "/$reference";
-  return base.substring(0, base.lastIndexOf("/") + 1) + "$reference";
+  return "${base.substring(0, base.lastIndexOf("/") + 1)}$reference";
 }
 
 String removeDotSegments(String path) {

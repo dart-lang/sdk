@@ -144,6 +144,40 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
+const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
+  // Perform a name lookup for an IPv4 address.
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
+  struct addrinfo* info = NULL;
+  int status = getaddrinfo(host, 0, &hints, &info);
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    *os_error = new OSError(status,
+                            gai_strerror(status),
+                            OSError::kGetAddressInfo);
+    (*os_error)->set_code(status);
+    (*os_error)->SetMessage(gai_strerror(status));
+    return NULL;
+  }
+  // Convert the address into IPv4 dotted decimal notation.
+  char* buffer = reinterpret_cast<char*>(malloc(INET_ADDRSTRLEN));
+  sockaddr_in *sockaddr = reinterpret_cast<sockaddr_in *>(info->ai_addr);
+  const char* result = inet_ntop(AF_INET,
+                                 reinterpret_cast<void *>(&sockaddr->sin_addr),
+                                 buffer,
+                                 INET_ADDRSTRLEN);
+  if (result == NULL) {
+    free(buffer);
+    return NULL;
+  }
+  ASSERT(result == buffer);
+  return buffer;
+}
+
+
 intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {

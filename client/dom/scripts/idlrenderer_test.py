@@ -43,13 +43,17 @@ ACTUAL  :
     @A @B() @C(x) @D(x=1) @E(x,y=2)
     void something();
   };
+};
+@X module M2 {
+  @Y interface I {};
 };'''
 
     expected_text = \
 '''module M {
-  [Constructor(in long x)] interface I :
-    @A J,
-    K {
+  [Constructor(in long x)]
+  interface I :
+      @A J,
+      K {
 
     /* Constants */
     const boolean CONST = 1;
@@ -63,6 +67,11 @@ ACTUAL  :
     /* Operations */
     [A, B=123] void function(in long x, in optional boolean y);
     @A @B @C(x) @D(x=1) @E(x, y=2) void something();
+  };
+};
+@X module M2 {
+  @Y
+  interface I {
   };
 };
 '''

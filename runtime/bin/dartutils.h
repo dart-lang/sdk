@@ -165,6 +165,8 @@ class CObject {
   static CObject* IllegalArgumentError();
   // Create a new CObject array with the current OS error.
   static CObject* NewOSError();
+  // Create a new CObject array with the specified OS error.
+  static CObject* NewOSError(OSError* os_error);
 
  protected:
   CObject() : cobject_(NULL) {}

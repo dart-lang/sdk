@@ -12,7 +12,7 @@ class AssertionError {
   static _throwNew(int assertionStart, int assertionEnd)
       native "AssertionError_throwNew";
   String toString() {
-    return "'$url': Failed assertion: line $line pos $column: " +
+    return "'$url': Failed assertion: line $line pos $column: "
         "'$failedAssertion' is not true.";
   }
   final String failedAssertion;
@@ -74,7 +74,7 @@ class StaticResolutionException implements Exception {
         "StaticResolutionException can only be allocated by the VM");
   }
 
-  String toString() => "Unresolved static method: url '$url' line $line " +
+  String toString() => "Unresolved static method: url '$url' line $line "
       "pos $column\n$failedResolutionLine\n";
 
   static _throwNew(int token_pos) native "StaticResolutionException_throwNew";

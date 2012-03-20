@@ -46,6 +46,7 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.Types;
 
 import java.util.List;
 import java.util.Map;
@@ -321,6 +322,9 @@ public class CompileTimeConstantAnalyzer {
             identifierNode.accept(this);
             inferredType = getMostSpecificType(identifierNode);
             fieldNodeElement.setConstantType(inferredType);
+          } else if (fieldElement.getType() != null 
+              && !fieldElement.getType().equals(dynamicType)) {
+            inferredType = fieldElement.getType();
           } else {
             inferredType = fieldElement.getConstantType();
           }
@@ -506,7 +510,9 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitField(DartField node) {
       Type type = checkConstantExpression(node.getValue());
-      node.getElement().setConstantType(type);
+      if (node.getElement().getType().equals(dynamicType)) {
+        node.getElement().setConstantType(type);
+      }
       return null;
     }
 

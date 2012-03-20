@@ -191,78 +191,45 @@ class StringBase {
     }
   }
 
-  bool contains(Pattern other, [int startIndex = 0]) {
-    if (other is String) {
-      return indexOf(other, startIndex) >= 0;
+  bool contains(Pattern pattern, [int startIndex = 0]) {
+    if (pattern is String) {
+      return indexOf(pattern, startIndex) >= 0;
     }
-    return other.allMatches(this.substring(startIndex)).iterator().hasNext();
+    return pattern.allMatches(this.substring(startIndex)).iterator().hasNext();
   }
 
-  String replaceFirst(Pattern pattern, String to) {
-    if (pattern is RegExp) {
-      StringBuffer buffer = new StringBuffer();
-      int startIndex = 0;
-      Match match = pattern.firstMatch(this);
-      if (match != null) {
-        buffer.add(this.substring(startIndex, match.start())).add(to);
-        startIndex = match.end();
-      }
-      return buffer.add(this.substring(startIndex)).toString();
+  String replaceFirst(Pattern pattern, String replacement) {
+    if (pattern is! Pattern) {
+      throw new IllegalArgumentException("${pattern} is not a Pattern");
     }
-    int pos = this.indexOf(pattern, 0);
-    if (pos < 0) {
-      return this;
+    if (replacement is! String) {
+      throw new IllegalArgumentException("${replacement} is not a String");
     }
-    String s1 = this.substring(0, pos);
-    String s2 = this.substring(pos + pattern.length, this.length);
-    return s1.concat(to.concat(s2));
-  }
-
-  String replaceAll(Pattern pattern, String to) {
-    if (pattern is RegExp) {
-      StringBuffer buffer = new StringBuffer();
-      int startIndex = 0;
-      for (Match match in pattern.allMatches(this)) {
-        buffer.add(this.substring(startIndex, match.start())).add(to);
-        startIndex = match.end();
-      }
-      return buffer.add(this.substring(startIndex)).toString();
-    }
-    String from = pattern;
-    int fromLength = from.length;
-    int toLength = to.length;
-    int thisLength = this.length;
-
-    StringBuffer result = new StringBuffer("");
-    // Special case the empty string replacement where [to] is
-    // inserted in between each character.
-    if (fromLength === 0) {
-      result.add(to);
-      for (int i = 0; i < thisLength; i++) {
-        result.add(this.substring(i, i + 1));
-        result.add(to);
-      }
-      return result.toString();
-    }
-
-    int index = indexOf(from, 0);
-    if (index < 0) {
-      return this;
-    }
+    StringBuffer buffer = new StringBuffer();
     int startIndex = 0;
-    do {
-      result.add(this.substring(startIndex, index));
-      result.add(to);
-      startIndex = index + fromLength;
-    } while ((index = indexOf(from, startIndex)) >= 0);
-
-    // If there are remaining code points, add them to the string
-    // buffer.
-    if (startIndex < thisLength) {
-      result.add(this.substring(startIndex, thisLength));
+    Iterator iterator = pattern.allMatches(this).iterator();
+    if (iterator.hasNext()) {
+      Match match = iterator.next();
+      buffer.add(this.substring(startIndex, match.start())).add(replacement);
+      startIndex = match.end();
     }
+    return buffer.add(this.substring(startIndex)).toString();
+  }
 
-    return result.toString();
+  String replaceAll(Pattern pattern, String replacement) {
+    if (pattern is! Pattern) {
+      throw new IllegalArgumentException("${pattern} is not a Pattern");
+    }
+    if (replacement is! String) {
+      throw new IllegalArgumentException("${replacement} is not a String");
+    }
+    StringBuffer buffer = new StringBuffer();
+    int startIndex = 0;
+    for (Match match in pattern.allMatches(this)) {
+      buffer.add(this.substring(startIndex, match.start())).add(replacement);
+      startIndex = match.end();
+    }
+    return buffer.add(this.substring(startIndex)).toString();
   }
 
   /**
@@ -300,49 +267,54 @@ class StringBase {
 
   Iterable<Match> allMatches(String str) {
     List<Match> result = new List<Match>();
-    if (this.isEmpty()) return result;
-    int length = this.length;
-
-    int ix = 0;
-    while (ix < str.length) {
-      int foundIx = str.indexOf(this, ix);
-      if (foundIx < 0) break;
-      result.add(new _StringMatch(foundIx, str, this));
-      ix = foundIx + length;
+    int length = str.length;
+    int patternLength = this.length;
+    int startIndex = 0;
+    while (true) {
+      int position = str.indexOf(this, startIndex);
+      if (position == -1) {
+        break;
+      }
+      result.add(new _StringMatch(position, str, this));
+      int endIndex = position + patternLength;
+      if (endIndex == length) {
+        break;
+      } else if (position == endIndex) {
+        ++startIndex;  // empty match, advance and restart
+      } else {
+        startIndex = endIndex;
+      }
     }
     return result;
   }
 
   List<String> split(Pattern pattern) {
+    int length = this.length;
+    Iterator iterator = pattern.allMatches(this).iterator();
+    if (length == 0 && iterator.hasNext()) {
+      // A matched empty string input returns the empty list.
+      return <String>[];
+    }
     List<String> result = new List<String>();
-    if (pattern is RegExp) {
-      int startIndex = 0;
-      for (Match match in pattern.allMatches(this)) {
-        result.add(this.substring(startIndex, match.start()));
-        startIndex = match.end();
-      }
-      result.add(this.substring(startIndex));
-      return result;
-    }
-    if (pattern.isEmpty()) {
-      for (int i = 0; i < this.length; i++) {
-        result.add(this.substring(i, i+1));
-      }
-      return result;
-    }
-    int ix = 0;
-    while (ix < this.length) {
-      int foundIx = this.indexOf(pattern, ix);
-      if (foundIx < 0) {
-        // Not found, add remaining.
-        result.add(this.substring(ix, this.length));
+    int startIndex = 0;
+    int previousIndex = 0;
+    while (true) {
+      if (startIndex == length || !iterator.hasNext()) {
+        result.add(this.substring(previousIndex, length));
         break;
       }
-      result.add(this.substring(ix, foundIx));
-      ix = foundIx + pattern.length;
-    }
-    if (ix == this.length) {
-      result.add("");
+      Match match = iterator.next();
+      if (match.start() == length) {
+        result.add(this.substring(previousIndex, length));
+        break;
+      }
+      int endIndex = match.end();
+      if (startIndex == endIndex && endIndex == previousIndex) {
+        ++startIndex;  // empty match, advance and restart
+        continue;
+      }
+      result.add(this.substring(previousIndex, match.start()));
+      startIndex = previousIndex = endIndex;
     }
     return result;
   }
@@ -431,7 +403,7 @@ class TwoByteString extends StringBase implements String {
     throw const UnsupportedOperationException(
         "TwoByteString can only be allocated by the VM");
   }
-  
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -448,7 +420,7 @@ class FourByteString extends StringBase implements String {
     throw const UnsupportedOperationException(
         "FourByteString can only be allocated by the VM");
   }
-  
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -465,7 +437,7 @@ class ExternalOneByteString extends StringBase implements String {
     throw const UnsupportedOperationException(
         "ExternalOneByteString can only be allocated by the VM");
   }
-  
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces for one byte strings.
@@ -482,7 +454,7 @@ class ExternalTwoByteString extends StringBase implements String {
     throw const UnsupportedOperationException(
         "ExternalTwoByteString can only be allocated by the VM");
   }
-  
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.
@@ -499,7 +471,7 @@ class ExternalFourByteString extends StringBase implements String {
     throw const UnsupportedOperationException(
         "ExternalFourByteString can only be allocated by the VM");
   }
-  
+
   // Checks for one-byte whitespaces only.
   // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
   // whitespaces. Add checking for multi-byte whitespace codepoints.

@@ -36,16 +36,6 @@ class CodeGeneratorState : public StackResource {
     return root_node_ == node;
   }
 
-  int loop_level() const { return loop_level_; }
-  void set_loop_level(int loop_level) {
-    loop_level_ = loop_level;
-  }
-
-  int context_level() const { return context_level_; }
-  void set_context_level(int context_level) {
-    context_level_ = context_level;
-  }
-
   int try_index() const { return current_try_index_; }
   void set_try_index(int value) {
     current_try_index_ = value;
@@ -55,15 +45,6 @@ class CodeGeneratorState : public StackResource {
   CodeGenerator* codegen_;
   CodeGeneratorState* parent_;
   AstNode* root_node_;
-
-  // The loop level reflects the lexical nesting of loop statements, regardless
-  // of the presence of captured variables.
-  int loop_level_;
-
-  // The runtime context level is only incremented when a new context is
-  // allocated and chained to the list of contexts. This occurs when the scopes
-  // at the current loop level contain captured variables.
-  int context_level_;
 
   // We identify each try block in this function with an unique 'try index'
   // value.
@@ -224,6 +205,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                             intptr_t token_index);
   void CopyParameters();
 
+  void set_context_level(intptr_t value) { context_level_ = value; }
+  intptr_t context_level() const { return context_level_; }
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   intptr_t locals_space_size_;
@@ -231,6 +215,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   DescriptorList* pc_descriptors_list_;
   HandlerList* exception_handlers_list_;
   int try_index_;
+  // The runtime context level is only incremented when a new context is
+  // allocated and chained to the list of contexts.
+  intptr_t context_level_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(CodeGenerator);
 };

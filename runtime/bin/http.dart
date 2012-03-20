@@ -292,7 +292,7 @@ interface HttpClientConnection {
    * Sets the handler that gets called if an error occurs while
    * processing the HTTP request.
    */
- void set onError(void handler(HttpException e));
+  void set onError(void handler(HttpException e));
 }
 
 

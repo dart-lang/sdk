@@ -24,14 +24,14 @@ DECLARE_FLAG(bool, trace_functions);
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>* blocks)
-    : assembler_(assembler),
+    const GrowableArray<BlockEntryInstr*>& block_order)
+    : FlowGraphVisitor(block_order),
+      assembler_(assembler),
       parsed_function_(parsed_function),
-      blocks_(blocks),
-      block_info_(blocks->length()),
+      block_info_(block_order.length()),
       current_block_(NULL),
       pc_descriptors_list_(new CodeGenerator::DescriptorList()) {
-  for (int i = 0; i < blocks->length(); ++i) {
+  for (int i = 0; i < block_order.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
 }
@@ -170,6 +170,22 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
 }
 
 
+void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
+                                       const Function& function,
+                                       intptr_t argument_count,
+                                       const Array& argument_names) {
+  const Array& arguments_descriptor =
+      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+  __ LoadObject(RBX, function);
+  __ LoadObject(R10, arguments_descriptor);
+
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
+  __ addq(RSP, Immediate(argument_count * kWordSize));
+}
+
+
 void FlowGraphCompiler::VisitCurrentContext(CurrentContextComp* comp) {
   __ movq(RAX, CTX);
 }
@@ -226,21 +242,12 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
 }
 
 
-
 void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
   ASSERT(VerifyCallComputation(comp));
-
-  int argument_count = comp->ArgumentCount();
-  const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count,
-                                         comp->argument_names());
-  __ LoadObject(RBX, comp->function());
-  __ LoadObject(R10, arguments_descriptor);
-
-  GenerateCall(comp->token_index(),
-               &StubCode::CallStaticFunctionLabel(),
-               PcDescriptors::kFuncCall);
-  __ addq(RSP, Immediate(argument_count * kWordSize));
+  EmitStaticCall(comp->token_index(),
+                 comp->function(),
+                 comp->ArgumentCount(),
+                 comp->argument_names());
 }
 
 
@@ -329,18 +336,31 @@ void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
 
 void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
   // Preserve the second argument under the arguments as the result of the
-  // computation, then call the getter.
+  // computation, then call the setter.
   const String& function_name =
       String::ZoneHandle(Field::SetterSymbol(comp->field_name()));
 
   // Insert a copy of the second (last) argument under the arguments.
   __ popq(RAX);  // Value.
-  __ popq(RBX);  // Reciever.
+  __ popq(RBX);  // Receiver.
   __ pushq(RAX);
   __ pushq(RBX);
   __ pushq(RAX);
   EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 2,
                    Array::ZoneHandle(), 1);
+  __ popq(RAX);
+}
+
+
+void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
+  // Preserve the argument as the result of the computation,
+  // then call the setter.
+
+  // Duplicate the argument.
+  __ movq(RAX, Address(RSP, 0));
+  __ pushq(RAX);
+  EmitStaticCall(comp->token_index(), comp->setter_function(), 1,
+                 Array::ZoneHandle());
   __ popq(RAX);
 }
 
@@ -589,37 +609,15 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 }
 
 
-void FlowGraphCompiler::VisitThrow(ThrowComp* comp) {
-  LoadValue(RAX, comp->exception());
-  __ pushq(RAX);
-  GenerateCallRuntime(comp->node_id(), comp->token_index(), kThrowRuntimeEntry);
-  __ int3();
-}
-
-
-void FlowGraphCompiler::VisitReThrow(ReThrowComp* comp) {
-  LoadValue(RBX, comp->stack_trace());
-  LoadValue(RAX, comp->exception());
-  __ pushq(RAX);
-  __ pushq(RBX);
-  GenerateCallRuntime(
-      comp->node_id(), comp->token_index(), kReThrowRuntimeEntry);
-  Bailout("ReThrow Untested");
-}
-
-
 void FlowGraphCompiler::VisitNativeLoadField(NativeLoadFieldComp* comp) {
   __ popq(RAX);
   __ movq(RAX, FieldAddress(RAX, comp->offset_in_bytes()));
 }
 
 
-void FlowGraphCompiler::VisitExtractTypeArguments(
-    ExtractTypeArgumentsComp* comp) {
+void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
+    ExtractFactoryTypeArgumentsComp* comp) {
   __ popq(RAX);  // Instantiator.
-  if (!comp->constructor().IsFactory()) {
-    __ popq(RBX);  // Discard placeholder.
-  }
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
   // If RAX is null, no need to instantiate the type arguments, use null, and
@@ -644,41 +642,118 @@ void FlowGraphCompiler::VisitExtractTypeArguments(
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
   __ Bind(&type_arguments_uninstantiated);
-  if (comp->constructor().IsFactory()) {
-    // A runtime call to instantiate the type arguments is required before
-    // calling the factory.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ PushObject(comp->type_arguments());
-    __ pushq(RAX);  // Push instantiator type arguments.
-    GenerateCallRuntime(comp->node_id(),
-                        comp->token_index(),
-                        kInstantiateTypeArgumentsRuntimeEntry);
-    __ popq(RAX);  // Pop instantiator type arguments.
-    __ popq(RAX);  // Pop uninstantiated type arguments.
-    __ popq(RAX);  // Pop instantiated type arguments.
-    __ Bind(&type_arguments_instantiated);
-    // RAX: Instantiated type arguments.
-  } else {
-    // In the non-factory case, we rely on the allocation stub to
-    // instantiate the type arguments.
-    __ PushObject(comp->type_arguments());
-    // RAX: Instantiator type arguments.
-    Label type_arguments_pushed;
-    __ jmp(&type_arguments_pushed, Assembler::kNearJump);
-
-    __ Bind(&type_arguments_instantiated);
-    __ pushq(RAX);  // Instantiated type arguments.
-    __ movq(RAX, raw_null);  // Null instantiator.
-    __ Bind(&type_arguments_pushed);
-  }
+  // A runtime call to instantiate the type arguments is required before
+  // calling the factory.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(comp->type_arguments());
+  __ pushq(RAX);  // Push instantiator type arguments.
+  GenerateCallRuntime(comp->node_id(),
+                      comp->token_index(),
+                      kInstantiateTypeArgumentsRuntimeEntry);
+  __ popq(RAX);  // Pop instantiator type arguments.
+  __ popq(RAX);  // Pop uninstantiated type arguments.
+  __ popq(RAX);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  // RAX: Instantiated type arguments.
 }
 
 
-void FlowGraphCompiler::VisitBlocks(
-    const GrowableArray<BlockEntryInstr*>& blocks) {
-  for (intptr_t i = blocks.length() - 1; i >= 0; --i) {
+void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
+    ExtractConstructorTypeArgumentsComp* comp) {
+  __ popq(RAX);  // Instantiator.
+
+  // RAX is the instantiator AbstractTypeArguments object (or null).
+  // If RAX is null, no need to instantiate the type arguments, use null, and
+  // allocate an object of a raw type.
+  // TODO(regis): The above sentence is actually not correct. If the type
+  // arguments are only partially uninstantiated, we are losing type information
+  // by allocating a raw type. The code needs to be fixed here and in the
+  // unoptimized version (both ia32 and x64).
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label type_arguments_instantiated, type_arguments_uninstantiated;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+
+  // Check if type arguments represent the uninstantiated identity vector.
+  if (comp->type_arguments().IsUninstantiatedIdentity()) {
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
+    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
+    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
+        Smi::New(comp->type_arguments().Length())));
+    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  __ Bind(&type_arguments_uninstantiated);
+  // In the non-factory case, we rely on the allocation stub to
+  // instantiate the type arguments.
+  __ LoadObject(RAX, comp->type_arguments());
+  // RAX: uninstantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+  // RAX: uninstantiated or instantiated type arguments.
+}
+
+
+void FlowGraphCompiler::VisitExtractConstructorInstantiator(
+    ExtractConstructorInstantiatorComp* comp) {
+  __ popq(RCX);  // Discard value.
+  __ popq(RAX);  // Instantiator.
+
+  // RAX is the instantiator AbstractTypeArguments object (or null).
+  // If RAX is null, no need to instantiate the type arguments, use null, and
+  // allocate an object of a raw type.
+  // TODO(regis): The above sentence is actually not correct. If the type
+  // arguments are only partially uninstantiated, we are losing type information
+  // by allocating a raw type. The code needs to be fixed here and in the
+  // unoptimized version (both ia32 and x64).
+
+  // If type arguments represent the uninstantiated identity vector and if the
+  // instantiator is not null, the instantiator was used as type arguments,
+  // therefore, the instantiator must be reset to null here to indicate to the
+  // allocator that the type arguments are instantiated.
+  if (comp->type_arguments().IsUninstantiatedIdentity()) {
+    // TODO(regis): The following emitted code is duplicated in
+    // VisitExtractConstructorTypeArguments above. The reason is that the code
+    // is split between two computations, so that each one produces a
+    // single value, rather than producing a pair of values.
+    // If this becomes an issue, we should expose these tests at the IL level.
+    // Note that this code will still change, because bounds checking is not
+    // implemented yet.
+    const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    Label use_instantiator;
+    __ cmpq(RAX, raw_null);
+    __ j(EQUAL, &use_instantiator, Assembler::kNearJump);  // Already null.
+
+    // Check if the instantiator type argument vector is a TypeArguments of a
+    // matching length and, if so, use it as the instantiated type_arguments.
+    __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
+    __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
+    __ j(NOT_EQUAL, &use_instantiator, Assembler::kNearJump);
+    Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
+        Smi::New(comp->type_arguments().Length())));
+    __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
+        arguments_length);
+    __ j(NOT_EQUAL, &use_instantiator, Assembler::kNearJump);
+    // The instantiator was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, reset instantiator to null.
+    __ movq(RAX, raw_null);  // Null instantiator.
+    __ Bind(&use_instantiator);  // Use instantiator in RAX.
+  }
+  // In the non-factory case, we rely on the allocation stub to
+  // instantiate the type arguments.
+  // RAX: instantiator or null.
+}
+
+
+void FlowGraphCompiler::VisitBlocks() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Compile the block entry.
-    current_block_ = blocks[i];
+    current_block_ = block_order_[i];
     Instruction* instr = current_block()->Accept(this);
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
@@ -690,8 +765,9 @@ void FlowGraphCompiler::VisitBlocks(
     if (successor != NULL) {
       // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
-      if (i == 0 || (blocks[i - 1] != successor)) {
-        __ jmp(&block_info_[successor->block_number()]->label);
+      if ((i == block_order_.length() - 1) ||
+          (block_order_[i + 1] != successor)) {
+        __ jmp(&block_info_[successor->postorder_number()]->label);
       }
     }
   }
@@ -699,12 +775,12 @@ void FlowGraphCompiler::VisitBlocks(
 
 
 void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
-  __ Bind(&block_info_[instr->block_number()]->label);
+  __ Bind(&block_info_[instr->postorder_number()]->label);
 }
 
 
 void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
-  __ Bind(&block_info_[instr->block_number()]->label);
+  __ Bind(&block_info_[instr->postorder_number()]->label);
 }
 
 
@@ -786,23 +862,44 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
 }
 
 
+void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
+  LoadValue(RAX, instr->exception());
+  __ pushq(RAX);
+  GenerateCallRuntime(instr->node_id(),
+                      instr->token_index(),
+                      kThrowRuntimeEntry);
+  __ int3();
+}
+
+
+void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
+  LoadValue(RBX, instr->stack_trace());
+  LoadValue(RAX, instr->exception());
+  __ pushq(RAX);
+  __ pushq(RBX);
+  GenerateCallRuntime(
+      instr->node_id(), instr->token_index(), kReThrowRuntimeEntry);
+  Bailout("ReThrow Untested");
+}
+
+
+
 void FlowGraphCompiler::VisitBranch(BranchInstr* instr) {
   // Determine if the true branch is fall through (!negated) or the false
   // branch is.  They cannot both be backwards branches.
-  intptr_t index = blocks_->length() - current_block()->block_number() - 1;
-  ASSERT(index > 0);
-
-  bool negated = ((*blocks_)[index - 1] == instr->false_successor());
-  ASSERT(!negated == ((*blocks_)[index - 1] == instr->true_successor()));
+  intptr_t index = reverse_index(current_block()->postorder_number());
+  bool negated = (block_order_[index + 1] == instr->false_successor());
+  ASSERT(!negated == (block_order_[index + 1] == instr->true_successor()));
 
   LoadValue(RAX, instr->value());
   __ LoadObject(RDX, Bool::ZoneHandle(Bool::True()));
   __ cmpq(RAX, RDX);
   if (negated) {
-    __ j(EQUAL, &block_info_[instr->true_successor()->block_number()]->label);
+    intptr_t target_index = instr->true_successor()->postorder_number();
+    __ j(EQUAL, &block_info_[target_index]->label);
   } else {
-    __ j(NOT_EQUAL,
-         &block_info_[instr->false_successor()->block_number()]->label);
+    intptr_t target_index = instr->false_successor()->postorder_number();
+    __ j(NOT_EQUAL, &block_info_[target_index]->label);
   }
 }
 
@@ -1058,7 +1155,7 @@ void FlowGraphCompiler::CompileGraph() {
     AstPrinter::PrintFunctionScope(parsed_function_);
   }
 
-  VisitBlocks(*blocks_);
+  VisitBlocks();
 
   __ int3();
   // Emit function patching code. This will be swapped with the first 13 bytes

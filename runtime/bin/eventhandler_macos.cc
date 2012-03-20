@@ -63,7 +63,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     int status =
       TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
     if (status == -1) {
-      FATAL("Failed deleting events from kqueue");
+      FATAL1("Failed deleting events from kqueue: %s\n", strerror(errno));
     }
   }
 }
@@ -106,7 +106,7 @@ static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     int status =
       TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
     if (status == -1) {
-      FATAL("Failed updating kqueue");
+      FATAL1("Failed updating kqueue: %s\n", strerror(errno));
     }
   }
 }
@@ -132,7 +132,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
   int status = TEMP_FAILURE_RETRY(kevent(kqueue_fd_, &event, 1, NULL, 0, NULL));
   if (status == -1) {
-    FATAL("Failed adding interrupt fd to kqueue");
+    FATAL1("Failed adding interrupt fd to kqueue: %s\n", strerror(errno));
   }
 }
 

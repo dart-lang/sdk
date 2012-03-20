@@ -96,7 +96,7 @@ HTML = """<!DOCTYPE html>
 # This finds everything after the word "Output:" in the html page.
 # (Note, because the javascript we're fishing out spans multiple lines
 # we need to use the DOTALL switch here.)
-OUTPUT_JAVASCRIPT_REGEX = re.compile(".*\nOutput:(.*)#EOF", re.DOTALL)
+OUTPUT_JAVASCRIPT_REGEX = re.compile(".*\nOutput:\n(.*)\n#EOF", re.DOTALL)
 
 # If the frogpad.dart encounters a compilation error, the generated
 # javascript will start with the word 'throw'.

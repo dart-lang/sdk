@@ -420,11 +420,15 @@ CObject* CObject::IllegalArgumentError() {
 
 CObject* CObject::NewOSError() {
   OSError os_error;
+  return NewOSError(&os_error);
+}
+
+CObject* CObject::NewOSError(OSError* os_error) {
   CObject* error_message =
-      new CObjectString(CObject::NewString(os_error.message()));
+      new CObjectString(CObject::NewString(os_error->message()));
   CObjectArray* result = new CObjectArray(CObject::NewArray(3));
   result->SetAt(0, new CObjectInt32(CObject::NewInt32(kOSError)));
-  result->SetAt(1, new CObjectInt32(CObject::NewInt32(os_error.code())));
+  result->SetAt(1, new CObjectInt32(CObject::NewInt32(os_error->code())));
   result->SetAt(2, error_message);
   return result;
 }

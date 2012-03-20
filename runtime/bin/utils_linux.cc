@@ -6,7 +6,8 @@
 
 #include "bin/utils.h"
 
-OSError::OSError() : code_(0), message_(NULL) {
+OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
+  set_sub_system(kSystem);
   set_code(errno);
   SetMessage(strerror(errno));
 }

@@ -1,84 +1,13 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// These factory providers are for interfaces that do not have factory providers
+// generated automatically from a Constructor or NamedConstructor extended
+// attribute.
+
 class _AudioContextFactoryProvider {
   factory AudioContext() => FactoryProviderImplementation.createAudioContext();
-}
-
-class _DOMParserFactoryProvider {
-  factory DOMParser() => FactoryProviderImplementation.createDOMParser();
-}
-
-class _DOMURLFactoryProvider {
-  factory DOMURL() => FactoryProviderImplementation.createDOMURL();
-}
-
-class _EventSourceFactoryProvider {
-  factory EventSource(String scriptUrl) =>
-      FactoryProviderImplementation.createEventSource(scriptUrl);
-}
-
-class _DeprecatedPeerConnectionFactoryProvider {
-  factory DeprecatedPeerConnection(String serverConfiguration,
-                         SignalingCallback signalingCallback) =>
-      FactoryProviderImplementation.createDeprecatedPeerConnection(serverConfiguration, signalingCallback);
-}
-
-class _FileReaderFactoryProvider {
-  factory FileReader() => FactoryProviderImplementation.createFileReader();
-}
-
-class _FileReaderSyncFactoryProvider {
-  factory FileReaderSync() => FactoryProviderImplementation.createFileReaderSync();
-}
-
-class _HTMLAudioElementFactoryProvider {
-  factory HTMLAudioElement([String src]) => FactoryProviderImplementation.createHTMLAudioElement(src);
-}
-
-class _HTMLOptionElementFactoryProvider {
-  factory HTMLOptionElement([String data, String value, bool defaultSelected, bool selected]) =>
-      FactoryProviderImplementation.createHTMLOptionElement(data, value, defaultSelected, selected);
-}
-
-class _MediaControllerFactoryProvider {
-  factory MediaController() => FactoryProviderImplementation.createMediaController();
-}
-
-class _MediaStreamFactoryProvider {
-  factory MediaStream(MediaStreamTrackList audioTracks,
-                      MediaStreamTrackList videoTracks) =>
-      FactoryProviderImplementation.createMediaStream(audioTracks, videoTracks);
-}
-
-class _MessageChannelFactoryProvider {
-  factory MessageChannel() => FactoryProviderImplementation.createMessageChannel();
-}
-
-class _ShadowRootFactoryProvider {
-  factory ShadowRoot(Element host) =>
-      FactoryProviderImplementation.createShadowRoot(host);
-}
-
-class _SharedWorkerFactoryProvider {
-  factory SharedWorker(String scriptURL, [String name]) =>
-      FactoryProviderImplementation.createSharedWorker(scriptURL, name);
-}
-
-class _SpeechGrammarFactoryProvider {
-  factory SpeechGrammar() => FactoryProviderImplementation.createSpeechGrammar();
-}
-
-class _SpeechGrammarListFactoryProvider {
-  factory SpeechGrammarList() => FactoryProviderImplementation.createSpeechGrammarList();
-}
-
-class _TextTrackCueFactoryProvider {
-  factory TextTrackCue(String id, num startTime, num endTime, String text,
-                       [String settings, bool pauseOnExit]) =>
-      FactoryProviderImplementation.createTextTrackQue(
-          id, startTime, endTime, text, settings, pauseOnExit);
 }
 
 class _TypedArrayFactoryProvider {
@@ -115,38 +44,10 @@ class _TypedArrayFactoryProvider {
   factory Uint32Array.fromBuffer(ArrayBuffer buffer) => FactoryProviderImplementation.U32(buffer);
 }
 
-class _WebKitCSSMatrixFactoryProvider {
-  factory WebKitCSSMatrix([String spec = '']) => FactoryProviderImplementation.createWebKitCSSMatrix(spec);
-}
-
-class _WebKitBlobBuilderFactoryProvider {
-  factory WebKitBlobBuilder() => FactoryProviderImplementation.createWebKitBlobBuilder();
-}
-
 class _WebKitPointFactoryProvider {
   factory WebKitPoint(num x, num y) => FactoryProviderImplementation.createWebKitPoint(x, y);
 }
 
 class _WebSocketFactoryProvider {
   factory WebSocket(String url) => FactoryProviderImplementation.createWebSocket(url);
-}
-
-class _WorkerFactoryProvider {
-  factory Worker(String scriptUrl) =>
-      FactoryProviderImplementation.createWorker(scriptUrl);
-}
-class _XMLHttpRequestFactoryProvider {
-  factory XMLHttpRequest() => FactoryProviderImplementation.createXMLHttpRequest();
-}
-
-class _XMLSerializerFactoryProvider {
-  factory XMLSerializer() => FactoryProviderImplementation.createXMLSerializer();
-}
-
-class _XPathEvaluatorFactoryProvider {
-  factory XPathEvaluator() => FactoryProviderImplementation.createXPathEvaluator();
-}
-
-class _XSLTProcessorFactoryProvider {
-  factory XSLTProcessor() => FactoryProviderImplementation.createXSLTProcessor();
 }

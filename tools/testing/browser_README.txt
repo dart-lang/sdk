@@ -74,9 +74,9 @@ d) Download the selenium server (version 2.15 or newer) and place it in this
 12)Pull down benchmarks from internal repo (Google only): 
    http://chromegw.corp.google.com/viewvc/dash/trunk/internal/browserBenchmarks/README.txt?view=markup
 
-13)TODO(efortuna): Deal with appengine check in! Run 
-   '../../../third_party/appengine-python/1.5.4/appcfg.py update appengine/' 
-   while standing in dart/tools/testing/perf_tests.
+13)Create a directory in called appengine-python in third_party. Download and 
+   install App Engine in the directory you just created. 
+   http://code.google.com/appengine/downloads.html
 
 14) Run the tests! While standing in dart/tools/testing/perf_testing, run 
     $> python create_graph.py --forever --verbose 
