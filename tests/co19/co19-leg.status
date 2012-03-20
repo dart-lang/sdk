@@ -437,7 +437,7 @@ Language/08_Interfaces/Interfaces_A02_t02: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t03: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t04: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
-Language/10_Expressions/01_Constants_A15_t01.dart: Fail, OK # Assumes interpolations can't be constant.
+Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
 Language/10_Expressions/01_Constants_A15_t03: Fail, OK # 'const' keyword is not verified in literal maps.
 Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # @compile-error
