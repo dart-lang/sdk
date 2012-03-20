@@ -8,7 +8,6 @@
 
 [ $component == dart2js || $component == legium ]
 AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
-Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
 CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
@@ -23,6 +22,7 @@ CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
+Constructor6Test: Fail # Closures inside initializers not implemented.
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
@@ -30,6 +30,8 @@ DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
 DynamicTest: Fail # cannot resolve type F1
 Factory3Test: Fail # Handling of compile-time constants.
 FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
+FunctionLiterals2Test: Fail # Closures inside initializers not implemented.
+FunctionSyntaxTest: Fail # Closures inside initializers not implemented.
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
 FunctionTypeAlias4Test: Fail # cannot resolve type F
@@ -109,7 +111,6 @@ ConstConstructorSyntaxTest/02: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/03: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/04: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/05: Fail, OK # Negative language test.
-ConstCounterNegativeTest: Fail, OK # Negative language test.
 ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
