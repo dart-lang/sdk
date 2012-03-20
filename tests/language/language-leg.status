@@ -7,8 +7,7 @@
 
 
 [ $component == dart2js || $component == legium ]
-AdjacentConstStringLiteralsTest: Crash # Issue 2110
-AdjacentStringLiteralsTest: Crash # Cannot call 'get:dartString' on "${s}".
+AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 Constructor6Test: Crash
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
