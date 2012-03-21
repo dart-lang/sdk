@@ -9,7 +9,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _position = 0;
     _file.onError = (e) {
       if (_clientErrorHandler != null) {
-        _clientErrorHandler();
+        _clientErrorHandler(e);
       }
     };
     _file.open(FileMode.READ, (openedFile) {
@@ -28,7 +28,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   void _readDataFromFile(RandomAccessFile openedFile) {
     openedFile.onError = (e) {
       if (_clientErrorHandler != null) {
-        _clientErrorHandler();
+        _clientErrorHandler(e);
       }
     };
     openedFile.length((length) {
@@ -101,7 +101,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
       _processPendingOperations();
     });
     f.onError = (e) {
-      if (_onError != null) _onError();
+      if (_onError != null) _onError(e);
     };
   }
 
@@ -114,7 +114,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
   void _setupFileHandlers() {
     _file.onError = (e) {
-      if (_onError != null) _onError();
+      if (_onError != null) _onError(e);
     };
     _file.onNoPendingWrites = () {
       if (!_streamMarkedClosed && _onNoPendingWrites != null) {
@@ -169,7 +169,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     _onClosed = callback;
   }
 
-  void set onError(void callback()) {
+  void set onError(void callback(Exception e)) {
     _onError = callback;
   }
 
@@ -560,9 +560,9 @@ class _File implements File {
       var chunk = stream.read();
       chunks.add(chunk);
     };
-    stream.onError = () {
+    stream.onError = (e) {
       if (_onError != null) {
-        _onError("Failed to read file");
+        _onError(e);
       }
     };
   }
@@ -591,7 +591,7 @@ class _File implements File {
         decoder.write(bytes);
       } catch (var e) {
         if (_onError != null) {
-          _onError(e.toString());
+          _onError(e);
           return;
         }
       }
@@ -634,7 +634,7 @@ class _File implements File {
         decoder.write(bytes);
       } catch (var e) {
         if (_onError != null) {
-          _onError(e.toString());
+          _onError(e);
           return;
         }
       }

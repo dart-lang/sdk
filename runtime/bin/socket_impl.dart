@@ -54,7 +54,7 @@ class _SocketBase {
         }
 
         var eventHandler = _handlerMap[i];
-        if (eventHandler != null) {
+        if (eventHandler != null || i == _ERROR_EVENT) {
           // Unregister the out handler before executing it.
           if (i == _OUT_EVENT) _setHandler(i, null);
 
@@ -64,7 +64,7 @@ class _SocketBase {
             continue;
           }
           if (i == _ERROR_EVENT) {
-            eventHandler(new SocketIOException("", _getError()));
+            _reportError(_getError(), "");
             close();
           } else {
             eventHandler();
@@ -187,34 +187,42 @@ class _SocketBase {
   }
 
   bool _reportError(error, String message) {
+    void doReportError(Exception e) {
+      // Invoke the error callback if any.
+      if (_handlerMap[_ERROR_EVENT] != null) {
+        _handlerMap[_ERROR_EVENT](e);
+      }
+      // Propagate the error to any additional listeners.
+      _propagateError(e);
+    }
+
     // For all errors we close the socket, call the error handler and
     // disable further calls of the error handler.
     close();
-    var onError = _handlerMap[_ERROR_EVENT];
-    if (onError != null) {
-      if (error is OSError) {
-        onError(new SocketIOException(message, error));
-      } else if (error is List) {
-        assert(_isErrorResponse(error));
-        switch (error[0]) {
-          case _FileUtils.kIllegalArgumentResponse:
-            onError(new IllegalArgumentException());
-            break;
-          case _FileUtils.kOSErrorResponse:
-            onError(new SocketIOException(
-                message, new OSError(error[2], error[1])));
-            break;
-          default:
-            onError(new Exception("Unknown error"));
-            break;
-        }
-      } else {
-        onError(new SocketIOException(message));
+    if (error is OSError) {
+      doReportError(new SocketIOException(message, error));
+    } else if (error is List) {
+      assert(_isErrorResponse(error));
+      switch (error[0]) {
+        case _FileUtils.kIllegalArgumentResponse:
+          doReportError(new IllegalArgumentException());
+          break;
+        case _FileUtils.kOSErrorResponse:
+          doReportError(new SocketIOException(
+              message, new OSError(error[2], error[1])));
+          break;
+        default:
+          doReportError(new Exception("Unknown error"));
+          break;
       }
+    } else {
+      doReportError(new SocketIOException(message));
     }
   }
 
   int hashCode() => _hashCode;
+
+  void _propagateError(Exception e) => null;
 
   abstract bool _isListenSocket();
   abstract bool _isPipe();
@@ -464,7 +472,7 @@ class _Socket extends _SocketBase implements Socket {
   bool _isPipe() => _pipe;
 
   InputStream get inputStream() {
-    if (_inputStream === null) {
+    if (_inputStream == null) {
       if (_handlerMap[_IN_EVENT] !== null ||
           _handlerMap[_CLOSE_EVENT] !== null) {
         throw new StreamException(
@@ -476,7 +484,7 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   OutputStream get outputStream() {
-    if (_outputStream === null) {
+    if (_outputStream == null) {
       if (_handlerMap[_OUT_EVENT] !== null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
@@ -496,6 +504,15 @@ class _Socket extends _SocketBase implements Socket {
 
   void set _onClosed(void callback()) {
     _setHandler(_CLOSE_EVENT, callback);
+  }
+
+  void _propagateError(Exception e) {
+    if (_inputStream != null) {
+      _inputStream._onError(e);
+    }
+    if (_outputStream != null) {
+      _outputStream._onError(e);
+    }
   }
 
   void _updateOutHandler() {

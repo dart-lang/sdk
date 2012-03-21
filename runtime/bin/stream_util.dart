@@ -53,7 +53,7 @@ class _BaseDataInputStream {
     _checkScheduleCallbacks();
   }
 
-  void set onError(void callback()) {
+  void set onError(void callback(Exception e)) {
     _clientErrorHandler = callback;
   }
 

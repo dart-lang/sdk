@@ -66,10 +66,6 @@ class _SocketInputStream implements SocketInputStream {
     _socket._onClosed = _onClosed;
   }
 
-  void set onError(void callback()) {
-    _socket.onError = callback;
-  }
-
   void _onClosed() {
     _closed = true;
     if (_clientCloseHandler !== null) {
@@ -77,9 +73,19 @@ class _SocketInputStream implements SocketInputStream {
     }
   }
 
+  void set onError(void callback(Exception e)) {
+    _errorCallback = callback;
+  }
+
+  void _onError(Exception e) {
+    close();
+    if (_errorCallback != null) _errorCallback(e);
+  }
+
   Socket _socket;
-  Function _clientCloseHandler;
   bool _closed = false;
+  Function _clientCloseHandler;
+  Function _errorCallback;
 }
 
 
@@ -120,15 +126,6 @@ class _SocketOutputStream
     _onNoPendingWrites = callback;
     if (_onNoPendingWrites != null) {
       _socket._onWrite = _onWrite;
-    }
-  }
-
-  void set onError(void callback()) {
-    _streamErrorHandler = callback;
-    if (_streamErrorHandler != null) {
-      _socket.onError = _onError;
-    } else {
-      _socket.onError = null;
     }
   }
 
@@ -180,15 +177,19 @@ class _SocketOutputStream
     if (_onNoPendingWrites == null) _socket._onWrite = null;
   }
 
-  void _onError() {
+  void set onError(void callback(Exception e)) {
+    _errorCallback = callback;
+  }
+
+  void _onError(Exception e) {
     close();
-    if (_streamErrorHandler != null) _streamErrorHandler();
+    if (_errorCallback != null) _errorCallback(e);
   }
 
   Socket _socket;
   _BufferList _pendingWrites;
   var _onNoPendingWrites;
-  var _streamErrorHandler;
+  Function _errorCallback;
   bool _closing = false;
   bool _closed = false;
 }
