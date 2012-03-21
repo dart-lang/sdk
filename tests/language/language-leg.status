@@ -23,6 +23,7 @@ CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor6Test: Fail # Closures inside initializers not implemented.
+ConstructorRedirectTest/none: Fail # ConstantHandler with this or super not implemented
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
@@ -78,7 +79,6 @@ TypeDartcTest: Fail # non-empty instruction stack
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
 BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
-ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
 ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
@@ -110,7 +110,6 @@ ConstConstructorSyntaxTest/01: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/02: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/03: Fail, OK # Negative language test.
 ConstConstructorSyntaxTest/04: Fail, OK # Negative language test.
-ConstConstructorSyntaxTest/05: Fail, OK # Negative language test.
 ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
