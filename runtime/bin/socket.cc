@@ -22,8 +22,12 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   const char* host = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int64_t port = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   intptr_t socket = Socket::CreateConnect(host, port);
-  DartUtils::SetIntegerField(socketobj, DartUtils::kIdFieldName, socket);
-  Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
+  if (socket >= 0) {
+    DartUtils::SetIntegerField(socketobj, DartUtils::kIdFieldName, socket);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 
@@ -71,7 +75,11 @@ void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
     }
   }
   delete[] buffer;
-  Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+  if (bytes_read >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 
@@ -120,7 +128,11 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     total_bytes_written += bytes_written;
   } while (bytes_written > 0 && total_bytes_written < length);
   delete[] buffer;
-  Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
+  if (bytes_written >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(total_bytes_written));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 
@@ -130,8 +142,25 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
   intptr_t socket =
       DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                  DartUtils::kIdFieldName);
+  OSError os_error;
   intptr_t port = Socket::GetPort(socket);
-  Dart_SetReturnValue(args, Dart_NewInteger(port));
+  if (port > 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(port));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t socket =
+      DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
+                                 DartUtils::kIdFieldName);
+  OSError os_error;
+  Socket::GetError(socket, &os_error);
+  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
   Dart_ExitScope();
 }
 
@@ -160,9 +189,13 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
   intptr_t socket =
       ServerSocket::CreateBindListen(bindAddress, port, backlog);
-  DartUtils::SetIntegerField(
-      socketobj, DartUtils::kIdFieldName, socket);
-  Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
+  if (socket >= 0) {
+    DartUtils::SetIntegerField(
+        socketobj, DartUtils::kIdFieldName, socket);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 
@@ -177,8 +210,10 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
   if (newSocket >= 0) {
     DartUtils::SetIntegerField(
         socketobj, DartUtils::kIdFieldName, newSocket);
+    Dart_SetReturnValue(args, Dart_True());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
-  Dart_SetReturnValue(args, Dart_NewBoolean(newSocket >= 0));
   Dart_ExitScope();
 }
 

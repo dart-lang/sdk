@@ -64,7 +64,7 @@ class _SocketBase {
             continue;
           }
           if (i == _ERROR_EVENT) {
-            eventHandler(new SocketIOException(""));
+            eventHandler(new SocketIOException("", _getError()));
             close();
           } else {
             eventHandler();
@@ -96,6 +96,7 @@ class _SocketBase {
     }
   }
 
+  OSError _getError() native "Socket_GetError";
   int _getPort() native "Socket_GetPort";
 
   void set onError(void callback(Exception e)) {
@@ -185,6 +186,34 @@ class _SocketBase {
     _EventHandler._sendData(_id, _handler, data);
   }
 
+  bool _reportError(error, String message) {
+    // For all errors we close the socket, call the error handler and
+    // disable further calls of the error handler.
+    close();
+    var onError = _handlerMap[_ERROR_EVENT];
+    if (onError != null) {
+      if (error is OSError) {
+        onError(new SocketIOException(message, error));
+      } else if (error is List) {
+        assert(_isErrorResponse(error));
+        switch (error[0]) {
+          case _FileUtils.kIllegalArgumentResponse:
+            onError(new IllegalArgumentException());
+            break;
+          case _FileUtils.kOSErrorResponse:
+            onError(new SocketIOException(
+                message, new OSError(error[2], error[1])));
+            break;
+          default:
+            onError(new Exception("Unknown error"));
+            break;
+        }
+      } else {
+        onError(new SocketIOException(message));
+      }
+    }
+  }
+
   int hashCode() => _hashCode;
 
   abstract bool _isListenSocket();
@@ -224,10 +253,12 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   // bind failed.
   factory _ServerSocket(String bindAddress, int port, int backlog) {
     _ServerSocket socket = new _ServerSocket._internal();
-    if (!socket._createBindListen(bindAddress, port, backlog)) {
+    var result = socket._createBindListen(bindAddress, port, backlog);
+    if (result is OSError) {
       socket.close();
-      return null;
+      throw new SocketIOException("Failed to create server socket", result);
     }
+    assert(result);
     if (port != 0) {
       socket._port = port;
     }
@@ -250,7 +281,12 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
   void _connectionHandler() {
     if (_id >= 0) {
       _Socket socket = new _Socket._internal();
-      if (_accept(socket)) _clientConnectionHandler(socket);
+      var result = _accept(socket);
+      if (result is OSError) {
+        _reportError(result, "Accept failed");
+      } else {
+        _clientConnectionHandler(socket);
+      }
     }
   }
 
@@ -280,10 +316,11 @@ class _Socket extends _SocketBase implements Socket {
     _socketService.call(request).then((response) {
       if (socket._isErrorResponse(response)) {
         socket._reportError(response, "Failed host name lookup");
-      } else {
-        if (!socket._createConnect(response, port)) {
+      } else{
+        var result = socket._createConnect(response, port);
+        if (result is OSError) {
           socket.close();
-          socket._reportError(null, "Connection failed");
+          socket._reportError(result, "Connection failed");
         } else {
           socket._activateHandlers();
         }
@@ -321,8 +358,9 @@ class _Socket extends _SocketBase implements Socket {
         throw new IndexOutOfRangeException(offset + bytes);
       }
       int result = _readList(buffer, offset, bytes);
-      if (result < 0) {
-        _reportError(null, "Read failed");
+      if (result is OSError) {
+        _reportError(result, "Read failed");
+        return -1;
       }
       return result;
     }
@@ -368,17 +406,16 @@ class _Socket extends _SocketBase implements Socket {
           j++;
         }
       }
-      var bytes_written = _writeList(outBuffer, outOffset, bytes);
-      if (bytes_written < 0) {
+      var result = _writeList(outBuffer, outOffset, bytes);
+      if (result is OSError) {
         // If writing fails we return 0 as the number of bytes and
         // report the error on the error handler.
-        bytes_written = 0;
-        _reportError(null, "Write failed");
+        result = 0;
+        _reportError(result, "Write failed");
       }
-      return bytes_written;
+      return result;
     }
-    throw new
-        SocketIOException("Error: writeList failed - invalid socket handle");
+    throw new SocketIOException("writeList failed - invalid socket handle");
   }
 
   int _writeList(List<int> buffer, int offset, int bytes)
@@ -386,34 +423,6 @@ class _Socket extends _SocketBase implements Socket {
 
   bool _isErrorResponse(response) {
     return response is List && response[0] != _FileUtils.kSuccessResponse;
-  }
-
-  bool _reportError(response, String message) {
-    if (response != null) {
-      assert(_isErrorResponse(response));
-    }
-    // For all errors we close the socket, call the error handler and
-    // disable further calls of the error handler.
-    close();
-    var onError = _handlerMap[_ERROR_EVENT];
-    if (onError != null) {
-      if (response != null) {
-        switch (response[0]) {
-          case _FileUtils.kIllegalArgumentResponse:
-            onError(new IllegalArgumentException());
-            break;
-          case _FileUtils.kOSErrorResponse:
-            onError(new SocketIOException(
-                message, new OSError(response[2], response[1])));
-            break;
-          default:
-            onError(new Exception("Unknown error"));
-            break;
-        }
-      } else {
-        onError(new SocketIOException(message));
-      }
-    }
   }
 
   bool _createConnect(String host, int port) native "Socket_CreateConnect";

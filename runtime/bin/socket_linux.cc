@@ -95,10 +95,20 @@ intptr_t Socket::GetPort(intptr_t fd) {
           getsockname(fd,
                       reinterpret_cast<struct sockaddr *>(&socket_address),
                       &size))) {
-    fprintf(stderr, "Error getsockname: %s\n", strerror(errno));
     return 0;
   }
   return ntohs(socket_address.sin_port);
+}
+
+
+void Socket::GetError(intptr_t fd, OSError* os_error) {
+  int len = sizeof(errno);
+  getsockopt(fd,
+             SOL_SOCKET,
+             SO_ERROR,
+             &errno,
+             reinterpret_cast<socklen_t*>(&len));
+  os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 
 
@@ -121,8 +131,6 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
     *os_error = new OSError(status,
                             gai_strerror(status),
                             OSError::kGetAddressInfo);
-    (*os_error)->set_code(status);
-    (*os_error)->SetMessage(gai_strerror(status));
     return NULL;
   }
   // Convert the address into IPv4 dotted decimal notation.

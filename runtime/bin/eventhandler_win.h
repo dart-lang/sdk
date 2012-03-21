@@ -198,6 +198,9 @@ class Handle {
 
   void ReadSyncCompleteAsync();
 
+  DWORD last_error() { return last_error_; }
+  void set_last_error(DWORD last_error) { last_error_ = last_error; }
+
  protected:
   enum Flags {
     kClosing = 0,
@@ -221,6 +224,8 @@ class Handle {
   IOBuffer* data_ready_;  // IO buffer for data ready to be read.
   IOBuffer* pending_read_;  // IO buffer for pending read.
   IOBuffer* pending_write_;  // IO buffer for pending write
+
+  DWORD last_error_;
 
  private:
   int flags_;
@@ -349,6 +354,7 @@ class EventHandlerImplementation {
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, IOBuffer* buffer);
   void HandleClosed(Handle* handle);
+  void HandleError(Handle* handle);
   void HandleRead(Handle* handle, int bytes, IOBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, IOBuffer* buffer);
   void HandleClose(ClientSocket* client_socket);

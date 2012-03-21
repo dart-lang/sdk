@@ -29,10 +29,13 @@ class OSError {
   virtual ~OSError() { free(message_); }
 
   SubSystem sub_system() { return sub_system_; }
-  void set_sub_system(SubSystem sub_system) { sub_system_ = sub_system; }
   int code() { return code_; }
-  void set_code(int code) { code_ = code; }
   char* message() { return message_; }
+  void SetCodeAndMessage(SubSystem sub_system, int code);
+
+ private:
+  void set_sub_system(SubSystem sub_system) { sub_system_ = sub_system; }
+  void set_code(int code) { code_ = code; }
   void SetMessage(const char* message) {
     free(message_);
     if (message == NULL) {
@@ -42,7 +45,6 @@ class OSError {
     }
   }
 
- private:
   SubSystem sub_system_;
   int code_;
   char* message_;

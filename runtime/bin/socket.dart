@@ -134,7 +134,7 @@ class SocketIOException implements Exception {
         sb.add(" ($osError)");
       }
     } else if (osError != null) {
-      sb.add(": osError");
+      sb.add(": $osError");
     }
     return sb.toString();
   }
