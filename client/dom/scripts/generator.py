@@ -501,15 +501,32 @@ class IDLTypeInfo(object):
     if self._has_dart_wrapper:
       wrapper_type = 'Dart%s' % self.idl_type()
       adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
-      return (adapter_type, wrapper_type)
-    return ('ParameterAdapter< %s >' % native_type, self._idl_type)
+      return (adapter_type, '"%s.h"' % wrapper_type)
+    return ('ParameterAdapter< %s >' % native_type, '"%s.h"' % self._idl_type)
 
   def parameter_type(self):
     return '%s*' % self.native_type()
 
   def webcore_includes(self):
+    WTF_INCLUDES = [
+        'ArrayBuffer',
+        'ArrayBufferView',
+        'Float32Array',
+        'Float64Array',
+        'Int8Array',
+        'Int16Array',
+        'Int32Array',
+        'Uint8Array',
+        'Uint16Array',
+        'Uint32Array',
+        'Uint8ClampedArray',
+    ]
+
+    if self._idl_type in WTF_INCLUDES:
+      return ['<wtf/%s.h>' % self._idl_type]
+
     if not self._idl_type.startswith('SVG'):
-      return [self._idl_type]
+      return ['"%s.h"' % self._idl_type]
 
     if self._idl_type in ['SVGNumber', 'SVGPoint']:
       return []
@@ -517,13 +534,13 @@ class IDLTypeInfo(object):
       include = self._idl_type.replace('Abs', '').replace('Rel', '')
     else:
       include = self._idl_type
-    return [include] + _svg_supplemental_includes
+    return ['"%s.h"' % include] + _svg_supplemental_includes
 
   def receiver(self):
     return 'receiver->'
 
   def conversion_includes(self):
-    return ['Dart%s' % include for include in [self.dart_type()] + self._conversion_includes]
+    return ['"Dart%s.h"' % include for include in [self.dart_type()] + self._conversion_includes]
 
   def conversion_cast(self, expression):
     if self._conversion_template:
@@ -656,12 +673,12 @@ _idl_type_registry = {
 }
 
 _svg_supplemental_includes = [
-    'SVGAnimatedPropertyTearOff',
-    'SVGAnimatedListPropertyTearOff',
-    'SVGStaticListPropertyTearOff',
-    'SVGAnimatedListPropertyTearOff',
-    'SVGTransformListPropertyTearOff',
-    'SVGPathSegListPropertyTearOff',
+    '"SVGAnimatedPropertyTearOff.h"',
+    '"SVGAnimatedListPropertyTearOff.h"',
+    '"SVGStaticListPropertyTearOff.h"',
+    '"SVGAnimatedListPropertyTearOff.h"',
+    '"SVGTransformListPropertyTearOff.h"',
+    '"SVGPathSegListPropertyTearOff.h"',
 ]
 
 def GetIDLTypeInfo(idl_type_name):

@@ -273,7 +273,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
             '            goto fail;\n'
             '        }\n'
             '        Document* document = domWindow->document();\n')
-      self._cpp_impl_includes.add('DOMWindow')
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       arguments.append('document')
       create_function = 'createForJSConstructor'
     if 'CallWith' in self._interface.ext_attrs:
@@ -413,11 +413,11 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return False
 
     if call_with == 'ScriptArguments|CallStack':
-      self._cpp_impl_includes.add('DOMWindow')
-      self._cpp_impl_includes.add('ScriptArguments')
-      self._cpp_impl_includes.add('ScriptCallStack')
-      self._cpp_impl_includes.add('V8Proxy')
-      self._cpp_impl_includes.add('v8')
+      self._cpp_impl_includes.add('"DOMWindow.h"')
+      self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
+      self._cpp_impl_includes.add('"V8Proxy.h"')
+      self._cpp_impl_includes.add('"v8.h"')
       parameter_definitions_emitter.Emit(
           '\n'
           '        v8::HandleScope handleScope;\n'
@@ -770,7 +770,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
                       'onmouseup', 'onresize', 'onscroll', 'onunload']
     if self._interface.id.startswith('SVG') and not attr.id in svg_exceptions:
       namespace = 'SVGNames'
-    self._cpp_impl_includes.add(namespace)
+    self._cpp_impl_includes.add('"%s.h"' % namespace)
 
     attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
@@ -831,10 +831,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     if 'ImplementedBy' in attributes:
       arguments.insert(0, 'receiver')
-      self._cpp_impl_includes.add(attributes['ImplementedBy'])
+      self._cpp_impl_includes.add('"%s.h"' % attributes['ImplementedBy'])
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
 
 def _GenerateCPPIncludes(includes):
-  return ''.join(['#include "%s.h"\n' % include for include in includes])
+  return ''.join(['#include %s\n' % include for include in includes])
