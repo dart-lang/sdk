@@ -39,12 +39,21 @@ Language/10_Expressions/01_Constants_A17_t03: Skip # Cycle reference. Times out.
 
 # Issues with co19 test suite.
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail, OK # co19 issue 104
+Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
+Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
+Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
+Language/10_Expressions/05_Strings_A02_t01: Fail, OK # Issue 1498.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/10_Expressions/07_Maps_A07_t03: Fail, OK # Constant string literals in maps.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail, OK # Assumes super scope comes before library scope.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/22_Shift_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
+Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail, OK # A map literal cannot start an expression statement.
+Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail, OK # A map literal cannot start an expression statement.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/09_Try_A02_t04: Fail, OK # Bad test: Unbalanced {.
@@ -111,44 +120,15 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 
 Language/05_Variables/05_Variables_A05_t03: Fail # compiler cancelled: internal error: Unexpected operator.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
+Language/07_Classes/07_Classes_A02_t01: Fail # ConstantHandler with this or super not implemented
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail # compiler cancelled: cannot find constructor A or ADef
-Language/07_Classes/07_Classes_A02_t01: Fail # ConstantHandler with this or super not implemented
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # compiler cancelled: internal error: super property store not implemented
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # compiler cancelled: no method named foo in class I
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/09_Generics/09_Generics_A04_t04: Fail # compiler cancelled: cannot resolve type T
-Language/10_Expressions/01_Constants_A10_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A11_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A12_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A13_t01: Fail # compiler cancelled: internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/05_Strings_A02_t01: Fail # compiler cancelled: expected ' or "
-Language/10_Expressions/07_Maps_A07_t03: Fail # compiler cancelled: expected a constant string
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # compiler cancelled: cannot resolve type Isolate
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # compiler cancelled: Unimplemented non-matching static call
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # compiler cancelled: Unimplemented non-matching static call
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # compiler cancelled: Unimplemented non-matching static call
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # compiler cancelled: internal error: super property store not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A06_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got 'const'
-Language/10_Expressions/20_Equality_A05_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/20_Equality_A07_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/20_Equality_A08_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # compiler cancelled: internal error: super property store not implemented
-Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
-Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # compiler cancelled: expected ';', but got ':'
-Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # compiler cancelled: internal error: super property store not implemented
-Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # compiler cancelled: internal error
-Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # compiler cancelled: expected ';', but got ':'
-Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # compiler cancelled: internal error: super property read not implemented
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # compiler cancelled: unexpected token ';'
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A03_t05: Fail # compiler cancelled: internal error: fall-through not implemented
@@ -165,16 +145,6 @@ LibTest/core/String/charCodes_A01_t01: Fail # compiler cancelled: Unhandled non-
 
 
 Language/05_Variables/05_Variables_A03_t09: Fail # Expect.isTrue(false) fails.
-Language/10_Expressions/03_Numbers_A01_t06: Fail # Expect.equals(expected: <9223372036854775807>, actual: <9223372036854776000>) fails.
-Language/10_Expressions/03_Numbers_A01_t09: Fail # Expect.equals(expected: <1234567899876543210>, actual: <1234567899876543200>) fails.
-Language/10_Expressions/06_Lists_A07_t01: Fail # Expect.isTrue(false) fails.
-Language/10_Expressions/07_Maps_A05_t01: Fail # Expect.fail('Exception is expected')
-Language/10_Expressions/07_Maps_A06_t01: Fail # Expect.isTrue(false) fails.
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # Expect.equals(expected: <static superclass method>, actual: <library function>) fails.
-Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call$1'
-Language/10_Expressions/16_Assignment_A05_t06: Fail # Expect.fail('Incorrect method was searched: set nonExistingSetter')
-Language/10_Expressions/20_Equality_A06_t01: Fail # Expect.isTrue(false) fails.
-Language/10_Expressions/20_Equality_A09_t01: Fail # Expect.isFalse(true) fails.
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
 Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, expected: <4>, actual: <2>) fails
@@ -219,7 +189,36 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
 Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
-Language/09_Generics/09_Generics_A01_t10: Fail # TODO(ahe): Please categorize.
+
+
+Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A11_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A13_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A15_t03: Fail # 'const' keyword is not verified in literal maps.
+Language/10_Expressions/06_Lists_A07_t01: Fail # Canonicalization of lists.
+Language/10_Expressions/07_Maps_A05_t01: Fail # Constant maps.
+Language/10_Expressions/07_Maps_A06_t01: Fail # Canonicalization of maps.
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # internal error: super property store not implemented
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # Should throw ObjectNotClosure, not NoSuchMethodException.
+Language/10_Expressions/16_Assignment_A05_t06: Fail # Wrong name passed to noSuchMethod.
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Parser bug.
+Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
+Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
+Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
+Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
+Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # internal error: super property store not implemented
+Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # NoSuchMethodException : method not found: '-'
+Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
+Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
+Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # internal error: super property read not implemented
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 
 #
@@ -424,8 +423,7 @@ Language/08_Interfaces/Interfaces_A02_t02: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t03: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t04: Fail, OK # @compile-error
 Language/08_Interfaces/Interfaces_A02_t05: Fail, OK # @compile-error
-Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
-Language/10_Expressions/01_Constants_A15_t03: Fail, OK # 'const' keyword is not verified in literal maps.
+Language/09_Generics/09_Generics_A01_t10: Fail, OK # @compile-error
 Language/10_Expressions/01_Constants_A15_t34: Fail, OK # @compile-error
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # @compile-error
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
