@@ -39,7 +39,7 @@ MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 MessageTest: Skip
 
-[ $component == webdriver && $browser == ie && $system == win32 ]
+[ $component == webdriver && $browser == ie && $system == windows ]
 APIv2*: Skip
 
 [ $component == webdriver && $browser == safari && $system == macos ]
@@ -48,7 +48,7 @@ APIv2*: Skip
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == win32) ]
+[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.

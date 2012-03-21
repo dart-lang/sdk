@@ -146,7 +146,7 @@ LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
 
 
 
-[ $component == vm && $system == win32 ]
+[ $component == vm && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
 LibTest/core/double/round_A01_t01: Fail
 LibTest/core/double/remainder_A01_t04: Fail

@@ -12,7 +12,7 @@ dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 html/frog_html_tests: Skip
 
-[ $component == dartium && $system == win32 ]
+[ $component == dartium && $system == windows ]
 dom/DOMIsolatesTest: Skip
 
 [ $component == dartium && $mode == debug ]
@@ -53,7 +53,7 @@ html/frog_html_tests: Skip # Issue 1884
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == win32) ]
+[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
 *: Skip
 
 # dartc (used by 'chromium') no longer generates code.
