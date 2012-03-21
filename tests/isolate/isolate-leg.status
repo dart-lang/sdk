@@ -9,5 +9,4 @@ ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
 
 [ $component == dart2js ]
 # Browser tests only supported on browser components.
-*BrowserTest: Skip
-*BrowserNegativeTest: Skip
+*BrowserTest: Fail, OK
