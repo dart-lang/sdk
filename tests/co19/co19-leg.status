@@ -155,7 +155,6 @@ Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # compiler cance
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # compiler cancelled: unexpected token ';'
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
-Language/11_Statements/13_Continue_A03_t03: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/11_Statements/13_Continue_A03_t05: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # compiler cancelled: cannot resolve type MalformedType
 Language/13_Types/4_Interface_Types_A05_t04: Fail # compiler cancelled: cannot resolve type T
@@ -184,10 +183,6 @@ Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
 Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, expected: <4>, actual: <2>) fails
 Language/11_Statements/13_Continue_A03_t01: Fail # Expect.fail('This code shouldn't be executed')
-Language/11_Statements/13_Continue_A03_t02: Fail # continue not implemented
-Language/11_Statements/13_Continue_A03_t04: Fail # Expect.fail('This code shouldn't be executed')
-Language/11_Statements/13_Continue_A03_t06: Fail # continue not implemented
-Language/11_Statements/13_Continue_A03_t07: Fail # continue not implemented
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # Expect.isTrue(false) fails.
