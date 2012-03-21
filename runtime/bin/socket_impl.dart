@@ -267,9 +267,9 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
   _ServerSocket._internal();
 
-  bool _accept(Socket socket) native "ServerSocket_Accept";
+  _accept(Socket socket) native "ServerSocket_Accept";
 
-  bool _createBindListen(String bindAddress, int port, int backlog)
+  _createBindListen(String bindAddress, int port, int backlog)
       native "ServerSocket_CreateBindListen";
 
   void set onConnection(void callback(Socket connection)) {
@@ -357,7 +357,7 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      int result = _readList(buffer, offset, bytes);
+      var result = _readList(buffer, offset, bytes);
       if (result is OSError) {
         _reportError(result, "Read failed");
         return -1;
@@ -368,7 +368,7 @@ class _Socket extends _SocketBase implements Socket {
         SocketIOException("Error: readList failed - invalid socket handle");
   }
 
-  int _readList(List<int> buffer, int offset, int bytes)
+  _readList(List<int> buffer, int offset, int bytes)
       native "Socket_ReadList";
 
   int writeList(List<int> buffer, int offset, int bytes) {
@@ -418,7 +418,7 @@ class _Socket extends _SocketBase implements Socket {
     throw new SocketIOException("writeList failed - invalid socket handle");
   }
 
-  int _writeList(List<int> buffer, int offset, int bytes)
+  _writeList(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
 
   bool _isErrorResponse(response) {
