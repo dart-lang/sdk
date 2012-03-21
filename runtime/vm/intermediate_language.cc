@@ -97,7 +97,7 @@ void JoinEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
+    GrowableArray<intptr_t>* parent) {
   // The global graph entry is a TargetEntryInstr, so we can assume
   // current_block is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
@@ -110,10 +110,11 @@ void JoinEntryInstr::DiscoverBlocks(
   if (preorder_number() >= 0) return;
 
   // 3. The last entry in the preorder array is the spanning-tree parent.
-  parent->Add(preorder->Last());
+  intptr_t parent_number = preorder->length() - 1;
+  parent->Add(parent_number);
 
   // 4. Assign preorder number and add the block entry to the list.
-  set_preorder_number(preorder->length());
+  set_preorder_number(parent_number + 1);
   preorder->Add(this);
   // The preorder and parent arrays are both indexed by preorder block
   // number, so they should stay in lockstep.
@@ -141,7 +142,7 @@ void TargetEntryInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
+    GrowableArray<intptr_t>* parent) {
   // 1. Record control-flow-graph basic-block predecessors.
   ASSERT(predecessor_ == NULL);
   predecessor_ = current_block;  // Might be NULL (for the graph entry).
@@ -150,11 +151,12 @@ void TargetEntryInstr::DiscoverBlocks(
   ASSERT(preorder_number() == -1);
 
   // 3. The last entry in the preorder array is the spanning-tree parent.
-  // The global graph entry has a NULL parent.
-  parent->Add(preorder->is_empty() ? NULL : preorder->Last());
+  // The global graph entry has no parent, indicated by -1.
+  intptr_t parent_number = preorder->length() - 1;
+  parent->Add(parent_number);
 
   // 4. Assign preorder number and add the block entry to the list.
-  set_preorder_number(preorder->length());
+  set_preorder_number(parent_number + 1);
   preorder->Add(this);
   // The preorder and parent arrays are indexed by preorder block number, so
   // they should stay in lockstep.
@@ -182,7 +184,7 @@ void BranchInstr::DiscoverBlocks(
     BlockEntryInstr* current_block,
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
-    GrowableArray<BlockEntryInstr*>* parent) {
+    GrowableArray<intptr_t>* parent) {
   current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder used as the block ordering in the

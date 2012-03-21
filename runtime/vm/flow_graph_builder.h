@@ -37,6 +37,13 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t context_level() const { return context_level_; }
 
  private:
+  void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
+                         GrowableArray<intptr_t>* parent);
+  void CompressPath(intptr_t start_index,
+                    intptr_t current_index,
+                    GrowableArray<intptr_t>* parent,
+                    GrowableArray<intptr_t>* label);
+
   const ParsedFunction& parsed_function_;
   GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;

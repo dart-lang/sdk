@@ -1699,11 +1699,12 @@ void FlowGraphBuilder::BuildGraph() {
   if (for_effect.entry() != NULL) {
     // Perform a depth-first traversal of the graph to build preorder and
     // postorder block orders.
-    GrowableArray<BlockEntryInstr*> parent;
+    GrowableArray<intptr_t> parent;
     for_effect.entry()->DiscoverBlocks(NULL,  // Entry block predecessor.
                                        &preorder_block_entries_,
                                        &postorder_block_entries_,
                                        &parent);
+    ComputeDominators(&preorder_block_entries_, &parent);
   }
   if (FLAG_print_flow_graph) {
     intptr_t length = postorder_block_entries_.length();
@@ -1713,6 +1714,93 @@ void FlowGraphBuilder::BuildGraph() {
     }
     FlowGraphPrinter printer(function, reverse_postorder);
     printer.VisitBlocks();
+  }
+}
+
+
+void FlowGraphBuilder::ComputeDominators(
+    GrowableArray<BlockEntryInstr*>* preorder,
+    GrowableArray<intptr_t>* parent) {
+  // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
+  // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
+  // that eliminates a pass by using nearest-common ancestor (NCA) to
+  // compute immediate dominators from semidominators.  It also removes a
+  // level of indirection in the link-eval forest data structure.
+  //
+  // The algorithm is described in Georgiadis, Tarjan, and Werneck's
+  // "Finding Dominators in Practice".
+  // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
+
+  // All arrays are maps between preorder basic-block numbers.
+  intptr_t size = parent->length();
+  GrowableArray<intptr_t> idom(size);  // Immediate dominator.
+  GrowableArray<intptr_t> semi(size);  // Semidominator.
+  GrowableArray<intptr_t> label(size);  // Label for link-eval forest.
+
+  // 1. First pass: compute semidominators as in Lengauer-Tarjan.
+  // Semidominators are computed from a depth-first spanning tree and are an
+  // approximation of immediate dominators.
+
+  // Use a link-eval data structure with path compression.  Implement path
+  // compression in place by mutating the parent array.  Each block has a
+  // label, which is the minimum block number on the compressed path.
+
+  // Initialize idom, semi, and label.
+  for (intptr_t i = 0; i < size; ++i) {
+    idom.Add((*parent)[i]);
+    semi.Add(i);
+    label.Add(i);
+  }
+
+  // Loop over the blocks in reverse preorder (not including the graph
+  // entry).
+  for (intptr_t block_index = size - 1; block_index >= 1; --block_index) {
+    // Loop over the predecessors.
+    BlockEntryInstr* block = (*preorder)[block_index];
+    for (intptr_t i = 0; i < block->PredecessorCount(); ++i) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      ASSERT(pred != NULL);
+
+      // Look for the semidominator by ascending the semidominator path
+      // starting from pred.
+      intptr_t pred_index = pred->preorder_number();
+      intptr_t best = pred_index;
+      if (pred_index > block_index) {
+        CompressPath(block_index, pred_index, parent, &label);
+        best = label[pred_index];
+      }
+
+      // Update the semidominator if we've found a better one.
+      semi[block_index] = Utils::Minimum(semi[block_index], semi[best]);
+    }
+
+    // Now use label for the semidominator.
+    label[block_index] = semi[block_index];
+  }
+
+  // 2. Compute the immediate dominators as the nearest common ancestor of
+  // spanning tree parent and semidominator, for all nodes except the entry.
+  for (intptr_t block_index = 1; block_index < size; ++block_index) {
+    intptr_t dom_index = idom[block_index];
+    while (dom_index > semi[block_index]) {
+      dom_index = idom[dom_index];
+    }
+    idom[block_index] = dom_index;
+    (*preorder)[block_index]->set_dominator((*preorder)[dom_index]);
+  }
+}
+
+
+void FlowGraphBuilder::CompressPath(intptr_t start_index,
+                                    intptr_t current_index,
+                                    GrowableArray<intptr_t>* parent,
+                                    GrowableArray<intptr_t>* label) {
+  intptr_t next_index = (*parent)[current_index];
+  if (next_index > start_index) {
+    CompressPath(start_index, next_index, parent, label);
+    (*label)[current_index] =
+        Utils::Minimum((*label)[current_index], (*label)[next_index]);
+    (*parent)[current_index] = (*parent)[next_index];
   }
 }
 
