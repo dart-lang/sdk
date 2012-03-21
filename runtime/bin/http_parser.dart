@@ -20,6 +20,7 @@ class _CharCode {
   static final int CR = 13;
   static final int SP = 32;
   static final int COLON = 58;
+  static final int SEMI_COLON = 59;
 }
 
 
@@ -44,10 +45,19 @@ class _State {
   static final int CHUNK_SIZE_STARTING_CR = 16;
   static final int CHUNK_SIZE_STARTING_LF = 17;
   static final int CHUNK_SIZE = 18;
-  static final int CHUNK_SIZE_ENDING = 19;
-  static final int CHUNKED_BODY_DONE_CR = 20;
-  static final int CHUNKED_BODY_DONE_LF = 21;
-  static final int BODY = 22;
+  static final int CHUNK_SIZE_EXTENSION = 19;
+  static final int CHUNK_SIZE_ENDING = 20;
+  static final int CHUNKED_BODY_DONE_CR = 21;
+  static final int CHUNKED_BODY_DONE_LF = 22;
+  static final int BODY = 23;
+}
+
+
+// States of the HTTP parser state machine.
+class _MessageType {
+  static final int UNDETERMINED = 0;
+  static final int REQUEST = 1;
+  static final int RESPONSE = 0;
 }
 
 
@@ -55,6 +65,7 @@ class _State {
  * HTTP parser which parses the HTTP stream as data is supplied
  * through the writeList method. As the data is parsed the events
  *   RequestStart
+ *   ResponseStart
  *   UriReceived
  *   HeaderReceived
  *   HeadersComplete
@@ -142,6 +153,7 @@ class _HttpParser {
 
         case _State.REQUEST_LINE_ENDING:
           _expect(byte, _CharCode.LF);
+          _messageType = _MessageType.REQUEST;
           if (requestStart != null) {
             requestStart(_method_or_status_code.toString(),
                          _uri_or_reason_phrase.toString());
@@ -174,10 +186,18 @@ class _HttpParser {
 
         case _State.RESPONSE_LINE_ENDING:
           _expect(byte, _CharCode.LF);
-          // TODO(sgjesse): Check for valid status code.
+          _messageType == _MessageType.RESPONSE;
           if (responseStart != null) {
-            responseStart(Math.parseInt(_method_or_status_code.toString()),
-                          _uri_or_reason_phrase.toString());
+            int statusCode = Math.parseInt(_method_or_status_code.toString());
+            if (statusCode < 100 || statusCode > 599) {
+              if (error != null) error("Invalid response status code");
+              _failure = true;
+            } else {
+              // Check whether this response will never have a body.
+              _noMessageBody =
+                  statusCode <= 199 || statusCode == 204 || statusCode == 304;
+              responseStart(statusCode, _uri_or_reason_phrase.toString());
+            }
           }
           _method_or_status_code.clear();
           _uri_or_reason_phrase.clear();
@@ -261,11 +281,16 @@ class _HttpParser {
           _expect(byte, _CharCode.LF);
           if (headersComplete != null) headersComplete();
 
-          // If there is no data get ready to process the next request.
           if (_chunked) {
             _state = _State.CHUNK_SIZE;
             _remainingContent = 0;
-          } else if (_contentLength == 0) {
+          } else if (_contentLength == 0 ||
+                     (_messageType == _MessageType.REQUEST &&
+                      _contentLength == -1) ||
+                     (_messageType == _MessageType.RESPONSE &&
+                      (_noMessageBody || _responseToMethod == "HEAD"))) {
+            // If there is no message body get ready to process the
+            // next request.
             if (dataEnd != null) dataEnd();
             _state = _State.START;
           } else if (_contentLength > 0) {
@@ -291,9 +316,17 @@ class _HttpParser {
         case _State.CHUNK_SIZE:
           if (byte == _CharCode.CR) {
             _state = _State.CHUNK_SIZE_ENDING;
+          } else if (byte == _CharCode.SEMI_COLON) {
+            _state = _State.CHUNK_SIZE_EXTENSION;
           } else {
             int value = _expectHexDigit(byte);
             _remainingContent = _remainingContent * 16 + value;
+          }
+          break;
+
+        case _State.CHUNK_SIZE_EXTENSION:
+          if (byte == _CharCode.CR) {
+            _state = _State.CHUNK_SIZE_ENDING;
           }
           break;
 
@@ -370,12 +403,16 @@ class _HttpParser {
     }
   }
 
+  int get messageType() => _messageType;
   int get contentLength() => _contentLength;
   bool get keepAlive() => _keepAlive;
+
+  void set responseToMethod(String method) => _responseToMethod = method;
 
   _reset() {
     _state = _State.START;
     _failure = false;
+    _messageType = _MessageType.UNDETERMINED;
     _headerField = new StringBuffer();
     _headerValue = new StringBuffer();
     _method_or_status_code = new StringBuffer();
@@ -384,6 +421,9 @@ class _HttpParser {
     _contentLength = -1;
     _keepAlive = false;
     _chunked = false;
+
+    _noMessageBody = false;
+    _responseToMethod = null;
     _remainingContent = null;
   }
 
@@ -417,6 +457,7 @@ class _HttpParser {
   int _state;
   bool _failure;
   int _httpVersionIndex;
+  int _messageType;
   StringBuffer _method_or_status_code;
   StringBuffer _uri_or_reason_phrase;
   StringBuffer _headerField;
@@ -426,6 +467,8 @@ class _HttpParser {
   bool _keepAlive;
   bool _chunked;
 
+  bool _noMessageBody;
+  String _responseToMethod;  // Indicates the method used for the request.
   int _remainingContent;
 
   // Callbacks.

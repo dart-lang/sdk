@@ -893,10 +893,14 @@ class _HttpClientConnection
     _httpParser.headersComplete = () => _onHeadersComplete();
     _httpParser.dataReceived = (data) => _onDataReceived(data);
     _httpParser.dataEnd = () => _onDataEnd();
+    // Tell the HTTP parser the method it is expecting a response to.
+    _httpParser.responseToMethod = _method;
+
     onDisconnect = _onDisconnected;
   }
 
   HttpClientRequest open(String method, String uri) {
+    _method = method;
     _request = new _HttpClientRequest(method, uri, this);
     _request.keepAlive = true;
     _response = new _HttpClientResponse(this);
@@ -958,6 +962,7 @@ class _HttpClientConnection
   _SocketConnection _socketConn;
   HttpClientRequest _request;
   HttpClientResponse _response;
+  String _method;
 
   // Callbacks.
   var requestReceived;
