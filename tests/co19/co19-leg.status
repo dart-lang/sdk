@@ -206,7 +206,6 @@ Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # internal error: super property store not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # Should throw ObjectNotClosure, not NoSuchMethodException.
 Language/10_Expressions/16_Assignment_A05_t06: Fail # Wrong name passed to noSuchMethod.
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Parser bug.
 Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
@@ -433,6 +432,7 @@ Language/10_Expressions/06_Lists_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/06_Lists_A04_t01: Fail, OK # @compile-error
 Language/10_Expressions/07_Maps_A02_t02: Fail, OK # @compile-error
 Language/10_Expressions/07_Maps_A03_t01: Fail, OK # @compile-error
+Language/10_Expressions/08_Function_Expressions_A01_t03: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/1_New_A05_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail, OK # @compile-error
