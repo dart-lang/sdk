@@ -130,10 +130,6 @@ Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # compiler cancelle
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # compiler cancelled: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # compiler cancelled: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # compiler cancelled: Unimplemented non-matching static call
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # compiler cancelled: internal error: super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # compiler cancelled: internal error: super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t02: Fail # compiler cancelled: internal error: super-send to non-function not implemented
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t03: Fail # compiler cancelled: internal error: super-send to non-function not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # compiler cancelled: internal error: super property store not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t01: Fail # compiler cancelled: internal error: unresolved super-send not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A04_t02: Fail # compiler cancelled: internal error: unresolved super-send not implemented
