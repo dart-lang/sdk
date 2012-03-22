@@ -120,11 +120,7 @@ LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
 LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
 [ $component == vm && $checked ]
-Language/13_Types/4_Interface_Types_A08_t03: Fail # Issue co19 - 99
-Language/13_Types/8_Parameterized_Types_A02_t01: Fail # Issue co19 - 94
 Language/09_Generics/09_Generics_A01_t02: Fail # Issue 439
-Language/09_Generics/09_Generics_A04_t05: Fail # Issue co19 - 94
-Language/09_Generics/09_Generics_A03_t01: Fail # Issue co19 - 95
 Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.
@@ -236,11 +232,13 @@ Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(vm-team): New failure at r16
 Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): New failure at r164. Please triage.
+
+[ $component == vm  && $unchecked ]
+Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(vm-team): New failure at r164. Please triage.
 
 
 [ $component == vm && $arch == ia32 ]
