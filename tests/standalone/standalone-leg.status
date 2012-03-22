@@ -3,12 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == dart2js ]
-AssertTest: Fail, OK # Do not crash.
-ByteArrayTest: Fail, OK # Do not crash.
-DeoptimizationTest: Fail, OK # Do not crash.
-io/*: Fail, OK # Do not crash.
-io/HttpDateTest: Pass
-io/ProcessExitNegativeTest: Pass
-io/UrlEncodingTest: Pass
-MediumIntegerTest: Fail, OK # Do not crash.
-OutOfMemoryTest: Fail, OK # Do not crash.
+AssertTest: Fail # Assert not implemented
+
+
+DeoptimizationTest: Fail, OK # Requires bigint.
+io/DirectoryInvalidArgumentsTest: Fail, OK # Broken test: DirectoryException does not exist
+io/HttpParserTest: Fail, OK # ByteArray
+io/OptionsTest: Fail, OK # Cannot pass options to d8.
+io/TestExtensionTest: Fail, OK # dart-ext:test_extension: Illegal argument(s): dart-ext:test_extension
+io/TestRunnerTest: Fail, OK # library not found dart:builtin
+ByteArrayTest: Fail, OK # ByteArray
+MediumIntegerTest: Fail, OK # cannot resolve type Mint
+OutOfMemoryTest: Fail, OK # d8 handles much larger arrays than Dart VM.

@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js ]
-*: Fail, OK # Needs to run inside browser, compiled to detect crashes.
+[ $component == dart2js || $component == legium ]
+dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
 
 
 [ $component == legium ]
@@ -20,6 +20,3 @@ dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'g
 dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
 
 dom/IsolatesTest: Skip # Timeout because leg does not support web workers.
-
-# Uses 'exploratory API' (see client/dom/src/spawnDomIsolate).
-dom/DOMIsolatesTest: Fail, OK # error: cannot resolve spawnDomIsolate
