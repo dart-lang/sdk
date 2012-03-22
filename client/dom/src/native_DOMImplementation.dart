@@ -11,8 +11,8 @@ class Utils {
     return result;
   }
 
-  static makeNotImplementedException() {
-    return const NotImplementedException();
+  static makeNotImplementedException(String fileName, int lineNo) {
+    return new UnsupportedOperationException('[info: $fileName:$lineNo]');
   }
 
   static window() native "Utils_window";
