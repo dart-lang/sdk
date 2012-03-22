@@ -14,8 +14,6 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (c
 Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
 Language/10_Expressions/01_Constants_A15_t01: Fail # co19 issue 100
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # issue 1991.
-Language/10_Expressions/05_Strings_A02_t24: Fail # co19 issue 89
-Language/10_Expressions/05_Strings_A02_t20: Fail # co19 issue 89
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
@@ -49,7 +47,6 @@ Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # co19 issue 91:
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # co19 issue 97.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: map literals illegal at statement beginning.
-Language/11_Statements/09_Try_A02_t04: Fail # co19 issue 98: syntax error in test.
 Language/11_Statements/09_Try_A05_t06: Fail # issue 430
 Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
@@ -72,7 +69,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail
-LibTest/core/String/contains/String_contains_A02_t01: Fail
 
 # Obsolete use of 'factory' keyword fixed in newer co19 revisions.
 
@@ -81,17 +77,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $component == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
-LibTest/core/Date/Date.fromString_A01_t02: Fail # Issue co19 - 88
-LibTest/core/Date/Date.fromString_A01_t04: Fail # Issue co19 - 88
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
-LibTest/core/Date/toString_A02_t01: Fail # Issue co19 - 86.
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Match/pattern_A01_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
 LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
 LibTest/core/Math/pow_A13_t01: Fail  # Issue 449
-LibTest/core/ReceivePort/toSendPort_A02_t01: Fail # Issue co19 - 51
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
@@ -235,6 +227,21 @@ LibTest/core/SendPort/send_A02_t01: Fail
 LibTest/core/String/contains_A01_t02: Fail
 LibTest/core/String/replaceFirst_A02_t01: Fail # co19 issue 103
 LibTest/core/String/replaceAll_A02_t01: Fail # co19 issue 103
+
+
+Language/03_Overview/1_Scoping_A01_t34: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t35: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t36: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.
+Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): New failure at r164. Please triage.
+
 
 [ $component == vm && $arch == ia32 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail
