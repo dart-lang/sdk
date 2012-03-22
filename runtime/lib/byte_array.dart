@@ -167,11 +167,47 @@ class _ByteArrayBase {
 
   // Implementation
 
+  int _toInt(int value, int mask) {
+    int result = value & mask;
+    return result > (mask >> 1) ? (result - mask) : result;
+  }
+
+  int _toInt8(int value) {
+    return _toInt(value, (1 << 8) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toUint8(int value) {
+    return value & ((1 << 8) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toInt16(int value) {
+    return _toInt(value, (1 << 16) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toUint16(int value) {
+    return value & ((1 << 16) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toInt32(int value) {
+    return _toInt(value, (1 << 32) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toUint32(int value) {
+    return value & ((1 << 32) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toInt64(int value) {
+    return _toInt(value, (1 << 64) - 1);  // TODO(cshapiro): use a named value
+  }
+
+  int _toUint64(int value) {
+    return value & ((1 << 64) - 1);  // TODO(cshapiro): use a named value
+  }
+
   int _length() native "ByteArray_getLength";
 
   void _setRange(int start, int length, ByteArray from, int startFrom)
       native "ByteArray_setRange";
-
 }
 
 
@@ -212,7 +248,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt8(int byteOffset, int value) {
-    _setInt8(byteOffset, value);
+    _setInt8(byteOffset, _toInt8(value));
   }
 
   int getUint8(int byteOffset) {
@@ -220,7 +256,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint8(int byteOffset, int value) {
-    _setUint8(byteOffset, value);
+    _setUint8(byteOffset, _toUint8(value));
   }
 
   int getInt16(int byteOffset) {
@@ -228,7 +264,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt16(int byteOffset, int value) {
-    _setInt16(byteOffset, value);
+    _setInt16(byteOffset, _toInt16(value));
   }
 
   int getUint16(int byteOffset) {
@@ -236,7 +272,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint16(int byteOffset, int value) {
-    _setUint16(byteOffset, value);
+    _setUint16(byteOffset, _toUint16(value));
   }
 
   int getInt32(int byteOffset) {
@@ -244,7 +280,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt32(int byteOffset, int value) {
-    _setInt32(byteOffset, value);
+    _setInt32(byteOffset, _toInt32(value));
   }
 
   int getUint32(int byteOffset) {
@@ -252,7 +288,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint32(int byteOffset, int value) {
-    _setUint32(byteOffset, value);
+    _setUint32(byteOffset, _toUint32(value));
   }
 
   int getInt64(int byteOffset) {
@@ -260,7 +296,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt64(int byteOffset, int value) {
-    _setInt64(byteOffset, value);
+    _setInt64(byteOffset, _toInt64(value));
   }
 
   int getUint64(int byteOffset) {
@@ -268,7 +304,7 @@ class _InternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint64(int byteOffset, int value) {
-    _setUint64(byteOffset, value);
+    _setUint64(byteOffset, _toUint64(value));
   }
 
   double getFloat32(int byteOffset) {
@@ -378,7 +414,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt8(int byteOffset, int value) {
-    _setInt8(byteOffset, value);
+    _setInt8(byteOffset, _toInt8(value));
   }
 
   int getUint8(int byteOffset) {
@@ -386,7 +422,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint8(int byteOffset, int value) {
-    _setUint8(byteOffset, value);
+    _setUint8(byteOffset, _toUint8(value));
   }
 
   int getInt16(int byteOffset) {
@@ -394,7 +430,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt16(int byteOffset, int value) {
-    _setInt16(byteOffset, value);
+    _setInt16(byteOffset, _toInt16(value));
   }
 
   int getUint16(int byteOffset) {
@@ -402,7 +438,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint16(int byteOffset, int value) {
-    _setUint16(byteOffset, value);
+    _setUint16(byteOffset, _toUint16(value));
   }
 
   int getInt32(int byteOffset) {
@@ -410,7 +446,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt32(int byteOffset, int value) {
-    _setInt32(byteOffset, value);
+    _setInt32(byteOffset, _toInt32(value));
   }
 
   int getUint32(int byteOffset) {
@@ -418,7 +454,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint32(int byteOffset, int value) {
-    _setUint32(byteOffset, value);
+    _setUint32(byteOffset, _toUint32(value));
   }
 
   int getInt64(int byteOffset) {
@@ -426,7 +462,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setInt64(int byteOffset, int value) {
-    _setInt64(byteOffset, value);
+    _setInt64(byteOffset, _toInt64(value));
   }
 
   int getUint64(int byteOffset) {
@@ -434,7 +470,7 @@ class _ExternalByteArray extends _ByteArrayBase implements ByteArray {
   }
 
   void setUint64(int byteOffset, int value) {
-    _setUint64(byteOffset, value);
+    _setUint64(byteOffset, _toUint64(value));
   }
 
   double getFloat32(int byteOffset) {

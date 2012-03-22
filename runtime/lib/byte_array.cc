@@ -4,6 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
+#include "vm/bigint_operations.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -60,21 +61,57 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   ByteArray::Copy(dst, dst_start_value, src, src_start_value, length_value);
 }
 
+#define GETTER_ARGUMENTS(ArrayT, ValueT)                                \
+  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
+  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
+  RangeCheck(array, index.Value(), sizeof(ValueT));
 
-#define GETTER(ArrayT, ObjectT, ValueT)                                 \
+
+#define SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT)                       \
   GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
   GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
   RangeCheck(array, index.Value(), sizeof(ValueT));                     \
+  GET_NATIVE_ARGUMENT(ObjectT, integer_value, arguments->At(2));
+
+
+#define GETTER(ArrayT, ObjectT, ValueT)                                 \
+  GETTER_ARGUMENTS(ArrayT, ValueT);                                     \
   ValueT result = array.UnalignedAt<ValueT>(index.Value());             \
   arguments->SetReturn(ObjectT::Handle(ObjectT::New(result)));
 
 
 #define SETTER(ArrayT, ObjectT, Getter, ValueT)                         \
-  GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
-  GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
-  RangeCheck(array, index.Value(), sizeof(ValueT));                     \
-  GET_NATIVE_ARGUMENT(ObjectT, value, arguments->At(2));                \
-  array.SetUnalignedAt<ValueT>(index.Value(), value.Getter());
+  SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                            \
+  array.SetUnalignedAt<ValueT>(index.Value(), integer_value.Getter());
+
+
+#define GETTER_UINT64(ArrayT)                                           \
+  GETTER_ARGUMENTS(ArrayT, uint64_t);                                   \
+  uint64_t value = array.UnalignedAt<uint64_t>(index.Value());          \
+  Integer& result = Integer::Handle();                                  \
+  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                 \
+    result = BigintOperations::NewFromUint64(value);                    \
+  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {           \
+    result = Mint::New(value);                                          \
+  } else {                                                              \
+    result = Smi::New(value);                                           \
+  }                                                                     \
+  arguments->SetReturn(result);
+
+
+#define SETTER_UINT64(ArrayT)                                           \
+  SETTER_ARGUMENTS(ArrayT, Integer, uint64_t);                          \
+  uint64_t value;                                                       \
+  if (integer_value.IsBigint()) {                                       \
+    Bigint& bigint_value = Bigint::Handle();                            \
+    bigint_value ^= integer_value.raw();                                \
+    ASSERT(BigintOperations::FitsIntoUint64(bigint_value));             \
+    value = BigintOperations::AbsToUint64(bigint_value);                \
+  } else {                                                              \
+    ASSERT(integer_value.IsMint() || integer_value.IsSmi());            \
+    value = integer_value.AsInt64Value();                               \
+  }                                                                     \
+  array.SetUnalignedAt<uint64_t>(index.Value(), value);
 
 
 DEFINE_NATIVE_ENTRY(InternalByteArray_getInt8, 2) {
@@ -148,12 +185,12 @@ DEFINE_NATIVE_ENTRY(InternalByteArray_setInt64, 3) {
 
 
 DEFINE_NATIVE_ENTRY(InternalByteArray_getUint64, 2) {
-  UNIMPLEMENTED();  // TODO(cshapiro): need getter implementation.
+  GETTER_UINT64(InternalByteArray);
 }
 
 
 DEFINE_NATIVE_ENTRY(InternalByteArray_setUint64, 3) {
-  UNIMPLEMENTED();  // TODO(cshapiro): need setter implementation.
+  SETTER_UINT64(InternalByteArray);
 }
 
 
@@ -248,12 +285,12 @@ DEFINE_NATIVE_ENTRY(ExternalByteArray_setInt64, 3) {
 
 
 DEFINE_NATIVE_ENTRY(ExternalByteArray_getUint64, 2) {
-  UNIMPLEMENTED();  // TODO(cshapiro): need getter implementation.
+  GETTER_UINT64(ExternalByteArray);
 }
 
 
 DEFINE_NATIVE_ENTRY(ExternalByteArray_setUint64, 3) {
-  UNIMPLEMENTED();  // TODO(cshapiro): need setter implementation.
+  SETTER_UINT64(ExternalByteArray);
 }
 
 
