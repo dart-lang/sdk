@@ -217,6 +217,24 @@ Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 # The following tests are all semantic tests that we can rely on dartc
 # catching for now.
 #
+Language/03_Overview/1_Scoping_A01_t19: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t20: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t21: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t23: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t24: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t35: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t36: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t39: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t40: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t41: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t45: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t46: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A02_t10: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A03_t05: Fail, OK # @compile-error
+Language/03_Overview/2_Privacy_A01_t09: Fail, OK # @compile-error
+Language/03_Overview/2_Privacy_A01_t10: Fail, OK # @compile-error
+Language/03_Overview/2_Privacy_A01_t19: Fail, OK # @compile-error
+Language/03_Overview/2_Privacy_A01_t20: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t04: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t05: Fail, OK # @compile-error
 Language/05_Variables/05_Variables_A01_t08: Fail, OK # @compile-error
@@ -457,6 +475,22 @@ Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
 Language/11_Statements/15_Assert_A01_t05: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A03_t13: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t08: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t14: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/1_Imports_A03_t05: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/1_Imports_A04_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/1_Imports_A07_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Includes_A03_t02: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/3_Scripts_A01_t10: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail, OK # @compile-error
@@ -466,69 +500,20 @@ Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error
 
 
 #
-# New crashes.
-#
-Language/03_Overview/1_Scoping_A01_t49: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A03_t05: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A03_t06: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t05: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A01_t08: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A01_t17: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A01_t07: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A01_t16: Crash # TODO(ahe): New crash at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A01_t17: Crash # TODO(ahe): New crash at r164. Please triage.
-
-
-#
 # New failures
 #
-Language/03_Overview/1_Scoping_A01_t19: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t20: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t21: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t23: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t24: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t35: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t36: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t45: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t46: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A02_t07: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t10: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A02_t12: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/1_Scoping_A02_t13: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A03_t05: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t14: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t19: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t20: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A03_t13: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t08: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t14: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A03_t05: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A04_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A07_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/2_Includes_A02_t03: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A03_t02: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t10: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # TODO(ahe): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # TODO(ahe): New failure at r164. Please triage.
