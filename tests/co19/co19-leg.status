@@ -37,7 +37,13 @@ LibTest/core/ReceivePort/*: Fail, OK
 Language/10_Expressions/01_Constants_A17_t03: Skip # Cycle reference. Times out.
 
 
+#
 # Issues with co19 test suite.
+#
+# If you add anything here, either file a bug against the Dart
+# langauge specification, co19 test suite, or add a comment that ahe
+# can understand so he can file a bug later.
+#
 Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
 Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
 Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
@@ -54,6 +60,10 @@ Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail, OK # A map literal
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail, OK # A map literal cannot start an expression statement.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail, OK # Dart issue 2259.
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail, OK # Dart issue 2259.
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail, OK # Dart issue 2259.
+Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail, OK # Dart issue 2259.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
@@ -82,6 +92,9 @@ LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const cons
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
+LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
 LibTest/core/double/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/double/toInt_A01_t02: Fail, OK # Requires big int.
@@ -105,12 +118,20 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 
 
+#
+# The following tests may be broken, but require further review.
+#
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
+#
+# The following tests are failing. Please add the error message
+# (either a compiler error or exception message). The error messages
+# may sometime be out of date.
+#
 Language/05_Variables/05_Variables_A05_t03: Fail # compiler cancelled: internal error: Unexpected operator.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
 Language/07_Classes/07_Classes_A02_t01: Fail # ConstantHandler with this or super not implemented
@@ -132,11 +153,15 @@ Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpecte
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
-LibTest/core/String/String_class_A02_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodeAt_A01_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodes_A01_t01: Fail # compiler cancelled: Unhandled non-BMP character: U+10000
 
 
+Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
+Language/03_Overview/1_Scoping_A02_t12: Fail # duplicate definition of x=42
+Language/03_Overview/1_Scoping_A02_t13: Fail # duplicate definition of x=0
+Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessibleFuncType
+Language/03_Overview/2_Privacy_A01_t11: Fail # internal error: super property read not implemented
+Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
+Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
 Language/05_Variables/05_Variables_A03_t09: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
@@ -144,12 +169,17 @@ Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, ex
 Language/11_Statements/13_Continue_A03_t01: Fail # Expect.fail('This code shouldn't be executed')
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # Expect.isTrue(false) fails.
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail # illegal script tag: resource
+Language/12_Libraries_and_Scripts/2_Includes_A02_t03: Fail # Expect.isTrue(false) fails.
+Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # No error if main has parameters.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # Expect.isTrue(false) fails.
+Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
 Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t10: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
@@ -172,8 +202,8 @@ LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
-LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
 LibTest/core/Object/Object_A01_t01: Fail # ConstantHandler with super not implemented
+LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
 LibTest/core/Object/toString_A01_t01: Fail # ConstantHandler with super not implemented
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -181,7 +211,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # E
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
 LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
-Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
 
 
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
@@ -497,23 +526,3 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail, OK # @compile-err
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail, OK # @compile-error
 Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error
-
-
-#
-# New failures
-#
-Language/03_Overview/1_Scoping_A02_t07: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t12: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t13: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t11: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t14: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/2_Includes_A02_t03: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # TODO(ahe): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # TODO(ahe): New failure at r164. Please triage.
