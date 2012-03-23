@@ -505,7 +505,6 @@ class _HttpParser {
       return byte - 0x61 + 10;  // a - f
     } else {
       throw new HttpParserException("Failed to parse HTTP");
-      return 0;
     }
   }
 

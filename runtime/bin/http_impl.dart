@@ -294,7 +294,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _streamSetErrorHandler(callback(Exception e)) {
-    _streamErrorHandler = callback
+    _streamErrorHandler = callback;
   }
 
   String _findReasonPhrase(int statusCode) {
