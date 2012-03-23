@@ -272,6 +272,14 @@ class _AudioBufferImpl implements AudioBuffer native "*AudioBuffer" {
 
 class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int UNSCHEDULED_STATE = 0;
+
   _AudioBufferImpl buffer;
 
   final _AudioGainImpl gain;
@@ -281,6 +289,8 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
   bool looping;
 
   final _AudioParamImpl playbackRate;
+
+  final int playbackState;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
@@ -296,6 +306,8 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 }
 
 class _AudioContextImpl implements AudioContext native "*AudioContext" {
+
+  final int activeSourceCount;
 
   final num currentTime;
 
@@ -4077,8 +4089,6 @@ class _ConsoleImpl
 
   final _MemoryInfoImpl memory;
 
-  final List profiles;
-
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -4717,6 +4727,10 @@ class _DocumentImpl extends _ElementImpl
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.parentNode.webkitFullScreenKeyboardInputAllowed;";
 
+  _ElementImpl get webkitFullscreenElement() native "return this.parentNode.webkitFullscreenElement;";
+
+  bool get webkitFullscreenEnabled() native "return this.parentNode.webkitFullscreenEnabled;";
+
   bool get webkitHidden() native "return this.parentNode.webkitHidden;";
 
   bool get webkitIsFullScreen() native "return this.parentNode.webkitIsFullScreen;";
@@ -4760,6 +4774,8 @@ class _DocumentImpl extends _ElementImpl
   String queryCommandValue(String command) native "return this.parentNode.queryCommandValue(command);";
 
   void webkitCancelFullScreen() native "this.parentNode.webkitCancelFullScreen();";
+
+  void webkitExitFullscreen() native "this.parentNode.webkitExitFullscreen();";
 
   _WebKitNamedFlowImpl webkitGetFlowByName(String name) native "return this.parentNode.webkitGetFlowByName(name);";
 
@@ -5130,6 +5146,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   void scrollByPages(int pages) {}
   void scrollIntoView([bool centerIfNeeded]) {}
   void webkitRequestFullScreen(int flags) {}
+  void webkitRequestFullscreen() {}
 
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
@@ -5933,6 +5950,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void webkitRequestFullScreen(int flags) native;
 
+  void webkitRequestFullscreen() native;
+
 }
 
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
@@ -6376,10 +6395,6 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement nativ
 }
 
 class _FileImpl extends _BlobImpl implements File native "*File" {
-
-  final String fileName;
-
-  final int fileSize;
 
   final Date lastModifiedDate;
 
@@ -7345,6 +7360,13 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String width;
 
   _SVGDocumentImpl getSVGDocument() native;
+}
+
+class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
+
+  final String label;
+
+  String toSdp() native;
 }
 
 class _ImageDataImpl implements ImageData native "*ImageData" {
@@ -8397,8 +8419,6 @@ class _MetadataImpl implements Metadata native "*Metadata" {
 
 class _MeterElementImpl extends _ElementImpl implements MeterElement native "*HTMLMeterElement" {
 
-  final _FormElementImpl form;
-
   num high;
 
   final _NodeListImpl labels;
@@ -9001,8 +9021,6 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
   EventListenerList get close() => _get('close');
 
-  EventListenerList get display() => _get('display');
-
   EventListenerList get error() => _get('error');
 
   EventListenerList get show() => _get('show');
@@ -9318,8 +9336,6 @@ class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruct
 }
 
 class _ProgressElementImpl extends _ElementImpl implements ProgressElement native "*HTMLProgressElement" {
-
-  final _FormElementImpl form;
 
   final _NodeListImpl labels;
 
@@ -13006,6 +13022,8 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement native "*
 
   String charset;
 
+  String crossOrigin;
+
   bool defer;
 
   String event;
@@ -13094,6 +13112,13 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
   void setCustomValidity(String error) native;
 }
 
+class _SessionDescriptionImpl implements SessionDescription native "*SessionDescription" {
+
+  void addCandidate(_IceCandidateImpl candidate) native;
+
+  String toSdp() native;
+}
+
 class _ShadowElementImpl extends _ElementImpl implements ShadowElement native "*HTMLShadowElement" {
 }
 
@@ -13173,6 +13198,45 @@ class _SpeechInputResultListImpl implements SpeechInputResultList native "*Speec
   final int length;
 
   _SpeechInputResultImpl item(int index) native;
+}
+
+class _SpeechRecognitionImpl implements SpeechRecognition native "*SpeechRecognition" {
+
+  bool continuous;
+
+  _SpeechGrammarListImpl grammars;
+
+  String lang;
+
+  EventListener onaudioend;
+
+  EventListener onaudiostart;
+
+  EventListener onend;
+
+  EventListener onerror;
+
+  EventListener onnomatch;
+
+  EventListener onresult;
+
+  EventListener onresultdeleted;
+
+  EventListener onsoundend;
+
+  EventListener onsoundstart;
+
+  EventListener onspeechend;
+
+  EventListener onspeechstart;
+
+  EventListener onstart;
+
+  void abort() native;
+
+  void start() native;
+
+  void stop() native;
 }
 
 class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -16099,6 +16163,14 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _IceCandidateFactoryProvider {
+  factory IceCandidate(String label, String candidateLine) native
+      '''return new IceCandidate(label, candidateLine);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _MediaControllerFactoryProvider {
   factory MediaController() native
       '''return new MediaController();''';
@@ -16138,6 +16210,14 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _SessionDescriptionFactoryProvider {
+  factory SessionDescription(String sdp) native
+      '''return new SessionDescription(sdp);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) native
       '''return new ShadowRoot(host);''';
@@ -16167,6 +16247,14 @@ class _SpeechGrammarFactoryProvider {
 class _SpeechGrammarListFactoryProvider {
   factory SpeechGrammarList() native
       '''return new SpeechGrammarList();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechRecognitionFactoryProvider {
+  factory SpeechRecognition() native
+      '''return new SpeechRecognition();''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16501,6 +16589,14 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int UNSCHEDULED_STATE = 0;
+
   AudioBuffer buffer;
 
   final AudioGain gain;
@@ -16510,6 +16606,8 @@ interface AudioBufferSourceNode extends AudioSourceNode {
   bool looping;
 
   final AudioParam playbackRate;
+
+  final int playbackState;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 
@@ -16540,6 +16638,8 @@ interface AudioChannelSplitter extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 interface AudioContext {
+
+  final int activeSourceCount;
 
   final num currentTime;
 
@@ -19576,8 +19676,6 @@ interface Console {
 
   final MemoryInfo memory;
 
-  final List profiles;
-
   void assertCondition(bool condition, Object arg);
 
   void count();
@@ -20397,6 +20495,10 @@ interface Document extends HtmlElement {
 
   final bool webkitFullScreenKeyboardInputAllowed;
 
+  final Element webkitFullscreenElement;
+
+  final bool webkitFullscreenEnabled;
+
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
@@ -20430,6 +20532,8 @@ interface Document extends HtmlElement {
   String queryCommandValue(String command);
 
   void webkitCancelFullScreen();
+
+  void webkitExitFullscreen();
 
   WebKitNamedFlow webkitGetFlowByName(String name);
 
@@ -20972,6 +21076,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void webkitRequestFullScreen(int flags);
 
+  void webkitRequestFullscreen();
+
 }
 
 interface ElementEvents extends Events {
@@ -21458,10 +21564,6 @@ interface FieldSetElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface File extends Blob {
-
-  final String fileName;
-
-  final int fileSize;
 
   final Date lastModifiedDate;
 
@@ -22441,6 +22543,20 @@ interface IFrameElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface IceCandidate default _IceCandidateFactoryProvider {
+
+  IceCandidate(String label, String candidateLine);
+
+  final String label;
+
+  String toSdp();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface ImageData {
 
   final CanvasPixelArray data;
@@ -23392,8 +23508,6 @@ typedef bool MetadataCallback(Metadata metadata);
 
 interface MeterElement extends Element {
 
-  final FormElement form;
-
   num high;
 
   final NodeList labels;
@@ -23798,8 +23912,6 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
-
-  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -24252,8 +24364,6 @@ interface ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 interface ProgressElement extends Element {
-
-  final FormElement form;
 
   final NodeList labels;
 
@@ -27261,6 +27371,8 @@ interface ScriptElement extends Element {
 
   String charset;
 
+  String crossOrigin;
+
   bool defer;
 
   String event;
@@ -27362,6 +27474,20 @@ interface SelectElement extends Element {
   Node namedItem(String name);
 
   void setCustomValidity(String error);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SessionDescription default _SessionDescriptionFactoryProvider {
+
+  SessionDescription(String sdp);
+
+  void addCandidate(IceCandidate candidate);
+
+  String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27513,6 +27639,52 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+
+  SpeechRecognition();
+
+  bool continuous;
+
+  SpeechGrammarList grammars;
+
+  String lang;
+
+  EventListener onaudioend;
+
+  EventListener onaudiostart;
+
+  EventListener onend;
+
+  EventListener onerror;
+
+  EventListener onnomatch;
+
+  EventListener onresult;
+
+  EventListener onresultdeleted;
+
+  EventListener onsoundend;
+
+  EventListener onsoundstart;
+
+  EventListener onspeechend;
+
+  EventListener onspeechstart;
+
+  EventListener onstart;
+
+  void abort();
+
+  void start();
+
+  void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

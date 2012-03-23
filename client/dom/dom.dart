@@ -69,6 +69,13 @@ class _HTMLOptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _IceCandidateFactoryProvider {
+  factory IceCandidate(String label, String candidateLine) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) => _dummy();
 }
@@ -85,6 +92,13 @@ class _MediaControllerFactoryProvider {
 
 class _MessageChannelFactoryProvider {
   factory MessageChannel() => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SessionDescriptionFactoryProvider {
+  factory SessionDescription(String sdp) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -113,6 +127,13 @@ class _SpeechGrammarFactoryProvider {
 
 class _SpeechGrammarListFactoryProvider {
   factory SpeechGrammarList() => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechRecognitionFactoryProvider {
+  factory SpeechRecognition() => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -263,6 +284,14 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int UNSCHEDULED_STATE = 0;
+
   AudioBuffer buffer;
 
   final AudioGain gain;
@@ -272,6 +301,8 @@ interface AudioBufferSourceNode extends AudioSourceNode {
   bool looping;
 
   final AudioParam playbackRate;
+
+  final int playbackState;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 
@@ -304,6 +335,8 @@ interface AudioChannelSplitter extends AudioNode {
 interface AudioContext default _AudioContextFactoryProvider {
 
   AudioContext();
+
+  final int activeSourceCount;
 
   final num currentTime;
 
@@ -1173,8 +1206,6 @@ interface CompositionEvent extends UIEvent {
 interface Console {
 
   final MemoryInfo memory;
-
-  final List profiles;
 
   void assertCondition(bool condition, Object arg);
 
@@ -2170,6 +2201,10 @@ interface Document extends Node, NodeSelector {
 
   final bool webkitFullScreenKeyboardInputAllowed;
 
+  final Element webkitFullscreenElement;
+
+  final bool webkitFullscreenEnabled;
+
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
@@ -2261,6 +2296,8 @@ interface Document extends Node, NodeSelector {
   NodeList querySelectorAll(String selectors);
 
   void webkitCancelFullScreen();
+
+  void webkitExitFullscreen();
 
   WebKitNamedFlow webkitGetFlowByName(String name);
 }
@@ -2431,6 +2468,8 @@ interface Element extends Node, NodeSelector, ElementTraversal {
   bool webkitMatchesSelector(String selectors);
 
   void webkitRequestFullScreen(int flags);
+
+  void webkitRequestFullscreen();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2756,10 +2795,6 @@ interface EventTarget {
 // WARNING: Do not edit - generated code.
 
 interface File extends Blob {
-
-  final String fileName;
-
-  final int fileSize;
 
   final Date lastModifiedDate;
 
@@ -4216,8 +4251,6 @@ interface HTMLMetaElement extends HTMLElement {
 
 interface HTMLMeterElement extends HTMLElement {
 
-  final HTMLFormElement form;
-
   num high;
 
   final NodeList labels;
@@ -4446,8 +4479,6 @@ interface HTMLPreElement extends HTMLElement {
 
 interface HTMLProgressElement extends HTMLElement {
 
-  final HTMLFormElement form;
-
   final NodeList labels;
 
   num max;
@@ -4477,6 +4508,8 @@ interface HTMLScriptElement extends HTMLElement {
   bool async;
 
   String charset;
+
+  String crossOrigin;
 
   bool defer;
 
@@ -5301,6 +5334,20 @@ interface IDBVersionChangeEvent extends Event {
 interface IDBVersionChangeRequest extends IDBRequest {
 
   EventListener onblocked;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface IceCandidate default _IceCandidateFactoryProvider {
+
+  IceCandidate(String label, String candidateLine);
+
+  final String label;
+
+  String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9391,6 +9438,20 @@ interface ScriptProfileNode {
 
 // WARNING: Do not edit - generated code.
 
+interface SessionDescription default _SessionDescriptionFactoryProvider {
+
+  SessionDescription(String sdp);
+
+  void addCandidate(IceCandidate candidate);
+
+  String toSdp();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
@@ -9508,6 +9569,52 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+
+  SpeechRecognition();
+
+  bool continuous;
+
+  SpeechGrammarList grammars;
+
+  String lang;
+
+  EventListener onaudioend;
+
+  EventListener onaudiostart;
+
+  EventListener onend;
+
+  EventListener onerror;
+
+  EventListener onnomatch;
+
+  EventListener onresult;
+
+  EventListener onresultdeleted;
+
+  EventListener onsoundend;
+
+  EventListener onsoundstart;
+
+  EventListener onspeechend;
+
+  EventListener onspeechstart;
+
+  EventListener onstart;
+
+  void abort();
+
+  void start();
+
+  void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
