@@ -174,7 +174,11 @@ class _SocketOutputStream
     } else {
       if (_onNoPendingWrites != null) _onNoPendingWrites();
     }
-    if (_onNoPendingWrites == null) _socket._onWrite = null;
+    if (_onNoPendingWrites == null) {
+      _socket._onWrite = null;
+    } else {
+      _socket._onWrite = _onWrite;
+    }
   }
 
   void set onError(void callback(Exception e)) {

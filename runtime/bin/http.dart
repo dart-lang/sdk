@@ -83,12 +83,12 @@ interface HttpServer default _HttpServer {
   /**
    * Sets the handler that gets called when a new HTTP request is received.
    */
-  void set onRequest(void handler(HttpRequest, HttpResponse));
+  void set onRequest(void callback(HttpRequest, HttpResponse));
 
   /**
    * Sets the error handler that is called when a connection error occurs.
    */
-  void set onError(void handler(String errorMessage));
+  void set onError(void callback(Exception e));
 }
 
 
@@ -278,7 +278,7 @@ interface HttpClientConnection {
   /**
    * Sets the handler that is called when the connection is established.
    */
-  void set onRequest(void handler(HttpClientRequest request));
+  void set onRequest(void callback(HttpClientRequest request));
 
   /**
    * Sets callback to be called when the request has been send and
@@ -286,13 +286,13 @@ interface HttpClientConnection {
    * all headers of the response are received and data is ready to be
    * received.
    */
-  void set onResponse(void handler(HttpClientResponse response));
+  void set onResponse(void callback(HttpClientResponse response));
 
   /**
    * Sets the handler that gets called if an error occurs while
-   * processing the HTTP request.
+   * connecting or processing the HTTP request.
    */
-  void set onError(void handler(HttpException e));
+  void set onError(void callback(Exception e));
 }
 
 

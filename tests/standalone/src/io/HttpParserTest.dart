@@ -8,6 +8,8 @@ class HttpParserTest {
   static void runAllTests() {
     testParseRequest();
     testParseResponse();
+    testParseInvalidRequest();
+    testParseInvalidResponse();
   }
 
   static void _testParseRequest(String request,
@@ -62,12 +64,41 @@ class HttpParserTest {
       bytesReceived = 0;
     }
 
-    void checkExpectations() {
+    void testWrite(List<int> requestData, [int chunkSize = -1]) {
+      if (chunkSize == -1) chunkSize = requestData.length;
+      reset();
+      for (int pos = 0; pos < requestData.length; pos += chunkSize) {
+        int remaining = requestData.length - pos;
+        int writeLength = Math.min(chunkSize, remaining);
+        httpParser.writeList(requestData, pos, writeLength);
+      }
       Expect.equals(expectedMethod, method);
       Expect.equals(expectedUri, uri);
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
       Expect.isTrue(dataEndCalled);
+    }
+
+    // Test parsing the request three times delivering the data in
+    // different chunks.
+    List<int> requestData = request.charCodes();
+    testWrite(requestData);
+    testWrite(requestData, 10);
+    testWrite(requestData, 1);
+  }
+
+  static void _testParseInvalidRequest(String request) {
+    _HttpParser httpParser;
+    bool errorCalled;
+
+    void reset() {
+      httpParser = new _HttpParser();
+      httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
+      httpParser.error = (e) {
+        errorCalled = true;
+      };
+
+      errorCalled = false;
     }
 
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
@@ -78,7 +109,7 @@ class HttpParserTest {
         int writeLength = Math.min(chunkSize, remaining);
         httpParser.writeList(requestData, pos, writeLength);
       }
-      checkExpectations();
+      Expect.isTrue(errorCalled);
     }
 
     // Test parsing the request three times delivering the data in
@@ -149,12 +180,40 @@ class HttpParserTest {
       bytesReceived = 0;
     }
 
-    void checkExpectations() {
+    void testWrite(List<int> requestData, [int chunkSize = -1]) {
+      if (chunkSize == -1) chunkSize = requestData.length;
+      reset();
+      for (int pos = 0; pos < requestData.length; pos += chunkSize) {
+        int remaining = requestData.length - pos;
+        int writeLength = Math.min(chunkSize, remaining);
+        httpParser.writeList(requestData, pos, writeLength);
+      }
+      if (close) httpParser.connectionClosed();
       Expect.equals(expectedStatusCode, statusCode);
       Expect.equals(expectedReasonPhrase, reasonPhrase);
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
       Expect.isTrue(dataEndCalled);
+    }
+
+    // Test parsing the request three times delivering the data in
+    // different chunks.
+    List<int> responseData = response.charCodes();
+    testWrite(responseData);
+    testWrite(responseData, 10);
+    testWrite(responseData, 1);
+  }
+
+  static void _testParseInvalidResponse(String response, [bool close = false]) {
+    _HttpParser httpParser;
+    bool errorCalled;
+
+    void reset() {
+      httpParser = new _HttpParser();
+      httpParser.requestStart = (m, u) => Expect.fail("Expected response");
+      httpParser.error = (e) => errorCalled = true;
+
+      errorCalled = false;
     }
 
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
@@ -166,7 +225,7 @@ class HttpParserTest {
         httpParser.writeList(requestData, pos, writeLength);
       }
       if (close) httpParser.connectionClosed();
-      checkExpectations();
+      Expect.isTrue(errorCalled);
     }
 
     // Test parsing the request three times delivering the data in
@@ -437,7 +496,7 @@ Transfer-Encoding: chunked\r
                        chunked: true);
 
     // Test HTTP response without any transfer length indications
-    // where closing the connections indicated end of body.
+    // where closing the connections indicates end of body.
     response = """
 HTTP/1.1 200 OK\r
 \r
@@ -450,6 +509,85 @@ HTTP/1.1 200 OK\r
                      expectedContentLength: -1,
                      expectedBytesReceived: 59,
                      close: true);
+  }
+
+  static void testParseInvalidRequest() {
+    String request;
+    request = "GET /\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "GET / \r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "/ HTTP/1.1\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "GET HTTP/1.1\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = " / HTTP/1.1\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "@ / HTTP/1.1\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "GET / TTP/1.1\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "GET / HTTP/1.\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    // Currently no HTTP 1.0 support.
+    request = "GET / HTTP/1.0\r\n\r\n";
+    _testParseInvalidRequest(request);
+  }
+
+  static void testParseInvalidResponse() {
+    String response;
+
+    response = "HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 \r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200 \r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "200 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1. 200 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200 O\rK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 000 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 999 Server Error\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200 OK\r\nContent-Length: x\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = """
+HTTP/1.1 200 OK\r
+Transfer-Encoding: chunked\r
+\r
+1A\r
+01234567890123456789012345\r
+1g\r
+0123456789012345678901234567890\r
+0\r\n\r\n""";
+    _testParseInvalidResponse(response);
   }
 }
 
