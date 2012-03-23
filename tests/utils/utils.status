@@ -21,6 +21,10 @@ DartdocTest: Skip
 MarkdownTest: Skip
 
 
+[ $component == dartium ]
+DummyCompilerTest: Fail # Issue 2264.
+
+
 [ $component == dartc ]
 DummyCompilerTest: Fail # Issue 2263.
 
