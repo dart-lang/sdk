@@ -20,5 +20,10 @@ MarkdownTest: Skip
 DartdocTest: Skip
 MarkdownTest: Skip
 
+
+[ $component == dartc ]
+DummyCompilerTest: Fail # Issue 2263.
+
+
 [ $component == legium ]
 *: Skip
