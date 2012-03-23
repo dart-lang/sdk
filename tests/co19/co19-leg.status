@@ -143,6 +143,7 @@ Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # 
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # compiler cancelled: no method named foo in class I
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/09_Generics/09_Generics_A04_t04: Fail # compiler cancelled: cannot resolve type T
+Language/10_Expressions/01_Constants_A15_t23: Fail # leg allows x == x for arbitrary compile-time objects.
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A03_t05: Fail # compiler cancelled: internal error: fall-through not implemented
@@ -153,6 +154,7 @@ Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpecte
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+
 
 
 Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
@@ -215,8 +217,8 @@ LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeExcepti
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A11_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A13_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A15_t03: Fail # 'const' keyword is not verified in literal maps.
+Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 2277
 Language/10_Expressions/06_Lists_A07_t01: Fail # Canonicalization of lists.
 Language/10_Expressions/07_Maps_A05_t01: Fail # Constant maps.
 Language/10_Expressions/07_Maps_A06_t01: Fail # Canonicalization of maps.

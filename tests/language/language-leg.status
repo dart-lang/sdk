@@ -15,19 +15,16 @@ Factory2Test: Fail # We don't handle constants with super calls.
 
 
 # Compilation errors.
-CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor6Test: Fail # Closures inside initializers not implemented.
 ConstructorRedirectTest/none: Fail # ConstantHandler with this or super not implemented
 Context2Test: Fail # switch cases are not implemented
 ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
-DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
 DynamicTest: Fail # cannot resolve type F1
 Factory3Test: Fail # Handling of compile-time constants.
 FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
