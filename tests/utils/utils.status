@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == dart2js ]
-DartdocTest: Fail
-MarkdownTest: Fail
+DummyCompilerTest: Fail
 
 [ $arch == simarm ]
 *: Skip
