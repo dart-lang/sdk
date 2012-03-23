@@ -180,7 +180,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _streamSetErrorHandler(callback(Exception e)) {
-    _streamErrorHandler = callback
+    _streamErrorHandler = callback;
   }
 
   String _method;
