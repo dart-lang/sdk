@@ -264,6 +264,19 @@ class ToolError(Exception):
     return repr(self.value)
 
 
+def IsCrashExitCode(exit_code):
+  if IsWindows():
+    return 0x80000000 & exit_code
+  else:
+    return exit_code < 0
+
+
+def DiagnoseExitCode(exit_code, command):
+  if IsCrashExitCode(exit_code):
+    sys.stderr.write('Command: %s\nCRASHED with exit code %d (0x%x)\n' % (
+        ' '.join(command), exit_code, exit_code & 0xffffffff))
+
+
 if __name__ == "__main__":
   import sys
   Main(sys.argv)
