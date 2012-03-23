@@ -49,8 +49,9 @@ class NoSuchMethodException implements Exception {
       sb.add(_arguments[i]);
     }
     if (_existingArgumentNames === null) {
-      return "NoSuchMethodException : method not found: '$_functionName'\n" +
-          "Receiver: $_receiver\n" + "Arguments: [$sb]";
+      return "NoSuchMethodException : method not found: '$_functionName'\n"
+          "Receiver: $_receiver\n"
+          "Arguments: [$sb]";
     } else {
       String actualParameters = sb.toString();
       sb = new StringBuffer();
@@ -61,9 +62,9 @@ class NoSuchMethodException implements Exception {
         sb.add(_existingArgumentNames[i]);
       }
       String formalParameters = sb.toString();
-      return "NoSuchMethodException: incorrect number of arguments passed to " +
-          "method named '$_functionName'\nReceiver: $_receiver\n" +
-          "Tried calling: $_functionName($actualParameters)\n" +
+      return "NoSuchMethodException: incorrect number of arguments passed to "
+          "method named '$_functionName'\nReceiver: $_receiver\n"
+          "Tried calling: $_functionName($actualParameters)\n"
           "Found: $_functionName($formalParameters)";
     }
   }
