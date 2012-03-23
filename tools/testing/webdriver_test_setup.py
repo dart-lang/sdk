@@ -73,7 +73,8 @@ class GoogleCodeInstaller(object):
   def __init__(self, project_name, download_location, download_name_func):
     """ Create a object that will install code from a Google Code site.
     Arguments:
-    project_name - The GoogleCode project name such as "selenium" or "chromium."
+    project_name - The GoogleCode project name such as "selenium" or
+    "chromedriver."
     download_location - Where to download the desired file on our filesystem.
     download_name_func - A function that takes a dictionary (currently with keys
     "os" and "version", but more can be added) that calculates the string
@@ -227,7 +228,7 @@ def main():
   chromedriver_loc = find_depot_tools_location(args.buildbot)
   if args.path:
     chromedriver_loc = args.path
-  GoogleCodeInstaller('chromium', chromedriver_loc,
+  GoogleCodeInstaller('chromedriver', chromedriver_loc,
       lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
   if 'darwin' in sys.platform:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),

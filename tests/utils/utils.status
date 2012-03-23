@@ -3,8 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $component == dart2js ]
-DartdocTest: Fail
-MarkdownTest: Fail
+DummyCompilerTest: Fail
 
 [ $arch == simarm ]
 *: Skip
@@ -14,12 +13,24 @@ MarkdownTest: Fail
 DartdocTest: Skip
 MarkdownTest: Skip
 
+DummyCompilerTest: Fail
+
+
 [ $component == vm || $component == dartc || $component == dartium ]
 # TODO(rnystrom): Right now, the VM tests can't access frog/ and client/ which
 # dartdoc uses, so disable for now. Once the deps files are unified this should
 # be fixed.
 DartdocTest: Skip
 MarkdownTest: Skip
+
+
+[ $component == dartium ]
+DummyCompilerTest: Fail # Issue 2264.
+
+
+[ $component == dartc ]
+DummyCompilerTest: Fail # Issue 2263.
+
 
 [ $component == legium ]
 *: Skip

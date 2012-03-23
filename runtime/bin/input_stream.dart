@@ -95,7 +95,7 @@ interface InputStream {
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set onError(void callback(Exception e));
 }
 
 
@@ -182,7 +182,7 @@ interface StringInputStream default _StringInputStream {
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set onError(void callback(Exception e));
 }
 
 
@@ -237,7 +237,7 @@ interface ChunkedInputStream default _ChunkedInputStream {
    * Sets the handler that gets called when the underlying
    * communication channel gets into some kind of error situation.
    */
-  void set onError(void callback());
+  void set onError(void callback(Exception e));
 }
 
 

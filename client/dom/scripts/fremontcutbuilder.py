@@ -45,7 +45,7 @@ def main():
       'storage',
       'Modules/webdatabase',
       'svg',
-      'webaudio',
+      'Modules/webaudio',
       'Modules/websockets',
       'workers',
       'xml',

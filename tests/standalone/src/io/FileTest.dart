@@ -152,8 +152,8 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    file.onError = (s) {
-      Expect.fail("No errors expected : $s");
+    file.onError = (e) {
+      Expect.fail("No errors expected : $e");
     };
     file.open(FileMode.READ, (RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
@@ -206,8 +206,8 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     final File file = new File(inFilename);
-    file.onError = (s) {
-      Expect.fail("No errors expected : $s");
+    file.onError = (e) {
+      Expect.fail("No errors expected : $e");
     };
     file.open(FileMode.READ, (RandomAccessFile openedFile) {
       openedFile.onError = (s) {
@@ -220,8 +220,8 @@ class FileTest {
           // Write the contents of the file just read into another file.
           String outFilename = tempDirectory.path + "/out_read_write";
           final File file2 = new File(outFilename);
-          file2.onError = (s) {
-            Expect.fail("No errors expected : $s");
+          file2.onError = (e) {
+            Expect.fail("No errors expected : $e");
           };
           file2.create(() {
             file2.fullPath((s) {
@@ -238,8 +238,8 @@ class FileTest {
                   openedFile2.close(() {
                     List<int> buffer2 = new List<int>(bytes_read);
                     final File file3 = new File(outFilename);
-                    file3.onError = (s) {
-                      Expect.fail("No errors expected : $s");
+                    file3.onError = (e) {
+                      Expect.fail("No errors expected : $e");
                     };
                     file3.open(FileMode.READ, (RandomAccessFile openedFile3) {
                       openedFile3.onError = (s) {
@@ -407,8 +407,8 @@ class FileTest {
   static void testReadEmptyFile() {
     String fileName = tempDirectory.path + "/empty_file";
     File file = new File(fileName);
-    file.onError = (s) {
-      Expect.fail("No errors expected : $s");
+    file.onError = (e) {
+      Expect.fail("No errors expected : $e");
     };
     asyncTestStarted();
     file.create(() {
@@ -433,8 +433,8 @@ class FileTest {
     asyncTestStarted();
     final String fileName = "${tempDirectory.path}/testWriteVariousLists";
     final File file = new File(fileName);
-    file.onError = (s) {
-      Expect.fail("No errors expected : $s");
+    file.onError = (e) {
+      Expect.fail("No errors expected : $e");
     };
     file.create(() {
       file.open(FileMode.WRITE, (RandomAccessFile openedFile) {
@@ -491,8 +491,8 @@ class FileTest {
     var file = new File("${tempDir}/testDirectory");
     var errors = 0;
     file.directory((d) => Expect.fail("non-existing file"));
-    file.onError = (s) {
-      file.onError = (s) => Expect.fail("no error expected");
+    file.onError = (e) {
+      file.onError = (e) => Expect.fail("no error expected");
       file.create(() {
         file.directory((Directory d) {
           d.onError = (s) => Expect.fail("no error expected");
@@ -502,10 +502,10 @@ class FileTest {
             file.delete(() {
               var file_dir = new File(".");
               file_dir.directory((d) => Expect.fail("non-existing file"));
-              file_dir.onError = (s) {
+              file_dir.onError = (e) {
                 var file_dir = new File(tempDir);
                 file_dir.directory((d) => Expect.fail("non-existing file"));
-                file_dir.onError = (s) {
+                file_dir.onError = (e) {
                   port.toSendPort().send(1);
                 };
               };
@@ -600,8 +600,8 @@ class FileTest {
   static void testTruncate() {
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    file.onError = (error) {
-      Expect.fail("testTruncate: No errors expected");
+    file.onError = (e) {
+      Expect.fail("No errors expected: $e");
     };
     file.open(FileMode.WRITE, (RandomAccessFile openedFile) {
       openedFile.writeList(buffer, 0, 10);
@@ -851,8 +851,8 @@ class FileTest {
   static void testMixedSyncAndAsync() {
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.onError = (s) {
-      Expect.fail("No errors expected");
+    f.onError = (e) {
+      Expect.fail("No errors expected: $e");
     };
     f.exists((exists) {
       try {
@@ -916,7 +916,7 @@ class FileTest {
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/src/io/read_as_text.dat");
       var f = new File(name);
-      f.onError = (e) => Expect.fail("No errors expected");
+      f.onError = (e) => Expect.fail("No errors expected: $e");
       f.readAsText(Encoding.UTF_8, (text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];

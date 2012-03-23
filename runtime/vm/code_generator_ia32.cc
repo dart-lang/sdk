@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/class_finalizer.h"
+#include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/longjump.h"
@@ -108,13 +109,15 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
       locals_space_size_(-1),
       state_(NULL),
       pc_descriptors_list_(NULL),
+      stackmap_builder_(NULL),
       exception_handlers_list_(NULL),
       try_index_(CatchClauseNode::kInvalidTryIndex),
       context_level_(0) {
   ASSERT(assembler_ != NULL);
   ASSERT(parsed_function.node_sequence() != NULL);
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
-  pc_descriptors_list_ = new CodeGenerator::DescriptorList();
+  pc_descriptors_list_ = new DescriptorList();
+  // We do not build any stack maps in the unoptimizing compiler.
   exception_handlers_list_ = new CodeGenerator::HandlerList();
 }
 
@@ -211,6 +214,18 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
   descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
+}
+
+
+void CodeGenerator::FinalizeStackmaps(const Code& code) {
+  if (stackmap_builder_ == NULL) {
+    // The unoptimizing compiler has no stack maps.
+    code.set_stackmaps(Array::Handle());
+  } else {
+    // Finalize the stack map array and add it to the code object.
+    code.set_stackmaps(
+        Array::Handle(stackmap_builder_->FinalizeStackmaps(code)));
+  }
 }
 
 

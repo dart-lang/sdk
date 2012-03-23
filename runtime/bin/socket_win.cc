@@ -57,7 +57,6 @@ intptr_t Socket::GetPort(intptr_t fd) {
 intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
-    fprintf(stderr, "Error CreateConnect: %d\n", WSAGetLastError());
     return -1;
   }
 
@@ -82,7 +81,6 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   struct addrinfo* result = NULL;
   status = getaddrinfo(host, 0, &hints, &result);
   if (status != NO_ERROR) {
-    fprintf(stderr, "getaddrinfo failed with error: %d\n", status);
     return -1;
   }
 
@@ -98,13 +96,20 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
       reinterpret_cast<struct sockaddr*>(&server_address),
       sizeof(server_address));
   if (status == SOCKET_ERROR) {
-    fprintf(stderr, "Error CreateConnect: %d\n", WSAGetLastError());
+    DWORD rc = WSAGetLastError();
     closesocket(s);
+    SetLastError(rc);
     return -1;
   }
 
   ClientSocket* client_socket = new ClientSocket(s);
   return reinterpret_cast<intptr_t>(client_socket);
+}
+
+
+void Socket::GetError(intptr_t fd, OSError* os_error) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  os_error->SetCodeAndMessage(OSError::kSystem, handle->last_error());
 }
 
 
@@ -123,7 +128,6 @@ intptr_t Socket::GetStdioHandle(int num) {
     default: UNREACHABLE();
   }
   if (handle == INVALID_HANDLE_VALUE) {
-    fprintf(stderr, "Error GetStdHandle: %d\n", GetLastError());
     return -1;
   }
   FileHandle* file_handle = new FileHandle(handle);
@@ -158,8 +162,6 @@ const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
     *os_error = new OSError(status,
                             gai_strerror(status),
                             OSError::kGetAddressInfo);
-    (*os_error)->set_code(status);
-    (*os_error)->SetMessage(gai_strerror(status));
     return NULL;
   }
   // Convert the address into IPv4 dotted decimal notation.
@@ -183,7 +185,6 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t backlog) {
   SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
-    fprintf(stderr, "Error CreateBindListen: %d\n", WSAGetLastError());
     return -1;
   }
 
@@ -194,8 +195,9 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
                           reinterpret_cast<const char*>(&optval),
                           sizeof(optval));
   if (status == SOCKET_ERROR) {
-    fprintf(stderr, "Error CreateBindListen: %d\n", WSAGetLastError());
+    DWORD rc = WSAGetLastError();
     closesocket(s);
+    SetLastError(rc);
     return -1;
   }
 
@@ -208,15 +210,17 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
                 reinterpret_cast<struct sockaddr *>(&addr),
                 sizeof(addr));
   if (status == SOCKET_ERROR) {
-    fprintf(stderr, "Error CreateBindListen: %d\n", WSAGetLastError());
+    DWORD rc = WSAGetLastError();
     closesocket(s);
+    SetLastError(rc);
     return -1;
   }
 
   status = listen(s, backlog);
   if (status == SOCKET_ERROR) {
-    fprintf(stderr, "Error socket listen: %d\n", WSAGetLastError());
+    DWORD rc = WSAGetLastError();
     closesocket(s);
+    SetLastError(rc);
     return -1;
   }
 

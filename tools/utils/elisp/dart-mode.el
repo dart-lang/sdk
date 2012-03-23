@@ -160,6 +160,9 @@ Key bindings:
   (run-hooks 'dart-mode-hook)
   (c-update-modeline))
 
+(add-to-list 'compilation-error-regexp-alist 'dart)
+(add-to-list 'compilation-error-regexp-alist-alist '(dart "Function: '[^']*' url: 'file://\\([^']*\\)' line:\\([0-9]*\\) col:\\([0-9]*\\)" 1 2 3))
+
 (provide 'dart-mode)
 
 ;;; dart-mode.el ends here

@@ -4,7 +4,7 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 #include "vm/ast.h"
 #include "vm/assembler.h"
@@ -18,9 +18,6 @@
 #include "vm/virtual_memory.h"
 
 namespace dart {
-
-#define __ assembler_->
-
 
 static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
@@ -497,4 +494,4 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32
+#endif  // defined TARGET_ARCH_IA32 || defined(TARGET_ARCH_X64)

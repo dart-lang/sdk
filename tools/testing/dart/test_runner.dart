@@ -909,19 +909,12 @@ class ProcessQueue {
           print('Temporary directory $_temporaryDirectory unsafe to delete!');
           _cleanupAndMarkDone();
         } else {
-          // TODO(dart:1211): Use delete(recursive=true) in Dart when it is
-          // implemented, and add Windows support.
-          var deletion =
-              new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
-          deletion.onExit = (int exitCode) {
-            if (exitCode == 0) {
-              if (!_listTests) {  // Output of --list option is used by scripts.
-                print('\nTemporary directory $_temporaryDirectory deleted.');
-              }
-            } else {
-              print('\nDeletion of temp dir $_temporaryDirectory failed.');
-            }
+          Directory dir = new Directory(_temporaryDirectory);
+          dir.deleteRecursively(() {
             _cleanupAndMarkDone();
+          });
+          dir.onError = (err) {
+            print('\nDeletion of temp dir $_temporaryDirectory failed: $err');
           };
         }
       }

@@ -300,7 +300,7 @@ class SocketCloseServer extends Isolate {
       }
 
       void errorHandler(Exception e) {
-        Expect.fail("Socket error");
+        Expect.fail("Socket error $e");
       }
 
       _iterations++;

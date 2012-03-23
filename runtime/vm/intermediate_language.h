@@ -807,14 +807,14 @@ class Instruction : public ZoneAllocated {
   // and analogously for the array 'postorder'.  The depth first spanning
   // tree is recorded in the array 'parent', which maps preorder block
   // numbers to the preorder number of the block's spanning-tree parent.  As
-  // a side effect, the set of basic block predecessors (e.g., block entry
-  // instructions of predecessor blocks) and also the last instruction in
-  // the block is recorded in each entry instruction.
+  // a side effect of this function, the set of basic block predecessors
+  // (e.g., block entry instructions of predecessor blocks) and also the
+  // last instruction in the block is recorded in each entry instruction.
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent) {
+      GrowableArray<intptr_t>* parent) {
     // Never called for instructions except block entries and branches.
     UNREACHABLE();
   }
@@ -838,11 +838,17 @@ class BlockEntryInstr : public Instruction {
  public:
   virtual bool IsBlockEntry() const { return true; }
 
+  virtual intptr_t PredecessorCount() const = 0;
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
+
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
 
   intptr_t postorder_number() const { return postorder_number_; }
   void set_postorder_number(intptr_t number) { postorder_number_ = number; }
+
+  BlockEntryInstr* dominator() const { return dominator_; }
+  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
@@ -851,11 +857,13 @@ class BlockEntryInstr : public Instruction {
   BlockEntryInstr()
       : preorder_number_(-1),
         postorder_number_(-1),
+        dominator_(NULL),
         last_instruction_(NULL) { }
 
  private:
   intptr_t preorder_number_;
   intptr_t postorder_number_;
+  BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
   Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
@@ -871,6 +879,11 @@ class JoinEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(JoinEntry)
 
+  virtual intptr_t PredecessorCount() const { return predecessors_.length(); }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    return predecessors_[index];
+  }
+
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
@@ -883,7 +896,7 @@ class JoinEntryInstr : public BlockEntryInstr {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
+      GrowableArray<intptr_t>* parent);
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
@@ -900,6 +913,14 @@ class TargetEntryInstr : public BlockEntryInstr {
 
   DECLARE_INSTRUCTION(TargetEntry)
 
+  virtual intptr_t PredecessorCount() const {
+    return (predecessor_ == NULL) ? 0 : 1;
+  }
+  virtual BlockEntryInstr* PredecessorAt(intptr_t index) const {
+    ASSERT((index == 0) && (predecessor_ != NULL));
+    return predecessor_;
+  }
+
   virtual Instruction* StraightLineSuccessor() const {
     return successor_;
   }
@@ -912,7 +933,7 @@ class TargetEntryInstr : public BlockEntryInstr {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
+      GrowableArray<intptr_t>* parent);
 
  private:
   BlockEntryInstr* predecessor_;
@@ -1149,7 +1170,7 @@ class BranchInstr : public Instruction {
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
-      GrowableArray<BlockEntryInstr*>* parent);
+      GrowableArray<intptr_t>* parent);
 
  private:
   Value* value_;

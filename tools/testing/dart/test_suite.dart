@@ -1173,6 +1173,9 @@ class TestUtils {
       if (configuration["host_checked"]) {
         args.add("--vm_flags=--enable_asserts --enable_type_checks");
       }
+      if (configuration["component"] == "dart2js") {
+        args.add("--allow-mock-compilation");
+      }
     }
     return args;
   }

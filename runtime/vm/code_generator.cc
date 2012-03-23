@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,39 +38,6 @@ bool CodeGenerator::CanOptimize() {
       !FLAG_report_usage_count &&
       (FLAG_optimization_counter_threshold >= 0) &&
       !Isolate::Current()->debugger()->IsActive();
-}
-
-
-void CodeGenerator::DescriptorList::AddDescriptor(
-    PcDescriptors::Kind kind,
-    intptr_t pc_offset,
-    intptr_t node_id,
-    intptr_t token_index,
-    intptr_t try_index) {
-  struct PcDesc data;
-  data.pc_offset = pc_offset;
-  data.kind = kind;
-  data.node_id = node_id;
-  data.token_index = token_index;
-  data.try_index = try_index;
-  list_.Add(data);
-}
-
-
-RawPcDescriptors* CodeGenerator::DescriptorList::FinalizePcDescriptors(
-    uword entry_point) {
-  intptr_t num_descriptors = Length();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(PcDescriptors::New(num_descriptors));
-  for (intptr_t i = 0; i < num_descriptors; i++) {
-    descriptors.AddDescriptor(i,
-                              (entry_point + PcOffset(i)),
-                              Kind(i),
-                              NodeId(i),
-                              TokenIndex(i),
-                              TryIndex(i));
-  }
-  return descriptors.raw();
 }
 
 

@@ -261,8 +261,14 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
     if ((events & EPOLLIN) != 0) {
       if (FDUtils::AvailableBytes(sd->fd()) != 0) {
         event_mask = (1 << kInEvent);
-      } else if (((events & EPOLLHUP) != 0)) {
-        event_mask = (1 << kCloseEvent);
+      } else if ((events & EPOLLHUP) != 0) {
+        // If both EPOLLHUP and EPOLLERR are reported treat it as an
+        // error.
+        if ((events & EPOLLERR) != 0) {
+          event_mask = (1 << kErrorEvent);
+        } else {
+          event_mask = (1 << kCloseEvent);
+        }
         sd->MarkClosedRead();
       } else if ((events & EPOLLERR) != 0) {
         event_mask = (1 << kErrorEvent);

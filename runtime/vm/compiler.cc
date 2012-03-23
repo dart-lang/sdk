@@ -197,6 +197,7 @@ static RawError* CompileFunctionHelper(const Function& function,
             Code::FinalizeCode(function_fullname, &assembler));
         code.set_is_optimized(true);
         code_gen.FinalizePcDescriptors(code);
+        code_gen.FinalizeStackmaps(code);
         code_gen.FinalizeExceptionHandlers(code);
         function.SetCode(code);
         code_index_table->AddCode(code);
@@ -216,6 +217,7 @@ static RawError* CompileFunctionHelper(const Function& function,
               Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
           code.set_is_optimized(false);
           code_gen.FinalizePcDescriptors(code);
+          code_gen.FinalizeStackmaps(code);
           code_gen.FinalizeVarDescriptors(code);
           code_gen.FinalizeExceptionHandlers(code);
           function.set_unoptimized_code(code);
@@ -393,6 +395,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // functions from the global code description (PC mapping) tables so
     // we don't pollute the system unnecessarily with stale data.
     code_gen.FinalizePcDescriptors(code);
+    code_gen.FinalizeStackmaps(code);
     code_gen.FinalizeExceptionHandlers(code);
 
     GrowableArray<const Object*> arguments;  // no arguments.

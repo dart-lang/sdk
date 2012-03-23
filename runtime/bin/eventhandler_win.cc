@@ -99,7 +99,8 @@ Handle::Handle(HANDLE handle)
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
-      pending_write_(NULL) {
+      pending_write_(NULL),
+      last_error_(NOERROR) {
   InitializeCriticalSection(&cs_);
 }
 
@@ -112,7 +113,8 @@ Handle::Handle(HANDLE handle, Dart_Port port)
       event_handler_(NULL),
       data_ready_(NULL),
       pending_read_(NULL),
-      pending_write_(NULL) {
+      pending_write_(NULL),
+      last_error_(NOERROR) {
   InitializeCriticalSection(&cs_);
 }
 
@@ -721,6 +723,15 @@ void EventHandlerImplementation::HandleClosed(Handle* handle) {
 }
 
 
+void EventHandlerImplementation::HandleError(Handle* handle) {
+  handle->set_last_error(WSAGetLastError());
+  if (!handle->IsClosing()) {
+    int event_mask = 1 << kErrorEvent;
+    DartUtils::PostInt32(handle->port(), event_mask);
+  }
+}
+
+
 void EventHandlerImplementation::HandleRead(Handle* handle,
                                             int bytes,
                                             IOBuffer* buffer) {
@@ -734,9 +745,12 @@ void EventHandlerImplementation::HandleRead(Handle* handle,
       }
     }
   } else {
-    ASSERT(bytes == 0);
     handle->MarkClosedRead();
-    HandleClosed(handle);
+    if (bytes == 0) {
+      HandleClosed(handle);
+    } else {
+      HandleError(handle);
+    }
   }
 
   if (handle->IsClosed()) {
@@ -757,9 +771,10 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
         DartUtils::PostInt32(handle->port(), event_mask);
       }
     }
-  } else {
-    ASSERT(bytes == 0);
+  } else if (bytes == 0) {
     HandleClosed(handle);
+  } else {
+    HandleError(handle);
   }
 
   if (handle->IsClosed()) {
@@ -862,9 +877,6 @@ static void EventHandlerThread(uword args) {
         handler->HandleTimeout();
       }
     } else if (!ok) {
-      // If GetQueuedCompletionStatus return false and overlapped is
-      // not NULL then it did dequeue a request which failed.
-
       // Treat ERROR_CONNECTION_ABORTED as connection closed.
       // The error ERROR_OPERATION_ABORTED is set for pending
       // accept requests for a listen socket which is closed.
@@ -878,8 +890,9 @@ static void EventHandlerThread(uword args) {
         ASSERT(bytes == 0);
         handler->HandleIOCompletion(bytes, key, overlapped);
       } else {
-        UNREACHABLE();
-     }
+        ASSERT(bytes == 0);
+        handler->HandleIOCompletion(-1, key, overlapped);
+      }
     } else if (key == NULL) {
       // A key of NULL signals an interrupt message.
       InterruptMessage* msg = reinterpret_cast<InterruptMessage*>(overlapped);

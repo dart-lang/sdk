@@ -42,7 +42,7 @@ class SourceFile {
     for (int i=0; i < starts.length; i++) {
       if (starts[i] > position) return i-1;
     }
-    world.internalError('bad position');
+    throw 'bad position';
   }
 
   int getColumn(int line, int position) {

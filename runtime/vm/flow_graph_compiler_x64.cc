@@ -8,6 +8,7 @@
 #include "vm/flow_graph_compiler.h"
 
 #include "vm/ast_printer.h"
+#include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
 #include "vm/disassembler.h"
 #include "vm/longjump.h"
@@ -30,7 +31,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       parsed_function_(parsed_function),
       block_info_(block_order.length()),
       current_block_(NULL),
-      pc_descriptors_list_(new CodeGenerator::DescriptorList()) {
+      pc_descriptors_list_(new DescriptorList()) {
   for (int i = 0; i < block_order.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }

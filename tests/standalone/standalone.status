@@ -21,7 +21,7 @@ io/TestExtensionTest: Fail  # shared library in wrong place (issue 1817)
 io/SocketManyConnectionsTest: Skip
 io/TestExtensionTest: Skip  # Extensions not implemented on MacOS
 
-[ $component == vm && $system == win32]
+[ $component == vm && $system == windows]
 io/TestExtensionTest: Skip  # Extensions not implemented on Windows
 io/HttpShutdownTest: Skip  # Currently times out on windows
 

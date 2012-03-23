@@ -232,16 +232,16 @@ void EventHandlerImplementation::HandleInterruptFd() {
   }
 }
 
-
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
-  printf("%d ", fd);
+  printf("%d ", static_cast<int>(fd));
   if (event->filter == EVFILT_READ) printf("EVFILT_READ ");
   if (event->filter == EVFILT_WRITE) printf("EVFILT_WRITE ");
   printf("flags: %x: ", event->flags);
   if ((event->flags & EV_EOF) != 0) printf("EV_EOF ");
   if ((event->flags & EV_ERROR) != 0) printf("EV_ERROR ");
-  printf("(available %d) ", FDUtils::AvailableBytes(fd));
+  printf("- fflags: %d ", event->fflags);
+  printf("(available %d) ", static_cast<int>(FDUtils::AvailableBytes(fd)));
   printf("\n");
 }
 #endif
@@ -257,8 +257,13 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
     // On a listening socket the READ event means that there are
     // connections ready to be accepted.
     if (event->filter == EVFILT_READ) {
-      if ((event->flags & EV_EOF) != 0) event_mask |= (1 << kCloseEvent);
-      if ((event->flags & EV_ERROR) != 0) event_mask |= (1 << kErrorEvent);
+      if ((event->flags & EV_EOF) != 0) {
+        if (event->fflags != 0) {
+          event_mask |= (1 << kErrorEvent);
+        } else {
+          event_mask |= (1 << kCloseEvent);
+        }
+      }
       if (event_mask == 0) event_mask |= (1 << kInEvent);
     }
   } else {
@@ -267,18 +272,22 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
       if (FDUtils::AvailableBytes(sd->fd()) != 0) {
          event_mask = (1 << kInEvent);
       } else if ((event->flags & EV_EOF) != 0) {
-        event_mask = (1 << kCloseEvent);
+        if (event->fflags != 0) {
+          event_mask |= (1 << kErrorEvent);
+        } else {
+          event_mask |= (1 << kCloseEvent);
+        }
         sd->MarkClosedRead();
-      } else if ((event->flags & EV_ERROR) != 0) {
-        event_mask = (1 << kErrorEvent);
       }
     }
 
     if (event->filter == EVFILT_WRITE) {
-      if ((event->flags & EV_ERROR) != 0) {
-        event_mask = (1 << kErrorEvent);
-        sd->MarkClosedWrite();
-      } else if ((event->flags & EV_EOF) != 0) {
+      if ((event->flags & EV_EOF) != 0) {
+        if (event->fflags != 0) {
+          event_mask |= (1 << kErrorEvent);
+        } else {
+          event_mask |= (1 << kCloseEvent);
+        }
         // If the receiver closed for reading, close for writing,
         // update the registration with kqueue, and do not report a
         // write event.
@@ -297,6 +306,10 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
 void EventHandlerImplementation::HandleEvents(struct kevent* events,
                                               int size) {
   for (int i = 0; i < size; i++) {
+    // If flag EV_ERROR is set it indicates an error in kevent processing.
+    if ((events[i].flags & EV_ERROR) != 0) {
+      FATAL1("kevent failed %s\n", strerror(events[i].data));
+    }
     if (events[i].udata != NULL) {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
@@ -360,8 +373,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
                                                 kMaxEvents,
                                                 timeout));
     if (result == -1) {
-      perror("kevent failed");
-      FATAL("kevent failed\n");
+      FATAL1("kevent failed %s\n", strerror(errno));
     } else {
       handler->HandleTimeout();
       handler->HandleEvents(events, result);
