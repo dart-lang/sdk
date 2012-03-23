@@ -46,7 +46,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
 
   Collection<V> getValues() {
     int numValues = length;
-    List<K> list = new List<K>(numValues);
+    List<V> list = new List<V>(numValues);
     for (int i = 0; i < numValues; i++) {
       list[i] = kvPairs_[i*2 + 1];
     }
