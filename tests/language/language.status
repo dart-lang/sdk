@@ -391,6 +391,8 @@ NamedParameters4Test: Fail
 
 StringEscape4NegativeTest: Fail # Issue 1352
 
+Issue4515170Test: Fail
+
 [ $component == webdriver && $browser == chrome ]
 StringEscape1NegativeTest: Skip
 
