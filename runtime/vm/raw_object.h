@@ -653,6 +653,7 @@ class RawCode : public RawObject {
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->var_descriptors_);

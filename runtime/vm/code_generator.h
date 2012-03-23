@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -121,54 +121,6 @@ class FunctionsCache : public ValueObject {
                               int num_named_arguments);
 
   const Class& class_;
-};
-
-
-class CodeGenerator::DescriptorList : public ZoneAllocated {
- public:
-  struct PcDesc {
-    intptr_t pc_offset;        // PC offset value of the descriptor.
-    PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
-    intptr_t node_id;          // AST node id.
-    intptr_t token_index;      // Token position in source of PC.
-    intptr_t try_index;        // Try block index of PC.
-  };
-
-  DescriptorList() : list_() {
-  }
-  ~DescriptorList() { }
-
-  intptr_t Length() const {
-    return list_.length();
-  }
-
-  intptr_t PcOffset(int index) const {
-    return list_[index].pc_offset;
-  }
-  PcDescriptors::Kind Kind(int index) const {
-    return list_[index].kind;
-  }
-  intptr_t NodeId(int index) const {
-    return list_[index].node_id;
-  }
-  intptr_t TokenIndex(int index) const {
-    return list_[index].token_index;
-  }
-  intptr_t TryIndex(int index) const {
-    return list_[index].try_index;
-  }
-
-  void AddDescriptor(PcDescriptors::Kind kind,
-                     intptr_t pc_offset,
-                     intptr_t node_id,
-                     intptr_t token_index,
-                     intptr_t try_index);
-
-  RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
-
- private:
-  GrowableArray<struct PcDesc> list_;
-  DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
 

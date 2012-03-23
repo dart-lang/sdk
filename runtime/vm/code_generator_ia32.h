@@ -20,7 +20,9 @@ namespace dart {
 class Assembler;
 class AstNode;
 class CodeGenerator;
+class DescriptorList;
 class SourceLabel;
+class StackmapBuilder;
 
 
 class CodeGeneratorState : public StackResource {
@@ -89,6 +91,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // Add pc descriptors to code.
   void FinalizePcDescriptors(const Code& code);
 
+  // Add stack maps to code.
+  void FinalizeStackmaps(const Code& code);
+
   // Add local variable descriptors to code.
   void FinalizeVarDescriptors(const Code& code);
 
@@ -115,7 +120,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   friend class OptimizingCodeGenerator;
 
   // Forward declarations.
-  class DescriptorList;
   class HandlerList;
 
   // Return true if intrinsification was completed and no other code
@@ -210,6 +214,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   intptr_t locals_space_size_;
   CodeGeneratorState* state_;
   DescriptorList* pc_descriptors_list_;
+  StackmapBuilder* stackmap_builder_;
   HandlerList* exception_handlers_list_;
   int try_index_;
   // The runtime context level is only incremented when a new context is

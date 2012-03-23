@@ -26,6 +26,7 @@ namespace dart {
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 class Assembler;
+class Code;
 class LocalScope;
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
@@ -1999,7 +2000,17 @@ class Stackmap : public Object {
   bool IsObject(intptr_t offset) const {
     return InRange(offset) && GetBit(offset);
   }
-  uword pc() const { return raw_ptr()->pc_; }
+  uword PC() const { return raw_ptr()->pc_; }
+  void SetPC(uword value) const { raw_ptr()->pc_ = value; }
+
+  RawCode* GetCode() const { return raw_ptr()->code_; }
+  void SetCode(const Code& code) const;
+
+  // Return the offset of the highest stack slot that has an object.
+  intptr_t Maximum() const;
+
+  // Return the offset of the lowest stack slot that has an object.
+  intptr_t Minimum() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
@@ -2017,12 +2028,6 @@ class Stackmap : public Object {
 
   bool GetBit(intptr_t bit_offset) const;
   void SetBit(intptr_t bit_offset, bool value) const;
-
-  // Return the offset of the highest stack slot that has an object.
-  intptr_t Maximum() const;
-
-  // Return the offset of the lowest stack slot that has an object.
-  intptr_t Minimum() const;
 
   void set_bitmap_size_in_bytes(intptr_t value) const;
   void set_pc(uword value) const;
@@ -2117,6 +2122,11 @@ class Code : public Object {
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
   }
+
+  RawArray* stackmaps() const {
+    return raw_ptr()->stackmaps_;
+  }
+  void set_stackmaps(const Array& maps) const;
 
   RawLocalVarDescriptors* var_descriptors() const {
     return raw_ptr()->var_descriptors_;

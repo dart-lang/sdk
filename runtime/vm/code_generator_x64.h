@@ -20,7 +20,9 @@ namespace dart {
 class Assembler;
 class AstNode;
 class CodeGenerator;
+class DescriptorList;
 class SourceLabel;
+class StackmapBuilder;
 
 
 class CodeGeneratorState : public StackResource {
@@ -64,9 +66,6 @@ class CodeGeneratorState : public StackResource {
 
 class CodeGenerator : public AstNodeVisitor {
  public:
-  // Forward declarations.
-  class DescriptorList;
-
   CodeGenerator(Assembler* assembler, const ParsedFunction& parsed_function);
   virtual ~CodeGenerator() { }
 
@@ -77,9 +76,6 @@ class CodeGenerator : public AstNodeVisitor {
 
   void GenerateCode();
   virtual void GenerateDeferredCode();
-
-  // Add local variable descriptors to code.
-  void FinalizeVarDescriptors(const Code& code);
 
 #define DEFINE_VISITOR_FUNCTION(type, name)                                    \
   virtual void Visit##type(type* node);
@@ -94,6 +90,12 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   // Add pc descriptors to code.
   void FinalizePcDescriptors(const Code& code);
+
+  // Add stack maps to code.
+  void FinalizeStackmaps(const Code& code);
+
+  // Add local variable descriptors to code.
+  void FinalizeVarDescriptors(const Code& code);
 
   // Allocate and return an arguments descriptor.
   // Let 'num_names' be the length of 'optional_arguments_names'.
@@ -213,6 +215,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   intptr_t locals_space_size_;
   CodeGeneratorState* state_;
   DescriptorList* pc_descriptors_list_;
+  StackmapBuilder* stackmap_builder_;
   HandlerList* exception_handlers_list_;
   int try_index_;
   // The runtime context level is only incremented when a new context is

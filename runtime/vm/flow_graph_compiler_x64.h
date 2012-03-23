@@ -10,6 +10,7 @@
 #endif
 
 #include "vm/assembler.h"
+#include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
 #include "vm/intermediate_language.h"
 
@@ -117,7 +118,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   BlockEntryInstr* current_block_;
 
-  CodeGenerator::DescriptorList* pc_descriptors_list_;
+  DescriptorList* pc_descriptors_list_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };
