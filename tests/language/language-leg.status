@@ -44,7 +44,6 @@ GenericTest: Fail # cannot resolve type T
 GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
-Issue4515170Test: Fail # cannot resolve VAL
 LabelTest: Fail # switch cases are not implemented
 LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1

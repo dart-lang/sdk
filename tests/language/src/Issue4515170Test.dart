@@ -7,12 +7,8 @@ class Issue4515170Test {
   static int defaultVal([int a = VAL]) {
     return a;
   }
-
-  static testMain() {
-    defaultVal();
-  }
 }
 
 main() {
-  Issue4515170Test.testMain();
+  Expect.equals(3, Issue4515170Test.defaultVal());
 }
