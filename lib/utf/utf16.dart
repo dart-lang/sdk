@@ -65,11 +65,11 @@ String decodeUtf16(List<int> bytes, [int offset = 0, int length,
   // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
-  if (is16BitCodeUnit()) {
+  if (_is16BitCodeUnit()) {
     return new String.fromCharCodes(codeunits);
   } else {
     return new String.fromCharCodes(
-        utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+        _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
   }
 }
 
@@ -88,11 +88,11 @@ String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
   // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
-  if (is16BitCodeUnit()) {
+  if (_is16BitCodeUnit()) {
     return new String.fromCharCodes(codeunits);
   } else {
     return new String.fromCharCodes(
-        utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+        _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
   }
 }
 
@@ -111,11 +111,11 @@ String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
   // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
-  if (is16BitCodeUnit()) {
+  if (_is16BitCodeUnit()) {
     return new String.fromCharCodes(codeunits);
   } else {
     return new String.fromCharCodes(
-        utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+        _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
   }
 }
 
@@ -201,10 +201,10 @@ List<int> _stringToUtf16CodeUnits(String str) {
   // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc
   // (http://code.google.com/p/dart/issues/detail?id=1357). Consider
   // removing after this issue is resolved.
-  if (is16BitCodeUnit()) {
+  if (_is16BitCodeUnit()) {
     return str.charCodes();
   } else {
-    return codepointsToUtf16CodeUnits(str.charCodes());
+    return _codepointsToUtf16CodeUnits(str.charCodes());
   }
 }
 
