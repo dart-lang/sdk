@@ -6923,8 +6923,8 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
     RawObject* raw = Object::Allocate(cls, Bigint::InstanceSize(length), space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->allocated_length_ = length;
-    result.raw_ptr()->signed_length_ = length;
+    result.raw_ptr()->allocated_length_ = length;  // Chunk length allocated.
+    result.raw_ptr()->signed_length_ = length;  // Chunk length in use.
   }
   return result.raw();
 }

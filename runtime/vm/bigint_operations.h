@@ -22,10 +22,23 @@ class BigintOperations : public AllStatic {
                                    Heap::Space space = Heap::kNew);
   static RawBigint* NewFromDouble(double d, Heap::Space space = Heap::kNew);
 
-  // The given string must be a nul-terminated string of hex-digits. It must
-  // only contain hex-digits. No sign or leading "0x" is allowed.
-  static RawBigint* FromHexCString(const char* str,
+  // Compute chunk length of the bigint instance created for the
+  // specified hex string.  The specified hex string must be a
+  // nul-terminated string of hex-digits.  It must only contain
+  // hex-digits. Leading "0x" is not allowed.
+  static intptr_t ComputeChunkLength(const char* hex_string);
+
+  // Create a bigint instance from the specified hex string. The given string
+  // must be a nul-terminated string of hex-digits. It must only contain
+  // hex-digits. Leading "0x" is not allowed.
+  static RawBigint* FromHexCString(const char* hex_string,
                                    Heap::Space space = Heap::kNew);
+
+  // Helper method to initialize a bigint instance object with the bigint value
+  // in the specified string. The given string must be a nul-terminated string
+  // of hex-digits. It must only contain hex-digits, leading "0x" is not
+  // allowed.
+  static void FromHexCString(const char* hex_string, const Bigint& value);
 
   // The given string must be a nul-terminated string of decimal digits. It
   // must only contain decimal digits (0-9). No sign is allowed. Leading
@@ -95,6 +108,7 @@ class BigintOperations : public AllStatic {
   static const Chunk kDigitMaxValue = kDigitMask;
   static const int kChunkSize = sizeof(Chunk);
   static const int kChunkBitSize = kChunkSize * kBitsPerByte;
+  static const int kHexCharsPerDigit = kDigitBitSize / 4;
 
   static RawBigint* Zero() { return Bigint::Allocate(0); }
   static RawBigint* One() {

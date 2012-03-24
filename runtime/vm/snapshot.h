@@ -24,6 +24,7 @@ class Library;
 class Object;
 class ObjectStore;
 class RawArray;
+class RawBigint;
 class RawClass;
 class RawContext;
 class RawDouble;
@@ -365,6 +366,7 @@ class SnapshotReader : public BaseReader {
   RawContext* NewContext(intptr_t num_variables);
   RawClass* NewClass(int value);
   RawMint* NewMint(int64_t value);
+  RawBigint* NewBigint(const char* hex_string);
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();

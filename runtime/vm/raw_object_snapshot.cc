@@ -1229,8 +1229,10 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   }
 
   // Create a Bigint object from HexCString.
-  Bigint& obj = Bigint::ZoneHandle(reader->isolate(),
-                                   BigintOperations::FromHexCString(str));
+  Bigint& obj = Bigint::ZoneHandle(
+      reader->isolate(),
+      (kind == Snapshot::kFull) ? reader->NewBigint(str) :
+                                  BigintOperations::FromHexCString(str));
 
   // If it is a canonical constant make it one.
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
