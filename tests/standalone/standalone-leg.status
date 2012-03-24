@@ -6,12 +6,13 @@
 AssertTest: Fail # Assert not implemented
 
 
+ByteArrayTest: Fail, OK # ByteArray
 DeoptimizationTest: Fail, OK # Requires bigint.
+MediumIntegerTest: Fail, OK # cannot resolve type Mint
+OutOfMemoryTest: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/DirectoryInvalidArgumentsTest: Fail, OK # Broken test: DirectoryException does not exist
 io/HttpParserTest: Fail, OK # ByteArray
+io/ManyEchoServerTest: fail, OK # Broken test: imports script without #library.
 io/OptionsTest: Fail, OK # Cannot pass options to d8.
 io/TestExtensionTest: Fail, OK # dart-ext:test_extension: Illegal argument(s): dart-ext:test_extension
 io/TestRunnerTest: Fail, OK # library not found dart:builtin
-ByteArrayTest: Fail, OK # ByteArray
-MediumIntegerTest: Fail, OK # cannot resolve type Mint
-OutOfMemoryTest: Fail, OK # d8 handles much larger arrays than Dart VM.

@@ -116,6 +116,7 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
+LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 
 
 #
@@ -170,10 +171,8 @@ Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
 Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, expected: <4>, actual: <2>) fails
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # Expect.isTrue(false) fails.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Fail # illegal script tag: resource
-Language/12_Libraries_and_Scripts/2_Includes_A02_t03: Fail # Expect.isTrue(false) fails.
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # No error if main has parameters.
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # operator-is with typedef.
+Language/12_Libraries_and_Scripts/2_Includes_A02_t03: Fail # Canonicalization.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail # Expect.isTrue(false) fails.
@@ -211,7 +210,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
 
 
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
@@ -505,22 +503,18 @@ Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
 Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
 Language/11_Statements/15_Assert_A01_t05: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A03_t13: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t08: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t14: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail, OK # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A03_t05: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/1_Imports_A04_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A07_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A03_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t10: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail, OK # @compile-error

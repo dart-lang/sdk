@@ -13,7 +13,7 @@ Future<String> provider(Uri uri) {
   if (uri.scheme == "main") {
     source = "main() {}";
   } else {
-    source = "";
+    source = "#library('lib');";
   }
   completer.complete(source);
   return completer.future;

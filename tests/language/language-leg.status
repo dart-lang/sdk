@@ -60,7 +60,6 @@ NullToStringTest: Fail # Closurization of intercepted methods.
 NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 PseudoKWTest: Fail # Unexpected token '('
-ResourceTest: Fail # #resource tag not recognized - issue 1807
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
@@ -188,8 +187,6 @@ PseudoKWIllegalTest/14: Fail, OK # Negative language test.
 PseudoKWIllegalTest/15: Fail, OK # Negative language test.
 PseudoKWIllegalTest/16: Fail, OK # Negative language test.
 ScopeNegativeTest: Fail, OK # Negative language test.
-Script1NegativeTest: Fail, OK # Negative language test.
-ScriptNegativeTest: Fail, OK # Negative language test.
 SetterDeclaration2NegativeTest: Fail, OK # Negative language test.
 SetterDeclarationNegativeTest: Fail, OK # Negative language test.
 StaticFinalField2NegativeTest: Fail, OK # Negative language test.
