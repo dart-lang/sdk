@@ -38,7 +38,7 @@ buildScript(Uri uri) {
 
 #import('dart:io');
 
-#import('${uri.resolve('../../utils/compiler/dart2js.dart').path}');
+#import('${uri.resolve('../../frog/leg/dart2js.dart').path}');
 
 class Helper {
   void run() {
