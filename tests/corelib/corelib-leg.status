@@ -13,7 +13,6 @@ StringTest: Fail # Expect.equals(expected: <5>, actual: <4>) fails.
 
 # Compilation errors.
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
-ForInTest: Fail # visitContinueStatement not implemented
 ListGetRangeTest: Fail # Bad code for Expect.throws.
 
 
