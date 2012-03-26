@@ -230,7 +230,7 @@ testWriteByteToReadOnlyFile() {
   openedFile.writeByte(0);
   openedFile.onError = (e) {
     checkWriteReadOnlyFileException(e);
-    p.toSendPort().send(null);
+    openedFile.close(() => p.toSendPort().send(null));
   };
 }
 
@@ -254,7 +254,7 @@ testWriteListToReadOnlyFile() {
   openedFile.writeList(data, 0, data.length);
   openedFile.onError = (e) {
     checkWriteReadOnlyFileException(e);
-    p.toSendPort().send(null);
+    openedFile.close(() => p.toSendPort().send(null));
   };
 }
 
@@ -268,7 +268,10 @@ testTruncateReadOnlyFile() {
 
   var file = new File("${temp.path}/test_file");
   file.createSync();
-  var openedFile = file.openSync(FileMode.READ);
+  var openedFile = file.openSync(FileMode.WRITE);
+  openedFile.writeByteSync(0);
+  openedFile.closeSync();
+  openedFile = file.openSync(FileMode.READ);
 
   // Truncating read only file should throw an exception.
   Expect.throws(() => openedFile.truncateSync(0),
@@ -277,7 +280,7 @@ testTruncateReadOnlyFile() {
   openedFile.truncate(0, () => Expect.fail("Unreachable code"));
   openedFile.onError = (e) {
     checkWriteReadOnlyFileException(e);
-    p.toSendPort().send(null);
+    openedFile.close(() => p.toSendPort().send(null));
   };
 }
 
