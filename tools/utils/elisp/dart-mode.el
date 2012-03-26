@@ -1,15 +1,15 @@
-;;; dart-mode.el --- a Dart mode for emacs based upon CC mode. 
+;;; dart-mode.el --- a Dart mode for emacs based upon CC mode.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'cc-mode)
+(require 'compile)
 
 ;; These are only required at compile time to get the sources for the
 ;; language constants.  (The cc-fonts require and the font-lock
@@ -47,14 +48,14 @@
 ;; Dart has no boolean but a string and a vector type.
 (c-lang-defconst c-primitive-type-kwds
   dart (append '("bool" "var")
-	     (delete "boolean"
-		     ;; Use append to not be destructive on the
-		     ;; return value below.
-		     (append
-		      ;; Due to the fallback to Java, we need not give
-		      ;; a language to `c-lang-const'.
-		      (c-lang-const c-primitive-type-kwds)
-		      nil))))
+             (delete "boolean"
+                     ;; Use append to not be destructive on the
+                     ;; return value below.
+                     (append
+                      ;; Due to the fallback to Java, we need not give
+                      ;; a language to `c-lang-const'.
+                      (c-lang-const c-primitive-type-kwds)
+                      nil))))
 
 ;; Recognize member init lists after colons in Dart.
 (c-lang-defconst c-nonlabel-token-key
@@ -70,8 +71,8 @@
       ;; the `c-preprocessor-face-name' variable that maps to a
       ;; suitable face depending on the (X)Emacs version.
       '(eval . (list "^\\s *\\(#include\\)\\>\\(.*\\)"
-		     (list 1 c-preprocessor-face-name)
-		     '(2 font-lock-string-face)))
+                     (list 1 c-preprocessor-face-name)
+                     '(2 font-lock-string-face)))
       ;; There are some other things in `c-cpp-matchers' besides the
       ;; preprocessor support, so include it.
       (c-lang-const c-cpp-matchers)))
@@ -96,7 +97,7 @@ Each list item should be a regexp matching a single identifier.")
   "Syntax table used in dart-mode buffers.")
 (or dart-mode-syntax-table
     (setq dart-mode-syntax-table
-	  (funcall (c-lang-const c-make-mode-syntax-table dart))))
+          (funcall (c-lang-const c-make-mode-syntax-table dart))))
 
 (defvar dart-mode-abbrev-table nil
   "Abbreviation table used in dart-mode buffers.")
@@ -110,17 +111,17 @@ Each list item should be a regexp matching a single identifier.")
     ("finally" "finally" c-electric-continued-statement 0)))
 
 (defvar dart-mode-map (let ((map (c-make-inherited-keymap)))
-		      ;; Add bindings which are only useful for Dart
-		      map)
+                      ;; Add bindings which are only useful for Dart
+                      map)
   "Keymap used in dart-mode buffers.")
 
 (easy-menu-define dart-menu dart-mode-map "Dart Mode Commands"
-		  ;; Can use `dart' as the language for `c-mode-menu'
-		  ;; since its definition covers any language.  In
-		  ;; this case the language is used to adapt to the
-		  ;; nonexistence of a cpp pass and thus removing some
-		  ;; irrelevant menu alternatives.
-		  (cons "Dart" (c-lang-const c-mode-menu dart)))
+                  ;; Can use `dart' as the language for `c-mode-menu'
+                  ;; since its definition covers any language.  In
+                  ;; this case the language is used to adapt to the
+                  ;; nonexistence of a cpp pass and thus removing some
+                  ;; irrelevant menu alternatives.
+                  (cons "Dart" (c-lang-const c-mode-menu dart)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.dart\\'" . dart-mode))
@@ -141,9 +142,9 @@ Key bindings:
   (c-initialize-cc-mode t)
   (set-syntax-table dart-mode-syntax-table)
   (setq major-mode 'dart-mode
-	mode-name "Dart"
-	local-abbrev-table dart-mode-abbrev-table
-	abbrev-mode t)
+        mode-name "Dart"
+        local-abbrev-table dart-mode-abbrev-table
+        abbrev-mode t)
   (use-local-map dart-mode-map)
   ;; `c-init-language-vars' is a macro that is expanded at compile
   ;; time to a large `setq' with all the language variables and their
