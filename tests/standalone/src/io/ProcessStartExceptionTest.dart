@@ -18,7 +18,7 @@ class ProcessStartExceptionTest {
     };
 
     process.onError = (ProcessException e) {
-      Expect.equals(2, e.errorCode);
+      Expect.equals(2, e.errorCode, e.toString());
     };
   }
 }
