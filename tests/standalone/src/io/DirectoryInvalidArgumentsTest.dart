@@ -25,13 +25,13 @@ class DirectoryInvalidArgumentsTest {
       d.deleteSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
-      Expect.isTrue(e is DirectoryException);
+      Expect.isTrue(e is DirectoryIOException);
     }
     try {
       d.createSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
-      Expect.isTrue(e is DirectoryException);
+      Expect.isTrue(e is DirectoryIOException);
     }
     testFailingList(d, false);
     d = new Directory(".");

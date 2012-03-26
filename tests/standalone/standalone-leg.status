@@ -10,7 +10,6 @@ ByteArrayTest: Fail, OK # ByteArray
 DeoptimizationTest: Fail, OK # Requires bigint.
 MediumIntegerTest: Fail, OK # cannot resolve type Mint
 OutOfMemoryTest: Fail, OK # d8 handles much larger arrays than Dart VM.
-io/DirectoryInvalidArgumentsTest: Fail, OK # Broken test: DirectoryException does not exist
 io/HttpParserTest: Fail, OK # ByteArray
 io/OptionsTest: Fail, OK # Cannot pass options to d8.
 io/TestExtensionTest: Fail, OK # dart-ext:test_extension: Illegal argument(s): dart-ext:test_extension
