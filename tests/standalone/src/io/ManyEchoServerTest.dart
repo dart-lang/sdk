@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Stress test isolate generation.
 
-#library("ManyEchoServerTest.dart");
 #import("EchoServerTest.dart", prefix: "single");
 
 class ManyEchoServerTest {
