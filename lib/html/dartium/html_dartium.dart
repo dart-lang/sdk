@@ -308,6 +308,7 @@ _wrap(raw) {
     case "PageTransitionEvent": return new _PageTransitionEventImpl._wrap(domObject);
     case "HTMLParagraphElement": return new _ParagraphElementImpl._wrap(domObject);
     case "HTMLParamElement": return new _ParamElementImpl._wrap(domObject);
+    case "PeerConnection00": return new _PeerConnection00Impl._wrap(domObject);
     case "Performance": return new _PerformanceImpl._wrap(domObject);
     case "PerformanceNavigation": return new _PerformanceNavigationImpl._wrap(domObject);
     case "PerformanceTiming": return new _PerformanceTimingImpl._wrap(domObject);
@@ -5665,6 +5666,8 @@ class _ConsoleImpl extends _DOMTypeBase implements Console {
   _ConsoleImpl._wrap(ptr) : super._wrap(ptr);
 
   MemoryInfo get memory() => _wrap(_ptr.memory);
+
+  List<ScriptProfile> get profiles() => _wrap(_ptr.profiles);
 
   void assertCondition(bool condition, Object arg) {
     _ptr.assertCondition(_unwrap(condition), _unwrap(arg));
@@ -12873,6 +12876,127 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement {
   void set valueType(String value) { _ptr.valueType = _unwrap(value); }
 }
 
+class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
+  _PeerConnection00Impl._wrap(ptr) : super._wrap(ptr);
+
+  int get iceState() => _wrap(_ptr.iceState);
+
+  SessionDescription get localDescription() => _wrap(_ptr.localDescription);
+
+  MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
+
+  EventListener get onaddstream() => _wrap(_ptr.onaddstream);
+
+  void set onaddstream(EventListener value) { _ptr.onaddstream = _unwrap(value); }
+
+  EventListener get onconnecting() => _wrap(_ptr.onconnecting);
+
+  void set onconnecting(EventListener value) { _ptr.onconnecting = _unwrap(value); }
+
+  EventListener get onopen() => _wrap(_ptr.onopen);
+
+  void set onopen(EventListener value) { _ptr.onopen = _unwrap(value); }
+
+  EventListener get onremovestream() => _wrap(_ptr.onremovestream);
+
+  void set onremovestream(EventListener value) { _ptr.onremovestream = _unwrap(value); }
+
+  EventListener get onstatechange() => _wrap(_ptr.onstatechange);
+
+  void set onstatechange(EventListener value) { _ptr.onstatechange = _unwrap(value); }
+
+  int get readyState() => _wrap(_ptr.readyState);
+
+  SessionDescription get remoteDescription() => _wrap(_ptr.remoteDescription);
+
+  MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  void addStream(MediaStream stream, [String mediaStreamHints = null]) {
+    if (mediaStreamHints === null) {
+      _ptr.addStream(_unwrap(stream));
+      return;
+    } else {
+      _ptr.addStream(_unwrap(stream), _unwrap(mediaStreamHints));
+      return;
+    }
+  }
+
+  void close() {
+    _ptr.close();
+    return;
+  }
+
+  SessionDescription createAnswer(String offer, [String mediaHints = null]) {
+    if (mediaHints === null) {
+      return _wrap(_ptr.createAnswer(_unwrap(offer)));
+    } else {
+      return _wrap(_ptr.createAnswer(_unwrap(offer), _unwrap(mediaHints)));
+    }
+  }
+
+  SessionDescription createOffer([String mediaHints = null]) {
+    if (mediaHints === null) {
+      return _wrap(_ptr.createOffer());
+    } else {
+      return _wrap(_ptr.createOffer(_unwrap(mediaHints)));
+    }
+  }
+
+  bool dispatchEvent(Event event) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  }
+
+  void processIceMessage(IceCandidate candidate) {
+    _ptr.processIceMessage(_unwrap(candidate));
+    return;
+  }
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  void removeStream(MediaStream stream) {
+    _ptr.removeStream(_unwrap(stream));
+    return;
+  }
+
+  void setLocalDescription(int action, SessionDescription desc) {
+    _ptr.setLocalDescription(_unwrap(action), _unwrap(desc));
+    return;
+  }
+
+  void setRemoteDescription(int action, SessionDescription desc) {
+    _ptr.setRemoteDescription(_unwrap(action), _unwrap(desc));
+    return;
+  }
+
+  void startIce([String iceOptions = null]) {
+    if (iceOptions === null) {
+      _ptr.startIce();
+      return;
+    } else {
+      _ptr.startIce(_unwrap(iceOptions));
+      return;
+    }
+  }
+}
+
 class _PerformanceImpl extends _DOMTypeBase implements Performance {
   _PerformanceImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -17520,7 +17644,7 @@ class _ScriptProfileNodeImpl extends _DOMTypeBase implements ScriptProfileNode {
 
   int get callUID() => _wrap(_ptr.callUID);
 
-  List get children() => _wrap(_ptr.children);
+  List<ScriptProfileNode> get children() => _wrap(_ptr.children);
 
   String get functionName() => _wrap(_ptr.functionName);
 
@@ -21677,6 +21801,14 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _PeerConnection00FactoryProvider {
+  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) =>
+      _wrap(new dom.PeerConnection00(_unwrap(serverConfiguration), _unwrap(iceCallback)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _SessionDescriptionFactoryProvider {
   factory SessionDescription(String sdp) =>
       _wrap(new dom.SessionDescription(_unwrap(sdp)));
@@ -25135,6 +25267,8 @@ interface Console {
 
   final MemoryInfo memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg);
 
   void count();
@@ -27996,6 +28130,13 @@ interface IFrameElement extends Element {
 
   SVGDocument getSVGDocument();
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29649,6 +29790,90 @@ interface ParamElement extends Element {
   String value;
 
   String valueType;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PeerConnection00 default _PeerConnection00FactoryProvider {
+
+  PeerConnection00(String serverConfiguration, IceCallback iceCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int ICE_CHECKING = 0x300;
+
+  static final int ICE_CLOSED = 0x700;
+
+  static final int ICE_COMPLETED = 0x500;
+
+  static final int ICE_CONNECTED = 0x400;
+
+  static final int ICE_FAILED = 0x600;
+
+  static final int ICE_GATHERING = 0x100;
+
+  static final int ICE_WAITING = 0x200;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  static final int SDP_ANSWER = 0x300;
+
+  static final int SDP_OFFER = 0x100;
+
+  static final int SDP_PRANSWER = 0x200;
+
+  final int iceState;
+
+  final SessionDescription localDescription;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final SessionDescription remoteDescription;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream, [String mediaStreamHints]);
+
+  void close();
+
+  SessionDescription createAnswer(String offer, [String mediaHints]);
+
+  SessionDescription createOffer([String mediaHints]);
+
+  bool dispatchEvent(Event event);
+
+  void processIceMessage(IceCandidate candidate);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void setLocalDescription(int action, SessionDescription desc);
+
+  void setRemoteDescription(int action, SessionDescription desc);
+
+  void startIce([String iceOptions]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32866,7 +33091,7 @@ interface ScriptProfileNode {
 
   final int callUID;
 
-  final List children;
+  final List<ScriptProfileNode> children;
 
   final String functionName;
 

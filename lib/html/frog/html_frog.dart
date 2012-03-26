@@ -4089,6 +4089,8 @@ class _ConsoleImpl
 
   final _MemoryInfoImpl memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -9225,6 +9227,83 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement native "*HT
   String valueType;
 }
 
+class _PeerConnection00Impl implements PeerConnection00 native "*PeerConnection00" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int ICE_CHECKING = 0x300;
+
+  static final int ICE_CLOSED = 0x700;
+
+  static final int ICE_COMPLETED = 0x500;
+
+  static final int ICE_CONNECTED = 0x400;
+
+  static final int ICE_FAILED = 0x600;
+
+  static final int ICE_GATHERING = 0x100;
+
+  static final int ICE_WAITING = 0x200;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  static final int SDP_ANSWER = 0x300;
+
+  static final int SDP_OFFER = 0x100;
+
+  static final int SDP_PRANSWER = 0x200;
+
+  final int iceState;
+
+  final _SessionDescriptionImpl localDescription;
+
+  final _MediaStreamListImpl localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final _SessionDescriptionImpl remoteDescription;
+
+  final _MediaStreamListImpl remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void addStream(_MediaStreamImpl stream, [String mediaStreamHints = null]) native;
+
+  void close() native;
+
+  _SessionDescriptionImpl createAnswer(String offer, [String mediaHints = null]) native;
+
+  _SessionDescriptionImpl createOffer([String mediaHints = null]) native;
+
+  bool dispatchEvent(_EventImpl event) native;
+
+  void processIceMessage(_IceCandidateImpl candidate) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void removeStream(_MediaStreamImpl stream) native;
+
+  void setLocalDescription(int action, _SessionDescriptionImpl desc) native;
+
+  void setRemoteDescription(int action, _SessionDescriptionImpl desc) native;
+
+  void startIce([String iceOptions = null]) native;
+}
+
 class _PerformanceImpl implements Performance native "*Performance" {
 
   final _MemoryInfoImpl memory;
@@ -13048,7 +13127,7 @@ class _ScriptProfileNodeImpl implements ScriptProfileNode native "*ScriptProfile
 
   final int callUID;
 
-  final List children;
+  final List<ScriptProfileNode> children;
 
   final String functionName;
 
@@ -16205,6 +16284,14 @@ class _OptionElementFactoryProvider {
           if (selected == null) return new Option(data, value, defaultSelected);
           return new Option(data, value, defaultSelected, selected);
       ''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _PeerConnection00FactoryProvider {
+  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) native
+      '''return new PeerConnection00(serverConfiguration, iceCallback);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19676,6 +19763,8 @@ interface Console {
 
   final MemoryInfo memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg);
 
   void count();
@@ -22537,6 +22626,13 @@ interface IFrameElement extends Element {
 
   SVGDocument getSVGDocument();
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24190,6 +24286,90 @@ interface ParamElement extends Element {
   String value;
 
   String valueType;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PeerConnection00 default _PeerConnection00FactoryProvider {
+
+  PeerConnection00(String serverConfiguration, IceCallback iceCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int ICE_CHECKING = 0x300;
+
+  static final int ICE_CLOSED = 0x700;
+
+  static final int ICE_COMPLETED = 0x500;
+
+  static final int ICE_CONNECTED = 0x400;
+
+  static final int ICE_FAILED = 0x600;
+
+  static final int ICE_GATHERING = 0x100;
+
+  static final int ICE_WAITING = 0x200;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  static final int SDP_ANSWER = 0x300;
+
+  static final int SDP_OFFER = 0x100;
+
+  static final int SDP_PRANSWER = 0x200;
+
+  final int iceState;
+
+  final SessionDescription localDescription;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final SessionDescription remoteDescription;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream, [String mediaStreamHints]);
+
+  void close();
+
+  SessionDescription createAnswer(String offer, [String mediaHints]);
+
+  SessionDescription createOffer([String mediaHints]);
+
+  bool dispatchEvent(Event event);
+
+  void processIceMessage(IceCandidate candidate);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void setLocalDescription(int action, SessionDescription desc);
+
+  void setRemoteDescription(int action, SessionDescription desc);
+
+  void startIce([String iceOptions]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27407,7 +27587,7 @@ interface ScriptProfileNode {
 
   final int callUID;
 
-  final List children;
+  final List<ScriptProfileNode> children;
 
   final String functionName;
 

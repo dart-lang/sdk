@@ -131,26 +131,26 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
   if 'frog' in systems:
     _logger.info('Copy dom_frog to frog/')
     subprocess.call(['cd ../generated ; '
-                     '../../tools/copy_dart.py ../frog dom_frog.dart'],
+                     '../../../client/tools/copy_dart.py ../frog dom_frog.dart'],
                     shell=True);
 
   if 'htmlfrog' in systems:
     _logger.info('Copy html_frog to ../html/frog/')
     subprocess.call(['cd ../../html/generated ; '
-                     '../../tools/copy_dart.py ../frog html_frog.dart'],
+                     '../../../client/tools/copy_dart.py ../frog html_frog.dart'],
                     shell=True);
 
   if 'htmldartium' in systems:
     _logger.info('Copy html_dartium to ../html/dartium/')
     subprocess.call(['cd ../../html/generated ; '
-                     '../../tools/copy_dart.py ../dartium html_dartium.dart'],
+                     '../../../client/tools/copy_dart.py ../dartium html_dartium.dart'],
                     shell=True);
 
   # Copy dummy DOM where dartc build expects it.
   if 'dummy' in systems:
     _logger.info('Copy dom_dummy to dom.dart')
     subprocess.call(['cd ../generated ; '
-                     '../../tools/copy_dart.py dummy dom_dummy.dart ;'
+                     '../../../client/tools/copy_dart.py dummy dom_dummy.dart ;'
                      'cp dummy/dom_dummy.dart ../dom.dart'],
                     shell=True);
 
