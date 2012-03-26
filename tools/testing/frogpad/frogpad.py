@@ -125,8 +125,8 @@ FROGDIR_ID = "frogdir_id"
 DART_LIBRARIES = {
     "core": "lib/corelib.dart",
     "coreimpl": "lib/corelib_impl.dart",
-    "dom": "../client/dom/frog/dom_frog.dart",
-    "html": "../client/html/frog/html_frog.dart",
+    "dom": "../lib/dom/frog/dom_frog.dart",
+    "html": "../lib/html/frog/html_frog.dart",
     "isolate": "../lib/isolate/isolate_frog.dart",
     "json": "../lib/json/json_frog.dart"
 }

@@ -27,9 +27,9 @@
 
   <property name="corelib.source.dir" value="${build.dir}/corelib"/>
 
-  <property name="domlib.source.dir" value="${build.dir}/../client/dom/"/>
+  <property name="domlib.source.dir" value="${build.dir}/../lib/dom/"/>
 
-  <property name="htmllib.source.dir" value="${build.dir}/../client/html/"/>
+  <property name="htmllib.source.dir" value="${build.dir}/../lib/html/"/>
 
   <property name="jsonlib.source.dir" value="${build.dir}/../lib/json/"/>
 
