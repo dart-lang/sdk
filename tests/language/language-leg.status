@@ -54,8 +54,6 @@ NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamedParametersTypeTest: Fail # Internal Error: Cannot find value
 NamingTest: Fail # Internal Error: Cannot find value
 NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
-NullToStringTest: Fail # Closurization of intercepted methods.
-NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 PseudoKWTest: Fail # Unexpected token '('
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
@@ -213,6 +211,7 @@ WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 TypeVMTest: Fail, OK # VM specific test.
 DisablePrivacyTest: Fail, OK # VM specific test.
+NumbersTest: Fail, OK # (unintended?) VM specific test.
 
 
 DivByZeroTest: Fail, OK # Leg only has doubles.

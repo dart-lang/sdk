@@ -117,6 +117,7 @@ LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
+Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int != double.
 
 
 #
@@ -180,7 +181,6 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # Expect.isTrue(fa
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
 Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t10: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
