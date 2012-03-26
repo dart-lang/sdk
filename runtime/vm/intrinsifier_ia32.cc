@@ -220,7 +220,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
       Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name));
   ASSERT(!cls.IsNull());
   ASSERT(cls.HasTypeArguments());
-  ASSERT(cls.NumTypeParameters() == 1);
+  ASSERT(cls.NumTypeArguments() == 1);
   const intptr_t field_offset = cls.type_arguments_instance_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   return field_offset;
@@ -238,7 +238,7 @@ static bool Array_setIndexed(Assembler* assembler) {
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     Label checked_ok;
-    __ movl(EAX, Address(ESP, + 1 * kWordSize));
+    __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
     __ cmpl(EAX, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
     __ testl(EAX, Immediate(kSmiTagMask));
@@ -262,7 +262,6 @@ static bool Array_setIndexed(Assembler* assembler) {
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     __ CompareObject(EAX, Type::ZoneHandle(Type::NumberInterface()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-    // TODO(srdjan): Check classes.
     __ Bind(&checked_ok);
   }
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
