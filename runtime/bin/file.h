@@ -102,7 +102,10 @@ class File {
   bool Truncate(int64_t length);
 
   // Flush contents of file.
-  void Flush();
+  bool Flush();
+
+  // Returns whether the file has been closed.
+  bool IsClosed();
 
   const char* name() const { return name_; }
 
@@ -134,7 +137,6 @@ class File {
  private:
   File(const char* name, FileHandle* handle) : name_(name), handle_(handle) { }
   void Close();
-  bool IsClosed();
 
   static const int kClosedFd = -1;
 

@@ -227,6 +227,7 @@ class _FileUtils {
   static final kSuccessResponse = 0;
   static final kIllegalArgumentResponse = 1;
   static final kOSErrorResponse = 2;
+  static final kFileClosedResponse = 3;
 
   static List ensureFastAndSerializableBuffer(
       List buffer, int offset, int bytes) {
@@ -261,25 +262,25 @@ class _FileUtils {
   static fullPath(String name) native "File_FullPath";
   static directory(String name) native "File_Directory";
   static int close(int id) native "File_Close";
-  static int readByte(int id) native "File_ReadByte";
-  static int readList(int id, List<int> buffer, int offset, int bytes)
+  static readByte(int id) native "File_ReadByte";
+  static readList(int id, List<int> buffer, int offset, int bytes)
       native "File_ReadList";
-  static int writeByte(int id, int value) native "File_WriteByte";
-  static int writeList(int id, List<int> buffer, int offset, int bytes) {
+  static writeByte(int id, int value) native "File_WriteByte";
+  static writeList(int id, List<int> buffer, int offset, int bytes) {
     List result =
         _FileUtils.ensureFastAndSerializableBuffer(buffer, offset, bytes);
     List outBuffer = result[0];
     int outOffset = result[1];
     return writeListNative(id, outBuffer, outOffset, bytes);
   }
-  static int writeListNative(int id, List<int> buffer, int offset, int bytes)
+  static writeListNative(int id, List<int> buffer, int offset, int bytes)
       native "File_WriteList";
-  static int writeString(int id, String string) native "File_WriteString";
-  static int position(int id) native "File_Position";
-  static bool setPosition(int id, int position) native "File_SetPosition";
-  static bool truncate(int id, int length) native "File_Truncate";
-  static int length(int id) native "File_Length";
-  static int flush(int id) native "File_Flush";
+  static writeString(int id, String string) native "File_WriteString";
+  static position(int id) native "File_Position";
+  static setPosition(int id, int position) native "File_SetPosition";
+  static truncate(int id, int length) native "File_Truncate";
+  static length(int id) native "File_Length";
+  static flush(int id) native "File_Flush";
   static int openStdio(int fd) native "File_OpenStdio";
   static SendPort newServicePort() native "File_NewServicePort";
 
@@ -363,11 +364,52 @@ class _FileUtils {
 
 }
 
+// Base class for _File and _RandomAccessFile with shared functions.
+class _FileBase {
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _FileUtils.kSuccessResponse;
+  }
+
+  bool _reportError(response, String message) {
+    assert(_isErrorResponse(response));
+    if (_onError != null) {
+      switch (response[0]) {
+        case _FileUtils.kIllegalArgumentResponse:
+          _onError(new IllegalArgumentException());
+          break;
+        case _FileUtils.kOSErrorResponse:
+          _onError(new FileIOException(message,
+                                       new OSError(response[2], response[1])));
+          break;
+        case _FileUtils.kFileClosedResponse:
+          _onError(new FileIOException("File closed"));
+          break;
+        default:
+          _onError(new Exception("Unknown error"));
+          break;
+      }
+    }
+  }
+
+  void set onError(void handler(Exception e)) {
+    _onError = handler;
+  }
+
+  _checkNotAsync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+  }
+
+  bool _asyncUsed = false;
+  Function _onError;
+}
 
 // Class for encapsulating the native implementation of files.
-class _File implements File {
+class _File extends _FileBase implements File {
   // Constructor for file.
-  _File(String this._name) : _asyncUsed = false;
+  _File(String this._name);
 
   void exists(void callback(bool exists)) {
     _ensureFileService();
@@ -385,10 +427,7 @@ class _File implements File {
   }
 
   bool existsSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     return _FileUtils.checkedExists(_name);
   }
 
@@ -408,10 +447,7 @@ class _File implements File {
   }
 
   void createSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     bool created = _FileUtils.checkedCreate(_name);
     if (!created) {
       throw new FileIOException("Cannot create file: $_name");
@@ -434,10 +470,7 @@ class _File implements File {
   }
 
   void deleteSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     _FileUtils.checkedDelete(_name);
   }
 
@@ -457,10 +490,7 @@ class _File implements File {
   }
 
   Directory directorySync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     _FileUtils.checkedDirectory(_name);
     return new Directory(_FileUtils.directory(_name));
   }
@@ -490,10 +520,7 @@ class _File implements File {
   }
 
   RandomAccessFile openSync([FileMode mode = FileMode.READ]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
@@ -529,10 +556,7 @@ class _File implements File {
   }
 
   String fullPathSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     return _FileUtils.checkedFullPath(_name);
   }
 
@@ -550,6 +574,7 @@ class _File implements File {
   }
 
   void readAsBytes(void callback(List<int> bytes)) {
+    _ensureFileService();
     _asyncUsed = true;
     var chunks = new _BufferList();
     var stream = openInputStream();
@@ -568,10 +593,7 @@ class _File implements File {
   }
 
   List<int> readAsBytesSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     var opened = openSync();
     var length = opened.lengthSync();
     var result = new ByteArray(length);
@@ -584,6 +606,7 @@ class _File implements File {
   }
 
   void readAsText(Encoding encoding, void callback(String text)) {
+    _ensureFileService();
     _asyncUsed = true;
     var decoder = _StringDecoders.decoder(encoding);
     readAsBytes((bytes) {
@@ -600,10 +623,7 @@ class _File implements File {
   }
 
   String readAsTextSync([Encoding encoding = Encoding.UTF_8]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
     decoder.write(bytes);
@@ -627,6 +647,7 @@ class _File implements File {
   }
 
   void readAsLines(Encoding encoding, void callback(List<String> lines)) {
+    _ensureFileService();
     _asyncUsed = true;
     var decoder = _StringDecoders.decoder(encoding);
     readAsBytes((bytes) {
@@ -643,10 +664,7 @@ class _File implements File {
   }
 
   List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     var decoder = _StringDecoders.decoder(encoding);
     List<int> bytes = readAsBytesSync();
     decoder.write(bytes);
@@ -655,48 +673,20 @@ class _File implements File {
 
   String get name() => _name;
 
-  void set onError(void handler(Exception error)) {
-    _onError = handler;
-  }
-
   void _ensureFileService() {
     if (_fileService == null) {
       _fileService = _FileUtils.newServicePort();
     }
   }
 
-  bool _isErrorResponse(response) {
-    return response is List && response[0] != _FileUtils.kSuccessResponse;
-  }
-
-  bool _reportError(response, String message) {
-    assert(_isErrorResponse(response));
-    if (_onError != null) {
-      switch (response[0]) {
-        case _FileUtils.kIllegalArgumentResponse:
-          _onError(new IllegalArgumentException());
-          break;
-        case _FileUtils.kOSErrorResponse:
-          _onError(new FileIOException(message,
-                                       new OSError(response[2], response[1])));
-          break;
-        default:
-          _onError(new Exception("Unknown error"));
-      }
-    }
-  }
-
   String _name;
-  bool _asyncUsed;
 
   SendPort _fileService;
-
-  Function _onError;
 }
 
 
-class _RandomAccessFile implements RandomAccessFile {
-  _RandomAccessFile(int this._id, String this._name) : _asyncUsed = false;
+class _RandomAccessFile extends _FileBase implements RandomAccessFile {
+  _RandomAccessFile(int this._id, String this._name);
 
   void close(void callback()) {
     if (_id == 0) return;
@@ -719,10 +709,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   void closeSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsync();
     var id = _FileUtils.close(_id);
     if (id == -1) {
       throw new FileIOException("Cannot close file: $_name");
@@ -736,23 +723,20 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kReadByteRequest;
     request[1] = _id;
-    _fileService.call(request).then((result) {
-      if (result != -1) {
-        callback(result);
-      } else if (_onError != null) {
-        _onError("readByte failed");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "readByte failed");
+      } else {
+        callback(response);
       }
     });
   }
 
   int readByteSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    int result = _FileUtils.readByte(_id);
-    if (result == -1) {
-      throw new FileIOException("readByte failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.readByte(_id);
+    if (result is OSError) {
+      throw new FileIOException("readByte failed", result);
     }
     return result;
   }
@@ -771,24 +755,20 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kReadListRequest;
     request[1] = _id;
     request[2] = bytes;
-    _fileService.call(request).then((result) {
-      if (result is List && result.length == 2 && result[0] != -1) {
-        var read = result[0];
-        var data = result[1];
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "readList failed");
+      } else {
+        var read = response[1];
+        var data = response[2];
         buffer.setRange(offset, read, data);
         callback(read);
-        return;
-      } else if (_onError != null) {
-        _onError(result is String ? result : "readList failed");
       }
     });
   }
 
   int readListSync(List<int> buffer, int offset, int bytes) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsyncAndNotClosed();
     if (buffer is !List || offset is !int || bytes is !int) {
       throw new FileIOException("Invalid arguments to readList");
     }
@@ -798,9 +778,9 @@ class _RandomAccessFile implements RandomAccessFile {
     if (index != 0) {
       throw new IndexOutOfRangeException(index);
     }
-    int result = _FileUtils.readList(_id, buffer, offset, bytes);
-    if (result == -1) {
-      throw new FileIOException("readList failed");
+    var result = _FileUtils.readList(_id, buffer, offset, bytes);
+    if (result is OSError) {
+      throw new FileIOException("readList failed", result);
     }
     return result;
   }
@@ -819,25 +799,22 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     request[2] = value;
     _writeEnqueued();
-    _fileService.call(request).then((result) {
+    _fileService.call(request).then((response) {
       _writeCompleted();
-      if (result == -1 && _onError !== null) {
-        _onError("writeByte failed");
+      if (_isErrorResponse(response)) {
+        _reportError(response, "writeByte failed");
       }
     });
   }
 
   int writeByteSync(int value) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsyncAndNotClosed();
     if (value is !int) {
       throw new FileIOException("Invalid argument to writeByte");
     }
-    int result = _FileUtils.writeByte(_id, value);
-    if (result == -1) {
-      throw new FileIOException("writeByte failed");
+    var result = _FileUtils.writeByte(_id, value);
+    if (result is OSError) {
+      throw new FileIOException("writeByte failed", result);
     }
     return result;
   }
@@ -864,19 +841,16 @@ class _RandomAccessFile implements RandomAccessFile {
     request[3] = outOffset;
     request[4] = bytes;
     _writeEnqueued();
-    _fileService.call(request).then((result) {
+    _fileService.call(request).then((response) {
       _writeCompleted();
-      if (result == -1 && _onError !== null) {
-        _onError("writeList failed");
+      if (_isErrorResponse(response)) {
+        _reportError(response, "writeList failed");
       }
     });
   }
 
   int writeListSync(List<int> buffer, int offset, int bytes) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
+    _checkNotAsyncAndNotClosed();
     if (buffer is !List || offset is !int || bytes is !int) {
       throw new FileIOException("Invalid arguments to writeList");
     }
@@ -886,9 +860,9 @@ class _RandomAccessFile implements RandomAccessFile {
     if (index != 0) {
       throw new IndexOutOfRangeException(index);
     }
-    int result = _FileUtils.writeList(_id, buffer, offset, bytes);
-    if (result == -1) {
-      throw new FileIOException("writeList failed");
+    var result = _FileUtils.writeList(_id, buffer, offset, bytes);
+    if (result is OSError) {
+      throw new FileIOException("writeList failed", result);
     }
     return result;
   }
@@ -901,22 +875,19 @@ class _RandomAccessFile implements RandomAccessFile {
     request[1] = _id;
     request[2] = string;
     _writeEnqueued();
-    _fileService.call(request).then((result) {
+    _fileService.call(request).then((response) {
       _writeCompleted();
-      if (result == -1 && _onError !== null) {
-        _onError("writeString failed");
+      if (_isErrorResponse(response)) {
+        _reportError(response, "writeString failed");
       }
     });
   }
 
   int writeStringSync(String string, [Encoding encoding = Encoding.UTF_8]) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    int result = _FileUtils.checkedWriteString(_id, string);
-    if (result == -1) {
-      throw new FileIOException("writeString failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.checkedWriteString(_id, string);
+    if (result is OSError) {
+      throw new FileIOException("writeString failed", result);
     }
     return result;
   }
@@ -927,23 +898,20 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kPositionRequest;
     request[1] = _id;
-    _fileService.call(request).then((result) {
-      if (result != -1) {
-        callback(result);
-      } else if (_onError != null) {
-        _onError("position failed");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "position failed");
+      } else {
+        callback(response);
       }
     });
   }
 
   int positionSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    int result = _FileUtils.position(_id);
-    if (result == -1) {
-      throw new FileIOException("position failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.position(_id);
+    if (result is OSError) {
+      throw new FileIOException("position failed", result);
     }
     return result;
   }
@@ -955,24 +923,20 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kSetPositionRequest;
     request[1] = _id;
     request[2] = position;
-    _fileService.call(request).then((result) {
-      if (result) {
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "setPosition failed");
+      } else {
         callback();
-      } else if (_onError != null) {
-        _onError("setPosition failed");
       }
     });
   }
 
   void setPositionSync(int position) {
-    _ensureFileService();
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    bool result = _FileUtils.setPosition(_id, position);
-    if (result == false) {
-      throw new FileIOException("setPosition failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.setPosition(_id, position);
+    if (result is OSError) {
+      throw new FileIOException("setPosition failed", result);
     }
   }
 
@@ -983,23 +947,20 @@ class _RandomAccessFile implements RandomAccessFile {
     request[0] = _FileUtils.kTruncateRequest;
     request[1] = _id;
     request[2] = length;
-    _fileService.call(request).then((result) {
-      if (result) {
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "truncate failed");
+      } else {
         callback();
-      } else if (_onError != null) {
-        _onError("truncate failed");
       }
     });
   }
 
   void truncateSync(int length) {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    bool result = _FileUtils.truncate(_id, length);
-    if (result == false) {
-      throw new FileIOException("truncate failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.truncate(_id, length);
+    if (result is OSError) {
+      throw new FileIOException("truncate failed", result);
     }
   }
 
@@ -1009,23 +970,20 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kLengthRequest;
     request[1] = _id;
-    _fileService.call(request).then((result) {
-      if (result != -1) {
-        callback(result);
-      } else if (_onError != null) {
-        _onError("length failed");
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "length failed");
+      } else {
+        callback(response);
       }
     });
   }
 
   int lengthSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    int result = _FileUtils.length(_id);
-    if (result == -1) {
-      throw new FileIOException("length failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.length(_id);
+    if (result is OSError) {
+      throw new FileIOException("length failed", result);
     }
     return result;
   }
@@ -1036,31 +994,24 @@ class _RandomAccessFile implements RandomAccessFile {
     List request = new List(2);
     request[0] = _FileUtils.kFlushRequest;
     request[1] = _id;
-    _fileService.call(request).then((result) {
-      if (result != -1) {
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "flush failed");
+      } else {
         callback();
-      } else if (_onError != null) {
-        _onError("flush failed");
       }
     });
   }
 
   void flushSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    int result = _FileUtils.flush(_id);
-    if (result == -1) {
-      throw new FileIOException("flush failed");
+    _checkNotAsyncAndNotClosed();
+    var result = _FileUtils.flush(_id);
+    if (result is OSError) {
+      throw new FileIOException("flush failed", result);
     }
   }
 
   String get name() => _name;
-
-  void set onError(void handler(String error)) {
-    _onError = handler;
-  }
 
   void set onNoPendingWrites(void handler()) {
     _onNoPendingWrites = handler;
@@ -1092,10 +1043,15 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
+  _checkNotAsyncAndNotClosed() {
+    _checkNotAsync();
+    if (_id == 0) {
+      throw new FileIOException("File closed");
+    }
+  }
 
   String _name;
   int _id;
-  bool _asyncUsed;
   int _pendingWrites = 0;
 
   SendPort _fileService;
@@ -1103,5 +1059,4 @@ class _RandomAccessFile implements RandomAccessFile {
   Timer _noPendingWriteTimer;
 
   Function _onNoPendingWrites;
-  Function _onError;
 }
