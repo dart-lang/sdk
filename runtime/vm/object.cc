@@ -5968,7 +5968,13 @@ const char* ContextScope::ToCString() const {
 
 
 const char* ICData::ToCString() const {
-  return "ICData";
+  const char* kFormat = "ICData target:%s";
+  const String& name = String::Handle(target_name());
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat, name.ToCString());
+  return chars;
 }
 
 

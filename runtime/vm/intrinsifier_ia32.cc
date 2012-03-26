@@ -220,8 +220,6 @@ static bool Array_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label fall_through;
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
   __ testl(EBX, Immediate(kSmiTagMask));

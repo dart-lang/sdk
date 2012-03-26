@@ -1343,6 +1343,8 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   // Operators "&&" and "||" cannot be overloaded, therefore inline them
   // instead of calling the operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
+    // TODO(srdjan): Test in checked mode if they are Booleans otherwise
+    // throw exception.
     if (FLAG_enable_type_checks) {
       CodeGenerator::VisitBinaryOpNode(node);
       return;
@@ -1410,11 +1412,16 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
+// Optimized for Smi only.
 void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   if (FLAG_enable_type_checks) {
-    classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
-    CodeGenerator::VisitIncrOpLocalNode(node);
-    return;
+    const AbstractType& local_type = node->local().type();
+    if (!local_type.IsNumberInterface() && !local_type.IsIntInterface()) {
+      // Local does not accept a Smi (only Smi's interfaces are public).
+      classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
+      CodeGenerator::VisitIncrOpLocalNode(node);
+      return;
+    }
   }
   const ICData& ic_data = node->ICDataAtId(node->id());
   if (ic_data.NumberOfChecks() == 0) {
@@ -3116,7 +3123,9 @@ void OptimizingCodeGenerator::VisitTryCatchNode(TryCatchNode* node) {
 
 
 void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
-  if (FLAG_enable_type_checks) {
+  // TODO(srdjan): Test in checked mode if value is Boolean, throw error
+  // otherwise.
+  if (FLAG_enable_type_checks && node->kind() == Token::kNOT) {
     CodeGenerator::VisitUnaryOpNode(node);
     return;
   }
