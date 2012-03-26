@@ -234,9 +234,6 @@ def MatchSourceFilter(filter, thing):
     return any(token in thing.annotations for token in filter)
 
 def DartType(idl_type_name):
-  match = re.match(r'sequence<(\w*)>$', idl_type_name)
-  if match:
-    return 'List<%s>' % GetIDLTypeInfo(match.group(1)).dart_type()
   return GetIDLTypeInfo(idl_type_name).dart_type()
 
 # Given a list of overloaded arguments, render a dart argument.
@@ -487,6 +484,11 @@ class IDLTypeInfo(object):
   def dart_type(self):
     if self._dart_type:
       return self._dart_type
+
+    match = re.match(r'sequence<(\w*)>$', self._idl_type)
+    if match:
+      return 'List<%s>' % DartType(match.group(1))
+
     return self._idl_type
 
   def native_type(self):
@@ -540,7 +542,13 @@ class IDLTypeInfo(object):
     return 'receiver->'
 
   def conversion_includes(self):
-    return ['"Dart%s.h"' % include for include in [self.dart_type()] + self._conversion_includes]
+    def NeededDartType(type_name):
+      match = re.match(r'List<(\w*)>$', type_name)
+      if match:
+        return NeededDartType(match.group(1))
+      return type_name
+
+    return ['"Dart%s.h"' % include for include in [NeededDartType(self.dart_type())] + self._conversion_includes]
 
   def conversion_cast(self, expression):
     if self._conversion_template:
