@@ -855,6 +855,9 @@ class AbstractType : public Object {
 // An unresolved class is a String specifying the class name.
 class Type : public AbstractType {
  public:
+  static intptr_t type_class_offset() {
+    return OFFSET_OF(RawType, type_class_);
+  }
   virtual bool IsFinalized() const {
     return raw_ptr()->type_state_ == RawType::kFinalized;
   }
@@ -1081,6 +1084,9 @@ class TypeArguments : public AbstractTypeArguments {
  public:
   virtual intptr_t Length() const;
   virtual RawAbstractType* TypeAt(intptr_t index) const;
+  static intptr_t type_at_offset(intptr_t index) {
+    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
+  }
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
