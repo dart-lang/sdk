@@ -5243,6 +5243,9 @@ RawError* Library::CompileAll() {
       cls ^= it.GetNextClass();
       if (!cls.is_interface()) {
         error = Compiler::CompileAllFunctions(cls);
+        if (!error.IsNull()) {
+          return error.raw();
+        }
       }
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
@@ -5250,6 +5253,9 @@ RawError* Library::CompileAll() {
       cls ^= anon_classes.At(i);
       ASSERT(!cls.is_interface());
       error = Compiler::CompileAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
     }
     lib = lib.next_registered();
   }

@@ -318,29 +318,19 @@ RawError* Compiler::CompileOptimizedFunction(const Function& function) {
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
   Error& error = Error::Handle();
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    Array& functions = Array::Handle(cls.functions());
-    Function& func = Function::Handle();
-    for (int i = 0; i < functions.Length(); i++) {
-      func ^= functions.At(i);
-      ASSERT(!func.IsNull());
-      if (!func.HasCode() && !func.IsAbstract()) {
-        const Error& error = Error::Handle(CompileFunction(func));
-        if (!error.IsNull()) {
-          return error.raw();
-        }
+  Array& functions = Array::Handle(cls.functions());
+  Function& func = Function::Handle();
+  for (int i = 0; i < functions.Length(); i++) {
+    func ^= functions.At(i);
+    ASSERT(!func.IsNull());
+    if (!func.HasCode() && !func.IsAbstract()) {
+      error = CompileFunction(func);
+      if (!error.IsNull()) {
+        return error.raw();
       }
     }
-  } else {
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
   }
-  isolate->set_long_jump_base(base);
   return error.raw();
 }
 
