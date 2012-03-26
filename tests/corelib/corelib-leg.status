@@ -10,10 +10,6 @@
 MathParseDoubleTest: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
 
 
-# Compilation errors.
-ConstListLiteralTest: Fail # visitContinueStatement not implemented
-
-
 # Bad test, assumes RegExp.allMatches returns a Collection.
 RegExpAllMatchesTest: Fail, OK # NoSuchMethodException : method not found: 'forEach'
 
