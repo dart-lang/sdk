@@ -226,12 +226,14 @@ interface RandomAccessFile {
 
   /**
    * Read a byte from the file. When the byte has been read the
-   * callback is called with the value.
+   * callback is called with the value. If end of file has been
+   * reached the value will be -1.
    */
   void readByte(void callback(int byte));
 
   /**
-   * Synchronously read a single byte from the file.
+   * Synchronously read a single byte from the file. If end of file
+   * has been reached -1 is returned.
    */
   int readByteSync();
 
@@ -361,7 +363,7 @@ interface RandomAccessFile {
    * Sets the handler that gets called when errors occur when
    * operating on this file.
    */
-  void set onError(void handler(String error));
+  void set onError(void handler(Exception e));
 }
 
 

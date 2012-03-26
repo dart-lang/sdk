@@ -82,9 +82,9 @@ bool File::Truncate(int64_t length) {
 }
 
 
-void File::Flush() {
+bool File::Flush() {
   ASSERT(handle_->fd());
-  _commit(handle_->fd());
+  return _commit(handle_->fd()) != -1;
 }
 
 

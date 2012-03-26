@@ -163,6 +163,8 @@ class CObject {
 
   // Create a new CObject array with an illegal arguments error.
   static CObject* IllegalArgumentError();
+  // Create a new CObject array with a file closed error.
+  static CObject* FileClosedError();
   // Create a new CObject array with the current OS error.
   static CObject* NewOSError();
   // Create a new CObject array with the specified OS error.

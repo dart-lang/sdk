@@ -37,13 +37,13 @@ def Main():
     return exit_code
 
   exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
-                        "domlib %(compiler)s/domlib_sources ../client/dom dom.dart"
+                        "domlib %(compiler)s/domlib_sources ../lib/dom dom.dart"
                         % locations)
   if exit_code:
     return exit_code
 
   exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
-                        "htmllib %(compiler)s/htmllib_sources ../client/html/release html.dart"
+                        "htmllib %(compiler)s/htmllib_sources ../lib/html/release html.dart"
                         % locations)
   if exit_code:
     return exit_code

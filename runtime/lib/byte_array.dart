@@ -164,8 +164,12 @@ class _ByteArrayBase {
     return list;
   }
 
-
   // Implementation
+
+  static final int _UINT8_MAX = (1 << 8) - 1;
+  static final int _UINT16_MAX = (1 << 16) - 1;
+  static final int _UINT32_MAX = (1 << 32) - 1;
+  static final int _UINT64_MAX = (1 << 64) - 1;
 
   int _toInt(int value, int mask) {
     int result = value & mask;
@@ -173,35 +177,35 @@ class _ByteArrayBase {
   }
 
   int _toInt8(int value) {
-    return _toInt(value, (1 << 8) - 1);  // TODO(cshapiro): use a named value
+    return _toInt(value, _UINT8_MAX);
   }
 
   int _toUint8(int value) {
-    return value & ((1 << 8) - 1);  // TODO(cshapiro): use a named value
+    return value & _UINT8_MAX;
   }
 
   int _toInt16(int value) {
-    return _toInt(value, (1 << 16) - 1);  // TODO(cshapiro): use a named value
+    return _toInt(value, _UINT16_MAX);
   }
 
   int _toUint16(int value) {
-    return value & ((1 << 16) - 1);  // TODO(cshapiro): use a named value
+    return value & _UINT16_MAX;
   }
 
   int _toInt32(int value) {
-    return _toInt(value, (1 << 32) - 1);  // TODO(cshapiro): use a named value
+    return _toInt(value, _UINT32_MAX);
   }
 
   int _toUint32(int value) {
-    return value & ((1 << 32) - 1);  // TODO(cshapiro): use a named value
+    return value & _UINT32_MAX;
   }
 
   int _toInt64(int value) {
-    return _toInt(value, (1 << 64) - 1);  // TODO(cshapiro): use a named value
+    return _toInt(value, _UINT64_MAX);
   }
 
   int _toUint64(int value) {
-    return value & ((1 << 64) - 1);  // TODO(cshapiro): use a named value
+    return value & _UINT64_MAX;
   }
 
   int _length() native "ByteArray_getLength";

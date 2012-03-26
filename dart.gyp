@@ -44,10 +44,10 @@
             '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
             # TODO(dgrove) - change these to dependencies and add dom
             # dependences once issues 754 and 755 are fixed
-            'client/html/html_frog.dart',
-            'client/html/html_dartium.dart',
-            'client/dom/dom.dart',
-            'client/dom/src',
+            'lib/html/html_frog.dart',
+            'lib/html/html_dartium.dart',
+            'lib/dom/dom.dart',
+            'lib/dom/src',
             'frog/scripts/bootstrap/frogc',
             'tools/create_sdk.py',
           ],

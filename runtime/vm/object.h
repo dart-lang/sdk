@@ -2749,6 +2749,7 @@ class Bigint : public Integer {
     *ChunkAddr(i) = newValue;
   }
 
+  // Returns the number of chunks in use.
   intptr_t Length() const {
     intptr_t signed_length = raw_ptr()->signed_length_;
     return Utils::Abs(signed_length);

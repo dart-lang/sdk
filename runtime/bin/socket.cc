@@ -211,6 +211,8 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
     DartUtils::SetIntegerField(
         socketobj, DartUtils::kIdFieldName, newSocket);
     Dart_SetReturnValue(args, Dart_True());
+  } else if (newSocket == ServerSocket::kTemporaryFailure) {
+    Dart_SetReturnValue(args, Dart_False());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }

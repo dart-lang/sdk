@@ -11,7 +11,7 @@ var isolate$inits = [];
 var isolate$globalThis = this;
 
 // These declarations are needed to avoid errors from the Closure Compiler
-// optimizer. They are defined in client/dom/generated/dart_dom_wrapping.js.
+// optimizer. They are defined in lib/dom/generated/dart_dom_wrapping.js.
 var __dom_wrap;
 var __dom_unwrap;
 

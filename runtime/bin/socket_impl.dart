@@ -292,8 +292,12 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
       var result = _accept(socket);
       if (result is OSError) {
         _reportError(result, "Accept failed");
-      } else {
+      } else if (result) {
         _clientConnectionHandler(socket);
+      } else {
+        // Temporary failure accepting the connection. Ignoring
+        // temporary failures lets us retry when we wake up with data
+        // on the listening socket again.
       }
     }
   }

@@ -45,6 +45,8 @@ class Socket {
 
 class ServerSocket {
  public:
+  static const intptr_t kTemporaryFailure = -2;
+
   static intptr_t Accept(intptr_t fd);
   static intptr_t CreateBindListen(const char* bindAddress,
                                    intptr_t port,

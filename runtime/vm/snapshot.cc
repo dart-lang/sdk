@@ -5,6 +5,7 @@
 #include "vm/snapshot.h"
 
 #include "platform/assert.h"
+#include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
@@ -240,6 +241,18 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
       AllocateUninitialized(cls_, Mint::InstanceSize()));
   obj->ptr()->value_ = value;
   return obj;
+}
+
+
+RawBigint* SnapshotReader::NewBigint(const char* hex_string) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->bigint_class();
+  intptr_t bigint_length = BigintOperations::ComputeChunkLength(hex_string);
+  const Bigint& result = Bigint::Handle(reinterpret_cast<RawBigint*>(
+      AllocateUninitialized(cls_, Bigint::InstanceSize(bigint_length))));
+  BigintOperations::FromHexCString(hex_string, result);
+  return result.raw();
 }
 
 

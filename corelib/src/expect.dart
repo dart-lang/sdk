@@ -56,7 +56,7 @@ class Expect {
   static void identical(var expected, var actual, [String reason = null]) {
     if (expected === actual) return;
     String msg = _getMessage(reason);
-    _fail("Expect.identical(expected: <$expected>, actual: <$actual>$msg) " +
+    _fail("Expect.identical(expected: <$expected>, actual: <$actual>$msg) "
           "fails.");
   }
 
@@ -81,14 +81,14 @@ class Expect {
     if ((expected - actual).abs() <= tolerance) return;
 
     String msg = _getMessage(reason);
-    _fail('Expect.approxEquals(expected:<$expected>, actual:<$actual>, ' +
+    _fail('Expect.approxEquals(expected:<$expected>, actual:<$actual>, '
           'tolerance:<$tolerance>$msg) fails');
   }
 
   static void notEquals(unexpected, actual, [String reason = null]) {
     if (unexpected != actual) return;
     String msg = _getMessage(reason);
-    _fail("Expect.notEquals(unexpected: <$unexpected>, actual:<$actual>$msg) " +
+    _fail("Expect.notEquals(unexpected: <$unexpected>, actual:<$actual>$msg) "
           "fails.");
   }
 
@@ -103,15 +103,15 @@ class Expect {
     int n = Math.min(expected.length, actual.length);
     for (int i = 0; i < n; i++) {
       if (expected[i] != actual[i]) {
-        _fail('Expect.listEquals(at index $i, ' +
+        _fail('Expect.listEquals(at index $i, '
               'expected: <${expected[i]}>, actual: <${actual[i]}>$msg) fails');
       }
     }
     // We check on length at the end in order to provide better error
     // messages when an unexpected item is inserted in a list.
     if (expected.length != actual.length) {
-      _fail('Expect.listEquals(list length, ' +
-        'expected: <${expected.length}>, actual: <${actual.length}>$msg) ' +
+      _fail('Expect.listEquals(list length, '
+        'expected: <${expected.length}>, actual: <${actual.length}>$msg) '
         'fails');
     }
   }

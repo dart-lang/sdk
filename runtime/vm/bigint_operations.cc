@@ -119,6 +119,15 @@ RawBigint* BigintOperations::NewFromCString(const char* str,
 }
 
 
+intptr_t BigintOperations::ComputeChunkLength(const char* hex_string) {
+  ASSERT(kDigitBitSize % 4 == 0);
+  intptr_t hex_length = strlen(hex_string);
+  // Round up.
+  intptr_t bigint_length = ((hex_length - 1) / kHexCharsPerDigit) + 1;
+  return bigint_length;
+}
+
+
 RawBigint* BigintOperations::FromHexCString(const char* hex_string,
                                             Heap::Space space) {
   // If the string starts with '-' recursively restart the whole operation
@@ -134,39 +143,9 @@ RawBigint* BigintOperations::FromHexCString(const char* hex_string,
     ASSERT(IsClamped(value));
     return value.raw();
   }
-
-  ASSERT(kDigitBitSize % 4 == 0);
-  const int kHexCharsPerDigit = kDigitBitSize / 4;
-
-  intptr_t hex_length = strlen(hex_string);
-  // Round up.
-  intptr_t bigint_length = ((hex_length - 1) / kHexCharsPerDigit) + 1;
-  const Bigint& result =
-      Bigint::Handle(Bigint::Allocate(bigint_length, space));
-  // The bigint's least significant digit (lsd) is at position 0, whereas the
-  // given string has it's lsd at the last position.
-  // The hex_i index, pointing into the string, starts therefore at the end,
-  // whereas the bigint-index (i) starts at 0.
-  intptr_t hex_i = hex_length - 1;
-  for (intptr_t i = 0; i < bigint_length; i++) {
-    Chunk digit = 0;
-    int shift = 0;
-    for (int j = 0; j < kHexCharsPerDigit; j++) {
-      // Reads a block of hexadecimal digits and stores it in 'digit'.
-      // Ex: "0123456" with kHexCharsPerDigit == 3, hex_i == 6, reads "456".
-      if (hex_i < 0) {
-        break;
-      }
-      ASSERT(hex_i >= 0);
-      char c = hex_string[hex_i--];
-      ASSERT(Utils::IsHexDigit(c));
-      digit += static_cast<Chunk>(Utils::HexDigitToInt(c)) << shift;
-      shift += 4;
-    }
-    result.SetChunkAt(i, digit);
-  }
-  ASSERT(hex_i == -1);
-  Clamp(result);
+  intptr_t bigint_length = ComputeChunkLength(hex_string);
+  const Bigint& result = Bigint::Handle(Bigint::Allocate(bigint_length, space));
+  FromHexCString(hex_string, result);
   return result.raw();
 }
 
@@ -262,7 +241,6 @@ const char* BigintOperations::ToHexCString(intptr_t length,
   NoGCScope no_gc;
 
   ASSERT(kDigitBitSize % 4 == 0);
-  const int kHexCharsPerDigit = kDigitBitSize / 4;
 
   intptr_t chunk_length = length;
   Chunk* chunk_data = reinterpret_cast<Chunk*>(data);
@@ -1138,6 +1116,38 @@ int BigintOperations::Compare(const Bigint& a, const Bigint& b) {
     return -UnsignedCompare(a, b);
   }
   return UnsignedCompare(a, b);
+}
+
+
+void BigintOperations::FromHexCString(const char* hex_string,
+                                      const Bigint& value) {
+  ASSERT(hex_string[0] != '-');
+  intptr_t bigint_length = ComputeChunkLength(hex_string);
+  // The bigint's least significant digit (lsd) is at position 0, whereas the
+  // given string has it's lsd at the last position.
+  // The hex_i index, pointing into the string, starts therefore at the end,
+  // whereas the bigint-index (i) starts at 0.
+  intptr_t hex_length = strlen(hex_string);
+  intptr_t hex_i = hex_length - 1;
+  for (intptr_t i = 0; i < bigint_length; i++) {
+    Chunk digit = 0;
+    int shift = 0;
+    for (int j = 0; j < kHexCharsPerDigit; j++) {
+      // Reads a block of hexadecimal digits and stores it in 'digit'.
+      // Ex: "0123456" with kHexCharsPerDigit == 3, hex_i == 6, reads "456".
+      if (hex_i < 0) {
+        break;
+      }
+      ASSERT(hex_i >= 0);
+      char c = hex_string[hex_i--];
+      ASSERT(Utils::IsHexDigit(c));
+      digit += static_cast<Chunk>(Utils::HexDigitToInt(c)) << shift;
+      shift += 4;
+    }
+    value.SetChunkAt(i, digit);
+  }
+  ASSERT(hex_i == -1);
+  Clamp(value);
 }
 
 

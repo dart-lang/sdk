@@ -243,6 +243,7 @@ _wrap(raw) {
     case "IDBVersionChangeEvent": return new _IDBVersionChangeEventImpl._wrap(domObject);
     case "IDBVersionChangeRequest": return new _IDBVersionChangeRequestImpl._wrap(domObject);
     case "HTMLIFrameElement": return new _IFrameElementImpl._wrap(domObject);
+    case "IceCandidate": return new _IceCandidateImpl._wrap(domObject);
     case "ImageData": return new _ImageDataImpl._wrap(domObject);
     case "HTMLImageElement": return new _ImageElementImpl._wrap(domObject);
     case "HTMLInputElement": return new _InputElementImpl._wrap(domObject);
@@ -486,6 +487,7 @@ _wrap(raw) {
     case "ScriptProfile": return new _ScriptProfileImpl._wrap(domObject);
     case "ScriptProfileNode": return new _ScriptProfileNodeImpl._wrap(domObject);
     case "HTMLSelectElement": return new _SelectElementImpl._wrap(domObject);
+    case "SessionDescription": return new _SessionDescriptionImpl._wrap(domObject);
     case "HTMLShadowElement": return new _ShadowElementImpl._wrap(domObject);
     case "ShadowRoot": return new _ShadowRootImpl._wrap(domObject);
     case "SharedWorker": return new _SharedWorkerImpl._wrap(domObject);
@@ -497,6 +499,7 @@ _wrap(raw) {
     case "SpeechInputEvent": return new _SpeechInputEventImpl._wrap(domObject);
     case "SpeechInputResult": return new _SpeechInputResultImpl._wrap(domObject);
     case "SpeechInputResultList": return new _SpeechInputResultListImpl._wrap(domObject);
+    case "SpeechRecognition": return new _SpeechRecognitionImpl._wrap(domObject);
     case "SpeechRecognitionAlternative": return new _SpeechRecognitionAlternativeImpl._wrap(domObject);
     case "SpeechRecognitionError": return new _SpeechRecognitionErrorImpl._wrap(domObject);
     case "SpeechRecognitionEvent": return new _SpeechRecognitionEventImpl._wrap(domObject);
@@ -929,6 +932,8 @@ class _AudioBufferSourceNodeImpl extends _AudioSourceNodeImpl implements AudioBu
 
   AudioParam get playbackRate() => _wrap(_ptr.playbackRate);
 
+  int get playbackState() => _wrap(_ptr.playbackState);
+
   void noteGrainOn(num when, num grainOffset, num grainDuration) {
     _ptr.noteGrainOn(_unwrap(when), _unwrap(grainOffset), _unwrap(grainDuration));
     return;
@@ -955,6 +960,8 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
 
 class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
   _AudioContextImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get activeSourceCount() => _wrap(_ptr.activeSourceCount);
 
   num get currentTime() => _wrap(_ptr.currentTime);
 
@@ -5659,8 +5666,6 @@ class _ConsoleImpl extends _DOMTypeBase implements Console {
 
   MemoryInfo get memory() => _wrap(_ptr.memory);
 
-  List get profiles() => _wrap(_ptr.profiles);
-
   void assertCondition(bool condition, Object arg) {
     _ptr.assertCondition(_unwrap(condition), _unwrap(arg));
     return;
@@ -6808,6 +6813,10 @@ class _DocumentImpl extends _ElementImpl
 
   bool get webkitFullScreenKeyboardInputAllowed() => _wrap(_documentPtr.webkitFullScreenKeyboardInputAllowed);
 
+  Element get webkitFullscreenElement() => _wrap(_documentPtr.webkitFullscreenElement);
+
+  bool get webkitFullscreenEnabled() => _wrap(_documentPtr.webkitFullscreenEnabled);
+
   bool get webkitHidden() => _wrap(_documentPtr.webkitHidden);
 
   bool get webkitIsFullScreen() => _wrap(_documentPtr.webkitIsFullScreen);
@@ -6888,6 +6897,11 @@ class _DocumentImpl extends _ElementImpl
 
   void webkitCancelFullScreen() {
     _documentPtr.webkitCancelFullScreen();
+    return;
+  }
+
+  void webkitExitFullscreen() {
+    _documentPtr.webkitExitFullscreen();
     return;
   }
 
@@ -7276,6 +7290,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   void scrollByPages(int pages) {}
   void scrollIntoView([bool centerIfNeeded]) {}
   void webkitRequestFullScreen(int flags) {}
+  void webkitRequestFullscreen() {}
 
   // Setters throw errors rather than being no-ops because we aren't going to
   // retain the values that were set, and erroring out seems clearer.
@@ -8164,6 +8179,11 @@ class _ElementImpl extends _NodeImpl implements Element {
     return;
   }
 
+  void webkitRequestFullscreen() {
+    _ptr.webkitRequestFullscreen();
+    return;
+  }
+
 }
 
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
@@ -8812,10 +8832,6 @@ class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement {
 
 class _FileImpl extends _BlobImpl implements File {
   _FileImpl._wrap(ptr) : super._wrap(ptr);
-
-  String get fileName() => _wrap(_ptr.fileName);
-
-  int get fileSize() => _wrap(_ptr.fileSize);
 
   Date get lastModifiedDate() => _wrap(_ptr.lastModifiedDate);
 
@@ -10309,6 +10325,16 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
 
   SVGDocument getSVGDocument() {
     return _wrap(_ptr.getSVGDocument());
+  }
+}
+
+class _IceCandidateImpl extends _DOMTypeBase implements IceCandidate {
+  _IceCandidateImpl._wrap(ptr) : super._wrap(ptr);
+
+  String get label() => _wrap(_ptr.label);
+
+  String toSdp() {
+    return _wrap(_ptr.toSdp());
   }
 }
 
@@ -11893,8 +11919,6 @@ class _MetadataImpl extends _DOMTypeBase implements Metadata {
 class _MeterElementImpl extends _ElementImpl implements MeterElement {
   _MeterElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  FormElement get form() => _wrap(_ptr.form);
-
   num get high() => _wrap(_ptr.high);
 
   void set high(num value) { _ptr.high = _unwrap(value); }
@@ -12541,8 +12565,6 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
   EventListenerList get close() => _get('close');
 
-  EventListenerList get display() => _get('display');
-
   EventListenerList get error() => _get('error');
 
   EventListenerList get show() => _get('show');
@@ -12967,8 +12989,6 @@ class _ProcessingInstructionImpl extends _NodeImpl implements ProcessingInstruct
 
 class _ProgressElementImpl extends _ElementImpl implements ProgressElement {
   _ProgressElementImpl._wrap(ptr) : super._wrap(ptr);
-
-  FormElement get form() => _wrap(_ptr.form);
 
   NodeList get labels() => _wrap(_ptr.labels);
 
@@ -17460,6 +17480,10 @@ class _ScriptElementImpl extends _ElementImpl implements ScriptElement {
 
   void set charset(String value) { _ptr.charset = _unwrap(value); }
 
+  String get crossOrigin() => _wrap(_ptr.crossOrigin);
+
+  void set crossOrigin(String value) { _ptr.crossOrigin = _unwrap(value); }
+
   bool get defer() => _wrap(_ptr.defer);
 
   void set defer(bool value) { _ptr.defer = _unwrap(value); }
@@ -17588,6 +17612,19 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement {
   void setCustomValidity(String error) {
     _ptr.setCustomValidity(_unwrap(error));
     return;
+  }
+}
+
+class _SessionDescriptionImpl extends _DOMTypeBase implements SessionDescription {
+  _SessionDescriptionImpl._wrap(ptr) : super._wrap(ptr);
+
+  void addCandidate(IceCandidate candidate) {
+    _ptr.addCandidate(_unwrap(candidate));
+    return;
+  }
+
+  String toSdp() {
+    return _wrap(_ptr.toSdp());
   }
 }
 
@@ -17722,6 +17759,85 @@ class _SpeechInputResultListImpl extends _DOMTypeBase implements SpeechInputResu
 
   SpeechInputResult item(int index) {
     return _wrap(_ptr.item(_unwrap(index)));
+  }
+}
+
+class _SpeechRecognitionImpl extends _DOMTypeBase implements SpeechRecognition {
+  _SpeechRecognitionImpl._wrap(ptr) : super._wrap(ptr);
+
+  bool get continuous() => _wrap(_ptr.continuous);
+
+  void set continuous(bool value) { _ptr.continuous = _unwrap(value); }
+
+  SpeechGrammarList get grammars() => _wrap(_ptr.grammars);
+
+  void set grammars(SpeechGrammarList value) { _ptr.grammars = _unwrap(value); }
+
+  String get lang() => _wrap(_ptr.lang);
+
+  void set lang(String value) { _ptr.lang = _unwrap(value); }
+
+  EventListener get onaudioend() => _wrap(_ptr.onaudioend);
+
+  void set onaudioend(EventListener value) { _ptr.onaudioend = _unwrap(value); }
+
+  EventListener get onaudiostart() => _wrap(_ptr.onaudiostart);
+
+  void set onaudiostart(EventListener value) { _ptr.onaudiostart = _unwrap(value); }
+
+  EventListener get onend() => _wrap(_ptr.onend);
+
+  void set onend(EventListener value) { _ptr.onend = _unwrap(value); }
+
+  EventListener get onerror() => _wrap(_ptr.onerror);
+
+  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
+
+  EventListener get onnomatch() => _wrap(_ptr.onnomatch);
+
+  void set onnomatch(EventListener value) { _ptr.onnomatch = _unwrap(value); }
+
+  EventListener get onresult() => _wrap(_ptr.onresult);
+
+  void set onresult(EventListener value) { _ptr.onresult = _unwrap(value); }
+
+  EventListener get onresultdeleted() => _wrap(_ptr.onresultdeleted);
+
+  void set onresultdeleted(EventListener value) { _ptr.onresultdeleted = _unwrap(value); }
+
+  EventListener get onsoundend() => _wrap(_ptr.onsoundend);
+
+  void set onsoundend(EventListener value) { _ptr.onsoundend = _unwrap(value); }
+
+  EventListener get onsoundstart() => _wrap(_ptr.onsoundstart);
+
+  void set onsoundstart(EventListener value) { _ptr.onsoundstart = _unwrap(value); }
+
+  EventListener get onspeechend() => _wrap(_ptr.onspeechend);
+
+  void set onspeechend(EventListener value) { _ptr.onspeechend = _unwrap(value); }
+
+  EventListener get onspeechstart() => _wrap(_ptr.onspeechstart);
+
+  void set onspeechstart(EventListener value) { _ptr.onspeechstart = _unwrap(value); }
+
+  EventListener get onstart() => _wrap(_ptr.onstart);
+
+  void set onstart(EventListener value) { _ptr.onstart = _unwrap(value); }
+
+  void abort() {
+    _ptr.abort();
+    return;
+  }
+
+  void start() {
+    _ptr.start();
+    return;
+  }
+
+  void stop() {
+    _ptr.stop();
+    return;
   }
 }
 
@@ -21521,6 +21637,14 @@ class _FileReaderSyncFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _IceCandidateFactoryProvider {
+  factory IceCandidate(String label, String candidateLine) =>
+      _wrap(new dom.IceCandidate(_unwrap(label), _unwrap(candidateLine)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _MediaControllerFactoryProvider {
   factory MediaController() =>
       _wrap(new dom.MediaController());
@@ -21553,6 +21677,14 @@ class _OptionElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _SessionDescriptionFactoryProvider {
+  factory SessionDescription(String sdp) =>
+      _wrap(new dom.SessionDescription(_unwrap(sdp)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _ShadowRootFactoryProvider {
   factory ShadowRoot(Element host) =>
       _wrap(new dom.ShadowRoot(_unwrap(host)));
@@ -21580,6 +21712,14 @@ class _SpeechGrammarFactoryProvider {
 class _SpeechGrammarListFactoryProvider {
   factory SpeechGrammarList() =>
       _wrap(new dom.SpeechGrammarList());
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _SpeechRecognitionFactoryProvider {
+  factory SpeechRecognition() =>
+      _wrap(new dom.SpeechRecognition());
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21908,6 +22048,14 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
+  static final int FINISHED_STATE = 3;
+
+  static final int PLAYING_STATE = 2;
+
+  static final int SCHEDULED_STATE = 1;
+
+  static final int UNSCHEDULED_STATE = 0;
+
   AudioBuffer buffer;
 
   final AudioGain gain;
@@ -21917,6 +22065,8 @@ interface AudioBufferSourceNode extends AudioSourceNode {
   bool looping;
 
   final AudioParam playbackRate;
+
+  final int playbackState;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 
@@ -21947,6 +22097,8 @@ interface AudioChannelSplitter extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 interface AudioContext {
+
+  final int activeSourceCount;
 
   final num currentTime;
 
@@ -24983,8 +25135,6 @@ interface Console {
 
   final MemoryInfo memory;
 
-  final List profiles;
-
   void assertCondition(bool condition, Object arg);
 
   void count();
@@ -25804,6 +25954,10 @@ interface Document extends HtmlElement {
 
   final bool webkitFullScreenKeyboardInputAllowed;
 
+  final Element webkitFullscreenElement;
+
+  final bool webkitFullscreenEnabled;
+
   final bool webkitHidden;
 
   final bool webkitIsFullScreen;
@@ -25837,6 +25991,8 @@ interface Document extends HtmlElement {
   String queryCommandValue(String command);
 
   void webkitCancelFullScreen();
+
+  void webkitExitFullscreen();
 
   WebKitNamedFlow webkitGetFlowByName(String name);
 
@@ -26379,6 +26535,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void webkitRequestFullScreen(int flags);
 
+  void webkitRequestFullscreen();
+
 }
 
 interface ElementEvents extends Events {
@@ -26865,10 +27023,6 @@ interface FieldSetElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface File extends Blob {
-
-  final String fileName;
-
-  final int fileSize;
 
   final Date lastModifiedDate;
 
@@ -27848,6 +28002,20 @@ interface IFrameElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface IceCandidate default _IceCandidateFactoryProvider {
+
+  IceCandidate(String label, String candidateLine);
+
+  final String label;
+
+  String toSdp();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface ImageData {
 
   final CanvasPixelArray data;
@@ -28799,8 +28967,6 @@ typedef bool MetadataCallback(Metadata metadata);
 
 interface MeterElement extends Element {
 
-  final FormElement form;
-
   num high;
 
   final NodeList labels;
@@ -29205,8 +29371,6 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
-
-  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -29659,8 +29823,6 @@ interface ProcessingInstruction extends Node {
 // WARNING: Do not edit - generated code.
 
 interface ProgressElement extends Element {
-
-  final FormElement form;
 
   final NodeList labels;
 
@@ -32668,6 +32830,8 @@ interface ScriptElement extends Element {
 
   String charset;
 
+  String crossOrigin;
+
   bool defer;
 
   String event;
@@ -32769,6 +32933,20 @@ interface SelectElement extends Element {
   Node namedItem(String name);
 
   void setCustomValidity(String error);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SessionDescription default _SessionDescriptionFactoryProvider {
+
+  SessionDescription(String sdp);
+
+  void addCandidate(IceCandidate candidate);
+
+  String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32920,6 +33098,52 @@ interface SpeechInputResultList {
   final int length;
 
   SpeechInputResult item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+
+  SpeechRecognition();
+
+  bool continuous;
+
+  SpeechGrammarList grammars;
+
+  String lang;
+
+  EventListener onaudioend;
+
+  EventListener onaudiostart;
+
+  EventListener onend;
+
+  EventListener onerror;
+
+  EventListener onnomatch;
+
+  EventListener onresult;
+
+  EventListener onresultdeleted;
+
+  EventListener onsoundend;
+
+  EventListener onsoundstart;
+
+  EventListener onspeechend;
+
+  EventListener onspeechstart;
+
+  EventListener onstart;
+
+  void abort();
+
+  void start();
+
+  void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

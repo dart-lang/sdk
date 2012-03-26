@@ -3925,17 +3925,23 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   }
   intptr_t function_pos = token_index_;
 
-  // Check whether we have parsed this closure before, in a previous
+  // Check whether we have parsed this closure function before, in a previous
   // compilation. If so, reuse the function object, else create a new one
   // and register it in the current class.
+  // Note that we cannot share the same closure function between the closurized
+  // and non-closurized versions of the same parent function.
   Function& function = Function::ZoneHandle();
   bool is_new_closure = false;
+  // TODO(hausner): There could be two different closures at the given
+  // function_pos, one enclosed in a closurized function and one enclosed in the
+  // non-closurized version of this same function.
   function = current_class().LookupClosureFunction(function_pos);
-  if (function.IsNull() || (function.token_index() != function_pos)) {
+  if (function.IsNull() || (function.token_index() != function_pos) ||
+      (function.parent_function() != current_function().raw())) {
     is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
-                                          current_function(),
-                                          function_pos);
+                                            current_function(),
+                                            function_pos);
     function.set_result_type(result_type);
     current_class().AddClosureFunction(function);
   }

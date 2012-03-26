@@ -244,7 +244,7 @@ def Main(argv):
   #
   # Create and populate lib/html.
   #
-  html_src_dir = join(HOME, 'client', 'html')
+  html_src_dir = join(HOME, 'lib', 'html')
   html_dest_dir = join(LIB, 'html')
   os.makedirs(html_dest_dir)
 
@@ -256,7 +256,7 @@ def Main(argv):
   #
   # Create and populate lib/dom.
   #
-  dom_src_dir = join(HOME, 'client', 'dom')
+  dom_src_dir = join(HOME, 'lib', 'dom')
   dom_dest_dir = join(LIB, 'dom')
   os.makedirs(dom_dest_dir)
 

@@ -5243,6 +5243,9 @@ RawError* Library::CompileAll() {
       cls ^= it.GetNextClass();
       if (!cls.is_interface()) {
         error = Compiler::CompileAllFunctions(cls);
+        if (!error.IsNull()) {
+          return error.raw();
+        }
       }
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
@@ -5250,6 +5253,9 @@ RawError* Library::CompileAll() {
       cls ^= anon_classes.At(i);
       ASSERT(!cls.is_interface());
       error = Compiler::CompileAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
     }
     lib = lib.next_registered();
   }
@@ -5962,7 +5968,13 @@ const char* ContextScope::ToCString() const {
 
 
 const char* ICData::ToCString() const {
-  return "ICData";
+  const char* kFormat = "ICData target:%s";
+  const String& name = String::Handle(target_name());
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat, name.ToCString());
+  return chars;
 }
 
 
@@ -6923,8 +6935,8 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
     RawObject* raw = Object::Allocate(cls, Bigint::InstanceSize(length), space);
     NoGCScope no_gc;
     result ^= raw;
-    result.raw_ptr()->allocated_length_ = length;
-    result.raw_ptr()->signed_length_ = length;
+    result.raw_ptr()->allocated_length_ = length;  // Chunk length allocated.
+    result.raw_ptr()->signed_length_ = length;  // Chunk length in use.
   }
   return result.raw();
 }

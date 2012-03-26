@@ -13,20 +13,20 @@ class JSRegExpMatch implements Match {
     return _end(0);
   }
 
-  int _start(int group) {
-    return _match[(group * MATCH_PAIR)];
+  int _start(int groupIdx) {
+    return _match[(groupIdx * MATCH_PAIR)];
   }
 
-  int _end(int group) {
-    return _match[(group * MATCH_PAIR) + 1];
+  int _end(int groupIdx) {
+    return _match[(groupIdx * MATCH_PAIR) + 1];
   }
 
-  String group(int group) {
-    if (group < 0 || group > regexp._groupCount) {
-      throw new IndexOutOfRangeException(group);
+  String group(int groupIdx) {
+    if (groupIdx < 0 || groupIdx > regexp._groupCount) {
+      throw new IndexOutOfRangeException(groupIdx);
     }
-    int startIndex = _start(group);
-    int endIndex = _end(group);
+    int startIndex = _start(groupIdx);
+    int endIndex = _end(groupIdx);
     if (startIndex == -1) {
       assert(endIndex == -1);
       return null;
@@ -34,14 +34,14 @@ class JSRegExpMatch implements Match {
     return str.substringUnchecked_(startIndex, endIndex);
   }
 
-  String operator [](int group) {
-    return this.group(group);
+  String operator [](int groupIdx) {
+    return this.group(groupIdx);
   }
 
-  List<String> groups(List<int> groups) {
-    var groupsList = new List<String>(groups.length);
-    for (int i = 0; i < groups.length; i++) {
-      groupsList[i] = group(groups[i]);
+  List<String> groups(List<int> groupsSpec) {
+    var groupsList = new List<String>(groupsSpec.length);
+    for (int i = 0; i < groupsSpec.length; i++) {
+      groupsList[i] = group(groupsSpec[i]);
     }
     return groupsList;
   }

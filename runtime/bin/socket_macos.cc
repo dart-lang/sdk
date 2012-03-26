@@ -189,13 +189,20 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   return fd;
 }
 
+
 intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
   socket = TEMP_FAILURE_RETRY(accept(fd, &clientaddr, &addrlen));
-  if (socket < 0) {
-    fprintf(stderr, "Error Accept: %s\n", strerror(errno));
+  if (socket == -1) {
+    if (errno == EAGAIN) {
+      // We need to signal to the caller that this is actually not an
+      // error. We got woken up from the poll on the listening socket,
+      // but there is no connection ready to be accepted.
+      ASSERT(kTemporaryFailure != -1);
+      socket = kTemporaryFailure;
+    }
   } else {
     FDUtils::SetNonBlocking(socket);
   }

@@ -85,9 +85,9 @@ bool File::Truncate(int64_t length) {
 }
 
 
-void File::Flush() {
+bool File::Flush() {
   ASSERT(handle_->fd() >= 0);
-  TEMP_FAILURE_RETRY(fsync(handle_->fd()));
+  return TEMP_FAILURE_RETRY(fsync(handle_->fd()) != -1);
 }
 
 

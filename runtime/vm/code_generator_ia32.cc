@@ -705,9 +705,12 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
 
   // Generate type check.
   if (FLAG_enable_type_checks) {
+    const bool returns_null = node->value()->IsLiteralNode() &&
+       node->value()->AsLiteralNode()->literal().IsNull();
     const RawFunction::Kind  kind = parsed_function().function().kind();
     // Implicit getters do not need a type check at return.
-    if ((kind != RawFunction::kImplicitGetter) &&
+    if (!returns_null &&
+        (kind != RawFunction::kImplicitGetter) &&
         (kind != RawFunction::kConstImplicitGetter)) {
       GenerateAssertAssignable(
           node->id(),

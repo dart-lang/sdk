@@ -306,6 +306,12 @@ class BrowserTestOutputImpl extends TestOutputImpl {
 // the criteria for success now depend on the text sent
 // to stderr.
 class AnalysisTestOutputImpl extends TestOutputImpl {
+  // An error line has 8 fields that look like:
+  // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
+  final int ERROR_LEVEL = 0;
+  final int ERROR_TYPE = 1;
+  final int FORMATTED_ERROR = 7;
+
   bool alreadyComputed = false;
   bool failResult;
   AnalysisTestOutputImpl(testCase, exitCode, timedOut, stdout, stderr, time) :
@@ -330,13 +336,13 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     for (String line in super.stderr) {
       if (line.length == 0) continue;
       List<String> fields = splitMachineError(line);
-      if (fields[0] == 'ERROR') {
-        errors.add(fields);
-      } else if (fields[0] == 'WARNING') {
+      if (fields[ERROR_LEVEL] == 'ERROR') {
+        errors.add(fields[FORMATTED_ERROR]);
+      } else if (fields[ERROR_LEVEL] == 'WARNING') {
         // We only care about testing Static type warnings
         // ignore all others
-        if (fields[1] == 'STATIC_TYPE') {
-          staticWarnings.add(fields);
+        if (fields[ERROR_TYPE] == 'STATIC_TYPE') {
+          staticWarnings.add(fields[FORMATTED_ERROR]);
         }
       }
       // OK to Skip error output that doesn't match the machine format

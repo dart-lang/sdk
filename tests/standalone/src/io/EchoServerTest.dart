@@ -9,6 +9,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+#library("EchoServerTest.dart");
 #import("dart:io");
 #import("dart:isolate");
 #source("TestingServer.dart");

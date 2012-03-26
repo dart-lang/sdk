@@ -409,11 +409,19 @@ Dart_CObject* CObject::NewByteArray(int length) {
 
 static int kIllegalArgumentError = 1;
 static int kOSError = 2;
+static int kFileClosedError = 3;
 
 
 CObject* CObject::IllegalArgumentError() {
   CObjectArray* result = new CObjectArray(CObject::NewArray(1));
   result->SetAt(0, new CObjectInt32(CObject::NewInt32(kIllegalArgumentError)));
+  return result;
+}
+
+
+CObject* CObject::FileClosedError() {
+  CObjectArray* result = new CObjectArray(CObject::NewArray(1));
+  result->SetAt(0, new CObjectInt32(CObject::NewInt32(kFileClosedError)));
   return result;
 }
 

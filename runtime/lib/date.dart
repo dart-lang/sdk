@@ -37,7 +37,7 @@ class DateImplementation implements Date {
                                   int minutes,
                                   int seconds,
                                   int milliseconds,
-                                  TimeZoneImplementation timeZone)
+                                  TimeZone timeZone)
   : timeZone = timeZone,
     value = _brokenDownDateToMillisecondsSinceEpoch(
                years, month, day, hours, minutes, seconds, milliseconds,

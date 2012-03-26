@@ -29,6 +29,7 @@ class LocalVariable;
   FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
   M(CurrentContext, CurrentContextComp)                                        \
+  M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
   M(InstanceCall, InstanceCallComp)                                            \
   M(StaticCall, StaticCallComp)                                                \
@@ -52,6 +53,8 @@ class LocalVariable;
   M(ExtractFactoryTypeArguments, ExtractFactoryTypeArgumentsComp)              \
   M(ExtractConstructorTypeArguments, ExtractConstructorTypeArgumentsComp)      \
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
+  M(AllocateContext, AllocateContextComp)                                      \
+  M(ChainContext, ChainContextComp)                                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -158,6 +161,23 @@ class CurrentContextComp : public Computation {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
+};
+
+
+class StoreContextComp : public Computation {
+ public:
+  explicit StoreContextComp(Value* value) : value_(value) {
+    ASSERT(value_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(StoreContext);
+
+  Value* value() const { return value_; }
+
+ private:
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
 };
 
 
@@ -289,14 +309,17 @@ class StaticCallComp : public Computation {
 
 class LoadLocalComp : public Computation {
  public:
-  explicit LoadLocalComp(const LocalVariable& local) : local_(local) { }
+  LoadLocalComp(const LocalVariable& local, intptr_t context_level)
+      : local_(local), context_level_(context_level) { }
 
   DECLARE_COMPUTATION(LoadLocal)
 
   const LocalVariable& local() const { return local_; }
+  intptr_t context_level() const { return context_level_; }
 
  private:
   const LocalVariable& local_;
+  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalComp);
 };
@@ -304,17 +327,21 @@ class LoadLocalComp : public Computation {
 
 class StoreLocalComp : public Computation {
  public:
-  StoreLocalComp(const LocalVariable& local, Value* value)
-      : local_(local), value_(value) { }
+  StoreLocalComp(const LocalVariable& local,
+                 Value* value,
+                 intptr_t context_level)
+      : local_(local), value_(value), context_level_(context_level) { }
 
   DECLARE_COMPUTATION(StoreLocal)
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return value_; }
+  intptr_t context_level() const { return context_level_; }
 
  private:
   const LocalVariable& local_;
   Value* value_;
+  const intptr_t context_level_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
 };
@@ -737,6 +764,43 @@ class ExtractConstructorInstantiatorComp : public Computation {
   Value* discard_value_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorComp);
+};
+
+
+class AllocateContextComp : public Computation {
+ public:
+  AllocateContextComp(intptr_t token_index, intptr_t num_context_variables)
+      : token_index_(token_index),
+        num_context_variables_(num_context_variables) {}
+
+  DECLARE_COMPUTATION(AllocateContext);
+
+  intptr_t token_index() const { return token_index_; }
+  intptr_t num_context_variables() const { return num_context_variables_; }
+
+ private:
+  const intptr_t token_index_;
+  const intptr_t num_context_variables_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateContextComp);
+};
+
+
+class ChainContextComp : public Computation {
+ public:
+  explicit ChainContextComp(Value* context_value)
+      : context_value_(context_value) {
+    ASSERT(context_value_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(ChainContext)
+
+  Value* context_value() const { return context_value_; }
+
+ private:
+  Value* context_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
 };
 
 

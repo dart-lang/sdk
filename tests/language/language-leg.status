@@ -15,19 +15,14 @@ Factory2Test: Fail # We don't handle constants with super calls.
 
 
 # Compilation errors.
-CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
 CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor6Test: Fail # Closures inside initializers not implemented.
 ConstructorRedirectTest/none: Fail # ConstantHandler with this or super not implemented
-Context2Test: Fail # switch cases are not implemented
-ContinueTest: Fail # switch cases are not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
-DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
 DynamicTest: Fail # cannot resolve type F1
 Factory3Test: Fail # Handling of compile-time constants.
 FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
@@ -59,11 +54,8 @@ NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamedParametersTypeTest: Fail # Internal Error: Cannot find value
 NamingTest: Fail # Internal Error: Cannot find value
 NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
-NullToStringTest: Fail # Closurization of intercepted methods.
-NumbersTest: Fail # cannot resolve type Smi
 ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 PseudoKWTest: Fail # Unexpected token '('
-ResourceTest: Fail # #resource tag not recognized - issue 1807
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
@@ -191,8 +183,6 @@ PseudoKWIllegalTest/14: Fail, OK # Negative language test.
 PseudoKWIllegalTest/15: Fail, OK # Negative language test.
 PseudoKWIllegalTest/16: Fail, OK # Negative language test.
 ScopeNegativeTest: Fail, OK # Negative language test.
-Script1NegativeTest: Fail, OK # Negative language test.
-ScriptNegativeTest: Fail, OK # Negative language test.
 SetterDeclaration2NegativeTest: Fail, OK # Negative language test.
 SetterDeclarationNegativeTest: Fail, OK # Negative language test.
 StaticFinalField2NegativeTest: Fail, OK # Negative language test.
@@ -221,6 +211,7 @@ WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 TypeVMTest: Fail, OK # VM specific test.
 DisablePrivacyTest: Fail, OK # VM specific test.
+NumbersTest: Fail, OK # (unintended?) VM specific test.
 
 
 DivByZeroTest: Fail, OK # Leg only has doubles.
