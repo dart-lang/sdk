@@ -238,18 +238,17 @@ static bool Array_setIndexed(Assembler* assembler) {
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     Label checked_ok;
-    __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
-    __ cmpl(EAX, raw_null);
+    __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Value.
+    // Null value is valid for any type.
+    __ cmpl(EDI, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
 
     __ movl(EBX, Address(ESP, + 3 * kWordSize));  // Array.
     __ movl(EBX, FieldAddress(EBX, type_args_field_offset));
     // EBX: Type arguments of array.
     __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-    // Check if it's Dynamic, int, or num.
-    __ cmpl(EAX, raw_null);  // Dynamic?
+    // Check if it's Dynamic.
+    __ cmpl(EAX, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
     __ CompareObject(EAX, Object::ZoneHandle(Object::type_arguments_class()));
@@ -258,6 +257,9 @@ static bool Array_setIndexed(Assembler* assembler) {
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
     __ CompareObject(EAX, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
+    // Check for int and num.
+    __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?
+    __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
     __ CompareObject(EAX, Type::ZoneHandle(Type::IntInterface()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     __ CompareObject(EAX, Type::ZoneHandle(Type::NumberInterface()));
