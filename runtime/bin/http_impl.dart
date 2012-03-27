@@ -609,9 +609,6 @@ class _HttpConnection extends _HttpConnectionBase {
   }
 
   void _propagateError(Exception e) {
-    if (_server._onError != null) {
-      _server._onError(e);
-    }
     if (_request != null && _request._streamErrorHandler != null) {
       _request._streamErrorHandler(e);
     }
