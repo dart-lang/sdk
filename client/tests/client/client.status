@@ -26,13 +26,13 @@ dom/TypedArrays1Test: Skip
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 dom/HiddenDom2Test: Fail # Issue 1912, frog exposes natives not defined in the class
 
-[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
-[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera || ($runtime == drt && $compiler == frog) ]
 dom/ImplementationTest: Fail
 dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
