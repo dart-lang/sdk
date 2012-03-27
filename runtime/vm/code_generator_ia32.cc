@@ -1436,6 +1436,8 @@ void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
 // Destroys ECX and EDX.
 // Returns:
 // - object in EAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
                                              intptr_t token_index,
                                              const AbstractType& dst_type,
@@ -1541,14 +1543,21 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // If dst_type is an interface, we can skip the class equality check,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
+        // Check if classes are equal.
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
         TestClassAndJump(dst_type_class, &done);  // Uses ECX.
-        // Check superclass
+        // Check superclasses using a loop (faster than runtime call).
+        Label loop_done, loop;
+        __ Bind(&loop);
+        // ECX: class.
         __ movl(ECX, FieldAddress(ECX, Class::super_type_offset()));
-        // Note that supertypes can't be NULL as every Dart instance has
-        // as supertype class Object.
+        // The supertype of Object is a null object.
+        __ cmpl(ECX, raw_null);
+        __ j(EQUAL, &loop_done, Assembler::kNearJump);
         __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
         TestClassAndJump(dst_type_class, &done);  // Uses ECX.
+        __ jmp(&loop);
+        __ Bind(&loop_done);
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -1619,6 +1628,29 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
         }
       }
     }
+  } else {
+    ASSERT(!dst_type.IsInstantiated());
+    // Skip check if destination is a dynamic type.
+    if (dst_type.IsTypeParameter()) {
+      // EAX must be preserved!
+      Label fall_through;
+      GenerateInstantiatorTypeArguments(token_index);
+      // Type arguments are on stack
+      __ popl(EBX);
+      // Check if dynamic.
+      __ cmpl(EBX, raw_null);
+      __ j(EQUAL, &done, Assembler::kNearJump);
+
+      // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+      __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
+      __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
+      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+      __ movl(EDX,
+          FieldAddress(EBX, TypeArguments::type_at_offset(dst_type.Index())));
+      __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      __ Bind(&fall_through);
+    }
   }
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
@@ -1627,10 +1659,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  if (!dst_type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments(token_index);
-  } else {
+  if (dst_type.IsInstantiated()) {
     __ pushl(raw_null);  // Null instantiator.
+  } else {
+    GenerateInstantiatorTypeArguments(token_index);
   }
   __ PushObject(dst_name);  // Push the name of the destination.
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
@@ -1639,6 +1671,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   __ addl(ESP, Immediate(5 * kWordSize));
   __ popl(EAX);
 
+  // EAX: value.
   __ Bind(&done);
 }
 
@@ -2230,6 +2263,7 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 // Pushes the type arguments of the instantiator on the stack.
+// Destroys EBX.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   const Class& instantiator_class = Class::Handle(
       parsed_function().function().owner());
@@ -2252,7 +2286,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
       outer_function = outer_function.parent_function();
     }
     if (!outer_function.IsFactory()) {
-      __ popl(EAX);  // Pop instantiator.
+      __ popl(EBX);  // Pop instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.
       // The receiver cannot be null; extract its AbstractTypeArguments object.
       // Note that in the factory case, the instantiator is the first parameter
@@ -2260,8 +2294,8 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
       intptr_t type_arguments_instance_field_offset =
           instantiator_class.type_arguments_instance_field_offset();
       ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-      __ pushl(EAX);
+      __ movl(EBX, FieldAddress(EBX, type_arguments_instance_field_offset));
+      __ pushl(EBX);
     }
   }
 }

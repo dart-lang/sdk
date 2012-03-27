@@ -246,11 +246,11 @@ static bool Array_setIndexed(Assembler* assembler) {
     __ movl(EBX, Address(ESP, + 3 * kWordSize));  // Array.
     __ movl(EBX, FieldAddress(EBX, type_args_field_offset));
     // EBX: Type arguments of array.
-    __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-    // Check if it's Dynamic.
-    __ cmpl(EAX, raw_null);
+    __ cmpl(EBX, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
+    // Check if it's Dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+    __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
     __ CompareObject(EAX, Object::ZoneHandle(Object::type_arguments_class()));
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     // Get type at index 0.
