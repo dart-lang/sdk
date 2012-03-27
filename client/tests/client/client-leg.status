@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js || $component == legium ]
+[ $compiler == dart2js ]
 dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
 
 
-[ $component == legium ]
+[ $compiler == dart2js && $runtime == drt ]
 
 # Unknown error - should investigate.
 html/html_tests: Fail

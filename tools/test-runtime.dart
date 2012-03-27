@@ -44,7 +44,8 @@ main() {
     StringBuffer sb = new StringBuffer('Test configuration');
     sb.add(configurations.length > 1 ? 's:' : ':');
     for (Map conf in configurations) {
-      sb.add(' ${conf["component"]}_${conf["mode"]}_${conf["arch"]}');
+      sb.add(' ${conf["compiler"]}_${conf["runtime"]}_${conf["mode"]}_' +
+          '${conf["arch"]}');
       if (conf['checked']) sb.add('_checked');
     }
     print(sb);

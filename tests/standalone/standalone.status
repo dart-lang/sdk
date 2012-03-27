@@ -5,37 +5,33 @@
 TimeoutTest: Skip  # Timeout test for testing the test runner.
 FailTest: Fail, OK # Fails intentionally
 
-[ $component == vm && $checked ]
+[ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/ProcessInvalidArgumentsTest: Fail, OK
 io/DirectoryInvalidArgumentsTest: Fail, OK
 io/FileInvalidArgumentsTest: Fail, OK
 
-[ $component == vm]
+[ $runtime == vm]
 io/ManyEchoServerTest: Skip        # Bug 5103754
 # These tests fail, crash, and timeout to test the testing infrastructure.
 io/TestExtensionTest: Fail  # shared library in wrong place (issue 1817)
 
-[ $component == vm && $system == macos]
+[ $runtime == vm && $system == macos]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 io/SocketManyConnectionsTest: Skip
 io/TestExtensionTest: Skip  # Extensions not implemented on MacOS
 
-[ $component == vm && $system == windows]
+[ $runtime == vm && $system == windows]
 io/TestExtensionTest: Skip  # Extensions not implemented on Windows
 io/HttpShutdownTest: Skip  # Currently times out on windows
 
-[ $component == dartium ]
+[ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
 
-[ $component == dartc || $component == chromium ]
+[ $compiler == dartc]
 *: Skip
 
-[ $component == frog || $component == frogsh || $component == frogium || $component == legium ]
-*: Skip
-
-
-[ $component == frog || $component == frogsh ]
+[ $compiler == frog || $compiler == frogsh || ($compiler == dart2js && $runtime == drt) ]
 *: Skip
 
 

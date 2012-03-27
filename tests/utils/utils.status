@@ -2,35 +2,32 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js ]
+[ $compiler == dart2js && $runtime == d8 ]
 DummyCompilerTest: Fail
 
 [ $arch == simarm ]
 *: Skip
 
-[ $component == frog || $component == frogsh || $component == frogium ]
+[ $compiler == frog || $compiler == frogsh ]
 # Dartdoc only runs on the VM.
 DartdocTest: Skip
 MarkdownTest: Skip
-
 DummyCompilerTest: Fail
 
-
-[ $component == vm || $component == dartc || $component == dartium ]
+[ $runtime == vm || $compiler == dartc || ($compiler == none && $runtime == drt) ]
 # TODO(rnystrom): Right now, the VM tests can't access frog/ and client/ which
 # dartdoc uses, so disable for now. Once the deps files are unified this should
 # be fixed.
 DartdocTest: Skip
 MarkdownTest: Skip
 
-
-[ $component == dartium ]
+[ $compiler == none && $runtime == drt ]
 DummyCompilerTest: Fail # Issue 2264.
 
 
-[ $component == dartc ]
+[ $compiler == dartc ]
 DummyCompilerTest: Fail # Issue 2263.
 
 
-[ $component == legium ]
+[ $compiler == dart2js && $runtime == drt ]
 *: Skip

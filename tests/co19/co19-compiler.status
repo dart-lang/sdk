@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dartc ]
+[ $compiler == dartc ]
 Language/05_Variables/05_Variables_A03_t08: Fail # TODO(dartc-team): New failure, please triage.
 Language/09_Generics/09_Generics_A04_t04: Fail # TODO(dartc-team): New failure, please triage.
 Language/09_Generics/09_Generics_A04_t05: Fail # TODO(dartc-team): New failure, please triage.
@@ -197,12 +197,5 @@ Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # TODO(dartc-team): Ne
 Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # TODO(dartc-team): New failure at r164. Please triage.
 
 
-[ $component == dartium ]
-*: Skip
-
-
-[ $component == chromium ]
-*: Skip
-
-[ $component == frogium ]
+[ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip

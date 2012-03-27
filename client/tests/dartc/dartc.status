@@ -13,7 +13,7 @@ testing/unittest/unittest_node.dart: Skip # Relies on frog syntax
 
 tests/client/dom: Skip                  # These have known type errors.
 
-[ $component == vm ]
+[ $runtime == vm ]
 *: Skip
 
 [ $mode == release ]

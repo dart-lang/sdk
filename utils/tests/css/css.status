@@ -2,15 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[$component == dart2js || $component == legium || $component == frogium || ($component == webdriver && ($browser == ie || $browser == safari || $browser == ff || $browser == chrome))]
+[$compiler == dart2js || $compiler == frog]
 # #-directives not supported by test architecture
 DeclarationTest: Fail
 ExpressionTest: Fail
 SelectorLiteralTest: Fail
-
-[$component == webdriver && $browser == opera]
-#TODO(efortuna): Take these lines out once Opera is running.
-*: Skip
 
 [ $arch == x64 ]
 *: Skip

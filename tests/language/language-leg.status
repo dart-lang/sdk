@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js && $checked ]
+[ $compiler == dart2js && $checked ]
 *: Skip
 
 
-[ $component == dart2js || $component == legium ]
+[ $compiler == dart2js]
 AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
@@ -222,5 +222,5 @@ RegExp3Test: Fail, OK # Expects exception from const constructor.
 ListTest: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
 
-[ $component == dart2js && $mode == release ]
+[ $compiler == dart2js && $mode == release ]
 AssignTopMethodNegativeTest: Crash

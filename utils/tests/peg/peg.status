@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dartc ]
+[ $compiler == dartc ]
 PegTest: Skip  # Undiagnosed error on "a ? b ? c : d : e ? f : g"
 
-[ $component == frogium || $component == webdriver || $component == legium]
+[ $compiler == frog || $compiler == dart2js]
 PegTest: Skip  # #-directives not supported by browser test architecture

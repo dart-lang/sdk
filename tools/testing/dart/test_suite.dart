@@ -225,8 +225,7 @@ class StandardTestSuite implements TestSuite {
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone = null]) {
     // If DumpRenderTree is required, and not yet updated, wait for update.
-    if (DumpRenderTreeUpdater.componentRequiresDRT(configuration['component'])
-        && !DumpRenderTreeUpdater.updated) {
+    if (configuration['runtime'] == 'drt' && !DumpRenderTreeUpdater.updated) {
       Expect.isTrue(DumpRenderTreeUpdater.isActive);
       DumpRenderTreeUpdater.onUpdated.add(() {
         forEachTest(onTest, testCache, globalTempDir, onDone);
@@ -322,7 +321,7 @@ class StandardTestSuite implements TestSuite {
         testName = filename;
       }
 
-      if (configuration['component'] != 'dartc') {
+      if (configuration['compiler'] != 'dartc') {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
         }
@@ -337,7 +336,7 @@ class StandardTestSuite implements TestSuite {
     }
     if (expectations.contains(SKIP)) return;
 
-    if (TestUtils.isBrowserComponent(configuration['component'])) {
+    if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
       enqueueBrowserTest(info, testName, expectations);
     } else {
       enqueueStandardTest(info, testName, expectations);
@@ -350,7 +349,7 @@ class StandardTestSuite implements TestSuite {
     bool isNegative = info.isNegative ||
         (configuration['checked'] && info.isNegativeIfChecked);
 
-    if (configuration['component'] == 'dartc') {
+    if (configuration['compiler'] == 'dartc') {
       // dartc can detect static type warnings by the
       // format of the error line
       if (info.hasFatalTypeErrors) {
@@ -418,7 +417,7 @@ class StandardTestSuite implements TestSuite {
   }
 
   /**
-   * The [StandardTestSuite] has support for testing components that
+   * The [StandardTestSuite] has support for tests that
    * compile a test from Dart to Javascript, and then run the resulting
    * Javascript.  This function creates a working directory to hold the
    * Javascript version of the test, and copies the appropriate framework
@@ -441,7 +440,8 @@ class StandardTestSuite implements TestSuite {
             'in any file that uses #import, #source, or #resource');
     }
 
-    final String component = configuration['component'];
+    final String compiler = configuration['compiler'];
+    final String runtime = configuration['runtime'];
     final String testPath =
         new File(filename).fullPathSync().replaceAll('\\', '/');
 
@@ -499,7 +499,7 @@ class StandardTestSuite implements TestSuite {
         }
         htmlPath = '${tempDir.path}/../$htmlFilename';
       }
-      final String scriptPath = (component == 'dartium') ?
+      final String scriptPath = (compiler == 'none' && runtime == 'drt') ?
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
@@ -517,12 +517,12 @@ class StandardTestSuite implements TestSuite {
       htmlTest.closeSync();
 
       // Construct the command(s) that compile all the inputs needed by the
-      // browser test. For dartium, this will be noop commands.
+      // browser test. For running Dart in DRT, this will be noop commands.
       List<Command> commands = [];
-      if (component != 'dartium') {
+      if (compiler != 'none' && runtime == 'drt') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
-            component, tempDir.path, vmOptions));
+            compiler, tempDir.path, vmOptions));
 
         // some tests require compiling multiple input scripts.
         List<String> otherScripts = optionsFromFile['otherScripts'];
@@ -543,15 +543,16 @@ class StandardTestSuite implements TestSuite {
           String compiledName = '${name.substring(0, end)}.js';
           commands.add(_compileCommand(
               '$dir/$name', '${tempDir.path}/$compiledName',
-              component, tempDir.path, vmOptions));
+              compiler, tempDir.path, vmOptions));
         }
       }
 
       // Construct the command that executes the browser test
       List<String> args;
-      if (component == 'webdriver') {
+      if (runtime == 'ie' || runtime == 'ff' || runtime == 'chrome' ||
+        runtime == 'safari' || runtime == 'opera') {
         args = ['$dartDir/tools/testing/run_selenium.py',
-            '--browser=${configuration["browser"]}',
+            '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
             '--out=$htmlPath'];
       } else {
@@ -560,7 +561,7 @@ class StandardTestSuite implements TestSuite {
             dumpRenderTreeFilename,
             '--no-timeout'
         ];
-        if (component == 'dartium') {
+        if (runtime == 'drt' && compiler == 'none') {
           var dartFlags = ['--ignore-unrecognized-flags'];
           if (configuration["checked"]) {
             dartFlags.add('--enable_asserts');
@@ -582,17 +583,14 @@ class StandardTestSuite implements TestSuite {
 
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
-      String component, String dir, var vmOptions) {
+      String compiler, String dir, var vmOptions) {
     String executable = TestUtils.compilerPath(configuration);
     List<String> args = TestUtils.standardOptions(configuration);
-    switch (component) {
-      case 'frogium':
-      case 'legium':
-      case 'webdriver':
-        String libdir = configuration['froglib'];
-        if (libdir == '') {
-          libdir = '$dartDir/frog/lib';
-        }
+    switch (compiler) {
+      case 'frog':
+      case 'frogsh':
+      case 'dart2js':
+        String libdir = '$dartDir/frog/lib';
         args.addAll(['--libdir=$libdir',
                              '--compile-only',
                              '--out=$outputFile']);
@@ -600,13 +598,13 @@ class StandardTestSuite implements TestSuite {
         args.add(inputFile);
         break;
       default:
-        Expect.fail('unimplemented component $component');
+        Expect.fail('unimplemented compiler $compiler');
     }
     return new Command(executable, args);
   }
 
   bool get requiresCleanTemporaryDirectory() =>
-      configuration['component'] == 'dartc';
+      configuration['compiler'] == 'dartc';
 
   /**
    * Create a directory for the generated test.  If a Dart language test
@@ -633,10 +631,11 @@ class StandardTestSuite implements TestSuite {
     testUniqueName = testUniqueName.replaceAll('/', '_');
     testUniqueName += '-$optionsName';
 
-    // Create '[build dir]/generated_tests/$component/$testUniqueName',
+    // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
       // including any intermediate directories that don't exist.
     var generatedTestPath = ['generated_tests',
-                             configuration['component'],
+                             configuration['compiler'] + '-' +
+                             configuration['runtime'],
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
@@ -675,22 +674,25 @@ class StandardTestSuite implements TestSuite {
   }
 
   String get scriptType() {
-    switch (configuration['component']) {
-      case 'dartium':
+    switch (configuration['compiler']) {
+      case 'none':
         return 'application/dart';
-      case 'frogium':
-      case 'legium':
-      case 'webdriver':
+      case 'frog':
+      case 'frogsh':
+      case 'dart2js':
+      case 'dartc':
         return 'text/javascript';
       default:
-        Expect.fail('Unimplemented component scriptType');
+        Expect.fail('Non-web runtime, so no scriptType for: ' +
+            '${configuration["compiler"]}');
         return null;
     }
   }
 
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_').replaceAll(':', '_')
-        .replaceAll('\\', '_') + configuration['component'] + '.html';
+        .replaceAll('\\', '_') + configuration['compiler'] + '-' +
+        configuration['runtime'] + '.html';
   }
 
   String get dumpRenderTreeFilename() {
@@ -729,7 +731,7 @@ class StandardTestSuite implements TestSuite {
                                            Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions(filename));
-    if (configuration['component'] == 'dartc') {
+    if (configuration['compiler'] == 'dartc') {
       args.add('--error_format');
       args.add('machine');
     }
@@ -950,7 +952,7 @@ class JUnitTestSuite implements TestSuite {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
 
-    if (configuration['component'] != 'dartc') {
+    if (configuration['compiler'] != 'dartc') {
       // Do nothing.  Asynchronously report that the suite is enqueued.
       new Timer(0, (timerUnused){ doDone(); });
       return;
@@ -996,7 +998,7 @@ class JUnitTestSuite implements TestSuite {
 
   void createTest(successIgnored) {
     String d8 =
-        "$buildDir/d8${TestUtils.executableSuffix(configuration['component'])}";
+        "$buildDir/d8${TestUtils.executableSuffix(configuration['runtime'])}";
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
@@ -1070,11 +1072,9 @@ class TestUtils {
     handle.closeSync();
   }
 
-  static String executableSuffix(String component) {
+  static String executableSuffix(String executable) {
     if (new Platform().operatingSystem() == 'windows') {
-      if (component != 'frogium'
-          && component != 'legium'
-          && component != 'webdriver') {
+      if (executable == 'd8' || executable == 'vm') {
         return '.exe';
       } else {
         return '.bat';
@@ -1084,33 +1084,32 @@ class TestUtils {
   }
 
   static String executableName(Map configuration) {
-    String suffix = executableSuffix(configuration['component']);
-    switch (configuration['component']) {
-      case 'vm':
+    String suffix = executableSuffix(configuration['compiler']);
+    switch (configuration['compiler']) {
+      case 'none':
         return 'dart$suffix';
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
       case 'frog':
       case 'dart2js':
-          return 'frog/bin/frog$suffix';
+        return 'frog/bin/frog$suffix';
       case 'frogsh':
         return 'frog/bin/frogsh$suffix';
       default:
-        throw "Unknown executable for: ${configuration['component']}";
+        throw "Unknown executable for: ${configuration['compiler']}";
     }
   }
 
   static String compilerName(Map configuration) {
-    String suffix = executableSuffix(configuration['component']);
-    switch (configuration['component']) {
+    String suffix = executableSuffix(configuration['compiler']);
+    switch (configuration['compiler']) {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
-      case 'frogium':
-      case 'legium':
-      case 'webdriver':
+      case 'frog':
+      case 'dart2js':
         return 'frog/bin/frog$suffix';
       default:
-        throw "Unknown compiler for: ${configuration['component']}";
+        throw "Unknown compiler for: ${configuration['compiler']}";
     }
   }
 
@@ -1123,13 +1122,10 @@ class TestUtils {
   }
 
   static String compilerPath(Map configuration) {
-    if (configuration['component'] == 'dartium') {
+    if (configuration['compiler'] == 'none') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = configuration['frog'];
-    if (name == '') {
-      name = '${buildDir(configuration)}/${compilerName(configuration)}';
-    }
+    var name = '${buildDir(configuration)}/${compilerName(configuration)}';
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
@@ -1166,25 +1162,26 @@ class TestUtils {
       args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
-    if (configuration["component"] == "dart2js"
-        || configuration["component"] == "legium") {
+    if (configuration["compiler"] == "dart2js") {
       args.add("--verbose");
       args.add("--leg");
       if (configuration["host_checked"]) {
         args.add("--vm_flags=--enable_asserts --enable_type_checks");
       }
-      if (configuration["component"] == "dart2js") {
+      if (configuration['runtime'] != 'drt') {
         args.add("--allow-mock-compilation");
       }
     }
     return args;
   }
 
-  static bool isBrowserComponent(String component) =>
-      const <String>['dartium',
-                     'frogium',
-                     'legium',
-                     'webdriver'].some((x) => x == component);
+  static bool isBrowserRuntime(String runtime) =>
+      const <String>['drt',
+                     'ie',
+                     'safari',
+                     'opera',
+                     'chrome',
+                     'ff'].some((x) => x == runtime);
 }
 
 class SummaryReport {

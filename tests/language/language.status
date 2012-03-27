@@ -15,7 +15,7 @@
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
-[ $component == vm || $component == dartium ]
+[ $compiler == none ]
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
@@ -95,17 +95,15 @@ ConstructorRedirectTest/01: Fail # Issue 2103.
 *FrogTest: Skip
 *FrogNegativeTest: Skip
 
-[ ($component == vm || $component == dartium) && $unchecked ]
+[ $compiler == none && $unchecked ]
 
 IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
 
-[ ($component == vm || $component == dartium) && $mode == debug ]
+[ $compiler == none && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
-[ $component == vm && $mode == release ]
-
-[ $component == dartc || $component == chromium ]
+[ $compiler == dartc ]
 AbstractSyntaxTest/01: Fail
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
@@ -200,35 +198,22 @@ ConstructorRedirectTest/01: Fail # Issue 2105.
 *FrogNegativeTest: Skip
 
 
-[ $component == dartium ]
+[ $compiler == none && $runtime == drt ]
 # TODO: These need to be retriaged.
 DisablePrivacyTest: Skip
 RichardsTest: Fail
 StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
 
-
-[ $component == frogsh ]
+[ $compiler == frogsh ]
 ArithmeticTest: Fail # Issue 1470
 IntrinsifiedMethodsTest: Fail # Issue 1470
 
-# This set of four test components (frog, frogsh, frogium, and webdriver) all
-# consume frog output, so if frog is generating the incorrect code, chances are
-# it will fail on all of these components.
-#
-# Further explanation:
-# frog: frog compiler, run using the VM
-# frogsh: self-hosted frog compiler
-# frogium: Dart code compiled with frog VM running under DumpRenderTree
-# webdriver: Dart code compiled with frog VM running on an actual browser
-# (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
-# browser, you can be more specific about the failure by using $browser:
-# [ $component == webdriver && $browser == chrome ] for example.
-[ ($component == frog || $component == frogsh || $component == frogium || $component == webdriver) && $unchecked ]
+[ ($compiler == frog || $compiler == frogsh) && $unchecked ]
 BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
 
-[ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+[ $component == frog  || $compiler == frogsh ]
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
@@ -241,7 +226,7 @@ DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
 # be moved to a
-# [ $component == frog || $component == frogium || $component == webdriver ]
+# [ $compiler == frog ]
 # section.
 DoubleToStringAsFixedTest: Fail # fails due to -0.0 and due to rounding in constant propagation.
 DoubleToStringAsPrecisionTest: Fail # fails due to -0.0.
@@ -393,10 +378,10 @@ StringEscape4NegativeTest: Fail # Issue 1352
 
 Issue4515170Test: Fail
 
-[ $component == webdriver && $browser == chrome ]
+[ $runtime == chrome ]
 StringEscape1NegativeTest: Skip
 
-[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+[ $runtime == ff || $runtime == safari || $runtime == ie) ]
 Closure3Test: Fail
 MethodInvocationTest: Fail
 Private3Test: Fail
@@ -417,37 +402,36 @@ Switch4NegativeTest: Skip
 ExecuteFinally6Test: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $component == webdriver && $browser == opera ]
+[ $runtime == opera ]
 *: Skip
 
-[ $component == webdriver && $browser == ff ]
+[ $runtime == ff ]
 NamingTest: Fail
 StackOverflowTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
-[ $component == webdriver && $browser == ff && $system == windows ]
+[ $runtime == ff && $system == windows ]
 CTConst2Test: Pass,Fail  # Issue 2101
 
-[ $component == webdriver && $browser == ie ]
+[ $runtime == ie ]
 StackOverflowTest: Fail
 ObjectDynamicMethodTest: Fail
 NumberSyntaxTest: Fail
 
-[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
+[ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-
-[ ($component == frogsh ||  $component == frog || $component == frogium) && $unchecked ]
+[ ($compiler == frog || $compiler == frogsh) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
-[ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
+[ ($compiler == frog || $compiler == frogsh) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
 AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
@@ -460,7 +444,7 @@ TypeVariableBounds2Test/00: Fail # Issue 2135
 TypeVariableBounds2Test/03: Fail # Issue 2135
 TypeVariableBounds2Test/05: Fail # Issue 2135
 
-[ $component == frog || $component == frogsh ]
+[ ($compiler == frog || $compiler == frogsh) && $runtime == d8 ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
@@ -471,15 +455,15 @@ SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
 LiteralUnaryPlusTest/01: Fail # Issue 1400
 
-[ $component == frog || $component == frogsh || $component == frogium || $component == webdriver ]
+[ $compiler == frog || $compiler == frogsh ]
 StringEscape3NegativeTest: Fail # Issue 1352
 
-[ $component == frogium ]
+[ $compiler == frog && $runtime == drt ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 
-[ $component == frog && $mode == debug ]
+[ $compiler == frog && $mode == debug ]
 ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
 ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
 

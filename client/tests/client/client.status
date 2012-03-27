@@ -4,7 +4,7 @@
 
 dom/WebGL1Test: Skip  # Issue 1495
 
-[ $component == dartium ]
+[ $compiler == none && $runtime == drt ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
 dom/HTMLElementTest: Fail
@@ -15,65 +15,58 @@ html/frog_html_tests: Skip
 [ $component == dartium && $system == windows ]
 dom/DOMIsolatesTest: Skip
 
-[ $component == dartium && $mode == debug ]
+[ $compiler == none && $runtime == drt && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
 dom/CSSTest: Skip
 dom/DOMIsolatesTest: Skip
 dom/NativeGCTest: Skip
 dom/TypedArrays1Test: Skip
 
-[ $component == frogium || $component == webdriver ]
+[ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 dom/HiddenDom2Test: Fail # Issue 1912, frog exposes natives not defined in the class
 
-[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
-[ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
-
-[ $component == webdriver ]
+[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
 dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
-
-[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+[ $runtime == ff || $runtime == safari || $runtime == ie) ]
 html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
 # TODO(nweiz): enable this test again once the functionality being tested
 # is supported.
-[ $component == frogium || ($component == webdriver && ($browser == safari || $browser == ie))]
+[ ($compiler == frog && $runtime == drt) || $runtime == safari || $runtime == ie]
 html/frog_html_tests: Skip # Issue 1884
 
-[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
-*: Skip
-
-# dartc (used by 'chromium') no longer generates code.
-[ $component == chromium ]
+[ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
 # 'client' tests import the DOM library, so they only make sense in
 # a browser environment.
-[ $component == dartc ]
+[ $compiler == dartc ]
 *: Skip
 
-[ $component == vm ]
+[ $runtime == vm ]
 *: Skip
 
-[ $component == frog ]
+[ $compiler == frog && $runtime == d8 ]
 *: Skip
 
-[ $component == frogsh ]
+[ $compiler == frogsh && $runtime == d8 ]
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $component == webdriver && $browser == opera ]
+[ $runtime == opera ]
 *: Skip

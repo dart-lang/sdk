@@ -2,17 +2,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == vm || $component == dartium ]
+[ $compiler == none ]
 UnicodeTest: Fail        # Bug 5163868
 *DartcTest: Skip
 
 [ $arch == ia32 ]
 
 
-[ $component == dartc || $component == chromium ]
+[ $compiler == dartc ]
 *VMTest: Skip
 
-[ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
+[ $compiler == frog || $compiler == frogsh ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -35,17 +35,17 @@ StringTest: Fail  # Needs index out of range checks.
 [ $component == frogsh ]
 DoubleCompareTest: Fail
 
-[ $component == webdriver && ($browser == ff || $browser == ie) ]
+[ $runtime == ff || $runtime == ie ]
 UnicodeTest: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $component == webdriver && $browser == opera ]
+[ $runtime == opera ]
 *: Skip
 
-[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
+[ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
 [ $arch == simarm ]

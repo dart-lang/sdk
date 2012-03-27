@@ -62,42 +62,54 @@ is 'dart file.dart' and you specify special command
               ['all', 'debug', 'release'],
               'debug'),
           new _TestOptionSpecification(
-              'component',
-              '''
-Controls how dart code is compiled and executed.
+              'compiler',
+              '''Specify any compilation step (if needed).
 
-   vm: Run dart code on the standalone dart vm.
+   none: Do not compile the Dart code (run native Dart code on the VM).
+         (only valid with the following runtimes: vm, drt)
 
-   frog: Compile dart code by running frog on the standalone dart vm, and
-       run the resulting javascript on D8.
+   frog: Compile dart code to JavaScript by running the frog compiler.
+         (only valid with the following runtimes: d8, drt, chrome, safari, ie,
+         firefox, opera, none (compile only))
 
-   dart2js: Compile dart code by running dart2js on the standalone
-       dart vm, and run the resulting javascript on D8.
+   dart2js: Compile dart code to JavaScript by running dart2js (leg).
+            (only valid with the following runtimes: same as frog)
 
-   frogsh: Compile dart code by running frog on node.js, and run the
-       resulting javascript on the same instance of node.js.
-
-   dartium: Run dart code in a type="application/dart" script tag in a
-       dartium build of DumpRenderTree.
-
-   frogium: Compile dart code by running frog on the standalone dart vm,
-       and run the resulting javascript in a javascript script tag in
-       a dartium build of DumpRenderTree.
-
-   legium: Compile dart code by running dart2js on the standalone dart
-       vm, and run the resulting javascript in a javascript script tag
-       in a dartium build of DumpRenderTree.
-
-   webdriver: Compile dart code by running frog on the standalone dart vm,
-       and then run the resulting javascript in the browser that is specified
-       by the --browser switch (e.g. chrome, safari, ff, etc.).
-
-   dartc: Run dart code through the dartc static analyzer (does not
-       execute dart code).
-''',
-              ['-c', '--component'],
-              ['most', 'vm', 'frog', 'dart2js', 'frogsh', 'dartium',  'frogium',
-               'legium', 'webdriver', 'dartc'],
+   dartc: Perform static analysis on Dart code by running dartc.
+          (only valid with the following runtimes: none)
+   
+   frogsh: Compile dart code to JavaScript by running the frog compiler on
+           node.js, and run the resulting JavaScript on the same instance of 
+           node.js.
+           (only valid with the following runtimes: same as frog)''',
+              ['-c', '--compiler'],
+              ['none', 'frog', 'dart2js', 'dartc', 'frogsh'],
+              'none'),
+          new _TestOptionSpecification(
+              'runtime',
+              '''Where the tests should be run.
+    vm: Run Dart code on the standalone dart vm.
+    
+    d8: Run JavaScript from the command line using v8.
+    
+    drt: Run Dart or JavaScript in the headless version of Chrome, 
+         DumpRenderTree.
+    
+    ff or firefox: Run JavaScript in Firefox.
+    
+    chrome: Run JavaScript in Chrome.
+    
+    safari: Run JavaScript in Safari.
+    
+    ie: Run JavaScript in Internet Explorer.
+    
+    opera: Run JavaScript in Opera.
+    
+    none: No runtime, compile only (for example, used for dartc static analysis 
+          tests).''',
+              ['-r', '--runtime'],
+              ['vm', 'd8', 'drt', 'ff', 'firefox', 'chrome', 
+              'safari', 'ie', 'opera', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -202,27 +214,9 @@ Controls how dart code is compiled and executed.
               false,
               'bool'),
           new _TestOptionSpecification(
-              'browser',
-              'Web browser to use on webdriver tests',
-              ['-b', '--browser'],
-              ['ff', 'chrome', 'safari', 'ie', 'opera'],
-              'chrome'),
-          new _TestOptionSpecification(
-              'frog',
-              'Path to frog executable',
-              ['--frog'],
-              [],
-              ''),
-          new _TestOptionSpecification(
               'drt',
               'Path to DumpRenderTree executable',
               ['--drt'],
-              [],
-              ''),
-          new _TestOptionSpecification(
-              'froglib',
-              'Path to frog library',
-              ['--froglib'],
               [],
               ''),
           new _TestOptionSpecification(
@@ -349,9 +343,45 @@ Controls how dart code is compiled and executed.
       }
     }
 
-    return _expandConfigurations(configuration);
+    List<Map> expandedConfigs = _expandConfigurations(configuration);
+    return expandedConfigs.filter(_isValidConfig);
   }
 
+  /**
+   * Determine if a particular configuration has a valid combination of compiler
+   * and runtime elements.
+   */
+  bool _isValidConfig(Map config) {
+    bool isValid = true;
+      switch (config['compiler']) {
+        case 'frog':
+        case 'dart2js':
+        case 'frogsh':
+          // Note: by adding 'none' as a configuration, if the user
+          // runs test.py -c dart2js -r drt,none the dart2js_none and
+          // dart2js_drt will be duplicating work. If later we don't need 'none'
+          // with dart2js, we should remove it from here.
+          isValid = (const ['d8', 'drt', 'ff', 'chrome', 'safari', 'ie',
+              'opera', 'none']).indexOf(config['runtime']) >= 0;
+          break;
+        case 'dartc':
+          isValid = config['runtime'] == 'none';
+          break;
+        case 'none':
+          isValid = (const ['vm', 'drt']).indexOf(config['runtime']) >= 0;
+      }
+    if (!isValid) {
+      print("Warning: combination of ${config['compiler']} and " +
+          "${config['runtime']} is invalid. Skipping this combination.");
+    }
+    if (config['runtime'] == 'ie' && 
+        new Platform().operatingSystem() != 'windows') {
+      isValid = false;
+      print("Warning cannot run Internet Explorer on non-Windows operating" +
+          " system.");
+    }
+    return isValid;
+  }
 
   /**
    * Recursively expand a configuration with multiple values per key
@@ -364,9 +394,6 @@ Controls how dart code is compiled and executed.
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
-    }
-    if (configuration['component'] == 'most') {
-      configuration['component'] = 'vm,dartc';
     }
     if (configuration['valgrind']) {
       // TODO(ager): Get rid of this when there is only one checkout and
@@ -389,6 +416,10 @@ Controls how dart code is compiled and executed.
     // expect.
     configuration['unchecked'] = !configuration['checked'];
     configuration['host_unchecked'] = !configuration['host_checked'];
+
+    if (configuration['runtime'] == 'firefox') {
+      configuration['runtime'] == 'ff';
+    }
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file
@@ -423,55 +454,36 @@ Controls how dart code is compiled and executed.
     }
 
     // Expand the architectures.
-    var archs = configuration['arch'];
-    if (archs.contains(',')) {
-      var result = new List<Map>();
-      for (var arch in archs.split(',')) {
-        var newConfiguration = new Map.from(configuration);
-        newConfiguration['arch'] = arch;
-        result.addAll(_expandConfigurations(newConfiguration));
-      }
-      return result;
+    if (configuration['arch'].contains(',')) {
+      return _expandHelper('arch', configuration);
     }
 
     // Expand modes.
-    var modes = configuration['mode'];
-    if (modes.contains(',')) {
-      var result = new List<Map>();
-      for (var mode in modes.split(',')) {
-        var newConfiguration = new Map.from(configuration);
-        newConfiguration['mode'] = mode;
-        result.addAll(_expandConfigurations(newConfiguration));
-      }
-      return result;
+    if (configuration['mode'].contains(',')) {
+      return _expandHelper('mode', configuration);
+    }
+        
+    // Expand compilers.
+    if (configuration['compiler'].contains(',')) {
+      return _expandHelper('compiler', configuration);
     }
 
-    // Expand components.
-    var components = configuration['component'];
-    if (components.contains(',')) {
-      var result = new List<Map>();
-      for (var component in components.split(',')) {
-        var newConfiguration = new Map.from(configuration);
-        newConfiguration['component'] = component;
-        result.addAll(_expandConfigurations(newConfiguration));
-      }
-      return result;
+    // Expand runtimes.
+    var runtimes = configuration['runtime'];
+    if (runtimes.contains(',')) {
+      return _expandHelper('runtime', configuration);
     } else {
-      // All components eventually go through this path, after expansion.
-      if (DumpRenderTreeUpdater.componentRequiresDRT(components)) {
+      // All runtimes eventually go through this path, after expansion.
+      if (runtimes == 'drt') {
         DumpRenderTreeUpdater.update();
       }
     }
 
-    // Adjust default timeout based on mode and component.
+    // Adjust default timeout based on mode, compiler, and sometimes runtime.
     if (configuration['timeout'] == -1) {
       var timeout = 60;
-      switch (configuration['component']) {
+      switch (configuration['compiler']) {
         case 'dartc':
-        case 'dartium':
-        case 'frogium':
-        case 'legium':
-        case 'webdriver':
           timeout *= 4;
           break;
         case 'dart2js':
@@ -482,10 +494,17 @@ Controls how dart code is compiled and executed.
           if (configuration['host_checked']) {
             timeout *= 16;
           }
+          if ((const ['ie', 'ff', 'chrome', 'safari',
+            'opera']).indexOf(configuration['runtime']) >= 0) {
+            timeout *= 4; // Allow additional time for browser testing to run.
+          }
           break;
         default:
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
+          }
+          if (configuration['runtime'] == 'drt') {
+            timeout *= 4;
           }
           break;
       }
@@ -493,6 +512,26 @@ Controls how dart code is compiled and executed.
     }
 
     return [configuration];
+  }
+
+  /** 
+   * Helper for _expandConfigurations. Creates a new configuration and adds it
+   * to a list, for use in a case when a particular configuration has multiple
+   * results (separated by a ',').
+   * Arguments:
+   * option: The particular test option we are expanding.
+   * configuration: The map containing all test configuration information
+   * specified.
+   */
+  List<Map> _expandHelper(String option, Map configuration) {
+    var result = new List<Map>();
+    var configs = configuration[option]; 
+    for (var config in configs.split(',')) {
+      var newConfiguration = new Map.from(configuration);
+      newConfiguration[option] = config;
+      result.addAll(_expandConfigurations(newConfiguration));
+    }
+    return result;
   }
 
 
