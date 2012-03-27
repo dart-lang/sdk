@@ -5,6 +5,7 @@
 package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.google.common.io.CharStreams;
@@ -1158,34 +1159,26 @@ public class DartCompiler {
     resolvedLibs.getClass(); // Quick null check.
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
     Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context);
-    LibraryUnit libraryUnit = compiler.updateAndResolve();
-    if (libraryUnit != null) {
-      // Ignore errors. Resolver should be able to cope with
-      // errors. Otherwise, we should fix it.
-      DartCompilationPhase[] phases = {
-        new Resolver.Phase(),
-        new TypeAnalyzer()
-      };
-      for (DartUnit unit : libraryUnit.getUnits()) {
-        // Don't analyze diet units.
-        if (unit.isDiet()) {
-          continue;
-        }
 
-        for (DartCompilationPhase phase : phases) {
-          unit = phase.exec(unit, context, compiler.getTypeProvider());
-          // Ignore errors. TypeAnalyzer should be able to cope with
-          // resolution errors.
+    compiler.updateAndResolve();
+
+    DartCompilationPhase[] phases = {new Resolver.Phase(), new TypeAnalyzer()};
+    Map<URI, LibraryUnit> newLibraries = Maps.newHashMap();
+    for (Entry<URI, LibraryUnit> entry : compiler.getLibraries().entrySet()) {
+      URI libUri = entry.getKey();
+      LibraryUnit libUnit = entry.getValue();
+      if (!resolvedLibs.containsKey(libUri) && libUnit != null) {
+        newLibraries.put(libUri, libUnit);
+        for (DartUnit unit : libUnit.getUnits()) {
+          for (DartCompilationPhase phase : phases) {
+            unit = phase.exec(unit, context, compiler.getTypeProvider());
+            // Ignore errors. Resolver and TypeAnalyzer should be able to cope with
+            // resolution errors.
+          }
         }
       }
     }
-    Map<URI,LibraryUnit> newLibraries = new HashMap<URI, LibraryUnit>();
-    for (Entry<URI, LibraryUnit> entry : compiler.getLibraries().entrySet()) {
-      if (!resolvedLibs.containsKey(entry.getKey())) {
-        newLibraries.put(entry.getKey(), entry.getValue());
-      }
-    }
-    newLibraries.put(lib.getUri(), libraryUnit);
+
     return newLibraries;
   }
 
