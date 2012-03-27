@@ -1545,6 +1545,8 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
         TestClassAndJump(dst_type_class, &done);  // Uses ECX.
         // Check superclass
         __ movl(ECX, FieldAddress(ECX, Class::super_type_offset()));
+        // Note that supertypes can't be NULL as every Dart instance has
+        // as supertype class Object.
         __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
         TestClassAndJump(dst_type_class, &done);  // Uses ECX.
       } else {
