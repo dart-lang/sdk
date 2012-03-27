@@ -139,15 +139,75 @@ TEST_CASE(BigintDouble) {
   dbl = BigintOperations::ToDouble(bigint);
   EXPECT_EQ(-1.2345678e+7, dbl.value());
 
+  bigint = BigintOperations::NewFromCString("1");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.0, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("123456");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(123456.0, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("123456789");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(123456789.0, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("12345678901234567");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(12345678901234567.0, dbl.value());
+  EXPECT_EQ(12345678901234568.0, dbl.value());
+
   bigint = BigintOperations::NewFromCString("98765432109876");
   dbl = BigintOperations::ToDouble(bigint);
   EXPECT_EQ(9.8765432109876e+13, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x17777777777778");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(6605279453476728.0, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x37777777777778");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(15612478708217720.0, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x177777777777781234567");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7730912021014563e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x177777777777788000000");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7730912021014563e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x177777777777788000001");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7730912021014565e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x177777777777798000000");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7730912021014568e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x177777777777798000001");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7730912021014568e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x377777777777790000000");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(4.1909428413307146e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x377777777777790000001");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(4.190942841330715e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x377777777777730000000");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(4.1909428413307135e+24, dbl.value());
+
+  bigint = BigintOperations::NewFromCString("0x377777777777730000001");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(4.1909428413307135e+24, dbl.value());
 
   // Reduced precision.
   bigint = BigintOperations::NewFromCString(
       "9876543210987654321098765432109876543210");
   dbl = BigintOperations::ToDouble(bigint);
-  // TODO(floitsch): Proper rounding if deemed necessary.
   EXPECT_EQ(9.8765432109876546e+39, dbl.value());
 
   bigint = BigintOperations::NewFromCString(
@@ -164,17 +224,57 @@ TEST_CASE(BigintDouble) {
   dbl = BigintOperations::ToDouble(bigint);
   EXPECT_EQ(1.0/zero, dbl.value());
 
+  bigint = BigintOperations::NewFromCString(
+      "17976931348623157081452742373170435679807056752584"
+      "49965989174768031572607800285387605895586327668781"
+      "71540458953514382464234321326889464182768467546703"
+      "53751698604991057655128207624549009038932894407586"
+      "85084551339423045832369032229481658085593321233482"
+      "74797826204144723168738177180919299881250404026184"
+      "124858368");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7976931348623157e308, dbl.value());
+
+  bigint = BigintOperations::NewFromCString(
+      "17976931348623159077293051907890247336179769789423"
+      "06572734300811577326758055009631327084773224075360"
+      "21120113879871393357658789768814416622492847430639"
+      "47412437776789342486548527630221960124609411945308"
+      "29520850057688381506823424628814739131105408272371"
+      "63350510684586298239947245938479716304835356329624"
+      "224137216");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.0/zero, dbl.value());
+
+  bigint = BigintOperations::NewFromCString(
+      "17976931348623158079372897140530341507993413271003"
+      "78269361737789804449682927647509466490179775872070"
+      "96330286416692887910946555547851940402630657488671"
+      "50582068190890200070838367627385484581771153176447"
+      "57302700698555713669596228429148198608349364752927"
+      "19074168444365510704342711559699508093042880177904"
+      "174497792");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.0/zero, dbl.value());
+
+  bigint = BigintOperations::NewFromCString(
+      "17976931348623158079372897140530341507993413271003"
+      "78269361737789804449682927647509466490179775872070"
+      "96330286416692887910946555547851940402630657488671"
+      "50582068190890200070838367627385484581771153176447"
+      "57302700698555713669596228429148198608349364752927"
+      "19074168444365510704342711559699508093042880177904"
+      "174497791");
+  dbl = BigintOperations::ToDouble(bigint);
+  EXPECT_EQ(1.7976931348623157e308, dbl.value());
+
   bigint = BigintOperations::NewFromCString("100000000000000000000000");
   dbl = BigintOperations::ToDouble(bigint);
   EXPECT_EQ(1e+23, dbl.value());
 
-  // TODO(floitsch): Proper rounding if deemed necessary.
-#if 0
   bigint = BigintOperations::NewFromCString("100000000000000000000001");
   dbl = BigintOperations::ToDouble(bigint);
-  // EXPECT_EQ(1.0000000000000001e+23, dbl.value());
-  EXPECT_EQ(9.9999999999999992e+22, dbl.value());
-#endif
+  EXPECT_EQ(1.0000000000000001e+23, dbl.value());
 
   // Same but shifted 64 bits to the left.
   bigint = BigintOperations::NewFromCString(
@@ -185,9 +285,7 @@ TEST_CASE(BigintDouble) {
   bigint = BigintOperations::NewFromCString(
       "1844674407370955161600000000000000000000001");
   dbl = BigintOperations::ToDouble(bigint);
-  // TODO(floitsch): Proper rounding if deemed necessary.
-  // EXPECT_EQ(1.8446744073709553e+42, dbl.value());
-  EXPECT_EQ(1.844674407370955e+42, dbl.value());
+  EXPECT_EQ(1.8446744073709553e+42, dbl.value());
 }
 
 
