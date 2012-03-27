@@ -212,7 +212,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A11_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A15_t03: Fail # 'const' keyword is not verified in literal maps.
 Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 2277
