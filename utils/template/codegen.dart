@@ -58,6 +58,8 @@ class CGBlock {
     }
   }
 
+  bool get anyStatements() => _stmts.length > 0;
+
   CGStatement get last() => _stmts.last();
 
   /**
@@ -570,7 +572,6 @@ class ElemCG {
 
   bool pushBlock([int indent = 4, int blockType = CGBlock.CONSTRUCTOR,
                   String itemName = null]) {
-    closeStatement();
     if (itemName != null && matchBlocksLocalName(itemName)) {
       world.error("Active block already exist with local name: ${itemName}.");
       return false;
@@ -842,7 +843,7 @@ Nested #each or #with must have a localName;
 
     // If nested each then we want to pass the parent otherwise we'll use the
     // varName.
-    var varName = nestedImmediateEach ? "parent" : lastBlock.last.variableName;
+    var varName = nestedImmediateEach ? "parent" : lastBlockVarName;
 
     pushExactStatement(elem, parentVarOrIdx);
 
@@ -891,13 +892,25 @@ Nested #each or #with must have a localName;
 
     withs[withIndex] = funcBuff.toString();
 
-    var varName = lastBlock.last.variableName;
+    // Compute parent node variable before pushing with statement. 
+    String parentVarName = lastBlockVarName;
 
     pushExactStatement(elem, parentVarIndex);
 
     // Setup call to each func as "each_n(xxxxx, " the parent param is filled
     // in later when we known the parent variable.
-    add("${funcName}(${withName}, ${varName})");
+    add("${funcName}(${withName}, ${parentVarName})");
+  }
+
+  String get lastBlockVarName() {
+    var varName;
+    if (lastBlock != null && lastBlock.anyStatements) {
+      varName = lastBlock.last.variableName;
+    } else {
+      varName = "_fragment";
+    }
+
+    return varName;
   }
 
   String injectParamName(String name) {

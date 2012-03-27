@@ -45,14 +45,24 @@ then
     ./../../template/template productview_localname.tmpl productview.dart
     cd ../../../frog
     ./frog.py --html -- ../utils/tests/template/test_with.dart
+  elif [[ $1 == "with4" ]];
+  then
+    ./../../template/template productview3.tmpl productview.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_with.dart
   elif [[ $1 == "nested" ]];
   then
     ./../../template/template nestedview.tmpl nestedview.dart
     cd ../../../frog
     ./frog.py --html -- ../utils/tests/template/test_nested.dart
-  elif [[ $1 == "list" ]];
+  elif [[ $1 == "list1" ]];
   then
     ./../../template/template applications.tmpl applications.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_list.dart
+  elif [[ $1 == "list2" ]];
+  then
+    ./../../template/template applications2.tmpl applications.dart
     cd ../../../frog
     ./frog.py --html -- ../utils/tests/template/test_list.dart
   elif [[ $1 == "complex" ]];
@@ -105,8 +115,10 @@ else
   echo -e "  with1"
   echo -e "  with2"
   echo -e "  with3"
+  echo -e "  with4"
   echo -e "  nested"
-  echo -e "  list"
+  echo -e "  list1"
+  echo -e "  list2"
   echo -e "  complex"
   echo -e "  complexcss"
   echo -e "  complex2"
