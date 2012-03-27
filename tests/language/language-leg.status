@@ -77,7 +77,6 @@ FunctionTest: Fail # continue not implemented
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
-ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
