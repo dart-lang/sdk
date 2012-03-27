@@ -325,7 +325,7 @@ public class Resolver {
       for (Element element : members) {
         Modifiers modifiers = element.getModifiers();
         if (ElementKind.of(element).equals(ElementKind.FIELD) && !modifiers.isFinal()
-            && !modifiers.isAbstractField()) {
+            && !modifiers.isStatic() && !modifiers.isAbstractField()) {
           FieldElement field = (FieldElement) element;
           HasSourceInfo errorNode = field.getSetter() == null ? element : field.getSetter();
           onError(errorNode, currentClass == originalClass
@@ -1670,7 +1670,7 @@ public class Resolver {
       } else if ((superCall != null)
           && node.getModifiers().isConstant()
           && !superCall.getModifiers().isConstant()) {
-        onError(node,
+        onError(node.getName(),
             ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER);
       }
     }

@@ -449,7 +449,12 @@ abstract class ResolverTestCase extends TestCase {
    *
    * @return resolve errors.
    */
-  protected List<DartCompilationError> resolveAndTest(String source, ErrorCode... errorCodes) {
+  protected List<DartCompilationError> resolveAndTest(String source, ErrorCode errorCode, ErrorCode... errorCodeRest) {
+    ErrorCode errorCodes[] = new ErrorCode[errorCodeRest.length + 1];
+    errorCodes[0] = errorCode;
+    if (errorCodeRest.length > 0) {
+      System.arraycopy(errorCodeRest, 0, errorCodes, 1, errorCodeRest.length);
+    }
     // parse DartUnit
     DartUnit unit = parseUnit(source);
     if (parseErrors.size() != 0) {
@@ -469,6 +474,30 @@ abstract class ResolverTestCase extends TestCase {
     // resolve and check errors
     resolve(unit, ctx);
     checkExpectedErrors(resolveErrors, errorCodes, source);
+    return resolveErrors;
+  }
+  
+  protected List<DartCompilationError> resolveAndTest(String source, 
+                                                      ErrorExpectation... expectedErrors) {
+    // parse DartUnit
+    DartUnit unit = parseUnit(source);
+    if (parseErrors.size() != 0) {
+      printSource(source);
+      printEncountered(parseErrors);
+      assertEquals("Expected no errors in parse step:", 0, parseErrors.size());
+    }
+    // prepare for recording resolving errors
+    resetParseErrors();
+    final List<DartCompilationError> resolveErrors = Lists.newArrayList();
+    TestCompilerContext ctx =  new TestCompilerContext() {
+      @Override
+      public void onError(DartCompilationError event) {
+        resolveErrors.add(event);
+      }
+    };
+    // resolve and check errors
+    resolve(unit, ctx);
+    ErrorExpectation.assertErrors(resolveErrors, expectedErrors);
     return resolveErrors;
   }
 

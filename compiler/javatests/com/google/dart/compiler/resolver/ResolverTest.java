@@ -13,6 +13,8 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
 
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import junit.framework.Assert;
 
 import java.util.List;
@@ -1069,5 +1071,43 @@ public class ResolverTest extends ResolverTestCase {
         "  static foo() { new T(); }", // should resolve to class T
         "}"),
         ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING);
+  }
+  
+  public void testConstClass() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "class GoodBase {",
+        "  const GoodBase() : foo = 1;",
+        "  final foo;",
+        "}",
+        "class BadBase {",
+        "  BadBase() {}",
+        "  var foo;",
+        "}",                                       // line 10
+        "class Bad {", 
+        "  const Bad() : bar = 1;",               
+        "  var bar;", // error: non-final field in const class
+        "}",
+        "class BadSub1 extends BadBase {",
+        "  const BadSub1() : super(),  bar = 1;", // error2: inherits non-final field, super !const
+        "  final bar;",
+        "}", 
+        "class BadSub2 extends GoodBase {",
+        "  const BadSub2() : super(),  bar = 1;", // line 20
+        "  var bar;",                             // error: non-final field in constant class
+        "}",
+        "class GoodSub1 extends GoodBase {",
+        "  const GoodSub1() : super(),  bar = 1;",
+        "  final bar;",
+        "}",
+        "class GoodSub2 extends GoodBase {",
+        "  const GoodSub2() : super();",
+        "  static int bar;",                      // OK, non-final but it is static
+        "}"),
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 13, 7, 3),
+        errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 16, 9, 7),
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3),
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 21, 7, 3));
   }
 }
