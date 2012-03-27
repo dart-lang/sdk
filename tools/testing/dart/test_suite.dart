@@ -1077,7 +1077,7 @@ class TestUtils {
 
   static String executableSuffix(String executable) {
     if (new Platform().operatingSystem() == 'windows') {
-      if (executable == 'd8' || executable == 'vm' || executable = 'none') {
+      if (executable == 'd8' || executable == 'vm' || executable == 'none') {
         return '.exe';
       } else {
         return '.bat';
