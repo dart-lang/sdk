@@ -153,7 +153,6 @@ TEST_CASE(BigintDouble) {
 
   bigint = BigintOperations::NewFromCString("12345678901234567");
   dbl = BigintOperations::ToDouble(bigint);
-  EXPECT_EQ(12345678901234567.0, dbl.value());
   EXPECT_EQ(12345678901234568.0, dbl.value());
 
   bigint = BigintOperations::NewFromCString("98765432109876");
