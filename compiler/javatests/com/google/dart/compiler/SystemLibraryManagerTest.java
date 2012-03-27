@@ -16,7 +16,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
     assertEquals("core", fullUri.getHost());
-    assertTrue(getPath(fullUri).endsWith("/core_runtime.dart"));
+    assertTrue(getPath(fullUri).endsWith("/corelib.dart"));
   }
 
   public void testExpand2() throws Exception {
@@ -24,8 +24,8 @@ public class SystemLibraryManagerTest extends TestCase {
     URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
-    assertEquals("coreimpl", fullUri.getHost());
-    assertTrue(getPath(fullUri).endsWith("/coreimpl_runtime.dart"));
+    assertEquals("core", fullUri.getHost());
+    assertTrue(getPath(fullUri).endsWith("/corelib_impl.dart"));
   }
 
   public void testExpand3() throws Exception {
@@ -34,8 +34,8 @@ public class SystemLibraryManagerTest extends TestCase {
     URI fullUri2 = systemLibraryManager.expandRelativeDartUri(fullUri1);
     assertNotNull(fullUri2);
     assertEquals("dart", fullUri2.getScheme());
-    assertEquals("coreimpl", fullUri2.getHost());
-    assertTrue(getPath(fullUri2).endsWith("/coreimpl_runtime.dart"));
+    assertEquals("core", fullUri2.getHost());
+    assertTrue(getPath(fullUri2).endsWith("/corelib_impl.dart"));
   }
 
   public void testExpand4() throws Exception {
@@ -50,8 +50,8 @@ public class SystemLibraryManagerTest extends TestCase {
     URI translatedURI = systemLibraryManager.translateDartUri(fullUri);
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
-    assertTrue(scheme.equals("file"));
-    assertTrue(getPath(translatedURI).endsWith("/core_runtime.dart"));
+    assertTrue(scheme.equals("file") || scheme.equals("jar"));
+    assertTrue(getPath(translatedURI).endsWith("/corelib.dart"));
   }
 
   public void testTranslate2() throws Exception {
@@ -60,8 +60,8 @@ public class SystemLibraryManagerTest extends TestCase {
     URI translatedURI = systemLibraryManager.translateDartUri(fullUri);
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
-    assertTrue(scheme.equals("file"));
-    assertTrue(getPath(translatedURI).endsWith("/coreimpl_runtime.dart"));
+    assertTrue(scheme.equals("file") || scheme.equals("jar"));
+    assertTrue(getPath(translatedURI).endsWith("/corelib_impl.dart"));
   }
 
   public void testTranslate3() throws Exception {

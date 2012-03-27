@@ -4,95 +4,109 @@
 
 package com.google.dart.compiler;
 
-import com.google.common.collect.Lists;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
+import java.util.jar.JarFile;
 
 /**
  * Manages the collection of {@link SystemLibrary}s.
  */
 public class SystemLibraryManager {
-  
-  public static class NotADartShortUriException extends RuntimeException {
-    
-    public NotADartShortUriException(String uriString) {
-      super("Expected dart:<short name>, got: " + uriString);
+  private enum SystemLibraryPath {
+    CORE("core", "core", "com/google/dart/corelib/", "corelib.dart", "corelib.jar", true), 
+    COREIMPL("core", "coreimpl", "com/google/dart/corelib/", "corelib_impl.dart", "corelib.jar",
+        CORE, true), 
+    DOM("dom", "dom", "dom/", "dom.dart", "domlib.jar"),
+    HTML("html", "html", "html/", "html.dart", "htmllib.jar"),
+    JSON("json", "json", "json/", "json.dart", "jsonlib.jar"),
+    ISOLATE("isolate", "isolate", "isolate/", "isolate_compiler.dart", "isolatelib.jar");
+
+    final String hostName;
+    final SystemLibraryPath base;
+    final String shortName;
+    final String jar;
+    final String lib;
+    final boolean failIfMissing;
+
+    SystemLibraryPath(String hostName, String shortName, String path, String file, String jar,
+        boolean failIfMissing) {
+      this(hostName, shortName, path, file, jar, null, failIfMissing);
     }
-    
-    public NotADartShortUriException(URI uri) {
-      super("Expected dart:<short name>, got: " + uri.toString());
+
+    SystemLibraryPath(String hostName, String shortName, String path, String file, String jar) {
+      this(hostName, shortName, path, file, jar, null, false);
+    }
+
+    SystemLibraryPath(String hostName, String shortName, String path, String file, String jar,
+        SystemLibraryPath base, boolean failIfMissing) {
+      this.hostName = hostName;
+      this.shortName = shortName;
+      this.jar = jar;
+      this.lib = path + file;
+      this.base = base;
+      this.failIfMissing = failIfMissing;
     }
   }
-  
-  /**
-   * The "any" platform is meant to have definitions for all known dart system libraries.
-   * Other implementations may only contain a subset.
-   */
-  public static final String DEFAULT_PLATFORM = "any";
-  public static final File DEFAULT_SDK_PATH = 
-      new File(System.getProperty("com.google.dart.sdk", "../"));
-                                                       
+
   private static final String DART_SCHEME = "dart";
   private static final String DART_SCHEME_SPEC = "dart:";
-  private static final String IMPORT_CONFIG = "import_%s.config";
 
-  /**
-   * Answer <code>true</code> if the string is a dart spec
-   */
-  public static boolean isDartSpec(String spec) {
-    return spec != null && spec.startsWith(DART_SCHEME_SPEC);
-  }
-  /**
-   * Answer <code>true</code> if the specified URI has a "dart" scheme
-   */
-  public static boolean isDartUri(URI uri) {
-    return uri != null && DART_SCHEME.equals(uri.getScheme());
-  }
-  
+  // executionFile is used to search for loose files on disk when the system libraries
+  // are not on the classpath (e.g. Eclipse)
+  private static final File executionFile = new File(SystemLibraryManager.class
+      .getProtectionDomain().getCodeSource().getLocation().getPath());
+
   private HashMap<String, String> expansionMap;
   private Map<String, SystemLibrary> hostMap;
-  private final File sdkLibPath;
-  private final URI sdkLibPathUri;
-  private final String platformName;
-  
-  private Map<URI, URI> longToShortUriMap;
 
-  private List<SystemLibrary> libraries;
+  private SystemLibrary[] libraries;
 
   public SystemLibraryManager() {
-    this(DEFAULT_SDK_PATH, DEFAULT_PLATFORM);
+    setLibraries(getDefaultLibraries());
   }
 
-  public SystemLibraryManager(File sdkPath, String platformName) {
-    this.sdkLibPath = new File(sdkPath, "lib").getAbsoluteFile();
-    try {
-      String path = this.sdkLibPath.toString();
-      if (!path.endsWith("/")) {
-        path += "/";
+  /**
+   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
+   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart") and then translate that URI to
+   * either a "file:" or "jar:" URI (e.g.
+   * "jar:file:/some/install/director/dom.jar!/com/google/dart/domlib/dom.dart").
+   *
+   * @param uri the original URI
+   * @return the expanded and translated URI, which may be <code>null</code> and may not exist
+   * @exception RuntimeException if the URI is a "dart" scheme, but does not map to a defined system
+   *     library
+   */
+  public URI resolveDartUri(URI uri) {
+    return translateDartUri(expandRelativeDartUri(uri));
+  }
+
+  /**
+   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://dom/dom.dart)
+   * to either a "file:" or "jar:" URI (e.g. "jar:file:/some/install/director/dom.jar!/dom.dart")
+   *
+   * @param uri the original URI
+   * @return the translated URI, which may be <code>null</code> and may not exist
+   * @exception RuntimeException if the URI is a "dart" scheme,
+   *     but does not map to a defined system library
+   */
+  public URI translateDartUri(URI uri) {
+    if (isDartUri(uri)) {
+      String host = uri.getHost();
+      SystemLibrary library = hostMap.get(host);
+      if (library == null) {
+        throw new RuntimeException("No system library defined for " + uri);
       }
-      this.sdkLibPathUri = 
-          new URI("file", null, path, null, null);
-    } catch (URISyntaxException e) {
-      throw new InternalCompilerException(
-          "Error creating URI from " + sdkLibPath.toString() + "/lib", e);
+      return library.translateUri(uri);
     }
-    this.platformName = platformName;
-    setLibraries(getDefaultLibraries());
+
+    return uri;
   }
 
   /**
@@ -125,187 +139,17 @@ public class SystemLibraryManager {
   }
 
   /**
-   * Answer a collection of all bundled library URL specs (e.g. "dart:dom").
-   * 
-   * @return a collection of specs (not <code>null</code>, contains no <code>null</code>s)
+   * Answer <code>true</code> if the specified URI has a "dart" scheme
    */
-  public Collection<String> getAllLibrarySpecs() {
-    Collection<String> result = new ArrayList<String>(libraries.size());
-    for (SystemLibrary lib : libraries) {
-      result.add("dart:" + lib.getShortName());
-    }
-    return result;
-  }
-
-  protected InputStream getImportConfigStream() {
-    File file = new File(new File(sdkLibPath, "config"), 
-                         String.format(IMPORT_CONFIG, platformName));
-    if (!file.exists()) {
-      throw new InternalCompilerException("Failed to find " + file.toString() 
-                                          + ".  Is dart-sdk path correct?");
-    }
-    try {
-      return new BufferedInputStream(new FileInputStream(file));
-    } catch (FileNotFoundException e) {
-      throw new InternalCompilerException("Failed to open " + file);
-    }
-  }
-  
-  /**
-   * Answer the original "dart:<libname>" URI for the specified resolved URI or <code>null</code> if
-   * it does not map to a short URI.
-   */
-  public URI getShortUri(URI uri) {
-    return longToShortUriMap.get(uri);
-  }
-  
-  /**
-   * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
-   * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart") and then translate that URI to
-   * a "file:"  URI (e.g.
-   * "file:/some/install/directory/com/google/dart/domlib/dom.dart").
-   *
-   * @param uri the original URI
-   * @return the expanded and translated URI, which may be <code>null</code> and may not exist
-   * @exception RuntimeException if the URI is a "dart" scheme, but does not map to a defined system
-   *     library
-   */
-  public URI resolveDartUri(URI uri) {
-    return translateDartUri(expandRelativeDartUri(uri));
+  public static boolean isDartUri(URI uri) {
+    return uri != null && DART_SCHEME.equals(uri.getScheme());
   }
 
   /**
-   * Translate the URI from dart://[host]/[pathToLib] (e.g. dart://dom/dom.dart)
-   * to a "file:" URI (e.g. "file:/some/install/directory/dom.dart")
-   *
-   * @param uri the original URI
-   * @return the translated URI, which may be <code>null</code> and may not exist
-   * @exception RuntimeException if the URI is a "dart" scheme,
-   *     but does not map to a defined system library
+   * Answer <code>true</code> if the string is a dart spec
    */
-  public URI translateDartUri(URI uri) {
-    if (isDartUri(uri)) {
-      String host = uri.getHost();
-      SystemLibrary library = hostMap.get(host);
-      if (library == null) {
-        throw new RuntimeException("No system library defined for " + uri);
-      }
-      return library.translateUri(uri);
-    }
-
-    return uri;
-  }
-  
-  public File getSdkLibPath() {
-    return sdkLibPath;
-  }
-  
-  /**
-   * Scan the directory returned by {@link #getLibrariesDir()} looking for libraries of the form
-   * libraries/<name>/<name>_<platform>.dart and libraries/<name>/<name>.dart where <platform> is
-   * the value initialized in the {@link SystemLibraryManager}. 
-   */
-  protected SystemLibrary[] getDefaultLibraries() {
-    libraries = new ArrayList<SystemLibrary>();
-    longToShortUriMap = new HashMap<URI, URI>();
-
-    // Cycle through the import.config, extracting explicit mappings and searching directories
-    URI base = this.sdkLibPathUri;
-    Properties importConfig = getImportConfig();
-    HashSet<String> explicitShortNames = new HashSet<String>();
-    for (Entry<Object, Object> entry : importConfig.entrySet()) {
-      String shortName = ((String) entry.getKey()).trim();
-      String path = ((String) entry.getValue()).trim();
-
-      File file;
-      try {
-        file = new File(base.resolve(new URI(null, null, path, null)).normalize());
-      } catch (URISyntaxException e) {
-        continue;
-      }
-      if (!file.exists()) {
-        throw new InternalCompilerException("Can't find system library dart:" + shortName 
-                                            + " at " + file);
-      }
-
-      // If the shortName ends with ":" then search the associated directory for libraries
-
-      if (shortName.endsWith(":")) {
-        if (!file.isDirectory()) {
-          continue;
-        }
-        for (File child : file.listFiles()) {
-          String host = child.getName();
-          // Do not overwrite explicit shortName to dart file mappings
-          if (explicitShortNames.contains(shortName + host)) {
-            continue;
-          }
-          if (!child.isDirectory()) {
-            continue;
-          }
-          File dartFile = new File(child, child.getName() + ".dart");
-          if (!dartFile.isFile()) {
-            // addLib() will throw an exception. In this case, we are just scanning 
-            // for libraries and don't want the error to be fatal.
-            continue;
-          }
-          addLib(shortName, host, host, child, dartFile.getName());
-        }
-      } else {
-        // Otherwise treat the entry as an explicit shortName to dart file mapping
-        int index = shortName.indexOf(':');
-        if (index == -1) {
-          continue;
-        }
-        explicitShortNames.add(shortName);
-        String scheme = shortName.substring(0, index + 1);
-        String host = shortName.substring(index + 1);
-        addLib(scheme, host, host, file.getParentFile(), file.getName());
-      }
-    }
-    return libraries.toArray(new SystemLibrary[libraries.size()]);
-  }
-  
-  /**
-   * Read the import.config content and return it as a collection of key/value pairs
-   */
-  protected Properties getImportConfig() {
-    Properties importConfig = new Properties();
-    InputStream stream = getImportConfigStream();
-    try {
-      importConfig.load(stream);
-    } catch (IOException ignored) {
-    } finally {
-      try {
-        stream.close();
-      } catch (IOException ignored) {
-      }
-    }
-    return importConfig;
-  }
-
-  private boolean addLib(String scheme, String host, String name, File dir, String libFileName)
-      throws AssertionError {
-    File libFile = new File(dir, libFileName);
-    if (!libFile.isFile()) {
-      throw new InternalCompilerException("Error mapping dart:" + host + ", path " 
-          + libFile.getAbsolutePath() + " is not a file.");
-    }
-    SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir);
-    libraries.add(lib);
-    String libSpec = scheme + name;
-    URI libUri;
-    URI expandedUri;
-    try {
-      libUri = new URI(libSpec);
-      expandedUri = new URI("dart:" + "//" + host + "/" + libFileName);
-    } catch (URISyntaxException e) {
-      throw new AssertionError(e);
-    }
-    URI resolvedUri = lib.translateUri(expandedUri);
-    longToShortUriMap.put(resolvedUri, libUri);
-    longToShortUriMap.put(expandedUri, libUri);
-    return true;
+  public static boolean isDartSpec(String spec) {
+    return spec != null && spec.startsWith(DART_SCHEME_SPEC);
   }
 
   /**
@@ -314,7 +158,7 @@ public class SystemLibraryManager {
    * dart://dom/dom.dart)
    */
   private void setLibraries(SystemLibrary[] newLibraries) {
-    libraries = Lists.newArrayList(newLibraries);
+    libraries = newLibraries;
     hostMap = new HashMap<String, SystemLibrary>();
     expansionMap = new HashMap<String, String>();
     for (SystemLibrary library : libraries) {
@@ -322,5 +166,150 @@ public class SystemLibraryManager {
       expansionMap.put(library.getShortName(),
           "//" + library.getHost() + "/" + library.getPathToLib());
     }
+  }
+
+  private File getResource(String name, boolean failOnMissing) {
+    URL baseUrl = SystemLibraryManager.class.getClassLoader().getResource(name);
+    if (baseUrl == null) {
+      if (!failOnMissing) {
+        return null;
+      }
+      throw new RuntimeException("Failed to find the system library: " + name);
+    }
+    return resolveResource(baseUrl, name);
+  }
+
+  static private File resolveResource(URL baseUrl, String name) {
+    if (baseUrl == null) {
+      return null;
+    }
+    File coreDirOrZip = null;
+    String protocol = baseUrl.getProtocol();
+    String path = baseUrl.getPath();
+    if ("file".equals(protocol)) {
+      coreDirOrZip = new File(path.substring(0, path.lastIndexOf(name)));
+    } else if ("jar".equals(protocol)) {
+      // jar:file://www.foo.com/bar/baz.jar!/com/google/some.class
+      if (path.startsWith("file:")) {
+        int index = path.indexOf('!');
+        coreDirOrZip = new File(path.substring(5, index > 0 ? index : path.length()));
+      }
+    }
+    if (coreDirOrZip == null) {
+      throw new RuntimeException("Failed to find system library in " + baseUrl);
+    }
+    if (!coreDirOrZip.exists()) {
+      throw new RuntimeException("System library container does not exist " + coreDirOrZip
+          + "\n  from " + baseUrl);
+    }
+    return coreDirOrZip;
+  }
+
+  private File searchForResource(String searchPath, String libraryName, boolean failOnMissing) {
+    URL urlPath = null;
+    File sourcePath = new File(searchPath);
+
+    /* The source can be a directory or a jar file. Search both for our library. */
+    if (sourcePath.isDirectory()) {
+      File foundLibrary = new File(sourcePath.getPath() + File.separator + libraryName);
+      if (!foundLibrary.exists()) {
+        if (failOnMissing) {
+          throw new RuntimeException("Failed to find system library " + libraryName + " with "
+              + sourcePath.toString());
+        }
+        return null;
+      }
+      try {
+        urlPath = foundLibrary.toURI().toURL();
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (sourcePath.isFile() && sourcePath.toString().endsWith(".jar")) {
+      // Support for jar only right now...
+      JarFile jarFile = null;
+      try {
+        jarFile = new JarFile(sourcePath);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      if (null != jarFile.getJarEntry(libraryName)) {
+        String path = "jar:file:" + sourcePath.getPath() + "!/" + libraryName;
+        try {
+          urlPath = new URL(path);
+        } catch (MalformedURLException e) {
+          throw new RuntimeException(e);
+        }
+      } else {
+        if (failOnMissing) {
+          throw new RuntimeException("Failed to find system library " + libraryName + " with "
+              + sourcePath.getPath());
+        }
+        return null;
+      }
+    }
+
+    File foundLibrary = resolveResource(urlPath, libraryName);
+    if (foundLibrary == null && failOnMissing) {
+      throw new RuntimeException("Failed to find system library " + libraryName + " with "
+          + sourcePath.getPath());
+    }
+    return foundLibrary;
+  }
+
+  protected SystemLibrary locateSystemLibrary(SystemLibraryPath path) {
+    // First, check for jars on the class path
+    File libraryDirOrZip = getResource(path.lib, path.failIfMissing);
+
+    // TODO(codefu): This is a hack. To keep Eclipse happy and to find the
+    // sources, we hard code this path. In the future, when the libraries are
+    // all gathered into a common "lib/" path, we can search from there.
+    if (libraryDirOrZip == null) {
+      // Eclipse's executionPath should be a directory, unless a jar file was included.
+      String executionPath;
+      if (executionFile.isDirectory()) {
+        // Universal location of eclipse workspace to the dart source tree is
+        // 'dart/compiler/eclipse.workspace/dartc/output'
+        // and we need 'dart/client'
+        executionPath =
+            executionFile.getParent() + File.separator + ".." + File.separator + ".."
+                + File.separator + ".." + File.separator + "client";
+      } else {
+        executionPath = executionFile.getParent() + File.separator + path.jar;
+      }
+      libraryDirOrZip = searchForResource(executionPath, path.lib, false);
+      if (libraryDirOrZip == null && executionFile.isFile()) {
+        // Last ditch; are the artifacts just in a flat file...
+        libraryDirOrZip = searchForResource(executionFile.getParent(), path.lib, false);
+      }
+    }
+    if (libraryDirOrZip != null) {
+      return new SystemLibrary(path.shortName, path.hostName, path.lib,
+          libraryDirOrZip);
+    }
+    return null;
+  }
+  
+  /**
+   * Answer the libraries that are built into the compiler jar
+   */
+  protected SystemLibrary[] getDefaultLibraries() {
+    ArrayList<SystemLibrary> defaultLibraries = new ArrayList<SystemLibrary>();
+    File[] baseFiles = new File[SystemLibraryPath.values().length];
+
+    for (SystemLibraryPath path : SystemLibraryPath.values()) {
+      if (path.base != null) {
+        defaultLibraries.add(new SystemLibrary(path.shortName, path.hostName, path.lib,
+            baseFiles[path.base.ordinal()]));
+        baseFiles[path.ordinal()] = baseFiles[path.base.ordinal()];
+      } else {
+        SystemLibrary library = locateSystemLibrary(path);
+        if (library != null) {
+          defaultLibraries.add(library);
+          baseFiles[path.ordinal()] = library.getFile();
+        }
+      }
+    }
+
+    return defaultLibraries.toArray(new SystemLibrary[defaultLibraries.size()]);
   }
 }

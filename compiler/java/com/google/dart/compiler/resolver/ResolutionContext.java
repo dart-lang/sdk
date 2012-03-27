@@ -7,14 +7,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ErrorSeverity;
-import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -40,8 +37,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   private Scope scope;
   private final DartCompilerContext context;
   private final CoreTypeProvider typeProvider;
-  private final boolean suppressSdkWarnings;
-  
+
   ResolutionContext(String name, LibraryElement library, DartCompilerContext context,
                     CoreTypeProvider typeProvider) {
     this(new Scope(name, library), context, typeProvider);
@@ -53,8 +49,6 @@ public class ResolutionContext implements ResolutionErrorListener {
     this.scope = scope;
     this.context = context;
     this.typeProvider = typeProvider;
-    this.suppressSdkWarnings = context.getCompilerConfiguration().getCompilerOptions()
-        .suppressSdkWarnings();
   }
 
   ResolutionContext(LibraryUnit unit, DartCompilerContext context, CoreTypeProvider typeProvider) {
@@ -356,12 +350,6 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   public void onError(SourceInfo sourceInfo, ErrorCode errorCode, Object... arguments) {
-    if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-      Source source = sourceInfo.getSource();
-      if (source != null && SystemLibraryManager.isDartUri(source.getUri())) {
-        return;
-      }
-    }
     context.onError(new DartCompilationError(sourceInfo, errorCode, arguments));
   }
 

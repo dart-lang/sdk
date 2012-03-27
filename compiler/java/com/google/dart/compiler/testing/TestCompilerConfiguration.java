@@ -7,7 +7,6 @@ package com.google.dart.compiler.testing;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
-import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
@@ -23,9 +22,7 @@ import java.util.List;
  * A mock configuration for use in tests.
  */
 public class TestCompilerConfiguration implements CompilerConfiguration {
-  private final CompilerOptions compilerOptions = new CompilerOptions();
-  private final SystemLibraryManager systemLibraryManager =
-      new SystemLibraryManager();
+  private final SystemLibraryManager systemLibraryManager = new SystemLibraryManager();
 
   @Override
   public boolean developerModeChecks() {
@@ -85,7 +82,7 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
 
   @Override
   public CompilerOptions getCompilerOptions() {
-    return compilerOptions;
+    throw new AssertionError();
   }
 
   @Override

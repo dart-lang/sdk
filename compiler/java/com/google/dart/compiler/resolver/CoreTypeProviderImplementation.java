@@ -48,11 +48,9 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.fallThroughError = getType("FallThroughError", scope, listener);
     this.mapType = getType("Map", scope, listener);
     this.mapLiteralType = getType("LinkedHashMapImplementation", scope, listener);
-    this.objectArrayType = getType(new String[] {
-        "ListImplementation", "GrowableObjectArray", "ListFactory"}, scope, listener);
+    this.objectArrayType = getType(new String[] {"ListImplementation", "GrowableObjectArray"}, scope, listener);
     this.objectType = getType("Object", scope, listener);
-    this.stringImplementation = getType(new String[] {
-        "StringImplementation", "OneByteString"}, scope, listener);
+    this.stringImplementation = getType(new String[] {"StringImplementation", "OneByteString"}, scope, listener);
     iteratorType = getType("Iterator", scope, listener);
   }
 

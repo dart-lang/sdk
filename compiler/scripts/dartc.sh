@@ -8,7 +8,6 @@ set -e
 SCRIPT_DIR=$(dirname $0)
 DARTC_HOME=$(dirname $SCRIPT_DIR)
 DARTC_LIBS=$DARTC_HOME/lib
-DARTC_SDK=$(dirname $DARTC_HOME)/dart-sdk
 
 if [ -x /usr/libexec/java_home ]; then
   export JAVA_HOME=$(/usr/libexec/java_home -v '1.6+')
@@ -25,4 +24,4 @@ if [ "$OS" == "darwin" ] ; then
 fi
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -classpath "@CLASSPATH@" \
-  com.google.dart.compiler.DartCompiler --dart-sdk ${DARTC_SDK} $@
+  com.google.dart.compiler.DartCompiler $@

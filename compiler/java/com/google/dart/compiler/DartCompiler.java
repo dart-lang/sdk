@@ -97,7 +97,7 @@ public class DartCompiler {
     public String getName() {
       return name;
     }
-    
+
     @Override
     public Reader getSourceReader() {
       throw new AssertionError();
@@ -132,6 +132,7 @@ public class DartCompiler {
     private final Map<URI, LibraryUnit> libraries = new LinkedHashMap<URI, LibraryUnit>();
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
+    private final boolean usePrecompiledDartLibs;
     private final List<DartCompilationPhase> phases;
     private final LibrarySource coreLibrarySource;
 
@@ -143,24 +144,22 @@ public class DartCompiler {
       this.context = context;
       for (LibrarySource library : embedded) {
         if (SystemLibraryManager.isDartSpec(library.getName())) {
-          LibrarySource foundLibrary = context.getSystemLibraryFor(library.getName());
-          assert(foundLibrary != null);
-          embeddedLibraries.add(foundLibrary);
+          embeddedLibraries.add(context.getSystemLibraryFor(library.getName()));
         } else {
           embeddedLibraries.add(library);
         }
       }
       coreLibrarySource = context.getSystemLibraryFor(CORELIB_URL_SPEC);
-      assert(coreLibrarySource != null);
       embeddedLibraries.add(coreLibrarySource);
 
       incremental = config.incremental();
+      usePrecompiledDartLibs = true;
     }
-
+    
     void addResolvedLibraries(Map<URI, LibraryUnit> resolvedLibraries) {
       libraries.putAll(resolvedLibraries);
     }
-
+    
     Map<URI, LibraryUnit> getLibraries() {
       return libraries;
     }
@@ -236,6 +235,7 @@ public class DartCompiler {
         for (LibraryUnit lib : getLibrariesToProcess()) {
           LibrarySource libSrc = lib.getSource();
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
+          boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
 
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
@@ -255,7 +255,7 @@ public class DartCompiler {
             }
 
             if (!incremental
-                || SystemLibraryManager.isDartUri(libSrc.getUri())
+                || (libIsDartUri && !usePrecompiledDartLibs)
                 || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
 
@@ -510,6 +510,11 @@ public class DartCompiler {
       try {
         boolean filesHaveChanged = false;
         for (LibraryUnit lib : getLibrariesToProcess()) {
+
+          if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
+            // embedded dart libs are always up to date
+            continue;
+          }
 
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
@@ -847,8 +852,8 @@ public class DartCompiler {
   }
 
   /**
-   * Selectively compile a library. Use supplied libraries and ASTs when available.
-   * This allows programming tools to provide customized ASTs for code that is currently being
+   * Selectively compile a library. Use supplied libraries and ASTs when available. 
+   * This allows programming tools to provide customized ASTs for code that is currently being 
    * edited, and may not compile correctly.
    */
   private static class SelectiveCompiler extends Compiler {
@@ -858,14 +863,14 @@ public class DartCompiler {
     private Collection<LibraryUnit> librariesToProcess;
 
     private SelectiveCompiler(LibrarySource app, Map<URI, LibraryUnit> resolvedLibraries,
-        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config,
+        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config, 
         DartCompilerMainContext context) {
       super(app, Collections.<LibrarySource>emptyList(), config, context);
       this.resolvedLibraries = resolvedLibraries;
       this.parsedUnits = parsedUnits;
       addResolvedLibraries(resolvedLibraries);
     }
-
+    
     @Override
     Collection<LibraryUnit> getLibrariesToProcess() {
       if (librariesToProcess == null) {
@@ -907,31 +912,20 @@ public class DartCompiler {
     return compilerOptions;
   }
 
-  public static void main(final String[] topArgs) {
+  public static void main(String[] args) {
     Tracer.init();
 
-    CompilerOptions topCompilerOptions = processCommandLineOptions(topArgs);
+    CompilerOptions topCompilerOptions = processCommandLineOptions(args);
     boolean result = false;
     try {
       if (topCompilerOptions.shouldBatch()) {
-        if (topArgs.length > 1) {
+        if (args.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");
         }
-        UnitTestBatchRunner.runAsBatch(topArgs, new Invocation() {
+        UnitTestBatchRunner.runAsBatch(args, new Invocation() {
           @Override
-          public boolean invoke(String[] lineArgs) throws Throwable {
-            List<String> allArgs = new ArrayList<String>();
-            for (String arg: topArgs) {
-              if (!arg.equals("-batch")) {
-                allArgs.add(arg);
-              }
-            }
-            for (String arg: lineArgs) {
-              allArgs.add(arg);
-            }
-
-            CompilerOptions compilerOptions = processCommandLineOptions(
-                allArgs.toArray(new String[allArgs.size()]));
+          public boolean invoke(String[] args) throws Throwable {
+            CompilerOptions compilerOptions = processCommandLineOptions(args);
             if (compilerOptions.shouldBatch()) {
               System.err.println("-batch ignored: Already in batch mode.");
             }

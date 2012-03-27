@@ -13,8 +13,8 @@ unset CLASSPATH
 # Figure out where the dartc home is
 SCRIPT_DIR=`dirname $0`
 DARTC_HOME=`cd $SCRIPT_DIR; pwd`
-DARTC_LIBS=$DIST_DIR/lib
 DIST_DIR=$DARTC_HOME/compiler
+DARTC_LIBS=$DIST_DIR/lib
 
 DARTC_FLAGS=""
 

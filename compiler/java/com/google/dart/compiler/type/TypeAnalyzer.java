@@ -17,9 +17,6 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ErrorSeverity;
-import com.google.dart.compiler.Source;
-import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -183,8 +180,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
-    private final boolean suppressSdkWarnings;
-    
+
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
      * outside of any catch block.
@@ -206,8 +202,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.nullType = typeProvider.getNullType();
       this.functionType = typeProvider.getFunctionType();
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
-      this.suppressSdkWarnings = context.getCompilerConfiguration().getCompilerOptions()
-          .suppressSdkWarnings();
     }
 
     @VisibleForTesting
@@ -224,14 +218,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return dynamicType;
     }
 
-    private void onError(HasSourceInfo node, ErrorCode errorCode, Object... arguments) {
-      Source source = node.getSourceInfo().getSource();
-      if (suppressSdkWarnings && errorCode.getErrorSeverity() == ErrorSeverity.WARNING) {
-        if (source != null && SystemLibraryManager.isDartUri(source.getUri())) {
-          return;
-        }
-      }
-      context.onError(new DartCompilationError(node, errorCode, arguments));
+    private void onError(HasSourceInfo node, ErrorCode code, Object... arguments) {
+      context.onError(new DartCompilationError(node, code, arguments));
     }
 
     AssertionError internalError(HasSourceInfo node, String message, Object... arguments) {
