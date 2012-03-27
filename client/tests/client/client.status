@@ -32,7 +32,7 @@ dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
-[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera || ($runtime == drt && $compiler == frog) ]
+[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
 dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
