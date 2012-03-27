@@ -520,6 +520,9 @@ class Class : public Object {
   // The super type of this class, Object type if not explicitly specified.
   RawType* super_type() const { return raw_ptr()->super_type_; }
   void set_super_type(const Type& value) const;
+  static intptr_t super_type_offset() {
+    return OFFSET_OF(RawClass, super_type_);
+  }
 
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
@@ -542,6 +545,9 @@ class Class : public Object {
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
+  static intptr_t interfaces_offset() {
+    return OFFSET_OF(RawClass, interfaces_);
+  }
 
   RawArray* functions_cache() const { return raw_ptr()->functions_cache_; }
   void set_functions_cache(const Array& value) const;

@@ -1542,7 +1542,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        TestClassAndJump(dst_type_class, &done);
+        TestClassAndJump(dst_type_class, &done);  // Uses ECX.
+        // Check superclass
+        __ movl(ECX, FieldAddress(ECX, Class::super_type_offset()));
+        __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
+        TestClassAndJump(dst_type_class, &done);  // Uses ECX.
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -1585,6 +1589,31 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
           __ cmpl(ECX, raw_null);
           __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+        } else {
+          // Check interfaces.
+          Label fall_through;
+          // Get interfaces array from class.
+          __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+          __ movl(EBX, FieldAddress(EBX, Class::interfaces_offset()));
+          __ cmpl(EBX, raw_null);
+          __ j(EQUAL, &fall_through, Assembler::kNearJump);
+          // Iterate over interfaces array and check if any of interfaces match.
+          __ movl(EDI, FieldAddress(EBX, Array::length_offset()));
+          // EDI: array index
+          // EBX: array
+          Label loop;
+          __ Bind(&loop);
+          __ subl(EDI, Immediate(Smi::RawValue(1)));
+          __ cmpl(EDI, Immediate(0));
+          __ j(LESS, &runtime_call, Assembler::kNearJump);
+          // EDI is Smi therefore TIMES_2 instead of TIMES_4.
+          // Get type from array.
+          __ movl(ECX, FieldAddress(EBX, EDI, TIMES_2, Array::data_offset()));
+          __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
+          TestClassAndJump(dst_type_class, &done);  // Uses ECX.
+          __ jmp(&loop, Assembler::kNearJump);
+          // Fall through to runtime code.
+          __ Bind(&fall_through);
         }
       }
     }
