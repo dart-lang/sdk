@@ -213,7 +213,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
 
-[ $component == frog  || $compiler == frogsh ]
+[ $compiler == frog  || $compiler == frogsh ]
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
