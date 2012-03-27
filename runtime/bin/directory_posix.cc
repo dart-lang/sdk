@@ -93,25 +93,8 @@ static bool HandleFile(char* file_name,
 
 
 static void PostError(DirectoryListing *listing,
-                      const char* prefix,
-                      const char* suffix,
-                      int error_code) {
-  // TODO(sgjesse): Pass flags to indicate whether error response is
-  // needed.
-  char* error_str = Platform::StrError(error_code);
-  int error_message_size =
-      strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
-  char* message = static_cast<char*>(malloc(error_message_size + 1));
-  int written = snprintf(message,
-                         error_message_size + 1,
-                         "%s%s (%s)",
-                         prefix,
-                         suffix,
-                         error_str);
-  ASSERT(written == error_message_size);
-  free(error_str);
-  listing->HandleError(message);
-  free(message);
+                      const char* dir_name) {
+  listing->HandleError(dir_name);
 }
 
 
@@ -123,7 +106,7 @@ static bool ListRecursively(const char* dir_name,
     dir_pointer = opendir(dir_name);
   } while (dir_pointer == NULL && errno == EINTR);
   if (dir_pointer == NULL) {
-    PostError(listing, "Directory listing failed for: ", dir_name, errno);
+    PostError(listing, dir_name);
     return false;
   }
 
@@ -138,7 +121,7 @@ static bool ListRecursively(const char* dir_name,
   bool valid = ComputeFullPath(dir_name, path, &path_length);
   if (!valid) {
     free(path);
-    PostError(listing, "Directory listing failed for: ", dir_name, errno);
+    PostError(listing, dir_name);
     return false;
   }
 
@@ -183,7 +166,7 @@ static bool ListRecursively(const char* dir_name,
         int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
         if (lstat_success == -1) {
           success = false;
-          PostError(listing, "Directory listing failed for: ", path, errno);
+          PostError(listing, path);
           break;
         }
         if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
@@ -206,12 +189,14 @@ static bool ListRecursively(const char* dir_name,
   }
 
   if (read != 0) {
+    errno = read;
     success = false;
-    PostError(listing, "Directory listing failed", "", read);
+    PostError(listing, dir_name);
   }
 
   if (closedir(dir_pointer) == -1) {
-    PostError(listing, "Failed to close directory", "", errno);
+    success = false;
+    PostError(listing, dir_name);
   }
   free(path);
 

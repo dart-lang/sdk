@@ -135,7 +135,7 @@ interface Directory default _Directory {
    * Sets the handler that is called if there is an error while listing
    * or creating directories.
    */
-  void set onError(void onError(String error));
+  void set onError(void onError(Exception e));
 
   /**
    * Gets the path of this directory.
@@ -146,20 +146,28 @@ interface Directory default _Directory {
 
 class DirectoryIOException implements Exception {
   const DirectoryIOException([String this.message = "",
+                              String this.path = "",
                               OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.add("DirectoryIOException");
     if (!message.isEmpty()) {
       sb.add(": $message");
+      if (path != null) {
+        sb.add(", path = $path");
+      }
       if (osError != null) {
         sb.add(" ($osError)");
       }
     } else if (osError != null) {
       sb.add(": $osError");
+      if (path != null) {
+        sb.add(", path = $path");
+      }
     }
     return sb.toString();
   }
   final String message;
+  final String path;
   final OSError osError;
 }

@@ -124,22 +124,8 @@ static bool ComputeFullSearchPath(const char* dir_name,
 }
 
 static void PostError(DirectoryListing* listing,
-                      const char* prefix,
-                      const char* suffix) {
-  char* error_str = Platform::StrError(GetLastError());
-  int error_message_size =
-      strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
-  char* message = static_cast<char*>(malloc(error_message_size + 1));
-  size_t written = snprintf(message,
-                            error_message_size + 1,
-                            "%s%s (%s)",
-                            prefix,
-                            suffix,
-                            error_str);
-  ASSERT(written == error_message_size);
-  free(error_str);
-  listing->HandleError(message);
-  free(message);
+                      const char* dir_name) {
+  listing->HandleError(dir_name);
 }
 
 
@@ -155,7 +141,7 @@ static bool ListRecursively(const char* dir_name,
   int path_length = 0;
   bool valid = ComputeFullSearchPath(dir_name, path, &path_length);
   if (!valid) {
-    PostError(listing, "Directory listing failed for: ", dir_name);
+    PostError(listing, dir_name);
     free(path);
     return false;
   }
@@ -168,7 +154,7 @@ static bool ListRecursively(const char* dir_name,
   path[path_length] = '\0';
 
   if (find_handle == INVALID_HANDLE_VALUE) {
-    PostError(listing, "Directory listing failed for: ", path);
+    PostError(listing, path);
     free(path);
     return false;
   }
@@ -189,11 +175,12 @@ static bool ListRecursively(const char* dir_name,
 
   if (GetLastError() != ERROR_NO_MORE_FILES) {
     success = false;
-    PostError(listing, "Directory listing failed", "");
+    PostError(listing, dir_name);
   }
 
   if (FindClose(find_handle) == 0) {
-    PostError(listing, "Failed to close directory", "");
+    success = false;
+    PostError(listing, dir_name);
   }
   free(path);
 

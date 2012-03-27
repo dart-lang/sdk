@@ -23,7 +23,7 @@ class DirectoryListing {
       : response_port_(response_port) {}
   bool HandleDirectory(char* dir_name);
   bool HandleFile(char* file_name);
-  bool HandleError(char* message);
+  bool HandleError(const char* dir_name);
 
  private:
   CObjectArray* NewResponse(Response response, char* arg);

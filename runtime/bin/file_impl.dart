@@ -229,6 +229,10 @@ class _FileUtils {
   static final kOSErrorResponse = 2;
   static final kFileClosedResponse = 3;
 
+  static final kErrorResponseErrorType = 0;
+  static final kOSErrorResponseErrorCode = 1;
+  static final kOSErrorResponseMessage = 2;
+
   static List ensureFastAndSerializableBuffer(
       List buffer, int offset, int bytes) {
     // When using the Dart C API to access raw data, using a ByteArray is
@@ -373,13 +377,14 @@ class _FileBase {
   bool _reportError(response, String message) {
     assert(_isErrorResponse(response));
     if (_onError != null) {
-      switch (response[0]) {
+      switch (response[_FileUtils.kErrorResponseErrorType]) {
         case _FileUtils.kIllegalArgumentResponse:
           _onError(new IllegalArgumentException());
           break;
         case _FileUtils.kOSErrorResponse:
-          _onError(new FileIOException(message,
-                                       new OSError(response[2], response[1])));
+          var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
+                                response[_FileUtils.kOSErrorResponseErrorCode]);
+          _onError(new FileIOException(message, err));
           break;
         case _FileUtils.kFileClosedResponse:
           _onError(new FileIOException("File closed"));
