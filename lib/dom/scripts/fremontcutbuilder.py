@@ -149,9 +149,17 @@ def main():
       ('IDBDatabase', 'transaction', 'mode'),
       ]
 
+  # Assume standard Dart checkout.
+  webcore_path = os.path.join(current_dir, '..', '..', '..',
+                              'third_party', 'WebCore')
+
+  if not os.path.exists(webcore_path):
+    # Dartium checkout.
+    webcore_path = os.path.join(current_dir, '..', '..', '..', '..',
+                                'third_party', 'WebKit', 'Source', 'WebCore')
+
   for dir_name in webkit_dirs:
-    dir_path = os.path.join(current_dir, '..', '..', '..', '..',
-                'third_party', 'WebKit', 'Source', 'WebCore', dir_name)
+    dir_path = os.path.join(webcore_path, dir_name)
     builder.import_idl_directory(dir_path, webkit_options)
 
   webkit_supplemental_options = databasebuilder.DatabaseBuilderOptions(
