@@ -519,7 +519,7 @@ class StandardTestSuite implements TestSuite {
       // Construct the command(s) that compile all the inputs needed by the
       // browser test. For running Dart in DRT, this will be noop commands.
       List<Command> commands = [];
-      if (compiler != 'none' && runtime == 'drt') {
+      if (compiler != 'none' || runtime == 'drt') {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
             compiler, tempDir.path, vmOptions));
