@@ -42,14 +42,6 @@ class OSError {
 }
 
 
-/**
-  * Utility for creating an OSError instance. NOTE: This will go away
-  * soon, so please don't use this utility function. The reason for
-  * having it temporarily is that the Dart C API does not currently
-  * support constructing objects.
-  */
 // TODO(sgjesse): Remove this once Dart constructors can be invoked
 // through the API.
-class IOUtils {
-  static OSError makeOSError(message, code) => new OSError(message, code);
-}
+OSError _makeOSError(message, code) => new OSError(message, code);
