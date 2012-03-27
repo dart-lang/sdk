@@ -138,7 +138,6 @@ LiteralUnaryPlusTest/01: Fail # Issue 1399
 MapLiteral4Test: Fail        # Issue 1343
 NamedParametersNegativeTest: Fail
 NoSuchMethodNegativeTest: Fail
-NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
@@ -153,6 +152,7 @@ Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
 Prefix3NegativeTest: Fail              # Bug 5406175
 Prefix6NegativeTest: Fail
+PrivateFactoryResolutionNegativeTest: Fail # Issue 2275
 PrivateMember3NegativeTest: Fail
 PseudoKWIllegalTest/01: Fail # Issue 356
 PseudoKWIllegalTest/02: Fail # Issue 356

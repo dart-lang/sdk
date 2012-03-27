@@ -53,6 +53,8 @@ public class UnitTestBatchRunner {
         System.out.flush();
       }
     } catch (Throwable e) {
+      System.err.println(">>> EOF STDERR");
+      System.err.flush();
       System.out.println(">>> TEST CRASH");
       System.out.flush();
       throw e;

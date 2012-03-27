@@ -303,6 +303,10 @@ def Main(argv):
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
            ignore=ignore_patterns('.svn'))
 
+  isolate_runtime_src = join(HOME, 'runtime', 'lib', 'isolate.dart')
+  isolate_runtime_dest = join(LIB, 'isolate', 'runtime', 'isolate.dart')
+  copyfile(isolate_runtime_src, isolate_runtime_dest)
+
   #
   # Create and populate lib/core.
   #
@@ -394,6 +398,15 @@ def Main(argv):
 
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
+
+
+  # Copy import maps
+  PLATFORMS = ['any', 'vm', 'dartium', 'dart2js', 'frog' ]
+  os.makedirs(join(LIB, 'config'))
+  for platform in PLATFORMS:
+    import_src = join(HOME, 'lib', 'config', 'import_' + platform + '.config')
+    import_dst = join(LIB, 'config', 'import_' + platform + '.config')
+    copyfile(import_src, import_dst);
 
   move(SDK_tmp, SDK)
 
