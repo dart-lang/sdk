@@ -159,11 +159,17 @@ class Futures {
 
   /**
    * Returns a future which will complete once all the futures in a list are
-   * complete. (The value of the returned future will be a list of all the
-   * values that were produced.)
+   * complete. If any of the futures in the list completes with an exception,
+   * the resulting future also completes with an exception. (The value of the
+   * returned future will be a list of all the values that were produced.)
    */
   static Future<List> wait(List<Future> futures) {
+    if (futures.isEmpty()) {
+      return new Future<List>.immediate(const []);
+    }
+
     Completer completer = new Completer<List>();
+    Future<List> result = completer.future;
     int remaining = futures.length;
     List<Object> values = new List(futures.length);
 
@@ -173,20 +179,18 @@ class Futures {
       // TODO(mattsh) - remove this after bug
       // http://code.google.com/p/dart/issues/detail?id=333 is fixed.
       int pos = i;
-      futures[pos].then((Object value) {
+      Future future = futures[pos];
+      future.then((Object value) {
         values[pos] = value;
-        if (--remaining == 0) {
+        if (--remaining == 0 && !result.isComplete) {
           completer.complete(values);
         }
       });
+      future.handleException((exception) {
+        if (!result.isComplete) completer.completeException(exception);
+        return true;
+      });
     }
-
-    // Special case where all the futures are already completed,
-    // trigger the value now.
-    if (futures.length == 0) {
-      completer.complete(values);
-    }
-
-    return completer.future;
+    return result;
   }
 }
