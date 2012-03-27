@@ -214,9 +214,21 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'frog',
+              'Path to frog executable',
+              ['--frog'],
+              [],
+              ''),
+          new _TestOptionSpecification(
               'drt',
               'Path to DumpRenderTree executable',
               ['--drt'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'froglib',
+              'Path to frog library',
+              ['--froglib'],
               [],
               ''),
           new _TestOptionSpecification(

@@ -590,7 +590,10 @@ class StandardTestSuite implements TestSuite {
       case 'frog':
       case 'frogsh':
       case 'dart2js':
-        String libdir = '$dartDir/frog/lib';
+        String libdir = configuration['froglib'];
+        if (libdir == '') {
+          libdir = '$dartDir/frog/lib';
+        }
         args.addAll(['--libdir=$libdir',
                              '--compile-only',
                              '--out=$outputFile']);
@@ -1125,7 +1128,10 @@ class TestUtils {
     if (configuration['compiler'] == 'none') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    var name = configuration['frog'];
+    if (name == '') {
+      name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    }
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
