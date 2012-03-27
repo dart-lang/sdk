@@ -34,8 +34,6 @@ LibTest/core/ReceivePort/*: Fail, OK
 
 
 [ $compiler == dart2js ]
-Language/10_Expressions/01_Constants_A17_t03: Skip # Cycle reference. Times out.
-
 
 #
 # Issues with co19 test suite.
