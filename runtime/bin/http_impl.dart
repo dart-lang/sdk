@@ -932,7 +932,7 @@ class _HttpClientConnection
   }
 
   void _propagateError(Exception e) {
-    if (_response._streamErrorHandler != null) {
+    if (_response != null && _response._streamErrorHandler != null) {
       _response._streamErrorHandler(e);
     }
   }

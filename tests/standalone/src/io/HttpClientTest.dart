@@ -4,6 +4,7 @@
 
 #import("dart:io");
 #import("dart:uri");
+#import("dart:isolate");
 
 void testGoogle() {
   HttpClient client = new HttpClient();
@@ -62,10 +63,24 @@ void testInvalidUrl() {
       () => client.getUrl(new Uri.fromString('http://usr:pwd@www.google.com')));
 }
 
+void testBadHostName() {
+  HttpClient client = new HttpClient();
+  HttpClientConnection connection =
+      client.get("some.bad.host.name.7654321", 0, "/");
+  connection.onRequest = (HttpClientRequest request) {
+    Expect.fail("Should not open a request on bad hostname");
+  };
+  ReceivePort port = new ReceivePort();
+  connection.onError = (Exception error) {
+    port.close();  // We expect onError to be called, due to bad host name.
+  };
+}
+
 void main() {
   // TODO(sgjesse): Making empty www.google.com requests seems to fail
   //on buildbot.
   //testGoogle();
   //testGoogleUrl();
   testInvalidUrl();
+  testBadHostName();
 }
