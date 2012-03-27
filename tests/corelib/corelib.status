@@ -32,7 +32,7 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
-[ $component == frogsh ]
+[ $compiler == frogsh ]
 DoubleCompareTest: Fail
 
 [ $runtime == ff || $runtime == ie ]
