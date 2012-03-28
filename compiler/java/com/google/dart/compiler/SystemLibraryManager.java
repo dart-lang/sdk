@@ -80,17 +80,7 @@ public class SystemLibraryManager {
 
   public SystemLibraryManager(File sdkPath, String platformName) {
     this.sdkLibPath = new File(sdkPath, "lib").getAbsoluteFile();
-    try {
-      String path = this.sdkLibPath.toString();
-      if (!path.endsWith("/")) {
-        path += "/";
-      }
-      this.sdkLibPathUri = 
-          new URI("file", null, path, null, null);
-    } catch (URISyntaxException e) {
-      throw new InternalCompilerException(
-          "Error creating URI from " + sdkLibPath.toString() + "/lib", e);
-    }
+    this.sdkLibPathUri = sdkLibPath.toURI();
     this.platformName = platformName;
     setLibraries(getDefaultLibraries());
   }
