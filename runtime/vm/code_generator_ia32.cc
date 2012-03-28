@@ -1436,6 +1436,8 @@ void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
 // Destroys ECX and EDX.
 // Returns:
 // - object in EAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
                                              intptr_t token_index,
                                              const AbstractType& dst_type,
@@ -1466,7 +1468,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label done, runtime_call;
   __ cmpl(EAX, raw_null);
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ j(EQUAL, &done);
 
   // Generate throw new TypeError() if the type is malformed.
   if (dst_type.IsMalformed()) {
@@ -1541,8 +1543,16 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // If dst_type is an interface, we can skip the class equality check,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
-        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        TestClassAndJump(dst_type_class, &done);
+        __ LoadObject(EDX, dst_type_class);
+        __ cmpl(EDX, ECX);
+        __ j(EQUAL, &done, Assembler::kNearJump);
+        __ pushl(EAX);
+        __ call(&StubCode::IsRawSubTypeLabel());
+        __ movl(EDI, EAX);
+        __ popl(EAX);
+        __ cmpl(EDI, Immediate(1));
+        __ j(EQUAL, &done, Assembler::kNearJump);
+        // Otherwise fallthrough
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -1585,8 +1595,66 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
           __ cmpl(ECX, raw_null);
           __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+        } else {
+          __ LoadObject(EDX, dst_type_class);
+          // EAX: Instance (preserve).
+          // EDX: test class
+          __ pushl(EAX);
+          __ call(&StubCode::IsRawSubTypeLabel());
+          __ movl(EDI, EAX);
+          __ popl(EAX);
+          __ cmpl(EDI, Immediate(1));
+          __ j(EQUAL, &done, Assembler::kNearJump);
+          // Otherwise fallthrough
         }
       }
+    }
+  } else {
+    ASSERT(!dst_type.IsInstantiated());
+    // Skip check if destination is a dynamic type.
+    if (dst_type.IsTypeParameter()) {
+      // EAX must be preserved!
+      Label fall_through;
+      GenerateInstantiatorTypeArguments(token_index);
+      // Type arguments are on stack
+      __ popl(EBX);
+      // Check if dynamic.
+      __ cmpl(EBX, raw_null);
+      __ j(EQUAL, &done, Assembler::kNearJump);
+
+      // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+      __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
+      __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
+      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+      // EBX: Instance of TypeArguments.
+      __ movl(EDX,
+          FieldAddress(EBX, TypeArguments::type_at_offset(dst_type.Index())));
+      // EDX: concrete type of dst_type.
+      __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      // Check if the type has type parameters, if not do the class comparison.
+      Label not_smi;
+      __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
+      __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+      __ CompareObject(EDX, Type::ZoneHandle(Type::IntInterface()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      __ Bind(&not_smi);
+      __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
+      __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
+      // Check that class of dst_type has no type parameters.
+      __ cmpl(ECX, raw_null);
+      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+      // We have a non-parameterized class in EDX, compare with class of
+      // value in EAX.
+      __ pushl(EAX);
+      __ call(&StubCode::IsRawSubTypeLabel());
+      __ movl(EDI, EAX);
+      __ popl(EAX);
+      __ cmpl(EDI, Immediate(1));
+      __ j(EQUAL, &done, Assembler::kNearJump);
+      __ Bind(&fall_through);
     }
   }
   __ Bind(&runtime_call);
@@ -1596,10 +1664,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   __ pushl(location);  // Push the source location.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  if (!dst_type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments(token_index);
-  } else {
+  if (dst_type.IsInstantiated()) {
     __ pushl(raw_null);  // Null instantiator.
+  } else {
+    GenerateInstantiatorTypeArguments(token_index);
   }
   __ PushObject(dst_name);  // Push the name of the destination.
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
@@ -1608,6 +1676,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   __ addl(ESP, Immediate(5 * kWordSize));
   __ popl(EAX);
 
+  // EAX: value.
   __ Bind(&done);
 }
 
@@ -2199,6 +2268,7 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 // Pushes the type arguments of the instantiator on the stack.
+// Destroys EBX.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   const Class& instantiator_class = Class::Handle(
       parsed_function().function().owner());
@@ -2221,7 +2291,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
       outer_function = outer_function.parent_function();
     }
     if (!outer_function.IsFactory()) {
-      __ popl(EAX);  // Pop instantiator.
+      __ popl(EBX);  // Pop instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.
       // The receiver cannot be null; extract its AbstractTypeArguments object.
       // Note that in the factory case, the instantiator is the first parameter
@@ -2229,8 +2299,8 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
       intptr_t type_arguments_instance_field_offset =
           instantiator_class.type_arguments_instance_field_offset();
       ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
-      __ movl(EAX, FieldAddress(EAX, type_arguments_instance_field_offset));
-      __ pushl(EAX);
+      __ movl(EBX, FieldAddress(EBX, type_arguments_instance_field_offset));
+      __ pushl(EBX);
     }
   }
 }

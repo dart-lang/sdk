@@ -353,7 +353,6 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  intptr_t return_value = -1;
   intptr_t value =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
   File* file = reinterpret_cast<File*>(value);
@@ -367,7 +366,6 @@ void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
       }
       Dart_SetReturnValue(args, err);
     }
-    return_value = 0;
   }
   Dart_ExitScope();
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,12 +8,22 @@ class BaseClass {
   toString() => "BaseClass";
 }
 
+/**
+ * This class declaration causes an intentional type warning as it
+ * isn't marked abstract. It is abstract because it doesn't
+ * "implement" the field foo.
+ */
 class ImplementsClass implements BaseClass {
   ImplementsClass() {}
 }
 
 interface ExtendsClass extends BaseClass {}
 
+/**
+ * This class declaration causes an intentional type warning as it
+ * isn't marked abstract. It is abstract because it doesn't
+ * "implement" the field foo.
+ */
 class ImplementsExtendsClass implements ExtendsClass {
   ImplementsExtendsClass() {}
 }
@@ -21,10 +31,17 @@ class ImplementsExtendsClass implements ExtendsClass {
 main() {
   ImplementsClass c1 = new ImplementsClass();
   ImplementsExtendsClass c2 = new ImplementsExtendsClass();
-  if (false) {
-    // Verify we don't inherit the field from BaseClass
-    Expect.equals(0, c1.foo); // 01: compile-time error
-    Expect.equals(0, c2.foo); // 02: compile-time error
+  try {
+    c1.foo;
+    Expect.fail('expected a NoSuchMethodException');
+  } catch (NoSuchMethodException ex) {
+    // Expected error.
+  }
+  try {
+    c2.foo;
+    Expect.fail('expected a NoSuchMethodException');
+  } catch (NoSuchMethodException ex) {
+    // Expected error.
   }
   Expect.equals(true, c1 is BaseClass);
   Expect.equals(true, c1 is !ExtendsClass);
@@ -34,6 +51,6 @@ main() {
   Expect.equals("BaseClass", "${new BaseClass()}");
 
   // Verify we don't inherit toString from BaseClass
-  Expect.equals("${new Object()}", "${c1}");
-  Expect.equals("${new Object()}", "${c2}");
+  Expect.notEquals("BaseClass", "${c1}");
+  Expect.notEquals("BaseClass", "${c2}");
 }

@@ -10,21 +10,21 @@
  */
 class _DataAttributeMap implements Map<String, String> {
 
-  final Map<String, String> _attributes;
+  final Map<String, String> $dom_attributes;
 
-  _DataAttributeMap(this._attributes);
+  _DataAttributeMap(this.$dom_attributes);
 
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => getValues().some((v) => v == value);
 
-  bool containsKey(String key) => _attributes.containsKey(_attr(key));
+  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
-  String operator [](String key) => _attributes[_attr(key)];
+  String operator [](String key) => $dom_attributes[_attr(key)];
 
   void operator []=(String key, String value) {
-    _attributes[_attr(key)] = value;
+    $dom_attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) {
@@ -34,7 +34,7 @@ class _DataAttributeMap implements Map<String, String> {
     return this[key];
   }
 
-  String remove(String key) => _attributes.remove(_attr(key));
+  String remove(String key) => $dom_attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutatiting the collection.
@@ -44,7 +44,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   void forEach(void f(String key, String value)) {
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
       }
@@ -53,7 +53,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Collection<String> getKeys() {
     final keys = new List<String>();
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
       }
@@ -63,7 +63,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Collection<String> getValues() {
     final values = new List<String>();
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
       }
@@ -194,7 +194,7 @@ class _CssClassSet implements Set<String> {
   Set<String> _read() {
     // TODO(mattsh) simplify this once split can take regex.
     Set<String> s = new Set<String>();
-    for (String name in _className().split(' ')) {
+    for (String name in $dom_className().split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty()) {
         s.add(trimmed);
@@ -207,14 +207,14 @@ class _CssClassSet implements Set<String> {
    * Read the class names as a space-separated string. This is meant to be
    * overridden by subclasses.
    */
-  String _className() => _element._className;
+  String $dom_className() => _element.$dom_className;
 
   /**
    * Join all the elements of a set into one string and write
    * back to the element.
    */
   void _write(Set s) {
-    _element._className = _formatSet(s);
+    _element.$dom_className = _formatSet(s);
   }
 
   String _formatSet(Set<String> s) {

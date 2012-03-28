@@ -34,8 +34,7 @@ void _logResolution(String msg) {
   }
 }
 
-// TODO(iposva): Make these private once the Dart API is fixed.
-String resolveScriptUri(String cwd, String scriptName, bool windows) {
+String _resolveScriptUri(String cwd, String scriptName, bool windows) {
   _is_windows = windows;
   _logResolution("# Current working directory: $cwd");
   _logResolution("# ScriptName: $scriptName");
@@ -60,7 +59,7 @@ String resolveScriptUri(String cwd, String scriptName, bool windows) {
   return resolved.toString();
 }
 
-String resolveUri(String base, String userString) {
+String _resolveUri(String base, String userString) {
   var baseUri = new Uri.fromString(base);
   _logResolution("# Resolving: $userString from $base");
   var resolved = baseUri.resolve(userString);
@@ -68,7 +67,7 @@ String resolveUri(String base, String userString) {
   return resolved.toString();
 }
 
-String resolveExtensionUri(String base, String userString) {
+String _resolveExtensionUri(String base, String userString) {
   var uri = new Uri.fromString(userString);
   if ("dart-ext" != uri.scheme) {
     throw "Not a Dart extension uri: $uri";
@@ -82,7 +81,7 @@ String resolveExtensionUri(String base, String userString) {
   return resolved.toString();
 }
 
-String filePathFromUri(String userUri) {
+String _filePathFromUri(String userUri) {
   var uri = new Uri.fromString(userUri);
   _logResolution("# Getting file path from: $uri");
   if ("file" != uri.scheme) {

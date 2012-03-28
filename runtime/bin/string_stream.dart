@@ -395,7 +395,7 @@ class _StringInputStream implements StringInputStream {
   }
 
   void set onError(void callback(Exception e)) {
-    _input.errorHandler = callback;
+    _input.onError = callback;
   }
 
   void _onData() {

@@ -5,6 +5,7 @@
 package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.google.common.io.CharStreams;
@@ -19,8 +20,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.ast.viz.ASTWriterFactory;
-import com.google.dart.compiler.ast.viz.BaseASTWriter;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.metrics.DartEventType;
@@ -96,7 +95,7 @@ public class DartCompiler {
     public String getName() {
       return name;
     }
-
+    
     @Override
     public Reader getSourceReader() {
       throw new AssertionError();
@@ -131,7 +130,6 @@ public class DartCompiler {
     private final Map<URI, LibraryUnit> libraries = new LinkedHashMap<URI, LibraryUnit>();
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
-    private final boolean usePrecompiledDartLibs;
     private final List<DartCompilationPhase> phases;
     private final LibrarySource coreLibrarySource;
 
@@ -143,22 +141,24 @@ public class DartCompiler {
       this.context = context;
       for (LibrarySource library : embedded) {
         if (SystemLibraryManager.isDartSpec(library.getName())) {
-          embeddedLibraries.add(context.getSystemLibraryFor(library.getName()));
+          LibrarySource foundLibrary = context.getSystemLibraryFor(library.getName());
+          assert(foundLibrary != null);
+          embeddedLibraries.add(foundLibrary);
         } else {
           embeddedLibraries.add(library);
         }
       }
       coreLibrarySource = context.getSystemLibraryFor(CORELIB_URL_SPEC);
+      assert(coreLibrarySource != null);
       embeddedLibraries.add(coreLibrarySource);
 
       incremental = config.incremental();
-      usePrecompiledDartLibs = true;
     }
-    
+
     void addResolvedLibraries(Map<URI, LibraryUnit> resolvedLibraries) {
       libraries.putAll(resolvedLibraries);
     }
-    
+
     Map<URI, LibraryUnit> getLibraries() {
       return libraries;
     }
@@ -234,7 +234,6 @@ public class DartCompiler {
         for (LibraryUnit lib : getLibrariesToProcess()) {
           LibrarySource libSrc = lib.getSource();
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
-          boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
 
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
@@ -254,7 +253,7 @@ public class DartCompiler {
             }
 
             if (!incremental
-                || (libIsDartUri && !usePrecompiledDartLibs)
+                || SystemLibraryManager.isDartUri(libSrc.getUri())
                 || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
 
@@ -510,11 +509,6 @@ public class DartCompiler {
         boolean filesHaveChanged = false;
         for (LibraryUnit lib : getLibrariesToProcess()) {
 
-          if (SystemLibraryManager.isDartUri(lib.getSource().getUri())) {
-            // embedded dart libs are always up to date
-            continue;
-          }
-
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
 
@@ -730,17 +724,12 @@ public class DartCompiler {
         // Set entry point
         setEntryPoint();
 
-        // Dump the compiler parse tree if dump format is set in arguments
-        BaseASTWriter astWriter = ASTWriterFactory.create(config);
-
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : getLibrariesToProcess()) {
           boolean persist = false;
 
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
-
-            astWriter.process(unit);
 
             // Don't compile diet units.
             if (unit.isDiet()) {
@@ -823,8 +812,6 @@ public class DartCompiler {
         }
 
         if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
-          // Dump the compiler parse tree if dump format is set in arguments
-          ASTWriterFactory.create(config).process(unit);
           // We don't return this unit, so no more processing expected for it.
           context.unitCompiled(unit);
           return null;
@@ -851,8 +838,8 @@ public class DartCompiler {
   }
 
   /**
-   * Selectively compile a library. Use supplied libraries and ASTs when available. 
-   * This allows programming tools to provide customized ASTs for code that is currently being 
+   * Selectively compile a library. Use supplied libraries and ASTs when available.
+   * This allows programming tools to provide customized ASTs for code that is currently being
    * edited, and may not compile correctly.
    */
   private static class SelectiveCompiler extends Compiler {
@@ -862,14 +849,14 @@ public class DartCompiler {
     private Collection<LibraryUnit> librariesToProcess;
 
     private SelectiveCompiler(LibrarySource app, Map<URI, LibraryUnit> resolvedLibraries,
-        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config, 
+        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config,
         DartCompilerMainContext context) {
       super(app, Collections.<LibrarySource>emptyList(), config, context);
       this.resolvedLibraries = resolvedLibraries;
       this.parsedUnits = parsedUnits;
       addResolvedLibraries(resolvedLibraries);
     }
-    
+
     @Override
     Collection<LibraryUnit> getLibrariesToProcess() {
       if (librariesToProcess == null) {
@@ -911,20 +898,31 @@ public class DartCompiler {
     return compilerOptions;
   }
 
-  public static void main(String[] args) {
+  public static void main(final String[] topArgs) {
     Tracer.init();
 
-    CompilerOptions topCompilerOptions = processCommandLineOptions(args);
+    CompilerOptions topCompilerOptions = processCommandLineOptions(topArgs);
     boolean result = false;
     try {
       if (topCompilerOptions.shouldBatch()) {
-        if (args.length > 1) {
+        if (topArgs.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");
         }
-        UnitTestBatchRunner.runAsBatch(args, new Invocation() {
+        UnitTestBatchRunner.runAsBatch(topArgs, new Invocation() {
           @Override
-          public boolean invoke(String[] args) throws Throwable {
-            CompilerOptions compilerOptions = processCommandLineOptions(args);
+          public boolean invoke(String[] lineArgs) throws Throwable {
+            List<String> allArgs = new ArrayList<String>();
+            for (String arg: topArgs) {
+              if (!arg.equals("-batch")) {
+                allArgs.add(arg);
+              }
+            }
+            for (String arg: lineArgs) {
+              allArgs.add(arg);
+            }
+
+            CompilerOptions compilerOptions = processCommandLineOptions(
+                allArgs.toArray(new String[allArgs.size()]));
             if (compilerOptions.shouldBatch()) {
               System.err.println("-batch ignored: Already in batch mode.");
             }
@@ -1158,34 +1156,36 @@ public class DartCompiler {
     resolvedLibs.getClass(); // Quick null check.
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
     Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context);
-    LibraryUnit libraryUnit = compiler.updateAndResolve();
-    if (libraryUnit != null) {
-      // Ignore errors. Resolver should be able to cope with
-      // errors. Otherwise, we should fix it.
-      DartCompilationPhase[] phases = {
-        new Resolver.Phase(),
-        new TypeAnalyzer()
-      };
-      for (DartUnit unit : libraryUnit.getUnits()) {
-        // Don't analyze diet units.
-        if (unit.isDiet()) {
-          continue;
-        }
 
-        for (DartCompilationPhase phase : phases) {
-          unit = phase.exec(unit, context, compiler.getTypeProvider());
-          // Ignore errors. TypeAnalyzer should be able to cope with
-          // resolution errors.
+    LibraryUnit topLibUnit = compiler.updateAndResolve();
+
+    Map<URI, LibraryUnit> librariesToResolve;
+    librariesToResolve = new HashMap<URI, LibraryUnit>();
+    librariesToResolve.put(topLibUnit.getSource().getUri(), topLibUnit);
+    // TODO (danrubel) revisit when AnalysisServer is turned on
+    // librariesToResolve.putAll(compiler.getLibraries());
+    
+    DartCompilationPhase[] phases = {new Resolver.Phase(), new TypeAnalyzer()};
+    Map<URI, LibraryUnit> newLibraries = Maps.newHashMap();
+    for (Entry<URI, LibraryUnit> entry : librariesToResolve.entrySet()) {
+      URI libUri = entry.getKey();
+      LibraryUnit libUnit = entry.getValue();
+      if (!resolvedLibs.containsKey(libUri) && libUnit != null) {
+        newLibraries.put(libUri, libUnit);
+        for (DartUnit unit : libUnit.getUnits()) {
+          // Don't analyze diet units.
+          if (unit.isDiet()) {
+            continue;
+          }
+          for (DartCompilationPhase phase : phases) {
+            unit = phase.exec(unit, context, compiler.getTypeProvider());
+            // Ignore errors. Resolver and TypeAnalyzer should be able to cope with
+            // resolution errors.
+          }
         }
       }
     }
-    Map<URI,LibraryUnit> newLibraries = new HashMap<URI, LibraryUnit>();
-    for (Entry<URI, LibraryUnit> entry : compiler.getLibraries().entrySet()) {
-      if (!resolvedLibs.containsKey(entry.getKey())) {
-        newLibraries.put(entry.getKey(), entry.getValue());
-      }
-    }
-    newLibraries.put(lib.getUri(), libraryUnit);
+
     return newLibraries;
   }
 

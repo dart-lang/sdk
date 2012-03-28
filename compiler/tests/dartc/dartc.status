@@ -16,35 +16,5 @@ compiler/vm/*: Skip
 # Already tested through test.py.
 corelib/SharedTests: Skip
 
-
-[ $component == vm ]
+[ $compiler == frog || $compiler == frogsh || $compiler == dart2js || $compiler == none ]
 *: Skip
-
-
-[ $component == frog ]
-*: Skip
-
-
-[ $component == dart2js ]
-*: Skip
-
-
-[ $component == frogsh ]
-*: Skip
-
-
-[ $component == dartium ]
-*: Skip
-
-
-[ $component == chromium ]
-*: Skip
-
-
-[ $component == frogium ]
-*: Skip
-
-
-[ $component == webdriver ]
-*: Skip
-

@@ -291,16 +291,14 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   if (Dart_IsError(url)) return url;
   Dart_Handle lib = Dart_LookupLibrary(url);
   if (Dart_IsError(lib)) return lib;
-  Dart_Handle cls = Dart_NewString("IOUtils");
-  if (Dart_IsError(cls)) return cls;
-  Dart_Handle method = Dart_NewString("makeOSError");
-  if (Dart_IsError(method)) return method;
+  Dart_Handle function_name = Dart_NewString("_makeOSError");
+  if (Dart_IsError(function_name)) return function_name;
   Dart_Handle args[2];
   args[0] = Dart_NewString(os_error->message());
   if (Dart_IsError(args[0])) return args[0];
   args[1] = Dart_NewInteger(os_error->code());
   if (Dart_IsError(args[1])) return args[1];
-  Dart_Handle err = Dart_InvokeStatic(lib, cls, method, 2, args);
+  Dart_Handle err = Dart_Invoke(lib, function_name, 2, args);
   return err;
 }
 

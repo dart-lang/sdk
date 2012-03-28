@@ -2,13 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js ]
+[ $compiler == dart2js ]
 *: Skip # Leg is not ready yet.
 
-[ $component == dartc || $component == chromium || $component == frogium || $component == legium ]
+[ $compiler == dartc || (($compiler == frog || $compiler == dart2js) && $runtime == drt) ]
 *: Skip # Import mapper runs on the VM.
 
-[ $component == dartium || $component == webdriver ]
+[ $runtime == drt || $runtime == ie || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
 *: Skip # Import mapper runs on the VM.
 
 [ $arch == x64 ]

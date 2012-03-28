@@ -535,4 +535,124 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "main() { topLevel(); }"),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 6));
   }
+  
+  /** 
+   * Integers used in parenthesis result in integer values.
+   * (A bug caused them to be demoted to 'num')
+   */
+  public void testParenthizedMathExpressions1() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(    
+            "class Object {}",
+            "interface int {}",
+            "class A {",
+            "  static final int value1 = (1 << 5) - 1;",
+            "  static final int value2 = value1 & 0xFFFF;",
+            "  static final int value3 = (1 << 5) + 1;",
+            "  static final int value4 = value3 & 0xFFFF;",
+            "  static final int value5 = (1 << 5) * 1;",
+            "  static final int value6 = value5 & 0xFFFF;",            
+            "  static final int value7 = (1 << 5) / 1;",
+            "  static final int value8 = value7 & 0xFFFF;",                        
+            "}"));    
+  }
+  
+  /** 
+   * Doubles used in parenthesis result in double values.
+   * (A bug caused them to be demoted to 'num')
+   */  
+  public void testParenthizedMathExpressions2() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(    
+            "class Object {}",
+            "interface double {}",
+            "class A {",
+            "  static final double value1 = (1.0 * 5.0) - 1.0;",
+            "  static final double value2 = value1 + 99.0;",
+            "  static final double value3 = (1.0 * 5.0) + 1.0;",
+            "  static final double value4 = value3 * 99.0;",
+            "  static final double value5 = (1.0 * 5.0) * 1.0;",
+            "  static final double value6 = value5 * 99.0;",            
+            "  static final double value7 = (1.0 * 5.0) / 1.0;",
+            "  static final double value8 = value7 * 99.0;",                        
+            "}"));    
+  }  
+  
+  /**
+   * Mixing doubles and ints in aritmetic should result in a double value.
+   * Not explicitly called out for in the spec yet, but this is the runtime behavior.
+   */
+  public void testParenthizedMathExpressions3() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(    
+            "class Object {}",
+            "interface double {}",
+            "class A {",
+            "  static final double value1 = (1 * 5) - 1.0;",
+            "  static final double value2 = value1 + 99.0;",
+            "  static final double value3 = (1 * 5) + 1.0;",
+            "  static final double value4 = value3 * 99.0;",
+            "  static final double value5 = (1 * 5) * 1.0;",
+            "  static final double value6 = value5 * 99.0;",            
+            "  static final double value7 = (1 * 5) / 1.0;",
+            "  static final double value8 = value7 * 99.0;",                        
+            "}"));    
+  }
+  
+  /**
+   * Test mixing strings with ints and doubles in a compile time constant expression.
+   * Should result in errors.
+   */
+  public void testParenthizedMathExpressions4() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(    
+            "class Object {}",
+            "interface int {}",
+            "class A {",
+            "  static final int value1 = ('Invalid') - 1;",
+            "  static final int value2 = value1 & 0xFFFF;",
+            "}"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            // Unfortunately, the CTConst analyzer reports the same error twice 
+            // because value1 is analyzed twice, once for original assignment, and a
+            // second time when used in the RHS of the value2 definition.
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT, 5, 29, 6));
+    
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(            
+            "class Object {}",
+            "interface int {}",                             
+            "class A {",
+            "  static final int value3 = ('Invalid') + 1;",
+            "  static final int value4 = value3 & 0xFFFF;",
+            "}"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING, 4, 43, 1),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING, 4, 43, 1),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT, 5, 29, 6));
+    
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(            
+            "class Object {}",
+            "interface int {}",
+            "class A {",                             
+            "  static final int value5 = ('Invalid') * 1;",
+            "  static final int value6 = value5 & 0xFFFF;",            
+            "}"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT, 5, 29, 6));            
+                             
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(                
+            "class Object {}",
+            "interface int {}",
+            "class A {",
+            "  static final int value7 = ('Invalid') / 1;",
+            "  static final int value8 = value7 & 0xFFFF;",                        
+            "}"),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_NUMBER, 4, 29, 11),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_INT, 5, 29, 6));            
+  }
 }

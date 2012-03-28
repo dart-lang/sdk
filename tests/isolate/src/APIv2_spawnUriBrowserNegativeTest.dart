@@ -7,7 +7,7 @@
 // other isolate's code.
 // OtherScripts=APIv2_spawnUriChildIsolate.dart
 #library('spawn_tests');
-#import('../../../client/testing/unittest/unittest_dom.dart');
+#import('../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
 

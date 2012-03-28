@@ -1,5 +1,5 @@
 #library('HiddenDom1Test');
-#import('../../../testing/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest_html.dart');
 #import('dart:html');
 
 // Test that the dart:html API does not leak native jsdom methods:

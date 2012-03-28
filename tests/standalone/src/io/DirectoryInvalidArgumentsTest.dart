@@ -20,18 +20,23 @@ class DirectoryInvalidArgumentsTest {
 
   static void testInvalidArguments() {
     Directory d = new Directory(12);
-    Expect.isFalse(d.existsSync());
+    try {
+      d.existsSync();
+      Expect.fail("No exception thrown");
+    } catch (var e) {
+      Expect.isTrue(e is IllegalArgumentException);
+    }
     try {
       d.deleteSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
-      Expect.isTrue(e is DirectoryIOException);
+      Expect.isTrue(e is IllegalArgumentException);
     }
     try {
       d.createSync();
       Expect.fail("No exception thrown");
     } catch (var e) {
-      Expect.isTrue(e is DirectoryIOException);
+      Expect.isTrue(e is IllegalArgumentException);
     }
     testFailingList(d, false);
     d = new Directory(".");

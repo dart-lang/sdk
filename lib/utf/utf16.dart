@@ -217,7 +217,7 @@ class IterableUtf16Decoder implements Iterable<int> {
   final Function codeunitsProvider;
   final int replacementCodepoint;
 
-  IterableUtf16Decoder._(_ListRangeIterator<int> this.codeunitsProvider(),
+  IterableUtf16Decoder._(_ListRangeIterator this.codeunitsProvider(),
       int this.replacementCodepoint);
 
   Utf16CodeUnitDecoder iterator() =>
@@ -230,12 +230,12 @@ class IterableUtf16Decoder implements Iterable<int> {
  * to produce the code unit (0-(2^16)-1). Relies on BOM to determine
  * endian-ness, and defaults to BE.
  */
-class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator<int> {
-  final _ListRangeIterator<int> utf16EncodedBytesIterator;
+class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
+  final _ListRangeIterator utf16EncodedBytesIterator;
   final int replacementCodepoint;
 
   Utf16BytesToCodeUnitsDecoder._fromListRangeIterator(
-      _ListRangeIterator<int> this.utf16EncodedBytesIterator,
+      _ListRangeIterator this.utf16EncodedBytesIterator,
       int this.replacementCodepoint);
 
   factory Utf16BytesToCodeUnitsDecoder(List<int> utf16EncodedBytes, [

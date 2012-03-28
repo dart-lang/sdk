@@ -146,7 +146,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   String get innerHTML() {
     final e = new Element.tag("div");
@@ -215,8 +215,8 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   String get tagName() => "";
   String get webkitdropzone() => "";
   String get webkitRegionOverflow() => "";
-  Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last();
+  Element get $dom_firstElementChild() => elements.first();
+  Element get $dom_lastElementChild() => elements.last();
   Element get nextElementSibling() => null;
   Element get previousElementSibling() => null;
   Element get offsetParent() => null;

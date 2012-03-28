@@ -165,10 +165,40 @@ void testReadLine2() {
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
 }
 
+class TestException {
+  TestException();
+}
+
+class ErrorInputStream implements InputStream {
+  ErrorInputStream();
+  List<int> read([int len]) => null;
+  int readInto(List<int> buffer, [int offset, int len]) => 0;
+  int available() => 0;
+  void pipe(OutputStream output, [bool close]){ }
+  void close() { }
+  bool get closed() => true;
+  void set onData(void callback()) { }
+  void set onClosed(void callback()) { }
+  void set onError(void callback(Exception e)) {
+    callback(new TestException());
+  }
+}
+
+testErrorHandler() {
+  var errors = 0;
+  var stream = new StringInputStream(new ErrorInputStream());
+  stream.onError = (e) {
+    errors++;
+    Expect.isTrue(e is TestException);
+  };
+  Expect.equals(1, errors);
+}
+
 main() {
   testUtf8();
   testLatin1();
   testAscii();
   testReadLine1();
   testReadLine2();
+  testErrorHandler();
 }

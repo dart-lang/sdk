@@ -849,6 +849,8 @@ class _ConsoleJs
 
   final _MemoryInfoJs memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -5553,6 +5555,83 @@ class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent nat
   final bool persisted;
 }
 
+class _PeerConnection00Js extends _DOMTypeJs implements PeerConnection00 native "*PeerConnection00" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int ICE_CHECKING = 0x300;
+
+  static final int ICE_CLOSED = 0x700;
+
+  static final int ICE_COMPLETED = 0x500;
+
+  static final int ICE_CONNECTED = 0x400;
+
+  static final int ICE_FAILED = 0x600;
+
+  static final int ICE_GATHERING = 0x100;
+
+  static final int ICE_WAITING = 0x200;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  static final int SDP_ANSWER = 0x300;
+
+  static final int SDP_OFFER = 0x100;
+
+  static final int SDP_PRANSWER = 0x200;
+
+  final int iceState;
+
+  final _SessionDescriptionJs localDescription;
+
+  final _MediaStreamListJs localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final _SessionDescriptionJs remoteDescription;
+
+  final _MediaStreamListJs remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void addStream(_MediaStreamJs stream, [String mediaStreamHints = null]) native;
+
+  void close() native;
+
+  _SessionDescriptionJs createAnswer(String offer, [String mediaHints = null]) native;
+
+  _SessionDescriptionJs createOffer([String mediaHints = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void processIceMessage(_IceCandidateJs candidate) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void removeStream(_MediaStreamJs stream) native;
+
+  void setLocalDescription(int action, _SessionDescriptionJs desc) native;
+
+  void setRemoteDescription(int action, _SessionDescriptionJs desc) native;
+
+  void startIce([String iceOptions = null]) native;
+}
+
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
 
   final _MemoryInfoJs memory;
@@ -9183,7 +9262,7 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
 
   final int callUID;
 
-  final List children;
+  final List<ScriptProfileNode> children;
 
   final String functionName;
 
@@ -11800,6 +11879,14 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _PeerConnection00FactoryProvider {
+  factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) native
+      '''return new PeerConnection00(serverConfiguration, iceCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _SessionDescriptionFactoryProvider {
   factory SessionDescription(String sdp) native
       '''return new SessionDescription(sdp);''';
@@ -12936,6 +13023,8 @@ interface CompositionEvent extends UIEvent {
 interface Console {
 
   final MemoryInfo memory;
+
+  final List<ScriptProfile> profiles;
 
   void assertCondition(bool condition, Object arg);
 
@@ -17065,6 +17154,13 @@ interface IDBVersionChangeRequest extends IDBRequest {
 
   EventListener onblocked;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnection00 source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18087,6 +18183,90 @@ interface OverflowEvent extends Event {
 interface PageTransitionEvent extends Event {
 
   final bool persisted;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PeerConnection00 default _PeerConnection00FactoryProvider {
+
+  PeerConnection00(String serverConfiguration, IceCallback iceCallback);
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int ICE_CHECKING = 0x300;
+
+  static final int ICE_CLOSED = 0x700;
+
+  static final int ICE_COMPLETED = 0x500;
+
+  static final int ICE_CONNECTED = 0x400;
+
+  static final int ICE_FAILED = 0x600;
+
+  static final int ICE_GATHERING = 0x100;
+
+  static final int ICE_WAITING = 0x200;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  static final int SDP_ANSWER = 0x300;
+
+  static final int SDP_OFFER = 0x100;
+
+  static final int SDP_PRANSWER = 0x200;
+
+  final int iceState;
+
+  final SessionDescription localDescription;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final SessionDescription remoteDescription;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream, [String mediaStreamHints]);
+
+  void close();
+
+  SessionDescription createAnswer(String offer, [String mediaHints]);
+
+  SessionDescription createOffer([String mediaHints]);
+
+  bool dispatchEvent(Event event);
+
+  void processIceMessage(IceCandidate candidate);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void setLocalDescription(int action, SessionDescription desc);
+
+  void setRemoteDescription(int action, SessionDescription desc);
+
+  void startIce([String iceOptions]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21146,7 +21326,7 @@ interface ScriptProfileNode {
 
   final int callUID;
 
-  final List children;
+  final List<ScriptProfileNode> children;
 
   final String functionName;
 

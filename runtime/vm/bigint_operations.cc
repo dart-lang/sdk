@@ -465,14 +465,136 @@ RawSmi* BigintOperations::ToSmi(const Bigint& bigint) {
 
 
 RawDouble* BigintOperations::ToDouble(const Bigint& bigint) {
-  // TODO(floitsch/benl): This is a quick and dirty implementation to unblock
-  // other areas of the code. It does not handle all bit-twiddling correctly.
-  const double shift_value = (1 << kDigitBitSize);
-  double value = 0.0;
-  for (int i = bigint.Length() - 1; i >= 0; i--) {
-    value *= shift_value;
-    value += static_cast<double>(bigint.GetChunkAt(i));
+  ASSERT(IsClamped(bigint));
+  if (bigint.IsZero()) {
+    return Double::New(0.0);
   }
+  if (AbsFitsIntoUint64(bigint)) {
+    double absolute_value = static_cast<double>(AbsToUint64(bigint));
+    double result = bigint.IsNegative() ? -absolute_value : absolute_value;
+    return Double::New(result);
+  }
+
+  static const int kPhysicalSignificandSize = 52;
+  // The significand size has an additional hidden bit.
+  static const int kSignificandSize = kPhysicalSignificandSize + 1;
+  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
+  static const int kMaxExponent = 0x7FF - kExponentBias;
+  static const uint64_t kOne64 = 1;
+  static const uint64_t kInfinityBits =
+      DART_2PART_UINT64_C(0x7FF00000, 00000000);
+
+  // A double is composed of an exponent e and a significand s. Its value equals
+  // s * 2^e. The significand has 53 bits of which the first one must always be
+  // 1 (at least for then numbers we are working with here) and is therefore
+  // omitted. The physical size of the significand is thus 52 bits.
+  // The exponent has 11 bits and is biased by 0x3FF + 52. For example an
+  // exponent e = 10 is written as 0x3FF + 52 + 10 (in the 11 bits that are
+  // reserved for the exponent).
+  // When converting the given bignum to a double we have to pay attention to
+  // the rounding. In particular we have to decide which double to pick if an
+  // input lies exactly between two doubles. As usual with double operations
+  // we pick the double with an even significand in such cases.
+  //
+  // General approach of this algorithm: Get 54 bits (one more than the
+  // significand size) of the bigint. If the last bit is then 1, then (without
+  // knowledge of the remaining bits) we could have a half-way number.
+  // If the second-to-last bit is odd then we know that we have to round up:
+  // if the remaining bits are not zero then the input lies closer to the higher
+  // double. If the remaining bits are zero then we have a half-way case and
+  // we need to round up too (rounding to the even double).
+  // If the second-to-last bit is even then we need to look at the remaining
+  // bits to determine if any of them is not zero. If that's the case then the
+  // number lies closer to the next-higher double. Otherwise we round the
+  // half-way case down to even.
+
+  intptr_t length = bigint.Length();
+  if (((length - 1) * kDigitBitSize) > (kMaxExponent + kSignificandSize)) {
+    // Does not fit into a double.
+    double infinity = bit_cast<double>(kInfinityBits);
+    return Double::New(bigint.IsNegative() ? -infinity : infinity);
+  }
+
+
+  intptr_t digit_index = length - 1;
+  // In order to round correctly we need to look at half-way cases. Therefore we
+  // get kSignificandSize + 1 bits. If the last bit is 1 then we have to look
+  // at the remaining bits to know if we have to round up.
+  int needed_bits = kSignificandSize + 1;
+  ASSERT((kDigitBitSize < needed_bits) && (2 * kDigitBitSize >= needed_bits));
+  bool discarded_bits_were_zero = true;
+
+  Chunk firstDigit = bigint.GetChunkAt(digit_index--);
+  uint64_t twice_significand_floor = firstDigit;
+  intptr_t twice_significant_exponent = (digit_index + 1) * kDigitBitSize;
+  needed_bits -= CountBits(firstDigit);
+
+  if (needed_bits >= kDigitBitSize) {
+    twice_significand_floor <<= kDigitBitSize;
+    twice_significand_floor |= bigint.GetChunkAt(digit_index--);
+    twice_significant_exponent -= kDigitBitSize;
+    needed_bits -= kDigitBitSize;
+  }
+  if (needed_bits > 0) {
+    ASSERT(needed_bits <= kDigitBitSize);
+    Chunk digit = bigint.GetChunkAt(digit_index--);
+    int discarded_bits_count = kDigitBitSize - needed_bits;
+    twice_significand_floor <<= needed_bits;
+    twice_significand_floor |= digit >> discarded_bits_count;
+    twice_significant_exponent -= needed_bits;
+    uint64_t discarded_bits_mask = (kOne64 << discarded_bits_count) - 1;
+    discarded_bits_were_zero = ((digit & discarded_bits_mask) == 0);
+  }
+  ASSERT((twice_significand_floor >> kSignificandSize) == 1);
+
+  // We might need to round up the significand later.
+  uint64_t significand = twice_significand_floor >> 1;
+  intptr_t exponent = twice_significant_exponent + 1;
+
+  if (exponent >= kMaxExponent) {
+    // Infinity.
+    // Does not fit into a double.
+    double infinity = bit_cast<double>(kInfinityBits);
+    return Double::New(bigint.IsNegative() ? -infinity : infinity);
+  }
+
+  if ((twice_significand_floor & 1) == 1) {
+    bool round_up = false;
+
+    if ((significand & 1) != 0 || !discarded_bits_were_zero) {
+      // Even if the remaining bits are zero we still need to round up since we
+      // want to round to even for half-way cases.
+      round_up = true;
+    } else {
+      // Could be a half-way case. See if the remaining bits are non-zero.
+      for (intptr_t i = 0; i <= digit_index; i++) {
+        if (bigint.GetChunkAt(i) != 0) {
+          round_up = true;
+          break;
+        }
+      }
+    }
+
+    if (round_up) {
+      significand++;
+      // It might be that we just went from 53 bits to 54 bits.
+      // Example: After adding 1 to 1FFF..FF (with 53 bits set to 1) we have
+      // 2000..00 (= 2 ^ 54). When adding the exponent and significand together
+      // this will increase the exponent by 1 which is exactly what we want.
+    }
+  }
+
+  ASSERT((significand >> (kSignificandSize - 1)) == 1
+         || significand == kOne64 << kSignificandSize);
+  uint64_t biased_exponent = exponent + kExponentBias;
+  // The significand still has the hidden bit. We simply decrement the biased
+  // exponent by one instead of playing around with the significand.
+  biased_exponent--;
+  // Note that we must use the plus operator instead of bit-or.
+  uint64_t double_bits =
+      (biased_exponent << kPhysicalSignificandSize) + significand;
+
+  double value = bit_cast<double>(double_bits);
   if (bigint.IsNegative()) {
     value = -value;
   }
@@ -528,6 +650,7 @@ bool BigintOperations::FitsIntoMint(const Bigint& bigint) {
 
 
 uint64_t BigintOperations::AbsToUint64(const Bigint& bigint) {
+  ASSERT(AbsFitsIntoUint64(bigint));
   uint64_t value = 0;
   for (int i = bigint.Length() - 1; i >= 0; i--) {
     value <<= kDigitBitSize;
@@ -547,13 +670,18 @@ int64_t BigintOperations::ToMint(const Bigint& bigint) {
 }
 
 
-bool BigintOperations::FitsIntoUint64(const Bigint& bigint) {
-  if (bigint.IsNegative()) return false;
+bool BigintOperations::AbsFitsIntoUint64(const Bigint& bigint) {
   intptr_t b_length = bigint.Length();
   int num_bits = CountBits(bigint.GetChunkAt(b_length - 1));
   num_bits += (kDigitBitSize * (b_length - 1));
   if (num_bits > 64) return false;
   return true;
+}
+
+
+bool BigintOperations::FitsIntoUint64(const Bigint& bigint) {
+  if (bigint.IsNegative()) return false;
+  return AbsFitsIntoUint64(bigint);
 }
 
 

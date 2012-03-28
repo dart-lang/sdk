@@ -4,7 +4,7 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
 
-  _DocumentImpl get document() native "return this.document.documentElement;";
+  _DocumentImpl get document() native "return this.document;";
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);

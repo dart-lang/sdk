@@ -1,5 +1,5 @@
 #library('SVG3Test');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom');
 
 // Test that SVG elements have the operations advertised through all the IDL

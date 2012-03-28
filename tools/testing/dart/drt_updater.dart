@@ -28,11 +28,6 @@ class DumpRenderTreeUpdater {
     }
   }
 
-  static bool componentRequiresDRT(String component) =>
-      const <String>['dartium',
-                     'frogium',
-                     'legium'].some((x) => x == component);
-
   static String get _getDrtPath() {
     String scriptPath = new Options().script.replaceAll('\\', '/');
     String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));

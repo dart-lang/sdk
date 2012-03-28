@@ -124,10 +124,11 @@ class TestCase {
   int get timeout() => configuration['timeout'];
 
   String get configurationString() {
-    final component = configuration['component'];
+    final compiler = configuration['compiler'];
+    final runtime = configuration['runtime'];
     final mode = configuration['mode'];
     final arch = configuration['arch'];
-    return "$component ${mode}_$arch";
+    return "$compiler-$runtime ${mode}_$arch";
   }
 
   List<String> get batchRunnerArguments() => ['-batch'];
@@ -135,7 +136,8 @@ class TestCase {
 
   void completed() { completedHandler(this); }
 
-  bool get usesWebDriver() => configuration['component'] == 'webdriver';
+  bool get usesWebDriver() => (const ['chrome', 'ff', 'safari', 'ie', 'opera'])
+      .indexOf(configuration['runtime']) >= 0;
 }
 
 
@@ -229,7 +231,7 @@ class TestOutputImpl implements TestOutput {
     if (testCase is BrowserTestCase) {
       return new BrowserTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
-    } else if (testCase.configuration['component'] == 'dartc') {
+    } else if (testCase.configuration['compiler'] == 'dartc') {
       return new AnalysisTestOutputImpl(testCase, exitCode, timedOut,
         stdout, stderr, time);
     }
@@ -540,8 +542,8 @@ class RunningProcess {
       stdout.add('test.dart: Compilion finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
-        // Note: processQueue will always be non-null for component == webdriver
-        // (It is only null for component == vm)
+        // Note: processQueue will always be non-null for runtime == ie, ff,
+        // safari, chrome, opera. (It is only null for runtime == vm)
         processQueue._getBatchRunner(testCase).startTest(testCase);
       } else {
         runCommand(testCase.commands[currentStep++], stepExitHandler);
@@ -1049,14 +1051,14 @@ class ProcessQueue {
 
   BatchRunnerProcess _getBatchRunner(TestCase test) {
     // Start batch processes if needed
-    var component = test.configuration['component'];
-    var runners = _batchProcesses[component];
+    var compiler = test.configuration['compiler'];
+    var runners = _batchProcesses[compiler];
     if (runners == null) {
       runners = new List<BatchRunnerProcess>(_maxProcesses);
       for (int i = 0; i < _maxProcesses; i++) {
         runners[i] = new BatchRunnerProcess(test);
       }
-      _batchProcesses[component] = runners;
+      _batchProcesses[compiler] = runners;
     }
 
     for (var runner in runners) {
@@ -1099,7 +1101,7 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.configuration['component'] == 'dartc' &&
+      if (test.configuration['compiler'] == 'dartc' &&
           test.displayName != 'dartc/junit_tests') {
         _getBatchRunner(test).startTest(test);
       } else {

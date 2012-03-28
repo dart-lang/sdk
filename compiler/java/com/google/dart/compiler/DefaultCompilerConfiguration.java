@@ -38,7 +38,8 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified {@link CompilerOptions}.
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions) {
-    this(compilerOptions, new SystemLibraryManager());
+    this(compilerOptions, new SystemLibraryManager(compilerOptions.getDartSdkPath(),
+                                                   compilerOptions.getPlatformName()));
   }
 
   /**

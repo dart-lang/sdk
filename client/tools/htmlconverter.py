@@ -38,22 +38,10 @@ FROG_NOT_FOUND_ERROR = (
    $ cd %s/frog
    $ ./tools/build.py -m release""")
 
-ENTRY_POINT_DOM = """
+ENTRY_POINT = """
 #library('entry');
-#import('dart:dom');
 #import('%s', prefix: 'original');
-main() {
-  window.addEventListener('DOMContentLoaded', (e) => original.main(), false);
-}
-"""
-
-ENTRY_POINT_HTML = """
-#library('entry');
-#import('dart:html');
-#import('%s', prefix: 'original');
-main() {
-  window.on.contentLoaded.add((e) => original.main());
-}
+main() => original.main();
 """
 
 CSS_TEMPLATE = '<style type="text/css">%s</style>'
@@ -149,14 +137,9 @@ class DartCompiler(object):
         f.write("#library('inlinedcode');\n")
         f.write(body)
 
-    if useDartHtml:
-      entryPoint = ENTRY_POINT_HTML
-    else:
-      entryPoint = ENTRY_POINT_DOM
-
     wrappedfile = join(indir, 'entry.dart')
     with open(wrappedfile, 'w') as f:
-      f.write(entryPoint % inputfile)
+      f.write(ENTRY_POINT % inputfile)
 
     status, out, err = execute(self.compileCommand(wrappedfile, outdir),
                                self.verbose)
@@ -370,7 +353,7 @@ class DartToDartHTMLConverter(DartHTMLConverter):
     if 'src' in attrDic:
       status, out, err = execute([
           sys.executable,
-          join(CLIENT_PATH, 'tools', 'copy_dart.py'),
+          join(DART_PATH, 'tools', 'copy_dart.py'),
           self.outdir,
           convertPath(attrDic['src'], self.prefix_path)],
           self.verbose)

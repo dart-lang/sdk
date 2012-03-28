@@ -2,11 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js || $component == legium ]
+[ $compiler == dart2js ]
 APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
 APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
 ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
 
-[ $component == dart2js ]
+[ $compiler == dart2js && $runtime == d8]
 # Browser tests only supported on browser components.
 *BrowserNegativeTest: Fail, OK

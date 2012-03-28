@@ -12,4 +12,8 @@ public class InternalCompilerException extends RuntimeException {
   public InternalCompilerException(String message) {
     super(message);
   }
+  
+  public InternalCompilerException(String message, Throwable t) {
+    super(message, t);
+  }
 }

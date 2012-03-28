@@ -45,8 +45,8 @@ class DirectoryTest {
       });
     };
 
-    directory.onError = (error) {
-      Expect.fail("error listing directory: $error");
+    directory.onError = (e) {
+      Expect.fail("error listing directory: $e");
     };
 
     directory.list(recursive: true);
@@ -59,16 +59,14 @@ class DirectoryTest {
 
   static void testListNonExistent() {
     Directory d = new Directory("");
-    d.onError = (error) {
-      Expect.fail("Directory error: $error");
+    d.onError = (e) {
+      Expect.fail("Directory error: $e");
     };
     d.createTemp(() {
       d.delete(() {
         // Test that listing a non-existing directory fails.
-        d.onError = (error) {
-          // TODO(ager): When directory errors have been changed to
-          // post back exceptions, check that we get the right exception
-          // type here.
+        d.onError = (e) {
+          Expect.isTrue(e is DirectoryIOException);
         };
         d.onFile = (file) {
           Expect.fail("Listing of non-existing directory should fail");
@@ -87,14 +85,14 @@ class DirectoryTest {
 
   static void testListTooLongName() {
     Directory d = new Directory("");
-    d.onError = (error) {
-      Expect.fail("Directory error: $error");
+    d.onError = (e) {
+      Expect.fail("Directory error: $e");
     };
     d.createTemp(() {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
-      subDir.onError = (error) {
-        Expect.fail("Directory error: $error");
+      subDir.onError = (e) {
+        Expect.fail("Directory error: $e");
       };
       subDir.create(() {
         // Construct a long string of the form
@@ -106,10 +104,8 @@ class DirectoryTest {
         }
         var long = new Directory("${buffer.toString()}");
         var errors = 0;
-        long.onError = (error) {
-          // TODO(ager): When directory errors have been changed to
-          // post back exceptions, check that we get the right exception
-          // type here.
+        long.onError = (e) {
+          Expect.isTrue(e is DirectoryIOException);
           if (++errors == 2) {
             d.deleteRecursively(() => null);
           }
@@ -131,16 +127,14 @@ class DirectoryTest {
 
   static void testDeleteNonExistent() {
     Directory d = new Directory("");
-    d.onError = (error) {
-      Expect.fail("Directory error: $error");
+    d.onError = (e) {
+      Expect.fail("Directory error: $e");
     };
     d.createTemp(() {
       d.delete(() {
         // Test that deleting a non-existing directory fails.
-        d.onError = (error) {
-          // TODO(ager): When directory errors have been changed to
-          // post back exceptions, check that we get the right exception
-          // type here.
+        d.onError = (e) {
+          Expect.isTrue(e is DirectoryIOException);
         };
         d.delete(() {
           Expect.fail("Deletion of non-existing directory should fail");
@@ -154,14 +148,14 @@ class DirectoryTest {
 
   static void testDeleteTooLongName() {
     Directory d = new Directory("");
-    d.onError = (error) {
-      Expect.fail("Directory error: $error");
+    d.onError = (e) {
+      Expect.fail("Directory error: $e");
     };
     d.createTemp(() {
       var subDirName = 'subdir';
       var subDir = new Directory("${d.path}/$subDirName");
-      subDir.onError = (error) {
-        Expect.fail("Directory error: $error");
+      subDir.onError = (e) {
+        Expect.fail("Directory error: $e");
       };
       subDir.create(() {
         // Construct a long string of the form
@@ -173,10 +167,8 @@ class DirectoryTest {
         }
         var long = new Directory("${buffer.toString()}");
         var errors = 0;
-        long.onError = (error) {
-          // TODO(ager): When directory errors have been changed to
-          // post back exceptions, check that we get the right exception
-          // type here.
+        long.onError = (e) {
+          Expect.isTrue(e is DirectoryIOException);
           if (++errors == 2) {
             d.deleteRecursively(() => null);
           }
@@ -269,8 +261,8 @@ class DirectoryTest {
     Function stage2;
     Function stage3;  // Loops to stage 0.
 
-    Function error(String message) {
-      Expect.fail("Directory onError: $message");
+    Function error(e) {
+      Expect.fail("Directory onError: $e");
     }
 
     stage0 = () {
@@ -333,8 +325,8 @@ class DirectoryTest {
           new Platform().pathSeparator() + "dart_testfile";
       File file = new File(filename);
       Expect.isFalse(file.existsSync());
-      file.onError = (error) {
-        Expect.fail("testCreateTemp file.onError called: $error");
+      file.onError = (e) {
+        Expect.fail("testCreateTemp file.onError called: $e");
       };
       file.create(() {
         file.exists((bool exists) {
@@ -388,8 +380,8 @@ class NestedTempDirectoryTest {
     current.createTemp(createPhaseCallback);
   }
 
-  void errorCallback(error) {
-    Expect.fail("Error callback called in NestedTempDirectoryTest: $error");
+  void errorCallback(e) {
+    Expect.fail("Error callback called in NestedTempDirectoryTest: $e");
   }
 
   void createPhaseCallback() {
@@ -455,7 +447,7 @@ testCreateTempError() {
     });
 
   Directory dir = new Directory(location);
-  dir.onError = (error) { resultPort.toSendPort().send("error"); };
+  dir.onError = (e) { resultPort.toSendPort().send("error"); };
   dir.createTemp(() => resultPort.toSendPort().send("success"));
 }
 

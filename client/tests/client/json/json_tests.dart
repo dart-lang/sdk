@@ -6,7 +6,7 @@
 
 #import('dart:json');
 #import('dart:html');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 
 main() {
   test('Parse', () {

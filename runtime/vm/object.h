@@ -489,6 +489,9 @@ class Class : public Object {
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters() const;
+  static intptr_t type_parameters_offset() {
+    return OFFSET_OF(RawClass, type_parameters_);
+  }
 
   // Type parameter bounds (implicitly Dynamic if not explicitly specified) as
   // an array of AbstractType.
@@ -520,6 +523,9 @@ class Class : public Object {
   // The super type of this class, Object type if not explicitly specified.
   RawType* super_type() const { return raw_ptr()->super_type_; }
   void set_super_type(const Type& value) const;
+  static intptr_t super_type_offset() {
+    return OFFSET_OF(RawClass, super_type_);
+  }
 
   // Asserts that the class of the super type has been resolved.
   RawClass* SuperClass() const;
@@ -542,6 +548,9 @@ class Class : public Object {
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
+  static intptr_t interfaces_offset() {
+    return OFFSET_OF(RawClass, interfaces_);
+  }
 
   RawArray* functions_cache() const { return raw_ptr()->functions_cache_; }
   void set_functions_cache(const Array& value) const;
@@ -613,6 +622,9 @@ class Class : public Object {
     return raw_ptr()->is_interface_;
   }
   void set_is_interface() const;
+  static intptr_t is_interface_offset() {
+    return OFFSET_OF(RawClass, is_interface_);
+  }
 
   bool is_finalized() const {
     return raw_ptr()->class_state_ == RawClass::kFinalized;
@@ -855,6 +867,9 @@ class AbstractType : public Object {
 // An unresolved class is a String specifying the class name.
 class Type : public AbstractType {
  public:
+  static intptr_t type_class_offset() {
+    return OFFSET_OF(RawType, type_class_);
+  }
   virtual bool IsFinalized() const {
     return raw_ptr()->type_state_ == RawType::kFinalized;
   }
@@ -1081,6 +1096,9 @@ class TypeArguments : public AbstractTypeArguments {
  public:
   virtual intptr_t Length() const;
   virtual RawAbstractType* TypeAt(intptr_t index) const;
+  static intptr_t type_at_offset(intptr_t index) {
+    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
+  }
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;

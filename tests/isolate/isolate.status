@@ -2,57 +2,57 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == vm ]
+[ $runtime == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 SerializationTest: Skip  # tests frog-specific serialization code
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip
 
-[ $component == dartium || $component == legium ]
+[ ($compiler == none || $compiler == dart2js) && $runtime == drt ]
 SerializationTest: Skip  # tests frog-specific serialization code
 *APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
-[ $component == dartc ]
+[ $compiler == dartc ]
 SerializationTest: Skip  # tests frog-specific serialization code
 IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
 *APIv2*: Skip # new api for isolates not in corelib yet.
 
-[ $component == frog || $component == frogsh ]
+[ $compiler == frog || $compiler == frogsh ]
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip
 
-[ $component == frogium || $component == webdriver || $component == legium ]
+[ $runtime == drt && ($compiler == frog || $compiler == dart2js) || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
 *StandaloneTest: Skip
 *StandaloneNegativeTest: Skip
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
-[ $component == frogium || $component == webdriver ]
+[ $compiler == frog && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera) ]
 NestedSpawn2Test: Skip
 NestedSpawnTest: Skip
 IsolateNegativeTest: Skip
 Isolate2NegativeTest: Skip
 
-[ $component == webdriver && $browser == safari ]
+[ $runtime == safari ]
 CrossIsolateMessageTest: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 MessageTest: Skip
 
-[ $component == webdriver && $browser == ie && $system == windows ]
+[ $runtime == ie && $system == windows ]
 APIv2*: Skip
 
-[ $component == webdriver && $browser == safari && $system == macos ]
+[ $runtime == safari && $system == macos ]
 APIv2*: Skip
 
-[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
+[ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
+[ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
-[ $component == webdriver && $browser == opera ]
+[ $runtime == opera ]
 *: Skip
 
 [ $arch == simarm ]

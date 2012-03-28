@@ -215,19 +215,22 @@ public class CompileTimeConstantAnalyzer {
 
         case ADD:
           if (lhsType.equals(stringType)) {
+            // TODO(zundel): remove this when + no longer acceptable as string concat operator
             if (checkString(rhs, rhsType)) {
               rememberInferredType(x, stringType);
             }
-          } else if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
-            rememberInferredType(x, numType);
+          } else {
+            checkMathExpression(x, lhs, rhs, lhsType, rhsType);
           }
           break;
         case SUB:
         case MUL:
         case DIV:
+          checkMathExpression(x, lhs, rhs, lhsType, rhsType);
+          break;
         case MOD:
           if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
-            rememberInferredType(x, numType);
+            rememberInferredType(x, intType);
           }
           break;
         case LT:
@@ -244,6 +247,23 @@ public class CompileTimeConstantAnalyzer {
           expectedConstant(x);
       }
       return null;
+    }
+
+    private void checkMathExpression(DartBinaryExpression x,
+                                     DartExpression lhs, DartExpression rhs,
+                                     Type lhsType, Type rhsType) {
+      if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
+        if (lhsType.equals(intType) && rhsType.equals(intType)) {
+          rememberInferredType(x, intType);
+        } else if (lhsType.equals(doubleType) && rhsType.equals(doubleType)) {
+          rememberInferredType(x, doubleType);
+        } else  if (lhsType.equals(doubleType) && rhsType.equals(intType) 
+            || lhsType.equals(intType) && rhsType.equals(doubleType)) {
+          rememberInferredType(x, doubleType);
+        } else {
+          rememberInferredType(x, numType);
+        }
+      }
     }
 
     @Override

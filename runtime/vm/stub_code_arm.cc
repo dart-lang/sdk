@@ -105,6 +105,10 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ Unimplemented("BreakpointDynamic stub");
 }
 
+void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
+  __ Unimplemented("IsRawSubType Stub");
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

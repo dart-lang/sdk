@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $component == vm ]
+[ $runtime == vm ]
 Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in compile-time constant expression)
 
 
@@ -75,7 +75,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 # New failures
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
-[ $component == vm ]
+[ $runtime == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
@@ -95,7 +95,7 @@ LibTest/core/int/toStringAsExponential_A01_t01: Fail, Crash # Issue 460
 LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460
 
-[ $component == vm && $system == macos ]
+[ $runtime == vm && $system == macos ]
 LibTest/core/Math/acos_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/asin_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/atan_A01_t01: Fail # Issue co19 - 44
@@ -104,14 +104,14 @@ LibTest/core/Math/exp_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/sin_A01_t01: Fail # Issue co19 - 44
 LibTest/core/Math/tan_A01_t01: Fail  # Issue co19 - 44
 
-[ $component == vm && $system == linux ]
+[ $runtime == vm && $system == linux ]
 LibTest/core/Math/exp_A01_t01: Fail
 
-[ $component == vm && $system == linux && $arch == ia32 ]
+[ $runtime == vm && $system == linux && $arch == ia32 ]
 LibTest/core/Math/sin_A01_t01: Fail
 LibTest/core/Math/tan_A01_t01: Fail
 
-[ $component == vm && $arch == x64 && $mode == debug ]
+[ $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
 LibTest/core/List/add_A01_t01: Skip # Timeout
 LibTest/core/List/sort_A01_t06: Skip # Timeout
@@ -119,7 +119,7 @@ LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
 LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
-[ $component == vm && $checked ]
+[ $runtime == vm && $checked ]
 Language/09_Generics/09_Generics_A01_t02: Fail # Issue 439
 Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
@@ -134,7 +134,7 @@ LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
 
 
 
-[ $component == vm && $system == windows ]
+[ $runtime == vm && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail
 LibTest/core/double/round_A01_t01: Fail
 LibTest/core/double/remainder_A01_t04: Fail
@@ -143,7 +143,7 @@ LibTest/core/int/remainder_A01_t02: Fail
 LibTest/core/int/operator_remainder_A01_t02: Fail
 
 
-[ $component == vm ]
+[ $runtime == vm ]
 LibTest/core/SendPort/send_A02_t02: Crash
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 Language/05_Variables/05_Variables_A05_t04: Fail
@@ -237,15 +237,15 @@ Language/03_Overview/2_Privacy_A01_t16: Fail # TODO(vm-team): New failure at r16
 Language/11_Statements/11_Labels_A01_t03: Fail # TODO(vm-team): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(vm-team): New failure at r164. Please triage.
 
-[ $component == vm  && $unchecked ]
+[ $runtime == vm  && $unchecked ]
 Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(vm-team): New failure at r164. Please triage.
 
 
-[ $component == vm && $arch == ia32 ]
+[ $runtime == vm && $arch == ia32 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail
 
 
-[ $component == vm && $unchecked ]
+[ $runtime == vm && $unchecked ]
 Language/13_Types/1_Static_Types_A02_t08: Fail
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # # co19 issue 97
 

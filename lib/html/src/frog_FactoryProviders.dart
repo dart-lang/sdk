@@ -70,3 +70,7 @@ class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) native '''return new WebSocket(url);''';
 }
+
+class _TextFactoryProvider {
+  factory Text(String data) native "return document.createTextNode(data);";
+}

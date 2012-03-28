@@ -76,7 +76,7 @@ List<int> _codepointsToUtf16CodeUnits(
     List<int> codepoints, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
 
-  _ListRange<int> listRange = new _ListRange<int>(codepoints, offset, length);
+  _ListRange listRange = new _ListRange(codepoints, offset, length);
   int encodedLength = 0;
   for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
@@ -118,8 +118,8 @@ List<int> _codepointsToUtf16CodeUnits(
 List<int> _utf16CodeUnitsToCodepoints(
     List<int> utf16CodeUnits, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  _ListRangeIterator<int> source =
-      (new _ListRange<int>(utf16CodeUnits, offset, length)).iterator();
+  _ListRangeIterator source =
+      (new _ListRange(utf16CodeUnits, offset, length)).iterator();
   Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
       .fromListRangeIterator(source, replacementCodepoint);
   List<int> codepoints = new List<int>(source.remaining);
@@ -143,7 +143,7 @@ List<int> _utf16CodeUnitsToCodepoints(
  * rather than replace the bad value.
  */
 class Utf16CodeUnitDecoder implements Iterator<int> {
-  final _ListRangeIterator<int> utf16CodeUnitIterator;
+  final _ListRangeIterator utf16CodeUnitIterator;
   final int replacementCodepoint;
 
   Utf16CodeUnitDecoder(List<int> utf16CodeUnits, [int offset = 0, int length,
@@ -153,7 +153,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
           .iterator();
 
   Utf16CodeUnitDecoder.fromListRangeIterator(
-      _ListRangeIterator<int> this.utf16CodeUnitIterator,
+      _ListRangeIterator this.utf16CodeUnitIterator,
       int this.replacementCodepoint);
 
   Iterator<int> iterator() => this;
@@ -209,13 +209,14 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
  * range within a source list. DO NOT MODIFY the underlying list while
  * iterating over it. The results of doing so are undefined.
  */
-class _ListRange<T> implements Iterable<T> {
-  final List<T> _source;
+class _ListRange implements Iterable {
+  final List _source;
   final int _offset;
   final int _length;
 
-  _ListRange(List<T> source, [int offset = 0, int length]) :
-      this._source = source, this._offset = offset,
+  _ListRange(source, [offset = 0, length]) :
+      this._source = source,
+      this._offset = offset,
       this._length = (length == null ? source.length - offset : length) {
     if (_offset < 0 || _offset > _source.length) {
       throw new IndexOutOfRangeException("offset out of range (< 0)");
@@ -228,7 +229,7 @@ class _ListRange<T> implements Iterable<T> {
     }
   }
 
-  _ListRangeIterator<T> iterator() =>
+  _ListRangeIterator iterator() =>
       new _ListRangeIteratorImpl(_source, _offset, _offset + _length);
 
   int get length() => _length;
@@ -239,30 +240,34 @@ class _ListRange<T> implements Iterable<T> {
  * including the ability to get the current position, count remaining items,
  * and move forward/backward within the iterator.
  */
-interface _ListRangeIterator<T> extends Iterator<T> {
+interface _ListRangeIterator extends Iterator<int> {
   bool hasNext();
-  T next();
+  int next();
   int get position();
-  void backup([int by]);
+  void backup([by]);
   int get remaining();
-  void skip([int count]);
+  void skip([count]);
 }
 
-class _ListRangeIteratorImpl<T> implements _ListRangeIterator<T> {
-  final List<T> _source;
+class _ListRangeIteratorImpl implements _ListRangeIterator {
+  final List<int> _source;
   int _offset;
   final int _end;
 
-  _ListRangeIteratorImpl(List<T> source, int offset, int end) :
-      _source = source, _offset = offset, _end = end;
+  _ListRangeIteratorImpl(this._source, this._offset, this._end);
 
   bool hasNext() => _offset < _end;
-  T next() => _source[_offset++];
+
+  int next() => _source[_offset++];
+
   int get position() => _offset;
+
   void backup([int by = 1]) {
     _offset -= by;
   }
+
   int get remaining() => _end - _offset;
+
   void skip([int count = 1]) {
     _offset += count;
   }

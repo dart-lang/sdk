@@ -66,6 +66,7 @@ class BigintOperations : public AllStatic {
   static int64_t ToMint(const Bigint& bigint);
 
   static bool FitsIntoUint64(const Bigint& bigint);
+  static bool AbsFitsIntoUint64(const Bigint& bigint);
   static uint64_t ToUint64(const Bigint& bigint);
   static uint64_t AbsToUint64(const Bigint& bigint);
 
