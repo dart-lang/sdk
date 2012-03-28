@@ -38,13 +38,13 @@ buildScript(Uri uri) {
 
 #import('dart:io');
 
-#import('${uri.resolve('../../frog/leg/dart2js.dart').path}');
+#import('${uri.resolve('../../lib/compiler/implementation/dart2js.dart').path}');
 
 class Helper {
   void run() {
     try {
       List<String> argv =
-        ['--library-root=${uri.resolve('../../frog/leg/lib').path}'];
+        ['--library-root=${uri.resolve('../../lib/compiler/implementation/lib').path}'];
       argv.addAll(new Options().arguments);
       compile(argv);
     } catch (var exception, var trace) {
