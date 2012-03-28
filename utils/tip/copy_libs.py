@@ -44,7 +44,7 @@ def main():
   os.chdir(LIB_PATH)
   libs = find_libraries(LIB_PATH)
   return subprocess.call([sys.executable,
-      '../../client/tools/copy_dart.py', os.path.join(TIP_PATH, 'lib')] + libs)
+      '../../tools/copy_dart.py', os.path.join(TIP_PATH, 'lib')] + libs)
 
 if __name__ == '__main__':
   sys.exit(main())

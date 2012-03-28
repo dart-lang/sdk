@@ -370,7 +370,7 @@ class DartToDartHTMLConverter(DartHTMLConverter):
     if 'src' in attrDic:
       status, out, err = execute([
           sys.executable,
-          join(CLIENT_PATH, 'tools', 'copy_dart.py'),
+          join(DART_PATH, 'tools', 'copy_dart.py'),
           self.outdir,
           convertPath(attrDic['src'], self.prefix_path)],
           self.verbose)
