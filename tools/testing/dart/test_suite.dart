@@ -245,6 +245,22 @@ class StandardTestSuite implements TestSuite {
         // this suite.
         if (!testCache.containsKey(suiteName)) {
           cachedTests = testCache[suiteName] = [];
+          if (configuration['shards'] > 1) {
+	    // If we are sharding tests, we do not enqueue them as they are
+            // found in the directory listing.  We add all the tests to the
+            // testCache, then delete all but this shard's tests from the
+            // cache.  The doDone function then enqueues the tests from the
+            // cache, and other configurations also use the shard from the
+            // cache.
+            Function oldDone = doDone;
+            doDone = () {
+              testCache[suiteName] = shardTests();
+              for (var info in testCache[suiteName]) {
+                enqueueTestCaseFromTestInformation(info);
+              }
+              oldDone();
+            };
+          }            
           processDirectory();
         } else {
           // We rely on enqueueing completing asynchronously so use a
@@ -389,7 +405,10 @@ class StandardTestSuite implements TestSuite {
                                      hasRuntimeErrors,
                                      multitestOutcome);
       cachedTests.add(info);
-      enqueueTestCaseFromTestInformation(info);
+      if (configuration['shards'] == 1) {
+        // If we are not sharding, we queue the tests as we find them.
+        enqueueTestCaseFromTestInformation(info);
+      }
     };
   }
 
@@ -872,6 +891,24 @@ class StandardTestSuite implements TestSuite {
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
              "numCompileTimeAnnotations": numCompileTimeAnnotations};
   }
+
+  /**
+   * shardTests takes the list of tests, stored as the List<TestInformation>
+   * cachedTests, and selects only the tests belonging to this shard.
+   * The tests are sorted by filename, and if there are n shards and we are
+   * shard number i, only the tests at indices equal to i-1 modulo n are kept.
+   */
+  List<TestInformation> shardTests() {
+    cachedTests.sort((TestInformation a, TestInformation b) => a.filename.compareTo(b.filename));
+    int n = configuration['shards'];
+    int i = configuration['shard'];
+    if (n >= 2) {
+      int current = 0;
+      // The test function given to cachedTests.filter uses the entry's index.
+      cachedTests = cachedTests.filter((t) => ((++current % n) == i - 1));
+    }
+    return cachedTests;
+  }  
 }
 
 

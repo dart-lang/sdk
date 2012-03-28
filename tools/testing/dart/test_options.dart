@@ -166,6 +166,20 @@ is 'dart file.dart' and you specify special command
               new Platform().numberOfProcessors(),
               'int'),
           new _TestOptionSpecification(
+              'shards',
+              'The number of instances that the tests will be sharded over',
+              ['--shards'],
+              [],
+              1,
+              'int'),
+          new _TestOptionSpecification(
+              'shard',
+              'The index of this instance when running in sharded mode',
+              ['--shard'],
+              [],
+              1,
+              'int'),
+          new _TestOptionSpecification(
               'help',
               'Print list of options',
               ['-h', '--help'],
@@ -356,7 +370,8 @@ is 'dart file.dart' and you specify special command
     }
 
     List<Map> expandedConfigs = _expandConfigurations(configuration);
-    return expandedConfigs.filter(_isValidConfig);
+    List<Map> result = expandedConfigs.filter(_isValidConfig);
+    return result.isEmpty() ? null : result;
   }
 
   /**
@@ -391,6 +406,11 @@ is 'dart file.dart' and you specify special command
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating" +
           " system.");
+    }
+    if (config['shard'] < 1 || config['shard'] > config['shards']) {
+      isValid = false;
+      print("Error: shard index is ${config['shard']} out of " + 
+            "${config['shards']} shards");
     }
     return isValid;
   }
