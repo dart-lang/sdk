@@ -189,12 +189,12 @@ class IterableUtf32Decoder implements Iterable<int> {
 /**
  * Abstrace parent class converts encoded bytes to codepoints.
  */
-class Utf32BytesDecoder implements _ListRangeIterator<int> {
-  final _ListRangeIterator<int> utf32EncodedBytesIterator;
+class Utf32BytesDecoder implements _ListRangeIterator {
+  final _ListRangeIterator utf32EncodedBytesIterator;
   final int replacementCodepoint;
 
   Utf32BytesDecoder._fromListRangeIterator(
-      _ListRangeIterator<int> this.utf32EncodedBytesIterator,
+      _ListRangeIterator this.utf32EncodedBytesIterator,
       int this.replacementCodepoint);
 
   factory Utf32BytesDecoder(List<int> utf32EncodedBytes, [
