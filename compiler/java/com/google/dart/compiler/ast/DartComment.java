@@ -9,6 +9,7 @@ import com.google.dart.compiler.common.SourceInfo;
 
 public class DartComment extends DartNode {
 
+  @SuppressWarnings("unused")
   private static final long serialVersionUID = 6066713446767517627L;
 
   public static enum Style {

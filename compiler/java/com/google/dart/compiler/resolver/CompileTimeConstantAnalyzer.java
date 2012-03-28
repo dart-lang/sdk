@@ -46,7 +46,6 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.Types;
 
 import java.util.List;
 import java.util.Map;
