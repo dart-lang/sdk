@@ -134,7 +134,6 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 #
 Language/05_Variables/05_Variables_A05_t03: Fail # compiler cancelled: internal error: Unexpected operator.
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
-Language/07_Classes/07_Classes_A02_t01: Fail # ConstantHandler with this or super not implemented
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
@@ -199,9 +198,6 @@ LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
-LibTest/core/Object/Object_A01_t01: Fail # ConstantHandler with super not implemented
-LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
-LibTest/core/Object/toString_A01_t01: Fail # ConstantHandler with super not implemented
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
@@ -400,6 +396,7 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail, OK # @
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail, OK # @compile-error
 Language/07_Classes/7_Static_Variables_A06_t01: Fail, OK # @compile-error
 Language/07_Classes/7_Static_Variables_A06_t02: Fail, OK # @compile-error
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail, OK # @compile-error

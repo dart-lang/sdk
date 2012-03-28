@@ -10,8 +10,6 @@
 AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
-CompileTimeConstantGTest: Fail # We don't handle constants with optional arguments to super yet.
-Factory2Test: Fail # We don't handle constants with super calls.
 
 
 # Compilation errors.
@@ -21,7 +19,6 @@ CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor6Test: Fail # Closures inside initializers not implemented.
-ConstructorRedirectTest/none: Fail # ConstantHandler with this or super not implemented
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DynamicTest: Fail # cannot resolve type F1
 Factory3Test: Fail # Handling of compile-time constants.
