@@ -142,7 +142,6 @@ Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # 
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # compiler cancelled: no method named foo in class I
 Language/09_Generics/09_Generics_A04_t03: Fail # compiler cancelled: cannot resolve type N
 Language/09_Generics/09_Generics_A04_t04: Fail # compiler cancelled: cannot resolve type T
-Language/10_Expressions/01_Constants_A15_t23: Fail # leg allows x == x for arbitrary compile-time objects.
 Language/11_Statements/13_Continue_A02_t12: Fail # compiler cancelled: cannot resolve label L
 Language/11_Statements/13_Continue_A02_t13: Fail # compiler cancelled: cannot resolve label L
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # compiler cancelled: cannot resolve type MalformedType
