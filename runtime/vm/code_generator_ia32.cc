@@ -1468,7 +1468,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label done, runtime_call;
   __ cmpl(EAX, raw_null);
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ j(EQUAL, &done);
 
   // Generate throw new TypeError() if the type is malformed.
   if (dst_type.IsMalformed()) {
@@ -1543,21 +1543,16 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       // If dst_type is an interface, we can skip the class equality check,
       // because instances cannot be of an interface type.
       if (!dst_type_class.is_interface()) {
-        // Check if classes are equal.
-        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        TestClassAndJump(dst_type_class, &done);  // Uses ECX.
-        // Check superclasses using a loop (faster than runtime call).
-        Label loop_done, loop;
-        __ Bind(&loop);
-        // ECX: class.
-        __ movl(ECX, FieldAddress(ECX, Class::super_type_offset()));
-        // The supertype of Object is a null object.
-        __ cmpl(ECX, raw_null);
-        __ j(EQUAL, &loop_done, Assembler::kNearJump);
-        __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
-        TestClassAndJump(dst_type_class, &done);  // Uses ECX.
-        __ jmp(&loop);
-        __ Bind(&loop_done);
+        __ LoadObject(EDX, dst_type_class);
+        __ cmpl(EDX, ECX);
+        __ j(EQUAL, &done, Assembler::kNearJump);
+        __ pushl(EAX);
+        __ call(&StubCode::IsRawSubTypeLabel());
+        __ movl(EDI, EAX);
+        __ popl(EAX);
+        __ cmpl(EDI, Immediate(1));
+        __ j(EQUAL, &done, Assembler::kNearJump);
+        // Otherwise fallthrough
       } else {
         // However, for specific core library interfaces, we can check for
         // specific core library classes.
@@ -1601,30 +1596,16 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ cmpl(ECX, raw_null);
           __ j(NOT_EQUAL, &done, Assembler::kNearJump);
         } else {
-          // Check interfaces.
-          Label fall_through;
-          // Get interfaces array from class.
-          __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
-          __ movl(EBX, FieldAddress(EBX, Class::interfaces_offset()));
-          __ cmpl(EBX, raw_null);
-          __ j(EQUAL, &fall_through, Assembler::kNearJump);
-          // Iterate over interfaces array and check if any of interfaces match.
-          __ movl(EDI, FieldAddress(EBX, Array::length_offset()));
-          // EDI: array index
-          // EBX: array
-          Label loop;
-          __ Bind(&loop);
-          __ subl(EDI, Immediate(Smi::RawValue(1)));
-          __ cmpl(EDI, Immediate(0));
-          __ j(LESS, &runtime_call, Assembler::kNearJump);
-          // EDI is Smi therefore TIMES_2 instead of TIMES_4.
-          // Get type from array.
-          __ movl(ECX, FieldAddress(EBX, EDI, TIMES_2, Array::data_offset()));
-          __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
-          TestClassAndJump(dst_type_class, &done);  // Uses ECX.
-          __ jmp(&loop, Assembler::kNearJump);
-          // Fall through to runtime code.
-          __ Bind(&fall_through);
+          __ LoadObject(EDX, dst_type_class);
+          // EAX: Instance (preserve).
+          // EDX: test class
+          __ pushl(EAX);
+          __ call(&StubCode::IsRawSubTypeLabel());
+          __ movl(EDI, EAX);
+          __ popl(EAX);
+          __ cmpl(EDI, Immediate(1));
+          __ j(EQUAL, &done, Assembler::kNearJump);
+          // Otherwise fallthrough
         }
       }
     }
@@ -1645,10 +1626,34 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
       __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
       __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+      // EBX: Instance of TypeArguments.
       __ movl(EDX,
           FieldAddress(EBX, TypeArguments::type_at_offset(dst_type.Index())));
+      // EDX: concrete type of dst_type.
       __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
       __ j(EQUAL,  &done, Assembler::kNearJump);
+      // Check if the type has type parameters, if not do the class comparison.
+      Label not_smi;
+      __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
+      __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+      __ CompareObject(EDX, Type::ZoneHandle(Type::IntInterface()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
+      __ j(EQUAL,  &done, Assembler::kNearJump);
+      __ Bind(&not_smi);
+      __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
+      __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
+      // Check that class of dst_type has no type parameters.
+      __ cmpl(ECX, raw_null);
+      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+      // We have a non-parameterized class in EDX, compare with class of
+      // value in EAX.
+      __ pushl(EAX);
+      __ call(&StubCode::IsRawSubTypeLabel());
+      __ movl(EDI, EAX);
+      __ popl(EAX);
+      __ cmpl(EDI, Immediate(1));
+      __ j(EQUAL, &done, Assembler::kNearJump);
       __ Bind(&fall_through);
     }
   }

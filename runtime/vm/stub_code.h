@@ -33,6 +33,7 @@ class RawCode;
   V(Deoptimize)                                                                \
   V(BreakpointStatic)                                                          \
   V(BreakpointReturn)                                                          \
+  V(IsRawSubType)                                                              \
 
 
 // Is it permitted for the stubs above to refer to Object::null(), which is

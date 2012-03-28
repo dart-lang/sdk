@@ -1729,6 +1729,11 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
 }
 
+
+void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
+  __ Unimplemented("IsRawSubType Stub");
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

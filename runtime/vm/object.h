@@ -489,6 +489,9 @@ class Class : public Object {
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters() const;
+  static intptr_t type_parameters_offset() {
+    return OFFSET_OF(RawClass, type_parameters_);
+  }
 
   // Type parameter bounds (implicitly Dynamic if not explicitly specified) as
   // an array of AbstractType.
@@ -619,6 +622,9 @@ class Class : public Object {
     return raw_ptr()->is_interface_;
   }
   void set_is_interface() const;
+  static intptr_t is_interface_offset() {
+    return OFFSET_OF(RawClass, is_interface_);
+  }
 
   bool is_finalized() const {
     return raw_ptr()->class_state_ == RawClass::kFinalized;
