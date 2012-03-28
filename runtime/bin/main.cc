@@ -531,9 +531,6 @@ int main(int argc, char** argv) {
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
-  // Initialize event handler.
-  EventHandler::Initialize();
-
   // Initialize the Dart VM.
   Dart_Initialize(CreateIsolateAndSetup, NULL);
 
@@ -607,8 +604,6 @@ int main(int argc, char** argv) {
   DumpPprofSymbolInfo();
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
-  // Terminate event handler.
-  EventHandler::Terminate();
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
 

@@ -55,8 +55,6 @@
     'set.h',
     'set_test.cc',
     'thread.h',
-    'thread_pool.cc',
-    'thread_pool_test.cc',
     'utils.h',
     'utils_linux.cc',
     'utils_macos.cc',

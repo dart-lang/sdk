@@ -12,6 +12,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/socket.h"
+#include "platform/thread.h"
 
 
 static const int kInfinityTimeout = -1;
