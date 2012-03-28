@@ -662,7 +662,9 @@ function(child, parent) {
     });
   }
 
-  String buildIsolateSetup(Element appMain, Element isolateMain) {
+  String buildIsolateSetup(StringBuffer buffer, 
+                           Element appMain, 
+                           Element isolateMain) {
     String mainAccess = "${namer.isolateAccess(appMain)}";
     String currentIsolate = "${namer.CURRENT_ISOLATE}";
     String mainEnsureGetter = '';
@@ -677,7 +679,7 @@ function(child, parent) {
     // TODO(ngeoffray): These globals are currently required by the isolate
     // library, but since leg already generates code on an Isolate object, they
     // are not really needed. We should remove them once Leg replaces Frog.
-    return """
+    buffer.add("""
 var \$globalThis = $currentIsolate;
 var \$globalState;
 var \$globals;
@@ -691,19 +693,30 @@ function \$setGlobals(context) {
   \$globalThis = $currentIsolate;
 }
 $mainEnsureGetter
-${namer.isolateAccess(isolateMain)}($mainAccess);""";
+""");
+  return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
   emitMain(StringBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainApp.find(Compiler.MAIN);
+    String mainCall = null;
     if (compiler.isolateLibrary != null) {
       Element isolateMain =
         compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
-      buffer.add(buildIsolateSetup(main, isolateMain));
+      mainCall = buildIsolateSetup(buffer, main, isolateMain);
     } else {
-      buffer.add('${namer.isolateAccess(main)}();\n');
+      mainCall = '${namer.isolateAccess(main)}()';
     }
+    buffer.add("""
+if (typeof window != 'undefined' && window.addEventListener) {
+  window.addEventListener('DOMContentLoaded', function(e) {
+    ${mainCall};
+  });
+} else {
+  ${mainCall};
+}
+""");
   }
 
   String assembleProgram() {
