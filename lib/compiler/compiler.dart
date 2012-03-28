@@ -4,7 +4,7 @@
 
 #library('compiler');
 
-#import('../../lib/uri/uri.dart');
+#import('../uri/uri.dart');
 #import('implementation/apiimpl.dart');
 
 // Unless explicitly allowed, passing null for any argument to the
