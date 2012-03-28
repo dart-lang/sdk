@@ -45,10 +45,6 @@ public class CommandLineOptions {
         usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
 
-    @Option(name = "--dump_ast_format",
-        usage = "Dump parse tree. Supported formats include console, text or dot")
-    private String dumpAST = "";
-
     @Option(name = "--ignore-unrecognized-flags",
         usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
@@ -177,10 +173,6 @@ public class CommandLineOptions {
 
     public boolean disableTypeOptimizations() {
       return disableTypeOptimizations;
-    }
-
-    public String dumpAST(){
-      return dumpAST;
     }
 
     /**
