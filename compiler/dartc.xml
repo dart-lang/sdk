@@ -25,29 +25,9 @@
 
   <property name="build.classes.dir" value="${build.dir}/classes"/>
 
-  <property name="corelib.source.dir" value="${build.dir}/corelib"/>
-
-  <property name="domlib.source.dir" value="${build.dir}/../lib/dom/"/>
-
-  <property name="htmllib.source.dir" value="${build.dir}/../lib/html/"/>
-
-  <property name="jsonlib.source.dir" value="${build.dir}/../lib/json/"/>
-
-  <property name="isolatelib.source.dir" value="${build.dir}/../lib/isolate/"/>
-
   <property name="build.test.classes.dir" value="${build.dir}/test/classes"/>
 
   <property name="dartc.jar" value="${build.dir}/dartc.jar"/>
-
-  <property name="corelib.jar" value="${build.dir}/corelib.jar"/>
-
-  <property name="domlib.jar" value="${build.dir}/domlib.jar"/>
-
-  <property name="htmllib.jar" value="${build.dir}/htmllib.jar"/>
-
-  <property name="jsonlib.jar" value="${build.dir}/jsonlib.jar"/>
-
-  <property name="isolatelib.jar" value="${build.dir}/isolatelib.jar"/>
 
   <property name="dist.dir" value="${build.dir}/dist"/>
 
@@ -111,64 +91,6 @@
     We rely on GYP to call these targets when the dartc dependencies change, hence this
     ant file cannot be used standalone.
   -->
-  <target name="corelib.jar" description="Packages the corelib resources into one jar file." >
-    <delete file="${corelib.jar}"/>
-    <mkdir dir="${corelib.source.dir}"/>
-    <copy todir="${corelib.source.dir}/com/google/dart/corelib/src">
-      <filelist refid="corelib_resources"/>
-    </copy>
-    <copy todir="${corelib.source.dir}/com/google/dart/corelib">
-      <filelist refid="compiler_corelib_resources"/>
-    </copy>
-    <jar destfile="${corelib.jar}" basedir="${corelib.source.dir}"/>
-    <touch file="${build.dir}/corelib.jar.stamp"/>
-  </target>
-
-  <target name="domlib.jar" description="Packages the dom library resources into one jar file." >
-    <delete dir="${build.dir}/api/dart/dom"/>
-    <delete file="${domlib.jar}"/>
-    <mkdir dir="${domlib.source.dir}"/>
-    <copy todir="${domlib.source.dir}/dom">
-      <filelist refid="domlib_resources"/>
-    </copy>
-    <jar destfile="${domlib.jar}" basedir="${domlib.source.dir}"/>
-    <touch file="${build.dir}/domlib.jar.stamp"/>
-  </target>
-
-  <target name="htmllib.jar" description="Packages the html library resources into one jar file." >
-    <delete dir="${build.dir}/api/dart/html"/>
-    <delete file="${htmllib.jar}"/>
-    <mkdir dir="${htmllib.source.dir}"/>
-    <copy todir="${htmllib.source.dir}/html" preservelastmodified="true">
-      <filelist refid="htmllib_resources"/>
-    </copy>
-    <jar destfile="${htmllib.jar}" basedir="${htmllib.source.dir}"/>
-    <touch file="${build.dir}/htmllib.jar.stamp"/>
-  </target>
-
-  <target name="jsonlib.jar" description="Packages the json library resources into one jar file." >
-    <delete dir="${build.dir}/api/dart/json"/>
-    <delete file="${jsonlib.jar}"/>
-    <mkdir dir="${jsonlib.source.dir}"/>
-    <copy todir="${jsonlib.source.dir}/json">
-      <filelist refid="jsonlib_resources"/>
-    </copy>
-    <jar destfile="${jsonlib.jar}" basedir="${jsonlib.source.dir}"/>
-    <touch file="${build.dir}/jsonlib.jar.stamp"/>
-  </target>
-
-  <target name="isolatelib.jar" description="Packages the isolate library resources into one jar file." >
-    <delete dir="${build.dir}/api/dart/isolate"/>
-    <delete file="${isolatelib.jar}"/>
-    <mkdir dir="${isolatelib.source.dir}"/>
-    <copy todir="${isolatelib.source.dir}/isolate">
-      <filelist refid="isolatelib_resources"/>
-    </copy>
-    <jar destfile="${isolatelib.jar}" basedir="${isolatelib.source.dir}"/>
-    <touch file="${build.dir}/isolatelib.jar.stamp"/>
-  </target>
-
-
   <target name="compile-tests" depends="compile" description="Compiles all of the java tests and copies the resources to the test classes directory." >
     <mkdir dir="${build.test.classes.dir}"/>
     <javac destdir="${build.test.classes.dir}"
@@ -190,23 +112,6 @@
 
   <target name="dartc.jar" depends="compile" description="Creates a jar for dartc without bundling the dependencies.">
     <jar destfile="${dartc.jar}" basedir="${build.classes.dir}" manifest="dartc.mf"/>
-  </target>
-
-  <target name="syslib" depends="corelib.jar,domlib.jar,htmllib.jar,jsonlib.jar,isolatelib.jar" description="Stub for system library task">
-    <!--
-      Copy the system library jars to the lib folder.
-    -->
-    <copy file="${corelib.jar}" todir="${dist.dir}/lib"/>
-    <copy file="${domlib.jar}" todir="${dist.dir}/lib"/>
-    <copy file="${htmllib.jar}" todir="${dist.dir}/lib"/>
-    <copy file="${jsonlib.jar}" todir="${dist.dir}/lib"/>
-    <copy file="${isolatelib.jar}" todir="${dist.dir}/lib"/>
-
-    <touch file="${build.dir}/syslib.stamp"/>
-  </target>
-
-  <target name="syslib_clean" description="Clean out the system libraries">
-    <delete file="${build.dir}/syslib.stamp"/>
   </target>
 
   <target name="dist" depends="dartc.jar" description="Creates a directory that contains a standalone distribution for dartc.">

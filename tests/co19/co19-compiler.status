@@ -107,13 +107,13 @@ Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail
 LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
+LibTest/core/FallThroughError/toString_A01_t01: Fail
 
 
 # Problems triaged before removal of code generation
 
 Language/13_Types/4_Interface_Types_A11_t04: Fail
-LibTest/core/InternalError/InternalError_A01_t01: Fail
-LibTest/core/InternalError/toString_A01_t01: Fail
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 LibTest/core/ReceivePort/receive_A01_t02: Fail, Pass  # Fails for the wrong reason (open receive ports).
 LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail

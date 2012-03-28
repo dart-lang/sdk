@@ -1000,12 +1000,11 @@ class JUnitTestSuite implements TestSuite {
   }
 
   void createTest(successIgnored) {
-    String d8 =
-        "$buildDir/d8${TestUtils.executableSuffix(configuration['runtime'])}";
+    var sdkDir = "$buildDir/dart-sdk".trim();
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
-        '-Dcom.google.dart.runner.d8=$d8',
+        '-Dcom.google.dart.sdk=$sdkDir',
         '-Dcom.google.dart.corelib.SharedTests.test_py=' +
             dartDir + '/tools/test.py',
         'org.junit.runner.JUnitCore'];
@@ -1025,13 +1024,11 @@ class JUnitTestSuite implements TestSuite {
   void computeClassPath() {
     classPath = Strings.join(
         ['$buildDir/compiler/lib/dartc.jar',
-         '$buildDir/compiler/lib/corelib.jar',
          '$buildDir/compiler-tests.jar',
          '$buildDir/closure_out/compiler.jar',
          // Third party libraries.
          '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
          '$dartDir/third_party/guava/r09/guava-r09.jar',
-         '$dartDir/third_party/json/r2_20080312/json.jar',
          '$dartDir/third_party/rhino/1_7R3/js.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
          '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',

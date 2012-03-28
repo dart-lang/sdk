@@ -39,6 +39,7 @@ import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
+import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
@@ -595,7 +596,8 @@ public class Resolver {
         }
       }
 
-      if ((functionNode.getBody() == null)
+      DartBlock body = functionNode.getBody();
+      if (body == null 
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
           && !((ClassElement) member.getEnclosingElement()).isInterface()) {
@@ -603,7 +605,8 @@ public class Resolver {
       }
       resolve(functionNode.getBody());
 
-      if (Elements.isNonFactoryConstructor(member)) {
+      if (Elements.isNonFactoryConstructor(member) 
+          && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
         // Test for missing final initialized fields
         if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()) {

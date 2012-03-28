@@ -79,7 +79,6 @@ public class CommandLineOptions {
     usage = "Enable incremental compilation")
     private boolean incremental = false;
 
-    // TODO(zundel): -out is for backward compatibility until scripts are updated
     @Option(name = "--work", aliases = { "-out" },
         usage = "Directory to receive compiler output\n for future incremental builds")
     private File workDirectory = new File("out");
@@ -104,6 +103,17 @@ public class CommandLineOptions {
         usage = "Treat non-type warnings as fatal")
     private boolean warningsAreFatal = false;
 
+    @Option(name = "--platform",
+        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
+    private String platformName = SystemLibraryManager.DEFAULT_PLATFORM;
+
+    @Option(name = "--dart-sdk",
+        usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
+    private File dartSdkPath = SystemLibraryManager.DEFAULT_SDK_PATH;
+    
+    @Option(name = "--show-sdk-warnings", usage = "show warnings from SDK source")
+    private boolean showSdkWarnings = false;
+
     @Argument
     private final List<String> sourceFiles = new ArrayList<String>();
 
@@ -121,6 +131,21 @@ public class CommandLineOptions {
       return jvmMetricDetail + ":" + jvmMetricFormat + ":" + jvmMetricType;
     }
 
+    public String getPlatformName() {
+      return platformName;
+    }
+
+    public File getDartSdkPath() {
+      return dartSdkPath;
+    }
+
+    /**
+     * Returns whether warnings from SDK files should be suppressed.
+     */
+    public boolean suppressSdkWarnings() {
+      return !showSdkWarnings;
+    }
+    
     /**
      * Returns the list of files passed to the compiler.
      */
