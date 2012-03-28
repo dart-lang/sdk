@@ -2,11 +2,115 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Lazy implementation of the child nodes of an element that does not request
+ * the actual child nodes of an element until strictly necessary greatly
+ * improving performance for the typical cases where it is not required.
+ */
+class _ChildNodeListLazy implements NodeList {
+  final _NodeImpl _this;
+
+  _ChildNodeListLazy(this._this);
+
+
+$if FROG
+  _NodeImpl get first() native "return this._this.firstChild;";
+  _NodeImpl last() native "return this._this.lastChild;";
+$else
+  _NodeImpl get first() => _this.$dom_firstChild;
+  _NodeImpl last() => _this.$dom_lastChild;
+$endif
+
+  void add(_NodeImpl value) {
+    _this.$dom_appendChild(value);
+  }
+
+  void addLast(_NodeImpl value) {
+    _this.$dom_appendChild(value);
+  }
+
+
+  void addAll(Collection<_NodeImpl> collection) {
+    for (_NodeImpl node in collection) {
+      _this.$dom_appendChild(node);
+    }
+  }
+
+  _NodeImpl removeLast() {
+    final last = last();
+    if (last != null) {
+      _this.$dom_removeChild(last);
+    }
+    return last;
+  }
+
+  void clear() {
+    _this.text = '';
+  }
+
+  void operator []=(int index, _NodeImpl value) {
+    _this.$dom_replaceChild(value, this[index]);
+  }
+
+  Iterator<Node> iterator() => _this.$dom_childNodes.iterator();
+
+  // TODO(jacobr): We can implement these methods much more efficiently by
+  // looking up the nodeList only once instead of once per iteration.
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  // TODO(jacobr): this could be implemented for child node lists.
+  // The exception we throw here is misleading.
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException(
+        "Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException(
+        "Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException(
+        "Cannot insertRange on immutable List.");
+  }
+  NodeList getRange(int start, int length) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+
+  // -- end List<Node> mixins.
+
+  // TODO(jacobr): benchmark whether this is more efficient or whether caching
+  // a local copy of $dom_childNodes is more efficient.
+  int get length() => _this.$dom_childNodes.length;
+
+  _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
+}
+
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  _NodeListImpl get nodes() {
-    final list = _childNodes;
-    list._parent = this;
-    return list;
+  _ChildNodeListLazy get nodes() {
+    return new _ChildNodeListLazy(this);
   }
 
   void set nodes(Collection<Node> value) {
@@ -15,7 +119,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      _appendChild(node);
+      $dom_appendChild(node);
     }
   }
 
@@ -23,7 +127,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   _NodeImpl remove() {
     if (this.parent != null) {
       final _NodeImpl parent = this.parent;
-      parent._removeChild(this);
+      parent.$dom_removeChild(this);
     }
     return this;
   }
@@ -31,7 +135,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   _NodeImpl replaceWith(Node otherNode) {
     try {
       final _NodeImpl parent = this.parent;
-      parent._replaceChild(otherNode, this);
+      parent.$dom_replaceChild(otherNode, this);
     } catch(var e) {
       
     };

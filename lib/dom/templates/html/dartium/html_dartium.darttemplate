@@ -32,7 +32,7 @@ _DocumentImpl __document;
 
 void _initialize() {
   __window = _wrap(dom.window);
-  __document = _wrap(dom.document.documentElement);
+  __document = _wrap(dom.document);
 }
 
 Window get window() {
@@ -74,13 +74,11 @@ _wrap(raw) {
   if (domObject.dartObjectLocalStorage != null)
     return domObject.dartObjectLocalStorage;
   switch(domObject.typeName) {
-    case 'HTMLDocument':
-      throw 'A document should never be wrapped directly. TODO(jacobr) XXX';
-    case 'HTMLHtmlElement':
-      return new _DocumentImpl._wrap(domObject);
     case 'HTMLElement':
       return new _UnknownElementImpl._wrap(domObject);
 $WRAPCASES
+    case 'HTMLDocument':
+      return new _DocumentImpl._wrap(domObject);
     default:
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
   }

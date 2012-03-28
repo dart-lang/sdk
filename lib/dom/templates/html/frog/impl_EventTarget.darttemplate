@@ -43,15 +43,15 @@ class _EventListenerListImpl implements EventListenerList {
     // TODO(jacobr): what is the correct behavior here. We could alternately
     // force the event to have the expected type.
     assert(evt.type == _type);
-    return _ptr._dispatchEvent(evt);
+    return _ptr.$dom_dispatchEvent(evt);
   }
 
   void _add(EventListener listener, bool useCapture) {
-    _ptr._addEventListener(_type, listener, useCapture);
+    _ptr.$dom_addEventListener(_type, listener, useCapture);
   }
 
   void _remove(EventListener listener, bool useCapture) {
-    _ptr._removeEventListener(_type, listener, useCapture);
+    _ptr.$dom_removeEventListener(_type, listener, useCapture);
   }
 }
 

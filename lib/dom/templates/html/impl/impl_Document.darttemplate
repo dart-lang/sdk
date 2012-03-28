@@ -1,0 +1,54 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME extends _NodeImpl
+    implements Document
+$if FROG
+    native "*HTMLDocument"
+$endif
+    {
+
+$!MEMBERS
+  // TODO(jacobr): implement all Element methods not on Document. 
+
+  _ElementImpl query(String selectors) {
+    // It is fine for our RegExp to detect element id query selectors to have
+    // false negatives but not false positives.
+    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
+      return $dom_getElementById(selectors.substring(1));
+    }
+    return $dom_querySelector(selectors);
+  }
+
+// TODO(jacobr): autogenerate this method.
+$if FROG
+  _ElementImpl $dom_querySelector(String selectors) native "return this.querySelector(selectors);";
+$else
+  _ElementImpl $dom_querySelector(String selectors) =>
+      _wrap(_.querySelector(selectors));
+$endif
+
+  ElementList queryAll(String selectors) {
+    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByName(
+          selectors.substring(7,selectors.length - 2));
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByTagName(selectors);
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else {
+      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    }
+  }
+}

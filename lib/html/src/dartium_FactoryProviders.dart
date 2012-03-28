@@ -66,3 +66,7 @@ class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
 }
+
+class _TextFactoryProvider {
+  factory Text(String data) => _document.$dom_createTextNode(data);
+}

@@ -5,7 +5,7 @@
 class _AttributeClassSet extends _CssClassSet {
   _AttributeClassSet(element) : super(element);
 
-  String _className() => _element.attributes['class'];
+  String $dom_className() => _element.attributes['class'];
 
   void _write(Set s) {
     _element.attributes['class'] = _formatSet(s);

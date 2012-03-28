@@ -12,9 +12,9 @@ xcodebuild
 *.sln
 *.ncb
 
-# Stuff the appengine server needs copied locally from third_party
-/client/samples/swarm/appengine/httplib2/
-/client/samples/swarm/appengine/oauth2client/
+# Generated files
+/samples/third_party/dromaeo/tests/frog/
+/samples/third_party/dromaeo/index-js.html
 
 # Build output directories
 out/
@@ -28,10 +28,10 @@ Debug_*/
 /client/outcode
 
 # Generated dom idl database
-/client/dom/database
+/lib/dom/database
 # Generated dom and html classes
-/client/dom/generated
-/client/html/generated
+/lib/dom/generated
+/lib/html/generated
 
 # Not sure what creates this
 fixed_length_file_out

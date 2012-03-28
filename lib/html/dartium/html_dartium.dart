@@ -18,7 +18,7 @@ _DocumentImpl __document;
 
 void _initialize() {
   __window = _wrap(dom.window);
-  __document = _wrap(dom.document.documentElement);
+  __document = _wrap(dom.document);
 }
 
 Window get window() {
@@ -60,524 +60,524 @@ _wrap(raw) {
   if (domObject.dartObjectLocalStorage != null)
     return domObject.dartObjectLocalStorage;
   switch(domObject.typeName) {
-    case 'HTMLDocument':
-      throw 'A document should never be wrapped directly. TODO(jacobr) XXX';
-    case 'HTMLHtmlElement':
-      return new _DocumentImpl._wrap(domObject);
     case 'HTMLElement':
       return new _UnknownElementImpl._wrap(domObject);
-    case "EventTarget": return new _EventTargetImpl._wrap(domObject);
-    case "AbstractWorker": return new _AbstractWorkerImpl._wrap(domObject);
-    case "Node": return new _NodeImpl._wrap(domObject);
-    case "NodeSelector": return new _NodeSelectorImpl._wrap(domObject);
-    case "ElementTraversal": return new _ElementTraversalImpl._wrap(domObject);
-    case "Element": return new _ElementImpl._wrap(domObject);
-    case "HTMLAnchorElement": return new _AnchorElementImpl._wrap(domObject);
-    case "WebKitAnimation": return new _AnimationImpl._wrap(domObject);
-    case "Event": return new _EventImpl._wrap(domObject);
-    case "WebKitAnimationEvent": return new _AnimationEventImpl._wrap(domObject);
-    case "WebKitAnimationList": return new _AnimationListImpl._wrap(domObject);
-    case "HTMLAppletElement": return new _AppletElementImpl._wrap(domObject);
-    case "HTMLAreaElement": return new _AreaElementImpl._wrap(domObject);
-    case "ArrayBuffer": return new _ArrayBufferImpl._wrap(domObject);
-    case "ArrayBufferView": return new _ArrayBufferViewImpl._wrap(domObject);
-    case "Attr": return new _AttrImpl._wrap(domObject);
-    case "AudioBuffer": return new _AudioBufferImpl._wrap(domObject);
-    case "AudioNode": return new _AudioNodeImpl._wrap(domObject);
-    case "AudioSourceNode": return new _AudioSourceNodeImpl._wrap(domObject);
-    case "AudioBufferSourceNode": return new _AudioBufferSourceNodeImpl._wrap(domObject);
-    case "AudioChannelMerger": return new _AudioChannelMergerImpl._wrap(domObject);
-    case "AudioChannelSplitter": return new _AudioChannelSplitterImpl._wrap(domObject);
-    case "AudioContext": return new _AudioContextImpl._wrap(domObject);
-    case "AudioDestinationNode": return new _AudioDestinationNodeImpl._wrap(domObject);
-    case "HTMLMediaElement": return new _MediaElementImpl._wrap(domObject);
-    case "HTMLAudioElement": return new _AudioElementImpl._wrap(domObject);
-    case "AudioParam": return new _AudioParamImpl._wrap(domObject);
-    case "AudioGain": return new _AudioGainImpl._wrap(domObject);
-    case "AudioGainNode": return new _AudioGainNodeImpl._wrap(domObject);
-    case "AudioListener": return new _AudioListenerImpl._wrap(domObject);
-    case "AudioPannerNode": return new _AudioPannerNodeImpl._wrap(domObject);
-    case "AudioProcessingEvent": return new _AudioProcessingEventImpl._wrap(domObject);
-    case "HTMLBRElement": return new _BRElementImpl._wrap(domObject);
-    case "BarInfo": return new _BarInfoImpl._wrap(domObject);
-    case "HTMLBaseElement": return new _BaseElementImpl._wrap(domObject);
-    case "HTMLBaseFontElement": return new _BaseFontElementImpl._wrap(domObject);
-    case "BeforeLoadEvent": return new _BeforeLoadEventImpl._wrap(domObject);
-    case "BiquadFilterNode": return new _BiquadFilterNodeImpl._wrap(domObject);
-    case "Blob": return new _BlobImpl._wrap(domObject);
-    case "WebKitBlobBuilder": return new _BlobBuilderImpl._wrap(domObject);
-    case "HTMLBodyElement": return new _BodyElementImpl._wrap(domObject);
-    case "HTMLButtonElement": return new _ButtonElementImpl._wrap(domObject);
-    case "CharacterData": return new _CharacterDataImpl._wrap(domObject);
-    case "Text": return new _TextImpl._wrap(domObject);
-    case "CDATASection": return new _CDATASectionImpl._wrap(domObject);
-    case "CSSRule": return new _CSSRuleImpl._wrap(domObject);
-    case "CSSCharsetRule": return new _CSSCharsetRuleImpl._wrap(domObject);
-    case "CSSFontFaceRule": return new _CSSFontFaceRuleImpl._wrap(domObject);
-    case "CSSImportRule": return new _CSSImportRuleImpl._wrap(domObject);
-    case "WebKitCSSKeyframeRule": return new _CSSKeyframeRuleImpl._wrap(domObject);
-    case "WebKitCSSKeyframesRule": return new _CSSKeyframesRuleImpl._wrap(domObject);
-    case "WebKitCSSMatrix": return new _CSSMatrixImpl._wrap(domObject);
-    case "CSSMediaRule": return new _CSSMediaRuleImpl._wrap(domObject);
-    case "CSSPageRule": return new _CSSPageRuleImpl._wrap(domObject);
-    case "CSSValue": return new _CSSValueImpl._wrap(domObject);
-    case "CSSPrimitiveValue": return new _CSSPrimitiveValueImpl._wrap(domObject);
-    case "CSSRuleList": return new _CSSRuleListImpl._wrap(domObject);
-    case "CSSStyleDeclaration": return new _CSSStyleDeclarationImpl._wrap(domObject);
-    case "CSSStyleRule": return new _CSSStyleRuleImpl._wrap(domObject);
-    case "StyleSheet": return new _StyleSheetImpl._wrap(domObject);
-    case "CSSStyleSheet": return new _CSSStyleSheetImpl._wrap(domObject);
-    case "CSSValueList": return new _CSSValueListImpl._wrap(domObject);
-    case "WebKitCSSTransformValue": return new _CSSTransformValueImpl._wrap(domObject);
-    case "CSSUnknownRule": return new _CSSUnknownRuleImpl._wrap(domObject);
-    case "HTMLCanvasElement": return new _CanvasElementImpl._wrap(domObject);
-    case "CanvasGradient": return new _CanvasGradientImpl._wrap(domObject);
-    case "CanvasPattern": return new _CanvasPatternImpl._wrap(domObject);
-    case "CanvasPixelArray": return new _CanvasPixelArrayImpl._wrap(domObject);
-    case "CanvasRenderingContext": return new _CanvasRenderingContextImpl._wrap(domObject);
-    case "CanvasRenderingContext2D": return new _CanvasRenderingContext2DImpl._wrap(domObject);
-    case "ClientRect": return new _ClientRectImpl._wrap(domObject);
-    case "ClientRectList": return new _ClientRectListImpl._wrap(domObject);
-    case "Clipboard": return new _ClipboardImpl._wrap(domObject);
-    case "CloseEvent": return new _CloseEventImpl._wrap(domObject);
-    case "Comment": return new _CommentImpl._wrap(domObject);
-    case "UIEvent": return new _UIEventImpl._wrap(domObject);
-    case "CompositionEvent": return new _CompositionEventImpl._wrap(domObject);
-    case "Console": return new _ConsoleImpl._wrap(domObject);
-    case "HTMLContentElement": return new _ContentElementImpl._wrap(domObject);
-    case "ConvolverNode": return new _ConvolverNodeImpl._wrap(domObject);
-    case "Coordinates": return new _CoordinatesImpl._wrap(domObject);
-    case "Counter": return new _CounterImpl._wrap(domObject);
-    case "Crypto": return new _CryptoImpl._wrap(domObject);
-    case "CustomEvent": return new _CustomEventImpl._wrap(domObject);
-    case "HTMLDListElement": return new _DListElementImpl._wrap(domObject);
-    case "DOMApplicationCache": return new _DOMApplicationCacheImpl._wrap(domObject);
-    case "DOMException": return new _DOMExceptionImpl._wrap(domObject);
-    case "DOMFileSystem": return new _DOMFileSystemImpl._wrap(domObject);
-    case "DOMFileSystemSync": return new _DOMFileSystemSyncImpl._wrap(domObject);
-    case "DOMFormData": return new _DOMFormDataImpl._wrap(domObject);
-    case "DOMImplementation": return new _DOMImplementationImpl._wrap(domObject);
-    case "DOMMimeType": return new _DOMMimeTypeImpl._wrap(domObject);
-    case "DOMMimeTypeArray": return new _DOMMimeTypeArrayImpl._wrap(domObject);
-    case "DOMParser": return new _DOMParserImpl._wrap(domObject);
-    case "DOMPlugin": return new _DOMPluginImpl._wrap(domObject);
-    case "DOMPluginArray": return new _DOMPluginArrayImpl._wrap(domObject);
-    case "DOMSelection": return new _DOMSelectionImpl._wrap(domObject);
-    case "DOMTokenList": return new _DOMTokenListImpl._wrap(domObject);
-    case "DOMSettableTokenList": return new _DOMSettableTokenListImpl._wrap(domObject);
-    case "DOMURL": return new _DOMURLImpl._wrap(domObject);
-    case "DataTransferItem": return new _DataTransferItemImpl._wrap(domObject);
-    case "DataTransferItemList": return new _DataTransferItemListImpl._wrap(domObject);
-    case "DataView": return new _DataViewImpl._wrap(domObject);
-    case "Database": return new _DatabaseImpl._wrap(domObject);
-    case "DatabaseSync": return new _DatabaseSyncImpl._wrap(domObject);
-    case "WorkerContext": return new _WorkerContextImpl._wrap(domObject);
-    case "DedicatedWorkerContext": return new _DedicatedWorkerContextImpl._wrap(domObject);
-    case "DelayNode": return new _DelayNodeImpl._wrap(domObject);
-    case "DeprecatedPeerConnection": return new _DeprecatedPeerConnectionImpl._wrap(domObject);
-    case "HTMLDetailsElement": return new _DetailsElementImpl._wrap(domObject);
-    case "DeviceMotionEvent": return new _DeviceMotionEventImpl._wrap(domObject);
-    case "DeviceOrientationEvent": return new _DeviceOrientationEventImpl._wrap(domObject);
-    case "HTMLDirectoryElement": return new _DirectoryElementImpl._wrap(domObject);
-    case "Entry": return new _EntryImpl._wrap(domObject);
-    case "DirectoryEntry": return new _DirectoryEntryImpl._wrap(domObject);
-    case "EntrySync": return new _EntrySyncImpl._wrap(domObject);
-    case "DirectoryEntrySync": return new _DirectoryEntrySyncImpl._wrap(domObject);
-    case "DirectoryReader": return new _DirectoryReaderImpl._wrap(domObject);
-    case "DirectoryReaderSync": return new _DirectoryReaderSyncImpl._wrap(domObject);
-    case "HTMLDivElement": return new _DivElementImpl._wrap(domObject);
-    case "DocumentFragment": return new _DocumentFragmentImpl._wrap(domObject);
-    case "DocumentType": return new _DocumentTypeImpl._wrap(domObject);
-    case "DynamicsCompressorNode": return new _DynamicsCompressorNodeImpl._wrap(domObject);
-    case "EXTTextureFilterAnisotropic": return new _EXTTextureFilterAnisotropicImpl._wrap(domObject);
-    case "ElementTimeControl": return new _ElementTimeControlImpl._wrap(domObject);
-    case "HTMLEmbedElement": return new _EmbedElementImpl._wrap(domObject);
-    case "Entity": return new _EntityImpl._wrap(domObject);
-    case "EntityReference": return new _EntityReferenceImpl._wrap(domObject);
-    case "EntryArray": return new _EntryArrayImpl._wrap(domObject);
-    case "EntryArraySync": return new _EntryArraySyncImpl._wrap(domObject);
-    case "ErrorEvent": return new _ErrorEventImpl._wrap(domObject);
-    case "EventException": return new _EventExceptionImpl._wrap(domObject);
-    case "EventSource": return new _EventSourceImpl._wrap(domObject);
-    case "HTMLFieldSetElement": return new _FieldSetElementImpl._wrap(domObject);
-    case "File": return new _FileImpl._wrap(domObject);
-    case "FileEntry": return new _FileEntryImpl._wrap(domObject);
-    case "FileEntrySync": return new _FileEntrySyncImpl._wrap(domObject);
-    case "FileError": return new _FileErrorImpl._wrap(domObject);
-    case "FileException": return new _FileExceptionImpl._wrap(domObject);
-    case "FileList": return new _FileListImpl._wrap(domObject);
-    case "FileReader": return new _FileReaderImpl._wrap(domObject);
-    case "FileReaderSync": return new _FileReaderSyncImpl._wrap(domObject);
-    case "FileWriter": return new _FileWriterImpl._wrap(domObject);
-    case "FileWriterSync": return new _FileWriterSyncImpl._wrap(domObject);
-    case "Float32Array": return new _Float32ArrayImpl._wrap(domObject);
-    case "Float64Array": return new _Float64ArrayImpl._wrap(domObject);
-    case "HTMLFontElement": return new _FontElementImpl._wrap(domObject);
-    case "HTMLFormElement": return new _FormElementImpl._wrap(domObject);
-    case "HTMLFrameElement": return new _FrameElementImpl._wrap(domObject);
-    case "HTMLFrameSetElement": return new _FrameSetElementImpl._wrap(domObject);
-    case "Geolocation": return new _GeolocationImpl._wrap(domObject);
-    case "Geoposition": return new _GeopositionImpl._wrap(domObject);
-    case "HTMLHRElement": return new _HRElementImpl._wrap(domObject);
-    case "HTMLAllCollection": return new _HTMLAllCollectionImpl._wrap(domObject);
-    case "HTMLCollection": return new _HTMLCollectionImpl._wrap(domObject);
-    case "HTMLOptionsCollection": return new _HTMLOptionsCollectionImpl._wrap(domObject);
-    case "HashChangeEvent": return new _HashChangeEventImpl._wrap(domObject);
-    case "HTMLHeadElement": return new _HeadElementImpl._wrap(domObject);
-    case "HTMLHeadingElement": return new _HeadingElementImpl._wrap(domObject);
-    case "HighPass2FilterNode": return new _HighPass2FilterNodeImpl._wrap(domObject);
-    case "History": return new _HistoryImpl._wrap(domObject);
-    case "IDBAny": return new _IDBAnyImpl._wrap(domObject);
-    case "IDBCursor": return new _IDBCursorImpl._wrap(domObject);
-    case "IDBCursorWithValue": return new _IDBCursorWithValueImpl._wrap(domObject);
-    case "IDBDatabase": return new _IDBDatabaseImpl._wrap(domObject);
-    case "IDBDatabaseError": return new _IDBDatabaseErrorImpl._wrap(domObject);
-    case "IDBDatabaseException": return new _IDBDatabaseExceptionImpl._wrap(domObject);
-    case "IDBFactory": return new _IDBFactoryImpl._wrap(domObject);
-    case "IDBIndex": return new _IDBIndexImpl._wrap(domObject);
-    case "IDBKey": return new _IDBKeyImpl._wrap(domObject);
-    case "IDBKeyRange": return new _IDBKeyRangeImpl._wrap(domObject);
-    case "IDBObjectStore": return new _IDBObjectStoreImpl._wrap(domObject);
-    case "IDBRequest": return new _IDBRequestImpl._wrap(domObject);
-    case "IDBTransaction": return new _IDBTransactionImpl._wrap(domObject);
-    case "IDBVersionChangeEvent": return new _IDBVersionChangeEventImpl._wrap(domObject);
-    case "IDBVersionChangeRequest": return new _IDBVersionChangeRequestImpl._wrap(domObject);
-    case "HTMLIFrameElement": return new _IFrameElementImpl._wrap(domObject);
-    case "IceCandidate": return new _IceCandidateImpl._wrap(domObject);
-    case "ImageData": return new _ImageDataImpl._wrap(domObject);
-    case "HTMLImageElement": return new _ImageElementImpl._wrap(domObject);
-    case "HTMLInputElement": return new _InputElementImpl._wrap(domObject);
-    case "Int16Array": return new _Int16ArrayImpl._wrap(domObject);
-    case "Int32Array": return new _Int32ArrayImpl._wrap(domObject);
-    case "Int8Array": return new _Int8ArrayImpl._wrap(domObject);
-    case "JavaScriptAudioNode": return new _JavaScriptAudioNodeImpl._wrap(domObject);
-    case "JavaScriptCallFrame": return new _JavaScriptCallFrameImpl._wrap(domObject);
-    case "KeyboardEvent": return new _KeyboardEventImpl._wrap(domObject);
-    case "HTMLKeygenElement": return new _KeygenElementImpl._wrap(domObject);
-    case "HTMLLIElement": return new _LIElementImpl._wrap(domObject);
-    case "HTMLLabelElement": return new _LabelElementImpl._wrap(domObject);
-    case "HTMLLegendElement": return new _LegendElementImpl._wrap(domObject);
-    case "HTMLLinkElement": return new _LinkElementImpl._wrap(domObject);
-    case "MediaStream": return new _MediaStreamImpl._wrap(domObject);
-    case "LocalMediaStream": return new _LocalMediaStreamImpl._wrap(domObject);
-    case "Location": return new _LocationImpl._wrap(domObject);
-    case "LowPass2FilterNode": return new _LowPass2FilterNodeImpl._wrap(domObject);
-    case "HTMLMapElement": return new _MapElementImpl._wrap(domObject);
-    case "HTMLMarqueeElement": return new _MarqueeElementImpl._wrap(domObject);
-    case "MediaController": return new _MediaControllerImpl._wrap(domObject);
-    case "MediaElementAudioSourceNode": return new _MediaElementAudioSourceNodeImpl._wrap(domObject);
-    case "MediaError": return new _MediaErrorImpl._wrap(domObject);
-    case "MediaList": return new _MediaListImpl._wrap(domObject);
-    case "MediaQueryList": return new _MediaQueryListImpl._wrap(domObject);
-    case "MediaQueryListListener": return new _MediaQueryListListenerImpl._wrap(domObject);
-    case "MediaStreamEvent": return new _MediaStreamEventImpl._wrap(domObject);
-    case "MediaStreamList": return new _MediaStreamListImpl._wrap(domObject);
-    case "MediaStreamTrack": return new _MediaStreamTrackImpl._wrap(domObject);
-    case "MediaStreamTrackList": return new _MediaStreamTrackListImpl._wrap(domObject);
-    case "MemoryInfo": return new _MemoryInfoImpl._wrap(domObject);
-    case "HTMLMenuElement": return new _MenuElementImpl._wrap(domObject);
-    case "MessageChannel": return new _MessageChannelImpl._wrap(domObject);
-    case "MessageEvent": return new _MessageEventImpl._wrap(domObject);
-    case "MessagePort": return new _MessagePortImpl._wrap(domObject);
-    case "HTMLMetaElement": return new _MetaElementImpl._wrap(domObject);
-    case "Metadata": return new _MetadataImpl._wrap(domObject);
-    case "HTMLMeterElement": return new _MeterElementImpl._wrap(domObject);
-    case "HTMLModElement": return new _ModElementImpl._wrap(domObject);
-    case "MouseEvent": return new _MouseEventImpl._wrap(domObject);
-    case "MutationEvent": return new _MutationEventImpl._wrap(domObject);
-    case "NamedNodeMap": return new _NamedNodeMapImpl._wrap(domObject);
-    case "Navigator": return new _NavigatorImpl._wrap(domObject);
-    case "NavigatorUserMediaError": return new _NavigatorUserMediaErrorImpl._wrap(domObject);
-    case "NodeFilter": return new _NodeFilterImpl._wrap(domObject);
-    case "NodeIterator": return new _NodeIteratorImpl._wrap(domObject);
-    case "NodeList": return new _NodeListImpl._wrap(domObject);
-    case "Notation": return new _NotationImpl._wrap(domObject);
-    case "Notification": return new _NotificationImpl._wrap(domObject);
-    case "NotificationCenter": return new _NotificationCenterImpl._wrap(domObject);
-    case "OESStandardDerivatives": return new _OESStandardDerivativesImpl._wrap(domObject);
-    case "OESTextureFloat": return new _OESTextureFloatImpl._wrap(domObject);
-    case "OESVertexArrayObject": return new _OESVertexArrayObjectImpl._wrap(domObject);
-    case "HTMLOListElement": return new _OListElementImpl._wrap(domObject);
-    case "HTMLObjectElement": return new _ObjectElementImpl._wrap(domObject);
-    case "OfflineAudioCompletionEvent": return new _OfflineAudioCompletionEventImpl._wrap(domObject);
-    case "OperationNotAllowedException": return new _OperationNotAllowedExceptionImpl._wrap(domObject);
-    case "HTMLOptGroupElement": return new _OptGroupElementImpl._wrap(domObject);
-    case "HTMLOptionElement": return new _OptionElementImpl._wrap(domObject);
-    case "HTMLOutputElement": return new _OutputElementImpl._wrap(domObject);
-    case "OverflowEvent": return new _OverflowEventImpl._wrap(domObject);
-    case "PageTransitionEvent": return new _PageTransitionEventImpl._wrap(domObject);
-    case "HTMLParagraphElement": return new _ParagraphElementImpl._wrap(domObject);
-    case "HTMLParamElement": return new _ParamElementImpl._wrap(domObject);
-    case "PeerConnection00": return new _PeerConnection00Impl._wrap(domObject);
-    case "Performance": return new _PerformanceImpl._wrap(domObject);
-    case "PerformanceNavigation": return new _PerformanceNavigationImpl._wrap(domObject);
-    case "PerformanceTiming": return new _PerformanceTimingImpl._wrap(domObject);
-    case "WebKitPoint": return new _PointImpl._wrap(domObject);
-    case "PopStateEvent": return new _PopStateEventImpl._wrap(domObject);
-    case "PositionError": return new _PositionErrorImpl._wrap(domObject);
-    case "HTMLPreElement": return new _PreElementImpl._wrap(domObject);
-    case "ProcessingInstruction": return new _ProcessingInstructionImpl._wrap(domObject);
-    case "HTMLProgressElement": return new _ProgressElementImpl._wrap(domObject);
-    case "ProgressEvent": return new _ProgressEventImpl._wrap(domObject);
-    case "HTMLQuoteElement": return new _QuoteElementImpl._wrap(domObject);
-    case "RGBColor": return new _RGBColorImpl._wrap(domObject);
-    case "Range": return new _RangeImpl._wrap(domObject);
-    case "RangeException": return new _RangeExceptionImpl._wrap(domObject);
-    case "RealtimeAnalyserNode": return new _RealtimeAnalyserNodeImpl._wrap(domObject);
-    case "Rect": return new _RectImpl._wrap(domObject);
-    case "SQLError": return new _SQLErrorImpl._wrap(domObject);
-    case "SQLException": return new _SQLExceptionImpl._wrap(domObject);
-    case "SQLResultSet": return new _SQLResultSetImpl._wrap(domObject);
-    case "SQLResultSetRowList": return new _SQLResultSetRowListImpl._wrap(domObject);
-    case "SQLTransaction": return new _SQLTransactionImpl._wrap(domObject);
-    case "SQLTransactionSync": return new _SQLTransactionSyncImpl._wrap(domObject);
-    case "SVGElement": return new _SVGElementImpl._wrap(domObject);
-    case "SVGURIReference": return new _SVGURIReferenceImpl._wrap(domObject);
-    case "SVGTests": return new _SVGTestsImpl._wrap(domObject);
-    case "SVGLangSpace": return new _SVGLangSpaceImpl._wrap(domObject);
-    case "SVGExternalResourcesRequired": return new _SVGExternalResourcesRequiredImpl._wrap(domObject);
-    case "SVGStylable": return new _SVGStylableImpl._wrap(domObject);
-    case "SVGLocatable": return new _SVGLocatableImpl._wrap(domObject);
-    case "SVGTransformable": return new _SVGTransformableImpl._wrap(domObject);
-    case "SVGAElement": return new _SVGAElementImpl._wrap(domObject);
-    case "SVGAltGlyphDefElement": return new _SVGAltGlyphDefElementImpl._wrap(domObject);
-    case "SVGTextContentElement": return new _SVGTextContentElementImpl._wrap(domObject);
-    case "SVGTextPositioningElement": return new _SVGTextPositioningElementImpl._wrap(domObject);
-    case "SVGAltGlyphElement": return new _SVGAltGlyphElementImpl._wrap(domObject);
-    case "SVGAltGlyphItemElement": return new _SVGAltGlyphItemElementImpl._wrap(domObject);
-    case "SVGAngle": return new _SVGAngleImpl._wrap(domObject);
-    case "SVGAnimationElement": return new _SVGAnimationElementImpl._wrap(domObject);
-    case "SVGAnimateColorElement": return new _SVGAnimateColorElementImpl._wrap(domObject);
-    case "SVGAnimateElement": return new _SVGAnimateElementImpl._wrap(domObject);
-    case "SVGAnimateMotionElement": return new _SVGAnimateMotionElementImpl._wrap(domObject);
-    case "SVGAnimateTransformElement": return new _SVGAnimateTransformElementImpl._wrap(domObject);
-    case "SVGAnimatedAngle": return new _SVGAnimatedAngleImpl._wrap(domObject);
-    case "SVGAnimatedBoolean": return new _SVGAnimatedBooleanImpl._wrap(domObject);
-    case "SVGAnimatedEnumeration": return new _SVGAnimatedEnumerationImpl._wrap(domObject);
-    case "SVGAnimatedInteger": return new _SVGAnimatedIntegerImpl._wrap(domObject);
-    case "SVGAnimatedLength": return new _SVGAnimatedLengthImpl._wrap(domObject);
-    case "SVGAnimatedLengthList": return new _SVGAnimatedLengthListImpl._wrap(domObject);
-    case "SVGAnimatedNumber": return new _SVGAnimatedNumberImpl._wrap(domObject);
-    case "SVGAnimatedNumberList": return new _SVGAnimatedNumberListImpl._wrap(domObject);
-    case "SVGAnimatedPreserveAspectRatio": return new _SVGAnimatedPreserveAspectRatioImpl._wrap(domObject);
-    case "SVGAnimatedRect": return new _SVGAnimatedRectImpl._wrap(domObject);
-    case "SVGAnimatedString": return new _SVGAnimatedStringImpl._wrap(domObject);
-    case "SVGAnimatedTransformList": return new _SVGAnimatedTransformListImpl._wrap(domObject);
-    case "SVGCircleElement": return new _SVGCircleElementImpl._wrap(domObject);
-    case "SVGClipPathElement": return new _SVGClipPathElementImpl._wrap(domObject);
-    case "SVGColor": return new _SVGColorImpl._wrap(domObject);
-    case "SVGComponentTransferFunctionElement": return new _SVGComponentTransferFunctionElementImpl._wrap(domObject);
-    case "SVGCursorElement": return new _SVGCursorElementImpl._wrap(domObject);
-    case "SVGDefsElement": return new _SVGDefsElementImpl._wrap(domObject);
-    case "SVGDescElement": return new _SVGDescElementImpl._wrap(domObject);
-    case "SVGDocument": return new _SVGDocumentImpl._wrap(domObject);
-    case "SVGElementInstance": return new _SVGElementInstanceImpl._wrap(domObject);
-    case "SVGElementInstanceList": return new _SVGElementInstanceListImpl._wrap(domObject);
-    case "SVGEllipseElement": return new _SVGEllipseElementImpl._wrap(domObject);
-    case "SVGException": return new _SVGExceptionImpl._wrap(domObject);
-    case "SVGFilterPrimitiveStandardAttributes": return new _SVGFilterPrimitiveStandardAttributesImpl._wrap(domObject);
-    case "SVGFEBlendElement": return new _SVGFEBlendElementImpl._wrap(domObject);
-    case "SVGFEColorMatrixElement": return new _SVGFEColorMatrixElementImpl._wrap(domObject);
-    case "SVGFEComponentTransferElement": return new _SVGFEComponentTransferElementImpl._wrap(domObject);
-    case "SVGFECompositeElement": return new _SVGFECompositeElementImpl._wrap(domObject);
-    case "SVGFEConvolveMatrixElement": return new _SVGFEConvolveMatrixElementImpl._wrap(domObject);
-    case "SVGFEDiffuseLightingElement": return new _SVGFEDiffuseLightingElementImpl._wrap(domObject);
-    case "SVGFEDisplacementMapElement": return new _SVGFEDisplacementMapElementImpl._wrap(domObject);
-    case "SVGFEDistantLightElement": return new _SVGFEDistantLightElementImpl._wrap(domObject);
-    case "SVGFEDropShadowElement": return new _SVGFEDropShadowElementImpl._wrap(domObject);
-    case "SVGFEFloodElement": return new _SVGFEFloodElementImpl._wrap(domObject);
-    case "SVGFEFuncAElement": return new _SVGFEFuncAElementImpl._wrap(domObject);
-    case "SVGFEFuncBElement": return new _SVGFEFuncBElementImpl._wrap(domObject);
-    case "SVGFEFuncGElement": return new _SVGFEFuncGElementImpl._wrap(domObject);
-    case "SVGFEFuncRElement": return new _SVGFEFuncRElementImpl._wrap(domObject);
-    case "SVGFEGaussianBlurElement": return new _SVGFEGaussianBlurElementImpl._wrap(domObject);
-    case "SVGFEImageElement": return new _SVGFEImageElementImpl._wrap(domObject);
-    case "SVGFEMergeElement": return new _SVGFEMergeElementImpl._wrap(domObject);
-    case "SVGFEMergeNodeElement": return new _SVGFEMergeNodeElementImpl._wrap(domObject);
-    case "SVGFEMorphologyElement": return new _SVGFEMorphologyElementImpl._wrap(domObject);
-    case "SVGFEOffsetElement": return new _SVGFEOffsetElementImpl._wrap(domObject);
-    case "SVGFEPointLightElement": return new _SVGFEPointLightElementImpl._wrap(domObject);
-    case "SVGFESpecularLightingElement": return new _SVGFESpecularLightingElementImpl._wrap(domObject);
-    case "SVGFESpotLightElement": return new _SVGFESpotLightElementImpl._wrap(domObject);
-    case "SVGFETileElement": return new _SVGFETileElementImpl._wrap(domObject);
-    case "SVGFETurbulenceElement": return new _SVGFETurbulenceElementImpl._wrap(domObject);
-    case "SVGFilterElement": return new _SVGFilterElementImpl._wrap(domObject);
-    case "SVGFitToViewBox": return new _SVGFitToViewBoxImpl._wrap(domObject);
-    case "SVGFontElement": return new _SVGFontElementImpl._wrap(domObject);
-    case "SVGFontFaceElement": return new _SVGFontFaceElementImpl._wrap(domObject);
-    case "SVGFontFaceFormatElement": return new _SVGFontFaceFormatElementImpl._wrap(domObject);
-    case "SVGFontFaceNameElement": return new _SVGFontFaceNameElementImpl._wrap(domObject);
-    case "SVGFontFaceSrcElement": return new _SVGFontFaceSrcElementImpl._wrap(domObject);
-    case "SVGFontFaceUriElement": return new _SVGFontFaceUriElementImpl._wrap(domObject);
-    case "SVGForeignObjectElement": return new _SVGForeignObjectElementImpl._wrap(domObject);
-    case "SVGGElement": return new _SVGGElementImpl._wrap(domObject);
-    case "SVGGlyphElement": return new _SVGGlyphElementImpl._wrap(domObject);
-    case "SVGGlyphRefElement": return new _SVGGlyphRefElementImpl._wrap(domObject);
-    case "SVGGradientElement": return new _SVGGradientElementImpl._wrap(domObject);
-    case "SVGHKernElement": return new _SVGHKernElementImpl._wrap(domObject);
-    case "SVGImageElement": return new _SVGImageElementImpl._wrap(domObject);
-    case "SVGLength": return new _SVGLengthImpl._wrap(domObject);
-    case "SVGLengthList": return new _SVGLengthListImpl._wrap(domObject);
-    case "SVGLineElement": return new _SVGLineElementImpl._wrap(domObject);
-    case "SVGLinearGradientElement": return new _SVGLinearGradientElementImpl._wrap(domObject);
-    case "SVGMPathElement": return new _SVGMPathElementImpl._wrap(domObject);
-    case "SVGMarkerElement": return new _SVGMarkerElementImpl._wrap(domObject);
-    case "SVGMaskElement": return new _SVGMaskElementImpl._wrap(domObject);
-    case "SVGMatrix": return new _SVGMatrixImpl._wrap(domObject);
-    case "SVGMetadataElement": return new _SVGMetadataElementImpl._wrap(domObject);
-    case "SVGMissingGlyphElement": return new _SVGMissingGlyphElementImpl._wrap(domObject);
-    case "SVGNumber": return new _SVGNumberImpl._wrap(domObject);
-    case "SVGNumberList": return new _SVGNumberListImpl._wrap(domObject);
-    case "SVGPaint": return new _SVGPaintImpl._wrap(domObject);
-    case "SVGPathElement": return new _SVGPathElementImpl._wrap(domObject);
-    case "SVGPathSeg": return new _SVGPathSegImpl._wrap(domObject);
-    case "SVGPathSegArcAbs": return new _SVGPathSegArcAbsImpl._wrap(domObject);
-    case "SVGPathSegArcRel": return new _SVGPathSegArcRelImpl._wrap(domObject);
-    case "SVGPathSegClosePath": return new _SVGPathSegClosePathImpl._wrap(domObject);
-    case "SVGPathSegCurvetoCubicAbs": return new _SVGPathSegCurvetoCubicAbsImpl._wrap(domObject);
-    case "SVGPathSegCurvetoCubicRel": return new _SVGPathSegCurvetoCubicRelImpl._wrap(domObject);
-    case "SVGPathSegCurvetoCubicSmoothAbs": return new _SVGPathSegCurvetoCubicSmoothAbsImpl._wrap(domObject);
-    case "SVGPathSegCurvetoCubicSmoothRel": return new _SVGPathSegCurvetoCubicSmoothRelImpl._wrap(domObject);
-    case "SVGPathSegCurvetoQuadraticAbs": return new _SVGPathSegCurvetoQuadraticAbsImpl._wrap(domObject);
-    case "SVGPathSegCurvetoQuadraticRel": return new _SVGPathSegCurvetoQuadraticRelImpl._wrap(domObject);
-    case "SVGPathSegCurvetoQuadraticSmoothAbs": return new _SVGPathSegCurvetoQuadraticSmoothAbsImpl._wrap(domObject);
-    case "SVGPathSegCurvetoQuadraticSmoothRel": return new _SVGPathSegCurvetoQuadraticSmoothRelImpl._wrap(domObject);
-    case "SVGPathSegLinetoAbs": return new _SVGPathSegLinetoAbsImpl._wrap(domObject);
-    case "SVGPathSegLinetoHorizontalAbs": return new _SVGPathSegLinetoHorizontalAbsImpl._wrap(domObject);
-    case "SVGPathSegLinetoHorizontalRel": return new _SVGPathSegLinetoHorizontalRelImpl._wrap(domObject);
-    case "SVGPathSegLinetoRel": return new _SVGPathSegLinetoRelImpl._wrap(domObject);
-    case "SVGPathSegLinetoVerticalAbs": return new _SVGPathSegLinetoVerticalAbsImpl._wrap(domObject);
-    case "SVGPathSegLinetoVerticalRel": return new _SVGPathSegLinetoVerticalRelImpl._wrap(domObject);
-    case "SVGPathSegList": return new _SVGPathSegListImpl._wrap(domObject);
-    case "SVGPathSegMovetoAbs": return new _SVGPathSegMovetoAbsImpl._wrap(domObject);
-    case "SVGPathSegMovetoRel": return new _SVGPathSegMovetoRelImpl._wrap(domObject);
-    case "SVGPatternElement": return new _SVGPatternElementImpl._wrap(domObject);
-    case "SVGPoint": return new _SVGPointImpl._wrap(domObject);
-    case "SVGPointList": return new _SVGPointListImpl._wrap(domObject);
-    case "SVGPolygonElement": return new _SVGPolygonElementImpl._wrap(domObject);
-    case "SVGPolylineElement": return new _SVGPolylineElementImpl._wrap(domObject);
-    case "SVGPreserveAspectRatio": return new _SVGPreserveAspectRatioImpl._wrap(domObject);
-    case "SVGRadialGradientElement": return new _SVGRadialGradientElementImpl._wrap(domObject);
-    case "SVGRect": return new _SVGRectImpl._wrap(domObject);
-    case "SVGRectElement": return new _SVGRectElementImpl._wrap(domObject);
-    case "SVGRenderingIntent": return new _SVGRenderingIntentImpl._wrap(domObject);
-    case "SVGZoomAndPan": return new _SVGZoomAndPanImpl._wrap(domObject);
-    case "SVGSVGElement": return new _SVGSVGElementImpl._wrap(domObject);
-    case "SVGScriptElement": return new _SVGScriptElementImpl._wrap(domObject);
-    case "SVGSetElement": return new _SVGSetElementImpl._wrap(domObject);
-    case "SVGStopElement": return new _SVGStopElementImpl._wrap(domObject);
-    case "SVGStringList": return new _SVGStringListImpl._wrap(domObject);
-    case "SVGStyleElement": return new _SVGStyleElementImpl._wrap(domObject);
-    case "SVGSwitchElement": return new _SVGSwitchElementImpl._wrap(domObject);
-    case "SVGSymbolElement": return new _SVGSymbolElementImpl._wrap(domObject);
-    case "SVGTRefElement": return new _SVGTRefElementImpl._wrap(domObject);
-    case "SVGTSpanElement": return new _SVGTSpanElementImpl._wrap(domObject);
-    case "SVGTextElement": return new _SVGTextElementImpl._wrap(domObject);
-    case "SVGTextPathElement": return new _SVGTextPathElementImpl._wrap(domObject);
-    case "SVGTitleElement": return new _SVGTitleElementImpl._wrap(domObject);
-    case "SVGTransform": return new _SVGTransformImpl._wrap(domObject);
-    case "SVGTransformList": return new _SVGTransformListImpl._wrap(domObject);
-    case "SVGUnitTypes": return new _SVGUnitTypesImpl._wrap(domObject);
-    case "SVGUseElement": return new _SVGUseElementImpl._wrap(domObject);
-    case "SVGVKernElement": return new _SVGVKernElementImpl._wrap(domObject);
-    case "SVGViewElement": return new _SVGViewElementImpl._wrap(domObject);
-    case "SVGViewSpec": return new _SVGViewSpecImpl._wrap(domObject);
-    case "SVGZoomEvent": return new _SVGZoomEventImpl._wrap(domObject);
-    case "Screen": return new _ScreenImpl._wrap(domObject);
-    case "HTMLScriptElement": return new _ScriptElementImpl._wrap(domObject);
-    case "ScriptProfile": return new _ScriptProfileImpl._wrap(domObject);
-    case "ScriptProfileNode": return new _ScriptProfileNodeImpl._wrap(domObject);
-    case "HTMLSelectElement": return new _SelectElementImpl._wrap(domObject);
-    case "SessionDescription": return new _SessionDescriptionImpl._wrap(domObject);
-    case "HTMLShadowElement": return new _ShadowElementImpl._wrap(domObject);
-    case "ShadowRoot": return new _ShadowRootImpl._wrap(domObject);
-    case "SharedWorker": return new _SharedWorkerImpl._wrap(domObject);
-    case "SharedWorkerContext": return new _SharedWorkerContextImpl._wrap(domObject);
-    case "HTMLSourceElement": return new _SourceElementImpl._wrap(domObject);
-    case "HTMLSpanElement": return new _SpanElementImpl._wrap(domObject);
-    case "SpeechGrammar": return new _SpeechGrammarImpl._wrap(domObject);
-    case "SpeechGrammarList": return new _SpeechGrammarListImpl._wrap(domObject);
-    case "SpeechInputEvent": return new _SpeechInputEventImpl._wrap(domObject);
-    case "SpeechInputResult": return new _SpeechInputResultImpl._wrap(domObject);
-    case "SpeechInputResultList": return new _SpeechInputResultListImpl._wrap(domObject);
-    case "SpeechRecognition": return new _SpeechRecognitionImpl._wrap(domObject);
-    case "SpeechRecognitionAlternative": return new _SpeechRecognitionAlternativeImpl._wrap(domObject);
-    case "SpeechRecognitionError": return new _SpeechRecognitionErrorImpl._wrap(domObject);
-    case "SpeechRecognitionEvent": return new _SpeechRecognitionEventImpl._wrap(domObject);
-    case "SpeechRecognitionResult": return new _SpeechRecognitionResultImpl._wrap(domObject);
-    case "SpeechRecognitionResultList": return new _SpeechRecognitionResultListImpl._wrap(domObject);
-    case "Storage": return new _StorageImpl._wrap(domObject);
-    case "StorageEvent": return new _StorageEventImpl._wrap(domObject);
-    case "StorageInfo": return new _StorageInfoImpl._wrap(domObject);
-    case "HTMLStyleElement": return new _StyleElementImpl._wrap(domObject);
-    case "StyleMedia": return new _StyleMediaImpl._wrap(domObject);
-    case "StyleSheetList": return new _StyleSheetListImpl._wrap(domObject);
-    case "HTMLTableCaptionElement": return new _TableCaptionElementImpl._wrap(domObject);
-    case "HTMLTableCellElement": return new _TableCellElementImpl._wrap(domObject);
-    case "HTMLTableColElement": return new _TableColElementImpl._wrap(domObject);
-    case "HTMLTableElement": return new _TableElementImpl._wrap(domObject);
-    case "HTMLTableRowElement": return new _TableRowElementImpl._wrap(domObject);
-    case "HTMLTableSectionElement": return new _TableSectionElementImpl._wrap(domObject);
-    case "HTMLTextAreaElement": return new _TextAreaElementImpl._wrap(domObject);
-    case "TextEvent": return new _TextEventImpl._wrap(domObject);
-    case "TextMetrics": return new _TextMetricsImpl._wrap(domObject);
-    case "TextTrack": return new _TextTrackImpl._wrap(domObject);
-    case "TextTrackCue": return new _TextTrackCueImpl._wrap(domObject);
-    case "TextTrackCueList": return new _TextTrackCueListImpl._wrap(domObject);
-    case "TextTrackList": return new _TextTrackListImpl._wrap(domObject);
-    case "TimeRanges": return new _TimeRangesImpl._wrap(domObject);
-    case "HTMLTitleElement": return new _TitleElementImpl._wrap(domObject);
-    case "Touch": return new _TouchImpl._wrap(domObject);
-    case "TouchEvent": return new _TouchEventImpl._wrap(domObject);
-    case "TouchList": return new _TouchListImpl._wrap(domObject);
-    case "HTMLTrackElement": return new _TrackElementImpl._wrap(domObject);
-    case "TrackEvent": return new _TrackEventImpl._wrap(domObject);
-    case "WebKitTransitionEvent": return new _TransitionEventImpl._wrap(domObject);
-    case "TreeWalker": return new _TreeWalkerImpl._wrap(domObject);
-    case "HTMLUListElement": return new _UListElementImpl._wrap(domObject);
-    case "Uint16Array": return new _Uint16ArrayImpl._wrap(domObject);
-    case "Uint32Array": return new _Uint32ArrayImpl._wrap(domObject);
-    case "Uint8Array": return new _Uint8ArrayImpl._wrap(domObject);
-    case "Uint8ClampedArray": return new _Uint8ClampedArrayImpl._wrap(domObject);
-    case "HTMLUnknownElement": return new _UnknownElementImpl._wrap(domObject);
-    case "ValidityState": return new _ValidityStateImpl._wrap(domObject);
-    case "HTMLVideoElement": return new _VideoElementImpl._wrap(domObject);
-    case "WaveShaperNode": return new _WaveShaperNodeImpl._wrap(domObject);
-    case "WebGLActiveInfo": return new _WebGLActiveInfoImpl._wrap(domObject);
-    case "WebGLBuffer": return new _WebGLBufferImpl._wrap(domObject);
-    case "WebGLCompressedTextureS3TC": return new _WebGLCompressedTextureS3TCImpl._wrap(domObject);
-    case "WebGLContextAttributes": return new _WebGLContextAttributesImpl._wrap(domObject);
-    case "WebGLContextEvent": return new _WebGLContextEventImpl._wrap(domObject);
-    case "WebGLDebugRendererInfo": return new _WebGLDebugRendererInfoImpl._wrap(domObject);
-    case "WebGLDebugShaders": return new _WebGLDebugShadersImpl._wrap(domObject);
-    case "WebGLFramebuffer": return new _WebGLFramebufferImpl._wrap(domObject);
-    case "WebGLLoseContext": return new _WebGLLoseContextImpl._wrap(domObject);
-    case "WebGLProgram": return new _WebGLProgramImpl._wrap(domObject);
-    case "WebGLRenderbuffer": return new _WebGLRenderbufferImpl._wrap(domObject);
-    case "WebGLRenderingContext": return new _WebGLRenderingContextImpl._wrap(domObject);
-    case "WebGLShader": return new _WebGLShaderImpl._wrap(domObject);
-    case "WebGLTexture": return new _WebGLTextureImpl._wrap(domObject);
-    case "WebGLUniformLocation": return new _WebGLUniformLocationImpl._wrap(domObject);
-    case "WebGLVertexArrayObjectOES": return new _WebGLVertexArrayObjectOESImpl._wrap(domObject);
-    case "WebKitCSSRegionRule": return new _WebKitCSSRegionRuleImpl._wrap(domObject);
-    case "WebKitNamedFlow": return new _WebKitNamedFlowImpl._wrap(domObject);
-    case "WebSocket": return new _WebSocketImpl._wrap(domObject);
-    case "WheelEvent": return new _WheelEventImpl._wrap(domObject);
-    case "DOMWindow": return new _WindowImpl._wrap(domObject);
-    case "Worker": return new _WorkerImpl._wrap(domObject);
-    case "WorkerLocation": return new _WorkerLocationImpl._wrap(domObject);
-    case "WorkerNavigator": return new _WorkerNavigatorImpl._wrap(domObject);
-    case "XMLHttpRequest": return new _XMLHttpRequestImpl._wrap(domObject);
-    case "XMLHttpRequestException": return new _XMLHttpRequestExceptionImpl._wrap(domObject);
-    case "XMLHttpRequestProgressEvent": return new _XMLHttpRequestProgressEventImpl._wrap(domObject);
-    case "XMLHttpRequestUpload": return new _XMLHttpRequestUploadImpl._wrap(domObject);
-    case "XMLSerializer": return new _XMLSerializerImpl._wrap(domObject);
-    case "XPathEvaluator": return new _XPathEvaluatorImpl._wrap(domObject);
-    case "XPathException": return new _XPathExceptionImpl._wrap(domObject);
-    case "XPathExpression": return new _XPathExpressionImpl._wrap(domObject);
-    case "XPathNSResolver": return new _XPathNSResolverImpl._wrap(domObject);
-    case "XPathResult": return new _XPathResultImpl._wrap(domObject);
-    case "XSLTProcessor": return new _XSLTProcessorImpl._wrap(domObject);
+    case 'EventTarget': return new _EventTargetImpl._wrap(domObject);
+    case 'AbstractWorker': return new _AbstractWorkerImpl._wrap(domObject);
+    case 'Node': return new _NodeImpl._wrap(domObject);
+    case 'NodeSelector': return new _NodeSelectorImpl._wrap(domObject);
+    case 'ElementTraversal': return new _ElementTraversalImpl._wrap(domObject);
+    case 'Element': return new _ElementImpl._wrap(domObject);
+    case 'HTMLAnchorElement': return new _AnchorElementImpl._wrap(domObject);
+    case 'WebKitAnimation': return new _AnimationImpl._wrap(domObject);
+    case 'Event': return new _EventImpl._wrap(domObject);
+    case 'WebKitAnimationEvent': return new _AnimationEventImpl._wrap(domObject);
+    case 'WebKitAnimationList': return new _AnimationListImpl._wrap(domObject);
+    case 'HTMLAppletElement': return new _AppletElementImpl._wrap(domObject);
+    case 'HTMLAreaElement': return new _AreaElementImpl._wrap(domObject);
+    case 'ArrayBuffer': return new _ArrayBufferImpl._wrap(domObject);
+    case 'ArrayBufferView': return new _ArrayBufferViewImpl._wrap(domObject);
+    case 'Attr': return new _AttrImpl._wrap(domObject);
+    case 'AudioBuffer': return new _AudioBufferImpl._wrap(domObject);
+    case 'AudioNode': return new _AudioNodeImpl._wrap(domObject);
+    case 'AudioSourceNode': return new _AudioSourceNodeImpl._wrap(domObject);
+    case 'AudioBufferSourceNode': return new _AudioBufferSourceNodeImpl._wrap(domObject);
+    case 'AudioChannelMerger': return new _AudioChannelMergerImpl._wrap(domObject);
+    case 'AudioChannelSplitter': return new _AudioChannelSplitterImpl._wrap(domObject);
+    case 'AudioContext': return new _AudioContextImpl._wrap(domObject);
+    case 'AudioDestinationNode': return new _AudioDestinationNodeImpl._wrap(domObject);
+    case 'HTMLMediaElement': return new _MediaElementImpl._wrap(domObject);
+    case 'HTMLAudioElement': return new _AudioElementImpl._wrap(domObject);
+    case 'AudioParam': return new _AudioParamImpl._wrap(domObject);
+    case 'AudioGain': return new _AudioGainImpl._wrap(domObject);
+    case 'AudioGainNode': return new _AudioGainNodeImpl._wrap(domObject);
+    case 'AudioListener': return new _AudioListenerImpl._wrap(domObject);
+    case 'AudioPannerNode': return new _AudioPannerNodeImpl._wrap(domObject);
+    case 'AudioProcessingEvent': return new _AudioProcessingEventImpl._wrap(domObject);
+    case 'HTMLBRElement': return new _BRElementImpl._wrap(domObject);
+    case 'BarInfo': return new _BarInfoImpl._wrap(domObject);
+    case 'HTMLBaseElement': return new _BaseElementImpl._wrap(domObject);
+    case 'HTMLBaseFontElement': return new _BaseFontElementImpl._wrap(domObject);
+    case 'BeforeLoadEvent': return new _BeforeLoadEventImpl._wrap(domObject);
+    case 'BiquadFilterNode': return new _BiquadFilterNodeImpl._wrap(domObject);
+    case 'Blob': return new _BlobImpl._wrap(domObject);
+    case 'WebKitBlobBuilder': return new _BlobBuilderImpl._wrap(domObject);
+    case 'HTMLBodyElement': return new _BodyElementImpl._wrap(domObject);
+    case 'HTMLButtonElement': return new _ButtonElementImpl._wrap(domObject);
+    case 'CharacterData': return new _CharacterDataImpl._wrap(domObject);
+    case 'Text': return new _TextImpl._wrap(domObject);
+    case 'CDATASection': return new _CDATASectionImpl._wrap(domObject);
+    case 'CSSRule': return new _CSSRuleImpl._wrap(domObject);
+    case 'CSSCharsetRule': return new _CSSCharsetRuleImpl._wrap(domObject);
+    case 'CSSFontFaceRule': return new _CSSFontFaceRuleImpl._wrap(domObject);
+    case 'CSSImportRule': return new _CSSImportRuleImpl._wrap(domObject);
+    case 'WebKitCSSKeyframeRule': return new _CSSKeyframeRuleImpl._wrap(domObject);
+    case 'WebKitCSSKeyframesRule': return new _CSSKeyframesRuleImpl._wrap(domObject);
+    case 'WebKitCSSMatrix': return new _CSSMatrixImpl._wrap(domObject);
+    case 'CSSMediaRule': return new _CSSMediaRuleImpl._wrap(domObject);
+    case 'CSSPageRule': return new _CSSPageRuleImpl._wrap(domObject);
+    case 'CSSValue': return new _CSSValueImpl._wrap(domObject);
+    case 'CSSPrimitiveValue': return new _CSSPrimitiveValueImpl._wrap(domObject);
+    case 'CSSRuleList': return new _CSSRuleListImpl._wrap(domObject);
+    case 'CSSStyleDeclaration': return new _CSSStyleDeclarationImpl._wrap(domObject);
+    case 'CSSStyleRule': return new _CSSStyleRuleImpl._wrap(domObject);
+    case 'StyleSheet': return new _StyleSheetImpl._wrap(domObject);
+    case 'CSSStyleSheet': return new _CSSStyleSheetImpl._wrap(domObject);
+    case 'CSSValueList': return new _CSSValueListImpl._wrap(domObject);
+    case 'WebKitCSSTransformValue': return new _CSSTransformValueImpl._wrap(domObject);
+    case 'CSSUnknownRule': return new _CSSUnknownRuleImpl._wrap(domObject);
+    case 'HTMLCanvasElement': return new _CanvasElementImpl._wrap(domObject);
+    case 'CanvasGradient': return new _CanvasGradientImpl._wrap(domObject);
+    case 'CanvasPattern': return new _CanvasPatternImpl._wrap(domObject);
+    case 'CanvasPixelArray': return new _CanvasPixelArrayImpl._wrap(domObject);
+    case 'CanvasRenderingContext': return new _CanvasRenderingContextImpl._wrap(domObject);
+    case 'CanvasRenderingContext2D': return new _CanvasRenderingContext2DImpl._wrap(domObject);
+    case 'ClientRect': return new _ClientRectImpl._wrap(domObject);
+    case 'ClientRectList': return new _ClientRectListImpl._wrap(domObject);
+    case 'Clipboard': return new _ClipboardImpl._wrap(domObject);
+    case 'CloseEvent': return new _CloseEventImpl._wrap(domObject);
+    case 'Comment': return new _CommentImpl._wrap(domObject);
+    case 'UIEvent': return new _UIEventImpl._wrap(domObject);
+    case 'CompositionEvent': return new _CompositionEventImpl._wrap(domObject);
+    case 'Console': return new _ConsoleImpl._wrap(domObject);
+    case 'HTMLContentElement': return new _ContentElementImpl._wrap(domObject);
+    case 'ConvolverNode': return new _ConvolverNodeImpl._wrap(domObject);
+    case 'Coordinates': return new _CoordinatesImpl._wrap(domObject);
+    case 'Counter': return new _CounterImpl._wrap(domObject);
+    case 'Crypto': return new _CryptoImpl._wrap(domObject);
+    case 'CustomEvent': return new _CustomEventImpl._wrap(domObject);
+    case 'HTMLDListElement': return new _DListElementImpl._wrap(domObject);
+    case 'DOMApplicationCache': return new _DOMApplicationCacheImpl._wrap(domObject);
+    case 'DOMException': return new _DOMExceptionImpl._wrap(domObject);
+    case 'DOMFileSystem': return new _DOMFileSystemImpl._wrap(domObject);
+    case 'DOMFileSystemSync': return new _DOMFileSystemSyncImpl._wrap(domObject);
+    case 'DOMFormData': return new _DOMFormDataImpl._wrap(domObject);
+    case 'DOMImplementation': return new _DOMImplementationImpl._wrap(domObject);
+    case 'DOMMimeType': return new _DOMMimeTypeImpl._wrap(domObject);
+    case 'DOMMimeTypeArray': return new _DOMMimeTypeArrayImpl._wrap(domObject);
+    case 'DOMParser': return new _DOMParserImpl._wrap(domObject);
+    case 'DOMPlugin': return new _DOMPluginImpl._wrap(domObject);
+    case 'DOMPluginArray': return new _DOMPluginArrayImpl._wrap(domObject);
+    case 'DOMSelection': return new _DOMSelectionImpl._wrap(domObject);
+    case 'DOMTokenList': return new _DOMTokenListImpl._wrap(domObject);
+    case 'DOMSettableTokenList': return new _DOMSettableTokenListImpl._wrap(domObject);
+    case 'DOMURL': return new _DOMURLImpl._wrap(domObject);
+    case 'DataTransferItem': return new _DataTransferItemImpl._wrap(domObject);
+    case 'DataTransferItemList': return new _DataTransferItemListImpl._wrap(domObject);
+    case 'DataView': return new _DataViewImpl._wrap(domObject);
+    case 'Database': return new _DatabaseImpl._wrap(domObject);
+    case 'DatabaseSync': return new _DatabaseSyncImpl._wrap(domObject);
+    case 'WorkerContext': return new _WorkerContextImpl._wrap(domObject);
+    case 'DedicatedWorkerContext': return new _DedicatedWorkerContextImpl._wrap(domObject);
+    case 'DelayNode': return new _DelayNodeImpl._wrap(domObject);
+    case 'DeprecatedPeerConnection': return new _DeprecatedPeerConnectionImpl._wrap(domObject);
+    case 'HTMLDetailsElement': return new _DetailsElementImpl._wrap(domObject);
+    case 'DeviceMotionEvent': return new _DeviceMotionEventImpl._wrap(domObject);
+    case 'DeviceOrientationEvent': return new _DeviceOrientationEventImpl._wrap(domObject);
+    case 'HTMLDirectoryElement': return new _DirectoryElementImpl._wrap(domObject);
+    case 'Entry': return new _EntryImpl._wrap(domObject);
+    case 'DirectoryEntry': return new _DirectoryEntryImpl._wrap(domObject);
+    case 'EntrySync': return new _EntrySyncImpl._wrap(domObject);
+    case 'DirectoryEntrySync': return new _DirectoryEntrySyncImpl._wrap(domObject);
+    case 'DirectoryReader': return new _DirectoryReaderImpl._wrap(domObject);
+    case 'DirectoryReaderSync': return new _DirectoryReaderSyncImpl._wrap(domObject);
+    case 'HTMLDivElement': return new _DivElementImpl._wrap(domObject);
+    case 'Document': return new _DocumentImpl._wrap(domObject);
+    case 'DocumentFragment': return new _DocumentFragmentImpl._wrap(domObject);
+    case 'DocumentType': return new _DocumentTypeImpl._wrap(domObject);
+    case 'DynamicsCompressorNode': return new _DynamicsCompressorNodeImpl._wrap(domObject);
+    case 'EXTTextureFilterAnisotropic': return new _EXTTextureFilterAnisotropicImpl._wrap(domObject);
+    case 'ElementTimeControl': return new _ElementTimeControlImpl._wrap(domObject);
+    case 'HTMLEmbedElement': return new _EmbedElementImpl._wrap(domObject);
+    case 'Entity': return new _EntityImpl._wrap(domObject);
+    case 'EntityReference': return new _EntityReferenceImpl._wrap(domObject);
+    case 'EntryArray': return new _EntryArrayImpl._wrap(domObject);
+    case 'EntryArraySync': return new _EntryArraySyncImpl._wrap(domObject);
+    case 'ErrorEvent': return new _ErrorEventImpl._wrap(domObject);
+    case 'EventException': return new _EventExceptionImpl._wrap(domObject);
+    case 'EventSource': return new _EventSourceImpl._wrap(domObject);
+    case 'HTMLFieldSetElement': return new _FieldSetElementImpl._wrap(domObject);
+    case 'File': return new _FileImpl._wrap(domObject);
+    case 'FileEntry': return new _FileEntryImpl._wrap(domObject);
+    case 'FileEntrySync': return new _FileEntrySyncImpl._wrap(domObject);
+    case 'FileError': return new _FileErrorImpl._wrap(domObject);
+    case 'FileException': return new _FileExceptionImpl._wrap(domObject);
+    case 'FileList': return new _FileListImpl._wrap(domObject);
+    case 'FileReader': return new _FileReaderImpl._wrap(domObject);
+    case 'FileReaderSync': return new _FileReaderSyncImpl._wrap(domObject);
+    case 'FileWriter': return new _FileWriterImpl._wrap(domObject);
+    case 'FileWriterSync': return new _FileWriterSyncImpl._wrap(domObject);
+    case 'Float32Array': return new _Float32ArrayImpl._wrap(domObject);
+    case 'Float64Array': return new _Float64ArrayImpl._wrap(domObject);
+    case 'HTMLFontElement': return new _FontElementImpl._wrap(domObject);
+    case 'HTMLFormElement': return new _FormElementImpl._wrap(domObject);
+    case 'HTMLFrameElement': return new _FrameElementImpl._wrap(domObject);
+    case 'HTMLFrameSetElement': return new _FrameSetElementImpl._wrap(domObject);
+    case 'Geolocation': return new _GeolocationImpl._wrap(domObject);
+    case 'Geoposition': return new _GeopositionImpl._wrap(domObject);
+    case 'HTMLHRElement': return new _HRElementImpl._wrap(domObject);
+    case 'HTMLAllCollection': return new _HTMLAllCollectionImpl._wrap(domObject);
+    case 'HTMLCollection': return new _HTMLCollectionImpl._wrap(domObject);
+    case 'HTMLOptionsCollection': return new _HTMLOptionsCollectionImpl._wrap(domObject);
+    case 'HashChangeEvent': return new _HashChangeEventImpl._wrap(domObject);
+    case 'HTMLHeadElement': return new _HeadElementImpl._wrap(domObject);
+    case 'HTMLHeadingElement': return new _HeadingElementImpl._wrap(domObject);
+    case 'HighPass2FilterNode': return new _HighPass2FilterNodeImpl._wrap(domObject);
+    case 'History': return new _HistoryImpl._wrap(domObject);
+    case 'HTMLHtmlElement': return new _HtmlElementImpl._wrap(domObject);
+    case 'IDBAny': return new _IDBAnyImpl._wrap(domObject);
+    case 'IDBCursor': return new _IDBCursorImpl._wrap(domObject);
+    case 'IDBCursorWithValue': return new _IDBCursorWithValueImpl._wrap(domObject);
+    case 'IDBDatabase': return new _IDBDatabaseImpl._wrap(domObject);
+    case 'IDBDatabaseError': return new _IDBDatabaseErrorImpl._wrap(domObject);
+    case 'IDBDatabaseException': return new _IDBDatabaseExceptionImpl._wrap(domObject);
+    case 'IDBFactory': return new _IDBFactoryImpl._wrap(domObject);
+    case 'IDBIndex': return new _IDBIndexImpl._wrap(domObject);
+    case 'IDBKey': return new _IDBKeyImpl._wrap(domObject);
+    case 'IDBKeyRange': return new _IDBKeyRangeImpl._wrap(domObject);
+    case 'IDBObjectStore': return new _IDBObjectStoreImpl._wrap(domObject);
+    case 'IDBRequest': return new _IDBRequestImpl._wrap(domObject);
+    case 'IDBTransaction': return new _IDBTransactionImpl._wrap(domObject);
+    case 'IDBVersionChangeEvent': return new _IDBVersionChangeEventImpl._wrap(domObject);
+    case 'IDBVersionChangeRequest': return new _IDBVersionChangeRequestImpl._wrap(domObject);
+    case 'HTMLIFrameElement': return new _IFrameElementImpl._wrap(domObject);
+    case 'IceCandidate': return new _IceCandidateImpl._wrap(domObject);
+    case 'ImageData': return new _ImageDataImpl._wrap(domObject);
+    case 'HTMLImageElement': return new _ImageElementImpl._wrap(domObject);
+    case 'HTMLInputElement': return new _InputElementImpl._wrap(domObject);
+    case 'Int16Array': return new _Int16ArrayImpl._wrap(domObject);
+    case 'Int32Array': return new _Int32ArrayImpl._wrap(domObject);
+    case 'Int8Array': return new _Int8ArrayImpl._wrap(domObject);
+    case 'JavaScriptAudioNode': return new _JavaScriptAudioNodeImpl._wrap(domObject);
+    case 'JavaScriptCallFrame': return new _JavaScriptCallFrameImpl._wrap(domObject);
+    case 'KeyboardEvent': return new _KeyboardEventImpl._wrap(domObject);
+    case 'HTMLKeygenElement': return new _KeygenElementImpl._wrap(domObject);
+    case 'HTMLLIElement': return new _LIElementImpl._wrap(domObject);
+    case 'HTMLLabelElement': return new _LabelElementImpl._wrap(domObject);
+    case 'HTMLLegendElement': return new _LegendElementImpl._wrap(domObject);
+    case 'HTMLLinkElement': return new _LinkElementImpl._wrap(domObject);
+    case 'MediaStream': return new _MediaStreamImpl._wrap(domObject);
+    case 'LocalMediaStream': return new _LocalMediaStreamImpl._wrap(domObject);
+    case 'Location': return new _LocationImpl._wrap(domObject);
+    case 'LowPass2FilterNode': return new _LowPass2FilterNodeImpl._wrap(domObject);
+    case 'HTMLMapElement': return new _MapElementImpl._wrap(domObject);
+    case 'HTMLMarqueeElement': return new _MarqueeElementImpl._wrap(domObject);
+    case 'MediaController': return new _MediaControllerImpl._wrap(domObject);
+    case 'MediaElementAudioSourceNode': return new _MediaElementAudioSourceNodeImpl._wrap(domObject);
+    case 'MediaError': return new _MediaErrorImpl._wrap(domObject);
+    case 'MediaList': return new _MediaListImpl._wrap(domObject);
+    case 'MediaQueryList': return new _MediaQueryListImpl._wrap(domObject);
+    case 'MediaQueryListListener': return new _MediaQueryListListenerImpl._wrap(domObject);
+    case 'MediaStreamEvent': return new _MediaStreamEventImpl._wrap(domObject);
+    case 'MediaStreamList': return new _MediaStreamListImpl._wrap(domObject);
+    case 'MediaStreamTrack': return new _MediaStreamTrackImpl._wrap(domObject);
+    case 'MediaStreamTrackList': return new _MediaStreamTrackListImpl._wrap(domObject);
+    case 'MemoryInfo': return new _MemoryInfoImpl._wrap(domObject);
+    case 'HTMLMenuElement': return new _MenuElementImpl._wrap(domObject);
+    case 'MessageChannel': return new _MessageChannelImpl._wrap(domObject);
+    case 'MessageEvent': return new _MessageEventImpl._wrap(domObject);
+    case 'MessagePort': return new _MessagePortImpl._wrap(domObject);
+    case 'HTMLMetaElement': return new _MetaElementImpl._wrap(domObject);
+    case 'Metadata': return new _MetadataImpl._wrap(domObject);
+    case 'HTMLMeterElement': return new _MeterElementImpl._wrap(domObject);
+    case 'HTMLModElement': return new _ModElementImpl._wrap(domObject);
+    case 'MouseEvent': return new _MouseEventImpl._wrap(domObject);
+    case 'MutationEvent': return new _MutationEventImpl._wrap(domObject);
+    case 'NamedNodeMap': return new _NamedNodeMapImpl._wrap(domObject);
+    case 'Navigator': return new _NavigatorImpl._wrap(domObject);
+    case 'NavigatorUserMediaError': return new _NavigatorUserMediaErrorImpl._wrap(domObject);
+    case 'NodeFilter': return new _NodeFilterImpl._wrap(domObject);
+    case 'NodeIterator': return new _NodeIteratorImpl._wrap(domObject);
+    case 'NodeList': return new _NodeListImpl._wrap(domObject);
+    case 'Notation': return new _NotationImpl._wrap(domObject);
+    case 'Notification': return new _NotificationImpl._wrap(domObject);
+    case 'NotificationCenter': return new _NotificationCenterImpl._wrap(domObject);
+    case 'OESStandardDerivatives': return new _OESStandardDerivativesImpl._wrap(domObject);
+    case 'OESTextureFloat': return new _OESTextureFloatImpl._wrap(domObject);
+    case 'OESVertexArrayObject': return new _OESVertexArrayObjectImpl._wrap(domObject);
+    case 'HTMLOListElement': return new _OListElementImpl._wrap(domObject);
+    case 'HTMLObjectElement': return new _ObjectElementImpl._wrap(domObject);
+    case 'OfflineAudioCompletionEvent': return new _OfflineAudioCompletionEventImpl._wrap(domObject);
+    case 'OperationNotAllowedException': return new _OperationNotAllowedExceptionImpl._wrap(domObject);
+    case 'HTMLOptGroupElement': return new _OptGroupElementImpl._wrap(domObject);
+    case 'HTMLOptionElement': return new _OptionElementImpl._wrap(domObject);
+    case 'HTMLOutputElement': return new _OutputElementImpl._wrap(domObject);
+    case 'OverflowEvent': return new _OverflowEventImpl._wrap(domObject);
+    case 'PageTransitionEvent': return new _PageTransitionEventImpl._wrap(domObject);
+    case 'HTMLParagraphElement': return new _ParagraphElementImpl._wrap(domObject);
+    case 'HTMLParamElement': return new _ParamElementImpl._wrap(domObject);
+    case 'PeerConnection00': return new _PeerConnection00Impl._wrap(domObject);
+    case 'Performance': return new _PerformanceImpl._wrap(domObject);
+    case 'PerformanceNavigation': return new _PerformanceNavigationImpl._wrap(domObject);
+    case 'PerformanceTiming': return new _PerformanceTimingImpl._wrap(domObject);
+    case 'WebKitPoint': return new _PointImpl._wrap(domObject);
+    case 'PopStateEvent': return new _PopStateEventImpl._wrap(domObject);
+    case 'PositionError': return new _PositionErrorImpl._wrap(domObject);
+    case 'HTMLPreElement': return new _PreElementImpl._wrap(domObject);
+    case 'ProcessingInstruction': return new _ProcessingInstructionImpl._wrap(domObject);
+    case 'HTMLProgressElement': return new _ProgressElementImpl._wrap(domObject);
+    case 'ProgressEvent': return new _ProgressEventImpl._wrap(domObject);
+    case 'HTMLQuoteElement': return new _QuoteElementImpl._wrap(domObject);
+    case 'RGBColor': return new _RGBColorImpl._wrap(domObject);
+    case 'Range': return new _RangeImpl._wrap(domObject);
+    case 'RangeException': return new _RangeExceptionImpl._wrap(domObject);
+    case 'RealtimeAnalyserNode': return new _RealtimeAnalyserNodeImpl._wrap(domObject);
+    case 'Rect': return new _RectImpl._wrap(domObject);
+    case 'SQLError': return new _SQLErrorImpl._wrap(domObject);
+    case 'SQLException': return new _SQLExceptionImpl._wrap(domObject);
+    case 'SQLResultSet': return new _SQLResultSetImpl._wrap(domObject);
+    case 'SQLResultSetRowList': return new _SQLResultSetRowListImpl._wrap(domObject);
+    case 'SQLTransaction': return new _SQLTransactionImpl._wrap(domObject);
+    case 'SQLTransactionSync': return new _SQLTransactionSyncImpl._wrap(domObject);
+    case 'SVGElement': return new _SVGElementImpl._wrap(domObject);
+    case 'SVGURIReference': return new _SVGURIReferenceImpl._wrap(domObject);
+    case 'SVGTests': return new _SVGTestsImpl._wrap(domObject);
+    case 'SVGLangSpace': return new _SVGLangSpaceImpl._wrap(domObject);
+    case 'SVGExternalResourcesRequired': return new _SVGExternalResourcesRequiredImpl._wrap(domObject);
+    case 'SVGStylable': return new _SVGStylableImpl._wrap(domObject);
+    case 'SVGLocatable': return new _SVGLocatableImpl._wrap(domObject);
+    case 'SVGTransformable': return new _SVGTransformableImpl._wrap(domObject);
+    case 'SVGAElement': return new _SVGAElementImpl._wrap(domObject);
+    case 'SVGAltGlyphDefElement': return new _SVGAltGlyphDefElementImpl._wrap(domObject);
+    case 'SVGTextContentElement': return new _SVGTextContentElementImpl._wrap(domObject);
+    case 'SVGTextPositioningElement': return new _SVGTextPositioningElementImpl._wrap(domObject);
+    case 'SVGAltGlyphElement': return new _SVGAltGlyphElementImpl._wrap(domObject);
+    case 'SVGAltGlyphItemElement': return new _SVGAltGlyphItemElementImpl._wrap(domObject);
+    case 'SVGAngle': return new _SVGAngleImpl._wrap(domObject);
+    case 'SVGAnimationElement': return new _SVGAnimationElementImpl._wrap(domObject);
+    case 'SVGAnimateColorElement': return new _SVGAnimateColorElementImpl._wrap(domObject);
+    case 'SVGAnimateElement': return new _SVGAnimateElementImpl._wrap(domObject);
+    case 'SVGAnimateMotionElement': return new _SVGAnimateMotionElementImpl._wrap(domObject);
+    case 'SVGAnimateTransformElement': return new _SVGAnimateTransformElementImpl._wrap(domObject);
+    case 'SVGAnimatedAngle': return new _SVGAnimatedAngleImpl._wrap(domObject);
+    case 'SVGAnimatedBoolean': return new _SVGAnimatedBooleanImpl._wrap(domObject);
+    case 'SVGAnimatedEnumeration': return new _SVGAnimatedEnumerationImpl._wrap(domObject);
+    case 'SVGAnimatedInteger': return new _SVGAnimatedIntegerImpl._wrap(domObject);
+    case 'SVGAnimatedLength': return new _SVGAnimatedLengthImpl._wrap(domObject);
+    case 'SVGAnimatedLengthList': return new _SVGAnimatedLengthListImpl._wrap(domObject);
+    case 'SVGAnimatedNumber': return new _SVGAnimatedNumberImpl._wrap(domObject);
+    case 'SVGAnimatedNumberList': return new _SVGAnimatedNumberListImpl._wrap(domObject);
+    case 'SVGAnimatedPreserveAspectRatio': return new _SVGAnimatedPreserveAspectRatioImpl._wrap(domObject);
+    case 'SVGAnimatedRect': return new _SVGAnimatedRectImpl._wrap(domObject);
+    case 'SVGAnimatedString': return new _SVGAnimatedStringImpl._wrap(domObject);
+    case 'SVGAnimatedTransformList': return new _SVGAnimatedTransformListImpl._wrap(domObject);
+    case 'SVGCircleElement': return new _SVGCircleElementImpl._wrap(domObject);
+    case 'SVGClipPathElement': return new _SVGClipPathElementImpl._wrap(domObject);
+    case 'SVGColor': return new _SVGColorImpl._wrap(domObject);
+    case 'SVGComponentTransferFunctionElement': return new _SVGComponentTransferFunctionElementImpl._wrap(domObject);
+    case 'SVGCursorElement': return new _SVGCursorElementImpl._wrap(domObject);
+    case 'SVGDefsElement': return new _SVGDefsElementImpl._wrap(domObject);
+    case 'SVGDescElement': return new _SVGDescElementImpl._wrap(domObject);
+    case 'SVGDocument': return new _SVGDocumentImpl._wrap(domObject);
+    case 'SVGElementInstance': return new _SVGElementInstanceImpl._wrap(domObject);
+    case 'SVGElementInstanceList': return new _SVGElementInstanceListImpl._wrap(domObject);
+    case 'SVGEllipseElement': return new _SVGEllipseElementImpl._wrap(domObject);
+    case 'SVGException': return new _SVGExceptionImpl._wrap(domObject);
+    case 'SVGFilterPrimitiveStandardAttributes': return new _SVGFilterPrimitiveStandardAttributesImpl._wrap(domObject);
+    case 'SVGFEBlendElement': return new _SVGFEBlendElementImpl._wrap(domObject);
+    case 'SVGFEColorMatrixElement': return new _SVGFEColorMatrixElementImpl._wrap(domObject);
+    case 'SVGFEComponentTransferElement': return new _SVGFEComponentTransferElementImpl._wrap(domObject);
+    case 'SVGFECompositeElement': return new _SVGFECompositeElementImpl._wrap(domObject);
+    case 'SVGFEConvolveMatrixElement': return new _SVGFEConvolveMatrixElementImpl._wrap(domObject);
+    case 'SVGFEDiffuseLightingElement': return new _SVGFEDiffuseLightingElementImpl._wrap(domObject);
+    case 'SVGFEDisplacementMapElement': return new _SVGFEDisplacementMapElementImpl._wrap(domObject);
+    case 'SVGFEDistantLightElement': return new _SVGFEDistantLightElementImpl._wrap(domObject);
+    case 'SVGFEDropShadowElement': return new _SVGFEDropShadowElementImpl._wrap(domObject);
+    case 'SVGFEFloodElement': return new _SVGFEFloodElementImpl._wrap(domObject);
+    case 'SVGFEFuncAElement': return new _SVGFEFuncAElementImpl._wrap(domObject);
+    case 'SVGFEFuncBElement': return new _SVGFEFuncBElementImpl._wrap(domObject);
+    case 'SVGFEFuncGElement': return new _SVGFEFuncGElementImpl._wrap(domObject);
+    case 'SVGFEFuncRElement': return new _SVGFEFuncRElementImpl._wrap(domObject);
+    case 'SVGFEGaussianBlurElement': return new _SVGFEGaussianBlurElementImpl._wrap(domObject);
+    case 'SVGFEImageElement': return new _SVGFEImageElementImpl._wrap(domObject);
+    case 'SVGFEMergeElement': return new _SVGFEMergeElementImpl._wrap(domObject);
+    case 'SVGFEMergeNodeElement': return new _SVGFEMergeNodeElementImpl._wrap(domObject);
+    case 'SVGFEMorphologyElement': return new _SVGFEMorphologyElementImpl._wrap(domObject);
+    case 'SVGFEOffsetElement': return new _SVGFEOffsetElementImpl._wrap(domObject);
+    case 'SVGFEPointLightElement': return new _SVGFEPointLightElementImpl._wrap(domObject);
+    case 'SVGFESpecularLightingElement': return new _SVGFESpecularLightingElementImpl._wrap(domObject);
+    case 'SVGFESpotLightElement': return new _SVGFESpotLightElementImpl._wrap(domObject);
+    case 'SVGFETileElement': return new _SVGFETileElementImpl._wrap(domObject);
+    case 'SVGFETurbulenceElement': return new _SVGFETurbulenceElementImpl._wrap(domObject);
+    case 'SVGFilterElement': return new _SVGFilterElementImpl._wrap(domObject);
+    case 'SVGFitToViewBox': return new _SVGFitToViewBoxImpl._wrap(domObject);
+    case 'SVGFontElement': return new _SVGFontElementImpl._wrap(domObject);
+    case 'SVGFontFaceElement': return new _SVGFontFaceElementImpl._wrap(domObject);
+    case 'SVGFontFaceFormatElement': return new _SVGFontFaceFormatElementImpl._wrap(domObject);
+    case 'SVGFontFaceNameElement': return new _SVGFontFaceNameElementImpl._wrap(domObject);
+    case 'SVGFontFaceSrcElement': return new _SVGFontFaceSrcElementImpl._wrap(domObject);
+    case 'SVGFontFaceUriElement': return new _SVGFontFaceUriElementImpl._wrap(domObject);
+    case 'SVGForeignObjectElement': return new _SVGForeignObjectElementImpl._wrap(domObject);
+    case 'SVGGElement': return new _SVGGElementImpl._wrap(domObject);
+    case 'SVGGlyphElement': return new _SVGGlyphElementImpl._wrap(domObject);
+    case 'SVGGlyphRefElement': return new _SVGGlyphRefElementImpl._wrap(domObject);
+    case 'SVGGradientElement': return new _SVGGradientElementImpl._wrap(domObject);
+    case 'SVGHKernElement': return new _SVGHKernElementImpl._wrap(domObject);
+    case 'SVGImageElement': return new _SVGImageElementImpl._wrap(domObject);
+    case 'SVGLength': return new _SVGLengthImpl._wrap(domObject);
+    case 'SVGLengthList': return new _SVGLengthListImpl._wrap(domObject);
+    case 'SVGLineElement': return new _SVGLineElementImpl._wrap(domObject);
+    case 'SVGLinearGradientElement': return new _SVGLinearGradientElementImpl._wrap(domObject);
+    case 'SVGMPathElement': return new _SVGMPathElementImpl._wrap(domObject);
+    case 'SVGMarkerElement': return new _SVGMarkerElementImpl._wrap(domObject);
+    case 'SVGMaskElement': return new _SVGMaskElementImpl._wrap(domObject);
+    case 'SVGMatrix': return new _SVGMatrixImpl._wrap(domObject);
+    case 'SVGMetadataElement': return new _SVGMetadataElementImpl._wrap(domObject);
+    case 'SVGMissingGlyphElement': return new _SVGMissingGlyphElementImpl._wrap(domObject);
+    case 'SVGNumber': return new _SVGNumberImpl._wrap(domObject);
+    case 'SVGNumberList': return new _SVGNumberListImpl._wrap(domObject);
+    case 'SVGPaint': return new _SVGPaintImpl._wrap(domObject);
+    case 'SVGPathElement': return new _SVGPathElementImpl._wrap(domObject);
+    case 'SVGPathSeg': return new _SVGPathSegImpl._wrap(domObject);
+    case 'SVGPathSegArcAbs': return new _SVGPathSegArcAbsImpl._wrap(domObject);
+    case 'SVGPathSegArcRel': return new _SVGPathSegArcRelImpl._wrap(domObject);
+    case 'SVGPathSegClosePath': return new _SVGPathSegClosePathImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoCubicAbs': return new _SVGPathSegCurvetoCubicAbsImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoCubicRel': return new _SVGPathSegCurvetoCubicRelImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoCubicSmoothAbs': return new _SVGPathSegCurvetoCubicSmoothAbsImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoCubicSmoothRel': return new _SVGPathSegCurvetoCubicSmoothRelImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoQuadraticAbs': return new _SVGPathSegCurvetoQuadraticAbsImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoQuadraticRel': return new _SVGPathSegCurvetoQuadraticRelImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoQuadraticSmoothAbs': return new _SVGPathSegCurvetoQuadraticSmoothAbsImpl._wrap(domObject);
+    case 'SVGPathSegCurvetoQuadraticSmoothRel': return new _SVGPathSegCurvetoQuadraticSmoothRelImpl._wrap(domObject);
+    case 'SVGPathSegLinetoAbs': return new _SVGPathSegLinetoAbsImpl._wrap(domObject);
+    case 'SVGPathSegLinetoHorizontalAbs': return new _SVGPathSegLinetoHorizontalAbsImpl._wrap(domObject);
+    case 'SVGPathSegLinetoHorizontalRel': return new _SVGPathSegLinetoHorizontalRelImpl._wrap(domObject);
+    case 'SVGPathSegLinetoRel': return new _SVGPathSegLinetoRelImpl._wrap(domObject);
+    case 'SVGPathSegLinetoVerticalAbs': return new _SVGPathSegLinetoVerticalAbsImpl._wrap(domObject);
+    case 'SVGPathSegLinetoVerticalRel': return new _SVGPathSegLinetoVerticalRelImpl._wrap(domObject);
+    case 'SVGPathSegList': return new _SVGPathSegListImpl._wrap(domObject);
+    case 'SVGPathSegMovetoAbs': return new _SVGPathSegMovetoAbsImpl._wrap(domObject);
+    case 'SVGPathSegMovetoRel': return new _SVGPathSegMovetoRelImpl._wrap(domObject);
+    case 'SVGPatternElement': return new _SVGPatternElementImpl._wrap(domObject);
+    case 'SVGPoint': return new _SVGPointImpl._wrap(domObject);
+    case 'SVGPointList': return new _SVGPointListImpl._wrap(domObject);
+    case 'SVGPolygonElement': return new _SVGPolygonElementImpl._wrap(domObject);
+    case 'SVGPolylineElement': return new _SVGPolylineElementImpl._wrap(domObject);
+    case 'SVGPreserveAspectRatio': return new _SVGPreserveAspectRatioImpl._wrap(domObject);
+    case 'SVGRadialGradientElement': return new _SVGRadialGradientElementImpl._wrap(domObject);
+    case 'SVGRect': return new _SVGRectImpl._wrap(domObject);
+    case 'SVGRectElement': return new _SVGRectElementImpl._wrap(domObject);
+    case 'SVGRenderingIntent': return new _SVGRenderingIntentImpl._wrap(domObject);
+    case 'SVGZoomAndPan': return new _SVGZoomAndPanImpl._wrap(domObject);
+    case 'SVGSVGElement': return new _SVGSVGElementImpl._wrap(domObject);
+    case 'SVGScriptElement': return new _SVGScriptElementImpl._wrap(domObject);
+    case 'SVGSetElement': return new _SVGSetElementImpl._wrap(domObject);
+    case 'SVGStopElement': return new _SVGStopElementImpl._wrap(domObject);
+    case 'SVGStringList': return new _SVGStringListImpl._wrap(domObject);
+    case 'SVGStyleElement': return new _SVGStyleElementImpl._wrap(domObject);
+    case 'SVGSwitchElement': return new _SVGSwitchElementImpl._wrap(domObject);
+    case 'SVGSymbolElement': return new _SVGSymbolElementImpl._wrap(domObject);
+    case 'SVGTRefElement': return new _SVGTRefElementImpl._wrap(domObject);
+    case 'SVGTSpanElement': return new _SVGTSpanElementImpl._wrap(domObject);
+    case 'SVGTextElement': return new _SVGTextElementImpl._wrap(domObject);
+    case 'SVGTextPathElement': return new _SVGTextPathElementImpl._wrap(domObject);
+    case 'SVGTitleElement': return new _SVGTitleElementImpl._wrap(domObject);
+    case 'SVGTransform': return new _SVGTransformImpl._wrap(domObject);
+    case 'SVGTransformList': return new _SVGTransformListImpl._wrap(domObject);
+    case 'SVGUnitTypes': return new _SVGUnitTypesImpl._wrap(domObject);
+    case 'SVGUseElement': return new _SVGUseElementImpl._wrap(domObject);
+    case 'SVGVKernElement': return new _SVGVKernElementImpl._wrap(domObject);
+    case 'SVGViewElement': return new _SVGViewElementImpl._wrap(domObject);
+    case 'SVGViewSpec': return new _SVGViewSpecImpl._wrap(domObject);
+    case 'SVGZoomEvent': return new _SVGZoomEventImpl._wrap(domObject);
+    case 'Screen': return new _ScreenImpl._wrap(domObject);
+    case 'HTMLScriptElement': return new _ScriptElementImpl._wrap(domObject);
+    case 'ScriptProfile': return new _ScriptProfileImpl._wrap(domObject);
+    case 'ScriptProfileNode': return new _ScriptProfileNodeImpl._wrap(domObject);
+    case 'HTMLSelectElement': return new _SelectElementImpl._wrap(domObject);
+    case 'SessionDescription': return new _SessionDescriptionImpl._wrap(domObject);
+    case 'HTMLShadowElement': return new _ShadowElementImpl._wrap(domObject);
+    case 'ShadowRoot': return new _ShadowRootImpl._wrap(domObject);
+    case 'SharedWorker': return new _SharedWorkerImpl._wrap(domObject);
+    case 'SharedWorkerContext': return new _SharedWorkerContextImpl._wrap(domObject);
+    case 'HTMLSourceElement': return new _SourceElementImpl._wrap(domObject);
+    case 'HTMLSpanElement': return new _SpanElementImpl._wrap(domObject);
+    case 'SpeechGrammar': return new _SpeechGrammarImpl._wrap(domObject);
+    case 'SpeechGrammarList': return new _SpeechGrammarListImpl._wrap(domObject);
+    case 'SpeechInputEvent': return new _SpeechInputEventImpl._wrap(domObject);
+    case 'SpeechInputResult': return new _SpeechInputResultImpl._wrap(domObject);
+    case 'SpeechInputResultList': return new _SpeechInputResultListImpl._wrap(domObject);
+    case 'SpeechRecognition': return new _SpeechRecognitionImpl._wrap(domObject);
+    case 'SpeechRecognitionAlternative': return new _SpeechRecognitionAlternativeImpl._wrap(domObject);
+    case 'SpeechRecognitionError': return new _SpeechRecognitionErrorImpl._wrap(domObject);
+    case 'SpeechRecognitionEvent': return new _SpeechRecognitionEventImpl._wrap(domObject);
+    case 'SpeechRecognitionResult': return new _SpeechRecognitionResultImpl._wrap(domObject);
+    case 'SpeechRecognitionResultList': return new _SpeechRecognitionResultListImpl._wrap(domObject);
+    case 'Storage': return new _StorageImpl._wrap(domObject);
+    case 'StorageEvent': return new _StorageEventImpl._wrap(domObject);
+    case 'StorageInfo': return new _StorageInfoImpl._wrap(domObject);
+    case 'HTMLStyleElement': return new _StyleElementImpl._wrap(domObject);
+    case 'StyleMedia': return new _StyleMediaImpl._wrap(domObject);
+    case 'StyleSheetList': return new _StyleSheetListImpl._wrap(domObject);
+    case 'HTMLTableCaptionElement': return new _TableCaptionElementImpl._wrap(domObject);
+    case 'HTMLTableCellElement': return new _TableCellElementImpl._wrap(domObject);
+    case 'HTMLTableColElement': return new _TableColElementImpl._wrap(domObject);
+    case 'HTMLTableElement': return new _TableElementImpl._wrap(domObject);
+    case 'HTMLTableRowElement': return new _TableRowElementImpl._wrap(domObject);
+    case 'HTMLTableSectionElement': return new _TableSectionElementImpl._wrap(domObject);
+    case 'HTMLTextAreaElement': return new _TextAreaElementImpl._wrap(domObject);
+    case 'TextEvent': return new _TextEventImpl._wrap(domObject);
+    case 'TextMetrics': return new _TextMetricsImpl._wrap(domObject);
+    case 'TextTrack': return new _TextTrackImpl._wrap(domObject);
+    case 'TextTrackCue': return new _TextTrackCueImpl._wrap(domObject);
+    case 'TextTrackCueList': return new _TextTrackCueListImpl._wrap(domObject);
+    case 'TextTrackList': return new _TextTrackListImpl._wrap(domObject);
+    case 'TimeRanges': return new _TimeRangesImpl._wrap(domObject);
+    case 'HTMLTitleElement': return new _TitleElementImpl._wrap(domObject);
+    case 'Touch': return new _TouchImpl._wrap(domObject);
+    case 'TouchEvent': return new _TouchEventImpl._wrap(domObject);
+    case 'TouchList': return new _TouchListImpl._wrap(domObject);
+    case 'HTMLTrackElement': return new _TrackElementImpl._wrap(domObject);
+    case 'TrackEvent': return new _TrackEventImpl._wrap(domObject);
+    case 'WebKitTransitionEvent': return new _TransitionEventImpl._wrap(domObject);
+    case 'TreeWalker': return new _TreeWalkerImpl._wrap(domObject);
+    case 'HTMLUListElement': return new _UListElementImpl._wrap(domObject);
+    case 'Uint16Array': return new _Uint16ArrayImpl._wrap(domObject);
+    case 'Uint32Array': return new _Uint32ArrayImpl._wrap(domObject);
+    case 'Uint8Array': return new _Uint8ArrayImpl._wrap(domObject);
+    case 'Uint8ClampedArray': return new _Uint8ClampedArrayImpl._wrap(domObject);
+    case 'HTMLUnknownElement': return new _UnknownElementImpl._wrap(domObject);
+    case 'ValidityState': return new _ValidityStateImpl._wrap(domObject);
+    case 'HTMLVideoElement': return new _VideoElementImpl._wrap(domObject);
+    case 'WaveShaperNode': return new _WaveShaperNodeImpl._wrap(domObject);
+    case 'WebGLActiveInfo': return new _WebGLActiveInfoImpl._wrap(domObject);
+    case 'WebGLBuffer': return new _WebGLBufferImpl._wrap(domObject);
+    case 'WebGLCompressedTextureS3TC': return new _WebGLCompressedTextureS3TCImpl._wrap(domObject);
+    case 'WebGLContextAttributes': return new _WebGLContextAttributesImpl._wrap(domObject);
+    case 'WebGLContextEvent': return new _WebGLContextEventImpl._wrap(domObject);
+    case 'WebGLDebugRendererInfo': return new _WebGLDebugRendererInfoImpl._wrap(domObject);
+    case 'WebGLDebugShaders': return new _WebGLDebugShadersImpl._wrap(domObject);
+    case 'WebGLFramebuffer': return new _WebGLFramebufferImpl._wrap(domObject);
+    case 'WebGLLoseContext': return new _WebGLLoseContextImpl._wrap(domObject);
+    case 'WebGLProgram': return new _WebGLProgramImpl._wrap(domObject);
+    case 'WebGLRenderbuffer': return new _WebGLRenderbufferImpl._wrap(domObject);
+    case 'WebGLRenderingContext': return new _WebGLRenderingContextImpl._wrap(domObject);
+    case 'WebGLShader': return new _WebGLShaderImpl._wrap(domObject);
+    case 'WebGLTexture': return new _WebGLTextureImpl._wrap(domObject);
+    case 'WebGLUniformLocation': return new _WebGLUniformLocationImpl._wrap(domObject);
+    case 'WebGLVertexArrayObjectOES': return new _WebGLVertexArrayObjectOESImpl._wrap(domObject);
+    case 'WebKitCSSRegionRule': return new _WebKitCSSRegionRuleImpl._wrap(domObject);
+    case 'WebKitNamedFlow': return new _WebKitNamedFlowImpl._wrap(domObject);
+    case 'WebSocket': return new _WebSocketImpl._wrap(domObject);
+    case 'WheelEvent': return new _WheelEventImpl._wrap(domObject);
+    case 'DOMWindow': return new _WindowImpl._wrap(domObject);
+    case 'Worker': return new _WorkerImpl._wrap(domObject);
+    case 'WorkerLocation': return new _WorkerLocationImpl._wrap(domObject);
+    case 'WorkerNavigator': return new _WorkerNavigatorImpl._wrap(domObject);
+    case 'XMLHttpRequest': return new _XMLHttpRequestImpl._wrap(domObject);
+    case 'XMLHttpRequestException': return new _XMLHttpRequestExceptionImpl._wrap(domObject);
+    case 'XMLHttpRequestProgressEvent': return new _XMLHttpRequestProgressEventImpl._wrap(domObject);
+    case 'XMLHttpRequestUpload': return new _XMLHttpRequestUploadImpl._wrap(domObject);
+    case 'XMLSerializer': return new _XMLSerializerImpl._wrap(domObject);
+    case 'XPathEvaluator': return new _XPathEvaluatorImpl._wrap(domObject);
+    case 'XPathException': return new _XPathExceptionImpl._wrap(domObject);
+    case 'XPathExpression': return new _XPathExpressionImpl._wrap(domObject);
+    case 'XPathNSResolver': return new _XPathNSResolverImpl._wrap(domObject);
+    case 'XPathResult': return new _XPathResultImpl._wrap(domObject);
+    case 'XSLTProcessor': return new _XSLTProcessorImpl._wrap(domObject);
+    case 'HTMLDocument':
+      return new _DocumentImpl._wrap(domObject);
     default:
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
   }
@@ -591,7 +591,7 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
     return _on;
   }
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -601,11 +601,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
     }
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -5856,7 +5856,7 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
     return;
   }
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -5866,11 +5866,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
     }
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -5958,7 +5958,7 @@ class _DOMImplementationImpl extends _DOMTypeBase implements DOMImplementation {
   }
 
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype) {
-    return _FixHtmlDocumentReference(_wrap(_ptr.createDocument(_unwrap(namespaceURI), _unwrap(qualifiedName), _unwrap(doctype))));
+    return _wrap(_ptr.createDocument(_unwrap(namespaceURI), _unwrap(qualifiedName), _unwrap(doctype)));
   }
 
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) {
@@ -5966,7 +5966,7 @@ class _DOMImplementationImpl extends _DOMTypeBase implements DOMImplementation {
   }
 
   Document createHTMLDocument(String title) {
-    return _FixHtmlDocumentReference(_wrap(_ptr.createHTMLDocument(_unwrap(title))));
+    return _wrap(_ptr.createHTMLDocument(_unwrap(title)));
   }
 
   bool hasFeature(String feature, String version) {
@@ -6004,7 +6004,7 @@ class _DOMParserImpl extends _DOMTypeBase implements DOMParser {
   _DOMParserImpl._wrap(ptr) : super._wrap(ptr);
 
   Document parseFromString(String str, String contentType) {
-    return _FixHtmlDocumentReference(_wrap(_ptr.parseFromString(_unwrap(str), _unwrap(contentType))));
+    return _wrap(_ptr.parseFromString(_unwrap(str), _unwrap(contentType)));
   }
 }
 
@@ -6766,190 +6766,217 @@ class _DivElementImpl extends _ElementImpl implements DivElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DocumentImpl extends _ElementImpl
-    implements Document {
+class _DocumentImpl extends _NodeImpl
+    implements Document
+    {
+
+  _DocumentImpl._wrap(ptr) : super._wrap(ptr);
 
   _DocumentEventsImpl get on() {
     if (_on == null) _on = new _DocumentEventsImpl(_wrappedDocumentPtr);
     return _on;
   }
 
-  Element get activeElement() => _wrap(_documentPtr.activeElement);
+  Element get activeElement() => _wrap(_ptr.activeElement);
 
-  Element get body() => _wrap(_documentPtr.body);
+  Element get body() => _wrap(_ptr.body);
 
-  void set body(Element value) { _documentPtr.body = _unwrap(value); }
+  void set body(Element value) { _ptr.body = _unwrap(value); }
 
-  String get charset() => _wrap(_documentPtr.charset);
+  String get charset() => _wrap(_ptr.charset);
 
-  void set charset(String value) { _documentPtr.charset = _unwrap(value); }
+  void set charset(String value) { _ptr.charset = _unwrap(value); }
 
-  String get cookie() => _wrap(_documentPtr.cookie);
+  String get cookie() => _wrap(_ptr.cookie);
 
-  void set cookie(String value) { _documentPtr.cookie = _unwrap(value); }
+  void set cookie(String value) { _ptr.cookie = _unwrap(value); }
 
-  Window get window() => _wrap(_documentPtr.defaultView);
+  Window get window() => _wrap(_ptr.defaultView);
 
-  String get domain() => _wrap(_documentPtr.domain);
+  Element get documentElement() => _wrap(_ptr.documentElement);
 
-  HeadElement get head() => _wrap(_documentPtr.head);
+  String get domain() => _wrap(_ptr.domain);
 
-  String get lastModified() => _wrap(_documentPtr.lastModified);
+  HeadElement get head() => _wrap(_ptr.head);
 
-  String get preferredStylesheetSet() => _wrap(_documentPtr.preferredStylesheetSet);
+  String get lastModified() => _wrap(_ptr.lastModified);
 
-  String get readyState() => _wrap(_documentPtr.readyState);
+  String get preferredStylesheetSet() => _wrap(_ptr.preferredStylesheetSet);
 
-  String get referrer() => _wrap(_documentPtr.referrer);
+  String get readyState() => _wrap(_ptr.readyState);
 
-  String get selectedStylesheetSet() => _wrap(_documentPtr.selectedStylesheetSet);
+  String get referrer() => _wrap(_ptr.referrer);
 
-  void set selectedStylesheetSet(String value) { _documentPtr.selectedStylesheetSet = _unwrap(value); }
+  String get selectedStylesheetSet() => _wrap(_ptr.selectedStylesheetSet);
 
-  StyleSheetList get styleSheets() => _wrap(_documentPtr.styleSheets);
+  void set selectedStylesheetSet(String value) { _ptr.selectedStylesheetSet = _unwrap(value); }
 
-  String get title() => _wrap(_documentPtr.title);
+  StyleSheetList get styleSheets() => _wrap(_ptr.styleSheets);
 
-  void set title(String value) { _documentPtr.title = _unwrap(value); }
+  String get title() => _wrap(_ptr.title);
 
-  Element get webkitCurrentFullScreenElement() => _wrap(_documentPtr.webkitCurrentFullScreenElement);
+  void set title(String value) { _ptr.title = _unwrap(value); }
 
-  bool get webkitFullScreenKeyboardInputAllowed() => _wrap(_documentPtr.webkitFullScreenKeyboardInputAllowed);
+  Element get webkitCurrentFullScreenElement() => _wrap(_ptr.webkitCurrentFullScreenElement);
 
-  Element get webkitFullscreenElement() => _wrap(_documentPtr.webkitFullscreenElement);
+  bool get webkitFullScreenKeyboardInputAllowed() => _wrap(_ptr.webkitFullScreenKeyboardInputAllowed);
 
-  bool get webkitFullscreenEnabled() => _wrap(_documentPtr.webkitFullscreenEnabled);
+  Element get webkitFullscreenElement() => _wrap(_ptr.webkitFullscreenElement);
 
-  bool get webkitHidden() => _wrap(_documentPtr.webkitHidden);
+  bool get webkitFullscreenEnabled() => _wrap(_ptr.webkitFullscreenEnabled);
 
-  bool get webkitIsFullScreen() => _wrap(_documentPtr.webkitIsFullScreen);
+  bool get webkitHidden() => _wrap(_ptr.webkitHidden);
 
-  String get webkitVisibilityState() => _wrap(_documentPtr.webkitVisibilityState);
+  bool get webkitIsFullScreen() => _wrap(_ptr.webkitIsFullScreen);
+
+  String get webkitVisibilityState() => _wrap(_ptr.webkitVisibilityState);
 
   Range caretRangeFromPoint(int x, int y) {
-    return _wrap(_documentPtr.caretRangeFromPoint(_unwrap(x), _unwrap(y)));
+    return _wrap(_ptr.caretRangeFromPoint(_unwrap(x), _unwrap(y)));
   }
 
   CDATASection createCDATASection(String data) {
-    return _wrap(_documentPtr.createCDATASection(_unwrap(data)));
+    return _wrap(_ptr.createCDATASection(_unwrap(data)));
   }
 
   DocumentFragment createDocumentFragment() {
-    return _wrap(_documentPtr.createDocumentFragment());
+    return _wrap(_ptr.createDocumentFragment());
   }
 
-  Element _createElement(String tagName) {
-    return _wrap(_documentPtr.createElement(_unwrap(tagName)));
+  Element $dom_createElement(String tagName) {
+    return _wrap(_ptr.createElement(_unwrap(tagName)));
   }
 
-  Element _createElementNS(String namespaceURI, String qualifiedName) {
-    return _wrap(_documentPtr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName) {
+    return _wrap(_ptr.createElementNS(_unwrap(namespaceURI), _unwrap(qualifiedName)));
   }
 
-  Event _createEvent(String eventType) {
-    return _wrap(_documentPtr.createEvent(_unwrap(eventType)));
+  Event $dom_createEvent(String eventType) {
+    return _wrap(_ptr.createEvent(_unwrap(eventType)));
   }
 
   Range createRange() {
-    return _wrap(_documentPtr.createRange());
+    return _wrap(_ptr.createRange());
   }
 
-  Text _createTextNode(String data) {
-    return _wrap(_documentPtr.createTextNode(_unwrap(data)));
+  Text $dom_createTextNode(String data) {
+    return _wrap(_ptr.createTextNode(_unwrap(data)));
   }
 
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
-    return _wrap(_documentPtr.createTouch(_unwrap(window), _unwrap(target), _unwrap(identifier), _unwrap(pageX), _unwrap(pageY), _unwrap(screenX), _unwrap(screenY), _unwrap(webkitRadiusX), _unwrap(webkitRadiusY), _unwrap(webkitRotationAngle), _unwrap(webkitForce)));
+    return _wrap(_ptr.createTouch(_unwrap(window), _unwrap(target), _unwrap(identifier), _unwrap(pageX), _unwrap(pageY), _unwrap(screenX), _unwrap(screenY), _unwrap(webkitRadiusX), _unwrap(webkitRadiusY), _unwrap(webkitRotationAngle), _unwrap(webkitForce)));
   }
 
-  TouchList _createTouchList() {
-    return _wrap(_documentPtr.createTouchList());
+  TouchList $dom_createTouchList() {
+    return _wrap(_ptr.createTouchList());
   }
 
   Element elementFromPoint(int x, int y) {
-    return _wrap(_documentPtr.elementFromPoint(_unwrap(x), _unwrap(y)));
+    return _wrap(_ptr.elementFromPoint(_unwrap(x), _unwrap(y)));
   }
 
   bool execCommand(String command, bool userInterface, String value) {
-    return _wrap(_documentPtr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
+    return _wrap(_ptr.execCommand(_unwrap(command), _unwrap(userInterface), _unwrap(value)));
   }
 
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height) {
-    return _wrap(_documentPtr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
+    return _wrap(_ptr.getCSSCanvasContext(_unwrap(contextId), _unwrap(name), _unwrap(width), _unwrap(height)));
+  }
+
+  Element $dom_getElementById(String elementId) {
+    return _wrap(_ptr.getElementById(_unwrap(elementId)));
+  }
+
+  NodeList $dom_getElementsByClassName(String tagname) {
+    return _wrap(_ptr.getElementsByClassName(_unwrap(tagname)));
+  }
+
+  NodeList $dom_getElementsByName(String elementName) {
+    return _wrap(_ptr.getElementsByName(_unwrap(elementName)));
+  }
+
+  NodeList $dom_getElementsByTagName(String tagname) {
+    return _wrap(_ptr.getElementsByTagName(_unwrap(tagname)));
   }
 
   bool queryCommandEnabled(String command) {
-    return _wrap(_documentPtr.queryCommandEnabled(_unwrap(command)));
+    return _wrap(_ptr.queryCommandEnabled(_unwrap(command)));
   }
 
   bool queryCommandIndeterm(String command) {
-    return _wrap(_documentPtr.queryCommandIndeterm(_unwrap(command)));
+    return _wrap(_ptr.queryCommandIndeterm(_unwrap(command)));
   }
 
   bool queryCommandState(String command) {
-    return _wrap(_documentPtr.queryCommandState(_unwrap(command)));
+    return _wrap(_ptr.queryCommandState(_unwrap(command)));
   }
 
   bool queryCommandSupported(String command) {
-    return _wrap(_documentPtr.queryCommandSupported(_unwrap(command)));
+    return _wrap(_ptr.queryCommandSupported(_unwrap(command)));
   }
 
   String queryCommandValue(String command) {
-    return _wrap(_documentPtr.queryCommandValue(_unwrap(command)));
+    return _wrap(_ptr.queryCommandValue(_unwrap(command)));
+  }
+
+  Element _query(String selectors) {
+    return _wrap(_ptr.querySelector(_unwrap(selectors)));
+  }
+
+  NodeList $dom_querySelectorAll(String selectors) {
+    return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 
   void webkitCancelFullScreen() {
-    _documentPtr.webkitCancelFullScreen();
+    _ptr.webkitCancelFullScreen();
     return;
   }
 
   void webkitExitFullscreen() {
-    _documentPtr.webkitExitFullscreen();
+    _ptr.webkitExitFullscreen();
     return;
   }
 
   WebKitNamedFlow webkitGetFlowByName(String name) {
-    return _wrap(_documentPtr.webkitGetFlowByName(_unwrap(name)));
+    return _wrap(_ptr.webkitGetFlowByName(_unwrap(name)));
   }
 
+  // TODO(jacobr): implement all Element methods not on Document. 
 
-  final dom.HTMLDocument _documentPtr;
-  final _NodeImpl _wrappedDocumentPtr;
- 
-_DocumentImpl._wrap(ptr) :
-  super._wrap(ptr),
-  _documentPtr = ptr.parentNode,
-  _wrappedDocumentPtr = ptr.parentNode != null ?
-      new _SecretHtmlDocumentImpl._wrap(ptr.parentNode) : null;
+  _ElementImpl query(String selectors) {
+    // It is fine for our RegExp to detect element id query selectors to have
+    // false negatives but not false positives.
+    if (const RegExp("^#[_a-zA-Z]\\w*\$").hasMatch(selectors)) {
+      return $dom_getElementById(selectors.substring(1));
+    }
+    return $dom_querySelector(selectors);
+  }
 
-  // For efficiency and simplicity, we always use the HtmlElement as the
-  // Document but sometimes internally we need the real JS document object.
-  _NodeImpl get _rawDocument() => _wrappedDocumentPtr;
+// TODO(jacobr): autogenerate this method.
+  _ElementImpl $dom_querySelector(String selectors) =>
+      _wrap(_.querySelector(selectors));
 
-  // The document doesn't have a parent element.
-  _ElementImpl get parent() => null;
-}
-
-// This class should not be externally visible.  If a user ever gets access to
-// a _SecretHtmlDocumentImpl object that is a bug.  This object is hidden by
-// adding checks to all methods that could an HTMLDocument.  We believe that
-// list is limited to Event.target, and HTMLHtmlElement.parent.
-// In a wrapper based world there isn't a need for this complexity but we
-// use this design for consistency with the wrapperless implementation so
-// that bugs show up in both cases.
-class _SecretHtmlDocumentImpl extends _NodeImpl implements Node {
-
-  _SecretHtmlDocumentImpl._wrap(ptr) : super._wrap(ptr);
-
-  _DocumentImpl get _documentElement() => _wrap(_ptr.documentElement);
-}
-
-EventTarget _FixHtmlDocumentReference(EventTarget eventTarget) {
-  if (eventTarget is _SecretHtmlDocumentImpl) {
-    _SecretHtmlDocumentImpl secretDocument = eventTarget;
-    return secretDocument._documentElement;
-  } else {
-    return eventTarget;
+  ElementList queryAll(String selectors) {
+    if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByName(
+          selectors.substring(7,selectors.length - 2));
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else if (const RegExp("^[*a-zA-Z0-9]+\$").hasMatch(selectors)) {
+      final mutableMatches = $dom_getElementsByTagName(selectors);
+      int len = mutableMatches.length;
+      final copyOfMatches = new List<Element>(len);
+      for (int i = 0; i < len; ++i) {
+        copyOfMatches[i] = mutableMatches[i];
+      }
+      return new _FrozenElementList._wrap(copyOfMatches);
+    } else {
+      return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
+    }
   }
 }
 
@@ -7198,7 +7225,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   }
 
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   String get innerHTML() {
     final e = new Element.tag("div");
@@ -7267,8 +7294,8 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
   String get tagName() => "";
   String get webkitdropzone() => "";
   String get webkitRegionOverflow() => "";
-  Element get firstElementChild() => elements.first();
-  Element get lastElementChild() => elements.last();
+  Element get $dom_firstElementChild() => elements.first();
+  Element get $dom_lastElementChild() => elements.last();
   Element get nextElementSibling() => null;
   Element get previousElementSibling() => null;
   Element get offsetParent() => null;
@@ -7403,7 +7430,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList _querySelectorAll(String selectors) {
+  NodeList $dom_querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 
@@ -7452,7 +7479,7 @@ class _ChildrenElementList implements ElementList {
   final _HTMLCollectionImpl _childElements;
 
   _ChildrenElementList._wrap(_ElementImpl element)
-    : _childElements = element._children,
+    : _childElements = element.$dom_children,
       _element = element;
 
   List<Element> _toList() {
@@ -7464,7 +7491,7 @@ class _ChildrenElementList implements ElementList {
   }
 
   _ElementImpl get first() {
-    return _element._firstElementChild;
+    return _element.$dom_firstElementChild;
   }
 
   void forEach(void f(Element element)) {
@@ -7510,7 +7537,7 @@ class _ChildrenElementList implements ElementList {
   }
 
   bool isEmpty() {
-    return _element._firstElementChild == null;
+    return _element.$dom_firstElementChild == null;
   }
 
   int get length() {
@@ -7522,7 +7549,7 @@ class _ChildrenElementList implements ElementList {
   }
 
   void operator []=(int index, _ElementImpl value) {
-    _element._replaceChild(value, _childElements[index]);
+    _element.$dom_replaceChild(value, _childElements[index]);
   }
 
    void set length(int newLength) {
@@ -7531,7 +7558,7 @@ class _ChildrenElementList implements ElementList {
    }
 
   Element add(_ElementImpl value) {
-    _element._appendChild(value);
+    _element.$dom_appendChild(value);
     return value;
   }
 
@@ -7541,7 +7568,7 @@ class _ChildrenElementList implements ElementList {
 
   void addAll(Collection<Element> collection) {
     for (_ElementImpl element in collection) {
-      _element._appendChild(element);
+      _element.$dom_appendChild(element);
     }
   }
 
@@ -7586,13 +7613,13 @@ class _ChildrenElementList implements ElementList {
   Element removeLast() {
     final last = this.last();
     if (last != null) {
-      _element._removeChild(last);
+      _element.$dom_removeChild(last);
     }
     return last;
   }
 
   Element last() {
-    return _element.lastElementChild;
+    return _element.$dom_lastElementChild;
   }
 }
 
@@ -7754,7 +7781,7 @@ class ElementAttributeMap implements Map<String, String> {
   ElementAttributeMap._wrap(this._element);
 
   bool containsValue(String value) {
-    final attributes = _element._attributes;
+    final attributes = _element.$dom_attributes;
     for (int i = 0, len = attributes.length; i < len; i++) {
       if(value == attributes[i].value) {
         return true;
@@ -7764,15 +7791,15 @@ class ElementAttributeMap implements Map<String, String> {
   }
 
   bool containsKey(String key) {
-    return _element._hasAttribute(key);
+    return _element.$dom_hasAttribute(key);
   }
 
   String operator [](String key) {
-    return _element._getAttribute(key);
+    return _element.$dom_getAttribute(key);
   }
 
   void operator []=(String key, String value) {
-    _element._setAttribute(key, value);
+    _element.$dom_setAttribute(key, value);
   }
 
   String putIfAbsent(String key, String ifAbsent()) {
@@ -7782,18 +7809,18 @@ class ElementAttributeMap implements Map<String, String> {
   }
 
   String remove(String key) {
-    _element._removeAttribute(key);
+    _element.$dom_removeAttribute(key);
   }
 
   void clear() {
-    final attributes = _element._attributes;
+    final attributes = _element.$dom_attributes;
     for (int i = attributes.length - 1; i >= 0; i--) {
       remove(attributes[i].name);
     }
   }
 
   void forEach(void f(String key, String value)) {
-    final attributes = _element._attributes;
+    final attributes = _element.$dom_attributes;
     for (int i = 0, len = attributes.length; i < len; i++) {
       final item = attributes[i];
       f(item.name, item.value);
@@ -7802,7 +7829,7 @@ class ElementAttributeMap implements Map<String, String> {
 
   Collection<String> getKeys() {
     // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element._attributes;
+    final attributes = _element.$dom_attributes;
     final keys = new List<String>(attributes.length);
     for (int i = 0, len = attributes.length; i < len; i++) {
       keys[i] = attributes[i].name;
@@ -7812,7 +7839,7 @@ class ElementAttributeMap implements Map<String, String> {
 
   Collection<String> getValues() {
     // TODO(jacobr): generate a lazy collection instead.
-    final attributes = _element._attributes;
+    final attributes = _element.$dom_attributes;
     final values = new List<String>(attributes.length);
     for (int i = 0, len = attributes.length; i < len; i++) {
       values[i] = attributes[i].value;
@@ -7824,7 +7851,7 @@ class ElementAttributeMap implements Map<String, String> {
    * The number of {key, value} pairs in the map.
    */
   int get length() {
-    return _element._attributes.length;
+    return _element.$dom_attributes.length;
   }
 
   /**
@@ -7871,20 +7898,20 @@ class _ElementRectImpl implements ElementRect {
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
-    client = new _SimpleClientRect(element._clientLeft,
-                                  element._clientTop,
-                                  element._clientWidth, 
-                                  element._clientHeight), 
-    offset = new _SimpleClientRect(element._offsetLeft,
-                                  element._offsetTop,
-                                  element._offsetWidth,
-                                  element._offsetHeight),
-    scroll = new _SimpleClientRect(element._scrollLeft,
-                                  element._scrollTop,
-                                  element._scrollWidth,
-                                  element._scrollHeight),
-    _boundingClientRect = element._getBoundingClientRect(),
-    _clientRects = element._getClientRects();
+    client = new _SimpleClientRect(element.$dom_clientLeft,
+                                  element.$dom_clientTop,
+                                  element.$dom_clientWidth, 
+                                  element.$dom_clientHeight), 
+    offset = new _SimpleClientRect(element.$dom_offsetLeft,
+                                  element.$dom_offsetTop,
+                                  element.$dom_offsetWidth,
+                                  element.$dom_offsetHeight),
+    scroll = new _SimpleClientRect(element.$dom_scrollLeft,
+                                  element.$dom_scrollTop,
+                                  element.$dom_scrollWidth,
+                                  element.$dom_scrollHeight),
+    _boundingClientRect = element.$dom_getBoundingClientRect(),
+    _clientRects = element.$dom_getClientRects();
 
   _ClientRectImpl get bounding() => _boundingClientRect;
 
@@ -7933,7 +7960,7 @@ class _ElementImpl extends _NodeImpl implements Element {
   ElementList get elements() => new _ChildrenElementList._wrap(this);
 
   ElementList queryAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   Set<String> get classes() {
     if (_cssClassSet === null) {
@@ -7976,7 +8003,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
     return _createMeasurementFuture(
-        () => _window._getComputedStyle(this, pseudoElement),
+        () => _window.$dom_getComputedStyle(this, pseudoElement),
         new Completer<CSSStyleDeclaration>());
   }
   _ElementImpl._wrap(ptr) : super._wrap(ptr);
@@ -7986,21 +8013,21 @@ class _ElementImpl extends _NodeImpl implements Element {
     return _on;
   }
 
-  int get _childElementCount() => _wrap(_ptr.childElementCount);
+  int get $dom_childElementCount() => _wrap(_ptr.childElementCount);
 
-  HTMLCollection get _children() => _wrap(_ptr.children);
+  HTMLCollection get $dom_children() => _wrap(_ptr.children);
 
-  String get _className() => _wrap(_ptr.className);
+  String get $dom_className() => _wrap(_ptr.className);
 
-  void set _className(String value) { _ptr.className = _unwrap(value); }
+  void set $dom_className(String value) { _ptr.className = _unwrap(value); }
 
-  int get _clientHeight() => _wrap(_ptr.clientHeight);
+  int get $dom_clientHeight() => _wrap(_ptr.clientHeight);
 
-  int get _clientLeft() => _wrap(_ptr.clientLeft);
+  int get $dom_clientLeft() => _wrap(_ptr.clientLeft);
 
-  int get _clientTop() => _wrap(_ptr.clientTop);
+  int get $dom_clientTop() => _wrap(_ptr.clientTop);
 
-  int get _clientWidth() => _wrap(_ptr.clientWidth);
+  int get $dom_clientWidth() => _wrap(_ptr.clientWidth);
 
   String get contentEditable() => _wrap(_ptr.contentEditable);
 
@@ -8014,7 +8041,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set draggable(bool value) { _ptr.draggable = _unwrap(value); }
 
-  Element get _firstElementChild() => _wrap(_ptr.firstElementChild);
+  Element get $dom_firstElementChild() => _wrap(_ptr.firstElementChild);
 
   bool get hidden() => _wrap(_ptr.hidden);
 
@@ -8034,35 +8061,35 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set lang(String value) { _ptr.lang = _unwrap(value); }
 
-  Element get lastElementChild() => _wrap(_ptr.lastElementChild);
+  Element get $dom_lastElementChild() => _wrap(_ptr.lastElementChild);
 
   Element get nextElementSibling() => _wrap(_ptr.nextElementSibling);
 
-  int get _offsetHeight() => _wrap(_ptr.offsetHeight);
+  int get $dom_offsetHeight() => _wrap(_ptr.offsetHeight);
 
-  int get _offsetLeft() => _wrap(_ptr.offsetLeft);
+  int get $dom_offsetLeft() => _wrap(_ptr.offsetLeft);
 
   Element get offsetParent() => _wrap(_ptr.offsetParent);
 
-  int get _offsetTop() => _wrap(_ptr.offsetTop);
+  int get $dom_offsetTop() => _wrap(_ptr.offsetTop);
 
-  int get _offsetWidth() => _wrap(_ptr.offsetWidth);
+  int get $dom_offsetWidth() => _wrap(_ptr.offsetWidth);
 
   String get outerHTML() => _wrap(_ptr.outerHTML);
 
   Element get previousElementSibling() => _wrap(_ptr.previousElementSibling);
 
-  int get _scrollHeight() => _wrap(_ptr.scrollHeight);
+  int get $dom_scrollHeight() => _wrap(_ptr.scrollHeight);
 
-  int get _scrollLeft() => _wrap(_ptr.scrollLeft);
+  int get $dom_scrollLeft() => _wrap(_ptr.scrollLeft);
 
-  void set _scrollLeft(int value) { _ptr.scrollLeft = _unwrap(value); }
+  void set $dom_scrollLeft(int value) { _ptr.scrollLeft = _unwrap(value); }
 
-  int get _scrollTop() => _wrap(_ptr.scrollTop);
+  int get $dom_scrollTop() => _wrap(_ptr.scrollTop);
 
-  void set _scrollTop(int value) { _ptr.scrollTop = _unwrap(value); }
+  void set $dom_scrollTop(int value) { _ptr.scrollTop = _unwrap(value); }
 
-  int get _scrollWidth() => _wrap(_ptr.scrollWidth);
+  int get $dom_scrollWidth() => _wrap(_ptr.scrollWidth);
 
   bool get spellcheck() => _wrap(_ptr.spellcheck);
 
@@ -8105,19 +8132,27 @@ class _ElementImpl extends _NodeImpl implements Element {
     return;
   }
 
-  String _getAttribute(String name) {
+  String $dom_getAttribute(String name) {
     return _wrap(_ptr.getAttribute(_unwrap(name)));
   }
 
-  ClientRect _getBoundingClientRect() {
+  ClientRect $dom_getBoundingClientRect() {
     return _wrap(_ptr.getBoundingClientRect());
   }
 
-  ClientRectList _getClientRects() {
+  ClientRectList $dom_getClientRects() {
     return _wrap(_ptr.getClientRects());
   }
 
-  bool _hasAttribute(String name) {
+  NodeList $dom_getElementsByClassName(String name) {
+    return _wrap(_ptr.getElementsByClassName(_unwrap(name)));
+  }
+
+  NodeList $dom_getElementsByTagName(String name) {
+    return _wrap(_ptr.getElementsByTagName(_unwrap(name)));
+  }
+
+  bool $dom_hasAttribute(String name) {
     return _wrap(_ptr.hasAttribute(_unwrap(name)));
   }
 
@@ -8139,11 +8174,11 @@ class _ElementImpl extends _NodeImpl implements Element {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList _querySelectorAll(String selectors) {
+  NodeList $dom_querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 
-  void _removeAttribute(String name) {
+  void $dom_removeAttribute(String name) {
     _ptr.removeAttribute(_unwrap(name));
     return;
   }
@@ -8168,7 +8203,7 @@ class _ElementImpl extends _NodeImpl implements Element {
     }
   }
 
-  void _setAttribute(String name, String value) {
+  void $dom_setAttribute(String name, String value) {
     _ptr.setAttribute(_unwrap(name), _unwrap(value));
     return;
   }
@@ -8187,6 +8222,62 @@ class _ElementImpl extends _NodeImpl implements Element {
     return;
   }
 
+}
+
+final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+class _ElementFactoryProvider {
+  static final _CUSTOM_PARENT_TAG_MAP = const {
+    'body' : 'html',
+    'head' : 'html',
+    'caption' : 'table',
+    'td': 'tr',
+    'colgroup': 'table',
+    'col' : 'colgroup',
+    'tr' : 'tbody',
+    'tbody' : 'table',
+    'tfoot' : 'table',
+    'thead' : 'table',
+    'track' : 'audio',
+  };
+
+  /** @domName Document.createElement */
+  factory Element.html(String html) {
+    // TODO(jacobr): this method can be made more robust and performant.
+    // 1) Cache the dummy parent elements required to use innerHTML rather than
+    //    creating them every call.
+    // 2) Verify that the html does not contain leading or trailing text nodes.
+    // 3) Verify that the html does not contain both <head> and <body> tags.
+    // 4) Detatch the created element from its dummy parent.
+    String parentTag = 'div';
+    String tag;
+    final match = _START_TAG_REGEXP.firstMatch(html);
+    if (match !== null) {
+      tag = match.group(1).toLowerCase();
+      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
+        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
+      }
+    }
+    final _ElementImpl temp = new Element.tag(parentTag);
+    temp.innerHTML = html;
+
+    Element element;
+    if (temp.elements.length == 1) {
+      element = temp.elements.first;
+    } else if (parentTag == 'html' && temp.elements.length == 2) {
+      // Work around for edge case in WebKit and possibly other browsers where
+      // both body and head elements are created even though the inner html
+      // only contains a head or body element.
+      element = temp.elements[tag == 'head' ? 0 : 1];
+    } else {
+      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
+          'top level elements but 1 expected');
+    }
+    element.remove();
+    return element;
+  }
+
+  /** @domName Document.createElement */
+  factory Element.tag(String tag) => _document.$dom_createElement(tag);
 }
 
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
@@ -8559,7 +8650,7 @@ class _EventImpl extends _DOMTypeBase implements Event {
 
   Clipboard get clipboardData() => _wrap(_ptr.clipboardData);
 
-  EventTarget get currentTarget() => _FixHtmlDocumentReference(_wrap(_ptr.currentTarget));
+  EventTarget get currentTarget() => _wrap(_ptr.currentTarget);
 
   bool get defaultPrevented() => _wrap(_ptr.defaultPrevented);
 
@@ -8569,15 +8660,15 @@ class _EventImpl extends _DOMTypeBase implements Event {
 
   void set returnValue(bool value) { _ptr.returnValue = _unwrap(value); }
 
-  EventTarget get srcElement() => _FixHtmlDocumentReference(_wrap(_ptr.srcElement));
+  EventTarget get srcElement() => _wrap(_ptr.srcElement);
 
-  EventTarget get target() => _FixHtmlDocumentReference(_wrap(_ptr.target));
+  EventTarget get target() => _wrap(_ptr.target);
 
   int get timeStamp() => _wrap(_ptr.timeStamp);
 
   String get type() => _wrap(_ptr.type);
 
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) {
     _ptr.initEvent(_unwrap(eventTypeArg), _unwrap(canBubbleArg), _unwrap(cancelableArg));
     return;
   }
@@ -8626,7 +8717,7 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   String get url() => _wrap(_ptr.url);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -8641,11 +8732,11 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
     return;
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -8717,11 +8808,11 @@ class _EventListenerListImpl implements EventListenerList {
     // TODO(jacobr): what is the correct behavior here. We could alternately
     // force the event to have the expected type.
     assert(evt.type == _type);
-    return _ptr._dispatchEvent(evt);
+    return _ptr.$dom_dispatchEvent(evt);
   }
 
   void _add(EventListener listener, bool useCapture) {
-    _ptr._addEventListener(_type,
+    _ptr.$dom_addEventListener(_type,
                           _findOrAddWrapper(listener, useCapture),
                           useCapture);
   }
@@ -8729,7 +8820,7 @@ class _EventListenerListImpl implements EventListenerList {
   void _remove(EventListener listener, bool useCapture) {
     Function wrapper = _removeWrapper(listener, useCapture);
     if (wrapper !== null) {
-      _ptr._removeEventListener(_type, wrapper, useCapture);
+      _ptr.$dom_removeEventListener(_type, wrapper, useCapture);
     }
   }
 
@@ -8780,7 +8871,7 @@ class _EventTargetImpl extends _DOMTypeBase implements EventTarget {
 
   _EventTargetImpl._wrap(ptr) : super._wrap(ptr);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -8790,11 +8881,11 @@ class _EventTargetImpl extends _DOMTypeBase implements EventTarget {
     }
   }
 
-  bool _dispatchEvent(Event event) {
+  bool $dom_dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -9407,7 +9498,7 @@ class _FormElementImpl extends _ElementImpl implements FormElement {
 class _FrameElementImpl extends _ElementImpl implements FrameElement {
   _FrameElementImpl._wrap(ptr) : super._wrap(ptr);
 
-  Document get contentDocument() => _FixHtmlDocumentReference(_wrap(_ptr.contentDocument));
+  Document get contentDocument() => _wrap(_ptr.contentDocument);
 
   Window get contentWindow() => _wrap(_ptr.contentWindow);
 
@@ -10282,7 +10373,7 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
 
   void set align(String value) { _ptr.align = _unwrap(value); }
 
-  Document get contentDocument() => _FixHtmlDocumentReference(_wrap(_ptr.contentDocument));
+  Document get contentDocument() => _wrap(_ptr.contentDocument);
 
   Window get contentWindow() => _wrap(_ptr.contentWindow);
 
@@ -11830,7 +11921,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
     return _on;
   }
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11845,7 +11936,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
     return;
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -11859,7 +11950,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
     }
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11984,7 +12075,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   int get offsetY() => _wrap(_ptr.offsetY);
 
-  EventTarget get relatedTarget() => _FixHtmlDocumentReference(_wrap(_ptr.relatedTarget));
+  EventTarget get relatedTarget() => _wrap(_ptr.relatedTarget);
 
   int get screenX() => _wrap(_ptr.screenX);
 
@@ -11998,7 +12089,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   int get y() => _wrap(_ptr.y);
 
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     _ptr.initMouseEvent(_unwrap(type), _unwrap(canBubble), _unwrap(cancelable), _unwrap(view), _unwrap(detail), _unwrap(screenX), _unwrap(screenY), _unwrap(clientX), _unwrap(clientY), _unwrap(ctrlKey), _unwrap(altKey), _unwrap(shiftKey), _unwrap(metaKey), _unwrap(button), _unwrap(relatedTarget));
     return;
   }
@@ -12216,11 +12307,110 @@ class _NavigatorUserMediaErrorImpl extends _DOMTypeBase implements NavigatorUser
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Lazy implementation of the child nodes of an element that does not request
+ * the actual child nodes of an element until strictly necessary greatly
+ * improving performance for the typical cases where it is not required.
+ */
+class _ChildNodeListLazy implements NodeList {
+  final _NodeImpl _this;
+
+  _ChildNodeListLazy(this._this);
+
+
+  _NodeImpl get first() => _this.$dom_firstChild;
+  _NodeImpl last() => _this.$dom_lastChild;
+
+  void add(_NodeImpl value) {
+    _this.$dom_appendChild(value);
+  }
+
+  void addLast(_NodeImpl value) {
+    _this.$dom_appendChild(value);
+  }
+
+
+  void addAll(Collection<_NodeImpl> collection) {
+    for (_NodeImpl node in collection) {
+      _this.$dom_appendChild(node);
+    }
+  }
+
+  _NodeImpl removeLast() {
+    final last = last();
+    if (last != null) {
+      _this.$dom_removeChild(last);
+    }
+    return last;
+  }
+
+  void clear() {
+    _this.text = '';
+  }
+
+  void operator []=(int index, _NodeImpl value) {
+    _this.$dom_replaceChild(value, this[index]);
+  }
+
+  Iterator<Node> iterator() => _this.$dom_childNodes.iterator();
+
+  // TODO(jacobr): We can implement these methods much more efficiently by
+  // looking up the nodeList only once instead of once per iteration.
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     new _NodeListWrapper(_Collections.filter(this, <Node>[], f));
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  // TODO(jacobr): this could be implemented for child node lists.
+  // The exception we throw here is misleading.
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException(
+        "Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException(
+        "Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException(
+        "Cannot insertRange on immutable List.");
+  }
+  NodeList getRange(int start, int length) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+
+  // -- end List<Node> mixins.
+
+  // TODO(jacobr): benchmark whether this is more efficient or whether caching
+  // a local copy of $dom_childNodes is more efficient.
+  int get length() => _this.$dom_childNodes.length;
+
+  _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
+}
+
 class _NodeImpl extends _EventTargetImpl implements Node {
-  _NodeListImpl get nodes() {
-    final list = _childNodes;
-    list._parent = this;
-    return list;
+  _ChildNodeListLazy get nodes() {
+    return new _ChildNodeListLazy(this);
   }
 
   void set nodes(Collection<Node> value) {
@@ -12229,7 +12419,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
     List copy = new List.from(value);
     text = '';
     for (Node node in copy) {
-      _appendChild(node);
+      $dom_appendChild(node);
     }
   }
 
@@ -12237,7 +12427,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
   _NodeImpl remove() {
     if (this.parent != null) {
       final _NodeImpl parent = this.parent;
-      parent._removeChild(this);
+      parent.$dom_removeChild(this);
     }
     return this;
   }
@@ -12245,7 +12435,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
   _NodeImpl replaceWith(Node otherNode) {
     try {
       final _NodeImpl parent = this.parent;
-      parent._replaceChild(otherNode, this);
+      parent.$dom_replaceChild(otherNode, this);
     } catch(var e) {
       
     };
@@ -12254,13 +12444,19 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   _NodeImpl._wrap(ptr) : super._wrap(ptr);
 
-  NamedNodeMap get _attributes() => _wrap(_ptr.attributes);
+  NamedNodeMap get $dom_attributes() => _wrap(_ptr.attributes);
 
-  NodeList get _childNodes() => _wrap(_ptr.childNodes);
+  NodeList get $dom_childNodes() => _wrap(_ptr.childNodes);
+
+  Node get $dom_firstChild() => _wrap(_ptr.firstChild);
+
+  Node get $dom_lastChild() => _wrap(_ptr.lastChild);
 
   Node get nextNode() => _wrap(_ptr.nextSibling);
 
-  Document get document() => _FixHtmlDocumentReference(_wrap(_ptr.ownerDocument));
+  int get $dom_nodeType() => _wrap(_ptr.nodeType);
+
+  Document get document() => _wrap(_ptr.ownerDocument);
 
   Node get parent() => _wrap(_ptr.parentNode);
 
@@ -12270,7 +12466,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   void set text(String value) { _ptr.textContent = _unwrap(value); }
 
-  Node _appendChild(Node newChild) {
+  Node $dom_appendChild(Node newChild) {
     return _wrap(_ptr.appendChild(_unwrap(newChild)));
   }
 
@@ -12290,11 +12486,11 @@ class _NodeImpl extends _EventTargetImpl implements Node {
     return _wrap(_ptr.insertBefore(_unwrap(newChild), _unwrap(refChild)));
   }
 
-  Node _removeChild(Node oldChild) {
+  Node $dom_removeChild(Node oldChild) {
     return _wrap(_ptr.removeChild(_unwrap(oldChild)));
   }
 
-  Node _replaceChild(Node newChild, Node oldChild) {
+  Node $dom_replaceChild(Node newChild, Node oldChild) {
     return _wrap(_ptr.replaceChild(_unwrap(newChild), _unwrap(oldChild)));
   }
 
@@ -12433,23 +12629,23 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   // From Collection<Node>:
 
   void add(_NodeImpl value) {
-    _parent._appendChild(value);
+    _parent.$dom_appendChild(value);
   }
 
   void addLast(_NodeImpl value) {
-    _parent._appendChild(value);
+    _parent.$dom_appendChild(value);
   }
 
   void addAll(Collection<_NodeImpl> collection) {
     for (_NodeImpl node in collection) {
-      _parent._appendChild(node);      
+      _parent.$dom_appendChild(node);      
     }
   }
 
   _NodeImpl removeLast() {
     final last = this.last();
     if (last != null) {
-      _parent._removeChild(last);
+      _parent.$dom_removeChild(last);
     }
     return last;
   }
@@ -12459,7 +12655,7 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   }
 
   void operator []=(int index, _NodeImpl value) {
-    _parent._replaceChild(value, this[index]);
+    _parent.$dom_replaceChild(value, this[index]);
   }
 
   void forEach(void f(Node element)) => _Collections.forEach(this, f);
@@ -12521,7 +12717,7 @@ class _NodeSelectorImpl extends _DOMTypeBase implements NodeSelector {
     return _wrap(_ptr.querySelector(_unwrap(selectors)));
   }
 
-  NodeList _querySelectorAll(String selectors) {
+  NodeList $dom_querySelectorAll(String selectors) {
     return _wrap(_ptr.querySelectorAll(_unwrap(selectors)));
   }
 }
@@ -12671,7 +12867,7 @@ class _ObjectElementImpl extends _ElementImpl implements ObjectElement {
 
   void set codeType(String value) { _ptr.codeType = _unwrap(value); }
 
-  Document get contentDocument() => _FixHtmlDocumentReference(_wrap(_ptr.contentDocument));
+  Document get contentDocument() => _wrap(_ptr.contentDocument);
 
   String get data() => _wrap(_ptr.data);
 
@@ -13429,7 +13625,7 @@ class _SVGAElementImpl extends _SVGElementImpl implements SVGAElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13731,7 +13927,7 @@ class _SVGCircleElementImpl extends _SVGElementImpl implements SVGCircleElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13799,7 +13995,7 @@ class _SVGClipPathElementImpl extends _SVGElementImpl implements SVGClipPathElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13934,7 +14130,7 @@ class _SVGDefsElementImpl extends _SVGElementImpl implements SVGDefsElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13984,7 +14180,7 @@ class _SVGDescElementImpl extends _SVGElementImpl implements SVGDescElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -13998,7 +14194,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 
   SVGSVGElement get rootElement() => _wrap(_ptr.rootElement);
 
-  Event _createEvent(String eventType) {
+  Event $dom_createEvent(String eventType) {
     return _wrap(_ptr.createEvent(_unwrap(eventType)));
   }
 }
@@ -14009,7 +14205,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument {
 class _AttributeClassSet extends _CssClassSet {
   _AttributeClassSet(element) : super(element);
 
-  String _className() => _element.attributes['class'];
+  String $dom_className() => _element.attributes['class'];
 
   void _write(Set s) {
     _element.attributes['class'] = _formatSet(s);
@@ -14094,7 +14290,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
   SVGElementInstance get previousSibling() => _wrap(_ptr.previousSibling);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -14104,11 +14300,11 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
     }
   }
 
-  bool _dispatchEvent(Event event) {
+  bool $dom_dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -14252,7 +14448,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14330,7 +14526,7 @@ class _SVGFEBlendElementImpl extends _SVGElementImpl implements SVGFEBlendElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14362,7 +14558,7 @@ class _SVGFEColorMatrixElementImpl extends _SVGElementImpl implements SVGFEColor
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14390,7 +14586,7 @@ class _SVGFEComponentTransferElementImpl extends _SVGElementImpl implements SVGF
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14430,7 +14626,7 @@ class _SVGFECompositeElementImpl extends _SVGElementImpl implements SVGFEComposi
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14480,7 +14676,7 @@ class _SVGFEConvolveMatrixElementImpl extends _SVGElementImpl implements SVGFECo
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14516,7 +14712,7 @@ class _SVGFEDiffuseLightingElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14552,7 +14748,7 @@ class _SVGFEDisplacementMapElementImpl extends _SVGElementImpl implements SVGFED
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14601,7 +14797,7 @@ class _SVGFEDropShadowElementImpl extends _SVGElementImpl implements SVGFEDropSh
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14627,7 +14823,7 @@ class _SVGFEFloodElementImpl extends _SVGElementImpl implements SVGFEFloodElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14680,7 +14876,7 @@ class _SVGFEGaussianBlurElementImpl extends _SVGElementImpl implements SVGFEGaus
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14726,7 +14922,7 @@ class _SVGFEImageElementImpl extends _SVGElementImpl implements SVGFEImageElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14752,7 +14948,7 @@ class _SVGFEMergeElementImpl extends _SVGElementImpl implements SVGFEMergeElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14797,7 +14993,7 @@ class _SVGFEMorphologyElementImpl extends _SVGElementImpl implements SVGFEMorpho
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14829,7 +15025,7 @@ class _SVGFEOffsetElementImpl extends _SVGElementImpl implements SVGFEOffsetElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14873,7 +15069,7 @@ class _SVGFESpecularLightingElementImpl extends _SVGElementImpl implements SVGFE
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14921,7 +15117,7 @@ class _SVGFETileElementImpl extends _SVGElementImpl implements SVGFETileElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -14959,7 +15155,7 @@ class _SVGFETurbulenceElementImpl extends _SVGElementImpl implements SVGFETurbul
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15012,7 +15208,7 @@ class _SVGFilterElementImpl extends _SVGElementImpl implements SVGFilterElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15106,7 +15302,7 @@ class _SVGForeignObjectElementImpl extends _SVGElementImpl implements SVGForeign
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15172,7 +15368,7 @@ class _SVGGElementImpl extends _SVGElementImpl implements SVGGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15244,7 +15440,7 @@ class _SVGGlyphRefElementImpl extends _SVGElementImpl implements SVGGlyphRefElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15272,7 +15468,7 @@ class _SVGGradientElementImpl extends _SVGElementImpl implements SVGGradientElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15330,7 +15526,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15479,7 +15675,7 @@ class _SVGLineElementImpl extends _SVGElementImpl implements SVGLineElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15605,7 +15801,7 @@ class _SVGMarkerElementImpl extends _SVGElementImpl implements SVGMarkerElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15663,7 +15859,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -15942,7 +16138,7 @@ class _SVGPathElementImpl extends _SVGElementImpl implements SVGPathElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16377,7 +16573,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16478,7 +16674,7 @@ class _SVGPolygonElementImpl extends _SVGElementImpl implements SVGPolygonElemen
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16548,7 +16744,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16672,7 +16868,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16877,7 +17073,7 @@ class _SVGSVGElementImpl extends _SVGElementImpl implements SVGSVGElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16947,7 +17143,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -16994,7 +17190,7 @@ class _SVGStringListImpl extends _DOMTypeBase implements SVGStringList {
 class _SVGStylableImpl extends _DOMTypeBase implements SVGStylable {
   _SVGStylableImpl._wrap(ptr) : super._wrap(ptr);
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17064,7 +17260,7 @@ class _SVGSwitchElementImpl extends _SVGElementImpl implements SVGSwitchElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17118,7 +17314,7 @@ class _SVGSymbolElementImpl extends _SVGElementImpl implements SVGSymbolElement 
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17231,7 +17427,7 @@ class _SVGTextContentElementImpl extends _SVGElementImpl implements SVGTextConte
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17313,7 +17509,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -17468,7 +17664,7 @@ class _SVGUseElementImpl extends _SVGElementImpl implements SVGUseElement {
 
   // From SVGStylable
 
-  SVGAnimatedString get _svgClassName() => _wrap(_ptr.className);
+  SVGAnimatedString get $dom_$dom_svgClassName() => _wrap(_ptr.className);
 
   CSSStyleDeclaration get style() => _wrap(_ptr.style);
 
@@ -18875,7 +19071,7 @@ class _TouchImpl extends _DOMTypeBase implements Touch {
 
   int get screenY() => _wrap(_ptr.screenY);
 
-  EventTarget get target() => _FixHtmlDocumentReference(_wrap(_ptr.target));
+  EventTarget get target() => _wrap(_ptr.target);
 
   num get webkitForce() => _wrap(_ptr.webkitForce);
 
@@ -20490,7 +20686,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   String get url() => _wrap(_ptr.url);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -20518,11 +20714,11 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
     throw "Incorrect number or type of arguments";
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -20716,7 +20912,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
 
   Window get window() => _wrap(_ptr.window);
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -20768,7 +20964,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
     return _wrap(_ptr.confirm(_unwrap(message)));
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -20781,7 +20977,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
     return;
   }
 
-  CSSStyleDeclaration _getComputedStyle(Element element, String pseudoElement) {
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) {
     return _wrap(_ptr.getComputedStyle(_unwrap(element), _unwrap(pseudoElement)));
   }
 
@@ -20847,7 +21043,7 @@ class _WindowImpl extends _EventTargetImpl implements Window {
     return;
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21356,7 +21552,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void set responseType(String value) { _ptr.responseType = _unwrap(value); }
 
-  Document get responseXML() => _FixHtmlDocumentReference(_wrap(_ptr.responseXML));
+  Document get responseXML() => _wrap(_ptr.responseXML);
 
   int get status() => _wrap(_ptr.status);
 
@@ -21373,7 +21569,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
     return;
   }
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21383,7 +21579,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
     }
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -21427,7 +21623,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
     return;
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21524,7 +21720,7 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
     return _on;
   }
 
-  void _addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21534,11 +21730,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
     }
   }
 
-  bool _dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void _removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21678,7 +21874,7 @@ class _XSLTProcessorImpl extends _DOMTypeBase implements XSLTProcessor {
   }
 
   Document transformToDocument(Node source) {
-    return _FixHtmlDocumentReference(_wrap(_ptr.transformToDocument(_unwrap(source))));
+    return _wrap(_ptr.transformToDocument(_unwrap(source)));
   }
 
   DocumentFragment transformToFragment(Node source, Document docVal) {
@@ -21913,6 +22109,12 @@ class _XSLTProcessorFactoryProvider {
 interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event evt);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface AbstractWorkerEvents extends Events {
@@ -25423,6 +25625,12 @@ interface DOMApplicationCache extends EventTarget {
 
   void abort();
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event evt);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   void swapCache();
 
   void update();
@@ -26066,6 +26274,8 @@ interface Document extends HtmlElement {
 
   final Window window;
 
+  final Element documentElement;
+
   final String domain;
 
   final HeadElement head;
@@ -26104,15 +26314,33 @@ interface Document extends HtmlElement {
 
   DocumentFragment createDocumentFragment();
 
+  Element $dom_createElement(String tagName);
+
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName);
+
+  Event $dom_createEvent(String eventType);
+
   Range createRange();
 
+  Text $dom_createTextNode(String data);
+
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
+
+  TouchList $dom_createTouchList();
 
   Element elementFromPoint(int x, int y);
 
   bool execCommand(String command, bool userInterface, String value);
 
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
+
+  Element $dom_getElementById(String elementId);
+
+  NodeList $dom_getElementsByClassName(String tagname);
+
+  NodeList $dom_getElementsByName(String elementName);
+
+  NodeList $dom_getElementsByTagName(String tagname);
 
   bool queryCommandEnabled(String command);
 
@@ -26123,6 +26351,10 @@ interface Document extends HtmlElement {
   bool queryCommandSupported(String command);
 
   String queryCommandValue(String command);
+
+  Element query(String selectors);
+
+  NodeList $dom_querySelectorAll(String selectors);
 
   void webkitCancelFullScreen();
 
@@ -26251,6 +26483,8 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
 
   Element query(String selectors);
 
+  NodeList $dom_querySelectorAll(String selectors);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26312,21 +26546,21 @@ interface EXTTextureFilterAnisotropic {
  */
 class _DataAttributeMap implements Map<String, String> {
 
-  final Map<String, String> _attributes;
+  final Map<String, String> $dom_attributes;
 
-  _DataAttributeMap(this._attributes);
+  _DataAttributeMap(this.$dom_attributes);
 
   // interface Map
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => getValues().some((v) => v == value);
 
-  bool containsKey(String key) => _attributes.containsKey(_attr(key));
+  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
 
-  String operator [](String key) => _attributes[_attr(key)];
+  String operator [](String key) => $dom_attributes[_attr(key)];
 
   void operator []=(String key, String value) {
-    _attributes[_attr(key)] = value;
+    $dom_attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) {
@@ -26336,7 +26570,7 @@ class _DataAttributeMap implements Map<String, String> {
     return this[key];
   }
 
-  String remove(String key) => _attributes.remove(_attr(key));
+  String remove(String key) => $dom_attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutatiting the collection.
@@ -26346,7 +26580,7 @@ class _DataAttributeMap implements Map<String, String> {
   }
 
   void forEach(void f(String key, String value)) {
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
       }
@@ -26355,7 +26589,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Collection<String> getKeys() {
     final keys = new List<String>();
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         keys.add(_strip(key));
       }
@@ -26365,7 +26599,7 @@ class _DataAttributeMap implements Map<String, String> {
 
   Collection<String> getValues() {
     final values = new List<String>();
-    _attributes.forEach((String key, String value) {
+    $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
         values.add(value);
       }
@@ -26496,7 +26730,7 @@ class _CssClassSet implements Set<String> {
   Set<String> _read() {
     // TODO(mattsh) simplify this once split can take regex.
     Set<String> s = new Set<String>();
-    for (String name in _className().split(' ')) {
+    for (String name in $dom_className().split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty()) {
         s.add(trimmed);
@@ -26509,14 +26743,14 @@ class _CssClassSet implements Set<String> {
    * Read the class names as a space-separated string. This is meant to be
    * overridden by subclasses.
    */
-  String _className() => _element._className;
+  String $dom_className() => _element.$dom_className;
 
   /**
    * Join all the elements of a set into one string and write
    * back to the element.
    */
   void _write(Set s) {
-    _element._className = _formatSet(s);
+    _element.$dom_className = _formatSet(s);
   }
 
   String _formatSet(Set<String> s) {
@@ -26603,11 +26837,27 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
+  final int $dom_childElementCount;
+
+  final HTMLCollection $dom_children;
+
+  String $dom_className;
+
+  final int $dom_clientHeight;
+
+  final int $dom_clientLeft;
+
+  final int $dom_clientTop;
+
+  final int $dom_clientWidth;
+
   String contentEditable;
 
   String dir;
 
   bool draggable;
+
+  final Element $dom_firstElementChild;
 
   bool hidden;
 
@@ -26619,15 +26869,31 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String lang;
 
-  final Element lastElementChild;
+  final Element $dom_lastElementChild;
 
   final Element nextElementSibling;
 
+  final int $dom_offsetHeight;
+
+  final int $dom_offsetLeft;
+
   final Element offsetParent;
+
+  final int $dom_offsetTop;
+
+  final int $dom_offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
+
+  final int $dom_scrollHeight;
+
+  int $dom_scrollLeft;
+
+  int $dom_scrollTop;
+
+  final int $dom_scrollWidth;
 
   bool spellcheck;
 
@@ -26651,6 +26917,18 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void focus();
 
+  String $dom_getAttribute(String name);
+
+  ClientRect $dom_getBoundingClientRect();
+
+  ClientRectList $dom_getClientRects();
+
+  NodeList $dom_getElementsByClassName(String name);
+
+  NodeList $dom_getElementsByTagName(String name);
+
+  bool $dom_hasAttribute(String name);
+
   Element insertAdjacentElement(String where, Element element);
 
   void insertAdjacentHTML(String where, String html);
@@ -26659,11 +26937,17 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   Element query(String selectors);
 
+  NodeList $dom_querySelectorAll(String selectors);
+
+  void $dom_removeAttribute(String name);
+
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
   void scrollIntoView([bool centerIfNeeded]);
+
+  void $dom_setAttribute(String name, String value);
 
   bool matchesSelector(String selectors);
 
@@ -27042,6 +27326,8 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
+
   void preventDefault();
 
   void stopImmediatePropagation();
@@ -27092,7 +27378,13 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   final String url;
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close();
+
+  bool $dom_dispatchEvent(Event evt);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface EventSourceEvents extends Events {
@@ -27124,6 +27416,12 @@ interface Events {
 interface EventTarget {
 
   final Events on;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event event);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29052,9 +29350,15 @@ interface MessagePort extends EventTarget {
 
   MessagePortEvents get on();
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close();
 
+  bool $dom_dispatchEvent(Event evt);
+
   void postMessage(String message, [List messagePorts]);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -29181,6 +29485,8 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   final int x;
 
   final int y;
+
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29356,7 +29662,17 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
+  final NamedNodeMap $dom_attributes;
+
+  final NodeList $dom_childNodes;
+
+  final Node $dom_firstChild;
+
+  final Node $dom_lastChild;
+
   final Node nextNode;
+
+  final int $dom_nodeType;
 
   final Document document;
 
@@ -29366,6 +29682,8 @@ interface Node extends EventTarget {
 
   String text;
 
+  Node $dom_appendChild(Node newChild);
+
   Node clone(bool deep);
 
   bool contains(Node other);
@@ -29373,6 +29691,10 @@ interface Node extends EventTarget {
   bool hasChildNodes();
 
   Node insertBefore(Node newChild, Node refChild);
+
+  Node $dom_removeChild(Node oldChild);
+
+  Node $dom_replaceChild(Node newChild, Node oldChild);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29474,6 +29796,8 @@ interface NodeSelector {
 
 
   Element query(String selectors);
+
+  NodeList $dom_querySelectorAll(String selectors);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30762,6 +31086,8 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
+
+  Event $dom_createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30809,6 +31135,12 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event event);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -32660,6 +32992,8 @@ interface SVGStringList {
 // WARNING: Do not edit - generated code.
 
 interface SVGStylable {
+
+  final SVGAnimatedString $dom_svgClassName;
 
   final CSSStyleDeclaration style;
 
@@ -35459,7 +35793,13 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   final String url;
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void close([int code, String reason]);
+
+  bool $dom_dispatchEvent(Event evt);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
 }
@@ -35638,6 +35978,8 @@ interface Window extends EventTarget {
 
   final Window window;
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
   void alert(String message);
 
   String atob(String string);
@@ -35656,9 +35998,13 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
+  bool $dom_dispatchEvent(Event evt);
+
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
+
+  CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
@@ -35681,6 +36027,8 @@ interface Window extends EventTarget {
   String prompt(String message, String defaultValue);
 
   void releaseEvents();
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
 
@@ -36038,6 +36386,10 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void abort();
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event evt);
+
   String getAllResponseHeaders();
 
   String getResponseHeader(String header);
@@ -36045,6 +36397,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void open(String method, String url, [bool async, String user, String password]);
 
   void overrideMimeType(String override);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
 
@@ -36108,6 +36462,12 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool $dom_dispatchEvent(Event evt);
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface XMLHttpRequestUploadEvents extends Events {
@@ -36921,16 +37281,11 @@ class _XMLHttpRequestUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _TextFactoryProvider {
-
-  factory Text(String data) => _document._createTextNode(data);
-}
-
 class _EventFactoryProvider {
   factory Event(String type, [bool canBubble = true,
       bool cancelable = true]) {
-    final _EventImpl e = _document._createEvent("Event");
-    e._initEvent(type, canBubble, cancelable);
+    final _EventImpl e = _document.$dom_createEvent("Event");
+    e.$dom_initEvent(type, canBubble, cancelable);
     return e;
   }
 }
@@ -36941,8 +37296,8 @@ class _MouseEventFactoryProvider {
       [bool canBubble = true, bool cancelable = true, bool ctrlKey = false,
       bool altKey = false, bool shiftKey = false, bool metaKey = false,
       EventTarget relatedTarget = null]) {
-    final e = _document._createEvent("MouseEvent");
-    e._initMouseEvent(type, canBubble, cancelable, view, detail,
+    final e = _document.$dom_createEvent("MouseEvent");
+    e.$dom_initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
     return e;
@@ -36959,62 +37314,6 @@ class _CSSStyleDeclarationFactoryProvider {
   factory CSSStyleDeclaration() {
     return new CSSStyleDeclaration.css('');
   }
-}
-
-final _START_TAG_REGEXP = const RegExp('<(\\w+)');
-class _ElementFactoryProvider {
-  static final _CUSTOM_PARENT_TAG_MAP = const {
-    'body' : 'html',
-    'head' : 'html',
-    'caption' : 'table',
-    'td': 'tr',
-    'colgroup': 'table',
-    'col' : 'colgroup',
-    'tr' : 'tbody',
-    'tbody' : 'table',
-    'tfoot' : 'table',
-    'thead' : 'table',
-    'track' : 'audio',
-  };
-
-  /** @domName Document.createElement */
-  factory Element.html(String html) {
-    // TODO(jacobr): this method can be made more robust and performant.
-    // 1) Cache the dummy parent elements required to use innerHTML rather than
-    //    creating them every call.
-    // 2) Verify that the html does not contain leading or trailing text nodes.
-    // 3) Verify that the html does not contain both <head> and <body> tags.
-    // 4) Detatch the created element from its dummy parent.
-    String parentTag = 'div';
-    String tag;
-    final match = _START_TAG_REGEXP.firstMatch(html);
-    if (match !== null) {
-      tag = match.group(1).toLowerCase();
-      if (_CUSTOM_PARENT_TAG_MAP.containsKey(tag)) {
-        parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
-      }
-    }
-    final _ElementImpl temp = new Element.tag(parentTag);
-    temp.innerHTML = html;
-
-    Element element;
-    if (temp.elements.length == 1) {
-      element = temp.elements.first;
-    } else if (parentTag == 'html' && temp.elements.length == 2) {
-      // Work around for edge case in WebKit and possibly other browsers where
-      // both body and head elements are created even though the inner html
-      // only contains a head or body element.
-      element = temp.elements[tag == 'head' ? 0 : 1];
-    } else {
-      throw new IllegalArgumentException('HTML had ${temp.elements.length} ' +
-          'top level elements but 1 expected');
-    }
-    element.remove();
-    return element;
-  }
-
-  /** @domName Document.createElement */
-  factory Element.tag(String tag) => _document._createElement(tag);
 }
 
 class _DocumentFragmentFactoryProvider {
@@ -37054,7 +37353,7 @@ class _DocumentFragmentFactoryProvider {
 class _SVGElementFactoryProvider {
   factory SVGElement.tag(String tag) {
     final Element temp =
-      _document._createElementNS("http://www.w3.org/2000/svg", tag);
+      _document.$dom_createElementNS("http://www.w3.org/2000/svg", tag);
     return temp;
   }
 
@@ -37150,6 +37449,10 @@ class _PointFactoryProvider {
 class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
+}
+
+class _TextFactoryProvider {
+  factory Text(String data) => _document.$dom_createTextNode(data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37296,17 +37599,19 @@ class _Device {
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO(rnystrom): add a way to supress public classes from DartDoc output.
+// TODO(jacobr): we can remove this class now that we are using the $dom_
+// convention for deprecated methods rather than truly private methods.
 /**
  * This class is intended for testing purposes only.
  */
 class Testing {
   static void addEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
     final _EventTargetImpl targetImpl = target;
-    targetImpl._addEventListener(type, listener, useCapture);
+    targetImpl.$dom_addEventListener(type, listener, useCapture);
   }
   static void removeEventListener(EventTarget target, String type, EventListener listener, bool useCapture) {
     final _EventTargetImpl targetImpl = target;
-    targetImpl._removeEventListener(type, listener, useCapture);
+    targetImpl.$dom_removeEventListener(type, listener, useCapture);
   }
 
 }// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
