@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('WindowNSMETest');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom', prefix: 'dom');
 
 // Not defined in dom.Window.

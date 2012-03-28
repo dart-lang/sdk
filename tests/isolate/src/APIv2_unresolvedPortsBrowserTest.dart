@@ -6,7 +6,7 @@
 #library('unresolved_ports');
 #import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
-#import('../../../client/testing/unittest/unittest_dom.dart');
+#import('../../../lib/unittest/unittest_dom.dart');
 
 // This is similar to APIv2_unresolvedPortsStandaloneTest but using
 // 'unittest.dart' so it can run to completion in browsers.

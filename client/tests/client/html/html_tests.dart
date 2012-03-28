@@ -5,7 +5,7 @@
 #library('html_tests');
 
 #import('dart:html');
-#import('../../../testing/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest_html.dart');
 
 #source('util.dart');
 #source('CSSStyleDeclarationTests.dart');

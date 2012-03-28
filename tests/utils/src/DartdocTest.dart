@@ -9,7 +9,7 @@
 #import('../../../lib/dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../client/testing/unittest/unittest_vm.dart');
+#import('../../../lib/unittest/unittest_vm.dart');
 #import('../../../frog/lang.dart');
 #import('../../../frog/file_system_vm.dart');
 

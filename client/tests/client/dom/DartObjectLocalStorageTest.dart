@@ -1,5 +1,5 @@
 #library('DartObjectLocalStorageTest');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom');
 
 verify(var object) {

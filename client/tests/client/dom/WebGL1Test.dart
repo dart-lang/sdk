@@ -1,5 +1,5 @@
 #library('WebGL1Test');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom');
 
 // Test that WebGL is present in dart:dom API

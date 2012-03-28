@@ -511,7 +511,7 @@ class StandardTestSuite implements TestSuite {
       }
       htmlTest.writeStringSync(GetHtmlContents(
           filename,
-          '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
+          '$filePrefix$dartDir/lib/unittest/test_controller.js',
           scriptType,
           filePrefix + scriptPath));
       htmlTest.closeSync();

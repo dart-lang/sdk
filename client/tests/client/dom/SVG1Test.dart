@@ -1,5 +1,5 @@
 #library('SVG1Test');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom');
 
 // Test that SVG is present in dart:dom API

@@ -1,5 +1,5 @@
 #library('InnerFrameTest');
-#import('../../../testing/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest_dom.dart');
 #import('dart:dom');
 
 main() {

@@ -5,7 +5,7 @@
 
 #import('benchmarklib.dart');
 #import('dart:html');
-#import('../../../../testing/unittest/unittest_html.dart');
+#import('../../../../../lib/unittest/unittest_html.dart');
 
 void main() {
   asyncTest('performanceTesting', 1, () { 

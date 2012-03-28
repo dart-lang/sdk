@@ -8,8 +8,6 @@ dom/dom_frog.dart: Skip                 # Frog-only
 dom/frog/dom_frog.dart: Skip            # Frog-only
 dom/wrapping_dom.dart: Skip             # Awaiting ability to suppress shadowing warnings.
 dom/dom.dart: Skip                      # Awaiting ability to suppress shadowing warnings.
-testing/unittest/unittest_vm.dart: Skip # Relies on VM libs
-testing/unittest/unittest_node.dart: Skip # Relies on frog syntax
 
 tests/client/dom: Skip                  # These have known type errors.
 

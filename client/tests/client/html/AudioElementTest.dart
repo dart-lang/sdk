@@ -1,5 +1,5 @@
 #library('AudioElementTest');
-#import('../../../testing/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest_html.dart');
 #import('dart:html');
 
 main() {
