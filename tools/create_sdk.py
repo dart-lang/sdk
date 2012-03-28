@@ -57,7 +57,10 @@ import sys
 import tempfile
 import utils
 
+# TODO(dgrove): Only import modules following Google style guide.
 from os.path import dirname, join, realpath, exists, isdir
+
+# TODO(dgrove): Only import modules following Google style guide.
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
 
 def ReplaceInFiles(paths, subs):
@@ -131,7 +134,7 @@ def Main(argv):
   frogc_contents = open(join(frog_src_dir, 'frogc.dart')).read()
   frogc_dest = open(join(BIN, 'frogc.dart'), 'w')
   frogc_dest.write(
-    re.sub("#import\('", "#import('../lib/frog/", frogc_contents))
+    re.sub(r"#import\('([^.])", r"#import('../lib/frog/\1", frogc_contents))
   frogc_dest.close()
 
   # TODO(dgrove): copy and fix up frog.dart, minfrogc.dart.
@@ -197,9 +200,30 @@ def Main(argv):
     dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
+  #
+  # Create and populate lib/compiler.
+  #
+  compiler_src_dir = join(HOME, 'lib', 'compiler')
+  compiler_dest_dir = join(LIB, 'compiler')
+
+  copytree(compiler_src_dir, compiler_dest_dir, ignore=ignore_patterns('.svn'))
+
+  # Remap imports in lib/compiler/* .
+  for (dirpath, subdirs, filenames) in os.walk(compiler_dest_dir):
+    for filename in filenames:
+      if filename.endswith('.dart'):
+        filename = join(dirpath, filename)
+        file_contents = open(filename).read()
+        file = open(filename, 'w')
+        file_contents = re.sub(r"\.\./lib", "..", file_contents)
+        file_contents = re.sub(r"\.\./frog/", "frog/", file_contents)
+        file.write(file_contents)
+        file.close()
 
   #
   # Create and populate lib/frog.
+  #
+  # TODO(dgrove): Frog is not a dart library and should not live in lib.
   #
   frog_dest_dir = join(LIB, 'frog')
   os.makedirs(frog_dest_dir)
@@ -216,30 +240,18 @@ def Main(argv):
     elif filename.endswith('.dart'):
       copyfile(join(frog_src_dir, filename), join(frog_dest_dir, filename))
 
-  leg_dest_dir = join(frog_dest_dir, 'leg')
-  copytree(join(frog_src_dir, 'leg'), leg_dest_dir,
-           ignore=ignore_patterns('.svn'))
-
-  # Remap imports in frog/leg/* .
-  for filename in os.listdir(leg_dest_dir):
-    if filename.endswith('.dart'):
-      file_contents = open(join(leg_dest_dir, filename)).read()
-      file = open(join(leg_dest_dir, filename), 'w')
-      file.write(re.sub("../../lib", "../..", file_contents))
-      file.close()
 
   copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'),
            ignore=ignore_patterns('.svn'))
 
   # Remap imports in frog/... .
-  for (dirpath, subdirs, _) in os.walk(frog_dest_dir):
-    for subdir in subdirs:
-      for filename in os.listdir(join(dirpath, subdir)):
-        if filename.endswith('.dart'):
-          file_contents = open(join(dirpath, subdir, filename)).read()
-          file = open(join(dirpath, subdir, filename), 'w')
-          file.write(re.sub("../lib/", "../", file_contents))
-          file.close()
+  for (dirpath, subdirs, filenames) in os.walk(frog_dest_dir):
+    for filename in filenames:
+      if filename.endswith('.dart'):
+        file_contents = open(join(dirpath, filename)).read()
+        file = open(join(dirpath, filename), 'w')
+        file.write(re.sub(r"\.\./lib/", "../", file_contents))
+        file.close()
 
   #
   # Create and populate lib/html.
