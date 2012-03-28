@@ -43,8 +43,7 @@ buildScript(Uri uri) {
 class Helper {
   void run() {
     try {
-      List<String> argv =
-        ['--library-root=${uri.resolve('../../lib/compiler/implementation/lib').path}'];
+      List<String> argv = ['--library-root=${uri.resolve('../../').path}'];
       argv.addAll(new Options().arguments);
       compile(argv);
     } catch (var exception, var trace) {

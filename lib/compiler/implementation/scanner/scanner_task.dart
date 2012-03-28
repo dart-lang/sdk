@@ -35,8 +35,7 @@ class ScannerTask extends CompilerTask {
     }
 
     LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
-    Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
-    Uri base = cwd.resolve(library.script.name.toString());
+    Uri base = library.script.uri;
     for (ScriptTag tag in library.tags.reverse()) {
       StringNode argument = tag.argument;
       // TODO(lrn): Support interpolations here. We need access to the

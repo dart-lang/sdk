@@ -12,6 +12,8 @@
 #import('../../../frog/lang.dart', prefix: 'frog');
 #import('../compiler.dart');
 #import('../../uri/uri.dart');
+#import('library_map.dart');
+
 
 class Compiler extends leg.Compiler {
   ReadUriFromString provider;
@@ -21,10 +23,10 @@ class Compiler extends leg.Compiler {
   bool mockableLibraryUsed = false;
 
   Compiler(this.provider, this.handler, this.libraryRoot, this.options)
-    : super.withCurrentDirectory(null, tracer: new ssa.HTracer());
+    : super(tracer: new ssa.HTracer());
 
-  leg.LibraryElement scanBuiltinLibrary(String filename) {
-    Uri uri = libraryRoot.resolve(filename);
+  leg.LibraryElement scanBuiltinLibrary(String path) {
+    Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
     leg.LibraryElement library = scanner.loadLibrary(uri, null);
     return library;
   }
@@ -50,27 +52,17 @@ class Compiler extends leg.Compiler {
   }
 
   translateDartUri(Uri uri, leg.ScriptTag node) {
-    String uriName = uri.toString();
-    // TODO(ahe): Clean this up.
-    if (uriName == 'dart:dom') {
-      mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../../lib/dom/frog/dom_frog.dart');
-    } else if (uriName == 'dart:html') {
-      mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../../lib/html/frog/html_frog.dart');
-    } else if (uriName == 'dart:json') {
-      return libraryRoot.resolve('../../../../lib/json/json.dart');
-    } else if (uriName == 'dart:isolate') {
-      return libraryRoot.resolve('../../../../lib/isolate/isolate_leg.dart');
-    } else if (uriName == 'dart:io') {
-      mockableLibraryUsed = true;
-      return libraryRoot.resolve('io.dart');
-    } else if (uriName == 'dart:utf') {
-      return libraryRoot.resolve('../../../../lib/utf/utf.dart');
-    } else if (uriName == 'dart:uri') {
-      return libraryRoot.resolve('../../../../lib/uri/uri.dart');
+    String path = DART2JS_LIBRARY_MAP[uri.path];
+    if (path === null || uri.path.startsWith('_')) {
+      reportError(node, 'library not found ${uri}');
+      return null;
     }
-    reportError(node, "library not found $uriName");
+    if (uri.path == 'dom' || uri.path == 'html' || uri.path == 'io') {
+      // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
+      // supports this use case better.
+      mockableLibraryUsed = true;
+    }
+    return libraryRoot.resolve(path);
   }
 
   bool run(Uri uri) {

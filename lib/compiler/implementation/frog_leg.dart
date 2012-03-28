@@ -4,11 +4,12 @@
 
 #library('frog_leg');
 
+#import('dart:io');
+
 #import('../../uri/uri.dart');
 #import('source_file.dart');
 #import('../../../frog/lang.dart', prefix: 'frog');
 #import('../compiler.dart', prefix: 'compiler');
-#import('io/io.dart', prefix: 'io');
 
 String relativize(Uri base, Uri uri) {
   if (base.scheme == 'file' &&
@@ -44,12 +45,12 @@ bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   final showWarnings = frog.options.showWarnings;
   final allowMockCompilation = frog.options.allowMockCompilation;
-  Uri cwd = new Uri(scheme: 'file', path: io.getCurrentDirectory());
+  Uri cwd = new Uri(scheme: 'file', path: getCurrentDirectory());
   Uri uri = cwd.resolve(frog.options.dartScript);
   String frogLibDir = frog.options.libDir;
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
   Uri frogLib = new Uri(scheme: 'file', path: frogLibDir);
-  Uri libraryRoot = frogLib.resolve('../../lib/compiler/implementation/lib/');
+  Uri libraryRoot = frogLib.resolve('../../');
   Map<String, SourceFile> sourceFiles = <SourceFile>{};
 
   Future<String> provider(Uri uri) {
@@ -97,4 +98,10 @@ class AbortLeg {
   final message;
   AbortLeg(this.message);
   toString() => 'Aborted due to --throw-on-error: $message';
+}
+
+String getCurrentDirectory() {
+  String dir = new File(".").fullPathSync();
+  if (dir.endsWith("/")) return dir;
+  return "$dir/";
 }

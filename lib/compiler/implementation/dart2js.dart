@@ -9,7 +9,6 @@
 
 #import('../../uri/uri.dart');
 #import('../compiler.dart', prefix: 'api');
-#import('io/io.dart', prefix: 'io');
 #import('colors.dart');
 #import('source_file.dart');
 
@@ -44,7 +43,7 @@ String relativize(Uri base, Uri uri) {
 }
 
 void compile(List<String> argv) {
-  Uri cwd = new Uri(scheme: 'file', path: io.getCurrentDirectory());
+  Uri cwd = new Uri(scheme: 'file', path: getCurrentDirectory());
   bool throwOnError = false;
   bool showWarnings = true;
   bool verbose = false;
@@ -150,4 +149,10 @@ String readAll(String filename) {
   var bytes = file.readListSync(buffer, 0, length);
   file.closeSync();
   return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
+}
+
+String getCurrentDirectory() {
+  String dir = new File(".").fullPathSync();
+  if (dir.endsWith("/")) return dir;
+  return "$dir/";
 }

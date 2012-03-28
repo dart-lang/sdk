@@ -36,7 +36,6 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
-  final String currentDirectory;
 
   final Tracer tracer;
 
@@ -96,8 +95,7 @@ class Compiler implements DiagnosticListener {
 
   Stopwatch codegenProgress;
 
-  Compiler.withCurrentDirectory(String this.currentDirectory,
-                                [this.tracer = const Tracer()])
+  Compiler([this.tracer = const Tracer()])
       : types = new Types(),
         universe = new Universe(),
         worklist = new Queue<WorkItem>(),
@@ -229,9 +227,9 @@ class Compiler implements DiagnosticListener {
   }
 
   void scanBuiltinLibraries() {
-    coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
-    jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
-    coreLibrary = scanBuiltinLibrary('core.dart');
+    coreImplLibrary = scanBuiltinLibrary('coreimpl');
+    jsHelperLibrary = scanBuiltinLibrary('_js_helper');
+    coreLibrary = scanBuiltinLibrary('core');
 
     // Since coreLibrary import the libraries "coreimpl", and
     // "js_helper", coreLibrary is null when they are being built. So
