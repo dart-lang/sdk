@@ -710,8 +710,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralMap(LiteralMap node) {
-    // TODO(floitsch): check for isConst, once the parser adds it into the node.
-    // if (!node.isConst()) error(node);
+    if (!node.isConst()) error(node);
     List<StringConstant> keys = <StringConstant>[];
     List<Constant> values = <Constant>[];
     bool hasProtoKey = false;

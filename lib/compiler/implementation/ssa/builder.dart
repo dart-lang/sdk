@@ -2298,6 +2298,13 @@ class SsaBuilder implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
+    if (node.isConst()) {
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileNodeWithDefinitions(node, elements);
+      stack.add(graph.addConstant(constant));
+      return;
+    }
+
     List<HInstruction> inputs = <HInstruction>[];
     for (Link<Node> link = node.elements.nodes;
          !link.isEmpty();
@@ -2508,6 +2515,12 @@ class SsaBuilder implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
+    if (node.isConst()) {
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileNodeWithDefinitions(node, elements);
+      stack.add(graph.addConstant(constant));
+      return;
+    }
     List<HInstruction> inputs = <HInstruction>[];
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty();

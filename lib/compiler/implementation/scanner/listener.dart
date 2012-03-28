@@ -1207,7 +1207,7 @@ class NodeListener extends ElementListener {
                         Token endToken) {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
     NodeList typeArguments = popNode();
-    pushNode(new LiteralMap(typeArguments, entries));
+    pushNode(new LiteralMap(typeArguments, entries, constKeyword));
   }
 
   void endLiteralMapEntry(Token colon, Token endToken) {

@@ -130,12 +130,14 @@ class Unparser implements Visitor {
   }
 
   visitNewExpression(NewExpression node) {
+    // TODO(ahe): handle 'const'.
     add(node.newToken.value);
     sb.add(' ');
     visit(node.send);
   }
 
   visitLiteralList(LiteralList node) {
+    // TODO(ahe): handle 'const'.
     if (node.type !== null) {
       sb.add('<');
       visit(node.type);
@@ -305,6 +307,7 @@ class Unparser implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
+    // TODO(ahe): handle 'const'.
     if (node.typeArguments !== null) visit(node.typeArguments);
     visit(node.entries);
   }

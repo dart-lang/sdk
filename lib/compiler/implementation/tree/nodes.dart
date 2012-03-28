@@ -1220,9 +1220,11 @@ class LiteralMap extends Expression {
   final NodeList typeArguments;
   final NodeList entries;
 
-  LiteralMap(this.typeArguments, this.entries);
+  final Token constKeyword;
 
-  bool isConst() => false; // TODO(ahe): Store constness.
+  LiteralMap(this.typeArguments, this.entries, this.constKeyword);
+
+  bool isConst() => constKeyword !== null;
 
   LiteralMap asLiteralMap() => this;
 
@@ -1233,7 +1235,10 @@ class LiteralMap extends Expression {
     entries.accept(visitor);
   }
 
-  Token getBeginToken() => firstBeginToken(typeArguments, entries);
+  Token getBeginToken() {
+    if (constKeyword !== null) return constKeyword;
+    return firstBeginToken(typeArguments, entries);
+  }
 
   Token getEndToken() => entries.getEndToken();
 }

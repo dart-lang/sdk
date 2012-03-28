@@ -15,7 +15,6 @@ CompileTimeConstantBTest: Fail # We don't handle constant map literals with __pr
 # Compilation errors.
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
-CanonicalConstTest: Fail # map not implemented
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor6Test: Fail # Closures inside initializers not implemented.
@@ -41,6 +40,7 @@ LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
+MapLiteral3Test: Fail # CL on its way (const { 'a': 3, 'a': 4 } not treated correctly.
 MapLiteral4Test: Fail # map not implemented
 MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 MethodNameTest: Fail # Parsing of pseudo keywords.
@@ -67,7 +67,6 @@ TypeDartcTest: Fail # non-empty instruction stack
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
 BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
-ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 FunctionTest: Fail # continue not implemented
@@ -76,7 +75,6 @@ GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
@@ -101,7 +99,6 @@ ConstFactoryNegativeTest: Fail, OK # Negative language test.
 ConstFieldNegativeTest: Fail, OK # Negative language test.
 ConstInit4NegativeTest: Fail, OK # Negative language test.
 ConstInitNegativeTest: Fail, OK # Negative language test.
-ConstOptionalArgsNegativeTest: Fail, OK # 'const' keyword is not verified in literal maps.
 ConstSyntaxTest/01: Fail, OK # Negative language test.
 ConstSyntaxTest/02: Fail, OK # Negative language test.
 ConstSyntaxTest/03: Fail, OK # Negative language test.
