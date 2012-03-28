@@ -21,7 +21,25 @@ if [ "$OS" == "darwin" ] ; then
   # Users can specify DART_JVMARGS in the environment to override
   # this setting. Force to 32 bit client vm. 64 bit and server VM make for 
   # poor performance.
-  EXTRA_JVMARGS+="-Xmx256M -client -d32"
+  EXTRA_JVMARGS+=" -Xmx256M -client -d32 "
+else
+  # On other architectures
+  # -batch invocations will do better with a server vm
+  # invocations for analyzing a single file do better with a client vm
+  FOUND_BATCH=0
+  for ARG in "$@"
+  do
+    case $ARG in
+      -batch|--batch)
+        FOUND_BATCH=1
+        ;;
+      *)
+        ;;
+    esac
+  done
+  if [ $FOUND_BATCH = 0 ] ; then
+    EXTRA_JVMARGS+=" -client "
+  fi
 fi
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -classpath "@CLASSPATH@" \
