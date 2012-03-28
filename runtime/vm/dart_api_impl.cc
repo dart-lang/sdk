@@ -2204,14 +2204,27 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     return Api::NewLocalHandle(result);
 
   } else if (obj.IsLibrary()) {
-    // Finalize all classes.
-    const char* msg = CheckIsolateState(isolate);
-    if (msg != NULL) {
-      return Api::NewError(msg);
-    }
-
+    // Check whether class finalization is needed.
+    bool finalize_classes = true;
     Library& lib = Library::Handle();
     lib ^= obj.raw();
+
+    // When calling functions in the dart:builtin library do not finalize as it
+    // should have been prefinalized.
+    Library& builtin =
+        Library::Handle(isolate->object_store()->builtin_library());
+    if (builtin.raw() == lib.raw()) {
+      finalize_classes = false;
+    }
+
+    // Finalize all classes if needed.
+    if (finalize_classes) {
+      const char* msg = CheckIsolateState(isolate);
+      if (msg != NULL) {
+        return Api::NewError(msg);
+      }
+    }
+
     const Function& function = Function::Handle(
         lib.LookupLocalFunction(function_name));
     if (function.IsNull()) {

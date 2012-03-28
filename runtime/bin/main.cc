@@ -264,14 +264,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     dart_args[0] = library_url;
     dart_args[1] = url;
     if (is_dart_extension_url) {
-      return Dart_InvokeStatic(builtin_lib,
-                               Dart_NewString(""),
-                               Dart_NewString("resolveExtensionUri"),
-                               2, dart_args);
+      return Dart_Invoke(
+          builtin_lib, Dart_NewString("_resolveExtensionUri"), 2, dart_args);
     } else {
-      return Dart_InvokeStatic(builtin_lib,
-                               Dart_NewString(""), Dart_NewString("resolveUri"),
-                               2, dart_args);
+      return Dart_Invoke(
+          builtin_lib, Dart_NewString("_resolveUri"), 2, dart_args);
     }
   }
   if (is_dart_scheme_url) {
@@ -298,10 +295,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
     Dart_Handle dart_args[1];
     dart_args[0] = url;
-    Dart_Handle file_path = Dart_InvokeStatic(builtin_lib,
-                                              Dart_NewString(""),
-                                              Dart_NewString("filePathFromUri"),
-                                              1, dart_args);
+    Dart_Handle file_path = Dart_Invoke(
+        builtin_lib, Dart_NewString("_filePathFromUri"), 1, dart_args);
     if (Dart_IsError(file_path)) {
       return file_path;
     }
@@ -330,10 +325,8 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
 #else  // !defined(TARGET_OS_WINDOWS)
   dart_args[2] = Dart_True();
 #endif  // !defined(TARGET_OS_WINDOWS)
-  Dart_Handle script_url = Dart_InvokeStatic(builtin_lib,
-                                             Dart_NewString(""),
-                                             Dart_NewString("resolveScriptUri"),
-                                             3, dart_args);
+  Dart_Handle script_url = Dart_Invoke(
+      builtin_lib, Dart_NewString("_resolveScriptUri"), 3, dart_args);
   if (Dart_IsError(script_url)) {
     fprintf(stderr, "%s", Dart_GetError(script_url));
     return script_url;
@@ -344,10 +337,8 @@ static Dart_Handle LoadScript(Dart_Handle builtin_lib,
     original_script_url = strdup(script_url_cstr);
   }
   dart_args[0] = script_url;
-  Dart_Handle script_path = Dart_InvokeStatic(builtin_lib,
-                                              Dart_NewString(""),
-                                              Dart_NewString("filePathFromUri"),
-                                              1, dart_args);
+  Dart_Handle script_path = Dart_Invoke(
+      builtin_lib, Dart_NewString("_filePathFromUri"), 1, dart_args);
   if (Dart_IsError(script_path)) {
     return script_path;
   }
@@ -601,8 +592,7 @@ int main(int argc, char** argv) {
   result = Dart_InvokeStatic(library,
                              Dart_NewString(""),
                              Dart_NewString("main"),
-                             0,
-                             NULL);
+                             0, NULL);
   if (Dart_IsError(result)) {
     return ErrorExit("%s\n", Dart_GetError(result));
   }
