@@ -314,6 +314,11 @@ def Main(argv):
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
            ignore=ignore_patterns('.svn'))
+  
+  isolate_runtime_dir = join(LIB, 'isolate', 'runtime')
+  # path seems to exist when run locally, but not on builder
+  if not exists(isolate_runtime_dir):
+    os.makedirs(isolate_runtime_dir)
 
   isolate_runtime_src = join(HOME, 'runtime', 'lib', 'isolate.dart')
   isolate_runtime_dest = join(LIB, 'isolate', 'runtime', 'isolate.dart')
