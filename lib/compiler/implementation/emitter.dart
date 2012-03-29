@@ -709,7 +709,8 @@ $mainEnsureGetter
       mainCall = '${namer.isolateAccess(main)}()';
     }
     buffer.add("""
-if (typeof window != 'undefined' && window.addEventListener) {
+if (typeof window != 'undefined' && typeof document != 'undefined' &&
+    window.addEventListener && document.readyState == 'loading') {
   window.addEventListener('DOMContentLoaded', function(e) {
     ${mainCall};
   });
