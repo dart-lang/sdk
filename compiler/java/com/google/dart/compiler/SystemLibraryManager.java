@@ -304,13 +304,19 @@ public class SystemLibraryManager {
    * dart://dom/dom.dart)
    */
   private void setLibraries(SystemLibrary[] newLibraries) {
-    libraries = Lists.newArrayList(newLibraries);
+    libraries = new ArrayList<SystemLibrary>();
     hostMap = new HashMap<String, SystemLibrary>();
     expansionMap = new HashMap<String, String>();
-    for (SystemLibrary library : libraries) {
-      hostMap.put(library.getHost(), library);
+    for (SystemLibrary library : newLibraries) {
+      String host = library.getHost();
+      SystemLibrary existingLib = hostMap.get(host);
+      if (existingLib != null) {
+        libraries.remove(existingLib);
+      }
+      libraries.add(library);
+      hostMap.put(host, library);
       expansionMap.put(library.getShortName(),
-          "//" + library.getHost() + "/" + library.getPathToLib());
+          "//" + host + "/" + library.getPathToLib());
     }
   }
 }
