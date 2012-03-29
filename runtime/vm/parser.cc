@@ -4717,12 +4717,17 @@ AstNode* Parser::ParseForStatement(String* label_name) {
 
   // Check whether any of the variables in the initializer part of
   // the for statement are captured by a closure. If so, we insert a
-  // node that creates a new Context at the end of the loop body (but
-  // before the increment expression is evaluated).
+  // node that creates a new Context for the loop variable before
+  // the increment expression is evaluated.
   for (int i = 0; i < init_scope->num_variables(); i++) {
     if (init_scope->VariableAt(i)->is_captured() &&
         (init_scope->VariableAt(i)->owner() == init_scope)) {
-      body->Add(new CloneContextNode(for_pos));
+      SequenceNode* incr_sequence = new SequenceNode(incr_pos, incr_scope);
+      incr_sequence->Add(new CloneContextNode(for_pos));
+      if (increment != NULL) {
+        incr_sequence->Add(increment);
+      }
+      increment = incr_sequence;
       break;
     }
   }

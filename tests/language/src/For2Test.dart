@@ -30,9 +30,40 @@ main() {
   for (int n = 0; n < 10; n++) {
     var l = n;
     if (l == 7) {
-      f = () => "l = $l, n = 7";
+      f = () => "l = $l, n = $n";
     }
     l++;
   }
   Expect.equals("l = 8, n = 7", f());
+
+  // Loop variable is incremented in loop body instead of the increment.
+  // expression. Thus, the captured value is incremented by one before
+  // a new loop variable instance is created.
+  for (int i = 0; i < 10; /*nothing*/) {
+    if (i == 7) {
+      f = () => "i = $i";
+    }
+    i++;
+  }
+  Expect.equals("i = 8", f());
+
+  // Make sure continue still ensures the loop variable is captured correctly.
+  for (int i = 0; i < 10; i++) {
+    if (i == 7) {
+      f = () => "i = $i";
+    }
+    continue;
+    i++;
+  }
+  Expect.equals("i = 7", f());
+
+  // Nested loops with captured variables.
+  for (int k = 0; k < 5; k++) {
+    for (int i = 0; i < 10; i++) {
+      if (k == 3 && i == 7) {
+        f = () => "k = $k, i = $i";
+      }
+    }
+  }
+  Expect.equals("k = 3, i = 7", f());
 }
