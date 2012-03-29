@@ -96,13 +96,13 @@ LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460
 
 [ $runtime == vm && $system == macos ]
-LibTest/core/Math/acos_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/asin_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/atan_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/cos_A01_t01: Skip # Issue co19 - 44
-LibTest/core/Math/exp_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/sin_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/tan_A01_t01: Fail  # Issue co19 - 44
+LibTest/core/Math/acos_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/asin_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/atan_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/cos_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/exp_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/sin_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/tan_A01_t01: Fail, Pass  # Issue co19 - 44
 
 [ $runtime == vm && $system == linux ]
 LibTest/core/Math/exp_A01_t01: Fail
