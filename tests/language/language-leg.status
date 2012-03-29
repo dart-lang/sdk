@@ -37,7 +37,7 @@ GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-thi
 ImplicitScopeTest: Fail # duplicate definition of a="bar"
 LabelTest: Fail # switch cases are not implemented
 LibraryPrefixesTest: Fail # other is not a type
-LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
+LocalFunctionTest: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
 MapLiteral3Test: Fail # CL on its way (const { 'a': 3, 'a': 4 } not treated correctly.

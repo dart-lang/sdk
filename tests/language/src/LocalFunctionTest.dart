@@ -18,9 +18,29 @@ class LocalFunctionTest {
     k(int n) {
       var a = new List(n);
       var b = new List(n);
-      for (int i = 0; i < n; i++) {
+      int i;
+      for (i = 0; i < n; i++) {
         var j = i;
         a[i] = () => i;  // Captured i is always n.
+        b[i] = () => j;  // Captured j varies from 0 to n-1.
+      }
+      var a_sum = 0;
+      var b_sum = 0;
+      for (int i = 0; i < n; i++) {
+        a_sum += a[i]();
+        b_sum += b[i]();
+      }
+      return a_sum + b_sum;
+    }
+    return k(n);
+  }
+  static int h2(int n) {
+    k(int n) {
+      var a = new List(n);
+      var b = new List(n);
+      for (int i = 0; i < n; i++) {
+        var j = i;
+        a[i] = () => i;  // Captured i varies from 0 to n-1.
         b[i] = () => j;  // Captured j varies from 0 to n-1.
       }
       var a_sum = 0;
@@ -164,6 +184,7 @@ class LocalFunctionTest {
   static testMain() {
     Expect.equals(2*(3*2 + 2 + 1), f(2));
     Expect.equals(10*10 + 10*9/2, h(10));
+    Expect.equals(90, h2(10));
     Expect.equals(320, new LocalFunctionTest().method(10));
     Expect.equals(145, new LocalFunctionTest().testExecute(10));
     Expect.equals(5, testSelfReference1(5));

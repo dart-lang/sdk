@@ -50,6 +50,7 @@ TypeVariableScopeTest/05: Fail
 # Regular bugs which should be fixed.
 
 ConstInit6NegativeTest: Fail       # Issue 811
+LocalFunctionTest: Fail # Issue 2338.
 SuperFirstConstructorTest: Fail # Issue 1372.
 
 # Issue 1427
