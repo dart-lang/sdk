@@ -12,10 +12,9 @@
 
 // TODO(sra): What 'window' do we get in a worker?  Perhaps this
 // should return the interface type.
-DOMWindow get window() native "return window;";
+Window get window() native "return window;";
 
-// TODO(vsm): Revert to Dart method when 508 is fixed.
-HTMLDocument get document() native "return window.document;";
+HTMLDocument get document() native "return document;";
 
 class _AbstractWorkerJs extends _EventTargetJs implements AbstractWorker native "*AbstractWorker" {
 
