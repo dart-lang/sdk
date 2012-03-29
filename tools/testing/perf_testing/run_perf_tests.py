@@ -14,10 +14,11 @@ import os
 from os.path import dirname, abspath
 import platform
 import shutil
+import stat
 import subprocess
+import sys
 import time
 import traceback
-import sys
 
 TOOLS_PATH = os.path.join(dirname(dirname(dirname(abspath(__file__)))))
 sys.path.append(TOOLS_PATH)
@@ -103,8 +104,9 @@ def sync_and_build():
   # error to be thrown when we use shutil.rmtree. This helper function changes
   # the permissions so we can still delete the directory.
   def on_rm_error(func, path, exc_info):
-    os.chmod(path, stat.S_IWRITE)
-    os.unlink(path)
+    if os.path.exists(path):
+      os.chmod(path, stat.S_IWRITE)
+      os.unlink(path)
   # TODO(efortuna): building the sdk locally is a band-aid until all build
   # platform SDKs are hosted in Google storage. Pull from https://sandbox.
   # google.com/storage/?arg=dart-dump-render-tree#dart-dump-render-tree%2Fsdk
