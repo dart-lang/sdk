@@ -1053,10 +1053,11 @@ static void EmitTrigonometric(Assembler* assembler,
   const Class& double_class = Class::ZoneHandle(
       Isolate::Current()->object_store()->double_class());
   __ LoadObject(EBX, double_class);
+  Label alloc_failed;
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                EBX,  // Class register.
-                               &fall_through,
+                               &alloc_failed,
                                EAX);  // Result register.
   __ fstpl(FieldAddress(EAX, Double::value_offset()));
   __ ret();
@@ -1067,6 +1068,10 @@ static void EmitTrigonometric(Assembler* assembler,
   __ filds(Address(ESP, 0));
   __ popl(EAX);
   __ jmp(&double_op);
+
+  __ Bind(&alloc_failed);
+  __ ffree(0);
+  __ fincstp();
 
   __ Bind(&fall_through);
 }

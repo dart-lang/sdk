@@ -715,11 +715,11 @@ void Assembler::fincstp() {
 }
 
 
-void Assembler::ffree(const Immediate& index) {
-  ASSERT(index.value() < 7);
+void Assembler::ffree(intptr_t value) {
+  ASSERT(value < 7);
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);
-  EmitUint8(0xC0 + index.value());
+  EmitUint8(0xC0 + value);
 }
 
 
