@@ -12,7 +12,7 @@
  * applications (e.g. hello world), this call is not emitted.
  */
 void startRootIsolate(entry) {
-  _globalState = new _GlobalState();
+  _globalState = new _Manager();
 
   // Don't start the main loop again, if we are in a worker.
   if (_globalState.isWorker) return;

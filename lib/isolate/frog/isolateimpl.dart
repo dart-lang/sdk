@@ -3,16 +3,35 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * Concepts used here:
+ *
+ * "manager" - A manager contains one or more isolates, schedules their
+ * execution, and performs other plumbing on their behalf.  The isolate
+ * present at the creation of the manager is designated as its "root isolate".
+ * A manager may, for example, be implemented on a web Worker.
+ *
+ * [_Manager] - State present within a manager (exactly once, as a global).
+ *
+ * [_ManagerStub] - A handle held within one manager that allows interaction
+ * with another manager.  A target manager may be addressed by zero or more
+ * [_ManagerStub]s.
+ *
+ */
+
+/**
  * A native object that is shared across isolates. This object is visible to all
- * isolates running on the same worker (either UI or background web worker).
+ * isolates running under the same manager (either UI or background web worker).
  *
  * This is code that is intended to 'escape' the isolate boundaries in order to
  * implement the semantics of isolates in JavaScript. Without this we would have
  * been forced to implement more code (including the top-level event loop) in
  * JavaScript itself.
  */
-_GlobalState get _globalState() native "return \$globalState;";
-set _globalState(_GlobalState val) native "\$globalState = val;";
+// TODO(eub, sigmund): move the "manager" to be entirely in JS.
+// Running any Dart code outside the context of an isolate gives it
+// the change to break the isolate abstraction.
+_Manager get _globalState() native "return \$globalState;";
+set _globalState(_Manager val) native "\$globalState = val;";
 
 void _fillStatics(context) native @"""
   $globals = context.isolateStatics;
@@ -34,38 +53,38 @@ SendPort _spawnUri(String uri) {
   return _IsolateNatives._spawn2(null, uri, false);
 }
 
-/** Global state associated with the current worker. See [globalState]. */
+/** State associated with the current manager. See [globalState]. */
 // TODO(sigmund): split in multiple classes: global, thread, main-worker states?
-class _GlobalState {
+class _Manager {
 
-  /** Next available isolate id. */
+  /** Next available isolate id within this [_Manager]. */
   int nextIsolateId = 0;
 
-  /** Worker id associated with this worker. */
-  int currentWorkerId = 0;
+  /** id assigned to this [_Manager]. */
+  int currentManagerId = 0;
 
   /**
-   * Next available worker id. Only used by the main worker to assign a unique
-   * id to each worker created by it.
+   * Next available manager id. Only used by the main manager to assign a unique
+   * id to each manager created by it.
    */
-  int nextWorkerId = 1;
+  int nextManagerId = 1;
 
   /** Context for the currently running [Isolate]. */
   _IsolateContext currentContext = null;
 
-  /** Context for the root [Isolate] that first run in this worker. */
+  /** Context for the root [Isolate] that first run in this [_Manager]. */
   _IsolateContext rootContext = null;
 
   /** The top-level event loop. */
   _EventLoop topEventLoop;
 
-  /** Whether this program is running in a background worker. */
+  /** Whether this program is running from the command line. */
+  bool fromCommandLine;
+
+  /** Whether this [_Manager] is running as a web worker. */
   bool isWorker;
 
-  /** Whether this program is running in a UI worker. */
-  bool inWindow;
-
-  /** Whether we support spawning workers. */
+  /** Whether we support spawning web workers. */
   bool supportsWorkers;
 
   /**
@@ -88,50 +107,42 @@ class _GlobalState {
    */
   Map<int, _IsolateContext> isolates;
 
-  /** Reference to the main worker. */
-  _MainWorker mainWorker;
+  /** Reference to the main [_Manager].  Null in the main [_Manager] itself. */
+  _ManagerStub mainManager;
 
-  /** Registry of active workers. Only used in the main worker. */
-  Map<int, Dynamic> workers;
+  /** Registry of active [_ManagerStub]s.  Only used in the main [_Manager]. */
+  Map<int, _ManagerStub> managers;
 
-  _GlobalState() {
+  _Manager() {
+    _nativeDetectEnvironment();
     topEventLoop = new _EventLoop();
     isolates = {};
-    workers = {};
-    mainWorker = new _MainWorker();
-    _nativeInit();
+    managers = {};
+    if (isWorker) {  // "if we are not the main manager ourself" is the intent.
+      mainManager = new _MainManagerStub();
+      _nativeInitWorkerMessageHandler();
+    }
   }
 
-  void _nativeInit() native @"""
+  void _nativeDetectEnvironment() native @"""
     this.isWorker = typeof ($globalThis['importScripts']) != 'undefined';
-    this.inWindow = typeof(window) !== 'undefined';
+    this.fromCommandLine = typeof(window) == 'undefined';
     this.supportsWorkers = this.isWorker ||
         ((typeof $globalThis['Worker']) != 'undefined');
-    if (this.isWorker) {
-      $globalThis.onmessage = function (e) {
-        _IsolateNatives._processWorkerMessage(this.mainWorker, e);
-      };
+  """;
+
+  void _nativeInitWorkerMessageHandler() native @"""
+    $globalThis.onmessage = function (e) {
+      _IsolateNatives._processWorkerMessage(this.mainManager, e);
     }
   """ {
-    // Declare that the native code has a dependency on this fn.
     _IsolateNatives._processWorkerMessage(null, null);
   }
 
-  /**
-   * Close the worker running this code, called when there is nothing else to
-   * run.
-   */
-  void closeWorker() {
-    if (isWorker) {
-      if (!isolates.isEmpty()) return;
-      mainWorker.postMessage(
-          _serializeMessage({'command': 'close'}));
-    } else if (isolates.containsKey(rootContext.id) && workers.isEmpty() &&
-               !supportsWorkers && !inWindow) {
-      // This should only trigger when running on the command-line.
-      // We don't want this check to execute in the browser where the isolate
-      // might still be alive due to DOM callbacks.
-      throw new Exception("Program exited with open ReceivePorts.");
+  /** Close the worker running this code if all isolates are done. */
+  void maybeCloseWorker() {
+    if (isolates.isEmpty()) {
+      mainManager.postMessage(_serializeMessage({'command': 'close'}));
     }
   }
 }
@@ -227,7 +238,22 @@ class _EventLoop {
   bool runIteration() {
     final event = dequeue();
     if (event == null) {
-      _globalState.closeWorker();
+      if (_globalState.isWorker) {
+        _globalState.maybeCloseWorker();
+      } else if (_globalState.rootContext != null &&
+                 _globalState.isolates.containsKey(
+                     _globalState.rootContext.id) &&
+                 _globalState.fromCommandLine &&
+                 _globalState.rootContext.ports.isEmpty()) {
+        // We want to reach here only on the main [_Manager] and only
+        // on the command-line.  In the browser the isolate might
+        // still be alive due to DOM callbacks, but the presumption is
+        // that on the command-line, no future events can be injected
+        // into the event queue once it's empty.  Node has setTimeout
+        // so this presumption is incorrect there.  We think(?) that
+        // in d8 this assumption is valid.
+        throw new Exception("Program exited with open ReceivePorts.");
+      }
       return false;
     }
     event.process();
@@ -263,7 +289,7 @@ class _EventLoop {
       try {
         _runHelper();
       } catch(var e, var trace) {
-        _globalState.mainWorker.postMessage(_serializeMessage(
+        _globalState.mainManager.postMessage(_serializeMessage(
             {'command': 'error', 'msg': '$e\n$trace' }));
       }
     }
@@ -283,25 +309,36 @@ class _IsolateEvent {
   }
 }
 
+/** An interface for a stub used to interact with a manager. */
+interface _ManagerStub {
+  get id();
+  void set id(int i);
+  void set onmessage(Function f);
+  void postMessage(msg);
+  void terminate();
+}
 
-/** Default worker. */
-class _MainWorker {
-  int id = 0;
+/** A stub for interacting with the main manager. */
+class _MainManagerStub implements _ManagerStub {
+  get id() => 0;
+  void set id(int i) { throw new NotImplementedException(); }
   void postMessage(msg) native @"$globalThis.postMessage(msg);";
-  void terminate() {}
+  void terminate() {}  // Nothing useful to do here.
 }
 
 /**
- * A web worker. This type is also defined in 'dart:dom', but we define it here
- * to avoid introducing a dependency from corelib to dom. This definition uses a
+ * A stub for interacting with a manager built on a web worker. The type
+ * Worker is also defined in 'dart:dom', but we define it here to avoid
+ * introducing a dependency from corelib to dom. This definition uses a
  * 'hidden' type (* prefix on the native name) to enforce that the type is
  * defined dynamically only when web workers are actually available.
  */
-class _Worker native "*Worker" {
+class _WorkerStub implements _ManagerStub native "*Worker" {
   get id() native "return this.id;";
   void set id(i) native "this.id = i;";
   void set onmessage(f) native "this.onmessage = f;";
   void postMessage(msg) native "return this.postMessage(msg);";
+  // terminate() is implemented by Worker.
 }
 
 final String _SPAWNED_SIGNAL = "spawned";
@@ -332,7 +369,7 @@ class _IsolateNatives {
   static SendPort _startWorker(Isolate runnable, SendPort replyPort) {
     var factoryName = _getJSConstructorName(runnable);
     if (_globalState.isWorker) {
-      _globalState.mainWorker.postMessage(_serializeMessage({
+      _globalState.mainManager.postMessage(_serializeMessage({
           'command': 'spawn-worker',
           'factoryName': factoryName,
           'replyPort': _serializeMessage(replyPort)}));
@@ -375,7 +412,7 @@ class _IsolateNatives {
   """;
 
   /** Starts a new worker with the given URL. */
-  static _Worker _newWorker(url) native "return new Worker(url);";
+  static _WorkerStub _newWorker(url) native "return new Worker(url);";
 
   /**
    * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
@@ -384,10 +421,10 @@ class _IsolateNatives {
   static void _spawnWorker(factoryName, serializedReplyPort) {
     final worker = _newWorker(_thisScript);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
-    var workerId = _globalState.nextWorkerId++;
+    var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
-    _globalState.workers[workerId] = worker;
+    _globalState.managers[workerId] = worker;
     worker.postMessage(_serializeMessage({
       'command': 'start',
       'id': workerId,
@@ -411,7 +448,7 @@ class _IsolateNatives {
     switch (msg['command']) {
       // TODO(sigmund): delete after we migrate to the new API
       case 'start':
-        _globalState.currentWorkerId = msg['id'];
+        _globalState.currentManagerId = msg['id'];
         var runnerObject =
             _allocate(_getJSConstructorFromName(msg['factoryName']));
         var serializedReplyTo = msg['replyTo'];
@@ -422,7 +459,7 @@ class _IsolateNatives {
         _globalState.topEventLoop.run();
         break;
       case 'start2':
-        _globalState.currentWorkerId = msg['id'];
+        _globalState.currentManagerId = msg['id'];
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
         _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
@@ -443,7 +480,7 @@ class _IsolateNatives {
         break;
       case 'close':
         _log("Closing Worker");
-        _globalState.workers.remove(sender.id);
+        _globalState.managers.remove(sender.id);
         sender.terminate();
         _globalState.topEventLoop.run();
         break;
@@ -452,7 +489,7 @@ class _IsolateNatives {
         break;
       case 'print':
         if (_globalState.isWorker) {
-          _globalState.mainWorker.postMessage(
+          _globalState.mainManager.postMessage(
               _serializeMessage({'command': 'print', 'msg': msg}));
         } else {
           print(msg['msg']);
@@ -463,10 +500,10 @@ class _IsolateNatives {
     }
   }
 
-  /** Log a message, forwarding to the main worker if appropriate. */
+  /** Log a message, forwarding to the main [_Manager] if appropriate. */
   static _log(msg) {
     if (_globalState.isWorker) {
-      _globalState.mainWorker.postMessage(
+      _globalState.mainManager.postMessage(
           _serializeMessage({'command': 'log', 'msg': msg }));
     } else {
       try {
@@ -583,7 +620,7 @@ class _IsolateNatives {
   static SendPort _startWorker2(
       String functionName, String uri, SendPort replyPort) {
     if (_globalState.isWorker) {
-      _globalState.mainWorker.postMessage(_serializeMessage({
+      _globalState.mainManager.postMessage(_serializeMessage({
           'command': 'spawn-worker2',
           'functionName': functionName,
           'uri': uri,
@@ -626,10 +663,10 @@ class _IsolateNatives {
     }
     final worker = _newWorker(uri);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
-    var workerId = _globalState.nextWorkerId++;
+    var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
     worker.id = workerId;
-    _globalState.workers[workerId] = worker;
+    _globalState.managers[workerId] = worker;
     worker.postMessage(_serializeMessage({
       'command': 'start2',
       'id': workerId,

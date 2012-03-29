@@ -86,6 +86,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
 }
 
 /** A send port that delivers messages via worker.postMessage. */
+// TODO(eub): abstract this for iframes.
 class _WorkerSendPort extends _BaseSendPort implements SendPort {
   final int _workerId;
   final int _receivePortId;
@@ -104,9 +105,9 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
 
       if (_globalState.isWorker) {
         // communication from one worker to another go through the main worker:
-        _globalState.mainWorker.postMessage(workerMessage);
+        _globalState.mainManager.postMessage(workerMessage);
       } else {
-        _globalState.workers[_workerId].postMessage(workerMessage);
+        _globalState.managers[_workerId].postMessage(workerMessage);
       }
     });
   }
