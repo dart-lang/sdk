@@ -916,26 +916,21 @@ class SsaBuilder implements Visitor {
     inlineInitializers(functionElement, constructors, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
-    // TODO(floitsch,karlklose): move this code to ClassElement and share with
-    //                           the emitter.
     List<HInstruction> constructorArguments = <HInstruction>[];
-    ClassElement element = classElement;
-    while (element != null) {
-      for (Element member in element.members) {
-        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          HInstruction value = fieldValues[member];
-          if (value === null) {
-            // The field has no value in the initializer list. Initialize it
-            // with the declaration-site constant (if any).
-            Constant fieldValue =
-                compiler.constantHandler.compileVariable(member);
-            value = graph.addConstant(fieldValue);
-          }
-          constructorArguments.add(value);
-        }
+    classElement.forEachInstanceField(
+        includeBackendMembers: true,
+        includeSuperMembers: true,
+        f: (ClassElement enclosingClass, Element member) {
+      HInstruction value = fieldValues[member];
+      if (value === null) {
+        // The field has no value in the initializer list. Initialize it
+        // with the declaration-site constant (if any).
+        Constant fieldValue = compiler.constantHandler.compileVariable(member);
+        value = graph.addConstant(fieldValue);
       }
-      element = element.superclass;
-    }
+      constructorArguments.add(value);
+    });
+  
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
     // Generate calls to the constructor bodies.

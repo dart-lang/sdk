@@ -356,25 +356,22 @@ class MapConstant extends ObjectConstant {
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
-    for (Element element in classElement.members) {
-      if (element.name == LENGTH_NAME) {
+    classElement.forEachInstanceField(
+        includeBackendMembers: true,
+        includeSuperMembers: true,
+        f: (ClassElement enclosing, Element field) {
+      if (emittedArgumentCount != 0) buffer.add(", ");
+      if (field.name == LENGTH_NAME) {
         buffer.add(keys.entries.length);
-      } else if (element.name == JS_OBJECT_NAME) {
+      } else if (field.name == JS_OBJECT_NAME) {
         writeJsMap();
-      } else if (element.name == KEYS_NAME) {
+      } else if (field.name == KEYS_NAME) {
         keys.writeCanonicalizedJsCode(buffer, handler);
       } else {
-        // Skip methods.
-        if (element.kind == ElementKind.FIELD) badFieldCountError();
-        continue;
+        badFieldCountError();
       }
       emittedArgumentCount++;
-      if (emittedArgumentCount == 3) {
-        break;  // All arguments have been emitted.
-      } else {
-        buffer.add(", ");
-      }
-    }
+    });
     if (emittedArgumentCount != 3) badFieldCountError();
     buffer.add(")");
   }
@@ -1094,21 +1091,17 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
 
   List<Constant> buildJsNewArguments(ClassElement classElement) {
     List<Constant> jsNewArguments = <Constant>[];
-    // TODO(floitsch): share this code with the emitter, so that we don't
-    // need to care about the order of fields here.
-    while (classElement != compiler.objectClass) {
-      for (Element member in classElement.members) {
-        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          Constant fieldValue = fieldValues[member];
-          if (fieldValue === null) {
-            // Use the default value.
-            fieldValue = compiler.compileVariable(member);
-          }
-          jsNewArguments.add(fieldValue);
-        }
+    classElement.forEachInstanceField(
+        includeBackendMembers: true,
+        includeSuperMembers: true,
+        f: (ClassElement enclosing, Element field) {
+      Constant fieldValue = fieldValues[field];
+      if (fieldValue === null) {
+        // Use the default value.
+        fieldValue = compiler.compileVariable(field);
       }
-      classElement = classElement.superclass;
-    } 
+      jsNewArguments.add(fieldValue);          
+    });
     return jsNewArguments;
   }
 }
