@@ -122,9 +122,14 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // Forward declarations.
   class HandlerList;
 
-  // Return true if intrinsification was completed and no other code
-  // needs to be generated.
-  virtual bool TryIntrinsify() { return false; }
+  // Return true if intrinsification succeeded and no more code is needed.
+  // Returns false if either no intrinsification occured or if intrinsified
+  // code needs the rest for slow case execution.
+  bool TryIntrinsify();
+
+  void IntrinsifyGetter();
+  void IntrinsifySetter();
+
   virtual void GeneratePreEntryCode();
   void GenerateLegacyEntryCode();
   void GenerateEntryCode();

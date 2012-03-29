@@ -13,6 +13,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/intrinsifier.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -30,6 +31,9 @@ DEFINE_FLAG(bool, print_ic_in_optimized, false,
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, intrinsify);
+DECLARE_FLAG(bool, trace_functions);
+
 
 #define __ assembler_->
 
@@ -119,6 +123,69 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
   pc_descriptors_list_ = new DescriptorList();
   // We do not build any stack maps in the unoptimizing compiler.
   exception_handlers_list_ = new CodeGenerator::HandlerList();
+}
+
+
+void CodeGenerator::IntrinsifyGetter() {
+  // TOS: return address.
+  // +1 : receiver.
+  // Sequence node has one return node, its input is oad field node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 1);
+  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
+  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
+  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
+  const LoadInstanceFieldNode& load_node =
+      *return_node.value()->AsLoadInstanceFieldNode();
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ movl(EAX, FieldAddress(EAX, load_node.field().Offset()));
+  __ ret();
+}
+
+
+void CodeGenerator::IntrinsifySetter() {
+  // TOS: return address.
+  // +1 : value
+  // +2 : receiver.
+  // Sequence node has one store node and one return NULL node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 2);
+  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
+  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
+  const StoreInstanceFieldNode& store_node =
+      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
+  __ StoreIntoObject(EAX, FieldAddress(EAX, store_node.field().Offset()), EBX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movl(EAX, raw_null);
+  __ ret();
+}
+
+
+
+bool CodeGenerator::TryIntrinsify() {
+  if (!CanOptimize()) return false;
+  if (FLAG_intrinsify && !FLAG_trace_functions) {
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
+      IntrinsifyGetter();
+      return true;
+    }
+    // Intrinsification skips arguments checks, therefore disable if in checked
+    // mode.
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter) &&
+        !FLAG_enable_type_checks) {
+      IntrinsifySetter();
+      return true;
+    }
+  }
+  // Even if an intrinsified version of the function was successfully
+  // generated, it may fall through to the non-intrinsified method body.
+  if (!FLAG_trace_functions) {
+    return Intrinsifier::Intrinsify(parsed_function().function(), assembler_);
+  }
+  return false;
 }
 
 

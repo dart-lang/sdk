@@ -9,7 +9,6 @@
 
 #include "vm/assembler_macros.h"
 #include "vm/ast_printer.h"
-#include "vm/intrinsifier.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
@@ -21,8 +20,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_optimization, false, "Trace optimizations.");
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, trace_functions);
 
 
 // Property list to be used in CodeGenInfo. Each property has a setter
@@ -366,64 +363,6 @@ void OptimizingCodeGenerator::TraceNotOpt(AstNode* node, const char* message) {
     AstPrinter::PrintNode(node);
     OS::Print("\n");
   }
-}
-
-
-void OptimizingCodeGenerator::IntrinsifyGetter() {
-  // TOS: return address.
-  // +1 : receiver.
-  // Sequence node has one return node, its input is oad field node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
-  ASSERT(sequence_node.length() == 1);
-  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
-  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
-  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
-  const LoadInstanceFieldNode& load_node =
-      *return_node.value()->AsLoadInstanceFieldNode();
-  __ movl(EAX, Address(ESP, 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, load_node.field().Offset()));
-  __ ret();
-}
-
-
-void OptimizingCodeGenerator::IntrinsifySetter() {
-  // TOS: return address.
-  // +1 : value
-  // +2 : receiver.
-  // Sequence node has one store node and one return NULL node.
-  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
-  ASSERT(sequence_node.length() == 2);
-  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
-  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
-  const StoreInstanceFieldNode& store_node =
-      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-  __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
-  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
-  __ StoreIntoObject(EAX, FieldAddress(EAX, store_node.field().Offset()), EBX);
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(EAX, raw_null);
-  __ ret();
-}
-
-
-bool OptimizingCodeGenerator::TryIntrinsify() {
-  if (FLAG_intrinsify && !FLAG_trace_functions) {
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
-      IntrinsifyGetter();
-      return true;
-    }
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter)) {
-      IntrinsifySetter();
-      return true;
-    }
-  }
-  // Even if an intrinsified version of the function was successfully
-  // generated, it may fall through to the non-intrinsified method body.
-  if (!FLAG_trace_functions) {
-    return Intrinsifier::Intrinsify(parsed_function().function(), assembler_);
-  }
-  return false;
 }
 
 
