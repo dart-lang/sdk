@@ -9,7 +9,6 @@
 [ $compiler == dart2js]
 AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
-CompileTimeConstantBTest: Fail # We don't handle constant map literals with __proto__ key yet.
 
 
 # Compilation errors.
@@ -28,8 +27,8 @@ FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
 FunctionTypeAlias4Test: Fail # cannot resolve type F
 FunctionTypeAliasTest: Fail # cannot resolve type Fun
-FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional parameters
-FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
+FunctionTypeParameter2Test: Fail # Internal Error: expected optional parameters
+FunctionTypeParameterTest: Fail # Internal Error: expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
 GenericTest: Fail # cannot resolve type T
 GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
@@ -40,7 +39,6 @@ LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
-MapLiteral3Test: Fail # CL on its way (const { 'a': 3, 'a': 4 } not treated correctly.
 MapLiteral4Test: Fail # map not implemented
 MethodBindingTest: Fail # internal error: super property read not implemented.
 MethodNameTest: Fail # Parsing of pseudo keywords.

@@ -310,17 +310,28 @@ class ListConstant extends ObjectConstant {
 }
 
 class MapConstant extends ObjectConstant {
+  /**
+   * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
+   * object. It would change the prototype chain.
+   */
+  static final String PROTO_PROPERTY = "__proto__";
+
   /** The dart class implementing constant map literals. */
   static final SourceString DART_CLASS = const SourceString("ConstantMap");
+  static final SourceString DART_PROTO_CLASS =
+      const SourceString("ConstantProtoMap");
   static final SourceString LENGTH_NAME = const SourceString("length");
   static final SourceString JS_OBJECT_NAME = const SourceString("_jsObject");
   static final SourceString KEYS_NAME = const SourceString("_keys");
+  static final SourceString PROTO_VALUE = const SourceString("_protoValue");
 
   final ListConstant keys;
   final List<Constant> values;
+  final Constant protoValue;
   int _hashCode;
 
-  MapConstant(Type type, this.keys, this.values) : super(type) {
+  MapConstant(Type type, this.keys, this.values, this.protoValue)
+      : super(type) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant value in values) hash ^= value.hashCode();
@@ -332,16 +343,22 @@ class MapConstant extends ObjectConstant {
 
     void writeJsMap() {
       buffer.add("{");
+      int valueIndex = 0;
       for (int i = 0; i < keys.entries.length; i++) {
-        if (i != 0) buffer.add(", ");
-
         StringConstant key = keys.entries[i];
+        if (key.value == const LiteralDartString(PROTO_PROPERTY)) continue;
+        
+        if (valueIndex != 0) buffer.add(", ");
+
         key.writeJsCode(buffer, handler);
         buffer.add(": ");
-        Constant value = values[i];
+        Constant value = values[valueIndex++];
         value.writeCanonicalizedJsCode(buffer, handler);
       }
       buffer.add("}");
+      if (valueIndex != values.length) {
+        handler.compiler.internalError("Bad value count.");
+      }
     }
 
     void badFieldCountError() {
@@ -367,12 +384,18 @@ class MapConstant extends ObjectConstant {
         writeJsMap();
       } else if (field.name == KEYS_NAME) {
         keys.writeCanonicalizedJsCode(buffer, handler);
+      } else if (field.name == PROTO_VALUE) {
+        assert(protoValue !== null);
+        protoValue.writeCanonicalizedJsCode(buffer, handler);
       } else {
         badFieldCountError();
       }
       emittedArgumentCount++;
     });
-    if (emittedArgumentCount != 3) badFieldCountError();
+    if ((protoValue === null && emittedArgumentCount != 3) ||
+        (protoValue !== null && emittedArgumentCount != 4)) {
+      badFieldCountError(); 
+    }
     buffer.add(")");
   }
 
@@ -709,8 +732,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   Constant visitLiteralMap(LiteralMap node) {
     if (!node.isConst()) error(node);
     List<StringConstant> keys = <StringConstant>[];
-    List<Constant> values = <Constant>[];
-    bool hasProtoKey = false;
+    Map<StringConstant, Constant> map = new Map<StringConstant, Constant>();
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty();
          link = link.tail) {
@@ -720,29 +742,33 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
         compiler.reportError(entry.key, new ResolutionError(kind, const []));
       }
-      // TODO(floitsch): make this faster.
       StringConstant keyConstant = key;
-      if (keyConstant.value == new LiteralDartString("__proto__")) {
-        hasProtoKey = true;
+      if (!map.containsKey(key)) keys.add(key);
+      map[key] = evaluate(entry.value);
+    }
+    List<Constant> values = <Constant>[];
+    Constant protoValue = null;
+    for (StringConstant key in keys) {
+      if (key.value == const LiteralDartString(MapConstant.PROTO_PROPERTY)) {
+        protoValue = map[key];
+      } else {
+        values.add(map[key]);
       }
-      keys.add(key);
-      values.add(evaluate(entry.value));
     }
-    if (hasProtoKey) {
-      compiler.unimplemented("visitLiteralMap with __proto__ key",
-                             node: node);
-    }
+    bool hasProtoKey = (protoValue !== null);
     // TODO(floitsch): this should be a List<String> type.
     Type keysType = null;
     ListConstant keysList = new ListConstant(keysType, keys);
     compiler.constantHandler.registerCompileTimeConstant(keysList);
-    ClassElement classElement =
-        compiler.jsHelperLibrary.find(MapConstant.DART_CLASS);
+    SourceString className = hasProtoKey
+                             ? MapConstant.DART_PROTO_CLASS
+                             : MapConstant.DART_CLASS;
+    ClassElement classElement = compiler.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler);
     // TODO(floitsch): copy over the generic type.
     Type type = new SimpleType(classElement.name, classElement);
     compiler.registerInstantiatedClass(classElement);
-    Constant constant = new MapConstant(type, keysList, values);
+    Constant constant = new MapConstant(type, keysList, values, protoValue);
     compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
   }
