@@ -327,6 +327,14 @@ class StandardTestSuite implements TestSuite {
         }
       }
     }
+    int shards = configuration['shards'];
+    if (shards > 1) {
+      int shard = configuration['shard'];
+      if (testName.hashCode() % shards != shard - 1) {
+        return;
+      }
+    }
+    
     Set<String> expectations = testExpectations.expectations(testName);
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
@@ -380,14 +388,6 @@ class StandardTestSuite implements TestSuite {
              bool hasFatalTypeErrors = false,
              bool hasRuntimeErrors = false,
              Set<String> multitestOutcome = null]) {
-      int shards = configuration['shards'];
-      if (shards > 1) {
-        int shard = configuration['shard'];
-        if (filename.hashCode() % shards != shard -1) {
-          return;
-        }
-      }
-
       // Cache the test information for each test case.
       var info = new TestInformation(filename,
                                      optionsFromFile,
