@@ -1,7 +1,6 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks --enable_asserts
 //
 // Dart test program testing type checks.
 
@@ -9,12 +8,12 @@ class TypeTest {
   static test() {
     int result = 0;
     try {
-      int i = "hello";  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      int i = "hello";   /// static type warning
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("i", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -24,7 +23,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(12, error.line);
       Expect.equals(15, error.column);
-*/      
     }
     return result;
   }
@@ -52,12 +50,12 @@ class TypeTest {
       return i;
     }
     try {
-      int i = f("hello");  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      int i = f("hello");  /// static type warning
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("i", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -67,7 +65,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(49, error.line);
       Expect.equals(15, error.column);
-*/      
     }
     return result;
   }
@@ -75,15 +72,16 @@ class TypeTest {
   static testReturn() {
     int result = 0;
     int f(String s) {
-      return s;
+      // String not assignable to int on return
+      return s;  /// static type warning
     }
     try {
-      int i = f("hello");  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled. 
+      int i = f("hello"); 
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("function result", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -93,7 +91,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(74, error.line);
       Expect.equals(14, error.column);
-*/      
     }
     return result;
   }
@@ -102,12 +99,12 @@ class TypeTest {
   static testField() {
     int result = 0;
     try {
-      field = "hello";  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      field = "hello";  /// static type warning 
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("field", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -117,7 +114,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(99, error.line);
       Expect.equals(15, error.column);
-*/      
     }
     return result;
   }
@@ -128,12 +124,12 @@ class TypeTest {
     f() { };
     anyFunction = f;  // No error.
     try {
-      int i = f;  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      int i = f;  /// static type warning
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-/*      
-      Expect.equals("() => var", error.srcType);   TODO(regis): => Dynamic.
+      Expect.equals("() => var", error.srcType);  // TODO(regis): => Dynamic.
       Expect.equals("i", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -143,7 +139,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(123, error.line);
       Expect.equals(15, error.column);
-*/      
     }
     return result;
   }
@@ -161,10 +156,10 @@ class TypeTest {
     acceptVoidFunObj(objFunObj);
     acceptObjFunObj(objFunObj);
     try {
-      acceptObjFunObj(voidFunObj);  // Throws a TypeError.
+      // Throws a TypeError.  Issue 2348
+      acceptObjFunObj(voidFunObj);   /// static type warning
     } catch (TypeError error) {
       result = 1;
-/*      
       Expect.equals("(Object) => Object", error.dstType);
       Expect.equals("(Object) => void", error.srcType);
       Expect.equals("objFunObj", error.dstName);
@@ -176,7 +171,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(145, error.line);
       Expect.equals(33, error.column);
-*/      
     }
     return result;
   }
@@ -197,10 +191,10 @@ class TypeTest {
     acceptFunNum(funNum);  // No error.
     acceptFunNum(funInt);  // No error.
     try {
-      acceptFunNum(funString);  // Throws an error.
+      // Throws an error.
+      acceptFunNum(funString);   /// static type warning
     } catch (TypeError error) {
       result = 1;
-/*      
       Expect.equals("(num) => void", error.dstType);
       Expect.equals("(String) => void", error.srcType);
       Expect.equals("funNum", error.dstName);
@@ -212,7 +206,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(175, error.line);
       Expect.equals(28, error.column);
-*/      
     }
     return result;
   }
@@ -220,12 +213,12 @@ class TypeTest {
   static testBoolCheck() {
     int result = 0;
     try {
-      bool i = !"hello";  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      bool i = !"hello";   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -235,15 +228,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(209, error.line);
       Expect.equals(17, error.column);
-*/      
     }
     try {
-      while ("hello") {};  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      while ("hello") {};   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -253,15 +245,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(225, error.line);
       Expect.equals(14, error.column);
-*/      
     }
     try {
-      do {} while ("hello");  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      do {} while ("hello");   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -271,15 +262,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(241, error.line);
       Expect.equals(20, error.column);
-*/      
     }
     try {
-      for (;"hello";) {};  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      for (;"hello";) {};   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -289,15 +279,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(257, error.line);
       Expect.equals(13, error.column);
-*/      
     }
     try {
-      int i = "hello" ? 1 : 0;  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      int i = "hello" ? 1 : 0;   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -307,15 +296,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(273, error.line);
       Expect.equals(15, error.column);
-*/      
     }
     try {
-      if ("hello") {};  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      if ("hello") {};   /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -325,15 +313,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(289, error.line);
       Expect.equals(11, error.column);
-*/
     }
     try {
-      if ("hello" || false) {};  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      if ("hello" || false) {};  /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -343,15 +330,14 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(305, error.line);
       Expect.equals(11, error.column);
-*/      
     }
     try {
-      if (false || "hello") {};  // Throws a TypeError if type checks are enabled.
+      // Throws a TypeError if type checks are enabled.
+      if (false || "hello") {};  /// static type warning
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("String", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -361,7 +347,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(321, error.line);
       Expect.equals(20, error.column);
-*/      
     }
     try {
       // TODO: I don't this should throw a TypeError, as null is a valid bool
@@ -371,7 +356,6 @@ class TypeTest {
       result++;
       Expect.equals("bool", error.dstType);
       Expect.equals("Null", error.srcType);
-/*      
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -381,7 +365,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(337, error.line);
       Expect.equals(11, error.column);
-*/      
     }
     return result;
   }
@@ -395,7 +378,6 @@ class TypeTest {
       result++;
       Expect.equals("C", error.dstType);
       Expect.equals("Smi", error.srcType);
-/*      
       Expect.equals("function result", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -405,7 +387,6 @@ class TypeTest {
       Expect.equals("TypeTest.dart", subs);
       Expect.equals(472, error.line);
       Expect.equals(12, error.column);
-*/      
     }
     return result;
   }

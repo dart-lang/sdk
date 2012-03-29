@@ -186,6 +186,7 @@ SwitchLabelTest: Fail        # Bug 4208467.
 SyntaxTest: Skip             # Bug 2107  Static type warnings in none case
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
+TypeDartcTest: Fail          # Issue 2348
 ConstructorRedirectTest/01: Fail # Issue 2105.
 
 #
