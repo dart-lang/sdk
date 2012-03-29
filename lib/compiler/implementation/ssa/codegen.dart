@@ -849,6 +849,11 @@ class SsaCodeGenerator implements HVisitor {
       visitBasicBlock(dominated[0]);
     }
     endLoop(node.block);
+
+    // If the branch does not dominate the code after the loop, the
+    // dominator will visit it.
+    if (branchBlock.successors[1].dominator !== branchBlock) return;
+
     visitBasicBlock(branchBlock.successors[1]);
     // With labeled breaks we can have more dominated blocks.
     if (dominated.length >= 3) {
