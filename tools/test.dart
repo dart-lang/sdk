@@ -27,6 +27,7 @@
 
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
+#import("testing/dart/test_suite.dart");
 
 #import("../tests/co19/test_config.dart");
 #import("../tests/corelib/test_config.dart");
@@ -47,6 +48,16 @@
 #import("../utils/tests/css/test_config.dart");
 #import("../utils/tests/import_mapper/test_config.dart");
 #import("../utils/tests/peg/test_config.dart");
+
+/**
+ * The directories that contain test suites which follow the conventions
+ * required by [DirectoryTestSuite]. Ideally, we'd move more suites to this
+ * convention because it makes it much simpler to add them to test.dart. (You
+ * basically add the directory here and you're done.)
+*/
+final TEST_SUITE_DIRECTORIES = const [
+  'utils/tests/pub'
+];
 
 main() {
   var startTime = new Date.now();
@@ -71,7 +82,7 @@ main() {
     StringBuffer sb = new StringBuffer('Test configuration');
     sb.add(configurations.length > 1 ? 's:' : ':');
     for (Map conf in configurations) {
-      sb.add(' ${conf["compiler"]}_${conf["runtime"]}_${conf["mode"]}_' + 
+      sb.add(' ${conf["compiler"]}_${conf["runtime"]}_${conf["mode"]}_' +
           '${conf["arch"]}');
       if (conf['checked']) sb.add('_checked');
     }
@@ -142,6 +153,14 @@ main() {
     }
     if (selectors.containsKey('client')) {
       queue.addTestSuite(new ClientTestSuite(conf));
+    }
+
+    for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
+      final name = testSuiteDir.substring(testSuiteDir.lastIndexOf('/') + 1);
+      if (selectors.containsKey(name)) {
+        queue.addTestSuite(
+            new StandardTestSuite.forDirectory(conf, testSuiteDir));
+      }
     }
 
     return true;

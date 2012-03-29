@@ -25,6 +25,13 @@
 #source("browser_test.dart");
 
 
+// TODO(rnystrom): Add to dart:core?
+/**
+ * A simple function that tests [arg] and returns `true` or `false`.
+ */
+typedef bool Predicate<T>(T arg);
+
+
 /**
  * A TestSuite represents a collection of tests.  It creates a [TestCase]
  * object for each test to be run, and passes the test cases to a callback.
@@ -186,6 +193,7 @@ class TestInformation {
                   this.hasRuntimeErrors, this.multitestOutcome);
 }
 
+
 /**
  * A standard [TestSuite] implementation that searches for tests in a
  * directory, and creates [TestCase]s that compile and/or run them.
@@ -203,18 +211,61 @@ class StandardTestSuite implements TestSuite {
   List<TestInformation> cachedTests;
   final String dartDir;
   Function globalTemporaryDirectory;
+  Predicate<String> isTestFilePredicate;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
-                    List<String> this.statusFilePaths)
+                    List<String> this.statusFilePaths,
+                    [Predicate<String> this.isTestFilePredicate])
     : dartDir = TestUtils.dartDir();
+
+  /**
+   * Creates a test suite whose file organization matches an expected structure.
+   * To use this, your suite should look like:
+   *
+   *     dart/
+   *       path/
+   *         to/
+   *           mytestsuite/
+   *             mytestsuite.status
+   *             example1_tests.dart
+   *             example2_tests.dart
+   *             example3_tests.dart
+   *
+   * The important parts:
+   *
+   * * The leaf directory name is the name of your test suite.
+   * * The status file uses the same name.
+   * * Test files are directly in that directory and end in "_tests.dart".
+   *
+   * If you follow that convention, then you can construct one of these like:
+   *
+   *     new DirectoryTestSuite(configuration, 'path/to/mytestsuite');
+   *
+   * instead of having to create a custom [StandardTestSuite] subclass. In
+   * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
+   * in test.dart, this will all be set up for you.
+   */
+  factory StandardTestSuite.forDirectory(
+      Map configuration, String directory) {
+    final name = directory.substring(directory.lastIndexOf('/') + 1);
+
+    return new StandardTestSuite(configuration,
+        name, directory, ['$directory/$name.status'],
+        (filename) => filename.endsWith('_tests.dart'));
+  }
 
   /**
    * The default implementation assumes a file is a test if
    * it ends in "Test.dart".
    */
-  bool isTestFile(String filename) => filename.endsWith("Test.dart");
+  bool isTestFile(String filename) {
+    // Use the specified predicate, if provided.
+    if (isTestFilePredicate != null) return isTestFilePredicate(filename);
+
+    filename.endsWith("Test.dart");
+  }
 
   bool listRecursively() => false;
 
