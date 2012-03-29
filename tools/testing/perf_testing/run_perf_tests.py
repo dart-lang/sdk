@@ -345,14 +345,15 @@ class TestRunner(object):
         [math.pow(math.e, geo_mean / len(get_benchmarks()))]
     self.revision_dict[platform][frog_or_v8][mean] += [svn_revision]
 
-  def run(self):
+  def run(self, graph_only):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
     plt.cla() # cla = clear current axes
     os.chdir(DART_INSTALL_LOCATION)
     ensure_output_directory(self.result_folder_name)
     ensure_output_directory(GRAPH_OUT_DIR)
-    self.run_tests()
+    if not graph_only:
+      self.run_tests()
     
     os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
     
@@ -585,10 +586,12 @@ class BrowserCorrectnessTest(TestRunner):
         # (A printed out 'PASS' indicates we incorrectly passed a negative
         # test.)
         num_failed += 1
-    
-    self.revision_dict[browser][FROG][CORRECTNESS] += [revision_num]
-    self.values_dict[browser][FROG][CORRECTNESS] += [100.0 * 
-        (((float)(total_tests - (expect_fail + num_failed))) /total_tests)]
+
+    if total_tests != 0:
+      # If we have an improperly formatted file, don't use the data.
+      self.revision_dict[browser][FROG][CORRECTNESS] += [revision_num]
+      self.values_dict[browser][FROG][CORRECTNESS] += [100.0 * 
+          (((float)(total_tests - (expect_fail + num_failed))) /total_tests)]
     f.close()
 
   def plot_results(self, png_filename):
@@ -723,10 +726,14 @@ def parse_args():
       help='Run the browser performance tests',
       action='store_true', default=False)
   parser.add_option('--forever', '-f', dest='continuous',
-      help = 'Run this script forever, always checking for the next svn '
+      help='Run this script forever, always checking for the next svn '
       'checkin', action='store_true', default=False)
   parser.add_option('--verbose', '-v', dest='verbose',
-      help = 'Print extra debug output', action='store_true', default=False)
+      help='Print extra debug output', action='store_true', default=False)
+  parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
+      help='Do not sync with the repository and do not rebuild.', default=False)
+  parser.add_option('--graph-only', '-g', dest='graph_only', default=False,
+      help='Do not run tests, only regenerate graphs', action='store_true')
   parser.add_option('--user', '-u', dest='username', 
       help='Username for submitting new data to App Engine', default='')
 
@@ -740,37 +747,41 @@ def parse_args():
   if not (args.cl or args.size or args.language or args.perf):
     args.cl = args.size = args.language = args.perf = True
   return (args.cl, args.size, args.language, args.perf, args.continuous,
-      args.verbose, args.username, password)
+      args.verbose, args.no_build, args.graph_only, args.username, password)
 
-def run_test_sequence(cl, size, language, perf, username, password):
+def run_test_sequence(cl, size, language, perf, no_build, graph_only, 
+      username, password):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
-  if sync_and_build() == 1:
+  if (not no_build or not graph_only) and sync_and_build() == 1:
     return # The build is broken.
   if size:
-    CompileTimeAndSizeTest(TIME_SIZE).run()
+    CompileTimeAndSizeTest(TIME_SIZE).run(graph_only)
   if cl:
-    CommandLinePerformanceTest(CL_PERF).run()
+    CommandLinePerformanceTest(CL_PERF).run(graph_only)
   if language:
-    BrowserCorrectnessTest('language', BROWSER_CORRECTNESS).run()
+    BrowserCorrectnessTest('language', BROWSER_CORRECTNESS).run(graph_only)
   if perf:
-    BrowserPerformanceTest(BROWSER_PERF).run()
+    BrowserPerformanceTest(BROWSER_PERF).run(graph_only)
 
   if username != '':
     upload_to_app_engine(username, password)
 
 def main():
   global VERBOSE
-  (cl, size, language, perf, continuous, verbose, username, password) = parse_args()
+  (cl, size, language, perf, continuous, verbose, no_build, graph_only,
+      username, password) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(cl, size, language, perf, username, password)
+        run_test_sequence(cl, size, language, perf, no_build, graph_only, 
+            username, password)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(cl, size, language, perf, username, password)
+    run_test_sequence(cl, size, language, perf, no_build, graph_only, 
+        username, password)
 
 if __name__ == '__main__':
   main()
