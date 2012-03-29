@@ -7,11 +7,27 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   final Map<int, HInstruction> workmap;
   final List<int> worklist;
   final Compiler compiler;
-  final String name = 'type propagator';
+  String get name() => 'type propagator';
 
   SsaTypePropagator(Compiler this.compiler)
       : workmap = new Map<int, HInstruction>(),
         worklist = new List<int>();
+
+
+  HType computeType(HInstruction instruction) => instruction.computeType();
+
+  // Re-compute and update the type of the instruction. Returns
+  // whether or not the type was changed.
+  bool updateType(HInstruction instruction) {
+    if (instruction.type.isConflicting()) return false;
+    // Constants have the type they have. It can't be changed.
+    if (instruction.isConstant()) return false;
+
+    HType oldType = instruction.type;
+    HType newType = computeType(instruction);
+    instruction.type = oldType.combine(newType);
+    return oldType !== instruction.type;
+  }
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -21,18 +37,19 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
-        phi.setInitialTypeForLoopPhi();
+        // Set the initial type for the phi.
+        phi.type = phi.inputs[0].type;
         addToWorkList(phi);
       });
     } else {
       block.forEachPhi((HPhi phi) {
-        if (phi.updateType()) addUsersAndInputsToWorklist(phi);
+        if (updateType(phi)) addUsersAndInputsToWorklist(phi);
       });
     }
 
     HInstruction instruction = block.first;
     while (instruction !== null) {
-      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
+      if (updateType(instruction)) addUsersAndInputsToWorklist(instruction);
       instruction = instruction.next;
     }
   }
@@ -43,7 +60,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       HInstruction instruction = workmap[id];
       assert(instruction !== null);
       workmap.remove(id);
-      if (instruction.updateType()) addUsersAndInputsToWorklist(instruction);
+      if (updateType(instruction)) addUsersAndInputsToWorklist(instruction);
     }
   }
 
@@ -62,5 +79,20 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       worklist.add(id);
       workmap[id] = instruction;
     }
+  }
+}
+
+class SsaSpeculativeTypePropagator extends SsaTypePropagator {
+  final String name = 'speculative type propagator';
+  SsaSpeculativeTypePropagator(Compiler compiler) : super(compiler);
+
+  HType computeType(HInstruction instruction) {
+    HType newType = super.computeType(instruction);
+    HType desiredType = instruction.computeDesiredType();
+    HType combined = newType.combine(desiredType);
+    // If the propagated type [newType] does not conflict with the
+    // speculated type [desiredType], use it.
+    if (combined.isKnown()) return combined;
+    return newType;
   }
 }

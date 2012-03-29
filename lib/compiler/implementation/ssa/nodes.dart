@@ -757,6 +757,19 @@ class HType {
     assert(false);
   }
 
+  String toString() {
+    if (isConflicting()) return 'conflicting';
+    if (isUnknown()) return 'unknown';
+    if (isBoolean()) return 'boolean';
+    if (isInteger()) return 'integer';
+    if (isDouble()) return 'double';
+    if (isString()) return 'string';
+    if (isArray()) return 'array';
+    if (isNumber()) return 'number';
+    if (isStringOrArray()) return 'string or array';
+    unreachable();
+  }
+
   HType combine(HType other) {
     if (isUnknown()) return other;
     if (other.isUnknown()) return this;
@@ -841,26 +854,6 @@ class HInstruction implements Hashable {
   // For most instructions, this returns false. A type guard will be
   // inserted to make sure the users get the right type in.
   bool hasExpectedType() => false;
-
-  // Re-compute and update the type of the instruction. Returns
-  // whether or not the type was changed.
-  bool updateType() {
-    if (type.isConflicting()) return false;
-    HType newType = computeType();
-    HType desiredType = computeDesiredType();
-    HType combined = newType.combine(desiredType);
-    if (combined.isKnown()) newType = combined;
-
-    bool changed = (type != newType);
-    if (type.isUnknown()) {
-      type = newType;
-      return changed;
-    } else if (changed) {
-      type = type.combine(newType);
-      return changed;
-    }
-    return false;
-  }
 
   bool isInBasicBlock() => block !== null;
 
@@ -1687,9 +1680,6 @@ class HConstant extends HInstruction {
   accept(HVisitor visitor) => visitor.visitConstant(this);
   HType computeType() => type;
 
-  // Literals have the type they have. It can't be changed.
-  bool updateType() => false;
-
   bool hasExpectedType() => true;
 
   bool isConstant() => true;
@@ -1798,12 +1788,6 @@ class HPhi extends HInstruction {
       if (type.combine(inputs[i].type).isConflicting()) return false;
     }
     return true;
-  }
-
-  void setInitialTypeForLoopPhi() {
-    assert(block.isLoopHeader());
-    assert(type.isUnknown());
-    type = inputs[0].type;
   }
 
   bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
