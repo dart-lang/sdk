@@ -1170,7 +1170,6 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
-  
   String get builtinJsName() {
     if (getter
         && name == const SourceString('length')
@@ -1314,7 +1313,7 @@ class HBinaryArithmetic extends HInvokeBinary {
 
   HType computeType() {
     HType inputsType = computeInputsType();
-    if (!inputsType.isUnknown()) return inputsType;
+    if (inputsType.isKnown()) return inputsType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1346,7 +1345,7 @@ class HAdd extends HBinaryArithmetic {
   HType computeType() {
     HType computedType = computeInputsType();
     if (computedType.isConflicting() && left.isString()) return HType.STRING;
-    if (!computedType.isUnknown()) return computedType;
+    if (computedType.isKnown()) return computedType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1446,7 +1445,7 @@ class HBinaryBitOp extends HBinaryArithmetic {
 
   HType computeType() {
     HType inputsType = computeInputsType();
-    if (!inputsType.isUnknown()) return inputsType;
+    if (inputsType.isKnown()) return inputsType;
     if (left.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
