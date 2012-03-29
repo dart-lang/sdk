@@ -13,10 +13,10 @@ CompileTimeConstantBTest: Fail # We don't handle constant map literals with __pr
 
 
 # Compilation errors.
-CTConstTest: Fail # map not implemented
+CTConstTest: Fail # We don't take the generic type into account yet.
 CallOperatorTest: Fail # Unexpected token 'call'
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ConstObjectsAreImmutableTest: Fail # map not implemented
+ConstObjectsAreImmutableTest: Fail # Const objects are not immutable.
 Constructor6Test: Fail # Closures inside initializers not implemented.
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DynamicTest: Fail # cannot resolve type F1
@@ -42,16 +42,15 @@ ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
 MapLiteral3Test: Fail # CL on its way (const { 'a': 3, 'a': 4 } not treated correctly.
 MapLiteral4Test: Fail # map not implemented
-MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+MethodBindingTest: Fail # internal error: super property read not implemented.
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
 NamedParameters2Test: Fail # Unimplemented non-matching static call
 NamedParameters3Test: Fail # Unimplemented non-matching static call
 NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamedParametersTypeTest: Fail # Internal Error: Cannot find value
-NamingTest: Fail # Internal Error: Cannot find value
-NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
-ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+NamingTest: Fail # Broken because operator negate is not accessible as if it was a method.
+ParameterInitializerTest: Fail # internal error: super property read not implemented
 PseudoKWTest: Fail # Unexpected token '('
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
@@ -76,7 +75,6 @@ GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
-ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 
 
