@@ -178,16 +178,7 @@ bool isOverriddenMethod(FunctionElement element,
 }
 
 void handleSsaNative(SsaBuilder builder, Send node) {
-  // Register NoSuchMethodException and captureStackTrace in the compiler
-  // because the dynamic dispatch for native classes may use them.
   Compiler compiler = builder.compiler;
-  ClassElement cls = compiler.coreLibrary.find(
-      Compiler.NO_SUCH_METHOD_EXCEPTION);
-  cls.ensureResolved(compiler);
-  compiler.addToWorkList(cls.lookupConstructor(cls.name));
-  compiler.registerStaticUse(
-      compiler.findHelper(new SourceString('captureStackTrace')));
-
   FunctionElement element = builder.work.element;
   element.setNative();
   NativeEmitter nativeEmitter = compiler.emitter.nativeEmitter;
@@ -199,19 +190,18 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   if (element.name == const SourceString('typeName')
       && element.isGetter()
       && nativeEmitter.toNativeName(element.enclosingElement) == 'DOMType') {
-    DartString jsCode = new DartString.literal(
-        '${nativeEmitter.typeNameOfName}(#)');
-    List<HInstruction> inputs =
-        <HInstruction>[builder.localsHandler.readThis()];
-    builder.push(new HForeign(
-        jsCode, const LiteralDartString('String'), inputs));
+    Element element = compiler.findHelper(const SourceString('getTypeNameOf'));
+    HStatic method = new HStatic(element);
+    builder.add(method);
+    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
+        <HInstruction>[method, builder.localsHandler.readThis()]));
     return;
   }
 
   HInstruction convertDartClosure(Element parameter) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     // TODO(ngeoffray): by better analyzing the function type and
-    // its formal parameters, we could just pass, eg closure.$call$0.
+    // its formal parameters, we could pass a method with a defined arity.
     builder.push(new HStatic(builder.interceptors.getClosureConverter()));
     List<HInstruction> callInputs = <HInstruction>[builder.pop(), local];
     HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
@@ -219,8 +209,30 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return closure;
   }
 
+
+  // Check which pattern this native method follows:
+  // 1) foo() native; hasBody = false, isRedirecting = false
+  // 2) foo() native "bar"; hasBody = false, isRedirecting = true
+  // 3) foo() native "return 42"; hasBody = true, isRedirecting = false
+  bool hasBody = false;
+  bool isRedirecting = false;
+  String nativeMethodName = element.name.slowToString();
+  if (!node.arguments.isEmpty()) {
+    if (!node.arguments.tail.isEmpty()) {
+      builder.compiler.cancel('More than one argument to native');
+    }
+    LiteralString jsCode = node.arguments.head;
+    String str = jsCode.dartString.slowToString();
+    if (const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$').hasMatch(str)) {
+      nativeMethodName = str;
+      isRedirecting = true;
+    } else {
+      hasBody = true;
+    }
+  }
+
   FunctionParameters parameters = element.computeParameters(builder.compiler);
-  if (node.arguments.isEmpty()) {
+  if (!hasBody) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
     String receiver = '';
@@ -238,7 +250,6 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     String foreignParameters = Strings.join(arguments, ',');
 
     String dartMethodName;
-    String nativeMethodName = element.name.slowToString();
     String nativeMethodCall;
 
     if (element.kind == ElementKind.FUNCTION) {
@@ -321,9 +332,13 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       builder.current.addPhi(phi);
       builder.stack.add(phi);
     }
-
-  } else if (!node.arguments.tail.isEmpty()) {
-    builder.compiler.cancel('More than one argument to native');
+    if (isRedirecting) {
+      // The parser creates a return node if there is no string literal
+      // after the native keyword. In case of a redirecting method, there
+      // is a string literal, therefore we must emit a return instruction
+      // in the builder.
+      builder.push(new HReturn(builder.pop()));
+    }
   } else {
     // This is JS code written in a Dart file with the construct
     // native """ ... """;. It does not work well with mangling,
