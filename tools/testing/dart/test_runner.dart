@@ -209,6 +209,12 @@ class TestOutputImpl implements TestOutput {
   List<String> diagnostics;
 
   /**
+   * A flag to indicate we have already printed a warning about ignoring the VM
+   * crash, to limit the amount of output produced per test.
+   */
+  bool alreadyPrintedWarning = false;
+
+  /**
    * Set to true if we encounter a condition in the output that indicates we
    * need to rerun this test.
    */
@@ -271,12 +277,12 @@ class TestOutputImpl implements TestOutput {
     if (new Platform().operatingSystem() == 'windows' && exitCode == 253) {
       for (String line in testCase.output.stdout) {
         if (line.startsWith('VM exited with signal 1073741819')) {
-          print("WARNING: VM crashed on this test with signal 1073741819. " + 
-              "This is a fake pass!!");
-          if (testCase.expectedOutcomes.iterator().hasNext()) {
-            return testCase.expectedOutcomes.iterator().next() == FAIL ? false :
-                true;
+          if (!alreadyPrintedWarning) {
+            print("WARNING: VM crashed on this test with signal 1073741819. " + 
+                "This is a fake pass!!");
+            alreadyPrintedWarning = true;
           }
+          return testCase.expectedOutcomes.iterator().next() == FAIL;
         }
       }
     }

@@ -95,15 +95,8 @@ is 'dart file.dart' and you specify special command
     drt: Run Dart or JavaScript in the headless version of Chrome,
          DumpRenderTree.
 
-    ff or firefox: Run JavaScript in Firefox.
-
-    chrome: Run JavaScript in Chrome.
-
-    safari: Run JavaScript in Safari.
-
-    ie: Run JavaScript in Internet Explorer.
-
-    opera: Run JavaScript in Opera.
+    [ff | chrome | safari | ie | opera]: Run JavaScript in the specified 
+         browser.
 
     none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
