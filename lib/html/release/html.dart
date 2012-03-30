@@ -6954,7 +6954,7 @@ class _DocumentImpl extends _NodeImpl
 
 // TODO(jacobr): autogenerate this method.
   _ElementImpl $dom_querySelector(String selectors) =>
-      _wrap(_.querySelector(selectors));
+      _wrap(_ptr.querySelector(selectors));
 
   ElementList queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
