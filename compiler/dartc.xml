@@ -63,6 +63,8 @@
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar"/>
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar"/>
     <pathelement location="${third_party.dir}/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-util-1.1.6.jar"/>
+    <pathelement location="${third_party.dir}/fest/fest-assert-1.4.jar"/>
   </path>
 
   <target name="compile" description="Compiles all of the java source and copies resources to the classes directory.">
