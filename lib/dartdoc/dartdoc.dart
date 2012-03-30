@@ -56,7 +56,7 @@ void main() {
 
   // Parse the dartdoc options.
   bool includeSource;
-  String mode;
+  int mode;
   String outputDir;
 
   for (int i = 0; i < args.length - 1; i++) {
@@ -182,12 +182,13 @@ void compileScript(String compilerPath, String libDir,
   process.stdout.pipe(stdout, close: false);
 
   process.onError = (error) {
-    print('Failed to compile $dartPath. Error:');
+    print('Failed to compile $dartPath with $compilerPath. Error:');
     print(error);
   };
 }
 
 class Dartdoc {
+
   /** Set to `false` to not include the source code in the generated docs. */
   bool includeSource = true;
 
@@ -223,6 +224,9 @@ class Dartdoc {
 
   /** Set this to add footer text to each generated page. */
   String footerText = '';
+
+  /** Set this to add content before the footer */
+  String preFooterText = '';
 
   /**
    * From exposes the set of libraries in `world.libraries`. That maps library
@@ -405,10 +409,9 @@ class Dartdoc {
         <meta charset="utf-8">
         <title>$title</title>
         <link rel="stylesheet" type="text/css"
-            href="${relativePath('styles.css')}" />
+            href="${relativePath('styles.css')}">
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
-        <link rel="shortcut icon" href="${relativePath('favicon.ico')}" />
-        <script src="${relativePath('$clientScript.js')}"></script>
+        <link rel="shortcut icon" href="${relativePath('favicon.ico')}">
         ''');
   }
 
@@ -418,7 +421,9 @@ class Dartdoc {
         </div>
         <div class="clear"></div>
         </div>
+        ${preFooterText}
         <div class="footer">$footerText</div>
+        <script async src="${relativePath('$clientScript.js')}"></script>
         </body></html>
         ''');
   }

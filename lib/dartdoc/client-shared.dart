@@ -17,6 +17,7 @@ enableCodeBlocks() {
     if (showCode == null) continue;
 
     var pre = elem.query('pre.source');
+
     showCode.on.click.add((e) {
       if (pre.classes.contains('expanded')) {
         pre.classes.remove('expanded');
@@ -29,5 +30,6 @@ enableCodeBlocks() {
         pre.classes.add('expanded');
       }
     });
+
   }
 }

@@ -28,31 +28,48 @@ final GET_PREFIX = 'get:';
 void main() {
   final args = new Options().arguments;
 
+  int mode = doc.MODE_STATIC;
   var outputDir = 'docs';
 
   // Use the output directory if provided.
-  if (args.length > 1) {
-    print('Usage: apidoc [--out=<output directory>]');
-    return;
-  } else if (args.length == 1) {
-    final arg = args[0];
-    if (arg.startsWith('--out=')) {
-      outputDir = arg.substring('--out='.length);
-    } else {
-      print('Unknown option: $arg');
-      return;
+
+  for (int i = 0; i < args.length - 1; i++) {
+    final arg = args[i];
+
+    switch (arg) {
+      case '--mode=static':
+        mode = doc.MODE_STATIC;
+        break;
+
+      case '--mode=live-nav':
+        mode = doc.MODE_LIVE_NAV;
+        break;
+
+      default:
+        if (arg.startsWith('--out=')) {
+          outputDir = arg.substring('--out='.length);
+        } else {
+          print('Unknown option: $arg');
+          return;
+        }
+        break;
     }
   }
 
   final frogPath = joinPaths(doc.scriptDir, '../../frog/');
+  final compilerPath = joinPaths(frogPath, 'minfrog');
+  final libDir = joinPaths(frogPath, 'lib');
 
   doc.cleanOutputDirectory(outputDir);
 
   // Compile the client-side code to JS.
   // TODO(bob): Right path.
-  doc.compileScript(frogPath,
-      '${doc.scriptDir}/../../lib/dartdoc/client-live-nav.dart',
-      '${outputDir}/client-live-nav.js');
+
+  final clientScript = (mode == doc.MODE_STATIC) ?
+      'static' : 'live-nav';
+  doc.compileScript(compilerPath, libDir,
+      '${doc.scriptDir}/../../lib/dartdoc/client-$clientScript.dart',
+      '${outputDir}/client-$clientScript.js');
 
   // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
@@ -87,13 +104,15 @@ void main() {
   world.process();
 
   print('Generating docs...');
-  final apidoc = new Apidoc(mdn, outputDir);
+  final apidoc = new Apidoc(mdn, outputDir, mode);
   apidoc.document();
 }
 
 class Apidoc extends doc.Dartdoc {
   /** Big ball of JSON containing the scraped MDN documentation. */
   final Map mdn;
+
+  static final disqusShortname = 'dartapidocs';
 
   /**
    * The URL to the page on MDN that content was pulled from for the current
@@ -102,8 +121,9 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn, String outputDir) {
+  Apidoc(this.mdn, String outputDir, int mode) {
     this.outputDir = outputDir;
+    this.mode = mode;
 
     mainTitle = 'Dart API Reference';
     mainUrl = 'http://dartlang.org';
@@ -120,8 +140,34 @@ class Apidoc extends doc.Dartdoc {
         page is licensed under the <a href="$cca">Creative Commons Attribution
         3.0 License</a>, and code samples are licensed under the
         <a href="$bsd">BSD License</a>.</p>
+        <p>
+          Comments that are not specifically about the API libraries will
+          be moderated and possibly deleted.
+          Because we may incorporate information from comments into the
+          documentation, any comment submitted here is under the same
+          license as the documentation.
+        </p>
         <p><a href="$tos">Terms of Service</a> |
         <a href="$privacy">Privacy Policy</a></p>
+        ''';
+
+    preFooterText =
+        '''
+        <div id="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = "$disqusShortname"; // required: replace example with your forum shortname
+
+            /* * * DON\'T EDIT BELOW THIS LINE * * */
+            (function() {
+                var dsq = document.createElement("script"); dsq.type = "text/javascript"; dsq.async = true;
+                dsq.src = "http://" + disqus_shortname + ".disqus.com/embed.js";
+                (document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div> <!-- #comments -->
         ''';
 
     searchEngineId = '011220921317074318178:i4mscbaxtru';

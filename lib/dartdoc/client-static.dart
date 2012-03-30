@@ -12,7 +12,5 @@
 #source('client-shared.dart');
 
 main() {
-  window.on.contentLoaded.add((e) {
-    enableCodeBlocks();
-  });
+  enableCodeBlocks();
 }
