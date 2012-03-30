@@ -5,6 +5,8 @@
 [ $compiler == dart2js ]
 AssertTest: Fail # Assert not implemented
 
+io/HttpServerEarlyClientCloseTest: Pass # Doesn't run it.
+
 
 ByteArrayTest: Fail, OK # ByteArray
 DeoptimizationTest: Fail, OK # Requires bigint.
