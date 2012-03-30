@@ -131,6 +131,8 @@ Token handleNativeClassBody(Listener listener, Token token) {
   return token;
 }
 
+RegExp nativeRedirectionRegExp = const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$');
+
 Token handleNativeFunctionBody(ElementListener listener, Token token) {
   checkAllowedLibrary(listener, token);
   Token begin = token;
@@ -140,10 +142,17 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   if (token.kind === STRING_TOKEN) {
     listener.beginLiteralString(token);
     listener.endLiteralString(0);
-    listener.pushNode(new NodeList.singleton(listener.popNode()));
+    LiteralString str = listener.popNode();
+    listener.pushNode(new NodeList.singleton(str));
     listener.endSend(token);
     token = token.next;
-    listener.endExpressionStatement(token);
+    // If this native method is just redirecting to another method,
+    // we add a return node to match the SSA builder expactations.
+    if (nativeRedirectionRegExp.hasMatch(str.dartString.slowToString())) {
+      listener.endReturnStatement(true, begin, token);
+    } else {
+      listener.endExpressionStatement(token);
+    }
   } else {
     listener.pushNode(new NodeList.empty());
     listener.endSend(token);
@@ -223,7 +232,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     }
     LiteralString jsCode = node.arguments.head;
     String str = jsCode.dartString.slowToString();
-    if (const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$').hasMatch(str)) {
+    if (nativeRedirectionRegExp.hasMatch(str)) {
       nativeMethodName = str;
       isRedirecting = true;
     } else {
@@ -331,13 +340,6 @@ void handleSsaNative(SsaBuilder builder, Send node) {
           null, <HInstruction>[thenInstruction, elseInstruction]);
       builder.current.addPhi(phi);
       builder.stack.add(phi);
-    }
-    if (isRedirecting) {
-      // The parser creates a return node if there is no string literal
-      // after the native keyword. In case of a redirecting method, there
-      // is a string literal, therefore we must emit a return instruction
-      // in the builder.
-      builder.push(new HReturn(builder.pop()));
     }
   } else {
     // This is JS code written in a Dart file with the construct
