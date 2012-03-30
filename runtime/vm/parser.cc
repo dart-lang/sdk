@@ -2928,6 +2928,12 @@ void Parser::ParseInterfaceDefinition(
   }
   ExpectToken(Token::kRBRACE);
 
+  if (members.has_constructor() && !interface.HasFactoryClass()) {
+    ErrorMsg(interfacename_pos,
+             "interface '%s' with constructor must declare a factory class",
+             interface_name.ToCString());
+  }
+
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
   interface.SetFields(array);
