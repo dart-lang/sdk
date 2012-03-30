@@ -252,12 +252,6 @@ class SsaCodeGenerator implements HVisitor {
     if (instruction is HPhi) {
       HPhi phi = instruction;
       Element element = phi.element;
-      if (element != null && element.kind == ElementKind.PARAMETER) {
-        name = parameterNames[element];
-        names[id] = name;
-        return name;
-      }
-
       String prefix;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
