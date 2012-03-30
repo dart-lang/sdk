@@ -902,23 +902,36 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitIf(HIf node) {
+    HInstruction condition = node.inputs[0];
+    int preVisitedBlocks = 0;
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
     HIfBlockInformation info = node.blockInformation;
-    startIf(node);
-    assert(!isGenerateAtUseSite(node));
-    startThen(node);
-    assert(node.thenBlock === dominated[0]);
-    visitSubGraph(info.thenGraph);
-    int preVisitedBlocks = 1;
-    endThen(node);
-    if (node.hasElse) {
-      startElse(node);
-      assert(node.elseBlock === dominated[1]);
-      visitSubGraph(info.elseGraph);
-      preVisitedBlocks = 2;
-      endElse(node);
+    if (condition.isConstant()) {
+      HConstant constant = condition;
+      if (constant.constant.isTrue()) {
+        visitSubGraph(info.thenGraph);
+      } else if (node.hasElse) {
+        visitSubGraph(info.elseGraph);
+      }
+      // We ignore the other branch, even if it isn't visited.
+      preVisitedBlocks = node.hasElse ? 2 : 1;
+    } else {
+      startIf(node);
+      assert(!isGenerateAtUseSite(node));
+      startThen(node);
+      assert(node.thenBlock === dominated[0]);
+      visitSubGraph(info.thenGraph);
+      preVisitedBlocks++;
+      endThen(node);
+      if (node.hasElse) {
+        startElse(node);
+        assert(node.elseBlock === dominated[1]);
+        visitSubGraph(info.elseGraph);
+        preVisitedBlocks++;
+        endElse(node);
+      }
+      endIf(node);
     }
-    endIf(node);
     if (info.joinBlock !== null && info.joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
       // The subgraph traversal never reached it, so we visit it here
