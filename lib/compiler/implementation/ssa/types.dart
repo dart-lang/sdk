@@ -86,13 +86,23 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
   final String name = 'speculative type propagator';
   SsaSpeculativeTypePropagator(Compiler compiler) : super(compiler);
 
+  HType computeDesiredType(HInstruction instruction) {
+    HType desiredType = HType.UNKNOWN;
+    for (final user in instruction.usedBy) {
+      desiredType =
+          desiredType.combine(user.computeDesiredInputType(instruction));
+      // No need to continue if two users disagree on the type.
+      if (desiredType.isConflicting()) break;
+    }
+    return desiredType;
+  }
+
   HType computeType(HInstruction instruction) {
     HType newType = super.computeType(instruction);
-    HType desiredType = instruction.computeDesiredType();
-    HType combined = newType.combine(desiredType);
-    // If the propagated type [newType] does not conflict with the
-    // speculated type [desiredType], use it.
-    if (combined.isKnown()) return combined;
-    return newType;
+    HType desiredType = computeDesiredType(instruction);
+    // If the desired type is conflicting just return the computed
+    // type.
+    if (desiredType.isConflicting()) return newType;
+    return newType.combine(desiredType);
   }
 }

@@ -856,7 +856,7 @@ class HInstruction implements Hashable {
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
-  // Does this node pNotentially affect control flow.
+  // Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
   bool isArray() => type.isArray();
@@ -869,23 +869,6 @@ class HInstruction implements Hashable {
 
   // Compute the type of the instruction.
   HType computeType() => HType.UNKNOWN;
-
-  HType computeDesiredType() {
-    HType candidateType = HType.UNKNOWN;
-    for (final user in usedBy) {
-      HType desiredType = user.computeDesiredInputType(this);
-      if (candidateType.isUnknown()) {
-        candidateType = desiredType;
-      } else if (!type.isUnknown() && candidateType != desiredType) {
-        candidateType = candidateType.combine(desiredType);
-        if (!candidateType.isKnown()) {
-          candidateType = HType.UNKNOWN;
-          break;
-        }
-      }
-    }
-    return candidateType;
-  }
 
   HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
 
