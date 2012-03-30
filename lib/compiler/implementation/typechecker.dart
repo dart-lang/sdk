@@ -343,11 +343,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     if (member === null) {
       classElement.ensureResolved(compiler);
       for (Link<Type> supertypes = classElement.allSupertypes;
-           !supertypes.isEmpty();
+           !supertypes.isEmpty() && member === null;
            supertypes = supertypes.tail) {
         ClassElement lookupTarget = supertypes.head.element;
         member = lookupTarget.lookupLocalMember(name);
-        if (member !== null) return computeType(member);
       }
     }
     if (member !== null && member.kind == ElementKind.FUNCTION) {
@@ -358,13 +357,28 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return types.dynamicType;
   }
 
-  Link<Type> analyzeArguments(Link<Node> arguments) {
-    LinkBuilder<Type> builder = new LinkBuilder<Type>();
-    while(!arguments.isEmpty()) {
-      builder.addLast(analyze(arguments.head));
-      arguments = arguments.tail;
+  void analyzeArguments(Send send, FunctionType funType) {
+    Link<Node> arguments = send.arguments;
+    if (funType === null) {
+      while(!arguments.isEmpty()) {
+        analyze(arguments.head);
+        arguments = arguments.tail;
+      }
+    } else {
+      Link<Type> parameterTypes = funType.parameterTypes;
+      while (!arguments.isEmpty() && !parameterTypes.isEmpty()) {
+        checkAssignable(arguments.head, parameterTypes.head,
+                        analyze(arguments.head));
+        arguments = arguments.tail;
+        parameterTypes = parameterTypes.tail;
+      }
+      if (!arguments.isEmpty()) {
+        reportTypeWarning(arguments.head, MessageKind.ADDITIONAL_ARGUMENT);
+      } else if (!parameterTypes.isEmpty()) {
+        reportTypeWarning(send, MessageKind.MISSING_ARGUMENT,
+                          [parameterTypes.head]);
+      }
     }
-    return builder.toLink();
   }
 
   Type visitSend(Send node) {
@@ -416,54 +430,38 @@ class TypeCheckerVisitor implements Visitor<Type> {
       fail(node.receiver, 'function object invocation unimplemented');
 
     } else {
-      Link<Type> argumentTypes = analyzeArguments(node.arguments);
-      FunctionType funType;
-      if (node.receiver !== null) {
-        Type receiverType = analyze(node.receiver);
-        if (receiverType === types.dynamicType) return types.dynamicType;
-        if (receiverType === null) {
-          fail(node.receiver, 'receivertype is null');
-        }
-        if (receiverType.element.kind !== ElementKind.CLASS) {
-          fail(node.receiver, 'receivertype is not a class');
-        }
-        ClassElement classElement = receiverType.element;
-        // TODO(karlklose): substitute type arguments.
-        Type memberType =
-          lookupMethodType(selector, classElement, selector.source);
-        if (memberType === types.dynamicType) return types.dynamicType;
-        if (memberType is !FunctionType) {
-          fail(node, 'can only handle function types');
-        }
-        funType = memberType;
-      } else {
-        Element element = elements[node];
-        if (element === null) {
-          fail(node, 'unresolved ${node.selector}');
-        } else if (element.kind === ElementKind.FUNCTION) {
-          funType = computeType(element);
-        } else if (element.kind === ElementKind.FOREIGN) {
-          return types.dynamicType;
+      FunctionType computeFunType() {
+        if (node.receiver !== null) {
+          Type receiverType = analyze(node.receiver);
+          if (receiverType === types.dynamicType) return null;
+            if (receiverType === null) {
+              fail(node.receiver, 'receivertype is null');
+            }
+            if (receiverType.element.kind !== ElementKind.CLASS) {
+              fail(node.receiver, 'receivertype is not a class');
+            }
+            ClassElement classElement = receiverType.element;
+            // TODO(karlklose): substitute type arguments.
+            Type memberType =
+              lookupMethodType(selector, classElement, selector.source);
+            if (memberType === types.dynamicType) return null;
+            return memberType;
         } else {
-          fail(node, 'unexpected element kind ${element.kind}');
+          Element element = elements[node];
+          if (element === null) {
+            fail(node, 'unresolved ${node.selector}');
+          } else if (element.kind === ElementKind.FUNCTION) {
+            return computeType(element);
+          } else if (element.kind === ElementKind.FOREIGN) {
+            return null;
+          } else {
+            fail(node, 'unexpected element kind ${element.kind}');
+          }
         }
       }
-      Link<Type> parameterTypes = funType.parameterTypes;
-      Link<Node> argumentNodes = node.arguments;
-      while (!argumentTypes.isEmpty() && !parameterTypes.isEmpty()) {
-        checkAssignable(argumentNodes.head, parameterTypes.head,
-                        argumentTypes.head);
-        argumentTypes = argumentTypes.tail;
-        parameterTypes = parameterTypes.tail;
-        argumentNodes = argumentNodes.tail;
-      }
-      if (!argumentTypes.isEmpty()) {
-        reportTypeWarning(argumentNodes.head, MessageKind.ADDITIONAL_ARGUMENT);
-      } else if (!parameterTypes.isEmpty()) {
-        reportTypeWarning(node, MessageKind.MISSING_ARGUMENT,
-                          [parameterTypes.head]);
-      }
-      return funType.returnType;
+      FunctionType funType = computeFunType();
+      analyzeArguments(node, funType);
+      return (funType !== null) ? funType.returnType : types.dynamicType;
     }
   }
 
@@ -510,6 +508,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitNewExpression(NewExpression node) {
+    Element element = elements[node.send];
+    analyzeArguments(node.send, computeType(element));
     return analyze(node.send.selector);
   }
 
