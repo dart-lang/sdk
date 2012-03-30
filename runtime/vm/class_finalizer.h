@@ -97,6 +97,7 @@ class ClassFinalizer : public AllStatic {
   static void ResolveDefaultClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
                                 const GrowableObjectArray& visited);
+  static void FinalizeTypeParameters(const Class& cls);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,
                                     FinalizationKind finalization);

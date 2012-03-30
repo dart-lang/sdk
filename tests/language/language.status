@@ -310,6 +310,7 @@ FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail
 GenericDeepTest: Fail
 GenericInstanceofTest: Fail
+GenericInstanceof2Test: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail

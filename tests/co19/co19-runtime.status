@@ -121,7 +121,6 @@ LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
 LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
-Language/09_Generics/09_Generics_A01_t02: Fail # Issue 439
 Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.

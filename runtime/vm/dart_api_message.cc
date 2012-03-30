@@ -17,8 +17,8 @@ enum {
 static const int kNumInitialReferences = 4;
 
 ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
-                               intptr_t length,
-                               ReAlloc alloc)
+                                   intptr_t length,
+                                   ReAlloc alloc)
     : BaseReader(buffer, length),
       alloc_(alloc),
       backward_references_(kNumInitialReferences) {
@@ -194,6 +194,23 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       }
       return value;
     }
+    case Object::kTypeParameterClass: {
+      // TODO(sgjesse): Fix this workaround ignoring the type parameter.
+      Dart_CObject* value = &dynamic_type_marker;
+      AddBackwardReference(object_id, value);
+      intptr_t index = ReadIntptrValue();
+      USE(index);
+      intptr_t token_index = ReadIntptrValue();
+      USE(token_index);
+      int8_t type_state = Read<int8_t>();
+      USE(type_state);
+      Dart_CObject* parameterized_class = ReadObject();
+      // The type parameter is finalized, therefore parameterized_class is null.
+      ASSERT(parameterized_class->type == Dart_CObject::kNull);
+      Dart_CObject* name = ReadObject();
+      ASSERT(name->type == Dart_CObject::kString);
+      return value;
+    }
     case ObjectStore::kArrayClass: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* value = AllocateDartCObjectArray(len);
@@ -295,7 +312,7 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
     return &dynamic_type_marker;
   } else {
     intptr_t index = object_id - kMaxPredefinedObjectIds;
-    ASSERT(index < backward_references_.length());
+    ASSERT((0 <= index) && (index < backward_references_.length()));
     ASSERT(backward_references_[index] != NULL);
     return backward_references_[index];
   }

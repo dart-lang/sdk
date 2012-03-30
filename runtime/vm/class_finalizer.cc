@@ -386,8 +386,8 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
         TypeArguments::Handle(factory_signature_class.type_parameter_bounds());
     const TypeArguments& actual_type_parameter_bounds =
         TypeArguments::Handle(factory_class.type_parameter_bounds());
-    if (!AbstractTypeArguments::AreEqual(expected_type_parameters,
-                                         actual_type_parameters) ||
+    if (!TypeArguments::AreIdenticalTypeParameters(expected_type_parameters,
+                                                   actual_type_parameters) ||
         !AbstractTypeArguments::AreEqual(expected_type_parameter_bounds,
                                          actual_type_parameter_bounds)) {
       const String& interface_name = String::Handle(interface.Name());
@@ -407,8 +407,8 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
       TypeArguments::Handle(interface.type_parameters());
   const TypeArguments& factory_type_parameters =
       TypeArguments::Handle(factory_class.type_parameters());
-  if (!AbstractTypeArguments::AreEqual(interface_type_parameters,
-                                       factory_type_parameters)) {
+  if (!TypeArguments::AreIdenticalTypeParameters(interface_type_parameters,
+                                                 factory_type_parameters)) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
@@ -476,6 +476,21 @@ void ClassFinalizer::ResolveType(const Class& cls,
 }
 
 
+void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
+  const TypeArguments& type_parameters =
+      TypeArguments::Handle(cls.type_parameters());
+  if (!type_parameters.IsNull()) {
+    TypeParameter& type_parameter = TypeParameter::Handle();
+    const intptr_t num_types = type_parameters.Length();
+    for (intptr_t i = 0; i < num_types; i++) {
+      type_parameter ^= type_parameters.TypeAt(i);
+      type_parameter ^= FinalizeType(cls, type_parameter, kFinalizeWellFormed);
+      type_parameters.SetTypeAt(i, type_parameter);
+    }
+  }
+}
+
+
 // Finalize the type argument vector 'arguments' of the type defined by the
 // class 'cls' parameterized with the type arguments 'cls_args'.
 // The vector 'cls_args' is already initialized as a subvector at the correct
@@ -495,6 +510,9 @@ void ClassFinalizer::FinalizeTypeArguments(
     const AbstractTypeArguments& arguments,
     FinalizationKind finalization) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
+  if (!cls.is_finalized()) {
+    FinalizeTypeParameters(cls);
+  }
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
     super_type ^= FinalizeType(cls, super_type, finalization);
@@ -506,13 +524,15 @@ void ClassFinalizer::FinalizeTypeArguments(
     const intptr_t offset = super_class.NumTypeArguments();
     const intptr_t super_offset = offset - num_super_type_params;
     ASSERT(offset == (cls.NumTypeArguments() - cls.NumTypeParameters()));
-    AbstractType& super_type_arg = AbstractType::Handle();
+    AbstractType& super_type_arg = AbstractType::Handle(Type::DynamicType());
     for (intptr_t i = 0; i < num_super_type_params; i++) {
-      super_type_arg = super_type_args.TypeAt(super_offset + i);
-      if (!super_type_arg.IsInstantiated()) {
-        super_type_arg = super_type_arg.InstantiateFrom(arguments);
+      if (!super_type_args.IsNull()) {
+        super_type_arg = super_type_args.TypeAt(super_offset + i);
+        if (!super_type_arg.IsInstantiated()) {
+          super_type_arg = super_type_arg.InstantiateFrom(arguments);
+        }
+        super_type_arg = super_type_arg.Canonicalize();
       }
-      super_type_arg = super_type_arg.Canonicalize();
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
     FinalizeTypeArguments(super_class, arguments, finalization);
@@ -534,14 +554,18 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   }
 
   if (type.IsTypeParameter()) {
-    ASSERT(!cls.IsNull());
     TypeParameter& type_parameter = TypeParameter::Handle();
     type_parameter ^= type.raw();
+    const Class& parameterized_class =
+        Class::Handle(type_parameter.parameterized_class());
+    ASSERT(!parameterized_class.IsNull());
     // The index must reflect the position of this type parameter in the type
-    // arguments vector of the enclosing class. The offset to add is the number
-    // of type arguments in the super type, which is equal to the difference in
-    // number of type arguments and type parameters of the enclosing class.
-    const intptr_t offset = cls.NumTypeArguments() - cls.NumTypeParameters();
+    // arguments vector of its parameterized class. The offset to add is the
+    // number of type arguments in the super type, which is equal to the
+    // difference in number of type arguments and type parameters of the
+    // parameterized class.
+    const intptr_t offset = parameterized_class.NumTypeArguments() -
+                            parameterized_class.NumTypeParameters();
     type_parameter.set_index(type_parameter.Index() + offset);
     type_parameter.set_is_finalized();
     // We do not canonicalize type parameters.
@@ -583,6 +607,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // the type itself, a precondition to calling FinalizeType) and the upper
   // bounds of its type parameters must be finalized (done here).
   Class& type_class = Class::Handle(parameterized_type.type_class());
+  if (!type_class.is_finalized()) {
+    FinalizeTypeParameters(type_class);
+  }
 
   // If the type class is a signature class, we are finalizing its signature
   // type, thereby finalizing the result type and parameter types of its
@@ -625,40 +652,54 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // super types of type_class, which may be initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   if (num_type_arguments > 0) {
-    TypeArguments& full_arguments = TypeArguments::Handle(
-        TypeArguments::New(num_type_arguments));
-    // Copy the parsed type arguments at the correct offset in the full type
-    // argument vector.
-    const intptr_t offset = num_type_arguments - num_type_parameters;
-    AbstractType& type = AbstractType::Handle(Type::DynamicType());
-    for (intptr_t i = 0; i < num_type_parameters; i++) {
-      // If no type parameters were provided, a raw type is desired, so we
-      // create a vector of DynamicType.
-      if (!arguments.IsNull()) {
-        type = arguments.TypeAt(i);
+    TypeArguments& full_arguments = TypeArguments::Handle();
+    // If no type arguments were parsed and if the super types do not prepend
+    // type arguments to the vector, we can leave the vector as null.
+    if (!arguments.IsNull() || (num_type_arguments > num_type_parameters)) {
+      full_arguments = TypeArguments::New(num_type_arguments);
+      // Copy the parsed type arguments at the correct offset in the full type
+      // argument vector.
+      const intptr_t offset = num_type_arguments - num_type_parameters;
+      AbstractType& type_arg = AbstractType::Handle(Type::DynamicType());
+      for (intptr_t i = 0; i < num_type_parameters; i++) {
+        // If no type parameters were provided, a raw type is desired, so we
+        // create a vector of DynamicType.
+        if (!arguments.IsNull()) {
+          type_arg = arguments.TypeAt(i);
+        }
+        ASSERT(type_arg.IsFinalized());  // Index of type parameter is adjusted.
+        full_arguments.SetTypeAt(offset + i, type_arg);
       }
-      full_arguments.SetTypeAt(offset + i, type);
-    }
-    if (type_class.IsSignatureClass()) {
-      const Function& signature_fun =
-          Function::Handle(type_class.signature_function());
-      ASSERT(!signature_fun.is_static());
-      const Class& signature_fun_owner = Class::Handle(signature_fun.owner());
-      FinalizeTypeArguments(signature_fun_owner, full_arguments, finalization);
+      if (type_class.IsSignatureClass()) {
+        const Function& signature_fun =
+            Function::Handle(type_class.signature_function());
+        ASSERT(!signature_fun.is_static());
+        const Class& sig_fun_owner = Class::Handle(signature_fun.owner());
+        FinalizeTypeArguments(sig_fun_owner, full_arguments, finalization);
+      } else {
+        FinalizeTypeArguments(type_class, full_arguments, finalization);
+      }
+      if (full_arguments.IsRaw(num_type_arguments)) {
+        // The parameterized_type is raw. Set its argument vector to null, which
+        // is more efficient in type tests.
+        full_arguments = TypeArguments::null();
+      } else {
+        // FinalizeTypeArguments can modify 'full_arguments',
+        // canonicalize afterwards.
+        full_arguments ^= full_arguments.Canonicalize();
+      }
+      parameterized_type.set_arguments(full_arguments);
     } else {
-      FinalizeTypeArguments(type_class, full_arguments, finalization);
+      ASSERT(full_arguments.IsNull());  // Use null vector for raw type.
     }
-    // FinalizeTypeArguments can modify 'full_arguments',
-    // canonicalize afterwards.
-    full_arguments ^= full_arguments.Canonicalize();
-    parameterized_type.set_arguments(full_arguments);
-
     // Mark the type as finalized.
     parameterized_type.set_is_finalized();
 
     // Upper bounds of the finalized type arguments are only verified in checked
     // mode, since bound errors are never reported by the vm in production mode.
-    if (FLAG_enable_type_checks && full_arguments.IsInstantiated()) {
+    if (FLAG_enable_type_checks &&
+        !full_arguments.IsNull() &&
+        full_arguments.IsInstantiated()) {
       ResolveAndFinalizeUpperBounds(type_class);
       Error& malformed_error = Error::Handle();
       // Pass the full type argument vector as the bounds instantiator.
@@ -941,18 +982,23 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   const GrowableObjectArray& visited =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   ResolveInterfaces(cls, visited);
+  // Finalize super class.
+  const Class& super_class = Class::Handle(cls.SuperClass());
+  if (!super_class.IsNull()) {
+    FinalizeClass(super_class, generating_snapshot);
+  }
+  // Finalize type parameters before finalizing the super type.
+  FinalizeTypeParameters(cls);
+  // Finalize super type.
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    const Class& super_class = Class::Handle(super_type.type_class());
-    // Finalize super class and super type.
-    FinalizeClass(super_class, generating_snapshot);
     super_type ^= FinalizeType(cls, super_type, kFinalizeWellFormed);
     cls.set_super_type(super_type);
   }
+  // Finalize factory class, if any.
   if (cls.is_interface()) {
     if (cls.HasFactoryClass()) {
       const Class& factory_class = Class::Handle(cls.FactoryClass());
-      // Finalize factory class.
       if (!factory_class.is_finalized()) {
         FinalizeClass(factory_class, generating_snapshot);
         // Finalizing the factory class may indirectly finalize this interface.

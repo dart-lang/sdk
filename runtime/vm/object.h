@@ -848,7 +848,8 @@ class AbstractType : public Object {
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Error* malformed_error) const;
 
-  static RawAbstractType* NewTypeParameter(intptr_t index,
+  static RawAbstractType* NewTypeParameter(const Class& parameterized_class,
+                                           intptr_t index,
                                            const String& name,
                                            intptr_t token_index);
 
@@ -950,13 +951,13 @@ class Type : public AbstractType {
 };
 
 
-// A TypeParameter, in the context of a parameterized class, references a type
-// parameter of a class by its index (and by its name for debugging purposes).
+// A TypeParameter represents a type parameter of a parameterized class.
+// It specifies its index (and its name for debugging purposes).
 // For example, the type parameter 'V' is specified as index 1 in the context of
 // the class HashMap<K, V>. At compile time, the TypeParameter is not
 // instantiated yet, i.e. it is only a place holder.
 // Upon finalization, the TypeParameter index is changed to reflect its position
-// as type argument (rather than type parameter) of the enclosing class.
+// as type argument (rather than type parameter) of the parameterized class.
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
@@ -967,6 +968,9 @@ class TypeParameter : public AbstractType {
   virtual bool IsMalformed() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
+  RawClass* parameterized_class() const {
+      return raw_ptr()->parameterized_class_;
+  }
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
@@ -981,11 +985,13 @@ class TypeParameter : public AbstractType {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
   }
 
-  static RawTypeParameter* New(intptr_t index,
+  static RawTypeParameter* New(const Class& parameterized_class,
+                               intptr_t index,
                                const String& name,
                                intptr_t token_index);
 
  private:
+  void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
   void set_token_index(intptr_t token_index) const;
   void set_type_state(int8_t state) const;
@@ -1047,6 +1053,7 @@ class InstantiatedType : public AbstractType {
 // Subclasses of AbstractTypeArguments are TypeArguments and InstantiatedTypes.
 class AbstractTypeArguments : public Object {
  public:
+  // Returns true if both arguments represent vectors of equal types.
   static bool AreEqual(const AbstractTypeArguments& arguments,
                        const AbstractTypeArguments& other_arguments);
 
@@ -1060,9 +1067,27 @@ class AbstractTypeArguments : public Object {
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
 
+  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, int>".
+  virtual RawString* Name() const {
+    return SubvectorName(0, Length());
+  }
+
+  // The name of a subvector of this type argument vector, e.g. "<T, Dynamic>".
+  virtual RawString* SubvectorName(intptr_t from_index, intptr_t len) const;
+
   // Check if this type argument vector consists solely of DynamicType,
   // considering only a prefix of length 'len'.
-  bool IsDynamicTypes(intptr_t len) const;
+  bool IsRaw(intptr_t len) const {
+    return IsDynamicTypes(false, len);
+  }
+
+  // Check if this type argument vector would consist solely of DynamicType if
+  // it was instantiated from a raw (null) instantiator, i.e. consider each type
+  // parameter as it would be first instantiated from a vector of dynamic types.
+  // Consider only a prefix of length 'len'.
+  bool IsRawInstantiatedRaw(intptr_t len) const {
+    return IsDynamicTypes(true, len);
+  }
 
   // Check that this type argument vector is within the declared bounds of the
   // given class or interface. If not, set malformed_error (if not yet set).
@@ -1085,6 +1110,13 @@ class AbstractTypeArguments : public Object {
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
 
+ private:
+  // Check if this type argument vector consists solely of DynamicType,
+  // considering only a prefix of length 'len'.
+  // If raw_instantiated is true, consider each type parameter to be first
+  // instantiated from a vector of dynamic types.
+  bool IsDynamicTypes(bool raw_instantiated, intptr_t len) const;
+
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);
   friend class Class;
@@ -1094,6 +1126,11 @@ class AbstractTypeArguments : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public AbstractTypeArguments {
  public:
+  // Returns true if both arguments represent identical vectors of type
+  // parameters, in number and names (but the type class may be different).
+  static bool AreIdenticalTypeParameters(const TypeArguments& arguments,
+                                         const TypeArguments& other_arguments);
+
   virtual intptr_t Length() const;
   virtual RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {

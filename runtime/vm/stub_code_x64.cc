@@ -738,9 +738,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
-  __ pushq(raw_null);  // Null instantiator.
   __ CallRuntimeFromStub(kAllocateArrayRuntimeEntry);
-  __ popq(RAX);  // Pop instantiator.
   __ popq(RAX);  // Pop element type argument.
   __ popq(R10);  // Pop array length argument.
   __ popq(RAX);  // Pop return value from return slot.
@@ -1121,12 +1119,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (is_cls_parameterized) {
       __ movq(RCX, RBX);
       // A new InstantiatedTypeArguments object only needs to be allocated if
-      // the instantiator is non-null.
-      Label null_instantiator;
-      __ cmpq(Address(RSP, kInstantiatorTypeArgumentsOffset), raw_null);
-      __ j(EQUAL, &null_instantiator, Assembler::kNearJump);
+      // the instantiator is provided (not kNoInstantiator, but may be null).
+      Label no_instantiator;
+      __ cmpq(Address(RSP, kInstantiatorTypeArgumentsOffset),
+              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &no_instantiator, Assembler::kNearJump);
       __ addq(RBX, Immediate(type_args_size));
-      __ Bind(&null_instantiator);
+      __ Bind(&no_instantiator);
       // RCX: potential new object end and, if RCX != RBX, potential new
       // InstantiatedTypeArguments object start.
     }
@@ -1270,7 +1269,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ pushq(RDX);  // Push type arguments of instantiator.
   } else {
     __ pushq(raw_null);  // Push null type arguments.
-    __ pushq(raw_null);  // Push null instantiator.
+    __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
   __ CallRuntimeFromStub(kAllocateObjectRuntimeEntry);  // Allocate object.
   __ popq(RAX);  // Pop argument (instantiator).

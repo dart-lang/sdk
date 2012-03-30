@@ -10,6 +10,7 @@
 #include "vm/longjump.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
@@ -1106,9 +1107,11 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     AddInstruction(
         new BindInstr(start_index, new ConstantVal(node->type_arguments())));
     args->Add(new TempVal(start_index));
-    // Null instantiator.
+    // No instantiator required.
+    const Smi& no_instantiator =
+        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator));
     AddInstruction(new BindInstr(
-        start_index + 1, new ConstantVal(Object::ZoneHandle())));
+        start_index + 1, new ConstantVal(no_instantiator)));
     args->Add(new TempVal(start_index + 1));
     return;
   }

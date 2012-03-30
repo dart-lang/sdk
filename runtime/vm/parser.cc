@@ -2909,8 +2909,8 @@ void Parser::ParseInterfaceDefinition(
           TypeArguments::Handle(interface.type_parameters());
       const TypeArguments& factory_type_parameters =
           TypeArguments::Handle(factory_class.type_parameters());
-      if (!AbstractTypeArguments::AreEqual(interface_type_parameters,
-                                           factory_type_parameters)) {
+      if (!TypeArguments::AreIdenticalTypeParameters(interface_type_parameters,
+                                                     factory_type_parameters)) {
         const String& interface_name = String::Handle(interface.Name());
         ErrorMsg(factory_name.ident_pos,
                  "mismatch in number or names of type parameters between "
@@ -3011,7 +3011,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
         ErrorMsg("type parameter name expected");
       }
       String& type_parameter_name = *CurrentLiteral();
-      type_parameter = TypeParameter::New(index,
+      type_parameter = TypeParameter::New(cls,
+                                          index,
                                           type_parameter_name,
                                           token_index_);
       ConsumeToken();

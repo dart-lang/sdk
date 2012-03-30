@@ -485,7 +485,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
       const AbstractTypeArguments& type_arguments =
           AbstractTypeArguments::Handle(type.arguments());
       const bool is_raw_type = type_arguments.IsNull() ||
-          type_arguments.IsDynamicTypes(type_arguments.Length());
+          type_arguments.IsRaw(type_arguments.Length());
       Label runtime_call;
       __ testq(RAX, Immediate(kSmiTagMask));
       __ j(ZERO, &runtime_call, Assembler::kNearJump);
@@ -635,6 +635,7 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 
   const Class& cls = Class::Handle(function.signature_class());
   if (cls.HasTypeArguments()) {
+    UNIMPLEMENTED();  // We should have bailed out.
     __ popq(RCX);  // Discard type arguments.
   }
   if (function.IsImplicitInstanceClosureFunction()) {
@@ -654,18 +655,24 @@ void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
   __ popq(RAX);  // Instantiator.
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If RAX is null, no need to instantiate the type arguments, use null, and
-  // allocate an object of a raw type.
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label type_arguments_instantiated, type_arguments_uninstantiated;
-  __ cmpq(RAX, raw_null);
-  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = comp->type_arguments().Length();
+  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(RAX, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
   // Instantiate non-null type arguments.
   if (comp->type_arguments().IsUninstantiatedIdentity()) {
+    Label type_arguments_uninstantiated;
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator (RAX) for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
@@ -674,8 +681,8 @@ void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
   }
-  __ Bind(&type_arguments_uninstantiated);
   // A runtime call to instantiate the type arguments is required before
   // calling the factory.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
@@ -697,22 +704,24 @@ void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
   __ popq(RAX);  // Instantiator.
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If RAX is null, no need to instantiate the type arguments, use null, and
-  // allocate an object of a raw type.
-  // TODO(regis): The above sentence is actually not correct. If the type
-  // arguments are only partially uninstantiated, we are losing type information
-  // by allocating a raw type. The code needs to be fixed here and in the
-  // unoptimized version (both ia32 and x64).
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label type_arguments_instantiated, type_arguments_uninstantiated;
-  __ cmpq(RAX, raw_null);
-  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-
-  // Check if type arguments represent the uninstantiated identity vector.
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = comp->type_arguments().Length();
+  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(RAX, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  }
+  // Instantiate non-null type arguments.
   if (comp->type_arguments().IsUninstantiatedIdentity()) {
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator (RAX) for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
+    Label type_arguments_uninstantiated;
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
@@ -721,8 +730,8 @@ void FlowGraphCompiler::VisitExtractConstructorTypeArguments(
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    __ Bind(&type_arguments_uninstantiated);
   }
-  __ Bind(&type_arguments_uninstantiated);
   // In the non-factory case, we rely on the allocation stub to
   // instantiate the type arguments.
   __ LoadObject(RAX, comp->type_arguments());
@@ -738,49 +747,51 @@ void FlowGraphCompiler::VisitExtractConstructorInstantiator(
   __ popq(RAX);  // Instantiator.
 
   // RAX is the instantiator AbstractTypeArguments object (or null).
-  // If RAX is null, no need to instantiate the type arguments, use null, and
-  // allocate an object of a raw type.
-  // TODO(regis): The above sentence is actually not correct. If the type
-  // arguments are only partially uninstantiated, we are losing type information
-  // by allocating a raw type. The code needs to be fixed here and in the
-  // unoptimized version (both ia32 and x64).
-
-  // If type arguments represent the uninstantiated identity vector and if the
-  // instantiator is not null, the instantiator was used as type arguments,
-  // therefore, the instantiator must be reset to null here to indicate to the
-  // allocator that the type arguments are instantiated.
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of Dynamic, then use null as
+  // the type arguments and do not pass the instantiator.
+  Label done;
+  const intptr_t len = comp->type_arguments().Length();
+  if (comp->type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    Label instantiator_not_null;
+    __ cmpq(RAX, raw_null);
+    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
+    // Null was used in VisitExtractConstructorTypeArguments as the
+    // instantiated type arguments, no proper instantiator needed.
+    __ movq(RAX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+    __ jmp(&done);
+    __ Bind(&instantiator_not_null);
+  }
+  // Instantiate non-null type arguments.
   if (comp->type_arguments().IsUninstantiatedIdentity()) {
     // TODO(regis): The following emitted code is duplicated in
     // VisitExtractConstructorTypeArguments above. The reason is that the code
     // is split between two computations, so that each one produces a
     // single value, rather than producing a pair of values.
     // If this becomes an issue, we should expose these tests at the IL level.
-    // Note that this code will still change, because bounds checking is not
+    // TODO(regis): This code will still change, because bounds checking is not
     // implemented yet.
-    const Immediate raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    Label use_instantiator;
-    __ cmpq(RAX, raw_null);
-    __ j(EQUAL, &use_instantiator, Assembler::kNearJump);  // Already null.
 
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
+    // No need to check the instantiator (RAX) for null here, because a null
+    // instantiator will have the wrong class (Null instead of TypeArguments).
     __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
     __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
-    __ j(NOT_EQUAL, &use_instantiator, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     Immediate arguments_length = Immediate(reinterpret_cast<int64_t>(
         Smi::New(comp->type_arguments().Length())));
     __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
         arguments_length);
-    __ j(NOT_EQUAL, &use_instantiator, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     // The instantiator was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, reset instantiator to null.
-    __ movq(RAX, raw_null);  // Null instantiator.
-    __ Bind(&use_instantiator);  // Use instantiator in RAX.
+    // instantiated type arguments, no proper instantiator needed.
+    __ movq(RAX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  // RAX: instantiator or null.
+  __ Bind(&done);
+  // RAX: instantiator or kNoInstantiator.
 }
 
 
