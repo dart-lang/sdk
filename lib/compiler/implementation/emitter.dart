@@ -147,8 +147,9 @@ function(child, parent) {
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            argumentsBuffer[count] =
-                handler.writeJsCode(new StringBuffer(), value).toString();
+            StringBuffer argumentBuffer = new StringBuffer();
+            handler.writeConstant(argumentBuffer, value);
+            argumentsBuffer[count] = argumentBuffer.toString();
           }
         }
       }

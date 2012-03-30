@@ -1116,10 +1116,10 @@ class SsaCodeGenerator implements HVisitor {
       if (node.constant.isNum()
           && expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
         buffer.add('(');
-        node.constant.writeJsCode(buffer, handler);
+        handler.writeConstant(buffer, node.constant);
         buffer.add(')');
       } else {
-        node.constant.writeJsCode(buffer, handler);
+        handler.writeConstant(buffer, node.constant);
       }
     } else {
       buffer.add(compiler.namer.CURRENT_ISOLATE);
