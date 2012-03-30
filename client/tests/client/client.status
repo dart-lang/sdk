@@ -24,7 +24,6 @@ dom/TypedArrays1Test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
-dom/HiddenDom2Test: Fail # Issue 1912, frog exposes natives not defined in the class
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.

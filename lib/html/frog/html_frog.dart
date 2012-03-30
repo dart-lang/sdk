@@ -29,11 +29,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker nat
   _AbstractWorkerEventsImpl get on() =>
     new _AbstractWorkerEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
@@ -4175,11 +4175,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void swapCache() native;
 
@@ -4701,19 +4701,19 @@ class _DocumentImpl extends _NodeImpl
 
   _DocumentFragmentImpl createDocumentFragment() native;
 
-  _ElementImpl $dom_createElement(String tagName) native "return this.createElement(tagName);";
+  _ElementImpl $dom_createElement(String tagName) native "createElement";
 
-  _ElementImpl $dom_createElementNS(String namespaceURI, String qualifiedName) native "return this.createElementNS(namespaceURI, qualifiedName);";
+  _ElementImpl $dom_createElementNS(String namespaceURI, String qualifiedName) native "createElementNS";
 
-  _EventImpl $dom_createEvent(String eventType) native "return this.createEvent(eventType);";
+  _EventImpl $dom_createEvent(String eventType) native "createEvent";
 
   _RangeImpl createRange() native;
 
-  _TextImpl $dom_createTextNode(String data) native "return this.createTextNode(data);";
+  _TextImpl $dom_createTextNode(String data) native "createTextNode";
 
   _TouchImpl createTouch(_WindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
 
-  _TouchListImpl $dom_createTouchList() native "return this.createTouchList();";
+  _TouchListImpl $dom_createTouchList() native "createTouchList";
 
   _ElementImpl elementFromPoint(int x, int y) native;
 
@@ -4721,13 +4721,13 @@ class _DocumentImpl extends _NodeImpl
 
   _CanvasRenderingContextImpl getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  _ElementImpl $dom_getElementById(String elementId) native "return this.getElementById(elementId);";
+  _ElementImpl $dom_getElementById(String elementId) native "getElementById";
 
-  _NodeListImpl $dom_getElementsByClassName(String tagname) native "return this.getElementsByClassName(tagname);";
+  _NodeListImpl $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
 
-  _NodeListImpl $dom_getElementsByName(String elementName) native "return this.getElementsByName(elementName);";
+  _NodeListImpl $dom_getElementsByName(String elementName) native "getElementsByName";
 
-  _NodeListImpl $dom_getElementsByTagName(String tagname) native "return this.getElementsByTagName(tagname);";
+  _NodeListImpl $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
 
   bool queryCommandEnabled(String command) native;
 
@@ -4739,9 +4739,9 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) native;
 
-  _ElementImpl _query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl _query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   void webkitCancelFullScreen() native;
 
@@ -5230,9 +5230,9 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
 
@@ -6077,17 +6077,17 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void focus() native;
 
-  String $dom_getAttribute(String name) native "return this.getAttribute(name);";
+  String $dom_getAttribute(String name) native "getAttribute";
 
-  _ClientRectImpl $dom_getBoundingClientRect() native "return this.getBoundingClientRect();";
+  _ClientRectImpl $dom_getBoundingClientRect() native "getBoundingClientRect";
 
-  _ClientRectListImpl $dom_getClientRects() native "return this.getClientRects();";
+  _ClientRectListImpl $dom_getClientRects() native "getClientRects";
 
-  _NodeListImpl $dom_getElementsByClassName(String name) native "return this.getElementsByClassName(name);";
+  _NodeListImpl $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
-  _NodeListImpl $dom_getElementsByTagName(String name) native "return this.getElementsByTagName(name);";
+  _NodeListImpl $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
-  bool $dom_hasAttribute(String name) native "return this.hasAttribute(name);";
+  bool $dom_hasAttribute(String name) native "hasAttribute";
 
   _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
 
@@ -6095,21 +6095,21 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void insertAdjacentText(String where, String text) native;
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  void $dom_removeAttribute(String name) native "this.removeAttribute(name);";
+  void $dom_removeAttribute(String name) native "removeAttribute";
 
   void scrollByLines(int lines) native;
 
   void scrollByPages(int pages) native;
 
-  void scrollIntoView([bool centerIfNeeded = null]) native "this.scrollIntoViewIfNeeded(centerIfNeeded);";
+  void scrollIntoView([bool centerIfNeeded = null]) native "scrollIntoViewIfNeeded";
 
-  void $dom_setAttribute(String name, String value) native "this.setAttribute(name, value);";
+  void $dom_setAttribute(String name, String value) native "setAttribute";
 
-  bool matchesSelector(String selectors) native "return this.webkitMatchesSelector(selectors);";
+  bool matchesSelector(String selectors) native "webkitMatchesSelector";
 
   void webkitRequestFullScreen(int flags) native;
 
@@ -6461,7 +6461,7 @@ class _EventImpl implements Event native "*Event" {
 
   final String type;
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "this.initEvent(eventTypeArg, canBubbleArg, cancelableArg);";
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "initEvent";
 
   void preventDefault() native;
 
@@ -6502,13 +6502,13 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close() native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
@@ -6582,11 +6582,11 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 
   Events get on() => new _EventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
 }
 
@@ -8584,15 +8584,15 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
   _MessagePortEventsImpl get on() =>
     new _MessagePortEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close() native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   void postMessage(String message, [List messagePorts = null]) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void start() native;
 
@@ -8683,7 +8683,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final int y;
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "this.initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
@@ -9044,9 +9044,9 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   void set text(String value) native "this.textContent = value;";
 
-  _NodeImpl $dom_appendChild(_NodeImpl newChild) native "return this.appendChild(newChild);";
+  _NodeImpl $dom_appendChild(_NodeImpl newChild) native "appendChild";
 
-  _NodeImpl clone(bool deep) native "return this.cloneNode(deep);";
+  _NodeImpl clone(bool deep) native "cloneNode";
 
   bool contains(_NodeImpl other) native;
 
@@ -9054,9 +9054,9 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   _NodeImpl insertBefore(_NodeImpl newChild, _NodeImpl refChild) native;
 
-  _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "return this.removeChild(oldChild);";
+  _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "removeChild";
 
-  _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "return this.replaceChild(newChild, oldChild);";
+  _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "replaceChild";
 
 }
 
@@ -9295,9 +9295,9 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
 class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -10429,7 +10429,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument native "*SVG
 
   final _SVGSVGElementImpl rootElement;
 
-  _EventImpl $dom_createEvent(String eventType) native "return this.createEvent(eventType);";
+  _EventImpl $dom_createEvent(String eventType) native "createEvent";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10518,11 +10518,11 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
   final _SVGElementInstanceImpl previousSibling;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
@@ -15719,13 +15719,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close([int code = null, String reason = null]) native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   bool send(String data) native;
 }
@@ -15896,7 +15896,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   final _WindowImpl window;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void alert(String message) native;
 
@@ -15916,13 +15916,13 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   bool confirm(String message) native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   void focus() native;
 
-  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "return this.getComputedStyle(element, pseudoElement);";
+  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "getComputedStyle";
 
   _CSSRuleListImpl getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
 
@@ -15946,7 +15946,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void releaseEvents() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void resizeBy(num x, num y) native;
 
@@ -16276,9 +16276,9 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   String getAllResponseHeaders() native;
 
@@ -16288,7 +16288,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void overrideMimeType(String override) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void send([var data = null]) native;
 
@@ -16340,11 +16340,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
   _XMLHttpRequestUploadEventsImpl get on() =>
     new _XMLHttpRequestUploadEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {

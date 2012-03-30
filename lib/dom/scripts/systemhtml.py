@@ -981,15 +981,12 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
           TYPE=return_type,
           HTML_NAME=html_name,
           NAME=info.name,
-          RETURN='' if return_type == 'void' else 'return ',
-          PARAMNAMES=info.ParametersAsArgumentList(),
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
 
       operation_emitter.Emit(
           '\n'
-          '  $TYPE $(HTML_NAME)($PARAMS)'
-          ' native "$(RETURN)this.$NAME($PARAMNAMES);";\n')
+          '  $TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
