@@ -1870,7 +1870,12 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool get builtin() {
-    return (left.isNumber() && right.isNumber()) || left is HConstant;
+    if (left.isNumber() && right.isNumber()) return true;
+    if (left is !HConstant) return false;
+    HConstant leftConstant = left;
+    // TODO(floitsch): we can do better if we know that the constant does not
+    // have the equality operator overridden.
+    return !leftConstant.constant.isConstructedObject();
   }
 
   HType computeType() => HType.BOOLEAN;
