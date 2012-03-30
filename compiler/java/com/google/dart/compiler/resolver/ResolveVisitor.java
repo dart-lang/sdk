@@ -86,6 +86,7 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       type = Types.makeFunctionType(getContext(), functionElement, parameterElements, type);
     }
     Elements.setType(element, type);
+    recordElement(node.getName(), element);
     return recordElement(node, element);
   }
   

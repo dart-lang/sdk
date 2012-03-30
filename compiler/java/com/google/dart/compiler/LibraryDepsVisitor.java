@@ -133,12 +133,13 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
   private void addElementDependency(Element element) {
     DartSource elementSource = (DartSource) element.getSourceInfo().getSource();
     if (elementSource != null) {
-      URI libUri = elementSource.getLibrary().getUri();
-      LibraryDeps.Dependency dep =
-          new LibraryDeps.Dependency(libUri,
-              elementSource.getName(),
-              elementSource.getLastModified());
-      source.addDep(dep);
+      LibrarySource library = elementSource.getLibrary();
+      if (library != null) {
+        URI libUri = library.getUri();
+        LibraryDeps.Dependency dep = new LibraryDeps.Dependency(libUri, elementSource.getName(),
+            elementSource.getLastModified());
+        source.addDep(dep);
+      }
     }
   }
 }

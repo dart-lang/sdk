@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -310,6 +311,11 @@ public class CompileTimeConstantAnalyzer {
     public Void visitIdentifier(DartIdentifier x) {
       x.visitChildren(this);
 
+      if (x.getParent() instanceof DartDeclaration<?>
+          && ((DartDeclaration<?>) x.getParent()).getName() == x) {
+        return null;
+      }
+
       Element element = x.getElement();
       switch (ElementKind.of(element)) {
         case CLASS:
@@ -337,9 +343,9 @@ public class CompileTimeConstantAnalyzer {
           final Type inferredType;
           if (element instanceof FieldNodeElement) {
             FieldNodeElement fieldNodeElement = (FieldNodeElement) element;
-            DartNode identifierNode = fieldNodeElement.getNode();
-            identifierNode.accept(this);
-            inferredType = getMostSpecificType(identifierNode);
+            DartNode fieldNode = fieldNodeElement.getNode();
+            fieldNode.accept(this);
+            inferredType = getMostSpecificType(fieldNode);
             fieldNodeElement.setConstantType(inferredType);
           } else if (fieldElement.getType() != null 
               && !fieldElement.getType().equals(dynamicType)) {

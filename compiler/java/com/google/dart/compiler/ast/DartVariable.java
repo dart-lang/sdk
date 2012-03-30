@@ -41,7 +41,7 @@ public class DartVariable extends DartDeclaration<DartIdentifier> {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    getName().accept(visitor);
+    super.visitChildren(visitor);
     if (value != null) {
       value.accept(visitor);
     }

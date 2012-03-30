@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 
 /**
@@ -25,6 +26,7 @@ public class DartTypeParameter extends DartDeclaration<DartIdentifier> {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     if (bound != null) {
       bound.accept(visitor);
     }
@@ -43,5 +45,10 @@ public class DartTypeParameter extends DartDeclaration<DartIdentifier> {
   @Override
   public void setType(Type type) {
     this.type = type;
+  }
+  
+  @Override
+  public Element getElement() {
+    return getName().getElement();
   }
 }

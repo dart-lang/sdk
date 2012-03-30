@@ -957,7 +957,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  A.foo(this.x) { }",
             "  final x;",
             "}"),
-        errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 3, 25));
+        errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 9, 1));
   }
 
   public void testRawTypesNegativeTest() {

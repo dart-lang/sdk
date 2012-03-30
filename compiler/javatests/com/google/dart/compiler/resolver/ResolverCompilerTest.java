@@ -7,23 +7,37 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartExprStmt;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartLabel;
+import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.FunctionAliasType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 
 import java.io.Reader;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -739,5 +753,130 @@ public class ResolverCompilerTest extends CompilerTestCase {
     } finally {
       reader.close();
     }
+  }
+
+  /**
+   * Each name in {@link DartNode}, such as all names in {@link DartDeclaration}s should have same
+   * {@link Element} as the {@link Element} of enclosing {@link DartNode}.
+   */
+  public void test_setElement_forName_inDeclarations() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "class A<B extends A> {",
+                "  var a1;",
+                "  get a2() {}",
+                "  A() {}",
+                "}",
+                "var c;",
+                "d(e) {",
+                "  var f;",
+                "  g() {};",
+                "  () {} ();",
+                "  h: d(0);",
+                "}",
+                "typedef i();",
+                ""));
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    // in class A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
+      assertDeclarationNameElement(classA, "A");
+      {
+        DartTypeParameter typeParameter = classA.getTypeParameters().get(0);
+        assertDeclarationNameElement(typeParameter, "B");
+      }
+      {
+        DartFieldDefinition fieldDef = (DartFieldDefinition) classA.getMembers().get(0);
+        assertDeclarationNameElement(fieldDef.getFields().get(0), "a1");
+      }
+      {
+        DartFieldDefinition fieldDef = (DartFieldDefinition) classA.getMembers().get(1);
+        assertDeclarationNameElement(fieldDef.getFields().get(0), "a2");
+      }
+      {
+        DartMethodDefinition constructor = (DartMethodDefinition) classA.getMembers().get(2);
+        assertDeclarationNameElement(constructor, "");
+      }
+    }
+    // top level "c"
+    {
+      DartFieldDefinition fieldDef = (DartFieldDefinition) unit.getTopLevelNodes().get(1);
+      assertDeclarationNameElement(fieldDef.getFields().get(0), "c");
+    }
+    // top level "d"
+    {
+      DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(2);
+      assertDeclarationNameElement(method, "d");
+      {
+        DartParameter parameter = method.getFunction().getParameters().get(0);
+        assertDeclarationNameElement(parameter, "e");
+      }
+      {
+        List<DartStatement> statements = method.getFunction().getBody().getStatements();
+        {
+        DartVariableStatement variableStatement = (DartVariableStatement) statements.get(0);
+        assertDeclarationNameElement(variableStatement.getVariables().get(0), "f");
+        }
+        {
+          DartExprStmt statement = (DartExprStmt) statements.get(1);
+          DartFunctionExpression functionExpression = (DartFunctionExpression) statement.getExpression();
+          assertNameHasSameElement(functionExpression, functionExpression.getName(), "g");
+        }
+        {
+          DartLabel label = (DartLabel) statements.get(4);
+          assertNameHasSameElement(label, label.getLabel(), "h");
+        }
+      }
+    }
+    // top level "i"
+    {
+      DartFunctionTypeAlias functionType = (DartFunctionTypeAlias) unit.getTopLevelNodes().get(3);
+      assertDeclarationNameElement(functionType, "i");
+    }
+    // assert that all DartIdentifiers are visited
+    final LinkedList<String> visitedIdentifiers = Lists.newLinkedList();
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitIdentifier(DartIdentifier node) {
+        visitedIdentifiers.addLast(node.getName());
+        return null;
+      }
+    });
+    assertEquals("A", visitedIdentifiers.removeFirst());
+    assertEquals("B", visitedIdentifiers.removeFirst());
+    assertEquals("A", visitedIdentifiers.removeFirst());
+    assertEquals("a1", visitedIdentifiers.removeFirst());
+    assertEquals("a2", visitedIdentifiers.removeFirst());
+    assertEquals("a2", visitedIdentifiers.removeFirst());
+    assertEquals("A", visitedIdentifiers.removeFirst());
+    assertEquals("c", visitedIdentifiers.removeFirst());
+    assertEquals("d", visitedIdentifiers.removeFirst());
+    assertEquals("e", visitedIdentifiers.removeFirst());
+    assertEquals("f", visitedIdentifiers.removeFirst());
+    assertEquals("g", visitedIdentifiers.removeFirst());
+    assertEquals("h", visitedIdentifiers.removeFirst());
+    assertEquals("d", visitedIdentifiers.removeFirst());
+    assertEquals("i", visitedIdentifiers.removeFirst());
+  }
+
+  /**
+   * Asserts that given nodes have same not <code>null</code> {@link Element}.
+   */
+  private static void assertDeclarationNameElement(DartDeclaration<? extends DartExpression> declaration, String name) {
+    assertNameHasSameElement(declaration, declaration.getName(), name);
+  }
+  
+  /**
+   * Asserts that given nodes have same not <code>null</code> {@link Element}.
+   */
+  private static void assertNameHasSameElement(DartNode node, DartExpression nameNode, String name) {
+    Element expectedElement = node.getElement();
+    assertNotNull(expectedElement);
+    assertEquals(name, expectedElement.getName());
+    assertSame(expectedElement, nameNode.getElement());
   }
 }

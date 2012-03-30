@@ -1342,6 +1342,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
                               || Elements.isTopLevel(element))) {
         return element.getType();
       }
+      if (element instanceof ConstructorElement) {
+        return element.getType();
+      }
       DartNode qualifier = node.getQualifier();
       Type receiver = nonVoidTypeOf(qualifier);
       InterfaceType cls = types.getInterfaceType(receiver);

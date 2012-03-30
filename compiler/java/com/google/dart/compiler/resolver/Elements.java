@@ -341,7 +341,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   static List<TypeVariable> makeTypeVariables(List<DartTypeParameter> parameterNodes,
-                                              EnclosingElement element) {
+                                              EnclosingElement enclosingElement) {
     if (parameterNodes == null) {
       return Arrays.<TypeVariable>asList();
     }
@@ -349,7 +349,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     int i = 0;
     for (DartTypeParameter parameterNode : parameterNodes) {
       TypeVariable typeVariable =
-          Elements.typeVariableFromNode(parameterNode, element).getTypeVariable();
+          Elements.typeVariableFromNode(parameterNode, enclosingElement).getTypeVariable();
       typeVariables[i++] = typeVariable;
       parameterNode.getName().setElement(typeVariable.getElement());
     }

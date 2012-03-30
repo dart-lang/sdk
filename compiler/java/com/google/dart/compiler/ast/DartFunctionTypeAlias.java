@@ -56,6 +56,7 @@ public class DartFunctionTypeAlias extends DartDeclaration<DartIdentifier> {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     if (returnTypeNode != null) {
       returnTypeNode.accept(visitor);
     }

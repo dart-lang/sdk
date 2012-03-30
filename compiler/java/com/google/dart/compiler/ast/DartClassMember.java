@@ -24,8 +24,4 @@ public abstract class DartClassMember<N extends DartExpression> extends DartDecl
 
   @Override
   public abstract NodeElement getElement();
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-  }
 }
