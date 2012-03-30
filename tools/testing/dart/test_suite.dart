@@ -984,6 +984,52 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 }
 
 
+/**
+ * A standard test suite whose file organization matches an expected structure.
+ * To use this, your suite should look like:
+ *
+ *     dart/
+ *       path/
+ *         to/
+ *           mytestsuite/
+ *             mytestsuite.status
+ *             example1_tests.dart
+ *             example2_tests.dart
+ *             example3_tests.dart
+ *
+ * The important parts:
+ *
+ * * The leaf directory name is the name of your test suite.
+ * * The status file uses the same name.
+ * * Test files are directly in that directory and end in "_tests.dart".
+ *
+ * If you follow that convention, then you can construct one of these like:
+ *
+ *     new DirectoryTestSuite(configuration, 'path/to/mytestsuite');
+ *
+ * instead of having to create a custom [StandardTestSuite] subclass. In
+ * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES] in
+ * test.dart, this will all be set up for you.
+ */
+class DirectoryTestSuite extends StandardTestSuite {
+  factory DirectoryTestSuite(Map configuration, String directory) {
+    final name = directory.substring(directory.lastIndexOf('/') + 1);
+    print(name);
+
+    return new DirectoryTestSuite._internal(configuration,
+      name, directory, ['$directory/$name.status']);
+  }
+
+  DirectoryTestSuite._internal(Map configuration,
+                               String suiteName,
+                               String directoryPath,
+                               List<String> statusFilePaths)
+    : super(configuration, suiteName, directoryPath, statusFilePaths);
+
+  bool isTestFile(String filename) => filename.endsWith('_tests.dart');
+}
+
+
 class JUnitTestSuite implements TestSuite {
   Map configuration;
   String suiteName;
