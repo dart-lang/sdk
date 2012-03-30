@@ -668,7 +668,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return StatementType.NOT_RETURNING;
   }
 
-  visitForInStatement(ForInStatement node) {
+  visitForIn(ForIn node) {
     analyze(node.expression);
     StatementType bodyType = analyze(node.body);
     return bodyType.join(StatementType.NOT_RETURNING);

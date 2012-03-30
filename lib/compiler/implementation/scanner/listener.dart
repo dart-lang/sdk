@@ -82,7 +82,7 @@ class Listener {
                        Token beginToken, Token endToken) {
   }
 
-  void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
+  void endForIn(Token beginToken, Token inKeyword, Token endToken) {
   }
 
   void beginFunction(Token token) {
@@ -1374,11 +1374,11 @@ class NodeListener extends ElementListener {
                                     modifiers, null, null));
   }
 
-  void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
+  void endForIn(Token beginToken, Token inKeyword, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
-    pushNode(new ForInStatement(declaredIdentifier, expression, body,
+    pushNode(new ForIn(declaredIdentifier, expression, body,
                                 beginToken, inKeyword));
   }
 

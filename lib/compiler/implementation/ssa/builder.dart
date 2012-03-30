@@ -631,6 +631,7 @@ interface JumpHandler default JumpHandlerImpl {
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
   void forEachContinue(void action(HBreak instruction, LocalsHandler locals));
   void close();
+  final TargetElement target;
   List<LabelElement> labels();
 }
 
@@ -644,6 +645,7 @@ class NullJumpHandler implements JumpHandler {
   void forEachBreak(Function ignored) { }
   void forEachContinue(Function ignored) { }
   void close() { }
+  final TargetElement target = null;
   List<LabelElement> labels() => const <LabelElement>[];
 }
 
@@ -1060,7 +1062,10 @@ class SsaBuilder implements Visitor {
     HBasicBlock previousBlock = close(new HGoto());
 
     JumpHandler jumpHandler = createJumpHandler(node);
-    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(jumpHandler.labels());
+    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(
+        HLoopInformation.loopType(node),
+        jumpHandler.target,
+        jumpHandler.labels());
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
 
@@ -1116,15 +1121,26 @@ class SsaBuilder implements Visitor {
     localsHandler.startLoop(loop);
 
     // The initializer.
+    HBasicBlock initializerBlock = graph.addNewBlock();
+    goto(current, initializerBlock);
+    open(initializerBlock);
     initialize();
     assert(!isAborted());
+    SubGraph initializerGraph = new SubGraph(initializerBlock, current);
 
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
+    HLoopInformation loopInfo = current.loopInformation;
+    // The initializer graph is currently unused due to the way we
+    // generate code.
+    loopInfo.initializer = initializerGraph;
 
     HInstruction conditionInstruction = condition();
     HBasicBlock conditionExitBlock =
         close(new HLoopBranch(conditionInstruction));
+    loopInfo.condition = new SubExpression(conditionBlock,
+                                           conditionExitBlock,
+                                           conditionInstruction);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1138,6 +1154,7 @@ class SsaBuilder implements Visitor {
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, current);
     HBasicBlock bodyBlock = close(new HGoto());
+    loopInfo.body = bodyGraph;
 
     // Update.
     // We create an update block, even when we are in a while loop. There the
@@ -1174,12 +1191,14 @@ class SsaBuilder implements Visitor {
 
     update();
 
-    updateBlock = close(new HGoto());
+    HBasicBlock updateEndBlock = close(new HGoto());
     // The back-edge completing the cycle.
-    updateBlock.addSuccessor(conditionBlock);
+    updateEndBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
+    loopInfo.updates = new SubGraph(updateBlock, updateEndBlock);
 
     endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
+    loopInfo.joinBlock = current;
   }
 
   visitFor(For node) {
@@ -1232,6 +1251,7 @@ class SsaBuilder implements Visitor {
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
     JumpHandler jumpHandler = beginLoopHeader(node);
+    HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
     TargetElement target = elements[node];
@@ -1285,14 +1305,20 @@ class SsaBuilder implements Visitor {
 
     visit(node.condition);
     assert(!isAborted());
-    conditionBlock = close(new HLoopBranch(popBoolified(),
-                                           HLoopBranch.DO_WHILE_LOOP));
+    HInstruction conditionInstruction = popBoolified();
+    HBasicBLock conditionEndBlock =
+        close(new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
-    conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+    conditionEndBlock.addSuccessor(loopEntryBlock);  // The back-edge.
     loopEntryBlock.postProcessLoopHeader();
 
-    endLoop(loopEntryBlock, conditionBlock, jumpHandler, localsHandler);
+    endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
     jumpHandler.close();
+
+    loopInfo.body = new SubGraph(bodyEntryBlock, bodyExitBlock);
+    loopInfo.condition = new SubExpression(conditionBlock, conditionEndBlock,
+                                           conditionInstruction);
+    loopInfo.joinBlock = current;
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -2394,6 +2420,7 @@ class SsaBuilder implements Visitor {
       handler.generateContinue();
     } else {
       LabelElement label = elements[node.target];
+      assert(label !== null);
       handler.generateContinue(label);
     }
   }
@@ -2412,7 +2439,7 @@ class SsaBuilder implements Visitor {
     return new JumpHandler(this, element);
   }
 
-  visitForInStatement(ForInStatement node) {
+  visitForIn(ForIn node) {
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator()
     //   while ($iter.hasNext()) {

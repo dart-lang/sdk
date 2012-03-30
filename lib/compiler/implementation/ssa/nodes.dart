@@ -138,9 +138,11 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(List<LabelElement> labels) {
+  HBasicBlock addNewLoopHeaderBlock(int type,
+                                    TargetElement target,
+                                    List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
-    result.loopInformation = new HLoopInformation(result, labels);
+    result.loopInformation = new HLoopInformation(type, result, target, labels);
     return result;
   }
 
@@ -318,6 +320,12 @@ class SubGraph {
     assert(block !== null);
     return start.id <= block.id && block.id <= end.id;
   }
+}
+
+class SubExpression extends SubGraph {
+  final HInstruction expression;
+  const SubExpression(HBasicBlock start, HBasicBlock end, this.expression)
+      : super(start, end);
 }
 
 class HInstructionList {
@@ -645,7 +653,9 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 }
 
-class HLabeledBlockInformation {
+interface HBlockInformation {}
+
+class HLabeledBlockInformation implements HBlockInformation {
   final SubGraph body;
   final HBasicBlock joinBlock;
   final List<LabelElement> labels;
@@ -664,15 +674,42 @@ class HLabeledBlockInformation {
       : this.labels = const<LabelElement>[];
 }
 
-class HLoopInformation {
+class LoopTypeVisitor extends AbstractVisitor {
+  const LoopTypeVisitor();
+  int visitNode(Node node) {
+    unreachable();
+  }
+  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
+  int visitFor(For node) => HLoopInformation.FOR_LOOP;
+  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
+  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
+}
+
+class HLoopInformation implements HBlockInformation {
+  static final int WHILE_LOOP = 0;
+  static final int FOR_LOOP = 1;
+  static final int DO_WHILE_LOOP = 2;
+  static final int FOR_IN_LOOP = 3;
+
+  final int type;
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
   final List<LabelElement> labels;
+  final TargetElement target;
+  SubGraph initializer = null;
+  SubExpression condition = null;
+  SubGraph body = null;
+  SubGraph updates = null;
+  HBasicBlock joinBlock;
 
-  HLoopInformation(this.header, this.labels)
+  HLoopInformation(this.type, this.header, this.target, this.labels)
       : blocks = new List<HBasicBlock>(),
         backEdges = new List<HBasicBlock>();
+
+  static int loopType(Node node) {
+    return node.accept(const LoopTypeVisitor());
+  }
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);
@@ -819,6 +856,8 @@ class HInstruction implements Hashable {
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
+  // Does this node pNotentially affect control flow.
+  bool isControlFlow() => false;
 
   bool isArray() => type.isArray();
   bool isBoolean() => type.isBoolean();
@@ -982,6 +1021,8 @@ class HCheck extends HInstruction {
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
+
+  bool isControlFlow() => true;
 }
 
 class HTypeGuard extends HInstruction {
@@ -997,6 +1038,8 @@ class HTypeGuard extends HInstruction {
 
   HType computeType() => type;
   bool hasExpectedType() => true;
+
+  bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
@@ -1056,6 +1099,7 @@ class HConditionalBranch extends HControlFlow {
 class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
+  bool isControlFlow() => true;
 }
 
 class HInvoke extends HInstruction {
