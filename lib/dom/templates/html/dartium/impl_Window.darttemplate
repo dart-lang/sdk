@@ -4,7 +4,7 @@
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
-  _DocumentImpl get document() => _wrap(_ptr.document.documentElement);
+  _DocumentImpl get document() => _wrap(_ptr.document);
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);

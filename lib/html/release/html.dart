@@ -20969,7 +20969,7 @@ class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
 
 class _WindowImpl extends _EventTargetImpl implements Window {
 
-  _DocumentImpl get document() => _wrap(_ptr.document.documentElement);
+  _DocumentImpl get document() => _wrap(_ptr.document);
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);

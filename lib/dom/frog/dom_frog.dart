@@ -12,7 +12,7 @@
 
 // TODO(sra): What 'window' do we get in a worker?  Perhaps this
 // should return the interface type.
-Window get window() native "return window;";
+DOMWindow get window() native "return window;";
 
 HTMLDocument get document() native "return document;";
 
