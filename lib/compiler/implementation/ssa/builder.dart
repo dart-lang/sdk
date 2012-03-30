@@ -932,7 +932,7 @@ class SsaBuilder implements Visitor {
       }
       constructorArguments.add(value);
     });
-  
+
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
     // Generate calls to the constructor bodies.
@@ -1306,7 +1306,7 @@ class SsaBuilder implements Visitor {
     visit(node.condition);
     assert(!isAborted());
     HInstruction conditionInstruction = popBoolified();
-    HBasicBLock conditionEndBlock =
+    HBasicBlock conditionEndBlock =
         close(new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
     conditionEndBlock.addSuccessor(loopEntryBlock);  // The back-edge.
