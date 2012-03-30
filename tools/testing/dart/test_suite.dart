@@ -264,7 +264,7 @@ class StandardTestSuite implements TestSuite {
     // Use the specified predicate, if provided.
     if (isTestFilePredicate != null) return isTestFilePredicate(filename);
 
-    filename.endsWith("Test.dart");
+    return filename.endsWith("Test.dart");
   }
 
   bool listRecursively() => false;
@@ -385,7 +385,7 @@ class StandardTestSuite implements TestSuite {
         return;
       }
     }
-    
+
     Set<String> expectations = testExpectations.expectations(testName);
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
