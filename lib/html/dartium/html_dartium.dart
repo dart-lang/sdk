@@ -6773,7 +6773,7 @@ class _DocumentImpl extends _NodeImpl
   _DocumentImpl._wrap(ptr) : super._wrap(ptr);
 
   _DocumentEventsImpl get on() {
-    if (_on == null) _on = new _DocumentEventsImpl(_wrappedDocumentPtr);
+    if (_on == null) _on = new _DocumentEventsImpl(this);
     return _on;
   }
 

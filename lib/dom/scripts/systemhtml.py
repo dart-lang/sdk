@@ -1394,12 +1394,10 @@ class HtmlDartiumInterfaceGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE get on() {\n'
-        '    if (_on == null) _on = new $TYPE($EVENTTARGET);\n'
+        '    if (_on == null) _on = new $TYPE(this);\n'
         '    return _on;\n'
         '  }\n',
-        TYPE=events_class,
-        EVENTTARGET='_wrappedDocumentPtr' if self._interface.id == 'Document'
-            else 'this')
+        TYPE=events_class)
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
