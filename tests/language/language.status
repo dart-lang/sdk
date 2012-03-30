@@ -81,8 +81,6 @@ GetSetSyntaxTest/13: Fail # Issue 1569
 GetSetSyntaxTest/14: Fail # Issue 1569
 GetSetSyntaxTest/15: Fail # Issue 1569
 
-CompileTimeConstant3Test: Fail # Issue 1780
-CompileTimeConstant6Test: Fail # Issue 1794
 
 AssignStaticTypeTest/01: Skip # Issue 2070 (fails only in checked mode)
 AssignStaticTypeTest/02: Skip # Issue 2070 (fails only in checked mode)

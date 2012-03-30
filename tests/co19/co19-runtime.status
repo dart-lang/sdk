@@ -13,6 +13,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (c
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
 Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
 Language/10_Expressions/01_Constants_A15_t01: Fail # co19 issue 100
+Language/10_Expressions/01_Constants_A15_t34: Fail # co19 issue 106
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # issue 1991.
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
