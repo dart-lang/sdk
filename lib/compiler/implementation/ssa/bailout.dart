@@ -205,6 +205,7 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
     environment = thenEnvironment;
     visitSubGraph(info.thenGraph);
     environment.addAll(elseEnvironment);
+    visitInstruction(instruction);
   }
 
   void visitGoto(HGoto goto) {
@@ -252,6 +253,7 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
     // We merge the environment required by the code after the loop,
     // and the code inside the loop.
     environment.addAll(joinEnvironment);
+    visitInstruction(branch);
   }
 
   // Deal with all kinds of control flow instructions. In case we add
