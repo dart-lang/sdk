@@ -14,6 +14,7 @@
  */
 #library('apidoc');
 
+#import('dart:io');
 #import('dart:json');
 #import('html_diff.dart');
 #import('../../frog/lang.dart');
@@ -29,11 +30,10 @@ void main() {
   final args = new Options().arguments;
 
   int mode = doc.MODE_STATIC;
-  var outputDir = 'docs';
+  String outputDir = 'docs';
 
-  // Use the output directory if provided.
-
-  for (int i = 0; i < args.length - 1; i++) {
+  // Parse the command-line arguments.
+  for (int i = 0; i < args.length; i++) {
     final arg = args[i];
 
     switch (arg) {
@@ -83,7 +83,8 @@ void main() {
   initializeWorld(files);
 
   print('Parsing MDN data...');
-  final mdn = JSON.parse(files.readAll('mdn/database.json'));
+  final mdnFile = new File('${doc.scriptDir}/mdn/database.json');
+  final mdn = JSON.parse(mdnFile.readAsTextSync());
 
   print('Cross-referencing dart:dom and dart:html...');
   HtmlDiff.initialize();

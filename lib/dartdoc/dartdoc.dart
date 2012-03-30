@@ -140,8 +140,9 @@ void cleanOutputDirectory(String path) {
   final outputDir = new Directory(path);
   if (outputDir.existsSync()) {
     outputDir.deleteRecursivelySync();
-    outputDir.createSync();
   }
+
+  outputDir.createSync();
 }
 
 /**
