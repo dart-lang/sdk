@@ -6,7 +6,7 @@
  * Provides a Map abstraction on top of data-* attributes, similar to the
  * dataSet in the old DOM.
  */
-class _DataAttributeMap implements Map<String, String> {
+class _DataAttributeMap implements AttributeMap {
 
   final Map<String, String> _attributes;
 
@@ -21,8 +21,8 @@ class _DataAttributeMap implements Map<String, String> {
 
   String operator [](String key) => _attributes[_attr(key)];
 
-  void operator []=(String key, String value) {
-    _attributes[_attr(key)] = value;
+  void operator []=(String key, value) {
+    _attributes[_attr(key)] = '$value';
   }
 
   String putIfAbsent(String key, String ifAbsent()) {

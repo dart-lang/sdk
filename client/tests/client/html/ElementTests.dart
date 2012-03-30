@@ -412,38 +412,48 @@ void testElement() {
         (listener) => Testing.addEventListener(element,
             'webkitfullscreenchange', listener, true));
   });
+ 
+  group('attributes', () {
+      test('manipulation', () {
+        final element = new Element.html(
+            '''<div class="foo" style="overflow: hidden" data-foo="bar"
+                   data-foo2="bar2" dir="rtl">
+               </div>''');
+        final attributes = element.attributes;
+        Expect.equals(attributes['class'], 'foo');
+        Expect.equals(attributes['style'], 'overflow: hidden');
+        Expect.equals(attributes['data-foo'], 'bar');
+        Expect.equals(attributes['data-foo2'], 'bar2');
+        Expect.equals(attributes.length, 5);
+        Expect.equals(element.dataAttributes.length, 2);
+        element.dataAttributes['foo'] = 'baz';
+        Expect.equals(element.dataAttributes['foo'], 'baz');
+        Expect.equals(attributes['data-foo'], 'baz');
+        attributes['data-foo2'] = 'baz2';
+        Expect.equals(attributes['data-foo2'], 'baz2');
+        Expect.equals(element.dataAttributes['foo2'], 'baz2');
+        Expect.equals(attributes['dir'], 'rtl');
 
-  test('attributes', () {
-    final element = new Element.html(
-        '''<div class="foo" style="overflow: hidden" data-foo="bar"
-               data-foo2="bar2" dir="rtl">
-           </div>''');
-    final attributes = element.attributes;
-    Expect.equals(attributes['class'], 'foo');
-    Expect.equals(attributes['style'], 'overflow: hidden');
-    Expect.equals(attributes['data-foo'], 'bar');
-    Expect.equals(attributes['data-foo2'], 'bar2');
-    Expect.equals(attributes.length, 5);
-    Expect.equals(element.dataAttributes.length, 2);
-    element.dataAttributes['foo'] = 'baz';
-    Expect.equals(element.dataAttributes['foo'], 'baz');
-    Expect.equals(attributes['data-foo'], 'baz');
-    attributes['data-foo2'] = 'baz2';
-    Expect.equals(attributes['data-foo2'], 'baz2');
-    Expect.equals(element.dataAttributes['foo2'], 'baz2');
-    Expect.equals(attributes['dir'], 'rtl');
+        final dataAttributes = element.dataAttributes;
+        dataAttributes.remove('foo2');
+        Expect.equals(attributes.length, 4);
+        Expect.equals(dataAttributes.length, 1);
+        attributes.remove('style');
+        Expect.equals(attributes.length, 3);
+        dataAttributes['foo3'] = 'baz3';
+        Expect.equals(dataAttributes.length, 2);
+        Expect.equals(attributes.length, 4);
+        attributes['style'] = 'width: 300px;';
+        Expect.equals(attributes.length, 5);
+      });
 
-    // TODO(jacobr): determine why these tests are causing segfaults in dartium
-    // element.dataAttributes.remove('foo2');
-    // Expect.equals(attributes.length, 4);
-    // Expect.equals(dataAttributes.length, 1);
-    // attributes.remove('style');
-    // Expect.equals(attributes.length, 3);
-    // element.dataAttributes['foo3'] = 'baz3';
-    // Expect.equals(dataAttributes.length, 2);
-    // Expect.equals(attributes.length, 4);
-    // attributes['style'] = 'width: 300px;';
-    // Expect.equals(attributes.length, 5);*/
+      test('coercion', () {
+        final element = new Element.tag('div');
+        element.attributes['foo'] = 42;
+        element.attributes['bar'] = 3.1;
+        Expect.equals(element.attributes['foo'], '42');
+        Expect.equals(element.attributes['bar'], '3.1');
+      });
   });
 
   group('elements', () {
