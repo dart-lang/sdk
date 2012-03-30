@@ -719,6 +719,12 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
   TieLoop(for_test, for_body);
+  // TODO(srdjan): Implement JumpNode handling.
+  if ((node->label() != NULL) &&
+      ((node->label()->join_for_break() != NULL) ||
+      (node->label()->join_for_continue() != NULL))) {
+    Bailout("Jump in WhileNode");
+  }
 }
 
 
@@ -745,50 +751,133 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   *for_test.true_successor_address() = back_target_entry;
   back_target_entry->SetSuccessor(join);
   exit_ = *for_test.false_successor_address() = new TargetEntryInstr();
+  // TODO(srdjan): Implement JumpNode handling.
+  if ((node->label() != NULL) &&
+      ((node->label()->join_for_break() != NULL) ||
+      (node->label()->join_for_continue() != NULL))) {
+    Bailout("Jump in DoWhileNode");
+  }
 }
 
 
+// A ForNode can contain break and continue jumps. 'break' joins to
+// ForNode exit, 'continue' joins at increment entry.
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_initializer(owner(), temp_index());
   node->initializer()->Visit(&for_initializer);
   Append(for_initializer);
   ASSERT(is_open());
 
+  // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
+  TargetEntryInstr* body_entry = new TargetEntryInstr();
+  for_body.AddInstruction(body_entry);
   node->body()->Visit(&for_body);
-  if (for_body.is_open()) {
-    EffectGraphVisitor for_increment(owner(), temp_index());
+
+  // Join loop body, increment and compute their end instruction.
+  Instruction* loop_increment_end = NULL;
+  EffectGraphVisitor for_increment(owner(), temp_index());
+  if ((node->label()->join_for_continue() == NULL) && for_body.is_open()) {
+    // Do not insert an extra basic block.
     node->increment()->Visit(&for_increment);
     for_body.Append(for_increment);
+    loop_increment_end = for_body.exit();
+    ASSERT(loop_increment_end != NULL);
+  } else if (node->label()->join_for_continue() != NULL) {
+    // Insert join between body and increment.
+    if (for_body.is_open()) {
+      for_body.exit()->SetSuccessor(node->label()->join_for_continue());
+    }
+    for_increment.AddInstruction(node->label()->join_for_continue());
+    node->increment()->Visit(&for_increment);
+    loop_increment_end = for_increment.exit();
+    ASSERT(loop_increment_end != NULL);
   }
 
-  if (node->condition() != NULL) {
+  // 'loop_increment_end' is NULL only if there is no join for continue and the
+  // body is not open, i.e., no backward branch exists.
+  if (loop_increment_end != NULL) {
+    JoinEntryInstr* loop_start = new JoinEntryInstr();
+    AddInstruction(loop_start);
+    loop_increment_end->SetSuccessor(loop_start);
+  }
+
+  if (node->condition() == NULL) {
+    // Endless loop, no test.
+    Append(for_body);
+    if (node->label()->join_for_break() == NULL) {
+      CloseFragment();
+    } else {
+      // Control flow of ForLoop continues into join_for_break.
+      exit_ = node->label()->join_for_break();
+    }
+  } else {
+    TargetEntryInstr* loop_exit = new TargetEntryInstr();
     TestGraphVisitor for_test(owner(), temp_index());
     node->condition()->Visit(&for_test);
-    TieLoop(for_test, for_body);
-    return;
+    Append(for_test);
+    *for_test.true_successor_address() = body_entry;
+    *for_test.false_successor_address() = loop_exit;
+    if (node->label()->join_for_break() == NULL) {
+      exit_ = loop_exit;
+    } else {
+      loop_exit->SetSuccessor(node->label()->join_for_break());
+      exit_ = node->label()->join_for_break();
+    }
   }
-
-  // Degenerate cases.  An absent condition is implicitly true.  No
-  // normal exit from loop => no back edge.
-  if (!for_body.is_open()) {
-    Append(for_body);
-    return;
-  }
-  JoinEntryInstr* join = new JoinEntryInstr();
-  AddInstruction(join);
-  if (for_body.is_empty()) {
-    join->SetSuccessor(join);
-  } else {
-    join->SetSuccessor(for_body.entry());
-    for_body.exit()->SetSuccessor(join);
-  }
-  CloseFragment();
 }
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
-  Bailout("EffectGraphVisitor::VisitJumpNode");
+  for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
+    EffectGraphVisitor for_effect(owner(), temp_index());
+    node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
+    Append(for_effect);
+    if (!is_open()) return;
+  }
+
+  // Unchain the context(s) up to the outer context level of the scope which
+  // contains the destination label.
+  SourceLabel* label = node->label();
+  ASSERT(label->owner() != NULL);
+  int target_context_level = 0;
+  LocalScope* target_scope = label->owner();
+  if (target_scope->num_context_variables() > 0) {
+    // The scope of the target label allocates a context, therefore its outer
+    // scope is at a lower context level.
+    target_context_level = target_scope->context_level() - 1;
+  } else {
+    // The scope of the target label does not allocate a context, so its outer
+    // scope is at the same context level. Find it.
+    while ((target_scope != NULL) &&
+           (target_scope->num_context_variables() == 0)) {
+      target_scope = target_scope->parent();
+    }
+    if (target_scope != NULL) {
+      target_context_level = target_scope->context_level();
+    }
+  }
+  ASSERT(target_context_level >= 0);
+  intptr_t current_context_level = owner()->context_level();
+  ASSERT(current_context_level >= target_context_level);
+  while (current_context_level-- > target_context_level) {
+    UnchainContext();
+  }
+
+  Instruction* jump_target = NULL;
+  if (node->kind() == Token::kBREAK) {
+    if (node->label()->join_for_break() == NULL) {
+      node->label()->set_join_for_break(new JoinEntryInstr());
+    }
+    jump_target = node->label()->join_for_break();
+  } else {
+    if (node->label()->join_for_continue() == NULL) {
+      node->label()->set_join_for_continue(new JoinEntryInstr());
+    }
+    jump_target = node->label()->join_for_continue();
+  }
+  AddInstruction(jump_target);
+  CloseFragment();
 }
 
 
@@ -1413,6 +1502,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     EffectGraphVisitor for_effect(owner(), temp_index());
     node->NodeAt(i++)->Visit(&for_effect);
     Append(for_effect);
+    if (!is_open()) {
+      // E.g., because of a JumpNode.
+      break;
+    }
   }
 
   if (is_open()) {
@@ -1431,6 +1524,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
+  if ((node->label() != NULL) &&
+      ((node->label()->join_for_break() != NULL) ||
+      (node->label()->join_for_continue() != NULL))) {
+    Bailout("Jump in SequenceNode");
+  }
+
   if (node->label() != NULL) {
     // TODO(srdjan): Check that the break label is bound? Is this a jump?
     Bailout("VisitSequenceNode bind break and unchain CTX");
