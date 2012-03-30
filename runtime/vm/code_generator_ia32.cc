@@ -1613,11 +1613,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
         __ LoadObject(EDX, dst_type_class);
         __ cmpl(EDX, ECX);
         __ j(EQUAL, &done, Assembler::kNearJump);
-        __ pushl(EAX);
+        // EAX, EDX are preserved in stub, result is in EBX.
         __ call(&StubCode::IsRawSubTypeLabel());
-        __ movl(EDI, EAX);
-        __ popl(EAX);
-        __ cmpl(EDI, Immediate(1));
+        // Result in EBX: 1 is raw subtype.
+        __ cmpl(EBX, Immediate(1));
         __ j(EQUAL, &done, Assembler::kNearJump);
         // Otherwise fallthrough
       } else {
@@ -1664,13 +1663,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ j(NOT_EQUAL, &done, Assembler::kNearJump);
         } else {
           __ LoadObject(EDX, dst_type_class);
-          // EAX: Instance (preserve).
-          // EDX: test class
-          __ pushl(EAX);
+          // EAX: Instance (preserved).
+          // EDX: test class (preserved).
           __ call(&StubCode::IsRawSubTypeLabel());
-          __ movl(EDI, EAX);
-          __ popl(EAX);
-          __ cmpl(EDI, Immediate(1));
+          // Result in EBX: 1 is raw subtype.
+          __ cmpl(EBX, Immediate(1));
           __ j(EQUAL, &done, Assembler::kNearJump);
           // Otherwise fallthrough
         }
@@ -1714,12 +1711,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       __ cmpl(ECX, raw_null);
       __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
       // We have a non-parameterized class in EDX, compare with class of
-      // value in EAX.
-      __ pushl(EAX);
+      // value in EAX. EAX, EDX are preserved in stub.
       __ call(&StubCode::IsRawSubTypeLabel());
-      __ movl(EDI, EAX);
-      __ popl(EAX);
-      __ cmpl(EDI, Immediate(1));
+      // Result in EBX: 1 is raw subtype.
+      __ cmpl(EBX, Immediate(1));
       __ j(EQUAL, &done, Assembler::kNearJump);
       __ Bind(&fall_through);
     }

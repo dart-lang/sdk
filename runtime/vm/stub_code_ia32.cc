@@ -1759,9 +1759,10 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // Check if an instance class is a subtype of class/interface using simple
 // superchain and interface array traversal. Does not take type parameters into
 // account.
-// EAX: instance.
+// EAX: instance (preserved)
 // EDX: class/interface to test against (is class of instance a subtype of it).
-// Result in EDX: 1 is subtype, 0 maybe not.
+//      (preserved).
+// Result in EBX: 1 is subtype, 0 maybe not.
 // Destroys EBX, ECX.
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   const Immediate raw_null =
@@ -1805,12 +1806,12 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ jmp(&array_loop, Assembler::kNearJump);
 
   __ Bind(&not_found);
-  __ xorl(EAX, EAX);
+  __ xorl(EBX, EBX);
   __ LeaveFrame();
   __ ret();
 
   __ Bind(&found);
-  __ movl(EAX, Immediate(1));
+  __ movl(EBX, Immediate(1));
   __ LeaveFrame();
   __ ret();
 
