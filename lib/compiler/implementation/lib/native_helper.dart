@@ -19,10 +19,12 @@ String typeNameInFirefox(obj) {
 String typeNameInIE(obj) {
   String name = constructorNameFallback(obj);
   if (name == 'Window') return 'DOMWindow';
-  // IE calls both HTML and XML documents 'Document', so we check for the
-  // xmlVersion property, which is the empty string on HTML documents.
-  if (name == 'Document' && JS('bool', '!!#.xmlVersion', obj)) return 'Document';
-  if (name == 'Document') return 'HTMLDocument';
+  if (name == 'Document') {
+    // IE calls both HTML and XML documents 'Document', so we check for the
+    // xmlVersion property, which is the empty string on HTML documents.
+    if (JS('bool', '!!#.xmlVersion', obj)) return 'Document';
+    return 'HTMLDocument';
+  }
   return name;
 }
 
@@ -51,7 +53,7 @@ String constructorNameFallback(obj) {
 /**
  * Returns the function to use to get the type name of an object.
  */
-Function getTypeNameOfFunction() {
+Function getFunctionForTypeNameOf() {
   // If we're not in the browser, we're almost certainly running on v8.
   if (JS('String', 'typeof(navigator)') !== 'object') return typeNameInChrome;
 
@@ -78,7 +80,7 @@ Function _getTypeNameOf;
  * Returns the type name of [obj].
  */
 String getTypeNameOf(var obj) {
-  if (_getTypeNameOf === null) _getTypeNameOf = getTypeNameOfFunction();
+  if (_getTypeNameOf === null) _getTypeNameOf = getFunctionForTypeNameOf();
   return _getTypeNameOf(obj);
 }
 
@@ -106,10 +108,10 @@ void throwNoSuchMethod(obj, name, arguments) {
 }
 
 /**
- * This method looks up the type name of [obj] in [methods]. If it
- * cannot find it, it looks into the [_dynamicMetadata] array. If the
- * method can still not be found, it creates a method that will throw
- * a [NoSuchMethodException].
+ * This method looks up the type name of [obj] in [methods]. [methods]
+ * is a Javascript object. If it cannot find it, it looks into the
+ * [_dynamicMetadata] array. If the method can still not be found, it
+ * creates a method that will throw a [NoSuchMethodException].
  *
  * Once it has a method, the prototype of [obj] is patched with that
  * method, on the property [name]. The method is then invoked.
@@ -137,12 +139,21 @@ dynamicBind(var obj,
     method = JS('var', "#['Object']", methods);
   }
 
+  var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
   if (method === null) {
+    // If the method cannot be found, we use a trampoline method that
+    // will throw a [NoSuchMethodException] if the object is of the
+    // exact prototype, or will call [dynamicBind] again if the object
+    // is a subclass.
     method = JS('var',
         'function () {'
-          '#(#, #, Array.prototype.slice.call(arguments));'
+          'if (Object.getPrototypeOf(this) === #) {'
+            '#(this, #, Array.prototype.slice.call(arguments));'
+          '} else {'
+            'return Object.prototype[#].apply(this, arguments);'
+          '}'
         '}',
-      DART_CLOSURE_TO_JS(throwNoSuchMethod), obj, name);
+      proto, DART_CLOSURE_TO_JS(throwNoSuchMethod), name, name);
   }
 
   var nullCheckMethod = JS('var',
@@ -152,7 +163,6 @@ dynamicBind(var obj,
       '}',
     method);
 
-  var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
   if (JS('bool', '!#.hasOwnProperty(#)', proto, name)) {
     defineProperty(proto, name, nullCheckMethod);
   }
@@ -187,7 +197,7 @@ dynamicFunction(name) {
   var methods = JS('var', '{}');
   // If there is a method attached to the Dart Object class, use it as
   // the method to call in case no method is registered for that type.
-  var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', new Object(), name);
+  var dartMethod = JS('var', 'Object.getPrototypeOf(#)[#]', const Object(), name);
   if (dartMethod !== null) JS('void', "#['Object'] = #", methods, dartMethod);
 
   var bind = JS('var',
@@ -226,13 +236,17 @@ class MetaInfo {
 }
 
 List<MetaInfo> get _dynamicMetadata() {
+  // Because [dynamicMetadata] has to be shared with multiple isolates
+  // that access native classes (eg multiple DOM isolates),
+  // [_dynamicMetadata] cannot be a field, otherwise all non-main
+  // isolates would not have any value for it.
   if (JS('var', 'typeof(\$dynamicMetadata)') === 'undefined') {
     _dynamicMetadata = <MetaInfo>[];
   }
   return JS('var', '\$dynamicMetadata');
 }
 
-void set _dynamicMetadata(List<String> table) {
+void set _dynamicMetadata(List<MetaInfo> table) {
   JS('void', '\$dynamicMetadata = #', table);
 }
 
@@ -241,15 +255,15 @@ void set _dynamicMetadata(List<String> table) {
  * classes. The following example:
  *
  * class A native "*A" {}
- * class B native "*B" {}
+ * class B extends A native "*B" {}
  *
  * Will generate:
  * ['A', 'A|B']
  *
- * This method turns the array into a list of [MetaInfo] objects.
+ * This method returns a list of [MetaInfo] objects.
  */
-void dynamicSetMetadata(List<List<String>> inputTable) {
-  _dynamicMetadata = <MetaInfo>[];
+List <MetaInfo> buildDynamicMetadata(List<List<String>> inputTable) {
+  List<MetaInfo> result = <MetaInfo>[];
   for (int i = 0; i < inputTable.length; i++) {
     String tag = inputTable[i][0];
     String tags = inputTable[i][1];
@@ -258,6 +272,14 @@ void dynamicSetMetadata(List<List<String>> inputTable) {
     for (int j = 0; j < tagNames.length; j++) {
       set.add(tagNames[j]);
     }
-    _dynamicMetadata.add(new MetaInfo(tag, tags, set));
+    result.add(new MetaInfo(tag, tags, set));
   }
+  return result;
+}
+
+/**
+ * Called by the compiler to setup [_dynamicMetadata].
+ */
+void dynamicSetMetadata(List<List<String>> inputTable) {
+  _dynamicMetadata = buildDynamicMetadata(inputTable);
 }
