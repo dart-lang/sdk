@@ -791,9 +791,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
 
-    if element_type:
-      self.AddTypedArrayConstructors(element_type)
-
     # Emit a factory provider class for the constructor.
     constructor_info = AnalyzeConstructor(interface)
     if constructor_info:
@@ -975,13 +972,13 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       return
 
     # Do we need a native body?
-    if (html_name != info.name):
+    if html_name != info.declared_name:
       return_type = self._NarrowOutputType(info.type_name)
       
       operation_emitter = self._members_emitter.Emit('$!SCOPE',
           TYPE=return_type,
           HTML_NAME=html_name,
-          NAME=info.name,
+          NAME=info.declared_name,
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
 

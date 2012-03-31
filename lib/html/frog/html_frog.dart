@@ -6809,14 +6809,6 @@ class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
 
 class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> native "*Float32Array" {
 
-  factory Float32Array(int length) =>  _construct_Float32Array(length);
-
-  factory Float32Array.fromList(List<num> list) => _construct_Float32Array(list);
-
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct_Float32Array(buffer);
-
-  static _construct_Float32Array(arg) native 'return new Float32Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 4;
 
   final int length;
@@ -6892,20 +6884,12 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Float32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> native "*Float64Array" {
-
-  factory Float64Array(int length) =>  _construct_Float64Array(length);
-
-  factory Float64Array.fromList(List<num> list) => _construct_Float64Array(list);
-
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct_Float64Array(buffer);
-
-  static _construct_Float64Array(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -6982,7 +6966,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Float64ArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -7295,7 +7279,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final _IDBAnyImpl source;
 
-  void continueFunction([_IDBKeyImpl key = null]) native;
+  void continueFunction([_IDBKeyImpl key = null]) native "continue";
 
   _IDBRequestImpl delete() native;
 
@@ -7407,7 +7391,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestImpl count([var key_OR_range = null]) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
 
   _IDBRequestImpl getKey(_IDBKeyImpl key) native;
 
@@ -7460,7 +7444,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   void deleteIndex(String name) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
 
   _IDBIndexImpl index(String name) native;
 
@@ -7741,14 +7725,6 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> native "*Int16Array" {
 
-  factory Int16Array(int length) =>  _construct_Int16Array(length);
-
-  factory Int16Array.fromList(List<int> list) => _construct_Int16Array(list);
-
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct_Int16Array(buffer);
-
-  static _construct_Int16Array(arg) native 'return new Int16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -7824,20 +7800,12 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> native "*Int32Array" {
-
-  factory Int32Array(int length) =>  _construct_Int32Array(length);
-
-  factory Int32Array.fromList(List<int> list) => _construct_Int32Array(list);
-
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct_Int32Array(buffer);
-
-  static _construct_Int32Array(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -7914,20 +7882,12 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> native "*Int8Array" {
-
-  factory Int8Array(int length) =>  _construct_Int8Array(length);
-
-  factory Int8Array.fromList(List<int> list) => _construct_Int8Array(list);
-
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct_Int8Array(buffer);
-
-  static _construct_Int8Array(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -8004,7 +7964,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int8ArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -14384,14 +14344,6 @@ class _UListElementImpl extends _ElementImpl implements UListElement native "*HT
 
 class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int> native "*Uint16Array" {
 
-  factory Uint16Array(int length) =>  _construct_Uint16Array(length);
-
-  factory Uint16Array.fromList(List<int> list) => _construct_Uint16Array(list);
-
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint16Array(buffer);
-
-  static _construct_Uint16Array(arg) native 'return new Uint16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -14467,20 +14419,12 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> native "*Uint32Array" {
-
-  factory Uint32Array(int length) =>  _construct_Uint32Array(length);
-
-  factory Uint32Array.fromList(List<int> list) => _construct_Uint32Array(list);
-
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint32Array(buffer);
-
-  static _construct_Uint32Array(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -14557,20 +14501,12 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> native "*Uint8Array" {
-
-  factory Uint8Array(int length) =>  _construct_Uint8Array(length);
-
-  factory Uint8Array.fromList(List<int> list) => _construct_Uint8Array(list);
-
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint8Array(buffer);
-
-  static _construct_Uint8Array(arg) native 'return new Uint8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -14647,25 +14583,17 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
 
-  factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
-
-  factory Uint8ClampedArray.fromList(List<int> list) => _construct_Uint8ClampedArray(list);
-
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _construct_Uint8ClampedArray(buffer);
-
-  static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
-
   // Use implementation from Uint8Array.
   // final int length;
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }

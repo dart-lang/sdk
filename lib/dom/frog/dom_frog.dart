@@ -2321,14 +2321,6 @@ class _FileWriterSyncJs extends _DOMTypeJs implements FileWriterSync native "*Fi
 
 class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<num> native "*Float32Array" {
 
-  factory Float32Array(int length) =>  _construct_Float32Array(length);
-
-  factory Float32Array.fromList(List<num> list) => _construct_Float32Array(list);
-
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct_Float32Array(buffer);
-
-  static _construct_Float32Array(arg) native 'return new Float32Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 4;
 
   final int length;
@@ -2404,22 +2396,12 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Float32ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
-
-  factory Float64Array(int length) =>  _construct_Float64Array(length);
-
-  factory Float64Array.fromList(List<num> list) => _construct_Float64Array(list);
-
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct_Float64Array(buffer);
-
-  static _construct_Float64Array(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -2496,9 +2478,7 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Float64ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -4107,9 +4087,9 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
   final _IDBAnyJs source;
 
   void continueFunction([_IDBKeyJs key = null]) native '''
-if (key == null) return this['continue']();
-return this['continue'](key);
-''';
+        if (key == null) return this['continue']();
+        return this['continue'](key);
+      ''';
 
   _IDBRequestJs delete() native;
 
@@ -4221,7 +4201,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestJs count([var key_OR_range = null]) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
+  _IDBRequestJs getObject(_IDBKeyJs key) native 'get';
 
   _IDBRequestJs getKey(_IDBKeyJs key) native;
 
@@ -4274,7 +4254,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   void deleteIndex(String name) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
+  _IDBRequestJs getObject(_IDBKeyJs key) native 'get';
 
   _IDBIndexJs index(String name) native;
 
@@ -4369,14 +4349,6 @@ class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
 
 class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
 
-  factory Int16Array(int length) =>  _construct_Int16Array(length);
-
-  factory Int16Array.fromList(List<int> list) => _construct_Int16Array(list);
-
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct_Int16Array(buffer);
-
-  static _construct_Int16Array(arg) native 'return new Int16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -4452,22 +4424,12 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Int16ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
-
-  factory Int32Array(int length) =>  _construct_Int32Array(length);
-
-  factory Int32Array.fromList(List<int> list) => _construct_Int32Array(list);
-
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct_Int32Array(buffer);
-
-  static _construct_Int32Array(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -4544,22 +4506,12 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Int32ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
-
-  factory Int8Array(int length) =>  _construct_Int8Array(length);
-
-  factory Int8Array.fromList(List<int> list) => _construct_Int8Array(list);
-
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct_Int8Array(buffer);
-
-  static _construct_Int8Array(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -4636,9 +4588,7 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Int8ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -9929,14 +9879,6 @@ class _UIEventJs extends _EventJs implements UIEvent native "*UIEvent" {
 
 class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
 
-  factory Uint16Array(int length) =>  _construct_Uint16Array(length);
-
-  factory Uint16Array.fromList(List<int> list) => _construct_Uint16Array(list);
-
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint16Array(buffer);
-
-  static _construct_Uint16Array(arg) native 'return new Uint16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -10012,22 +9954,12 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint16ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
-
-  factory Uint32Array(int length) =>  _construct_Uint32Array(length);
-
-  factory Uint32Array.fromList(List<int> list) => _construct_Uint32Array(list);
-
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint32Array(buffer);
-
-  static _construct_Uint32Array(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -10104,22 +10036,12 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint32ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
-
-  factory Uint8Array(int length) =>  _construct_Uint8Array(length);
-
-  factory Uint8Array.fromList(List<int> list) => _construct_Uint8Array(list);
-
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint8Array(buffer);
-
-  static _construct_Uint8Array(arg) native 'return new Uint8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -10196,29 +10118,17 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint8ArrayJs subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
 
-  factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
-
-  factory Uint8ClampedArray.fromList(List<int> list) => _construct_Uint8ClampedArray(list);
-
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _construct_Uint8ClampedArray(buffer);
-
-  static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
-
   // Use implementation from Uint8Array.
   // final int length;
 
-  void setElements(Object array, [int offset = null]) native '''
-if (offset == null) return this.set(array);
-return this.set(array, offset);''';
+  void setElements(Object array, [int offset = null]) native 'set';
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }

@@ -151,27 +151,14 @@ _alternate_methods = {
 # feature in the 'native' string - the correct name is available on the DartName
 # extended attribute. See Issue 1814
 #
-_dom_frog_native_typed_array_set_operation = """
-if (offset == null) return this.set(array);
-return this.set(array, offset);"""
-
 dom_frog_native_bodies = {
+    # Some JavaScript processors, especially tools like yuicompress and
+    # JSCompiler, choke on 'this.continue'
     'IDBCursor.continueFunction':
       """
-if (key == null) return this['continue']();
-return this['continue'](key);
-""",
-    'IDBIndex.getObject': """return this.get(key);""",
-    'IDBObjectStore.getObject': """return this.get(key);""",
-    'Float32Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Float64Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Int16Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Int32Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Int8Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Uint16Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Uint32Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Uint8Array.setElements': _dom_frog_native_typed_array_set_operation,
-    'Uint8ClampedArray.setElements': _dom_frog_native_typed_array_set_operation,
+        if (key == null) return this['continue']();
+        return this['continue'](key);
+      """,
 }
 
 

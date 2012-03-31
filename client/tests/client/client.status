@@ -10,9 +10,11 @@ dom/AudioContextTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-dom/TypedArrays2Test: Pass, Fail   # Dartium needs to implement 3 arg constructor
+dom/TypedArrays2Test: Fail   # Dartium needs to implement 3 arg constructor
 html/frog_html_tests: Skip
-html/TypedArrays2Test: Pass, Fail  # Dartium dart:html needs to implement 3 arg constructor
+html/TypedArrays2Test: Fail  # Dartium dart:html needs to implement 3 arg constructor
+dom/TypedArrays3Test: Fail   # Investigate: setElements is not generated.
+html/TypedArrays3Test: Fail  # Investigate: setElements is not generated.
 
 [ $component == dartium && $system == windows ]
 dom/DOMIsolatesTest: Skip
@@ -46,6 +48,7 @@ dom/*: Skip
 [ $runtime == ie ]
 html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
 html/TypedArrays2Test: Skip
+html/TypedArrays3Test: Skip
 
 # TODO(nweiz): enable this test again once the functionality being tested
 # is supported.
