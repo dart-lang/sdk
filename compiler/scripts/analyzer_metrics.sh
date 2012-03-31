@@ -13,7 +13,7 @@
 DART_PARAMS="--metrics "
 RUNS=3
 ONE_DELTA=""
-DARTC=$(which dartc)
+DART_ANALYZER=$(which dart_analyzer)
 SAMPLE_DIR="."
 PREFIX="sample"
 SCRIPT_DIR=$(dirname $0)
@@ -30,7 +30,7 @@ function printHelp() {
   echo "  -r=, --runs=        Set the number of compile samples to be executed. Defaults to $RUNS"
   echo "  -d=, --one-delta=   The filename, relative to DART_APP, to touch in order to trigger a one-delta compile."
   echo "  -o=, --output=      Directory location of sample storage"
-  echo "  --dartc=            Override PATH location for dartc script"
+  echo "  --analyzer=         Override PATH location for analyzer script"
   echo "  -p, --stats-prefix= Adds prefix to each output file (default: sample-[full|incri-[one|zero]]).txt)"
   echo "  -h, --help          What you see is what you get."
   echo "  DART_APP            Path to dart .app file to compile (depricated)"
@@ -48,8 +48,8 @@ do
       RUNS=${i#*=};;
     --one-delta=*|-d=*)
       ONE_DELTA=${i#*=};;
-    --dartc=*)
-      DARTC=${i#*=};;
+    --analyzer=*)
+      ANALYZER=${i#*=};;
     --output=*|-o=*)
       SAMPLE_DIR=${i#*=};;
     --stats-prefix=*|-p=*)
@@ -70,8 +70,8 @@ do
   esac
 done
 
-if [ "" = "$DARTC" ] || [ ! -x $DARTC ]; then
-  echo "Error: Location of 'dartc' not found."
+if [ "" = "$ANALYZER" ] || [ ! -x $ANALYXER ]; then
+  echo "Error: Location of 'dart_analyzer' not found."
   printHelp 1
 fi
 
@@ -110,11 +110,11 @@ rm -Rf $SAMPLE_FULL $SAMPLE_INCR_ZERO $SAMPLE_INCR_ONE
 for ((i=0;i<$RUNS;i++)) do 
   echo "Run $i"
   rm -Rf $OUT_DIR
-  $DARTC $DART_PARAMS $APP >> $SAMPLE_FULL
-  $DARTC $DART_PARAMS $APP >> $SAMPLE_INCR_ZERO
+  $DART_ANALYZER $DART_PARAMS $APP >> $SAMPLE_FULL
+  $DART_ANALYZER $DART_PARAMS $APP >> $SAMPLE_INCR_ZERO
   if [ -e $ONE_DELTA ] && [ "" != "$ONE_DELTA" ]; then
     touch $ONE_DELTA
-    $DARTC $DART_PARAMS $APP >> $SAMPLE_INCR_ONE
+    $DART_ANALYZER $DART_PARAMS $APP >> $SAMPLE_INCR_ONE
   fi
 done
 
