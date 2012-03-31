@@ -10,9 +10,7 @@ dom/AudioContextTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-dom/TypedArrays2Test: Pass, Fail   # Dartium needs to implement 3 arg constructor
 html/frog_html_tests: Skip
-html/TypedArrays2Test: Pass, Fail  # Dartium dart:html needs to implement 3 arg constructor
 
 [ $component == dartium && $system == windows ]
 dom/DOMIsolatesTest: Skip

@@ -27700,7 +27700,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float32Array.fromList(List<num> list);
 
-  Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Float32Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -27722,7 +27722,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float64Array.fromList(List<num> list);
 
-  Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Float64Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -28605,7 +28605,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int16Array.fromList(List<int> list);
 
-  Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Int16Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -28627,7 +28627,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int32Array.fromList(List<int> list);
 
-  Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Int32Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -28649,7 +28649,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   Int8Array.fromList(List<int> list);
 
-  Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Int8Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -34513,7 +34513,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint16Array.fromList(List<int> list);
 
-  Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Uint16Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -34535,7 +34535,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint32Array.fromList(List<int> list);
 
-  Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Uint32Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -34557,7 +34557,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Uint8Array.fromList(List<int> list);
 
-  Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Uint8Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -34579,7 +34579,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromList(List<int> list);
 
-  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
+  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
 
   final int length;
 
