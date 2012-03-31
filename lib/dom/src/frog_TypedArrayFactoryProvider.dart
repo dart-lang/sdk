@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _AudioContextFactoryProvider {
-  factory AudioContext() => _wrap(new dom.AudioContext());
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
@@ -80,49 +76,38 @@ class _TypedArrayFactoryProvider {
     return _U8C_3(buffer, byteOffset, length);
   }
 
-  static Float32Array _F32(arg) => _wrap(new dom.Float32Array(arg));
-  static Float64Array _F64(arg) => _wrap(new dom.Float64Array(arg));
-  static Int8Array _I8(arg) => _wrap(new dom.Int8Array(arg));
-  static Int16Array _I16(arg) => _wrap(new dom.Int16Array(arg));
-  static Int32Array _I32(arg) => _wrap(new dom.Int32Array(arg));
-  static Uint8Array _U8(arg) => _wrap(new dom.Uint8Array(arg));
-  static Uint16Array _U16(arg) => _wrap(new dom.Uint16Array(arg));
-  static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
-  static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
+  static Float32Array _F32(arg) native 'return new Float32Array(arg);';
+  static Float64Array _F64(arg) native 'return new Float64Array(arg);';
+  static Int8Array _I8(arg) native 'return new Int8Array(arg);';
+  static Int16Array _I16(arg) native 'return new Int16Array(arg);';
+  static Int32Array _I32(arg) native 'return new Int32Array(arg);';
+  static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
+  static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
+  static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
+  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
 
-  static Float32Array _F32_2(arg1, arg2) => _wrap(new dom.Float32Array(arg1, arg2));
-  static Float64Array _F64_2(arg1, arg2) => _wrap(new dom.Float64Array(arg1, arg2));
-  static Int8Array _I8_2(arg1, arg2) => _wrap(new dom.Int8Array(arg1, arg2));
-  static Int16Array _I16_2(arg1, arg2) => _wrap(new dom.Int16Array(arg1, arg2));
-  static Int32Array _I32_2(arg1, arg2) => _wrap(new dom.Int32Array(arg1, arg2));
-  static Uint8Array _U8_2(arg1, arg2) => _wrap(new dom.Uint8Array(arg1, arg2));
-  static Uint16Array _U16_2(arg1, arg2) => _wrap(new dom.Uint16Array(arg1, arg2));
-  static Uint32Array _U32_2(arg1, arg2) => _wrap(new dom.Uint32Array(arg1, arg2));
-  static Uint8ClampedArray _U8C_2(arg1, arg2) => _wrap(new dom.Uint8ClampedArray(arg1, arg2));
+  static Float32Array _F32_2(arg1, arg2) native 'return new Float32Array(arg1, arg2);';
+  static Float64Array _F64_2(arg1, arg2) native 'return new Float64Array(arg1, arg2);';
+  static Int8Array _I8_2(arg1, arg2) native 'return new Int8Array(arg1, arg2);';
+  static Int16Array _I16_2(arg1, arg2) native 'return new Int16Array(arg1, arg2);';
+  static Int32Array _I32_2(arg1, arg2) native 'return new Int32Array(arg1, arg2);';
+  static Uint8Array _U8_2(arg1, arg2) native 'return new Uint8Array(arg1, arg2);';
+  static Uint16Array _U16_2(arg1, arg2) native 'return new Uint16Array(arg1, arg2);';
+  static Uint32Array _U32_2(arg1, arg2) native 'return new Uint32Array(arg1, arg2);';
+  static Uint8ClampedArray _U8C_2(arg1, arg2) native 'return new Uint8ClampedArray(arg1, arg2);';
 
-  static Float32Array _F32_3(arg1, arg2, arg3) => _wrap(new dom.Float32Array(arg1, arg2, arg3));
-  static Float64Array _F64_3(arg1, arg2, arg3) => _wrap(new dom.Float64Array(arg1, arg2, arg3));
-  static Int8Array _I8_3(arg1, arg2, arg3) => _wrap(new dom.Int8Array(arg1, arg2, arg3));
-  static Int16Array _I16_3(arg1, arg2, arg3) => _wrap(new dom.Int16Array(arg1, arg2, arg3));
-  static Int32Array _I32_3(arg1, arg2, arg3) => _wrap(new dom.Int32Array(arg1, arg2, arg3));
-  static Uint8Array _U8_3(arg1, arg2, arg3) => _wrap(new dom.Uint8Array(arg1, arg2, arg3));
-  static Uint16Array _U16_3(arg1, arg2, arg3) => _wrap(new dom.Uint16Array(arg1, arg2, arg3));
-  static Uint32Array _U32_3(arg1, arg2, arg3) => _wrap(new dom.Uint32Array(arg1, arg2, arg3));
-  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) => _wrap(new dom.Uint8ClampedArray(arg1, arg2, arg3));
+  static Float32Array _F32_3(arg1, arg2, arg3) native 'return new Float32Array(arg1, arg2, arg3);';
+  static Float64Array _F64_3(arg1, arg2, arg3) native 'return new Float64Array(arg1, arg2, arg3);';
+  static Int8Array _I8_3(arg1, arg2, arg3) native 'return new Int8Array(arg1, arg2, arg3);';
+  static Int16Array _I16_3(arg1, arg2, arg3) native 'return new Int16Array(arg1, arg2, arg3);';
+  static Int32Array _I32_3(arg1, arg2, arg3) native 'return new Int32Array(arg1, arg2, arg3);';
+  static Uint8Array _U8_3(arg1, arg2, arg3) native 'return new Uint8Array(arg1, arg2, arg3);';
+  static Uint16Array _U16_3(arg1, arg2, arg3) native 'return new Uint16Array(arg1, arg2, arg3);';
+  static Uint32Array _U32_3(arg1, arg2, arg3) native 'return new Uint32Array(arg1, arg2, arg3);';
+  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) native 'return new Uint8ClampedArray(arg1, arg2, arg3);';
 
+
+  // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
+  // copies the list.
   static ensureNative(List list) => list;  // TODO: make sure.
-}
-
-class _PointFactoryProvider {
-
-  factory Point(num x, num y) => _wrap(new dom.WebKitPoint(x, y));
-}
-
-class _WebSocketFactoryProvider {
-
-  factory WebSocket(String url) => _wrap(new dom.WebSocket(url));
-}
-
-class _TextFactoryProvider {
-  factory Text(String data) => _document.$dom_createTextNode(data);
 }

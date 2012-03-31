@@ -148,7 +148,8 @@ class DartInterfaceGenerator(object):
           '\n'
           '  $CTOR.fromList(List<$TYPE> list);\n'
           '\n'
-          '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
+          '  $CTOR.fromBuffer(ArrayBuffer buffer,'
+                            ' [int byteOffset, int length]);\n',
           CTOR=self._interface.id,
           TYPE=DartType(element_type))
 
