@@ -41,10 +41,6 @@ public class CommandLineOptions {
         usage = "Generate runtime type checks")
     private boolean developerModeChecks = false;
 
-    @Option(name = "--disable-type-optimizations",
-        usage = "Turn off type optimizations\n (for debugging)")
-    private boolean disableTypeOptimizations = false;
-
     @Option(name = "--ignore-unrecognized-flags",
         usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
@@ -169,10 +165,6 @@ public class CommandLineOptions {
 
     public boolean shouldBatch() {
       return batch;
-    }
-
-    public boolean disableTypeOptimizations() {
-      return disableTypeOptimizations;
     }
 
     /**
