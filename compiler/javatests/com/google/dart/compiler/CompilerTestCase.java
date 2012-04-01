@@ -240,12 +240,16 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the name and source.
    */
-  protected DartUnit parseUnit(String srcName, String sourceCode) {
+  protected DartUnit parseUnit(String srcName, String sourceCode, Object... errors) {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
-    ParserContext context = makeParserContext(src, sourceCode, DartCompilerListener.EMPTY);
-    return makeParser(context).parseUnit(src);
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    listener.checkAllErrorsReported();
+    return unit;
   }
+
 
   /**
    * Parse a single compilation unit with given name and source, and check for a set of expected errors.

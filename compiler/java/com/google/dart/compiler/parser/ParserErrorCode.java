@@ -56,6 +56,7 @@ public enum ParserErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
   FACTORY_MEMBER_IN_INTERFACE("Factory members are not allowed in interfaces"),
+  FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'final' is not allowed on a method definition"),
   FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
   FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),
@@ -85,8 +86,10 @@ public enum ParserErrorCode implements ErrorCode {
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
   UNEXPECTED_TYPE_ARGUMENT("unexpected type argument"),
+  VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
   VOID_FIELD("Field cannot be of type void"),
   VOID_PARAMETER("Parameter cannot be of type void");
+  
   private final ErrorSeverity severity;
   private final String message;
 

@@ -118,7 +118,10 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
   }
 
   @Override
-  protected DartUnit parseUnit(String srcName, String srcCode) {
+  protected DartUnit parseUnit(String srcName, String srcCode, Object... errors) {
+    if (errors.length > 0) {
+      throw new RuntimeException("Expected errors not implemented");
+    }
     // System.out.print(srcName);
     ParserThread thread = new ParserThread(srcName);
     thread.start();

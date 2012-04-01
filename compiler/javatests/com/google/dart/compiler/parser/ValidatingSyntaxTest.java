@@ -73,7 +73,10 @@ public class ValidatingSyntaxTest extends AbstractParserTest {
   }
 
   @Override
-  protected DartUnit parseUnit(String srcName, String sourceCode) {
+  protected DartUnit parseUnit(String srcName, String sourceCode, Object... errors) {
+    if (errors.length > 0) {
+      throw new RuntimeException("Expected errors not implemented");
+    }
     return validateUnit(super.parseUnit(srcName, sourceCode));
   }
 

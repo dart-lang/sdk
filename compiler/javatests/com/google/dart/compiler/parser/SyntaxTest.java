@@ -229,7 +229,7 @@ public class SyntaxTest extends AbstractParserTest {
     DartUnit unit = parseUnit ("phony_adjacent_strings_1.dart",
                                Joiner.on("\n").join(
                                    "var a = \"\" \"\";",
-                                   "var b = \"1\" \"2\" \"3\""));
+                                   "var b = \"1\" \"2\" \"3\";"));
     List<DartNode> nodes = unit.getTopLevelNodes();
     assertEquals(2, nodes.size());
     DartStringLiteral varA = (DartStringLiteral)((DartFieldDefinition)nodes.get(0))
@@ -330,5 +330,133 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("hello", expr.getName());
     assertEquals("", ((DartStringLiteral)expressions.get(1)).getValue());
     assertEquals("", ((DartStringLiteral)expressions.get(2)).getValue());
+  }
+
+  public void testPseudokeywordMethodsAndFields() {
+    DartUnit unit = parseUnit("phony_pseudokeyword_methods.dart",
+        Joiner.on("\n").join(
+            "class A { ",
+            "  int get;",
+            "  var set;",
+            "  final operator;",            
+            "}",
+            "class B {",
+            "  var get = 1;",
+            "  int set = 1;",
+            "  final int operator = 1;",
+            "}",                              
+            "class C {",
+            "  var get = 1;",
+            "  int set = 1;",
+            "  final operator = 1;",
+            "}",
+            "class D {",
+            "  int get = 1;",
+            "  final int set = 1;",
+            "  var operator = 1;",
+            "}",            
+            "class E {",
+            "  int get() { }",
+            "  void set() { }",
+            "  operator() { }",
+            "}",
+            "class F {",
+            "  operator negate () { }",
+            "  operator + (arg) { }",
+            "  operator [] (arg) { }",
+            "  operator []= (arg, arg){ }",
+            "}"));   
+
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(0);
+    DartFieldDefinition A_get = (DartFieldDefinition)A.getMembers().get(0);
+    assertEquals("get", A_get.getFields().get(0).getName().getName());
+    DartFieldDefinition A_set = (DartFieldDefinition)A.getMembers().get(1);
+    assertEquals("set", A_set.getFields().get(0).getName().getName());
+    DartFieldDefinition A_operator = (DartFieldDefinition)A.getMembers().get(2);
+    assertEquals("operator", A_operator.getFields().get(0).getName().getName());
+    DartClass B = (DartClass)unit.getTopLevelNodes().get(1);
+    DartFieldDefinition B_get = (DartFieldDefinition)B.getMembers().get(0);
+    assertEquals("get", B_get.getFields().get(0).getName().getName());
+    DartFieldDefinition B_set = (DartFieldDefinition)B.getMembers().get(1);
+    assertEquals("set", B_set.getFields().get(0).getName().getName());
+    DartFieldDefinition B_operator = (DartFieldDefinition)B.getMembers().get(2);
+    assertEquals("operator", B_operator.getFields().get(0).getName().getName());
+    DartClass C = (DartClass)unit.getTopLevelNodes().get(2);
+    DartFieldDefinition C_get = (DartFieldDefinition)C.getMembers().get(0);
+    assertEquals("get", C_get.getFields().get(0).getName().getName());
+    DartFieldDefinition C_set = (DartFieldDefinition)C.getMembers().get(1);
+    assertEquals("set", C_set.getFields().get(0).getName().getName());
+    DartFieldDefinition C_operator = (DartFieldDefinition)C.getMembers().get(2);
+    assertEquals("operator", C_operator.getFields().get(0).getName().getName());    
+    DartClass D = (DartClass)unit.getTopLevelNodes().get(3);
+    DartFieldDefinition D_get = (DartFieldDefinition)D.getMembers().get(0);
+    assertEquals("get", D_get.getFields().get(0).getName().getName());
+    DartFieldDefinition D_set = (DartFieldDefinition)D.getMembers().get(1);
+    assertEquals("set", D_set.getFields().get(0).getName().getName());
+    DartFieldDefinition D_operator = (DartFieldDefinition)D.getMembers().get(2);
+    assertEquals("operator", D_operator.getFields().get(0).getName().getName());
+    DartClass E = (DartClass)unit.getTopLevelNodes().get(4);
+    DartMethodDefinition E_get = (DartMethodDefinition)E.getMembers().get(0);
+    assertEquals("get", ((DartIdentifier)E_get.getName()).getName());
+    DartMethodDefinition E_set = (DartMethodDefinition)E.getMembers().get(1);
+    assertEquals("set", ((DartIdentifier)E_set.getName()).getName());
+    DartMethodDefinition E_operator = (DartMethodDefinition)E.getMembers().get(2);
+    assertEquals("operator", ((DartIdentifier)E_operator.getName()).getName());
+    DartClass F = (DartClass)unit.getTopLevelNodes().get(5);
+    DartMethodDefinition F_negate = (DartMethodDefinition)F.getMembers().get(0);
+    assertEquals("negate", ((DartIdentifier)F_negate.getName()).getName());
+    DartMethodDefinition F_plus = (DartMethodDefinition)F.getMembers().get(1);
+    assertEquals("+", ((DartIdentifier)F_plus.getName()).getName());    
+    DartMethodDefinition F_access = (DartMethodDefinition)F.getMembers().get(2);
+    assertEquals("[]", ((DartIdentifier)F_access.getName()).getName());        
+    DartMethodDefinition F_access_assign = (DartMethodDefinition)F.getMembers().get(3);
+    assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());            
+  }
+  
+  public void testVarOnMethodDefinition() {
+    // This syntax is illegal, and should produce errors, but since it is a common error,
+    // we want to make sure it produce a valid AST for editor users
+    DartUnit unit = parseUnit("phony_var_on_function.dart",
+        Joiner.on("\n").join(
+            "var f1() { return 1;}",  // Error, use of var on a method
+            "class A { ",
+            "  var f2() { return 1;}",  // Error, use of var on a method
+            "  f3() { return 2; }",
+            "}"),
+            ParserErrorCode.VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 1, 1,
+            ParserErrorCode.VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 3, 3);
+    DartMethodDefinition f1 = (DartMethodDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("f1", ((DartIdentifier)(f1.getName())).getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    DartMethodDefinition f2 = (DartMethodDefinition)(A.getMembers().get(0));
+    assertEquals("f2", ((DartIdentifier)(f2.getName())).getName());
+    // Make sure that parsing continue
+    DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
+    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());    
+  }
+  
+  public void testFinalOnMethodDefinition() {
+    // This syntax is illegal, and should produce errors, but since it is a common error,
+    // we want to make sure it produce a valid AST for editor users
+    DartUnit unit = parseUnit("phony_var_on_function.dart",
+        Joiner.on("\n").join(
+            "final f1() {return 1;}",  // Error, use of final on a method
+            "class A { ",
+            "  final f2() {return 1;}",  // Error, use of final on a method
+            "  f3() { return 2; }",
+            "  final String f4() { return 1; }",  // Error, use of final on a method
+            "}"),
+            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 1, 1,
+            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 3, 3,
+            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 5, 9);
+    DartMethodDefinition f1 = (DartMethodDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("f1", ((DartIdentifier)(f1.getName())).getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    DartMethodDefinition f2 = (DartMethodDefinition)(A.getMembers().get(0));
+    assertEquals("f2", ((DartIdentifier)(f2.getName())).getName());
+    DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
+    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());
+    DartMethodDefinition f4 = (DartMethodDefinition)(A.getMembers().get(2));
+    assertEquals("f4", ((DartIdentifier)(f4.getName())).getName());    
   }
 }
