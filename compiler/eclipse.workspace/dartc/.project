@@ -20,39 +20,5 @@
 			<type>2</type>
 			<locationURI>DART_TRUNK/compiler/java</locationURI>
 		</link>
-		<link>
-			<name>dartc.corelib/com/google/dart/corelib</name>
-			<type>2</type>
-			<locationURI>DART_TRUNK/compiler/lib</locationURI>
-		</link>
-		<link>
-			<name>shared.corelib/com/google/dart/corelib</name>
-			<type>2</type>
-			<locationURI>DART_TRUNK/corelib</locationURI>
-		</link>
 	</linkedResources>
-	<filteredResources>
-		<filter>
-			<id>1304458098561</id>
-			<name>shared.corelib/com/google/dart/corelib</name>
-			<type>5</type>
-			<matcher>
-				<id>org.eclipse.ui.ide.orFilterMatcher</id>
-				<arguments>
-					<matcher>
-						<id>org.eclipse.ui.ide.multiFilter</id>
-						<arguments>1.0-name-matches-false-false-*.dart</arguments>
-					</matcher>
-					<matcher>
-						<id>org.eclipse.ui.ide.multiFilter</id>
-						<arguments>1.0-name-matches-false-false-*.app</arguments>
-					</matcher>
-					<matcher>
-						<id>org.eclipse.ui.ide.multiFilter</id>
-						<arguments>1.0-name-matches-false-false-*.lib</arguments>
-					</matcher>
-				</arguments>
-			</matcher>
-		</filter>
-	</filteredResources>
 </projectDescription>
