@@ -133,10 +133,10 @@ main() {
     if (selectors.containsKey('frog_native')) {
       queue.addTestSuite(new FrogNativeTestSuite(conf));
     }
-    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+    if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));
     }
-    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+    if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new JUnitDartcTestSuite(conf));
     }
     if (selectors.containsKey('css')) {

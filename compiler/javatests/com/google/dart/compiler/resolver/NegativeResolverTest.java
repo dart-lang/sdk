@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -19,7 +19,6 @@ import com.google.dart.compiler.type.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO(ngeoffray): Move these tests to the VM tests once we can run VM tests.
 public class NegativeResolverTest extends CompilerTestCase {
   List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
 
@@ -31,6 +30,13 @@ public class NegativeResolverTest extends CompilerTestCase {
     resolve(unit);
     assertErrors(errors, expectedErrors);
   }
+  
+  public void checkSourceErrorsAsSystemLibrary(String source, ErrorExpectation... expectedErrors) {
+    DartUnit unit = parseUnitAsSystemLibrary("Test.dart", source);
+    resolve(unit);
+    assertErrors(errors, expectedErrors);
+  }  
+  
 
   /**
    * Parses given Dart file, runs {@link Resolver} and checks that expected errors were generated.
@@ -696,7 +702,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void test_nameShadow_field_nativeMethodParameter() {
-    checkSourceErrors(makeCode(
+    checkSourceErrorsAsSystemLibrary(makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  var a;",
