@@ -175,6 +175,10 @@ public class CommandLineOptions {
       return batch;
     }
 
+    public boolean resolveDespiteParseErrors() {
+      return resolveDespiteParseErrors;
+    }
+    
     /**
      * Returns <code>true</code> if the compiler should print it's help message.
      */
