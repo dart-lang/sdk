@@ -105,6 +105,14 @@ public class CommandLineOptions {
     
     @Option(name = "--show-sdk-warnings", usage = "show warnings from SDK source")
     private boolean showSdkWarnings = false;
+    
+    @Option(name = "--source-from-ast",
+        usage = "For debugging, reconstitute source code from the parsed AST.")
+    private boolean showSourceFromAst = false;
+
+    @Option(name = "--resolve-on-parse-error",
+        usage = "For debugging, continue on with resolution even if there are parse errors.")
+    private boolean resolveDespiteParseErrors;
 
     @Argument
     private final List<String> sourceFiles = new ArrayList<String>();
@@ -182,6 +190,14 @@ public class CommandLineOptions {
       return showMetrics;
     }
 
+    /**
+     * if <code>true</code>, run the AST back through the DartSourceVisitor to create source
+     * from the parsed AST and print to stdout.
+     */
+    public boolean showSourceFromAst() {
+      return showSourceFromAst;
+    }
+    
     /**
      * Returns whether type errors are fatal.
      */

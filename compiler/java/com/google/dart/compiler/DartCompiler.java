@@ -16,6 +16,7 @@ import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -41,6 +42,7 @@ import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.SupertypeResolver;
 import com.google.dart.compiler.resolver.TopLevelElementBuilder;
 import com.google.dart.compiler.type.TypeAnalyzer;
+import com.google.dart.compiler.util.DefaultTextOutput;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -1027,11 +1029,25 @@ public class DartCompiler {
     try {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
-      DefaultDartCompilerListener listener = new DefaultDartCompilerListener(
-          config.printErrorFormat());
-
       // Compile the Dart application and its dependencies.
-      LibrarySource lib = new UrlLibrarySource(sourceFile);
+      final LibrarySource lib = new UrlLibrarySource(sourceFile);
+      DefaultDartCompilerListener listener;
+      if (config.getCompilerOptions().showSourceFromAst()) {
+        listener = new DefaultDartCompilerListener(config.printErrorFormat()) {
+          @Override
+          public void unitCompiled(DartUnit unit) {
+            if (unit.getLibrary() != null) {
+              if (unit.getLibrary().getSource() == lib) {
+                DefaultTextOutput output = new DefaultTextOutput(false);
+                unit.accept(new DartToSourceVisitor(output));
+                System.out.println(output.toString());
+              }
+            }
+          }
+        };
+      } else {
+        listener = new DefaultDartCompilerListener(config.printErrorFormat());
+      }
       String errorString = compileLib(lib, config, provider, listener);
       return errorString;
     } finally {
