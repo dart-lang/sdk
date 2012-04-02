@@ -549,6 +549,15 @@ class _Socket extends _SocketBase implements Socket {
     }
   }
 
+  int get remotePort() {
+    if (_remotePort === null) {
+      _remotePort = _getRemotePort();
+    }
+    return _remotePort;
+  }
+
+  int _getRemotePort() native "Socket_GetRemotePort";
+
   static SendPort _newServicePort() native "Socket_NewServicePort";
 
   static void _ensureSocketService() {
@@ -563,5 +572,6 @@ class _Socket extends _SocketBase implements Socket {
   Function _clientWriteHandler;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
+  int _remotePort;
   static SendPort _socketService;
 }

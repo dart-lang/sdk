@@ -102,6 +102,21 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
+intptr_t Socket::GetRemotePort(intptr_t fd) {
+  ASSERT(fd >= 0);
+  struct sockaddr_in socket_address;
+  socklen_t size = sizeof(socket_address);
+  if (TEMP_FAILURE_RETRY(
+          getpeername(fd,
+                      reinterpret_cast<struct sockaddr *>(&socket_address),
+                      &size))) {
+    fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
+    return 0;
+  }
+  return ntohs(socket_address.sin_port);
+}
+
+
 void Socket::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
   getsockopt(fd,
