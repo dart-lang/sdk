@@ -2476,7 +2476,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (CurrentToken() != Token::kLPAREN) {
       ErrorMsg("left parenthesis expected");
     }
-  } else if ((CurrentToken() == Token::kGET) &&
+  } else if ((CurrentToken() == Token::kGET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
@@ -2485,8 +2485,11 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
+    if (CurrentToken() != Token::kLPAREN) {
+      ErrorMsg("'(' expected");
+    }
     // If the result type was not specified, it will be set to DynamicType.
-  } else if ((CurrentToken() == Token::kSET) &&
+  } else if ((CurrentToken() == Token::kSET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
@@ -2495,12 +2498,15 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
+    if (CurrentToken() != Token::kLPAREN) {
+      ErrorMsg("'(' expected");
+    }
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is Dynamic.
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
-  } else if ((CurrentToken() == Token::kOPERATOR) &&
+  } else if ((CurrentToken() == Token::kOPERATOR) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
