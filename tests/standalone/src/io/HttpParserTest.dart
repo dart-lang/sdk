@@ -540,6 +540,12 @@ HTTP/1.1 200 OK\r
     // Currently no HTTP 1.0 support.
     request = "GET / HTTP/1.0\r\n\r\n";
     _testParseInvalidRequest(request);
+
+    Expect.throws(() {
+      // TODO(2370): HTTP parser error.
+      request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
+      _testParseInvalidRequest(request);
+    });
   }
 
   static void testParseInvalidResponse() {
