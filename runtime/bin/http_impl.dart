@@ -629,33 +629,47 @@ class _HttpConnection extends _HttpConnectionBase {
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
-  void listen(String host, int port, [int backlog = 5]) {
+  _HttpServer() : _connections = new Set<_HttpConnection>();
 
+  void listen(String host, int port, [int backlog = 5]) {
+    listenOn(new ServerSocket(host, port, backlog));
+    _closeServer = true;
+  }
+
+  void listenOn(ServerSocket serverSocket) {
     void onConnection(Socket socket) {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
-      connection._connectionEstablished(socket);
       connection.requestReceived = _onRequest;
-      _connections.add(connection);
       connection.onDisconnect = () => _connections.remove(connection);
       connection.onError = (e) {
         if (_onError != null) _onError(e);
       };
+      connection._connectionEstablished(socket);
+      _connections.add(connection);
     }
-
-    _connections = new Set<_HttpConnection>();
-    _server = new ServerSocket(host, port, backlog);
-    _server.onConnection = onConnection;
+    serverSocket.onConnection = onConnection;
+    _server = serverSocket;
+    _closeServer = false;
   }
 
   void close() {
-    _server.close();
+    if (_server !== null && _closeServer) {
+      _server.close();
+    }
+    _server = null;
     for (_HttpConnection connection in _connections) {
       connection._socket.close();
     }
+    _connections.clear();
   }
 
-  int get port() => _server.port;
+  int get port() {
+    if (_server === null) {
+      throw new HttpException("The HttpServer is not listening on a port.");
+    }
+    return _server.port;
+  }
 
   void set onError(void callback(Exception e)) {
     _onError = callback;
@@ -666,6 +680,7 @@ class _HttpServer implements HttpServer {
   }
 
   ServerSocket _server;  // The server listen socket.
+  bool _closeServer = false;
   Set<_HttpConnection> _connections;  // Set of currently connected clients.
   Function _onRequest;
   Function _onError;
