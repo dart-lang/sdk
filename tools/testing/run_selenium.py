@@ -33,18 +33,18 @@ import platform
 import selenium
 from selenium.webdriver.support.ui import WebDriverWait
 import shutil
+import signal
 import socket
 import sys
 import time
-import signal
 
 TIMEOUT_ERROR_MSG = 'FAIL (timeout)'
 
-def perf_test_done(driver):
-  """Checks if the performance test has completed."""
-  return perf_test_done_helper(driver.page_source)
+def correctness_test_done(source):
+  """Checks if test has completed."""
+  return ('PASS' in source) or ('FAIL' in source)
 
-def perf_test_done_helper(source):
+def perf_test_done(source):
   """Tests to see if our performance test is done by printing a score."""
   #This code is written this way to work around a current instability in the
   # python webdriver bindings if you call driver.get_element_by_id.
@@ -55,38 +55,47 @@ def perf_test_done_helper(source):
   source = source[index + len(string):end_index]
   return 'Score:' in source
 
-def run_test_in_browser(browser, html_out, timeout, is_perf):
+def dromaeo_test_done(source):
+  """Tests to see if our performance test is done by printing a score."""
+  #TODO(efortuna): Access these elements in a nicer way using DOM parser.
+  string = '<span class="left">'
+  index = source.find(string)
+  end_index = source.find('</span>', index+1)
+  source = source[index + len(string):end_index]
+  return '0:00' in source
+
+# TODO(vsm): Ideally, this wouldn't live in this file.
+CONFIGURATIONS = {
+    'correctness': correctness_test_done,
+    'perf': perf_test_done,
+    'dromaeo': dromaeo_test_done
+}
+
+def run_test_in_browser(browser, html_out, timeout, config):
   """Run the desired test in the browser using Selenium 2.0 WebDriver syntax,
   and wait for the test to complete. This is the newer syntax, that currently
   supports Firefox, Chrome, IE, Opera (and some mobile browsers)."""
   if isinstance(browser, selenium.selenium):
-    return run_test_in_browser_selenium_rc(browser, html_out, timeout, is_perf)
+    return run_test_in_browser_selenium_rc(browser, html_out, timeout, config)
 
   browser.get("file://" + html_out)
   source = ''
   try:
-    if is_perf:
-      # We're running a performance test.
-      element = WebDriverWait(browser, float(timeout)).until(perf_test_done)
-    else:
-      element = WebDriverWait(browser, float(timeout)).until(
-          lambda driver : ('PASS' in driver.page_source) or
-          ('FAIL' in driver.page_source))
+    test_done = CONFIGURATIONS[config]
+    element = WebDriverWait(browser, float(timeout)).until(
+        lambda driver: test_done(driver.page_source))
     source = browser.page_source
   except selenium.common.exceptions.TimeoutException:
     source = TIMEOUT_ERROR_MSG
   return source
 
-def run_test_in_browser_selenium_rc(sel, html_out, timeout, is_perf):
+def run_test_in_browser_selenium_rc(sel, html_out, timeout, config):
   """ Run the desired test in the browser using Selenium 1.0 syntax, and wait
   for the test to complete. This is used for Safari, since it is not currently
   supported on Selenium 2.0."""
   sel.open('file://' + html_out)
   source = sel.get_html_source()
-  def end_condition(source):
-    return 'PASS' in source or 'FAIL' in source
-  if is_perf:
-    end_condition = perf_test_done_helper
+  end_condition = CONFIGURATIONS[config]
 
   elapsed = 0
   while (not end_condition(source)) and elapsed <= timeout:
@@ -113,8 +122,18 @@ def parse_args(args=None):
   parser.add_option('--perf', dest = 'is_perf',
       help = 'Add this flag if we are running a browser performance test',
       action = 'store_true', default=False)
+  # TODO(vsm): Abstract this out better.
+  parser.add_option('--dromaeo', dest = 'is_dromaeo',
+      help = 'Add this flag if we are running a browser performance test',
+      action = 'store_true', default=False)
   args, ignored = parser.parse_args(args=args)
-  return args.out, args.browser, args.timeout, args.is_perf
+  if args.is_perf:
+    config = 'perf'
+  elif args.is_dromaeo:
+    config = 'dromaeo'
+  else:
+    config = 'correctness'
+  return args.out, args.browser, args.timeout, config
 
 def start_browser(browser, html_out):
   if browser == 'chrome':
@@ -165,10 +184,12 @@ def close_browser(browser):
     # TODO(efortuna): Figure out why this crashes.... and avoid?
     pass
 
-def report_results(is_perf, source):
-  if is_perf:
+def report_results(config, source):
+  # TODO(vsm): Add a failure check for Dromaeo.
+  if config != 'correctness':
     # We're running a performance test.
-    print source
+    print source.encode('utf8')
+    sys.stdout.flush()
     if 'NaN' in source:
       return 1
     else:
@@ -224,10 +245,10 @@ def run_batch_tests():
       if line == '--terminate\n':
         break
 
-      html_out, browser_name, timeout, is_perf = parse_args(line.split())
+      html_out, browser_name, timeout, config = parse_args(line.split())
 
       # Sanity checks that test.dart is passing flags we can handle.
-      if is_perf:
+      if config != 'correctness':
         print 'Batch test runner not compatible with perf testing'
         return 1
       if browser and current_browser_name != browser_name:
@@ -240,7 +261,7 @@ def run_batch_tests():
         current_browser_name = browser_name
         browser = start_browser(browser_name, html_out)
 
-      source = run_test_in_browser(browser, html_out, timeout, is_perf)
+      source = run_test_in_browser(browser, html_out, timeout, config)
 
       # Test is done. Write end token to stderr and flush.
       sys.stderr.write('>>> EOF STDERR\n')
@@ -248,7 +269,7 @@ def run_batch_tests():
 
       # print one of:
       # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
-      status = report_results(is_perf, source)
+      status = report_results(config, source)
       if status == 0:
         print '>>> TEST PASS'
       elif source == TIMEOUT_ERROR_MSG:
@@ -267,12 +288,12 @@ def main(args):
     return run_batch_tests()
 
   # Run a single test
-  html_out, browser_name, timeout, is_perf = parse_args()
+  html_out, browser_name, timeout, config = parse_args()
   browser = start_browser(browser_name, html_out)
 
   try:
-    output = run_test_in_browser(browser, html_out, timeout, is_perf)
-    return report_results(is_perf, output)
+    output = run_test_in_browser(browser, html_out, timeout, config)
+    return report_results(config, output)
   finally:
     close_browser(browser)
 

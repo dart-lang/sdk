@@ -13,6 +13,7 @@ import optparse
 import os
 from os.path import dirname, abspath
 import platform
+import re
 import shutil
 import stat
 import subprocess
@@ -28,10 +29,24 @@ import utils
 different svn revisions. It tests to see if there a newer version of the code on
 the server, and will sync and run the performance tests if so."""
 
-DART_INSTALL_LOCATION = os.path.join(dirname(abspath(__file__)),
-    '..', '..', '..')
-JS_MEAN = 'JS Mean'
-FROG_MEAN = 'frog js Mean'
+DART_INSTALL_LOCATION = abspath(os.path.join(dirname(abspath(__file__)),
+                                             '..', '..', '..'))
+_suffix = ''
+if platform.system() == 'Windows':
+  _suffix = '.exe'
+DART_VM = os.path.join(DART_INSTALL_LOCATION,
+                       utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+                       'dart-sdk',
+                       'bin',
+                       'dart' + _suffix)
+DART_COMPILER = os.path.join(DART_INSTALL_LOCATION,
+                             utils.GetBuildRoot(utils.GuessOS(),
+                                                'release', 'ia32'),
+                             'dart-sdk',
+                             'bin',
+                             'frogc')
+
+GEO_MEAN = 'Geo-Mean'
 COMMAND_LINE = 'commandline'
 JS = 'js'
 FROG = 'frog'
@@ -42,6 +57,7 @@ GRAPH_OUT_DIR = 'graphs'
 BROWSER_PERF = 'browser-perf'
 TIME_SIZE = 'code-time-size'
 CL_PERF = 'cl-results'
+DROMAEO = 'dromaeo'
 
 SLEEP_TIME = 200
 VERBOSE = False
@@ -147,6 +163,7 @@ def has_new_code():
       return True
   return False
 
+# TODO(vsm): Add Dartium.
 def get_browsers():
   browsers = ['ff', 'chrome']
   if platform.system() == 'Darwin':
@@ -155,10 +172,8 @@ def get_browsers():
     browsers += ['ie']
   return browsers
 
-def get_versions():
-  return JS_AND_FROG
-
-def get_benchmarks():
+# TODO(vsm): Factor benchmark specific code to a better location.
+def get_standalone_benchmarks():
   return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
   'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
   'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
@@ -186,7 +201,8 @@ def upload_to_app_engine(username, password):
   # organize the data in a useful manner(!!).
   os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
       'perf_testing'))
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF]:
+  # TODO(vsm): Factor out this list.
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO]:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     shutil.rmtree(path, ignore_errors=True)
     os.makedirs(path)
@@ -199,7 +215,8 @@ def upload_to_app_engine(username, password):
       shutil.copyfile(os.path.join(data, f[1]),
           os.path.join(path, f[1]+'.txt'))
   # Generate directory listing.
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF]:
+  # TODO(vsm): Factor out this list.
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO]:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     out = open(os.path.join('appengine', 'static',
         '%s-%s.html' % (data, utils.GuessOS())), 'w')
@@ -231,20 +248,21 @@ class TestRunner(object):
   """The base class to provide shared code for different tests we will run and
   graph."""
 
-  def __init__(self, result_folder_name, platform_list, js_and_or_frog_list,
-      values_list):
+  def __init__(self, result_folder_name, platform_list, variants,
+               values_list):
     """Args:
          result_folder_name the name of the folder where a tracefile of
          performance results will be stored.
          platform_list a list containing the platform(s) that our data has been
             run on. (command line, firefox, chrome, etc)
-         js_and_or_frog_list a list specifying whether we hold data about Frog
+         variants a list specifying whether we hold data about Frog
             generated code, plain JS code (js), or a combination of both.
          values_list a list containing the type of data we will be graphing
             (benchmarks, percentage passing, etc)"""
     self.result_folder_name = result_folder_name
     # cur_time is used as a timestamp of when this performance test was run.
     self.cur_time = str(time.mktime(datetime.datetime.now().timetuple()))
+    # TODO(vsm): Factor out.
     self.browser_color = {'chrome': 'green', 'ie': 'blue', 'ff': 'red',
         'safari':'black'}
     self.values_list = values_list
@@ -255,18 +273,14 @@ class TestRunner(object):
     for platform in platform_list:
       self.revision_dict[platform] = dict()
       self.values_dict[platform] = dict()
-      for f in js_and_or_frog_list:
+      for f in variants:
         self.revision_dict[platform][f] = dict()
         self.values_dict[platform][f] = dict()
         for val in values_list:
           self.revision_dict[platform][f][val] = []
           self.values_dict[platform][f][val] = []
-      if JS in js_and_or_frog_list:
-        self.revision_dict[platform][JS][JS_MEAN] = []
-        self.values_dict[platform][JS][JS_MEAN] = []
-      if FROG in js_and_or_frog_list:
-        self.revision_dict[platform][FROG][FROG_MEAN] = []
-        self.values_dict[platform][FROG][FROG_MEAN] = []
+        self.revision_dict[platform][f][GEO_MEAN] = []
+        self.values_dict[platform][f][GEO_MEAN] = []
 
   def get_color(self):
     color = COLORS[self.color_index]
@@ -274,7 +288,7 @@ class TestRunner(object):
     return color
 
   def style_and_save_perf_plot(self, chart_title, y_axis_label, size_x, size_y,
-      legend_loc, filename, platform_list, js_and_or_frog_list, values_list,
+      legend_loc, filename, platform_list, variants, values_list,
       should_clear_axes=True):
     """Sets style preferences for chart boilerplate that is consistent across
     all charts, and saves the chart as a png.
@@ -295,7 +309,7 @@ class TestRunner(object):
     if should_clear_axes:
       plt.cla() # cla = clear current axes
     for platform in platform_list:
-      for f in js_and_or_frog_list:
+      for f in variants:
         for val in values_list:
           plt.plot(self.revision_dict[platform][f][val],
               self.values_dict[platform][f][val],
@@ -328,20 +342,17 @@ class TestRunner(object):
       if not search_for_revision(['git', 'svn', 'info']):
         run_cmd(['echo', 'Revision: unknown'], outfile)
 
-  def calculate_geometric_mean(self, platform, frog_or_js, svn_revision):
+  def calculate_geometric_mean(self, platform, variant, svn_revision):
     """Calculate the aggregate geometric mean for JS and frog benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0
-    for benchmark in get_benchmarks():
-      geo_mean += math.log(self.values_dict[platform][frog_or_js][benchmark][
-          len(self.values_dict[platform][frog_or_js][benchmark]) - 1])
+    for benchmark in self.values_list:
+      geo_mean += math.log(self.values_dict[platform][variant][benchmark][
+          len(self.values_dict[platform][variant][benchmark]) - 1])
 
-    mean = JS_MEAN
-    if frog_or_js == FROG:
-       mean = FROG_MEAN
-    self.values_dict[platform][frog_or_js][mean] += \
-        [math.pow(math.e, geo_mean / len(get_benchmarks()))]
-    self.revision_dict[platform][frog_or_js][mean] += [svn_revision]
+    self.values_dict[platform][variant][GEO_MEAN] += \
+        [math.pow(math.e, geo_mean / len(self.values_list))]
+    self.revision_dict[platform][variant][GEO_MEAN] += [svn_revision]
 
   def run(self, graph_only):
     """Run the benchmarks/tests from the command line and plot the
@@ -367,21 +378,24 @@ class TestRunner(object):
 
 class PerformanceTest(TestRunner):
   """Super class for all performance testing."""
-  def __init__(self, result_folder_name, platform_list, platform_type):
+  def __init__(self, result_folder_name, platform_list, platform_type,
+               versions, benchmarks):
     super(PerformanceTest, self).__init__(result_folder_name,
-        platform_list, get_versions(), get_benchmarks())
+        platform_list, versions, benchmarks)
     self.platform_list = platform_list
     self.platform_type = platform_type
+    self.versions = versions
+    self.benchmarks = benchmarks
 
   def plot_all_perf(self, png_filename):
     """Create a plot that shows the performance changes of individual benchmarks
     run by JS and generated by frog, over svn history."""
-    for benchmark in get_benchmarks():
+    for benchmark in self.benchmarks:
       self.style_and_save_perf_plot(
           'Performance of %s over time on the %s on %s' % (benchmark,
           self.platform_type, utils.GuessOS()), 'Speed (bigger = better)', 16,
           14, 'lower left', benchmark + png_filename, self.platform_list,
-          get_versions(), [benchmark])
+          self.versions, [benchmark])
 
   def plot_avg_perf(self, png_filename):
     """Generate a plot that shows the performance changes of the geomentric mean
@@ -392,11 +406,11 @@ class PerformanceTest(TestRunner):
         'lower left', 'avg'+png_filename)
     clear_axis = True
     for platform in self.platform_list:
-      self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
-          filename, [platform], [JS], [JS_MEAN], clear_axis)
-      clear_axis = False
-      self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
-          filename, [platform], [FROG], [FROG_MEAN], clear_axis)
+      for version in self.versions:
+        self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
+                                      filename, [platform], [version],
+                                      [GEO_MEAN], clear_axis)
+        clear_axis = False
 
   def plot_results(self, png_filename):
     self.plot_all_perf(png_filename)
@@ -406,9 +420,10 @@ class PerformanceTest(TestRunner):
 class CommandLinePerformanceTest(PerformanceTest):
   """Run performance tests from the command line."""
 
-  def __init__(self, result_folder_name):
-    super(CommandLinePerformanceTest, self).__init__(result_folder_name,
-        [COMMAND_LINE], 'command line')
+  def __init__(self):
+    super(CommandLinePerformanceTest, self).__init__(
+        CL_PERF, [COMMAND_LINE], 'command line',
+        JS_AND_FROG, get_standalone_benchmarks())
 
   def process_file(self, afile):
     """Pull all the relevant information out of a given tracefile.
@@ -427,7 +442,7 @@ class CommandLinePerformanceTest(PerformanceTest):
         tabulate_data = True
       elif tabulate_data:
         tokens = line.split()
-        if len(tokens) < 4 or tokens[0] not in get_benchmarks():
+        if len(tokens) < 4 or tokens[0] not in self.benchmarks:
           #Done tabulating data.
           break
         js_value = float(tokens[1])
@@ -456,12 +471,13 @@ class CommandLinePerformanceTest(PerformanceTest):
     os.chdir('..')
 
 
-class BrowserPerformanceTest(PerformanceTest):
-  """Runs performance tests, in the browser."""
+class BrowserStandalonePerformanceTest(PerformanceTest):
+  """Runs standalone performance tests, in the browser."""
 
-  def __init__(self, result_folder_name):
-    super(BrowserPerformanceTest, self).__init__(
-        result_folder_name, get_browsers(), 'browser')
+  def __init__(self):
+    super(BrowserStandalonePerformanceTest, self).__init__(
+        BROWSER_PERF, get_browsers(), 'browser',
+        JS_AND_FROG, get_standalone_benchmarks())
 
   def run_tests(self):
     """Run a performance test in the browser."""
@@ -471,7 +487,7 @@ class BrowserPerformanceTest(PerformanceTest):
     os.chdir('..')
 
     for browser in get_browsers():
-      for version in get_versions():
+      for version in self.versions:
         self.trace_file = os.path.join('tools', 'testing', 'perf_testing',
             self.result_folder_name,
             'perf-%s-%s-%s' % (self.cur_time, browser, version))
@@ -529,11 +545,98 @@ class BrowserPerformanceTest(PerformanceTest):
     self.calculate_geometric_mean(browser, version, revision_num)
 
 
+# TODO(vsm): This should not be hardcoded here if possible.
+def get_dromaeo_benchmarks():
+  return map(lambda str: str.replace(' ', '_'),
+    ['getAttribute', 'element.property', 'setAttribute',
+     'element.property = value', 'createElement', 'createTextNode',
+     'innerHTML', 'cloneNode', 'appendChild', 'insertBefore',
+     'getElementById', 'getElementById (not in document)',
+     'getElementsByTagName(div)', 'getElementsByTagName(p)',
+     'getElementsByTagName(a)', 'getElementsByTagName(*)',
+     'getElementsByTagName (not in document)', 'getElementsByName',
+     'getElementsByName (not in document)', 'firstChild', 'lastChild',
+     'nextSibling', 'previousSibling', 'childNodes'])
+
+
+def get_dromaeo_versions():
+  return ['js', 'frog_dom', 'frog_html']
+
+class DromaeoTest(PerformanceTest):
+  """Runs Dromaeo tests, in the browser."""
+  def __init__(self):
+    super(DromaeoTest, self).__init__(
+        DROMAEO, get_browsers(), 'browser',
+        get_dromaeo_versions(), get_dromaeo_benchmarks())
+
+  def run_tests(self):
+    """Run dromaeo in the browser."""
+
+    # Build tests.
+    dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
+    current_path = os.getcwd()
+    os.chdir(dromaeo_path)
+    run_cmd(['python', 'generate_frog_tests.py'])
+    os.chdir(current_path)
+
+    versions = get_dromaeo_versions()
+
+    for browser in get_browsers():
+      for version_name in versions:
+        version = version_name.replace('_','&')
+        self.trace_file = os.path.join('tools', 'testing', 'perf_testing',
+            self.result_folder_name,
+            'dromaeo-%s-%s-%s' % (self.cur_time, browser, version_name))
+        self.add_svn_revision_to_trace(self.trace_file)
+        file_path = os.path.join(os.getcwd(), dromaeo_path,
+            'index-js.html?%s' % version)
+        run_cmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'),
+            '--out', file_path, '--browser', browser,
+            '--timeout', '200', '--dromaeo'], self.trace_file, append=True)
+
+  def process_file(self, afile):
+    """Comb through the html to find the performance results."""
+    parts = afile.split('-')
+    browser = parts[2]
+    version = parts[3]
+
+    bench_dict = self.values_dict[browser][version]
+
+    f = open(os.path.join(self.result_folder_name, afile))
+    lines = f.readlines()
+    i = 0
+    revision_num = 0
+    revision_pattern = r'Revision: (\d+)'
+    suite_pattern = r'<div class="result-item done">(.+?)</ol></div>'
+    result_pattern = r'<b>(.+?)</b>(.+?)<small> runs/s(.+)'
+
+    for line in lines:
+      rev = re.match(revision_pattern, line.strip())
+      if rev:
+        revision_num = int(rev.group(1))
+        continue
+
+      suite_results = re.findall(suite_pattern, line)
+      if suite_results:
+        for suite_result in suite_results:
+          results = re.findall(r'<li>(.*?)</li>', suite_result)
+          if results:
+            for result in results:
+              r = re.match(result_pattern, result)
+              name = r.group(1).strip(':').replace(' ', '_')
+              score = float(r.group(2))
+              bench_dict[name] += [float(score)]
+              self.revision_dict[browser][version][name] += [revision_num]
+
+    f.close()
+    self.calculate_geometric_mean(browser, version, revision_num)
+
+
 class CompileTimeAndSizeTest(TestRunner):
   """Run tests to determine how long minfrog takes to compile, and the compiled
   file output size of some benchmarking files."""
-  def __init__(self, result_folder_name):
-    super(CompileTimeAndSizeTest, self).__init__(result_folder_name,
+  def __init__(self):
+    super(CompileTimeAndSizeTest, self).__init__(TIME_SIZE,
         [COMMAND_LINE], [FROG], ['Compiling on Dart VM', 'Bootstrapping',
         'minfrog', 'swarm', 'total'])
     self.failure_threshold = {'Compiling on Dart VM' : 1, 'Bootstrapping' : .5,
@@ -546,11 +649,7 @@ class CompileTimeAndSizeTest(TestRunner):
 
     self.add_svn_revision_to_trace(self.trace_file)
 
-    suffix = ''
-    if platform.system() == 'Windows':
-      suffix = '.exe'
-    elapsed = time_cmd([os.path.join('..', utils.GetBuildRoot(utils.GuessOS(),
-    'release', 'ia32'), 'dart' + suffix), os.path.join('.', 'minfrogc.dart'),
+    elapsed = time_cmd([DART_VM, os.path.join('.', 'minfrogc.dart'),
         '--out=minfrog', 'minfrog.dart'])
     run_cmd(['echo', '%f Compiling on Dart VM in production mode in seconds'
         % elapsed], self.trace_file, append=True)
@@ -566,8 +665,8 @@ class CompileTimeAndSizeTest(TestRunner):
     run_cmd(['echo', '%d Generated checked minfrog size' % size],
         self.trace_file, append=True)
 
-    run_cmd([os.path.join('.', 'minfrog'), '--out=swarm-result',
-        '--compile-only', os.path.join('..', 'samples', 'swarm',
+    run_cmd([DART_COMPILER, '--out=swarm-result',
+        os.path.join('..', 'samples', 'swarm',
         'swarm.dart')])
     swarm_size = 0
     try:
@@ -575,8 +674,8 @@ class CompileTimeAndSizeTest(TestRunner):
     except OSError:
       pass #If compilation failed, continue on running other tests.
 
-    run_cmd([os.path.join('.', 'minfrog'), '--out=total-result',
-        '--compile-only', os.path.join('..', 'samples', 'total',
+    run_cmd([DART_COMPILER, '--out=total-result',
+        os.path.join('..', 'samples', 'total',
         'client', 'Total.dart')])
     total_size = 0
     try:
@@ -639,6 +738,7 @@ class CompileTimeAndSizeTest(TestRunner):
 
 def parse_args():
   parser = optparse.OptionParser()
+  # TODO(vsm): Change to a list to scale.
   parser.add_option('--command-line', '-c', dest='cl',
       help='Run the command line tests',
       action='store_true', default=False)
@@ -647,6 +747,9 @@ def parse_args():
       action='store_true', default=False)
   parser.add_option('--browser-perf', '-b', dest='perf',
       help='Run the browser performance tests',
+      action='store_true', default=False)
+  parser.add_option('--dromaeo', '-d', dest='dromaeo',
+      help='Run the Dromaeo performance tests',
       action='store_true', default=False)
   parser.add_option('--forever', '-f', dest='continuous',
       help='Run this script forever, always checking for the next svn '
@@ -667,42 +770,44 @@ def parse_args():
   else:
     print 'Warning: performance data will not be uploaded to App Engine' + \
         ' if you do not provide a username.'
-  if not (args.cl or args.size or args.perf):
-    args.cl = args.size = args.perf = True
-  return (args.cl, args.size, args.perf, args.continuous,
+  if not (args.cl or args.size or args.perf or args.dromaeo):
+    args.cl = args.size = args.perf = args.dromaeo = True
+  return (args.cl, args.size, args.perf, args.dromaeo, args.continuous,
           args.verbose, args.no_build, args.graph_only,
           args.username, password)
 
-def run_test_sequence(cl, size, perf, no_build, graph_only,
+def run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
                       username, password):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
   if (not no_build or not graph_only) and sync_and_build() == 1:
     return # The build is broken.
   if size:
-    CompileTimeAndSizeTest(TIME_SIZE).run(graph_only)
+    CompileTimeAndSizeTest().run(graph_only)
   if cl:
-    CommandLinePerformanceTest(CL_PERF).run(graph_only)
+    CommandLinePerformanceTest().run(graph_only)
   if perf:
-    BrowserPerformanceTest(BROWSER_PERF).run(graph_only)
+    BrowserStandalonePerformanceTest().run(graph_only)
+  if dromaeo:
+    DromaeoTest().run(graph_only)
 
   if username != '':
     upload_to_app_engine(username, password)
 
 def main():
   global VERBOSE
-  (cl, size, perf, continuous, verbose, no_build, graph_only,
+  (cl, size, perf, dromaeo, continuous, verbose, no_build, graph_only,
       username, password) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(cl, size, perf, no_build, graph_only,
+        run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
                           username, password)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(cl, size, perf, no_build, graph_only,
+    run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
                       username, password)
 
 if __name__ == '__main__':
