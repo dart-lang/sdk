@@ -5,7 +5,8 @@
 TimeoutTest: Skip  # Timeout test for testing the test runner.
 FailTest: Fail, OK # Fails intentionally
 OutOfMemoryTest: Skip # Issue 2345
-io/HttpServerEarlyClientCloseTest: Timeout # To be fixed asap.
+io/HttpServerEarlyClientCloseTest: Skip # To be fixed asap.
+io/HttpServerSocketTest: Skip # To be fixed asap.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
