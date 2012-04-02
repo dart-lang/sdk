@@ -713,56 +713,98 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // <Statement> ::= While { label:     SourceLabel
 //                         condition: <Expression>
 //                         body:      <Sequence> }
+// The fragment is composed as follows:
+// a) continue-join (optional)
+// b) loop-join
+// c) [ test ] -> (body-entry-target, loop-exit-target)
+// d) body-entry-target
+// e) [ body ] -> (loop-join)
+// f) loop-exit-target
+// g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
+  ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
+
+  // Labels are set after body traversal.
+  SourceLabel* lbl = node->label();
+  ASSERT(lbl != NULL);
+  if (lbl->join_for_continue() != NULL) {
+    AddInstruction(lbl->join_for_continue());
+  }
   TieLoop(for_test, for_body);
-  // TODO(srdjan): Implement JumpNode handling.
-  if ((node->label() != NULL) &&
-      ((node->label()->join_for_break() != NULL) ||
-      (node->label()->join_for_continue() != NULL))) {
-    Bailout("Jump in WhileNode");
+  if (lbl->join_for_break() != NULL) {
+    AddInstruction(lbl->join_for_break());
   }
 }
 
 
+// The fragment is composed as follows:
+// a) body-entry-join
+// b) [ body ]
+// c) test-entry (continue-join or body-exit-target)
+// d) [ test-entry ] -> (back-target, loop-exit-target)
+// e) back-target -> (body-entry-join)
+// f) loop-exit-target
+// g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
+  // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
+
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
   ASSERT(is_open());
 
   // Tie do-while loop (test is after the body).
-  JoinEntryInstr* join = new JoinEntryInstr();
-  AddInstruction(join);
-  join->SetSuccessor(for_body.entry());
-  Instruction* body_exit = for_body.is_empty() ? join : for_body.exit();
+  JoinEntryInstr* body_entry_join = new JoinEntryInstr();
+  AddInstruction(body_entry_join);
+  body_entry_join->SetSuccessor(for_body.entry());
+  Instruction* body_exit =
+      for_body.is_empty() ? body_entry_join : for_body.exit();
 
-  if (body_exit != NULL) {
-    TargetEntryInstr* target_entry = new TargetEntryInstr();
-    target_entry->SetSuccessor(for_test.entry());
-    body_exit->SetSuccessor(target_entry);
+  if (for_body.is_open() || (node->label()->join_for_continue() != NULL)) {
+    BlockEntryInstr* test_entry = NULL;
+    if (node->label()->join_for_continue() == NULL) {
+      test_entry = new TargetEntryInstr();
+    } else {
+      test_entry = node->label()->join_for_continue();
+    }
+    test_entry->SetSuccessor(for_test.entry());
+    if (body_exit != NULL) {
+      body_exit->SetSuccessor(test_entry);
+    }
   }
 
   TargetEntryInstr* back_target_entry = new TargetEntryInstr();
   *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->SetSuccessor(join);
-  exit_ = *for_test.false_successor_address() = new TargetEntryInstr();
-  // TODO(srdjan): Implement JumpNode handling.
-  if ((node->label() != NULL) &&
-      ((node->label()->join_for_break() != NULL) ||
-      (node->label()->join_for_continue() != NULL))) {
-    Bailout("Jump in DoWhileNode");
+  back_target_entry->SetSuccessor(body_entry_join);
+  TargetEntryInstr* loop_exit_target = new TargetEntryInstr();
+  *for_test.false_successor_address() = loop_exit_target;
+  if (node->label()->join_for_break() == NULL) {
+    exit_ = loop_exit_target;
+  } else {
+    loop_exit_target->SetSuccessor(node->label()->join_for_break());
+    exit_ = node->label()->join_for_break();
   }
 }
 
 
 // A ForNode can contain break and continue jumps. 'break' joins to
-// ForNode exit, 'continue' joins at increment entry.
+// ForNode exit, 'continue' joins at increment entry. The fragment is composed
+// as follows:
+// a) [ initializer ]
+// b) loop-join
+// c) [ test ] -> (body-entry-target, loop-exit-target)
+// d) body-entry-target
+// e) [ body ]
+// f) continue-join (optional)
+// g) [ increment ] -> (loop-join)
+// h) loop-exit-target
+// i) break-join
 void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_initializer(owner(), temp_index());
   node->initializer()->Visit(&for_initializer);
@@ -776,6 +818,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   node->body()->Visit(&for_body);
 
   // Join loop body, increment and compute their end instruction.
+  ASSERT(!for_body.is_empty());
   Instruction* loop_increment_end = NULL;
   EffectGraphVisitor for_increment(owner(), temp_index());
   if ((node->label()->join_for_continue() == NULL) && for_body.is_open()) {
@@ -783,6 +826,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     node->increment()->Visit(&for_increment);
     for_body.Append(for_increment);
     loop_increment_end = for_body.exit();
+    // 'for_body' contains at least the TargetInstruction 'body_entry'.
     ASSERT(loop_increment_end != NULL);
   } else if (node->label()->join_for_continue() != NULL) {
     // Insert join between body and increment.
@@ -793,6 +837,9 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     node->increment()->Visit(&for_increment);
     loop_increment_end = for_increment.exit();
     ASSERT(loop_increment_end != NULL);
+  } else {
+    loop_increment_end = NULL;
+    ASSERT(!for_body.is_open() && node->label()->join_for_continue() == NULL);
   }
 
   // 'loop_increment_end' is NULL only if there is no join for continue and the
