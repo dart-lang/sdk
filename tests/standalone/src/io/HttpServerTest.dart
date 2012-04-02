@@ -20,10 +20,7 @@ void testListenOn() {
     server.onRequest = (HttpRequest request, HttpResponse response) {
       request.inputStream.onClosed = () {
         response.outputStream.close();
-        server.close();
-        Expect.throws(() => server.port);
         serverPort.close();
-        onDone();
       };
     };
 
@@ -44,10 +41,13 @@ void testListenOn() {
       response.inputStream.onClosed = () {
         client.shutdown();
         clientPort.close();
+        server.close();
+        Expect.throws(() => server.port);
+        onDone();
       };
     };
     conn.onError = (Exception e) {
-      Expect.fail("Unexpected error in Http Client");
+      Expect.fail("Unexpected error in Http Client: $e");
     };
   };
 
