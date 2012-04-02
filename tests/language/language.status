@@ -204,6 +204,7 @@ DisablePrivacyTest: Skip
 RichardsTest: Fail
 StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
+TypedMessageTest: Fail, Pass # Issue 2371.
 
 [ $compiler == frogsh ]
 ArithmeticTest: Fail # Issue 1470
