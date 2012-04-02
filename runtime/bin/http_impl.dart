@@ -23,10 +23,10 @@ class _HttpRequestResponseBase {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(data.length);
         _writeCRLF();
-        _httpConnection.outputStream.write(data, copyBuffer);
+        _httpConnection._write(data, copyBuffer);
         allWritten = _writeCRLF();
       } else {
-        allWritten = _httpConnection.outputStream.write(data, copyBuffer);
+        allWritten = _httpConnection._write(data, copyBuffer);
       }
     }
     return allWritten;
@@ -39,10 +39,10 @@ class _HttpRequestResponseBase {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(count);
         _writeCRLF();
-        _httpConnection.outputStream.writeFrom(data, offset, count);
+        _httpConnection._writeFrom(data, offset, count);
         allWritten = _writeCRLF();
       } else {
-        allWritten = _httpConnection.outputStream.writeFrom(data, offset, count);
+        allWritten = _httpConnection._writeFrom(data, offset, count);
       }
     }
     return allWritten;
@@ -52,7 +52,7 @@ class _HttpRequestResponseBase {
     bool allWritten = true;
     if (_contentLength < 0) {
       // Terminate the content if transfer encoding is chunked.
-      allWritten = _httpConnection.outputStream.write(_Const.END_CHUNKED);
+      allWritten = _httpConnection._write(_Const.END_CHUNKED);
     }
     return allWritten;
   }
@@ -63,11 +63,11 @@ class _HttpRequestResponseBase {
     // Format headers.
     _headers.forEach((String name, String value) {
       data = name.charCodes();
-      _httpConnection.outputStream.write(data);
+      _httpConnection._write(data);
       data = ": ".charCodes();
-      _httpConnection.outputStream.write(data);
+      _httpConnection._write(data);
       data = value.charCodes();
-      _httpConnection.outputStream.write(data);
+      _httpConnection._write(data);
       _writeCRLF();
     });
     // Terminate header.
@@ -85,17 +85,17 @@ class _HttpRequestResponseBase {
       hex[index] = hexDigits[x % 16];
       x = x >> 4;
     }
-    return _httpConnection.outputStream.writeFrom(hex, index, hex.length - index);
+    return _httpConnection._writeFrom(hex, index, hex.length - index);
   }
 
   bool _writeCRLF() {
     final CRLF = const [_CharCode.CR, _CharCode.LF];
-    return _httpConnection.outputStream.write(CRLF);
+    return _httpConnection._write(CRLF);
   }
 
   bool _writeSP() {
     final SP = const [_CharCode.SP];
-    return _httpConnection.outputStream.write(SP);
+    return _httpConnection._write(SP);
   }
 
   _HttpConnectionBase _httpConnection;
@@ -273,19 +273,19 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._phase = _HttpConnectionBase.PHASE_IDLE;
     _state = DONE;
     // Stop tracking no pending write events.
-    _httpConnection.outputStream.onNoPendingWrites = null;
+    _httpConnection._onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
     // If the connection is closing then close the output stream to
     // fully close the socket.
     if (_httpConnection._closing) {
-      _httpConnection.outputStream.close();
+      _httpConnection._close();
     }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
     if (_state != DONE) {
-      _httpConnection.outputStream.onNoPendingWrites = callback;
+      _httpConnection._onNoPendingWrites = callback;
     }
   }
 
@@ -354,16 +354,15 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   bool _writeHeader() {
     List<int> data;
-    OutputStream stream = _httpConnection.outputStream;
 
     // Write status line.
-    stream.write(_Const.HTTP11);
+    _httpConnection._write(_Const.HTTP11);
     _writeSP();
     data = _statusCode.toString().charCodes();
-    stream.write(data);
+    _httpConnection._write(data);
     _writeSP();
     data = reasonPhrase.charCodes();
-    stream.write(data);
+    _httpConnection._write(data);
     _writeCRLF();
 
     // Determine the value of the "Connection" header
@@ -486,8 +485,20 @@ class _HttpConnectionBase implements Hashable {
     _socket.onError = _onError;
   }
 
-  OutputStream get outputStream() {
-    return _socket.outputStream;
+  bool _write(List<int> data, [bool copyBuffer = false]) {
+    if (!_error) {
+      return _socket.outputStream.write(data, copyBuffer);
+    }
+  }
+
+  bool _writeFrom(List<int> buffer, [int offset, int len]) {
+    if (!_error) {
+      return _socket.outputStream.writeFrom(buffer, offset, len);
+    }
+  }
+
+  bool _close() {
+    _socket.close();
   }
 
   void _onData() {
@@ -521,6 +532,7 @@ class _HttpConnectionBase implements Hashable {
 
   void _onError(Exception e) {
     // If an error occurs, make sure to close the socket if one is associated.
+    _error = true;
     if (_socket != null) {
       _socket.close();
     }
@@ -540,11 +552,18 @@ class _HttpConnectionBase implements Hashable {
     _onErrorCallback = callback;
   }
 
+  void set _onNoPendingWrites(void callback()) {
+    if (!_error) {
+      _socket.outputStream.onNoPendingWrites = callback;
+    }
+  }
+
   int hashCode() => _socket.hashCode();
 
   int _phase;
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
+  bool _error = false;  // Is the socket closed due to an error?
   _HttpParser _httpParser;
 
   Queue _sendBuffers;
@@ -770,19 +789,19 @@ class _HttpClientRequest
   void _streamClose() {
     _state = DONE;
     // Stop tracking no pending write events.
-    _httpConnection.outputStream.onNoPendingWrites = null;
+    _httpConnection._onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
     // If the connection is closing then close the output stream to
     // fully close the socket.
     if (_httpConnection._closing) {
-      _httpConnection.outputStream.close();
+      _httpConnection._close();
     }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
     if (_state != DONE) {
-      _httpConnection.outputStream.onNoPendingWrites = callback;
+      _httpConnection._onNoPendingWrites = callback;
     }
   }
 
@@ -796,16 +815,15 @@ class _HttpClientRequest
 
   void _writeHeader() {
     List<int> data;
-    OutputStream stream = _httpConnection.outputStream;
 
     // Write request line.
     data = _method.toString().charCodes();
-    stream.write(data);
+    _httpConnection._write(data);
     _writeSP();
     data = _uri.toString().charCodes();
-    stream.write(data);
+    _httpConnection._write(data);
     _writeSP();
-    stream.write(_Const.HTTP11);
+    _httpConnection._write(_Const.HTTP11);
     _writeCRLF();
 
     // Determine the value of the "Connection" header
