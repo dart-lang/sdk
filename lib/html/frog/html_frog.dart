@@ -13639,20 +13639,71 @@ class _SpeechRecognitionResultListImpl implements SpeechRecognitionResultList na
 
   _SpeechRecognitionResultImpl item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _StorageImpl implements Storage native "*Storage" {
 
-  final int length;
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(String value) => getValues().some((e) => e == value);
 
-  void clear() native;
+  bool containsKey(String key) => $dom_getItem(key) != null;
 
-  String getItem(String key) native;
+  String operator [](String key) => $dom_getItem(key);
 
-  String key(int index) native;
+  void operator []=(String key, String value) => $dom_setItem(key, value);
 
-  void removeItem(String key) native;
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key];
+  }
 
-  void setItem(String key, String data) native;
+  String remove(String key) {
+    final value = this[key];
+    $dom_removeItem(key);
+    return value;
+  }
+
+  void clear() => $dom_clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = $dom_key(i);
+      if (key == null) return;
+
+      f(key, this[key]);
+    }
+  }
+
+  Collection<String> getKeys() {
+    final keys = [];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = [];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length() => $dom_length;
+
+  bool isEmpty() => $dom_key(0) == null;
+
+  int get $dom_length() native "return this.length;";
+
+  void $dom_clear() native "clear";
+
+  String $dom_getItem(String key) native "getItem";
+
+  String $dom_key(int index) native "key";
+
+  void $dom_removeItem(String key) native "removeItem";
+
+  void $dom_setItem(String key, String data) native "setItem";
+
 }
 
 class _StorageEventImpl extends _EventImpl implements StorageEvent native "*StorageEvent" {
@@ -28106,21 +28157,20 @@ interface SpeechRecognitionResultList {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface Storage extends Map<String, String> {
 
-interface Storage {
+  final int $dom_length;
 
-  final int length;
+  void $dom_clear();
 
-  void clear();
+  String $dom_getItem(String key);
 
-  String getItem(String key);
+  String $dom_key(int index);
 
-  String key(int index);
+  void $dom_removeItem(String key);
 
-  void removeItem(String key);
+  void $dom_setItem(String key, String data);
 
-  void setItem(String key, String data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

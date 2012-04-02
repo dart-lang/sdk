@@ -64,6 +64,12 @@ _private_html_members = set([
   'Node.removeChild',
   'Node.replaceChild',
   'NodeSelector.querySelectorAll',
+  'Storage.length',
+  'Storage.clear',
+  'Storage.getItem',
+  'Storage.key',
+  'Storage.removeItem',
+  'Storage.setItem',
   'Window.getComputedStyle',
 ])
 

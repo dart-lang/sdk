@@ -18388,34 +18388,85 @@ class _SpeechRecognitionResultListImpl extends _DOMTypeBase implements SpeechRec
     return _wrap(_ptr.item(_unwrap(index)));
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _StorageImpl extends _DOMTypeBase implements Storage {
+
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(String value) => getValues().some((e) => e == value);
+
+  bool containsKey(String key) => $dom_getItem(key) != null;
+
+  String operator [](String key) => $dom_getItem(key);
+
+  void operator []=(String key, String value) => $dom_setItem(key, value);
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key];
+  }
+
+  String remove(String key) {
+    final value = this[key];
+    $dom_removeItem(key);
+    return value;
+  }
+
+  void clear() => $dom_clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = $dom_key(i);
+      if (key == null) return;
+
+      f(key, this[key]);
+    }
+  }
+
+  Collection<String> getKeys() {
+    final keys = [];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = [];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length() => $dom_length;
+
+  bool isEmpty() => $dom_key(0) == null;
   _StorageImpl._wrap(ptr) : super._wrap(ptr);
 
-  int get length() => _wrap(_ptr.length);
+  int get $dom_length() => _wrap(_ptr.length);
 
-  void clear() {
+  void $dom_clear() {
     _ptr.clear();
     return;
   }
 
-  String getItem(String key) {
+  String $dom_getItem(String key) {
     return _wrap(_ptr.getItem(_unwrap(key)));
   }
 
-  String key(int index) {
+  String $dom_key(int index) {
     return _wrap(_ptr.key(_unwrap(index)));
   }
 
-  void removeItem(String key) {
+  void $dom_removeItem(String key) {
     _ptr.removeItem(_unwrap(key));
     return;
   }
 
-  void setItem(String key, String data) {
+  void $dom_setItem(String key, String data) {
     _ptr.setItem(_unwrap(key), _unwrap(data));
     return;
   }
+
 }
 
 class _StorageEventImpl extends _EventImpl implements StorageEvent {
@@ -33759,21 +33810,20 @@ interface SpeechRecognitionResultList {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface Storage extends Map<String, String> {
 
-interface Storage {
+  final int $dom_length;
 
-  final int length;
+  void $dom_clear();
 
-  void clear();
+  String $dom_getItem(String key);
 
-  String getItem(String key);
+  String $dom_key(int index);
 
-  String key(int index);
+  void $dom_removeItem(String key);
 
-  void removeItem(String key);
+  void $dom_setItem(String key, String data);
 
-  void setItem(String key, String data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

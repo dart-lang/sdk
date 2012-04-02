@@ -1,0 +1,54 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(String value) => getValues().some((e) => e == value);
+
+  bool containsKey(String key) => $dom_getItem(key) != null;
+
+  String operator [](String key) => $dom_getItem(key);
+
+  void operator []=(String key, String value) => $dom_setItem(key, value);
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key];
+  }
+
+  String remove(String key) {
+    final value = this[key];
+    $dom_removeItem(key);
+    return value;
+  }
+
+  void clear() => $dom_clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = $dom_key(i);
+      if (key == null) return;
+
+      f(key, this[key]);
+    }
+  }
+
+  Collection<String> getKeys() {
+    final keys = [];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = [];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length() => $dom_length;
+
+  bool isEmpty() => $dom_key(0) == null;
+$!MEMBERS
+}
