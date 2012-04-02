@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -413,50 +413,54 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());            
   }
   
-  public void testVarOnMethodDefinition() {
-    // This syntax is illegal, and should produce errors, but since it is a common error,
-    // we want to make sure it produce a valid AST for editor users
-    DartUnit unit = parseUnit("phony_var_on_function.dart",
+  /**
+   * Typedef and interface are top level keywords that are also valid as identifiers.
+   * 
+   * This test helps insure that the error recovery logic in the parser that detects
+   * top level keywords out of place doesn't break this functionality.
+   */
+  public void testTopLevelKeywordsAsIdent() {
+    parseUnit("phony_pseudokeyword_methods.dart",
         Joiner.on("\n").join(
-            "var f1() { return 1;}",  // Error, use of var on a method
+            "var interface;",
+            "bool interface;",
+            "final interface;",
+            "interface() { }",
+            "String interface() { }",
+            "interface();",
+            "var typedef;",
+            "bool typedef;",
+            "final typedef;",
+            "typedef() { }",
+            "String typedef() { }",
+            "typedef();",            
             "class A { ",
-            "  var f2() { return 1;}",  // Error, use of var on a method
-            "  f3() { return 2; }",
-            "}"),
-            ParserErrorCode.VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 1, 1,
-            ParserErrorCode.VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 3, 3);
-    DartMethodDefinition f1 = (DartMethodDefinition)unit.getTopLevelNodes().get(0);
-    assertEquals("f1", ((DartIdentifier)(f1.getName())).getName());
-    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
-    DartMethodDefinition f2 = (DartMethodDefinition)(A.getMembers().get(0));
-    assertEquals("f2", ((DartIdentifier)(f2.getName())).getName());
-    // Make sure that parsing continue
-    DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
-    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());    
-  }
-  
-  public void testFinalOnMethodDefinition() {
-    // This syntax is illegal, and should produce errors, but since it is a common error,
-    // we want to make sure it produce a valid AST for editor users
-    DartUnit unit = parseUnit("phony_var_on_function.dart",
-        Joiner.on("\n").join(
-            "final f1() {return 1;}",  // Error, use of final on a method
-            "class A { ",
-            "  final f2() {return 1;}",  // Error, use of final on a method
-            "  f3() { return 2; }",
-            "  final String f4() { return 1; }",  // Error, use of final on a method
-            "}"),
-            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 1, 1,
-            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 3, 3,
-            ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION, 5, 9);
-    DartMethodDefinition f1 = (DartMethodDefinition)unit.getTopLevelNodes().get(0);
-    assertEquals("f1", ((DartIdentifier)(f1.getName())).getName());
-    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
-    DartMethodDefinition f2 = (DartMethodDefinition)(A.getMembers().get(0));
-    assertEquals("f2", ((DartIdentifier)(f2.getName())).getName());
-    DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
-    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());
-    DartMethodDefinition f4 = (DartMethodDefinition)(A.getMembers().get(2));
-    assertEquals("f4", ((DartIdentifier)(f4.getName())).getName());    
+            "  var interface;",
+            "  bool interface;",
+            "  final interface;",
+            "  interface() { }",
+            "  String interface() { }",
+            "  interface();",
+            "  var typedef;",
+            "  bool typedef;",
+            "  final typedef;",
+            "  typedef() { }",
+            "  String typedef() { }",
+            "  typedef();",
+            "}",
+            "method() {",
+            "  var interface;",
+            "  bool interface;",
+            "  final interface;",
+            "  interface() { }",
+            "  String interface() { }",
+            "  interface();",
+            "  var typedef;",
+            "  bool typedef;",
+            "  final typedef;",
+            "  typedef() { }",
+            "  String typedef() { }",
+            "  typedef();",
+            "}"));
   }
 }

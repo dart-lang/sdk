@@ -33,6 +33,17 @@ abstract class AbstractParser {
       Token actualToken = peek(0);
       ctx.advance();
       reportUnexpectedToken(position(), expectedToken, actualToken);
+      // Recover from the middle of string interpolation
+      if (actualToken.equals(Token.STRING_EMBED_EXP_START) ||
+          actualToken.equals(Token.STRING_EMBED_EXP_END)) {
+        while(!EOS()) {
+          Token nextToken = next();
+          if (nextToken.equals(Token.STRING_LAST_SEGMENT)) {
+            break;
+          }
+          next();
+        }
+      }
       return false;
     }
     return true;

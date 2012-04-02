@@ -251,7 +251,27 @@ public abstract class CompilerTestCase extends TestCase {
     return unit;
   }
   
-  protected DartUnit parseUnitAsSystemLibrary(final String srcName, String sourceCode,
+  /**
+   * Parse a single compilation unit for the name and source. The parse expects some kind of error,
+   * but isn't picky about the actual contents. This is useful for testing parser recovery where we
+   * don't want to make the test too brittle.
+   */
+  protected DartUnit parseUnitUnspecifiedErrors(String srcName, String sourceCode) {
+    DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
+    final List<DartCompilationError> errorsEncountered = Lists.newArrayList();
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
+      @Override
+      public void onError(DartCompilationError event) {
+        errorsEncountered.add(event);
+      }
+    };
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    assertTrue("Expected some compilation errors, got none.", errorsEncountered.size() > 0);
+    return unit;
+    }
+  
+    protected DartUnit parseUnitAsSystemLibrary(final String srcName, String sourceCode,
                                               Object... errors) {
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null) {
       @Override
