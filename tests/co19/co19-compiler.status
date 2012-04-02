@@ -3,29 +3,29 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
-Language/05_Variables/05_Variables_A03_t08: Fail # TODO(dartc-team): New failure, please triage.
-Language/09_Generics/09_Generics_A04_t04: Fail # TODO(dartc-team): New failure, please triage.
-Language/09_Generics/09_Generics_A04_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A15_t16: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A16_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A16_t02: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A16_t03: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/01_Constants_A17_t03: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/03_Numbers_A01_t24: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/05_Strings_A01_t06: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/05_Strings_A01_t07: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/06_Lists_A03_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/07_Maps_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/07_Maps_A02_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/07_Maps_A02_t02: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # TODO(dartc-team): New failure, please triage.
+Language/05_Variables/05_Variables_A03_t08: Fail # Issue 2372
+Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
+Language/09_Generics/09_Generics_A04_t05: Fail # Issue 2374
+Language/10_Expressions/01_Constants_A15_t16: Fail # Issue 1473
+Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
+Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
+Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
+Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
+Language/10_Expressions/03_Numbers_A01_t24: Fail # Issue 2375
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # Issue 2376
+Language/10_Expressions/05_Strings_A01_t06: Fail # Issue 2377
+Language/10_Expressions/05_Strings_A01_t07: Fail # Issue 2377
+Language/10_Expressions/06_Lists_A03_t01: Fail # Issue 1473
+Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489
+Language/10_Expressions/07_Maps_A02_t01: Fail # Issue 1483
+Language/10_Expressions/07_Maps_A02_t02: Fail # Issue 1483
+Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
+Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # co19 issue 107
+Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
+Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
+Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
+Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
@@ -114,8 +114,7 @@ LibTest/core/FallThroughError/toString_A01_t01: Fail
 # Problems triaged before removal of code generation
 
 Language/13_Types/4_Interface_Types_A11_t04: Fail
-LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
-LibTest/core/ReceivePort/receive_A01_t02: Fail, Pass  # Fails for the wrong reason (open receive ports).
+LibTest/core/ReceivePort/receive_A01_t02: Fail # missing import co19 issue 108
 LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail
 
 Language/05_Variables/05_Variables_A03_t04: Fail
@@ -164,34 +163,34 @@ LibTest/core/Proxy/*: Skip
 LibTest/core/Dispatcher/*: Skip
 
 
-Language/03_Overview/1_Scoping_A01_t35: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t39: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t40: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A01_t41: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t05: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A02_t10: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/1_Scoping_A03_t05: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t06: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t02: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t03: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t04: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t05: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t12: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t09: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t10: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t14: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t20: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/03_Overview/2_Privacy_A01_t19: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/11_Statements/11_Labels_A01_t03: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t04: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # TODO(dartc-team): New failure at r164. Please triage.
+Language/03_Overview/1_Scoping_A01_t35: Fail # Issue 2380
+Language/03_Overview/1_Scoping_A01_t39: Fail # Issue 2381
+Language/03_Overview/1_Scoping_A01_t40: Fail # Issue 2381
+Language/03_Overview/1_Scoping_A01_t41: Fail # Issue 2381
+Language/03_Overview/1_Scoping_A02_t05: Fail # Issue 2241 (co19 issue)
+Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
+Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
+Language/03_Overview/2_Privacy_A01_t06: Fail # Issue 2383 
+Language/03_Overview/2_Privacy_A01_t02: Fail # Issue 2383 
+Language/03_Overview/2_Privacy_A01_t03: Fail # Issue 2383 
+Language/03_Overview/2_Privacy_A01_t04: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t05: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t12: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t09: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t10: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
+Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
+Language/11_Statements/11_Labels_A01_t03: Fail # Issue 1335
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue 2383
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t04: Fail # Issue 2383
+Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
+Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Fail # Issue 2385
+Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
+Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # TODO(dartc-team): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # TODO(dartc-team): New failure at r164. Please triage.
 Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # TODO(dartc-team): New failure at r164. Please triage.
