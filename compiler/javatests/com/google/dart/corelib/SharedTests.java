@@ -33,7 +33,8 @@ public class SharedTests extends TestSetup {
 
   private static final String[] listTests = {
       TEST_PY,
-      "--component=dartc",
+      "--compiler=dartc",
+      "--runtime=none",
       "--mode=release",
       "--progress=silent",
       "--list"};

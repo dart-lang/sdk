@@ -13,6 +13,7 @@
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/intrinsifier.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -30,6 +31,9 @@ DEFINE_FLAG(bool, print_ic_in_optimized, false,
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, intrinsify);
+DECLARE_FLAG(bool, trace_functions);
+
 
 #define __ assembler_->
 
@@ -119,6 +123,69 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
   pc_descriptors_list_ = new DescriptorList();
   // We do not build any stack maps in the unoptimizing compiler.
   exception_handlers_list_ = new CodeGenerator::HandlerList();
+}
+
+
+void CodeGenerator::IntrinsifyGetter() {
+  // TOS: return address.
+  // +1 : receiver.
+  // Sequence node has one return node, its input is oad field node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 1);
+  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
+  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
+  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
+  const LoadInstanceFieldNode& load_node =
+      *return_node.value()->AsLoadInstanceFieldNode();
+  __ movl(EAX, Address(ESP, 1 * kWordSize));
+  __ movl(EAX, FieldAddress(EAX, load_node.field().Offset()));
+  __ ret();
+}
+
+
+void CodeGenerator::IntrinsifySetter() {
+  // TOS: return address.
+  // +1 : value
+  // +2 : receiver.
+  // Sequence node has one store node and one return NULL node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 2);
+  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
+  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
+  const StoreInstanceFieldNode& store_node =
+      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
+  __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
+  __ StoreIntoObject(EAX, FieldAddress(EAX, store_node.field().Offset()), EBX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movl(EAX, raw_null);
+  __ ret();
+}
+
+
+
+bool CodeGenerator::TryIntrinsify() {
+  if (!CanOptimize()) return false;
+  if (FLAG_intrinsify && !FLAG_trace_functions) {
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
+      IntrinsifyGetter();
+      return true;
+    }
+    // Intrinsification skips arguments checks, therefore disable if in checked
+    // mode.
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter) &&
+        !FLAG_enable_type_checks) {
+      IntrinsifySetter();
+      return true;
+    }
+  }
+  // Even if an intrinsified version of the function was successfully
+  // generated, it may fall through to the non-intrinsified method body.
+  if (!FLAG_trace_functions) {
+    return Intrinsifier::Intrinsify(parsed_function().function(), assembler_);
+  }
+  return false;
 }
 
 
@@ -707,7 +774,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
   if (FLAG_enable_type_checks) {
     const bool returns_null = node->value()->IsLiteralNode() &&
        node->value()->AsLiteralNode()->literal().IsNull();
-    const RawFunction::Kind  kind = parsed_function().function().kind();
+    const RawFunction::Kind kind = parsed_function().function().kind();
     // Implicit getters do not need a type check at return.
     if (!returns_null &&
         (kind != RawFunction::kImplicitGetter) &&
@@ -1321,7 +1388,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       const AbstractTypeArguments& type_arguments =
           AbstractTypeArguments::Handle(type.arguments());
       const bool is_raw_type = type_arguments.IsNull() ||
-          type_arguments.IsDynamicTypes(type_arguments.Length());
+          type_arguments.IsRaw(type_arguments.Length());
       Label runtime_call;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, &runtime_call, Assembler::kNearJump);
@@ -1502,7 +1569,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       const AbstractTypeArguments& dst_type_arguments =
           AbstractTypeArguments::Handle(dst_type.arguments());
       const bool is_raw_dst_type = dst_type_arguments.IsNull() ||
-          dst_type_arguments.IsDynamicTypes(dst_type_arguments.Length());
+          dst_type_arguments.IsRaw(dst_type_arguments.Length());
       if (is_raw_dst_type) {
         // Dynamic type argument, check only classes.
         if (dst_type.IsListInterface()) {
@@ -1546,11 +1613,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
         __ LoadObject(EDX, dst_type_class);
         __ cmpl(EDX, ECX);
         __ j(EQUAL, &done, Assembler::kNearJump);
-        __ pushl(EAX);
+        // EAX, EDX are preserved in stub, result is in EBX.
         __ call(&StubCode::IsRawSubTypeLabel());
-        __ movl(EDI, EAX);
-        __ popl(EAX);
-        __ cmpl(EDI, Immediate(1));
+        // Result in EBX: 1 is raw subtype.
+        __ cmpl(EBX, Immediate(1));
         __ j(EQUAL, &done, Assembler::kNearJump);
         // Otherwise fallthrough
       } else {
@@ -1597,13 +1663,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
           __ j(NOT_EQUAL, &done, Assembler::kNearJump);
         } else {
           __ LoadObject(EDX, dst_type_class);
-          // EAX: Instance (preserve).
-          // EDX: test class
-          __ pushl(EAX);
+          // EAX: Instance (preserved).
+          // EDX: test class (preserved).
           __ call(&StubCode::IsRawSubTypeLabel());
-          __ movl(EDI, EAX);
-          __ popl(EAX);
-          __ cmpl(EDI, Immediate(1));
+          // Result in EBX: 1 is raw subtype.
+          __ cmpl(EBX, Immediate(1));
           __ j(EQUAL, &done, Assembler::kNearJump);
           // Otherwise fallthrough
         }
@@ -1647,12 +1711,10 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       __ cmpl(ECX, raw_null);
       __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
       // We have a non-parameterized class in EDX, compare with class of
-      // value in EAX.
-      __ pushl(EAX);
+      // value in EAX. EAX, EDX are preserved in stub.
       __ call(&StubCode::IsRawSubTypeLabel());
-      __ movl(EDI, EAX);
-      __ popl(EAX);
-      __ cmpl(EDI, Immediate(1));
+      // Result in EBX: 1 is raw subtype.
+      __ cmpl(EBX, Immediate(1));
       __ j(EQUAL, &done, Assembler::kNearJump);
       __ Bind(&fall_through);
     }
@@ -2329,8 +2391,10 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       // A factory requires the type arguments as first parameter.
       __ PushObject(node->type_arguments());
       if (!node->constructor().IsFactory()) {
-        // The allocator additionally requires the instantiator type arguments.
-        __ pushl(raw_null);  // Null instantiator.
+        // The non-factory allocator additionally requires the instantiator
+        // type arguments which are not needed here, since the type arguments
+        // are instantiated.
+        __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
       }
     }
   } else {
@@ -2339,16 +2403,22 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     GenerateInstantiatorTypeArguments(node->token_index());
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator AbstractTypeArguments object (or null).
-    // If EAX is null, no need to instantiate the type arguments, use null, and
-    // allocate an object of a raw type.
-    Label type_arguments_instantiated, type_arguments_uninstantiated;
-    __ cmpl(EAX, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of Dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      __ cmpl(EAX, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
     // Instantiate non-null type arguments.
     if (node->type_arguments().IsUninstantiatedIdentity()) {
       // Check if the instantiator type argument vector is a TypeArguments of a
       // matching length and, if so, use it as the instantiated type_arguments.
+      // No need to check RAX for null (again), because a null instance will
+      // have the wrong class (Null instead of TypeArguments).
+      Label type_arguments_uninstantiated;
       __ LoadObject(ECX, Class::ZoneHandle(Object::type_arguments_class()));
       __ cmpl(ECX, FieldAddress(EAX, Object::class_offset()));
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
@@ -2357,8 +2427,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ cmpl(FieldAddress(EAX, TypeArguments::length_offset()),
           arguments_length);
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+      __ Bind(&type_arguments_uninstantiated);
     }
-    __ Bind(&type_arguments_uninstantiated);
     if (node->constructor().IsFactory()) {
       // A runtime call to instantiate the type arguments is required before
       // calling the factory.
@@ -2383,7 +2453,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
       __ Bind(&type_arguments_instantiated);
       __ pushl(EAX);  // Instantiated type arguments.
-      __ pushl(raw_null);  // Null instantiator.
+      __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
       __ Bind(&type_arguments_pushed);
     }
   }
@@ -2435,8 +2505,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   __ pushl(EAX);
   // Second argument is the implicit construction phase parameter.
   // Run both the constructor initializer list and the constructor body.
-  __ PushObject(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
-
+  __ pushl(Immediate(Smi::RawValue(Function::kCtorPhaseAll)));
 
   // Now setup rest of the arguments for the constructor call.
   node->arguments()->Visit(this);

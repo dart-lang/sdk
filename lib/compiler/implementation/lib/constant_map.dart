@@ -48,3 +48,19 @@ class ConstantMap<V> implements Map<String, V> {
   V remove(String key) => _throwImmutable();
   void clear() => _throwImmutable();
 }
+
+// This class has no constructor. This is on purpose since the instantiation
+// is shortcut by the compiler.
+class ConstantProtoMap<V> extends ConstantMap<V> {
+  final V _protoValue;
+
+  bool containsKey(String key) {
+    if (key == '__proto__') return true;
+    return super.containsKey(key);
+  }
+
+  V operator [](String key) {
+    if (key == '__proto__') return _protoValue;
+    return super[key];
+  }
+}

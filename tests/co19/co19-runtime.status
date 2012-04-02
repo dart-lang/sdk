@@ -13,6 +13,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (c
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
 Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
 Language/10_Expressions/01_Constants_A15_t01: Fail # co19 issue 100
+Language/10_Expressions/01_Constants_A15_t34: Fail # co19 issue 106
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # issue 1991.
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
@@ -95,14 +96,14 @@ LibTest/core/int/toStringAsExponential_A01_t01: Fail, Crash # Issue 460
 LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460
 
-[ $runtime == vm && $system == macos ]
-LibTest/core/Math/acos_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/asin_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/atan_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/cos_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/exp_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/sin_A01_t01: Fail # Issue co19 - 44
-LibTest/core/Math/tan_A01_t01: Fail  # Issue co19 - 44
+[ $runtime == vm ]
+LibTest/core/Math/acos_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/asin_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/atan_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/cos_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/exp_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/sin_A01_t01: Fail, Pass # Issue co19 - 44
+LibTest/core/Math/tan_A01_t01: Fail, Pass  # Issue co19 - 44
 
 [ $runtime == vm && $system == linux ]
 LibTest/core/Math/exp_A01_t01: Fail
@@ -120,7 +121,6 @@ LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
 LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
-Language/09_Generics/09_Generics_A01_t02: Fail # Issue 439
 Language/10_Expressions/10_Instance_Creation/1_New_A07_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/10_Expressions/10_Instance_Creation/1_New_A12_t01: Fail # TODO(vm-team): New failure, please triage.
 Language/11_Statements/15_Assert_A03_t08: Fail # TODO(vm-team): New failure, please triage.
@@ -195,7 +195,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail

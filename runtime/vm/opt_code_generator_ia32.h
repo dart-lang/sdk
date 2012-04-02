@@ -49,10 +49,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
   virtual void VisitTryCatchNode(TryCatchNode* node);
   virtual void VisitUnaryOpNode(UnaryOpNode* node);
 
-  // Return true if intrinsification succeeded and no more code is needed.
-  // Returns false if either no intrinsification occured or if intrinsified
-  // code needs the rest for slow case execution.
-  virtual bool TryIntrinsify();
   virtual void GeneratePreEntryCode();
   virtual bool IsOptimizing() const { return true; }
 
@@ -75,9 +71,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
                                             Register reg2,
                                             Register reg3,
                                             DeoptReasonId reason_id);
-
-  void IntrinsifyGetter();
-  void IntrinsifySetter();
 
   void InlineInstanceGettersWithSameTarget(AstNode* node,
                                            intptr_t id,

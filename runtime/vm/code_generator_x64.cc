@@ -711,9 +711,12 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
 
   // Generate type check.
   if (FLAG_enable_type_checks) {
-    const RawFunction::Kind  kind = parsed_function().function().kind();
+    const bool returns_null = node->value()->IsLiteralNode() &&
+       node->value()->AsLiteralNode()->literal().IsNull();
+    const RawFunction::Kind kind = parsed_function().function().kind();
     // Implicit getters do not need a type check at return.
-    if ((kind != RawFunction::kImplicitGetter) &&
+    if (!returns_null &&
+        (kind != RawFunction::kImplicitGetter) &&
         (kind != RawFunction::kConstImplicitGetter)) {
       GenerateAssertAssignable(
           node->id(),
@@ -1326,7 +1329,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       const AbstractTypeArguments& type_arguments =
           AbstractTypeArguments::Handle(type.arguments());
       const bool is_raw_type = type_arguments.IsNull() ||
-          type_arguments.IsDynamicTypes(type_arguments.Length());
+          type_arguments.IsRaw(type_arguments.Length());
       Label runtime_call;
       __ testq(RAX, Immediate(kSmiTagMask));
       __ j(ZERO, &runtime_call, Assembler::kNearJump);
@@ -1505,7 +1508,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       const AbstractTypeArguments& dst_type_arguments =
           AbstractTypeArguments::Handle(dst_type.arguments());
       const bool is_raw_dst_type = dst_type_arguments.IsNull() ||
-          dst_type_arguments.IsDynamicTypes(dst_type_arguments.Length());
+          dst_type_arguments.IsRaw(dst_type_arguments.Length());
       if (is_raw_dst_type) {
         // Dynamic type argument, check only classes.
         if (dst_type.IsListInterface()) {
@@ -2264,8 +2267,10 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       // A factory requires the type arguments as first parameter.
       __ PushObject(node->type_arguments());
       if (!node->constructor().IsFactory()) {
-        // The allocator additionally requires the instantiator type arguments.
-        __ pushq(raw_null);  // Null instantiator.
+        // The non-factory allocator additionally requires the instantiator
+        // type arguments which are not needed here, since the type arguments
+        // are instantiated.
+        __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
       }
     }
   } else {
@@ -2274,16 +2279,22 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
     GenerateInstantiatorTypeArguments(node->token_index());
     __ popq(RAX);  // Pop instantiator.
     // RAX is the instantiator AbstractTypeArguments object (or null).
-    // If RAX is null, no need to instantiate the type arguments, use null, and
-    // allocate an object of a raw type.
-    Label type_arguments_instantiated, type_arguments_uninstantiated;
-    __ cmpq(RAX, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of Dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      __ cmpq(RAX, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
     // Instantiate non-null type arguments.
     if (node->type_arguments().IsUninstantiatedIdentity()) {
       // Check if the instantiator type argument vector is a TypeArguments of a
       // matching length and, if so, use it as the instantiated type_arguments.
+      // No need to check RAX for null (again), because a null instance will
+      // have the wrong class (Null instead of TypeArguments).
+      Label type_arguments_uninstantiated;
       __ LoadObject(RCX, Class::ZoneHandle(Object::type_arguments_class()));
       __ cmpq(RCX, FieldAddress(RAX, Object::class_offset()));
       __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
@@ -2292,8 +2303,8 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
       __ cmpq(FieldAddress(RAX, TypeArguments::length_offset()),
           arguments_length);
       __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+      __ Bind(&type_arguments_uninstantiated);
     }
-    __ Bind(&type_arguments_uninstantiated);
     if (node->constructor().IsFactory()) {
       // A runtime call to instantiate the type arguments is required before
       // calling the factory.
@@ -2318,7 +2329,7 @@ void CodeGenerator::GenerateTypeArguments(ConstructorCallNode* node,
 
       __ Bind(&type_arguments_instantiated);
       __ pushq(RAX);  // Instantiated type arguments.
-      __ pushq(raw_null);  // Null instantiator.
+      __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
       __ Bind(&type_arguments_pushed);
     }
   }
@@ -2370,8 +2381,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   __ pushq(RAX);
   // Second argument is the implicit construction phase parameter.
   // Run both the constructor initializer list and the constructor body.
-  __ PushObject(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll)));
-
+  __ pushq(Immediate(Smi::RawValue(Function::kCtorPhaseAll)));
 
   // Now setup rest of the arguments for the constructor call.
   node->arguments()->Visit(this);

@@ -402,7 +402,7 @@ class Assembler : public ValueObject {
   void filds(const Address& src);
 
   void fincstp();
-  void ffree(const Immediate& index);
+  void ffree(intptr_t value);
 
   void fsin();
   void fcos();

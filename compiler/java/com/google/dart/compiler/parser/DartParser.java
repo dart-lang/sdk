@@ -5,6 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
@@ -161,7 +162,7 @@ public class DartParser extends CompletionHooksParserBase {
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
   };
-
+  
   public DartParser(Source source,
                     String sourceCode,
                     DartCompilerListener listener) {
@@ -922,6 +923,13 @@ public class DartParser extends CompletionHooksParserBase {
     switch (peek(0)) {
       case VAR: {
         consume(Token.VAR);
+        // Check for malformed method starting with 'var' : var ^ foo() { }
+        if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
+          reportError(position(), ParserErrorCode.VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION);
+          member = parseMethodOrAccessor(modifiers, null);
+          break;
+        }
+        
         member = parseFieldDeclaration(modifiers, null);
         expectStatmentTerminator();
         break;
@@ -941,11 +949,25 @@ public class DartParser extends CompletionHooksParserBase {
       case FINAL: {
         consume(Token.FINAL);
         modifiers = modifiers.makeFinal();
+
+        // Check for malformed method starting with 'final':   final ^ foo() { }
+        if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
+          reportError(position(), ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION);
+          member = parseMethodOrAccessor(modifiers, null);
+          break;
+        }
         DartTypeNode type = null;
         if (peek(1) != Token.COMMA
             && peek(1) != Token.ASSIGN
             && peek(1) != Token.SEMICOLON) {
           type = parseTypeAnnotation();
+          
+          // Check again for malformed method starting with 'final':   final String ^ foo() { }
+          if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
+            reportError(position(), ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION);
+            member = parseMethodOrAccessor(modifiers, null);
+            break;
+          }          
         }
         member = parseFieldDeclaration(modifiers, type);
         expectStatmentTerminator();
@@ -1004,12 +1026,15 @@ public class DartParser extends CompletionHooksParserBase {
    *
    * The following constructs will match:
    *
-   *      : get
-   *      | set
-   *      | operator
-   *      | identifier (                 // Case 1
-   *      | identifier DOT identifier  (  // Case 2
-   *      | identifier DOT identifier DOT identifier (  // Case 3
+   *      : get (
+   *      | get identifier (
+   *      | set (
+   *      | set identifier (
+   *      | operator (
+   *      | operator <op> (
+   *      | identifier (                 
+   *      | identifier DOT identifier  ( 
+   *      | identifier DOT identifier DOT identifier (
    *
    * @return <code>true</code> if the signature of a method has been found.  No tokens are consumed.
    */
@@ -1017,11 +1042,55 @@ public class DartParser extends CompletionHooksParserBase {
     assert (peek(0).equals(Token.IDENTIFIER));
     beginMethodName(); // begin() equivalent
     try {
-      // Simple checks
+      if (peekPseudoKeyword(0, OPERATOR_KEYWORD)) {
+        next();
+        // Using 'operator' as a field name is valid
+        if (peek(0).equals(Token.SEMICOLON) || peek(0).equals(Token.ASSIGN)) {
+          return false;
+        }
+        // Using 'operator' as a method name is valid (but discouraged)
+        if (peek(0).equals(Token.LPAREN)) {
+          return true;
+        }
+        // operator negate (
+        if (peekPseudoKeyword(0, NEGATE_KEYWORD) && peek(1).equals(Token.LPAREN)) {
+          return true;
+        }
+        // TODO(zundel): Look for valid operator overload tokens.  For now just assuming 
+        // non-idents are good enough
+        // operator ??? (
+        if (!(peek(0).equals(Token.IDENTIFIER) &&  peek(1).equals(Token.LPAREN))) {
+          return true;
+        }
+        if (peek(0).equals(Token.LBRACK) && peek(1).equals(Token.RBRACK)) {
+          // operator [] (           
+          if (peek(2).equals(Token.LPAREN)) {
+            return true;
+          }
+          // operator []= ( 
+          if (peek(2).equals(Token.ASSIGN) && peek(3).equals(Token.LPAREN)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      
       if (peekPseudoKeyword(0, GETTER_KEYWORD)
-          || peekPseudoKeyword(0, SETTER_KEYWORD)
-          || peekPseudoKeyword(0, OPERATOR_KEYWORD)) {
-        return true;
+          || peekPseudoKeyword(0, SETTER_KEYWORD)) {
+        next();
+        // Using 'get' or 'set' as a field name is valid
+        if (peek(0).equals(Token.SEMICOLON) || peek(0).equals(Token.ASSIGN)) {
+          return false;
+        }        
+        // Using 'get' or 'set' as a method name is valid (but discouraged)
+        if (peek(0).equals(Token.LPAREN)) {
+          return true;
+        }        
+        // normal case:  get foo (
+        if (peek(0).equals(Token.IDENTIFIER) && peek(1).equals(Token.LPAREN)) {
+          return true;
+        } 
+        return false;
       }
 
       consume(Token.IDENTIFIER);

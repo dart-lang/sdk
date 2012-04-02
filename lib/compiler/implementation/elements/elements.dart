@@ -779,6 +779,52 @@ class ClassElement extends ContainerElement {
     return supertype === null ? null : supertype.element;
   }
 
+  /**
+   * Runs through all members of this class.
+   *
+   * The enclosing class is passed to the callback. This is useful when
+   * [includeSuperMembers] is [:true:].
+   */
+  void forEachMember([void f(ClassElement enclosingClass, Element member),
+                      includeBackendMembers = false,
+                      includeSuperMembers = false]) {
+    ClassElement classElement = this;
+    do {
+      for (Element element in classElement.members) {
+        f(classElement, element);
+      }
+      if (includeBackendMembers) {
+        for (Element element in classElement.backendMembers) {
+          f(classElement, element);
+        }
+      }
+      classElement = includeSuperMembers ? classElement.superclass : null;
+    } while(classElement !== null);    
+  }
+
+  /**
+   * Runs through all instance-field members of this class.
+   *
+   * The enclosing class is passed to the callback. This is useful when
+   * [includeSuperMembers] is [:true:].
+   *
+   * When [includeBackendMembers] and [includeSuperMembers] are both [:true:]
+   * then the fields are visited in the same order as they need to be given
+   * to the JavaScript constructor.
+   */
+  void forEachInstanceField([void f(ClassElement enclosingClass, Element field),
+                             includeBackendMembers = false,
+                             includeSuperMembers = false]) {
+    // Filters so that [f] is only invoked with instance fields. 
+    void fieldFilter(ClassElement enclosingClass, Element member) {
+      if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+        f(enclosingClass, member);
+      }
+    }
+
+    forEachMember(fieldFilter, includeBackendMembers, includeSuperMembers);
+  }
+
   bool isInterface() => false;
   bool isNative() => nativeName != null;
   SourceString nativeName;

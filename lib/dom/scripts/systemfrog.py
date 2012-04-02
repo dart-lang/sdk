@@ -128,10 +128,6 @@ class FrogInterfaceGenerator(object):
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
 
-    element_type = MaybeTypedArrayElementType(interface)
-    if element_type:
-      self.AddTypedArrayConstructors(element_type)
-
     # Emit a factory provider class for the constructor.
     constructor_info = AnalyzeConstructor(interface)
     if constructor_info:
@@ -345,20 +341,6 @@ class FrogInterfaceGenerator(object):
     self._members_emitter.Emit(template, E=DartType(element_type))
 
 
-  def AddTypedArrayConstructors(self, element_type):
-    self._members_emitter.Emit(
-        '\n'
-        '  factory $CTOR(int length) =>  _construct_$CTOR(length);\n'
-        '\n'
-        '  factory $CTOR.fromList(List<$TYPE> list) => _construct_$CTOR(list);\n'
-        '\n'
-        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct_$CTOR(buffer);\n'
-        '\n'
-        '  static _construct_$CTOR(arg) native \'return new $CTOR(arg);\';\n',
-        CTOR=self._interface.id,
-        TYPE=DartType(element_type))
-
-
   def AddOperation(self, info):
     """
     Arguments:
@@ -368,10 +350,14 @@ class FrogInterfaceGenerator(object):
     params = info.ParametersImplementationDeclaration(
         lambda type_name: self._NarrowInputType(type_name))
 
+    native_string = ''
+    if info.declared_name != info.name:
+      native_string = " '%s'" % info.declared_name
+
     native_body = dom_frog_native_bodies.get(
         self._interface.id + '.' + info.name, '')
     if native_body:
-      native_body = " '''" + native_body + "'''"
+      native_string = " '''" + native_body + "'''"
 
     self._members_emitter.Emit(
         '\n'
@@ -379,4 +365,4 @@ class FrogInterfaceGenerator(object):
         TYPE=self._NarrowOutputType(info.type_name),
         NAME=info.name,
         PARAMS=params,
-        NATIVESTRING=native_body)
+        NATIVESTRING=native_string)

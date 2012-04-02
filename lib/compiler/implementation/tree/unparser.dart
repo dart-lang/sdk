@@ -289,7 +289,7 @@ class Unparser implements Visitor {
     visitGotoStatement(node);
   }
 
-  visitForInStatement(ForInStatement node) {
+  visitForIn(ForIn node) {
     add(node.forToken.value);
     sb.add(' (');
     visit(node.declaredIdentifier);

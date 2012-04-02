@@ -1,8 +1,10 @@
+Apidoc is a specialization of Dartdoc.
 Dartdoc generates static HTML documentation from Dart code.
+Apidoc wraps the dartdoc output with official dartlang.org skin, comments, etc.
 
 To use it, from this directory, run:
 
-    $ dartdoc <path to .dart file>
+    $ dart apidoc.dart [--out=<output directory>]
 
 This will create a "docs" directory with the docs for your libraries.
 

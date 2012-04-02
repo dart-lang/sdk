@@ -88,7 +88,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   @Override
   public boolean resolveDespiteParseErrors() {
-    return false;
+    return compilerOptions.resolveDespiteParseErrors();
   }
 
   @Override

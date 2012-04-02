@@ -1078,11 +1078,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
       }
       label.setContinueTarget();
+      mapping[node.target] = label;
     }
     mapping[node] = target;
   }
 
-  visitForInStatement(ForInStatement node) {
+  visitForIn(ForIn node) {
     visit(node.expression);
     Scope scope = new BlockScope(context);
     Node declaration = node.declaredIdentifier;

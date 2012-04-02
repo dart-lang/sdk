@@ -87,6 +87,7 @@ public class DartParameter extends DartDeclaration<DartExpression> {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     if (typeNode != null) {
       typeNode.accept(visitor);
     }

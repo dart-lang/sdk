@@ -163,7 +163,6 @@ Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=
 Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
 Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
-Language/11_Statements/12_Break_A03_t09: Fail # Expect.listEquals(at index 3, expected: <4>, actual: <2>) fails
 Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # operator-is with typedef.

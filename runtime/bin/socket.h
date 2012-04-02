@@ -23,6 +23,7 @@ class Socket {
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
+  static intptr_t GetRemotePort(intptr_t fd);
   static void GetError(intptr_t fd, OSError* os_error);
   static intptr_t GetStdioHandle(int num);
 

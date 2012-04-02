@@ -11,6 +11,7 @@
 
 namespace dart {
 
+class JoinEntryInstr;
 class LocalScope;
 class LocalVariable;
 class SourceLabel;
@@ -114,7 +115,9 @@ class SourceLabel : public ZoneAllocated {
       owner_(NULL),
       kind_(kind),
       continue_label_(),
-      break_label_() {
+      break_label_(),
+      join_for_break_(NULL),
+      join_for_continue_(NULL) {
   }
 
   static SourceLabel* New(intptr_t token_index, String* name, Kind kind) {
@@ -139,6 +142,24 @@ class SourceLabel : public ZoneAllocated {
   Label* break_label() { return &break_label_; }
   Label* continue_label() { return &continue_label_; }
 
+  void set_join_for_continue(JoinEntryInstr* join) {
+    ASSERT(join_for_continue_ == NULL);
+    join_for_continue_ = join;
+  }
+
+  JoinEntryInstr* join_for_continue() const {
+    return join_for_continue_;
+  }
+
+  void set_join_for_break(JoinEntryInstr* join) {
+    ASSERT(join_for_break_ == NULL);
+    join_for_break_ = join;
+  }
+
+  JoinEntryInstr* join_for_break() const {
+    return join_for_break_;
+  }
+
   // Returns the function level of the scope in which the label is defined.
   int FunctionLevel() const;
 
@@ -152,6 +173,8 @@ class SourceLabel : public ZoneAllocated {
   Kind kind_;
   Label continue_label_;
   Label break_label_;
+  JoinEntryInstr* join_for_break_;
+  JoinEntryInstr* join_for_continue_;
   static const char* kDefaultLabelName;
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);

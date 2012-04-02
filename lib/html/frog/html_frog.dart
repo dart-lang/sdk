@@ -29,11 +29,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker nat
   _AbstractWorkerEventsImpl get on() =>
     new _AbstractWorkerEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
@@ -4175,11 +4175,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void swapCache() native;
 
@@ -4701,19 +4701,19 @@ class _DocumentImpl extends _NodeImpl
 
   _DocumentFragmentImpl createDocumentFragment() native;
 
-  _ElementImpl $dom_createElement(String tagName) native "return this.createElement(tagName);";
+  _ElementImpl $dom_createElement(String tagName) native "createElement";
 
-  _ElementImpl $dom_createElementNS(String namespaceURI, String qualifiedName) native "return this.createElementNS(namespaceURI, qualifiedName);";
+  _ElementImpl $dom_createElementNS(String namespaceURI, String qualifiedName) native "createElementNS";
 
-  _EventImpl $dom_createEvent(String eventType) native "return this.createEvent(eventType);";
+  _EventImpl $dom_createEvent(String eventType) native "createEvent";
 
   _RangeImpl createRange() native;
 
-  _TextImpl $dom_createTextNode(String data) native "return this.createTextNode(data);";
+  _TextImpl $dom_createTextNode(String data) native "createTextNode";
 
   _TouchImpl createTouch(_WindowImpl window, _EventTargetImpl target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
 
-  _TouchListImpl $dom_createTouchList() native "return this.createTouchList();";
+  _TouchListImpl $dom_createTouchList() native "createTouchList";
 
   _ElementImpl elementFromPoint(int x, int y) native;
 
@@ -4721,13 +4721,13 @@ class _DocumentImpl extends _NodeImpl
 
   _CanvasRenderingContextImpl getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  _ElementImpl $dom_getElementById(String elementId) native "return this.getElementById(elementId);";
+  _ElementImpl $dom_getElementById(String elementId) native "getElementById";
 
-  _NodeListImpl $dom_getElementsByClassName(String tagname) native "return this.getElementsByClassName(tagname);";
+  _NodeListImpl $dom_getElementsByClassName(String tagname) native "getElementsByClassName";
 
-  _NodeListImpl $dom_getElementsByName(String elementName) native "return this.getElementsByName(elementName);";
+  _NodeListImpl $dom_getElementsByName(String elementName) native "getElementsByName";
 
-  _NodeListImpl $dom_getElementsByTagName(String tagname) native "return this.getElementsByTagName(tagname);";
+  _NodeListImpl $dom_getElementsByTagName(String tagname) native "getElementsByTagName";
 
   bool queryCommandEnabled(String command) native;
 
@@ -4739,9 +4739,9 @@ class _DocumentImpl extends _NodeImpl
 
   String queryCommandValue(String command) native;
 
-  _ElementImpl _query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl _query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
   void webkitCancelFullScreen() native;
 
@@ -5230,9 +5230,9 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
 }
 
@@ -5575,11 +5575,11 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
     new _ElementList(super.getRange(start, length));
 }
 
-class ElementAttributeMap implements Map<String, String> {
+class _ElementAttributeMap implements AttributeMap {
 
   final _ElementImpl _element;
 
-  ElementAttributeMap._wrap(this._element);
+  _ElementAttributeMap(this._element);
 
   bool containsValue(String value) {
     final attributes = _element.$dom_attributes;
@@ -5599,8 +5599,8 @@ class ElementAttributeMap implements Map<String, String> {
     return _element.$dom_getAttribute(key);
   }
 
-  void operator []=(String key, String value) {
-    _element.$dom_setAttribute(key, value);
+  void operator []=(String key, value) {
+    _element.$dom_setAttribute(key, '$value');
   }
 
   String putIfAbsent(String key, String ifAbsent()) {
@@ -5660,6 +5660,203 @@ class ElementAttributeMap implements Map<String, String> {
    */
   bool isEmpty() {
     return length == 0;
+  }
+}
+
+/**
+ * Provides a Map abstraction on top of data-* attributes, similar to the
+ * dataSet in the old DOM.
+ */
+class _DataAttributeMap implements AttributeMap {
+
+  final Map<String, String> $dom_attributes;
+
+  _DataAttributeMap(this.$dom_attributes);
+
+  // interface Map
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool containsValue(String value) => getValues().some((v) => v == value);
+
+  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+
+  String operator [](String key) => $dom_attributes[_attr(key)];
+
+  void operator []=(String key, value) {
+    $dom_attributes[_attr(key)] = '$value';
+  }
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+  }
+
+  String remove(String key) => $dom_attributes.remove(_attr(key));
+
+  void clear() {
+    // Needs to operate on a snapshot since we are mutating the collection.
+    for (String key in getKeys()) {
+      remove(key);
+    }
+  }
+
+  void forEach(void f(String key, String value)) {
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        f(_strip(key), value);
+      }
+    });
+  }
+
+  Collection<String> getKeys() {
+    final keys = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        keys.add(_strip(key));
+      }
+    });
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        values.add(value);
+      }
+    });
+    return values;
+  }
+
+  int get length() => getKeys().length;
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool isEmpty() => length == 0;
+
+  // Helpers.
+  String _attr(String key) => 'data-$key';
+  bool _matches(String key) => key.startsWith('data-');
+  String _strip(String key) => key.substring(5);
+}
+
+class _CssClassSet implements Set<String> {
+
+  final _ElementImpl _element;
+
+  _CssClassSet(this._element);
+
+  String toString() => _formatSet(_read());
+
+  // interface Iterable - BEGIN
+  Iterator<String> iterator() => _read().iterator();
+  // interface Iterable - END
+
+  // interface Collection - BEGIN
+  void forEach(void f(String element)) {
+    _read().forEach(f);
+  }
+
+  Collection map(f(String element)) => _read().map(f);
+
+  Collection<String> filter(bool f(String element)) => _read().filter(f);
+
+  bool every(bool f(String element)) => _read().every(f);
+
+  bool some(bool f(String element)) => _read().some(f);
+
+  bool isEmpty() => _read().isEmpty();
+
+  int get length() =>_read().length;
+
+  // interface Collection - END
+
+  // interface Set - BEGIN
+  bool contains(String value) => _read().contains(value);
+
+  void add(String value) {
+    // TODO - figure out if we need to do any validation here
+    // or if the browser natively does enough
+    _modify((s) => s.add(value));
+  }
+
+  bool remove(String value) {
+    Set<String> s = _read();
+    bool result = s.remove(value);
+    _write(s);
+    return result;
+  }
+
+  void addAll(Collection<String> collection) {
+    // TODO - see comment above about validation
+    _modify((s) => s.addAll(collection));
+  }
+
+  void removeAll(Collection<String> collection) {
+    _modify((s) => s.removeAll(collection));
+  }
+
+  bool isSubsetOf(Collection<String> collection) =>
+    _read().isSubsetOf(collection);
+
+  bool containsAll(Collection<String> collection) =>
+    _read().containsAll(collection);
+
+  Set<String> intersection(Collection<String> other) =>
+    _read().intersection(other);
+
+  void clear() {
+    _modify((s) => s.clear());
+  }
+  // interface Set - END
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *      s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  void _modify( f(Set<String> s)) {
+    Set<String> s = _read();
+    f(s);
+    _write(s);
+  }
+
+  /**
+   * Read the class names from the Element class property,
+   * and put them into a set (duplicates are discarded).
+   */
+  Set<String> _read() {
+    // TODO(mattsh) simplify this once split can take regex.
+    Set<String> s = new Set<String>();
+    for (String name in _classname().split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty()) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  /**
+   * Read the class names as a space-separated string. This is meant to be
+   * overridden by subclasses.
+   */
+  String _classname() => _element.$dom_className;
+
+  /**
+   * Join all the elements of a set into one string and write
+   * back to the element.
+   */
+  void _write(Set s) {
+    _element.$dom_className = _formatSet(s);
+  }
+
+  String _formatSet(Set<String> s) {
+    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
+    List list = new List.from(s);
+    return Strings.join(list, ' ');
   }
 }
 
@@ -5728,21 +5925,11 @@ class _ElementRectImpl implements ElementRect {
 
 class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
-  // TODO(jacobr): caching these may hurt performance.
-  ElementAttributeMap _elementAttributeMap;
-  _CssClassSet _cssClassSet;
-  _DataAttributeMap _dataAttributes;
-
   /**
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  Map<String, String> get attributes() {
-    if (_elementAttributeMap === null) {
-      _elementAttributeMap = new ElementAttributeMap._wrap(this);
-    }
-    return _elementAttributeMap;
-  }
+  _ElementAttributeMap get attributes() => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -5763,12 +5950,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  Set<String> get classes() {
-    if (_cssClassSet === null) {
-      _cssClassSet = new _CssClassSet(this);
-    }
-    return _cssClassSet;
-  }
+  _CssClassSet get classes() => new _CssClassSet(this);
 
   void set classes(Collection<String> value) {
     _CssClassSet classSet = classes;
@@ -5776,15 +5958,11 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
     classSet.addAll(value);
   }
 
-  Map<String, String> get dataAttributes() {
-    if (_dataAttributes === null) {
-      _dataAttributes = new _DataAttributeMap(attributes);
-    }
-    return _dataAttributes;
-  }
+  Map<String, String> get dataAttributes() =>
+    new _DataAttributeMap(attributes);
 
   void set dataAttributes(Map<String, String> value) {
-    Map<String, String> dataAttributes = this.dataAttributes;
+    final dataAttributes = this.dataAttributes;
     dataAttributes.clear();
     for (String key in value.getKeys()) {
       dataAttributes[key] = value[key];
@@ -5899,17 +6077,17 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void focus() native;
 
-  String $dom_getAttribute(String name) native "return this.getAttribute(name);";
+  String $dom_getAttribute(String name) native "getAttribute";
 
-  _ClientRectImpl $dom_getBoundingClientRect() native "return this.getBoundingClientRect();";
+  _ClientRectImpl $dom_getBoundingClientRect() native "getBoundingClientRect";
 
-  _ClientRectListImpl $dom_getClientRects() native "return this.getClientRects();";
+  _ClientRectListImpl $dom_getClientRects() native "getClientRects";
 
-  _NodeListImpl $dom_getElementsByClassName(String name) native "return this.getElementsByClassName(name);";
+  _NodeListImpl $dom_getElementsByClassName(String name) native "getElementsByClassName";
 
-  _NodeListImpl $dom_getElementsByTagName(String name) native "return this.getElementsByTagName(name);";
+  _NodeListImpl $dom_getElementsByTagName(String name) native "getElementsByTagName";
 
-  bool $dom_hasAttribute(String name) native "return this.hasAttribute(name);";
+  bool $dom_hasAttribute(String name) native "hasAttribute";
 
   _ElementImpl insertAdjacentElement(String where, _ElementImpl element) native;
 
@@ -5917,21 +6095,21 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void insertAdjacentText(String where, String text) native;
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 
-  void $dom_removeAttribute(String name) native "this.removeAttribute(name);";
+  void $dom_removeAttribute(String name) native "removeAttribute";
 
   void scrollByLines(int lines) native;
 
   void scrollByPages(int pages) native;
 
-  void scrollIntoView([bool centerIfNeeded = null]) native "this.scrollIntoViewIfNeeded(centerIfNeeded);";
+  void scrollIntoView([bool centerIfNeeded = null]) native "scrollIntoViewIfNeeded";
 
-  void $dom_setAttribute(String name, String value) native "this.setAttribute(name, value);";
+  void $dom_setAttribute(String name, String value) native "setAttribute";
 
-  bool matchesSelector(String selectors) native "return this.webkitMatchesSelector(selectors);";
+  bool matchesSelector(String selectors) native "webkitMatchesSelector";
 
   void webkitRequestFullScreen(int flags) native;
 
@@ -6283,7 +6461,7 @@ class _EventImpl implements Event native "*Event" {
 
   final String type;
 
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "this.initEvent(eventTypeArg, canBubbleArg, cancelableArg);";
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "initEvent";
 
   void preventDefault() native;
 
@@ -6324,13 +6502,13 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close() native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
@@ -6404,11 +6582,11 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 
   Events get on() => new _EventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
 }
 
@@ -6631,14 +6809,6 @@ class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
 
 class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, List<num> native "*Float32Array" {
 
-  factory Float32Array(int length) =>  _construct_Float32Array(length);
-
-  factory Float32Array.fromList(List<num> list) => _construct_Float32Array(list);
-
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct_Float32Array(buffer);
-
-  static _construct_Float32Array(arg) native 'return new Float32Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 4;
 
   final int length;
@@ -6714,20 +6884,12 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Float32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num> native "*Float64Array" {
-
-  factory Float64Array(int length) =>  _construct_Float64Array(length);
-
-  factory Float64Array.fromList(List<num> list) => _construct_Float64Array(list);
-
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct_Float64Array(buffer);
-
-  static _construct_Float64Array(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -6804,7 +6966,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Float64ArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -7117,7 +7279,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final _IDBAnyImpl source;
 
-  void continueFunction([_IDBKeyImpl key = null]) native;
+  void continueFunction([_IDBKeyImpl key = null]) native "continue";
 
   _IDBRequestImpl delete() native;
 
@@ -7229,7 +7391,7 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestImpl count([var key_OR_range = null]) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
 
   _IDBRequestImpl getKey(_IDBKeyImpl key) native;
 
@@ -7282,7 +7444,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   void deleteIndex(String name) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native;
+  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
 
   _IDBIndexImpl index(String name) native;
 
@@ -7563,14 +7725,6 @@ class _InputElementEventsImpl extends _ElementEventsImpl implements InputElement
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int> native "*Int16Array" {
 
-  factory Int16Array(int length) =>  _construct_Int16Array(length);
-
-  factory Int16Array.fromList(List<int> list) => _construct_Int16Array(list);
-
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct_Int16Array(buffer);
-
-  static _construct_Int16Array(arg) native 'return new Int16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -7646,20 +7800,12 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int> native "*Int32Array" {
-
-  factory Int32Array(int length) =>  _construct_Int32Array(length);
-
-  factory Int32Array.fromList(List<int> list) => _construct_Int32Array(list);
-
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct_Int32Array(buffer);
-
-  static _construct_Int32Array(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -7736,20 +7882,12 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int> native "*Int8Array" {
-
-  factory Int8Array(int length) =>  _construct_Int8Array(length);
-
-  factory Int8Array.fromList(List<int> list) => _construct_Int8Array(list);
-
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct_Int8Array(buffer);
-
-  static _construct_Int8Array(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -7826,7 +7964,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Int8ArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -8406,15 +8544,15 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
   _MessagePortEventsImpl get on() =>
     new _MessagePortEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close() native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   void postMessage(String message, [List messagePorts = null]) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void start() native;
 
@@ -8505,7 +8643,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final int y;
 
-  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "this.initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);";
+  void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
@@ -8866,9 +9004,9 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   void set text(String value) native "this.textContent = value;";
 
-  _NodeImpl $dom_appendChild(_NodeImpl newChild) native "return this.appendChild(newChild);";
+  _NodeImpl $dom_appendChild(_NodeImpl newChild) native "appendChild";
 
-  _NodeImpl clone(bool deep) native "return this.cloneNode(deep);";
+  _NodeImpl clone(bool deep) native "cloneNode";
 
   bool contains(_NodeImpl other) native;
 
@@ -8876,9 +9014,9 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   _NodeImpl insertBefore(_NodeImpl newChild, _NodeImpl refChild) native;
 
-  _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "return this.removeChild(oldChild);";
+  _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "removeChild";
 
-  _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "return this.replaceChild(newChild, oldChild);";
+  _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "replaceChild";
 
 }
 
@@ -9117,9 +9255,9 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
 class _NodeSelectorImpl implements NodeSelector native "*NodeSelector" {
 
-  _ElementImpl query(String selectors) native "return this.querySelector(selectors);";
+  _ElementImpl query(String selectors) native "querySelector";
 
-  _NodeListImpl $dom_querySelectorAll(String selectors) native "return this.querySelectorAll(selectors);";
+  _NodeListImpl $dom_querySelectorAll(String selectors) native "querySelectorAll";
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {
@@ -10251,7 +10389,7 @@ class _SVGDocumentImpl extends _DocumentImpl implements SVGDocument native "*SVG
 
   final _SVGSVGElementImpl rootElement;
 
-  _EventImpl $dom_createEvent(String eventType) native "return this.createEvent(eventType);";
+  _EventImpl $dom_createEvent(String eventType) native "createEvent";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10340,11 +10478,11 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
   final _SVGElementInstanceImpl previousSibling;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl event) native "return this.dispatchEvent(event);";
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
@@ -14206,14 +14344,6 @@ class _UListElementImpl extends _ElementImpl implements UListElement native "*HT
 
 class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List<int> native "*Uint16Array" {
 
-  factory Uint16Array(int length) =>  _construct_Uint16Array(length);
-
-  factory Uint16Array.fromList(List<int> list) => _construct_Uint16Array(list);
-
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint16Array(buffer);
-
-  static _construct_Uint16Array(arg) native 'return new Uint16Array(arg);';
-
   static final int BYTES_PER_ELEMENT = 2;
 
   final int length;
@@ -14289,20 +14419,12 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint16ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int> native "*Uint32Array" {
-
-  factory Uint32Array(int length) =>  _construct_Uint32Array(length);
-
-  factory Uint32Array.fromList(List<int> list) => _construct_Uint32Array(list);
-
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint32Array(buffer);
-
-  static _construct_Uint32Array(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -14379,20 +14501,12 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint32ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int> native "*Uint8Array" {
-
-  factory Uint8Array(int length) =>  _construct_Uint8Array(length);
-
-  factory Uint8Array.fromList(List<int> list) => _construct_Uint8Array(list);
-
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint8Array(buffer);
-
-  static _construct_Uint8Array(arg) native 'return new Uint8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -14469,25 +14583,17 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ArrayImpl subarray(int start, [int end = null]) native;
 }
 
 class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
 
-  factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
-
-  factory Uint8ClampedArray.fromList(List<int> list) => _construct_Uint8ClampedArray(list);
-
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _construct_Uint8ClampedArray(buffer);
-
-  static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
-
   // Use implementation from Uint8Array.
   // final int length;
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native "set";
 
   _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
 }
@@ -15541,13 +15647,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void close([int code = null, String reason = null]) native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   bool send(String data) native;
 }
@@ -15718,7 +15824,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   final _WindowImpl window;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
   void alert(String message) native;
 
@@ -15738,13 +15844,13 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   bool confirm(String message) native;
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   void focus() native;
 
-  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "return this.getComputedStyle(element, pseudoElement);";
+  _CSSStyleDeclarationImpl $dom_getComputedStyle(_ElementImpl element, String pseudoElement) native "getComputedStyle";
 
   _CSSRuleListImpl getMatchedCSSRules(_ElementImpl element, String pseudoElement) native;
 
@@ -15768,7 +15874,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void releaseEvents() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void resizeBy(num x, num y) native;
 
@@ -16098,9 +16204,9 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   String getAllResponseHeaders() native;
 
@@ -16110,7 +16216,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void overrideMimeType(String override) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void send([var data = null]) native;
 
@@ -16162,11 +16268,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
   _XMLHttpRequestUploadEventsImpl get on() =>
     new _XMLHttpRequestUploadEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.addEventListener(type, listener, useCapture);";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
 
-  bool $dom_dispatchEvent(_EventImpl evt) native "return this.dispatchEvent(evt);";
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "this.removeEventListener(type, listener, useCapture);";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
@@ -20959,226 +21065,6 @@ interface EXTTextureFilterAnisotropic {
 
 // WARNING: Do not edit - generated code.
 
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      return this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutatiting the collection.
-    for (String key in getKeys()) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> getKeys() {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> getValues() {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length() => getKeys().length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
-class _CssClassSet implements Set<String> {
-
-  final _ElementImpl _element;
-
-  _CssClassSet(this._element);
-
-  String toString() {
-    return _formatSet(_read());
-  }
-
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() {
-    return _read().iterator();
-  }
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection map(f(String element)) {
-    return _read().map(f);
-  }
-
-  Collection<String> filter(bool f(String element)) {
-    return _read().filter(f);
-  }
-
-  bool every(bool f(String element)) {
-    return _read().every(f);
-  }
-
-  bool some(bool f(String element)) {
-    return _read().some(f);
-  }
-
-  bool isEmpty() {
-    return _read().isEmpty();
-  }
-
-  int get length() {
-    return _read().length;
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) {
-    return _read().contains(value);
-  }
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) {
-    return _read().isSubsetOf(collection);
-  }
-
-  bool containsAll(Collection<String> collection) {
-    return _read().containsAll(collection);
-  }
-
-  Set<String> intersection(Collection<String> other) {
-    return _read().intersection(other);
-  }
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in $dom_className().split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  /**
-   * Read the class names as a space-separated string. This is meant to be
-   * overridden by subclasses.
-   */
-  String $dom_className() => _element.$dom_className;
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.$dom_className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
-    List list = new List.from(s);
-    return Strings.join(list, ' ');
-  }
-}
-
 interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
@@ -21187,6 +21073,15 @@ interface ElementList extends List<Element> {
 
   Element get first();
   // TODO(jacobr): add insertAt
+}
+
+/**
+ * All your attribute manipulation needs in one place.
+ * Extends the regular Map interface by automatically coercing non-string
+ * values to strings.
+ */
+interface AttributeMap extends Map<String, String> {
+  void operator []=(String key, value);
 }
 
 /**
@@ -21209,7 +21104,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element.html(String html);
   Element.tag(String tag);
 
-  Map<String, String> get attributes();
+  AttributeMap get attributes();
   void set attributes(Map<String, String> value);
 
   /**
@@ -21231,7 +21126,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void set classes(Collection<String> value);
 
-  Map<String, String> get dataAttributes();
+  AttributeMap get dataAttributes();
   void set dataAttributes(Map<String, String> value);
 
   /**
@@ -22152,7 +22047,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float32Array.fromList(List<num> list);
 
-  Float32Array.fromBuffer(ArrayBuffer buffer);
+  Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -22174,7 +22069,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float64Array.fromList(List<num> list);
 
-  Float64Array.fromBuffer(ArrayBuffer buffer);
+  Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -23057,7 +22952,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int16Array.fromList(List<int> list);
 
-  Int16Array.fromBuffer(ArrayBuffer buffer);
+  Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -23079,7 +22974,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int32Array.fromList(List<int> list);
 
-  Int32Array.fromBuffer(ArrayBuffer buffer);
+  Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -23101,7 +22996,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   Int8Array.fromList(List<int> list);
 
-  Int8Array.fromBuffer(ArrayBuffer buffer);
+  Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -28965,7 +28860,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint16Array.fromList(List<int> list);
 
-  Uint16Array.fromBuffer(ArrayBuffer buffer);
+  Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -28987,7 +28882,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint32Array.fromList(List<int> list);
 
-  Uint32Array.fromBuffer(ArrayBuffer buffer);
+  Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -29009,7 +28904,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Uint8Array.fromList(List<int> list);
 
-  Uint8Array.fromBuffer(ArrayBuffer buffer);
+  Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -29031,7 +28926,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromList(List<int> list);
 
-  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
+  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   final int length;
 
@@ -31933,57 +31828,6 @@ class _AudioContextFactoryProvider {
 ''';
 }
 
-class _TypedArrayFactoryProvider {
-
-  factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _F32(buffer);
-
-  factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _F64(buffer);
-
-  factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _I8(buffer);
-
-  factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _I16(buffer);
-
-  factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _I32(buffer);
-
-  factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _U8(buffer);
-
-  factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _U16(buffer);
-
-  factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _U32(buffer);
-
-  factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _U8C(buffer);
-
-  static Float32Array _F32(arg) native 'return new Float32Array(arg);';
-  static Float64Array _F64(arg) native 'return new Float64Array(arg);';
-  static Int8Array _I8(arg) native 'return new Int8Array(arg);';
-  static Int16Array _I16(arg) native 'return new Int16Array(arg);';
-  static Int32Array _I32(arg) native 'return new Int32Array(arg);';
-  static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
-  static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
-  static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
-  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
-
-  static ensureNative(List list) => list;  // TODO: make sure.
-}
-
 class _PointFactoryProvider {
 
   factory Point(num x, num y) native 'return new WebKitPoint(x, y);';
@@ -31996,7 +31840,121 @@ class _WebSocketFactoryProvider {
 
 class _TextFactoryProvider {
   factory Text(String data) native "return document.createTextNode(data);";
-}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _TypedArrayFactoryProvider {
+
+  factory Float32Array(int length) => _F32(length);
+  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
+  factory Float32Array.fromBuffer(ArrayBuffer buffer,
+                                  [int byteOffset = 0, int length]) {
+    if (length == null) return _F32_2(buffer, byteOffset);
+    return _F32_3(buffer, byteOffset, length);
+  }
+
+  factory Float64Array(int length) => _F64(length);
+  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
+  factory Float64Array.fromBuffer(ArrayBuffer buffer,
+                                  [int byteOffset = 0, int length]) {
+    if (length == null) return _F64_2(buffer, byteOffset);
+    return _F64_3(buffer, byteOffset, length);
+  }
+
+  factory Int8Array(int length) => _I8(length);
+  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
+  factory Int8Array.fromBuffer(ArrayBuffer buffer,
+                               [int byteOffset = 0, int length]) {
+    if (length == null) return _I8_2(buffer, byteOffset);
+    return _I8_3(buffer, byteOffset, length);
+  }
+
+  factory Int16Array(int length) => _I16(length);
+  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
+  factory Int16Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _I16_2(buffer, byteOffset);
+    return _I16_3(buffer, byteOffset, length);
+  }
+
+  factory Int32Array(int length) => _I32(length);
+  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
+  factory Int32Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _I32_2(buffer, byteOffset);
+    return _I32_3(buffer, byteOffset, length);
+  }
+
+  factory Uint8Array(int length) => _U8(length);
+  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _U8_2(buffer, byteOffset);
+    return _U8_3(buffer, byteOffset, length);
+  }
+
+  factory Uint16Array(int length) => _U16(length);
+  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer,
+                                 [int byteOffset = 0, int length]) {
+    if (length == null) return _U16_2(buffer, byteOffset);
+    return _U16_3(buffer, byteOffset, length);
+  }
+
+  factory Uint32Array(int length) => _U32(length);
+  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer,
+                                 [int byteOffset = 0, int length]) {
+    if (length == null) return _U32_2(buffer, byteOffset);
+    return _U32_3(buffer, byteOffset, length);
+  }
+
+  factory Uint8ClampedArray(int length) => _U8C(length);
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
+                                       [int byteOffset = 0, int length]) {
+    if (length == null) return _U8C_2(buffer, byteOffset);
+    return _U8C_3(buffer, byteOffset, length);
+  }
+
+  static Float32Array _F32(arg) native 'return new Float32Array(arg);';
+  static Float64Array _F64(arg) native 'return new Float64Array(arg);';
+  static Int8Array _I8(arg) native 'return new Int8Array(arg);';
+  static Int16Array _I16(arg) native 'return new Int16Array(arg);';
+  static Int32Array _I32(arg) native 'return new Int32Array(arg);';
+  static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
+  static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
+  static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
+  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
+
+  static Float32Array _F32_2(arg1, arg2) native 'return new Float32Array(arg1, arg2);';
+  static Float64Array _F64_2(arg1, arg2) native 'return new Float64Array(arg1, arg2);';
+  static Int8Array _I8_2(arg1, arg2) native 'return new Int8Array(arg1, arg2);';
+  static Int16Array _I16_2(arg1, arg2) native 'return new Int16Array(arg1, arg2);';
+  static Int32Array _I32_2(arg1, arg2) native 'return new Int32Array(arg1, arg2);';
+  static Uint8Array _U8_2(arg1, arg2) native 'return new Uint8Array(arg1, arg2);';
+  static Uint16Array _U16_2(arg1, arg2) native 'return new Uint16Array(arg1, arg2);';
+  static Uint32Array _U32_2(arg1, arg2) native 'return new Uint32Array(arg1, arg2);';
+  static Uint8ClampedArray _U8C_2(arg1, arg2) native 'return new Uint8ClampedArray(arg1, arg2);';
+
+  static Float32Array _F32_3(arg1, arg2, arg3) native 'return new Float32Array(arg1, arg2, arg3);';
+  static Float64Array _F64_3(arg1, arg2, arg3) native 'return new Float64Array(arg1, arg2, arg3);';
+  static Int8Array _I8_3(arg1, arg2, arg3) native 'return new Int8Array(arg1, arg2, arg3);';
+  static Int16Array _I16_3(arg1, arg2, arg3) native 'return new Int16Array(arg1, arg2, arg3);';
+  static Int32Array _I32_3(arg1, arg2, arg3) native 'return new Int32Array(arg1, arg2, arg3);';
+  static Uint8Array _U8_3(arg1, arg2, arg3) native 'return new Uint8Array(arg1, arg2, arg3);';
+  static Uint16Array _U16_3(arg1, arg2, arg3) native 'return new Uint16Array(arg1, arg2, arg3);';
+  static Uint32Array _U32_3(arg1, arg2, arg3) native 'return new Uint32Array(arg1, arg2, arg3);';
+  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) native 'return new Uint8ClampedArray(arg1, arg2, arg3);';
+
+
+  // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
+  // copies the list.
+  static ensureNative(List list) => list;  // TODO: make sure.
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 

@@ -15,6 +15,7 @@ import java.util.Set;
  */
 public class DartUnit extends DartNode {
 
+  @SuppressWarnings("unused")
   private static final long serialVersionUID = -3407637869012712127L;
 
   private LibraryUnit library;

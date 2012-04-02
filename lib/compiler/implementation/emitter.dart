@@ -147,8 +147,9 @@ function(child, parent) {
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            argumentsBuffer[count] =
-                handler.writeJsCode(new StringBuffer(), value).toString();
+            StringBuffer argumentBuffer = new StringBuffer();
+            handler.writeConstant(argumentBuffer, value);
+            argumentsBuffer[count] = argumentBuffer.toString();
           }
         }
       }
@@ -235,30 +236,20 @@ function(child, parent) {
                           StringBuffer argumentsBuffer,
                           StringBuffer bodyBuffer) {
     bool isFirst = true;
-    do {
+    void generateFieldInit(ClassElement enclosingClass, Element member) {
       // TODO(floitsch): make sure there are no name clashes.
-      String className = namer.getName(classElement);
+      String className = namer.getName(enclosingClass);
+      if (!isFirst) argumentsBuffer.add(', ');
+      isFirst = false;
+      String memberName = namer.instanceFieldName(member.getLibrary(),
+                                                  member.name);
+      argumentsBuffer.add('${className}_$memberName');
+      bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
+    }
 
-      void generateFieldInit(Element member) {
-        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          if (!isFirst) argumentsBuffer.add(', ');
-          isFirst = false;
-          String memberName = namer.instanceFieldName(member.getLibrary(),
-                                                      member.name);
-          argumentsBuffer.add('${className}_$memberName');
-          bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
-        }
-      }
-
-      for (Element element in classElement.members) {
-        generateFieldInit(element);
-      }
-      for (Element element in classElement.backendMembers) {
-        generateFieldInit(element);
-      }
-
-      classElement = classElement.superclass;
-    } while(classElement !== null);
+    classElement.forEachInstanceField(generateFieldInit,
+                                      includeBackendMembers: true,
+                                      includeSuperMembers: true);
   }
 
   void emitInherits(ClassElement cls, StringBuffer buffer) {
@@ -307,16 +298,14 @@ function(child, parent) {
     emitInherits(classElement, buffer);
 
     String attachTo(String name) => '$className.prototype.$name';
-    for (Element member in classElement.members) {
+    
+    classElement.forEachMember(includeBackendMembers: true,
+                               f: (ClassElement enclosing, Element member) {
       if (member.isInstanceMember()) {
         addInstanceMember(member, attachTo, buffer);
       }
-    }
-    for (Element member in classElement.backendMembers) {
-      if (member.isInstanceMember()) {
-        addInstanceMember(member, attachTo, buffer);
-      }
-    }
+    });
+
     generateTypeTests(classElement, (Element other) {
       buffer.add('${attachTo(namer.operatorIs(other))} = ');
       if (nativeEmitter.requiresNativeIsCheck(other)) {
@@ -709,7 +698,8 @@ $mainEnsureGetter
       mainCall = '${namer.isolateAccess(main)}()';
     }
     buffer.add("""
-if (typeof window != 'undefined' && window.addEventListener) {
+if (typeof window != 'undefined' && typeof document != 'undefined' &&
+    window.addEventListener && document.readyState == 'loading') {
   window.addEventListener('DOMContentLoaded', function(e) {
     ${mainCall};
   });

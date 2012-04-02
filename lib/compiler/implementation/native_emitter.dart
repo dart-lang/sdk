@@ -331,7 +331,7 @@ class NativeEmitter {
     }
   }
 
-  void assembleCode(StringBuffer other) {
+  void assembleCode(StringBuffer targetBuffer) {
     if (nativeClasses.isEmpty()) return;
 
     // Because of native classes, we have to generate some is checks
@@ -351,6 +351,6 @@ class NativeEmitter {
         'function() { return $toStringHelperName(this); });\n');
 
     // Finally, emit the code in the main buffer.
-    other.add('(function() {\n$objectProperties$buffer\n})();\n');
+    targetBuffer.add('(function() {\n$objectProperties$buffer\n})();\n');
   }
 }

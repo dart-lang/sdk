@@ -1407,7 +1407,7 @@ class Parser {
     token = parseExpression(token.next);
     token = expect(')', token);
     token = parseStatement(token);
-    listener.endForInStatement(forToken, inKeyword, token);
+    listener.endForIn(forToken, inKeyword, token);
     return token;
   }
 

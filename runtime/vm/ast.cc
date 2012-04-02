@@ -138,9 +138,14 @@ const Instance* ComparisonNode::EvalConstExpr() const {
     case Token::kNE:
     case Token::kEQ_STRICT:
     case Token::kNE_STRICT:
-      if ((left_val->IsNumber() && right_val->IsNumber()) ||
-          (left_val->IsString() && right_val->IsString()) ||
-          (left_val->IsBool()   && right_val->IsBool())) {
+      // The comparison is a compile time const if both operands are either a
+      // number, string, or boolean value (but not necessarily the same type).
+      if ((left_val->IsNumber() ||
+          left_val->IsString() ||
+          left_val->IsBool()) &&
+          (right_val->IsNumber() ||
+          right_val->IsString() ||
+          right_val->IsBool())) {
         return &Bool::ZoneHandle(Bool::False());
       }
       return NULL;
@@ -209,6 +214,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
     case Token::kMUL:
     case Token::kDIV:
     case Token::kMOD:
+    case Token::kTRUNCDIV:
       if (left_val->IsInteger()) {
         if (right_val->IsInteger()) {
           return left_val;
@@ -220,7 +226,6 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
         return left_val;
       }
       return NULL;
-    case Token::kTRUNCDIV:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:

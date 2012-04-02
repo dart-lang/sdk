@@ -105,5 +105,12 @@
         'frog/dart-frog.gyp:frogsh',
       ],
     },
+    {
+      'target_name': 'api_docs',
+      'type': 'none',
+      'dependencies': [
+        'utils/apidoc/apidoc.gyp:api_docs',
+      ],
+    }
   ],
 }

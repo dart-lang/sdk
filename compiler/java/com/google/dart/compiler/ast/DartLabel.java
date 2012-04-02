@@ -53,6 +53,7 @@ public class DartLabel extends DartStatement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    label.accept(visitor);
     if (statement != null) {
       statement.accept(visitor);
     }

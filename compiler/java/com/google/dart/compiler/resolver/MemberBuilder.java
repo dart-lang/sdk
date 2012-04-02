@@ -154,6 +154,7 @@ public class MemberBuilder {
       if (element != null) {
         checkModifiers(element, method);
         recordElement(method, element);
+        recordElement(method.getName(), element);
         ResolutionContext previous = context;
         context = context.extend(element.getName());
         EnclosingElement previousEnclosingElement = enclosingElement;
@@ -200,6 +201,7 @@ public class MemberBuilder {
       return method.getName().accept(new ASTVisitor<Element>() {
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
           Element element = node.getQualifier().accept(this);
+          recordElement(node.getQualifier(), element);
           if (ElementKind.of(element).equals(ElementKind.CLASS)) {
             return Elements.constructorFromMethodNode(
                 method, node.getPropertyName(), (ClassElement) currentHolder, (ClassElement) element);
@@ -276,6 +278,7 @@ public class MemberBuilder {
         assertTopLevel(fieldNode);
       }
       fieldElement.setType(type);
+      recordElement(fieldNode.getName(), fieldElement);
       return recordElement(fieldNode, fieldElement);
     }
 
@@ -382,6 +385,7 @@ public class MemberBuilder {
           fieldElement.setType(type);
         }
       }
+      recordElement(fieldNode.getName(), fieldElement);
       return recordElement(fieldNode, fieldElement);
     }
 

@@ -1284,7 +1284,7 @@ ASSEMBLER_TEST_RUN(Cosine, entry) {
 ASSEMBLER_TEST_GENERATE(Tangent, assembler) {
   __ fldl(Address(ESP, kWordSize));
   __ fptan();
-  __ ffree(Immediate(0));
+  __ ffree(0);
   __ fincstp();
   __ ret();
 }

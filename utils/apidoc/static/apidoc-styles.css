@@ -1,3 +1,7 @@
+#comments {
+  width: 1000px;
+  margin: 0 auto 22px auto;
+}
 
 .mdn {
   border: solid 1px hsl(10, 80%, 90%);

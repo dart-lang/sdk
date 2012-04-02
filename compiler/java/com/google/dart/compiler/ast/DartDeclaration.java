@@ -36,4 +36,11 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
     // dartDoc is still parented by the containing DartUnit.
     this.dartDoc = dartDoc;
   }
+  
+  @Override
+  public void visitChildren(ASTVisitor<?> visitor) {
+    if (name != null) {
+      name.accept(visitor);
+    }
+  }
 }

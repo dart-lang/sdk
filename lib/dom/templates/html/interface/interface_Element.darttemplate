@@ -4,226 +4,6 @@
 
 // WARNING: Do not edit - generated code.
 
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      return this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutatiting the collection.
-    for (String key in getKeys()) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> getKeys() {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> getValues() {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length() => getKeys().length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
-class _CssClassSet implements Set<String> {
-
-  final _ElementImpl _element;
-
-  _CssClassSet(this._element);
-
-  String toString() {
-    return _formatSet(_read());
-  }
-
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() {
-    return _read().iterator();
-  }
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection map(f(String element)) {
-    return _read().map(f);
-  }
-
-  Collection<String> filter(bool f(String element)) {
-    return _read().filter(f);
-  }
-
-  bool every(bool f(String element)) {
-    return _read().every(f);
-  }
-
-  bool some(bool f(String element)) {
-    return _read().some(f);
-  }
-
-  bool isEmpty() {
-    return _read().isEmpty();
-  }
-
-  int get length() {
-    return _read().length;
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) {
-    return _read().contains(value);
-  }
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) {
-    return _read().isSubsetOf(collection);
-  }
-
-  bool containsAll(Collection<String> collection) {
-    return _read().containsAll(collection);
-  }
-
-  Set<String> intersection(Collection<String> other) {
-    return _read().intersection(other);
-  }
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in $dom_className().split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  /**
-   * Read the class names as a space-separated string. This is meant to be
-   * overridden by subclasses.
-   */
-  String $dom_className() => _element.$dom_className;
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.$dom_className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
-    List list = new List.from(s);
-    return Strings.join(list, ' ');
-  }
-}
-
 interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
@@ -232,6 +12,15 @@ interface ElementList extends List<Element> {
 
   Element get first();
   // TODO(jacobr): add insertAt
+}
+
+/**
+ * All your attribute manipulation needs in one place.
+ * Extends the regular Map interface by automatically coercing non-string
+ * values to strings.
+ */
+interface AttributeMap extends Map<String, String> {
+  void operator []=(String key, value);
 }
 
 /**
@@ -254,7 +43,7 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
   Element.html(String html);
   Element.tag(String tag);
 
-  Map<String, String> get attributes();
+  AttributeMap get attributes();
   void set attributes(Map<String, String> value);
 
   /**
@@ -276,7 +65,7 @@ interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
 
   void set classes(Collection<String> value);
 
-  Map<String, String> get dataAttributes();
+  AttributeMap get dataAttributes();
   void set dataAttributes(Map<String, String> value);
 
   /**

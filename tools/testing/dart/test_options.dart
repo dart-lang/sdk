@@ -10,7 +10,7 @@
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'vm', 'client', 'dartdoc', 'utils'];
+           'isolate', 'vm', 'client', 'dartdoc', 'utils', 'pub'];
 
 /**
  * Specification of a single test option.
@@ -77,9 +77,9 @@ is 'dart file.dart' and you specify special command
 
    dartc: Perform static analysis on Dart code by running dartc.
           (only valid with the following runtimes: none)
-   
+
    frogsh: Compile dart code to JavaScript by running the frog compiler on
-           node.js, and run the resulting JavaScript on the same instance of 
+           node.js, and run the resulting JavaScript on the same instance of
            node.js.
            (only valid with the following runtimes: same as frog)''',
               ['-c', '--compiler'],
@@ -89,26 +89,19 @@ is 'dart file.dart' and you specify special command
               'runtime',
               '''Where the tests should be run.
     vm: Run Dart code on the standalone dart vm.
-    
+
     d8: Run JavaScript from the command line using v8.
-    
-    drt: Run Dart or JavaScript in the headless version of Chrome, 
+
+    drt: Run Dart or JavaScript in the headless version of Chrome,
          DumpRenderTree.
-    
-    ff or firefox: Run JavaScript in Firefox.
-    
-    chrome: Run JavaScript in Chrome.
-    
-    safari: Run JavaScript in Safari.
-    
-    ie: Run JavaScript in Internet Explorer.
-    
-    opera: Run JavaScript in Opera.
-    
-    none: No runtime, compile only (for example, used for dartc static analysis 
+
+    [ff | chrome | safari | ie | opera]: Run JavaScript in the specified 
+         browser.
+
+    none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
               ['-r', '--runtime'],
-              ['vm', 'd8', 'drt', 'ff', 'firefox', 'chrome', 
+              ['vm', 'd8', 'drt', 'ff', 'firefox', 'chrome',
               'safari', 'ie', 'opera', 'none'],
               'vm'),
           new _TestOptionSpecification(
@@ -164,6 +157,20 @@ is 'dart file.dart' and you specify special command
               ['-j', '--tasks'],
               [],
               new Platform().numberOfProcessors(),
+              'int'),
+          new _TestOptionSpecification(
+              'shards',
+              'The number of instances that the tests will be sharded over',
+              ['--shards'],
+              [],
+              1,
+              'int'),
+          new _TestOptionSpecification(
+              'shard',
+              'The index of this instance when running in sharded mode',
+              ['--shard'],
+              [],
+              1,
               'int'),
           new _TestOptionSpecification(
               'help',
@@ -356,7 +363,8 @@ is 'dart file.dart' and you specify special command
     }
 
     List<Map> expandedConfigs = _expandConfigurations(configuration);
-    return expandedConfigs.filter(_isValidConfig);
+    List<Map> result = expandedConfigs.filter(_isValidConfig);
+    return result.isEmpty() ? null : result;
   }
 
   /**
@@ -386,11 +394,16 @@ is 'dart file.dart' and you specify special command
       print("Warning: combination of ${config['compiler']} and " +
           "${config['runtime']} is invalid. Skipping this combination.");
     }
-    if (config['runtime'] == 'ie' && 
+    if (config['runtime'] == 'ie' &&
         new Platform().operatingSystem() != 'windows') {
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating" +
           " system.");
+    }
+    if (config['shard'] < 1 || config['shard'] > config['shards']) {
+      isValid = false;
+      print("Error: shard index is ${config['shard']} out of " + 
+            "${config['shards']} shards");
     }
     return isValid;
   }
@@ -474,7 +487,7 @@ is 'dart file.dart' and you specify special command
     if (configuration['mode'].contains(',')) {
       return _expandHelper('mode', configuration);
     }
-        
+
     // Expand compilers.
     if (configuration['compiler'].contains(',')) {
       return _expandHelper('compiler', configuration);
@@ -526,7 +539,7 @@ is 'dart file.dart' and you specify special command
     return [configuration];
   }
 
-  /** 
+  /**
    * Helper for _expandConfigurations. Creates a new configuration and adds it
    * to a list, for use in a case when a particular configuration has multiple
    * results (separated by a ',').
@@ -537,7 +550,7 @@ is 'dart file.dart' and you specify special command
    */
   List<Map> _expandHelper(String option, Map configuration) {
     var result = new List<Map>();
-    var configs = configuration[option]; 
+    var configs = configuration[option];
     for (var config in configs.split(',')) {
       var newConfiguration = new Map.from(configuration);
       newConfiguration[option] = config;

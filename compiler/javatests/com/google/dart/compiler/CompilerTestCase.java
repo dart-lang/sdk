@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -240,12 +241,31 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the name and source.
    */
-  protected DartUnit parseUnit(String srcName, String sourceCode) {
+  protected DartUnit parseUnit(String srcName, String sourceCode, Object... errors) {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
-    ParserContext context = makeParserContext(src, sourceCode, DartCompilerListener.EMPTY);
-    return makeParser(context).parseUnit(src);
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    listener.checkAllErrorsReported();
+    return unit;
   }
+  
+  protected DartUnit parseUnitAsSystemLibrary(final String srcName, String sourceCode,
+                                              Object... errors) {
+    DartSourceTest src = new DartSourceTest(srcName, sourceCode, null) {
+      @Override
+      public URI getUri() {
+        return URI.create("dart:core/" + srcName);
+      }
+    };
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
+    ParserContext context = makeParserContext(src, sourceCode, listener);
+    DartUnit unit = makeParser(context).parseUnit(src);
+    listener.checkAllErrorsReported();
+    return unit;
+  }
+
 
   /**
    * Parse a single compilation unit with given name and source, and check for a set of expected errors.

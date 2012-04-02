@@ -54,6 +54,21 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
+intptr_t Socket::GetRemotePort(intptr_t fd) {
+  ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
+  SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
+  struct sockaddr_in socket_address;
+  socklen_t size = sizeof(socket_address);
+  if (getpeername(socket_handle->socket(),
+                  reinterpret_cast<struct sockaddr *>(&socket_address),
+                  &size)) {
+    fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
+    return 0;
+  }
+  return ntohs(socket_address.sin_port);
+}
+
+
 intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {

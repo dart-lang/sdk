@@ -169,6 +169,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     typeParameters.accept(visitor);
     if (superclass != null) {
       superclass.accept(visitor);

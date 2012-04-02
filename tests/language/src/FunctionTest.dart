@@ -211,7 +211,7 @@ class FunctionTest {
       sum += (a[i])();
     }
 
-    Expect.equals(100, sum);
+    Expect.equals(45, sum);
   }
 
   int tempField;

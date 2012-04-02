@@ -100,7 +100,8 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
    }
 
    private void same(String sourceCode) {
-     DartUnit unit = parseUnit("testcode", sourceCode);
+     // Some of the syntax we are testing is only valid in a system library
+     DartUnit unit = parseUnitAsSystemLibrary("testcode", sourceCode);
      String result = unit.toSource();
      assertEquals(sourceCode, result);
    }

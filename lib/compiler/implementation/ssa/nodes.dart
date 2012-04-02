@@ -138,9 +138,11 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(List<LabelElement> labels) {
+  HBasicBlock addNewLoopHeaderBlock(int type,
+                                    TargetElement target,
+                                    List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
-    result.loopInformation = new HLoopInformation(result, labels);
+    result.loopInformation = new HLoopInformation(type, result, target, labels);
     return result;
   }
 
@@ -318,6 +320,12 @@ class SubGraph {
     assert(block !== null);
     return start.id <= block.id && block.id <= end.id;
   }
+}
+
+class SubExpression extends SubGraph {
+  final HInstruction expression;
+  const SubExpression(HBasicBlock start, HBasicBlock end, this.expression)
+      : super(start, end);
 }
 
 class HInstructionList {
@@ -645,7 +653,9 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 }
 
-class HLabeledBlockInformation {
+interface HBlockInformation {}
+
+class HLabeledBlockInformation implements HBlockInformation {
   final SubGraph body;
   final HBasicBlock joinBlock;
   final List<LabelElement> labels;
@@ -664,15 +674,42 @@ class HLabeledBlockInformation {
       : this.labels = const<LabelElement>[];
 }
 
-class HLoopInformation {
+class LoopTypeVisitor extends AbstractVisitor {
+  const LoopTypeVisitor();
+  int visitNode(Node node) {
+    unreachable();
+  }
+  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
+  int visitFor(For node) => HLoopInformation.FOR_LOOP;
+  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
+  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
+}
+
+class HLoopInformation implements HBlockInformation {
+  static final int WHILE_LOOP = 0;
+  static final int FOR_LOOP = 1;
+  static final int DO_WHILE_LOOP = 2;
+  static final int FOR_IN_LOOP = 3;
+
+  final int type;
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
   final List<LabelElement> labels;
+  final TargetElement target;
+  SubGraph initializer = null;
+  SubExpression condition = null;
+  SubGraph body = null;
+  SubGraph updates = null;
+  HBasicBlock joinBlock;
 
-  HLoopInformation(this.header, this.labels)
+  HLoopInformation(this.type, this.header, this.target, this.labels)
       : blocks = new List<HBasicBlock>(),
         backEdges = new List<HBasicBlock>();
+
+  static int loopType(Node node) {
+    return node.accept(const LoopTypeVisitor());
+  }
 
   void addBackEdge(HBasicBlock predecessor) {
     backEdges.add(predecessor);
@@ -757,6 +794,19 @@ class HType {
     assert(false);
   }
 
+  String toString() {
+    if (isConflicting()) return 'conflicting';
+    if (isUnknown()) return 'unknown';
+    if (isBoolean()) return 'boolean';
+    if (isInteger()) return 'integer';
+    if (isDouble()) return 'double';
+    if (isString()) return 'string';
+    if (isArray()) return 'array';
+    if (isNumber()) return 'number';
+    if (isStringOrArray()) return 'string or array';
+    unreachable();
+  }
+
   HType combine(HType other) {
     if (isUnknown()) return other;
     if (other.isUnknown()) return this;
@@ -806,6 +856,8 @@ class HInstruction implements Hashable {
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
+  // Does this node potentially affect control flow.
+  bool isControlFlow() => false;
 
   bool isArray() => type.isArray();
   bool isBoolean() => type.isBoolean();
@@ -818,49 +870,12 @@ class HInstruction implements Hashable {
   // Compute the type of the instruction.
   HType computeType() => HType.UNKNOWN;
 
-  HType computeDesiredType() {
-    HType candidateType = HType.UNKNOWN;
-    for (final user in usedBy) {
-      HType desiredType = user.computeDesiredInputType(this);
-      if (candidateType.isUnknown()) {
-        candidateType = desiredType;
-      } else if (!type.isUnknown() && candidateType != desiredType) {
-        candidateType = candidateType.combine(desiredType);
-        if (!candidateType.isKnown()) {
-          candidateType = HType.UNKNOWN;
-          break;
-        }
-      }
-    }
-    return candidateType;
-  }
-
   HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
 
   // Returns whether the instruction does produce the type it claims.
   // For most instructions, this returns false. A type guard will be
   // inserted to make sure the users get the right type in.
   bool hasExpectedType() => false;
-
-  // Re-compute and update the type of the instruction. Returns
-  // whether or not the type was changed.
-  bool updateType() {
-    if (type.isConflicting()) return false;
-    HType newType = computeType();
-    HType desiredType = computeDesiredType();
-    HType combined = newType.combine(desiredType);
-    if (combined.isKnown()) newType = combined;
-
-    bool changed = (type != newType);
-    if (type.isUnknown()) {
-      type = newType;
-      return changed;
-    } else if (changed) {
-      type = type.combine(newType);
-      return changed;
-    }
-    return false;
-  }
 
   bool isInBasicBlock() => block !== null;
 
@@ -989,6 +1004,8 @@ class HCheck extends HInstruction {
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
+
+  bool isControlFlow() => true;
 }
 
 class HTypeGuard extends HInstruction {
@@ -1004,6 +1021,8 @@ class HTypeGuard extends HInstruction {
 
   HType computeType() => type;
   bool hasExpectedType() => true;
+
+  bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
@@ -1063,6 +1082,7 @@ class HConditionalBranch extends HControlFlow {
 class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
+  bool isControlFlow() => true;
 }
 
 class HInvoke extends HInstruction {
@@ -1177,7 +1197,6 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
-  
   String get builtinJsName() {
     if (getter
         && name == const SourceString('length')
@@ -1321,7 +1340,7 @@ class HBinaryArithmetic extends HInvokeBinary {
 
   HType computeType() {
     HType inputsType = computeInputsType();
-    if (!inputsType.isUnknown()) return inputsType;
+    if (inputsType.isKnown()) return inputsType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1353,7 +1372,7 @@ class HAdd extends HBinaryArithmetic {
   HType computeType() {
     HType computedType = computeInputsType();
     if (computedType.isConflicting() && left.isString()) return HType.STRING;
-    if (!computedType.isUnknown()) return computedType;
+    if (computedType.isKnown()) return computedType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1453,7 +1472,7 @@ class HBinaryBitOp extends HBinaryArithmetic {
 
   HType computeType() {
     HType inputsType = computeInputsType();
-    if (!inputsType.isUnknown()) return inputsType;
+    if (inputsType.isKnown()) return inputsType;
     if (left.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
@@ -1687,9 +1706,6 @@ class HConstant extends HInstruction {
   accept(HVisitor visitor) => visitor.visitConstant(this);
   HType computeType() => type;
 
-  // Literals have the type they have. It can't be changed.
-  bool updateType() => false;
-
   bool hasExpectedType() => true;
 
   bool isConstant() => true;
@@ -1800,12 +1816,6 @@ class HPhi extends HInstruction {
     return true;
   }
 
-  void setInitialTypeForLoopPhi() {
-    assert(block.isLoopHeader());
-    assert(type.isUnknown());
-    type = inputs[0].type;
-  }
-
   bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
 
   String logicalOperator() {
@@ -1860,7 +1870,12 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool get builtin() {
-    return (left.isNumber() && right.isNumber()) || left is HConstant;
+    if (left.isNumber() && right.isNumber()) return true;
+    if (left is !HConstant) return false;
+    HConstant leftConstant = left;
+    // TODO(floitsch): we can do better if we know that the constant does not
+    // have the equality operator overridden.
+    return !leftConstant.constant.isConstructedObject();
   }
 
   HType computeType() => HType.BOOLEAN;

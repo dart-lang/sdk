@@ -158,6 +158,7 @@ public class TopLevelElementBuilder {
       List<DartTypeParameter> parameterNodes = node.getTypeParameters();
       element.setType(Types.functionAliasType(element,
                                               Elements.makeTypeVariables(parameterNodes, element)));
+      node.getName().setElement(element);
       node.setElement(element);
       return null;
     }

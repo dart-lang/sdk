@@ -10,7 +10,12 @@ dom/AudioContextTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
+dom/TypedArrays2Test: Fail   # Dartium needs to implement 3 arg constructor
 html/frog_html_tests: Skip
+html/TypedArrays2Test: Fail  # Dartium dart:html needs to implement 3 arg constructor
+dom/TypedArrays3Test: Fail   # Investigate: setElements is not generated.
+html/TypedArrays3Test: Fail  # Investigate: setElements is not generated.
+html/html_tests: Pass, Fail   # Issue 1946.
 
 [ $component == dartium && $system == windows ]
 dom/DOMIsolatesTest: Skip
@@ -24,7 +29,6 @@ dom/TypedArrays1Test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
-dom/HiddenDom2Test: Fail # Issue 1912, frog exposes natives not defined in the class
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
@@ -37,10 +41,15 @@ dom/ImplementationTest: Fail
 dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
-[ $runtime == ff || $runtime == safari || $runtime == ie) ]
+[ $runtime == ff || $runtime == safari || $runtime == ie ]
 html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
+
+[ $runtime == ie ]
+html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
+html/TypedArrays2Test: Skip
+html/TypedArrays3Test: Skip
 
 # TODO(nweiz): enable this test again once the functionality being tested
 # is supported.

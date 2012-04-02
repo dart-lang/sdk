@@ -6773,7 +6773,7 @@ class _DocumentImpl extends _NodeImpl
   _DocumentImpl._wrap(ptr) : super._wrap(ptr);
 
   _DocumentEventsImpl get on() {
-    if (_on == null) _on = new _DocumentEventsImpl(_wrappedDocumentPtr);
+    if (_on == null) _on = new _DocumentEventsImpl(this);
     return _on;
   }
 
@@ -6954,7 +6954,7 @@ class _DocumentImpl extends _NodeImpl
 
 // TODO(jacobr): autogenerate this method.
   _ElementImpl $dom_querySelector(String selectors) =>
-      _wrap(_.querySelector(selectors));
+      _wrap(_ptr.querySelector(selectors));
 
   ElementList queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
@@ -7774,11 +7774,11 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
     new _ElementList(super.getRange(start, length));
 }
 
-class ElementAttributeMap implements Map<String, String> {
+class _ElementAttributeMap implements AttributeMap {
 
   final _ElementImpl _element;
 
-  ElementAttributeMap._wrap(this._element);
+  _ElementAttributeMap(this._element);
 
   bool containsValue(String value) {
     final attributes = _element.$dom_attributes;
@@ -7798,8 +7798,8 @@ class ElementAttributeMap implements Map<String, String> {
     return _element.$dom_getAttribute(key);
   }
 
-  void operator []=(String key, String value) {
-    _element.$dom_setAttribute(key, value);
+  void operator []=(String key, value) {
+    _element.$dom_setAttribute(key, '$value');
   }
 
   String putIfAbsent(String key, String ifAbsent()) {
@@ -7859,6 +7859,203 @@ class ElementAttributeMap implements Map<String, String> {
    */
   bool isEmpty() {
     return length == 0;
+  }
+}
+
+/**
+ * Provides a Map abstraction on top of data-* attributes, similar to the
+ * dataSet in the old DOM.
+ */
+class _DataAttributeMap implements AttributeMap {
+
+  final Map<String, String> $dom_attributes;
+
+  _DataAttributeMap(this.$dom_attributes);
+
+  // interface Map
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool containsValue(String value) => getValues().some((v) => v == value);
+
+  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
+
+  String operator [](String key) => $dom_attributes[_attr(key)];
+
+  void operator []=(String key, value) {
+    $dom_attributes[_attr(key)] = '$value';
+  }
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
+  }
+
+  String remove(String key) => $dom_attributes.remove(_attr(key));
+
+  void clear() {
+    // Needs to operate on a snapshot since we are mutating the collection.
+    for (String key in getKeys()) {
+      remove(key);
+    }
+  }
+
+  void forEach(void f(String key, String value)) {
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        f(_strip(key), value);
+      }
+    });
+  }
+
+  Collection<String> getKeys() {
+    final keys = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        keys.add(_strip(key));
+      }
+    });
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = new List<String>();
+    $dom_attributes.forEach((String key, String value) {
+      if (_matches(key)) {
+        values.add(value);
+      }
+    });
+    return values;
+  }
+
+  int get length() => getKeys().length;
+
+  // TODO: Use lazy iterator when it is available on Map.
+  bool isEmpty() => length == 0;
+
+  // Helpers.
+  String _attr(String key) => 'data-$key';
+  bool _matches(String key) => key.startsWith('data-');
+  String _strip(String key) => key.substring(5);
+}
+
+class _CssClassSet implements Set<String> {
+
+  final _ElementImpl _element;
+
+  _CssClassSet(this._element);
+
+  String toString() => _formatSet(_read());
+
+  // interface Iterable - BEGIN
+  Iterator<String> iterator() => _read().iterator();
+  // interface Iterable - END
+
+  // interface Collection - BEGIN
+  void forEach(void f(String element)) {
+    _read().forEach(f);
+  }
+
+  Collection map(f(String element)) => _read().map(f);
+
+  Collection<String> filter(bool f(String element)) => _read().filter(f);
+
+  bool every(bool f(String element)) => _read().every(f);
+
+  bool some(bool f(String element)) => _read().some(f);
+
+  bool isEmpty() => _read().isEmpty();
+
+  int get length() =>_read().length;
+
+  // interface Collection - END
+
+  // interface Set - BEGIN
+  bool contains(String value) => _read().contains(value);
+
+  void add(String value) {
+    // TODO - figure out if we need to do any validation here
+    // or if the browser natively does enough
+    _modify((s) => s.add(value));
+  }
+
+  bool remove(String value) {
+    Set<String> s = _read();
+    bool result = s.remove(value);
+    _write(s);
+    return result;
+  }
+
+  void addAll(Collection<String> collection) {
+    // TODO - see comment above about validation
+    _modify((s) => s.addAll(collection));
+  }
+
+  void removeAll(Collection<String> collection) {
+    _modify((s) => s.removeAll(collection));
+  }
+
+  bool isSubsetOf(Collection<String> collection) =>
+    _read().isSubsetOf(collection);
+
+  bool containsAll(Collection<String> collection) =>
+    _read().containsAll(collection);
+
+  Set<String> intersection(Collection<String> other) =>
+    _read().intersection(other);
+
+  void clear() {
+    _modify((s) => s.clear());
+  }
+  // interface Set - END
+
+  /**
+   * Helper method used to modify the set of css classes on this element.
+   *
+   *   f - callback with:
+   *      s - a Set of all the css class name currently on this element.
+   *
+   *   After f returns, the modified set is written to the
+   *       className property of this element.
+   */
+  void _modify( f(Set<String> s)) {
+    Set<String> s = _read();
+    f(s);
+    _write(s);
+  }
+
+  /**
+   * Read the class names from the Element class property,
+   * and put them into a set (duplicates are discarded).
+   */
+  Set<String> _read() {
+    // TODO(mattsh) simplify this once split can take regex.
+    Set<String> s = new Set<String>();
+    for (String name in _classname().split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty()) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  /**
+   * Read the class names as a space-separated string. This is meant to be
+   * overridden by subclasses.
+   */
+  String _classname() => _element.$dom_className;
+
+  /**
+   * Join all the elements of a set into one string and write
+   * back to the element.
+   */
+  void _write(Set s) {
+    _element.$dom_className = _formatSet(s);
+  }
+
+  String _formatSet(Set<String> s) {
+    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
+    List list = new List.from(s);
+    return Strings.join(list, ' ');
   }
 }
 
@@ -7927,21 +8124,11 @@ class _ElementRectImpl implements ElementRect {
 
 class _ElementImpl extends _NodeImpl implements Element {
 
-  // TODO(jacobr): caching these may hurt performance.
-  ElementAttributeMap _elementAttributeMap;
-  _CssClassSet _cssClassSet;
-  _DataAttributeMap _dataAttributes;
-
   /**
    * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
    *   Element.removeAttribute
    */
-  Map<String, String> get attributes() {
-    if (_elementAttributeMap === null) {
-      _elementAttributeMap = new ElementAttributeMap._wrap(this);
-    }
-    return _elementAttributeMap;
-  }
+  _ElementAttributeMap get attributes() => new _ElementAttributeMap(this);
 
   void set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
@@ -7962,12 +8149,7 @@ class _ElementImpl extends _NodeImpl implements Element {
   ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
-  Set<String> get classes() {
-    if (_cssClassSet === null) {
-      _cssClassSet = new _CssClassSet(this);
-    }
-    return _cssClassSet;
-  }
+  _CssClassSet get classes() => new _CssClassSet(this);
 
   void set classes(Collection<String> value) {
     _CssClassSet classSet = classes;
@@ -7975,15 +8157,11 @@ class _ElementImpl extends _NodeImpl implements Element {
     classSet.addAll(value);
   }
 
-  Map<String, String> get dataAttributes() {
-    if (_dataAttributes === null) {
-      _dataAttributes = new _DataAttributeMap(attributes);
-    }
-    return _dataAttributes;
-  }
+  Map<String, String> get dataAttributes() =>
+    new _DataAttributeMap(attributes);
 
   void set dataAttributes(Map<String, String> value) {
-    Map<String, String> dataAttributes = this.dataAttributes;
+    final dataAttributes = this.dataAttributes;
     dataAttributes.clear();
     for (String key in value.getKeys()) {
       dataAttributes[key] = value[key];
@@ -20791,7 +20969,7 @@ class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
 
 class _WindowImpl extends _EventTargetImpl implements Window {
 
-  _DocumentImpl get document() => _wrap(_ptr.document.documentElement);
+  _DocumentImpl get document() => _wrap(_ptr.document);
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
@@ -26540,226 +26718,6 @@ interface EXTTextureFilterAnisotropic {
 
 // WARNING: Do not edit - generated code.
 
-/**
- * Provides a Map abstraction on top of data-* attributes, similar to the
- * dataSet in the old DOM.
- */
-class _DataAttributeMap implements Map<String, String> {
-
-  final Map<String, String> $dom_attributes;
-
-  _DataAttributeMap(this.$dom_attributes);
-
-  // interface Map
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(String value) => getValues().some((v) => v == value);
-
-  bool containsKey(String key) => $dom_attributes.containsKey(_attr(key));
-
-  String operator [](String key) => $dom_attributes[_attr(key)];
-
-  void operator []=(String key, String value) {
-    $dom_attributes[_attr(key)] = value;
-  }
-
-  String putIfAbsent(String key, String ifAbsent()) {
-    if (!containsKey(key)) {
-      return this[key] = ifAbsent();
-    }
-    return this[key];
-  }
-
-  String remove(String key) => $dom_attributes.remove(_attr(key));
-
-  void clear() {
-    // Needs to operate on a snapshot since we are mutatiting the collection.
-    for (String key in getKeys()) {
-      remove(key);
-    }
-  }
-
-  void forEach(void f(String key, String value)) {
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        f(_strip(key), value);
-      }
-    });
-  }
-
-  Collection<String> getKeys() {
-    final keys = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        keys.add(_strip(key));
-      }
-    });
-    return keys;
-  }
-
-  Collection<String> getValues() {
-    final values = new List<String>();
-    $dom_attributes.forEach((String key, String value) {
-      if (_matches(key)) {
-        values.add(value);
-      }
-    });
-    return values;
-  }
-
-  int get length() => getKeys().length;
-
-  // TODO: Use lazy iterator when it is available on Map.
-  bool isEmpty() => length == 0;
-
-  // Helpers.
-  String _attr(String key) => 'data-$key';
-  bool _matches(String key) => key.startsWith('data-');
-  String _strip(String key) => key.substring(5);
-}
-
-class _CssClassSet implements Set<String> {
-
-  final _ElementImpl _element;
-
-  _CssClassSet(this._element);
-
-  String toString() {
-    return _formatSet(_read());
-  }
-
-  // interface Iterable - BEGIN
-  Iterator<String> iterator() {
-    return _read().iterator();
-  }
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    _read().forEach(f);
-  }
-
-  Collection map(f(String element)) {
-    return _read().map(f);
-  }
-
-  Collection<String> filter(bool f(String element)) {
-    return _read().filter(f);
-  }
-
-  bool every(bool f(String element)) {
-    return _read().every(f);
-  }
-
-  bool some(bool f(String element)) {
-    return _read().some(f);
-  }
-
-  bool isEmpty() {
-    return _read().isEmpty();
-  }
-
-  int get length() {
-    return _read().length;
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
-  bool contains(String value) {
-    return _read().contains(value);
-  }
-
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough
-    _modify((s) => s.add(value));
-  }
-
-  bool remove(String value) {
-    Set<String> s = _read();
-    bool result = s.remove(value);
-    _write(s);
-    return result;
-  }
-
-  void addAll(Collection<String> collection) {
-    // TODO - see comment above about validation
-    _modify((s) => s.addAll(collection));
-  }
-
-  void removeAll(Collection<String> collection) {
-    _modify((s) => s.removeAll(collection));
-  }
-
-  bool isSubsetOf(Collection<String> collection) {
-    return _read().isSubsetOf(collection);
-  }
-
-  bool containsAll(Collection<String> collection) {
-    return _read().containsAll(collection);
-  }
-
-  Set<String> intersection(Collection<String> other) {
-    return _read().intersection(other);
-  }
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
-
-  /**
-   * Helper method used to modify the set of css classes on this element.
-   *
-   *   f - callback with:
-   *      s - a Set of all the css class name currently on this element.
-   *
-   *   After f returns, the modified set is written to the
-   *       className property of this element.
-   */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = _read();
-    f(s);
-    _write(s);
-  }
-
-  /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   */
-  Set<String> _read() {
-    // TODO(mattsh) simplify this once split can take regex.
-    Set<String> s = new Set<String>();
-    for (String name in $dom_className().split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty()) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  /**
-   * Read the class names as a space-separated string. This is meant to be
-   * overridden by subclasses.
-   */
-  String $dom_className() => _element.$dom_className;
-
-  /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   */
-  void _write(Set s) {
-    _element.$dom_className = _formatSet(s);
-  }
-
-  String _formatSet(Set<String> s) {
-    // TODO(mattsh) should be able to pass Set to String.joins http:/b/5398605
-    List list = new List.from(s);
-    return Strings.join(list, ' ');
-  }
-}
-
 interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
@@ -26768,6 +26726,15 @@ interface ElementList extends List<Element> {
 
   Element get first();
   // TODO(jacobr): add insertAt
+}
+
+/**
+ * All your attribute manipulation needs in one place.
+ * Extends the regular Map interface by automatically coercing non-string
+ * values to strings.
+ */
+interface AttributeMap extends Map<String, String> {
+  void operator []=(String key, value);
 }
 
 /**
@@ -26790,7 +26757,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element.html(String html);
   Element.tag(String tag);
 
-  Map<String, String> get attributes();
+  AttributeMap get attributes();
   void set attributes(Map<String, String> value);
 
   /**
@@ -26812,7 +26779,7 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void set classes(Collection<String> value);
 
-  Map<String, String> get dataAttributes();
+  AttributeMap get dataAttributes();
   void set dataAttributes(Map<String, String> value);
 
   /**
@@ -27733,7 +27700,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float32Array.fromList(List<num> list);
 
-  Float32Array.fromBuffer(ArrayBuffer buffer);
+  Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -27755,7 +27722,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float64Array.fromList(List<num> list);
 
-  Float64Array.fromBuffer(ArrayBuffer buffer);
+  Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -28638,7 +28605,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int16Array.fromList(List<int> list);
 
-  Int16Array.fromBuffer(ArrayBuffer buffer);
+  Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -28660,7 +28627,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int32Array.fromList(List<int> list);
 
-  Int32Array.fromBuffer(ArrayBuffer buffer);
+  Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -28682,7 +28649,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   Int8Array.fromList(List<int> list);
 
-  Int8Array.fromBuffer(ArrayBuffer buffer);
+  Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -34546,7 +34513,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint16Array.fromList(List<int> list);
 
-  Uint16Array.fromBuffer(ArrayBuffer buffer);
+  Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -34568,7 +34535,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint32Array.fromList(List<int> list);
 
-  Uint32Array.fromBuffer(ArrayBuffer buffer);
+  Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -34590,7 +34557,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Uint8Array.fromList(List<int> list);
 
-  Uint8Array.fromBuffer(ArrayBuffer buffer);
+  Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -34612,7 +34579,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromList(List<int> list);
 
-  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
+  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
   final int length;
 
@@ -37394,39 +37361,75 @@ class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
   factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _F32(buffer);
+  factory Float32Array.fromBuffer(ArrayBuffer buffer,
+                                  [int byteOffset = 0, int length]) {
+    if (length == null) return _F32_2(buffer, byteOffset);
+    return _F32_3(buffer, byteOffset, length);
+  }
 
   factory Float64Array(int length) => _F64(length);
   factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _F64(buffer);
+  factory Float64Array.fromBuffer(ArrayBuffer buffer,
+                                  [int byteOffset = 0, int length]) {
+    if (length == null) return _F64_2(buffer, byteOffset);
+    return _F64_3(buffer, byteOffset, length);
+  }
 
   factory Int8Array(int length) => _I8(length);
   factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _I8(buffer);
+  factory Int8Array.fromBuffer(ArrayBuffer buffer,
+                               [int byteOffset = 0, int length]) {
+    if (length == null) return _I8_2(buffer, byteOffset);
+    return _I8_3(buffer, byteOffset, length);
+  }
 
   factory Int16Array(int length) => _I16(length);
   factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _I16(buffer);
+  factory Int16Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _I16_2(buffer, byteOffset);
+    return _I16_3(buffer, byteOffset, length);
+  }
 
   factory Int32Array(int length) => _I32(length);
   factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _I32(buffer);
+  factory Int32Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _I32_2(buffer, byteOffset);
+    return _I32_3(buffer, byteOffset, length);
+  }
 
   factory Uint8Array(int length) => _U8(length);
   factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _U8(buffer);
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer,
+                                [int byteOffset = 0, int length]) {
+    if (length == null) return _U8_2(buffer, byteOffset);
+    return _U8_3(buffer, byteOffset, length);
+  }
 
   factory Uint16Array(int length) => _U16(length);
   factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _U16(buffer);
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer,
+                                 [int byteOffset = 0, int length]) {
+    if (length == null) return _U16_2(buffer, byteOffset);
+    return _U16_3(buffer, byteOffset, length);
+  }
 
   factory Uint32Array(int length) => _U32(length);
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _U32(buffer);
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer,
+                                 [int byteOffset = 0, int length]) {
+    if (length == null) return _U32_2(buffer, byteOffset);
+    return _U32_3(buffer, byteOffset, length);
+  }
 
   factory Uint8ClampedArray(int length) => _U8C(length);
   factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _U8C(buffer);
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
+                                       [int byteOffset = 0, int length]) {
+    if (length == null) return _U8C_2(buffer, byteOffset);
+    return _U8C_3(buffer, byteOffset, length);
+  }
 
   static Float32Array _F32(arg) => _wrap(new dom.Float32Array(arg));
   static Float64Array _F64(arg) => _wrap(new dom.Float64Array(arg));
@@ -37437,6 +37440,26 @@ class _TypedArrayFactoryProvider {
   static Uint16Array _U16(arg) => _wrap(new dom.Uint16Array(arg));
   static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
   static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
+
+  static Float32Array _F32_2(arg1, arg2) => _wrap(new dom.Float32Array(arg1, arg2));
+  static Float64Array _F64_2(arg1, arg2) => _wrap(new dom.Float64Array(arg1, arg2));
+  static Int8Array _I8_2(arg1, arg2) => _wrap(new dom.Int8Array(arg1, arg2));
+  static Int16Array _I16_2(arg1, arg2) => _wrap(new dom.Int16Array(arg1, arg2));
+  static Int32Array _I32_2(arg1, arg2) => _wrap(new dom.Int32Array(arg1, arg2));
+  static Uint8Array _U8_2(arg1, arg2) => _wrap(new dom.Uint8Array(arg1, arg2));
+  static Uint16Array _U16_2(arg1, arg2) => _wrap(new dom.Uint16Array(arg1, arg2));
+  static Uint32Array _U32_2(arg1, arg2) => _wrap(new dom.Uint32Array(arg1, arg2));
+  static Uint8ClampedArray _U8C_2(arg1, arg2) => _wrap(new dom.Uint8ClampedArray(arg1, arg2));
+
+  static Float32Array _F32_3(arg1, arg2, arg3) => _wrap(new dom.Float32Array(arg1, arg2, arg3));
+  static Float64Array _F64_3(arg1, arg2, arg3) => _wrap(new dom.Float64Array(arg1, arg2, arg3));
+  static Int8Array _I8_3(arg1, arg2, arg3) => _wrap(new dom.Int8Array(arg1, arg2, arg3));
+  static Int16Array _I16_3(arg1, arg2, arg3) => _wrap(new dom.Int16Array(arg1, arg2, arg3));
+  static Int32Array _I32_3(arg1, arg2, arg3) => _wrap(new dom.Int32Array(arg1, arg2, arg3));
+  static Uint8Array _U8_3(arg1, arg2, arg3) => _wrap(new dom.Uint8Array(arg1, arg2, arg3));
+  static Uint16Array _U16_3(arg1, arg2, arg3) => _wrap(new dom.Uint16Array(arg1, arg2, arg3));
+  static Uint32Array _U32_3(arg1, arg2, arg3) => _wrap(new dom.Uint32Array(arg1, arg2, arg3));
+  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) => _wrap(new dom.Uint8ClampedArray(arg1, arg2, arg3));
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }

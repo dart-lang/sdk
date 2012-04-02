@@ -2909,8 +2909,8 @@ void Parser::ParseInterfaceDefinition(
           TypeArguments::Handle(interface.type_parameters());
       const TypeArguments& factory_type_parameters =
           TypeArguments::Handle(factory_class.type_parameters());
-      if (!AbstractTypeArguments::AreEqual(interface_type_parameters,
-                                           factory_type_parameters)) {
+      if (!TypeArguments::AreIdenticalTypeParameters(interface_type_parameters,
+                                                     factory_type_parameters)) {
         const String& interface_name = String::Handle(interface.Name());
         ErrorMsg(factory_name.ident_pos,
                  "mismatch in number or names of type parameters between "
@@ -2927,6 +2927,12 @@ void Parser::ParseInterfaceDefinition(
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
+
+  if (members.has_constructor() && !interface.HasFactoryClass()) {
+    ErrorMsg(interfacename_pos,
+             "interface '%s' with constructor must declare a factory class",
+             interface_name.ToCString());
+  }
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3005,7 +3011,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
         ErrorMsg("type parameter name expected");
       }
       String& type_parameter_name = *CurrentLiteral();
-      type_parameter = TypeParameter::New(index,
+      type_parameter = TypeParameter::New(cls,
+                                          index,
                                           type_parameter_name,
                                           token_index_);
       ConsumeToken();
@@ -4717,12 +4724,17 @@ AstNode* Parser::ParseForStatement(String* label_name) {
 
   // Check whether any of the variables in the initializer part of
   // the for statement are captured by a closure. If so, we insert a
-  // node that creates a new Context at the end of the loop body (but
-  // before the increment expression is evaluated).
+  // node that creates a new Context for the loop variable before
+  // the increment expression is evaluated.
   for (int i = 0; i < init_scope->num_variables(); i++) {
     if (init_scope->VariableAt(i)->is_captured() &&
         (init_scope->VariableAt(i)->owner() == init_scope)) {
-      body->Add(new CloneContextNode(for_pos));
+      SequenceNode* incr_sequence = new SequenceNode(incr_pos, incr_scope);
+      incr_sequence->Add(new CloneContextNode(for_pos));
+      if (increment != NULL) {
+        incr_sequence->Add(increment);
+      }
+      increment = incr_sequence;
       break;
     }
   }

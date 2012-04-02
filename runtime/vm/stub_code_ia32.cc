@@ -744,9 +744,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
-  __ pushl(raw_null);  // Null instantiator.
   __ CallRuntimeFromStub(kAllocateArrayRuntimeEntry);
-  __ popl(EAX);  // Pop instantiator.
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument.
   __ popl(EAX);  // Pop return value from return slot.
@@ -1125,12 +1123,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (is_cls_parameterized) {
       __ movl(ECX, EBX);
       // A new InstantiatedTypeArguments object only needs to be allocated if
-      // the instantiator is non-null.
-      Label null_instantiator;
-      __ cmpl(Address(ESP, kInstantiatorTypeArgumentsOffset), raw_null);
-      __ j(EQUAL, &null_instantiator, Assembler::kNearJump);
+      // the instantiator is provided (not kNoInstantiator, but may be null).
+      Label no_instantiator;
+      __ cmpl(Address(ESP, kInstantiatorTypeArgumentsOffset),
+              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &no_instantiator, Assembler::kNearJump);
       __ addl(EBX, Immediate(type_args_size));
-      __ Bind(&null_instantiator);
+      __ Bind(&no_instantiator);
       // ECX: potential new object end and, if ECX != EBX, potential new
       // InstantiatedTypeArguments object start.
     }
@@ -1272,7 +1271,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ pushl(EDX);  // Push type arguments of instantiator.
   } else {
     __ pushl(raw_null);  // Push null type arguments.
-    __ pushl(raw_null);  // Push null instantiator.
+    __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
   __ CallRuntimeFromStub(kAllocateObjectRuntimeEntry);  // Allocate object.
   __ popl(EAX);  // Pop argument (instantiator).
@@ -1759,9 +1758,10 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // Check if an instance class is a subtype of class/interface using simple
 // superchain and interface array traversal. Does not take type parameters into
 // account.
-// EAX: instance.
+// EAX: instance (preserved)
 // EDX: class/interface to test against (is class of instance a subtype of it).
-// Result in EDX: 1 is subtype, 0 maybe not.
+//      (preserved).
+// Result in EBX: 1 is subtype, 0 maybe not.
 // Destroys EBX, ECX.
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   const Immediate raw_null =
@@ -1805,12 +1805,12 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ jmp(&array_loop, Assembler::kNearJump);
 
   __ Bind(&not_found);
-  __ xorl(EAX, EAX);
+  __ xorl(EBX, EBX);
   __ LeaveFrame();
   __ ret();
 
   __ Bind(&found);
-  __ movl(EAX, Immediate(1));
+  __ movl(EBX, Immediate(1));
   __ LeaveFrame();
   __ ret();
 

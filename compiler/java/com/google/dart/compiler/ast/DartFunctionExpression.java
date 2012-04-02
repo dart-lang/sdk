@@ -61,6 +61,9 @@ public class DartFunctionExpression extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    if (name != null) {
+      name.accept(visitor);
+    }
     function.accept(visitor);
   }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:html", prefix:"html");
-#import('../../../frog/leg/api.dart', prefix: "api_lib");
+#import('../../../lib/compiler/compiler.dart', prefix: "compiler_lib");
 #import('../../../lib/uri/uri.dart', prefix:"uri_lib");
 
 /**
@@ -25,10 +25,10 @@ class Legpad {
   // to compile
   static final String MAIN_ID = "main_id";
 
-  Legpad() : warnings = new StringBuffer() {}
+  Legpad() : warnings = "" {}
 
   // accumulates diagnostic messages emitted by the leg compiler
-  StringBuffer warnings;
+  String warnings;
 
   // the generated javascript
   String output;
@@ -41,8 +41,16 @@ class Legpad {
 
   void diagnosticHandler(uri_lib.Uri uri, int begin, int end,
                                  String message, bool fatal) {
-    // TODO(mattsh): format message with location info
-    warnings.add(message).add("\n");
+    StringBuffer sb = new StringBuffer();
+    sb.add(message);    
+    if (uri !== null) {
+      sb.add(" (${uri.toString()}: $begin, $end)");
+    }
+    if (fatal) {
+      sb.add(" (fatal)");
+    }
+    sb.add("\n");
+    warnings += sb.toString();
   }
 
   Future<String> readUriFromString(uri_lib.Uri uri) {
@@ -66,6 +74,10 @@ class Legpad {
     Stopwatch stopwatch = new Stopwatch.start();
     runLeg();
     int elapsedMillis = stopwatch.elapsedInMs();
+    if (output === null) {
+      output = "throw 'dart2js compilation error';\n";
+    }
+
     setText("output", output);
     setText("warnings", warnings);
     String timing = "generated ${output.length} characters in " +
@@ -75,19 +87,17 @@ class Legpad {
 
   void runLeg() {
     uri_lib.Uri mainUri = new uri_lib.Uri.fromString(getText(MAIN_ID));
-    uri_lib.Uri libraryRoot =
-        new uri_lib.Uri.fromString("dartdir/frog/leg/lib/");
+    uri_lib.Uri libraryRoot = new uri_lib.Uri.fromString("dartdir/");
     List<String> compilerArgs = [
       "--enable_type_checks",
       "--enable_asserts"
     ];
 
-    // TODO(mattsh) - dart2js api should be synchronous
-    Future<String> futureJavascript = api_lib.compile(mainUri,
+    // TODO(mattsh): dart2js api should be synchronous
+    Future<String> futureJavascript = compiler_lib.compile(mainUri,
          libraryRoot, readUriFromString, diagnosticHandler, compilerArgs);
 
     if (futureJavascript == null) {
-      output = "throw 'legpad compilation error';\n";
       return;
     }
     output = futureJavascript.value;

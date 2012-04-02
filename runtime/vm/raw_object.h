@@ -405,7 +405,10 @@ class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  RawObject** from() {
+      return reinterpret_cast<RawObject**>(&ptr()->parameterized_class_);
+  }
+  RawClass* parameterized_class_;
   RawString* name_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   intptr_t index_;

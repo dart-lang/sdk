@@ -1188,7 +1188,8 @@ builtin$get$dynamic(receiver) => receiver;
 captureStackTrace(ex) {
   var jsError = JS('Object', @'new Error()');
   JS('void', @'#.dartException = #', jsError, ex);
-  JS('void', @'''#.toString = #''', jsError, DART_CLOSURE_TO_JS(toStringWrapper));
+  JS('void', @'''#.toString = #''', jsError,
+     DART_CLOSURE_TO_JS(toStringWrapper));
   return jsError;
 }
 

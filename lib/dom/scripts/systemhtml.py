@@ -651,7 +651,8 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
           '\n'
           '  $CTOR.fromList(List<$TYPE> list);\n'
           '\n'
-          '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
+          '  $CTOR.fromBuffer(ArrayBuffer buffer,'
+                            ' [int byteOffset, int length]);\n',
         CTOR=self._interface.id,
         TYPE=DartType(element_type))
 
@@ -789,9 +790,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         EXTENDS=extends,
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
-
-    if element_type:
-      self.AddTypedArrayConstructors(element_type)
 
     # Emit a factory provider class for the constructor.
     constructor_info = AnalyzeConstructor(interface)
@@ -974,22 +972,19 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       return
 
     # Do we need a native body?
-    if (html_name != info.name):
+    if html_name != info.declared_name:
       return_type = self._NarrowOutputType(info.type_name)
       
       operation_emitter = self._members_emitter.Emit('$!SCOPE',
           TYPE=return_type,
           HTML_NAME=html_name,
-          NAME=info.name,
-          RETURN='' if return_type == 'void' else 'return ',
-          PARAMNAMES=info.ParametersAsArgumentList(),
+          NAME=info.declared_name,
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
 
       operation_emitter.Emit(
           '\n'
-          '  $TYPE $(HTML_NAME)($PARAMS)'
-          ' native "$(RETURN)this.$NAME($PARAMNAMES);";\n')
+          '  $TYPE $(HTML_NAME)($PARAMS) native "$NAME";\n')
     else:
       self._members_emitter.Emit(
           '\n'
@@ -1394,12 +1389,10 @@ class HtmlDartiumInterfaceGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE get on() {\n'
-        '    if (_on == null) _on = new $TYPE($EVENTTARGET);\n'
+        '    if (_on == null) _on = new $TYPE(this);\n'
         '    return _on;\n'
         '  }\n',
-        TYPE=events_class,
-        EVENTTARGET='_wrappedDocumentPtr' if self._interface.id == 'Document'
-            else 'this')
+        TYPE=events_class)
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:

@@ -13,7 +13,7 @@ interface Visitor<R> {
   R visitEmptyStatement(EmptyStatement node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
-  R visitForInStatement(ForInStatement node);
+  R visitForIn(ForIn node);
   R visitFunctionDeclaration(FunctionDeclaration node);
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
@@ -117,7 +117,7 @@ class Node implements Hashable {
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
-  ForInStatement asForInStatement() => null;
+  ForIn asForIn() => null;
   FunctionDeclaration asFunctionDeclaration() => null;
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
@@ -1414,21 +1414,21 @@ class ContinueStatement extends GotoStatement {
   accept(Visitor visitor) => visitor.visitContinueStatement(this);
 }
 
-class ForInStatement extends Loop {
+class ForIn extends Loop {
   final Node declaredIdentifier;
   final Expression expression;
 
   final Token forToken;
   final Token inToken;
 
-  ForInStatement(this.declaredIdentifier, this.expression,
+  ForIn(this.declaredIdentifier, this.expression,
                  Statement body, this.forToken, this.inToken) : super(body);
 
   Expression get condition() => null;
 
-  ForInStatement asForInStatement() => this;
+  ForIn asForIn() => this;
 
-  accept(Visitor visitor) => visitor.visitForInStatement(this);
+  accept(Visitor visitor) => visitor.visitForIn(this);
 
   visitChildren(Visitor visitor) {
     declaredIdentifier.accept(visitor);

@@ -688,7 +688,7 @@ public class Resolver {
       return element;
     }
 
-    public Element resolveVariable(DartVariable x, Modifiers modifiers) {
+    public VariableElement resolveVariable(DartVariable x, Modifiers modifiers) {
       // Visit the initializer first.
       resolve(x.getValue());
       VariableElement element = Elements.variableElement(enclosingElement, x, x.getVariableName(), modifiers);
@@ -696,6 +696,7 @@ public class Resolver {
           recordElement(x, element),
           ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR,
           ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING);
+      recordElement(x.getName(), element);
       return element;
     }
 
@@ -723,6 +724,7 @@ public class Resolver {
     public Element visitLabel(DartLabel x) {
       LabelElement previousLabel = currentLabel;
       currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
+      recordElement(x.getLabel(), currentLabel);
       recordElement(x, currentLabel);
       x.visitChildren(this);
       if (!labelsInScopes.contains(currentLabel)) {
@@ -755,6 +757,9 @@ public class Resolver {
       resolve(functionNode.getBody());
       innermostFunction = previousFunction;
       getContext().popScope();
+      if (x.getName() != null) {
+        recordElement(x.getName(), element);
+      }
       return recordElement(x, element);
     }
 
@@ -940,6 +945,9 @@ public class Resolver {
     }
 
     private Element resolveIdentifier(DartIdentifier x, boolean isQualifier) {
+      if (x.getParent() instanceof DartLabel) {
+        return x.getElement();
+      }
       Scope scope = getContext().getScope();
       String name = x.getName();
       Element element = scope.findElement(scope.getLibrary(), name);

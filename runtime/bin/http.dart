@@ -69,6 +69,13 @@ interface HttpServer default _HttpServer {
   void listen(String host, int port, [int backlog]);
 
   /**
+   * Attach the HTTP server to an existing ServerSocket. If the HttpServer is
+   * closed, the HttpServer will just detach itself, and not close
+   * [serverSocket].
+   */
+  void listenOn(ServerSocket serverSocket);
+
+  /**
    * Stop server listening.
    */
   void close();

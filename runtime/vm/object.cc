@@ -1118,9 +1118,15 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.Name();
       if (type_param_name.Equals(type_name)) {
-        ASSERT(type_param.IsFinalized() || (type_param.Index() == i));
-        // Create a new TypeParameter with the given token_index.
-        return TypeParameter::New(i, type_name, token_index);
+        intptr_t index = type_param.Index();
+        // Create a non-finalized new TypeParameter with the given token_index.
+        if (type_param.IsFinalized()) {
+          // The index was adjusted during finalization. Revert.
+          index -= NumTypeArguments() - num_type_params;
+        } else {
+          ASSERT(type_param.Index() == i);
+        }
+        return TypeParameter::New(*this, index, type_name, token_index);
       }
     }
   }
@@ -1503,8 +1509,8 @@ bool Class::IsSubtypeOf(
     // Check for covariance.
     if (type_arguments.IsNull() ||
         other_type_arguments.IsNull() ||
-        type_arguments.IsDynamicTypes(len) ||
-        other_type_arguments.IsDynamicTypes(len)) {
+        type_arguments.IsRawInstantiatedRaw(len) ||
+        other_type_arguments.IsRawInstantiatedRaw(len)) {
       return true;
     }
     return type_arguments.IsSubtypeOf(other_type_arguments,
@@ -2029,11 +2035,13 @@ RawString* AbstractType::Name() const {
     if (num_type_params > num_args) {
       first_type_param_index = 0;
       if (!IsFinalized() || IsBeingFinalized()) {
-        // Most probably an illformed type. Do not fill up with "Dynamic".
+        // Most probably an illformed type. Do not fill up with "Dynamic",
+        // but use actual vector.
         num_type_params = num_args;
       } else {
         ASSERT(num_args == 0);  // Type is raw.
-        // We fill up with "Dynamic".
+        // No need to fill up with "Dynamic".
+        num_type_params = 0;
       }
     } else {
       first_type_param_index = num_args - num_type_params;
@@ -2060,28 +2068,9 @@ RawString* AbstractType::Name() const {
   if (num_type_params == 0) {
     type_name = class_name.raw();
   } else {
-    const intptr_t num_strings = 2*num_type_params + 2;  // "C""<""T"", ""T"">".
-    const Array& strings = Array::Handle(Array::New(num_strings));
-    intptr_t s = 0;
-    strings.SetAt(s++, class_name);
-    strings.SetAt(s++, String::Handle(String::NewSymbol("<")));
-    const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
-    AbstractType& type = AbstractType::Handle();
-    for (intptr_t i = 0; i < num_type_params; i++) {
-      if (first_type_param_index + i >= num_args) {
-        type = Type::DynamicType();
-      } else {
-        type = args.TypeAt(first_type_param_index + i);
-      }
-      type_name = type.Name();
-      strings.SetAt(s++, type_name);
-      if (i < num_type_params - 1) {
-        strings.SetAt(s++, kCommaSpace);
-      }
-    }
-    strings.SetAt(s++, String::Handle(String::NewSymbol(">")));
-    ASSERT(s == num_strings);
-    type_name = String::ConcatAll(strings);
+    const String& args_name = String::Handle(
+        args.SubvectorName(first_type_param_index, num_type_params));
+    type_name = String::Concat(class_name, args_name);
   }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
@@ -2154,8 +2143,8 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
   if (IsTypeParameter() || other.IsTypeParameter()) {
-    return IsTypeParameter() && other.IsTypeParameter() &&
-        (Index() == other.Index());
+    // An uninstantiated type parameter is equivalent to Dynamic.
+    return true;
   }
   const Class& cls = Class::Handle(type_class());
   return cls.IsSubtypeOf(AbstractTypeArguments::Handle(arguments()),
@@ -2164,9 +2153,11 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
                          malformed_error);
 }
 
-RawAbstractType* AbstractType::NewTypeParameter(
-    intptr_t index, const String& name, intptr_t token_index) {
-  return TypeParameter::New(index, name, token_index);
+RawAbstractType* AbstractType::NewTypeParameter(const Class& clazz,
+                                                intptr_t index,
+                                                const String& name,
+                                                intptr_t token_index) {
+  return TypeParameter::New(clazz, index, name, token_index);
 }
 
 
@@ -2495,6 +2486,8 @@ const char* Type::ToCString() const {
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalized);
+  // Field parameterized_class_ is not needed after finalization anymore.
+  set_parameterized_class(Class::Handle());
 }
 
 
@@ -2507,12 +2500,24 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   }
   TypeParameter& other_type_param = TypeParameter::Handle();
   other_type_param ^= other.raw();
+  if (IsFinalized() != other_type_param.IsFinalized()) {
+    return false;
+  }
+  if (parameterized_class() != other_type_param.parameterized_class()) {
+    return false;
+  }
   if (Index() != other_type_param.Index()) {
     return false;
   }
   const String& name = String::Handle(Name());
   const String& other_type_param_name = String::Handle(other_type_param.Name());
   return name.Equals(other_type_param_name);
+}
+
+
+void TypeParameter::set_parameterized_class(const Class& value) const {
+  // Set value may be null.
+  StorePointer(&raw_ptr()->parameterized_class_, value.raw());
 }
 
 
@@ -2548,9 +2553,12 @@ RawTypeParameter* TypeParameter::New() {
 }
 
 
-RawTypeParameter* TypeParameter::New(
-    intptr_t index, const String& name, intptr_t token_index) {
+RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
+                                     intptr_t index,
+                                     const String& name,
+                                     intptr_t token_index) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
+  result.set_parameterized_class(parameterized_class);
   result.set_index(index);
   result.set_name(name);
   result.set_token_index(token_index);
@@ -2682,6 +2690,31 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+RawString* AbstractTypeArguments::SubvectorName(intptr_t from_index,
+                                                intptr_t len) const {
+  ASSERT(from_index + len <= Length());
+  String& name = String::Handle();
+  const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
+  const Array& strings = Array::Handle(Array::New(num_strings));
+  intptr_t s = 0;
+  strings.SetAt(s++, String::Handle(String::NewSymbol("<")));
+  const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < len; i++) {
+    type = TypeAt(from_index + i);
+    name = type.Name();
+    strings.SetAt(s++, name);
+    if (i < len - 1) {
+      strings.SetAt(s++, kCommaSpace);
+    }
+  }
+  strings.SetAt(s++, String::Handle(String::NewSymbol(">")));
+  ASSERT(s == num_strings);
+  name = String::ConcatAll(strings);
+  return String::NewSymbol(name);
+}
+
+
 bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
   ASSERT(!IsNull());  // Use AbstractTypeArguments::AreEqual().
   if (this->raw() == other.raw()) {
@@ -2714,10 +2747,10 @@ bool AbstractTypeArguments::AreEqual(
     return true;
   }
   if (arguments.IsNull()) {
-    return other_arguments.IsDynamicTypes(other_arguments.Length());
+    return other_arguments.IsDynamicTypes(false, other_arguments.Length());
   }
   if (other_arguments.IsNull()) {
-    return arguments.IsDynamicTypes(arguments.Length());
+    return arguments.IsDynamicTypes(false, arguments.Length());
   }
   return arguments.Equals(other_arguments);
 }
@@ -2731,7 +2764,8 @@ RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
 }
 
 
-bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
+bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
+                                           intptr_t len) const {
   ASSERT(Length() >= len);
   AbstractType& type = AbstractType::Handle();
   Class& type_class = Class::Handle();
@@ -2739,7 +2773,12 @@ bool AbstractTypeArguments::IsDynamicTypes(intptr_t len) const {
     type = TypeAt(i);
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
-      ASSERT(type.IsTypeParameter() || type.IsMalformed());
+      if (raw_instantiated && type.IsTypeParameter()) {
+        // An uninstantiated type parameter is equivalent to Dynamic.
+        continue;
+      }
+      ASSERT((!raw_instantiated && type.IsTypeParameter()) ||
+             type.IsMalformed());
       return false;
     }
     type_class = type.type_class();
@@ -2817,13 +2856,10 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
       }
     }
   }
-  const Type& super_type = Type::Handle(cls.super_type());
-  if (!super_type.IsNull()) {
-    ASSERT(super_type.IsFinalized());
-    const Class& super_class = Class::Handle(super_type.type_class());
-    if (!IsWithinBoundsOf(super_class, bounds_instantiator, malformed_error)) {
-      return false;
-    }
+  const Class& super_class = Class::Handle(cls.SuperClass());
+  if (!super_class.IsNull() &&
+      !IsWithinBoundsOf(super_class, bounds_instantiator, malformed_error)) {
+    return false;
   }
   return true;
 }
@@ -2944,6 +2980,41 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 
+bool TypeArguments::AreIdenticalTypeParameters(
+    const TypeArguments& arguments,
+    const TypeArguments& other_arguments) {
+  if (arguments.raw() == other_arguments.raw()) {
+    return true;
+  }
+  if (arguments.IsNull() || other_arguments.IsNull()) {
+    return false;
+  }
+  intptr_t num_types = arguments.Length();
+  if (num_types != other_arguments.Length()) {
+    return false;
+  }
+  TypeParameter& type = TypeParameter::Handle();
+  TypeParameter& other_type = TypeParameter::Handle();
+  String& name = String::Handle();
+  String& other_name = String::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type ^= arguments.TypeAt(i);
+    other_type ^= other_arguments.TypeAt(i);
+    if (type.raw() == other_type.raw()) {
+      continue;
+    }
+    // Both type parameters may have different type_class and their index may be
+    // different after finalization, which is OK. Do not check.
+    name = type.Name();
+    other_name = other_type.Name();
+    if (!name.Equals(other_name)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 RawTypeArguments* TypeArguments::New(intptr_t len) {
   if ((len < 0) || (len > kMaxTypes)) {
     // TODO(iposva): Should we throw an illegal parameter exception?
@@ -3043,6 +3114,9 @@ RawAbstractType* InstantiatedTypeArguments::TypeAt(intptr_t index) const {
   if (type.IsTypeParameter()) {
     AbstractTypeArguments& instantiator =
         AbstractTypeArguments::Handle(instantiator_type_arguments());
+    if (instantiator.IsNull()) {
+      return Type::DynamicType();
+    }
     return instantiator.TypeAt(type.Index());
   }
   if (!type.IsInstantiated()) {
@@ -6395,12 +6469,15 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   // other.InstantiateFrom(other_instantiator), however, we can save the
   // allocation of a new AbstractType by inlining the code.
   if (other.IsTypeParameter()) {
-    AbstractType& instantiated_other = AbstractType::Handle();
-    if (!other_instantiator.IsNull()) {
-      instantiated_other = other_instantiator.TypeAt(other.Index());
-      ASSERT(instantiated_other.IsInstantiated());
-    } else {
-      instantiated_other = Type::DynamicType();
+    if (other_instantiator.IsNull()) {
+      // An uninstantiated type parameter is equivalent to Dynamic.
+      return true;
+    }
+    AbstractType& instantiated_other = AbstractType::Handle(
+        other_instantiator.TypeAt(other.Index()));
+    if (instantiated_other.IsDynamicType() ||
+        instantiated_other.IsTypeParameter()) {
+      return true;
     }
     other_class = instantiated_other.type_class();
     other_type_arguments = instantiated_other.arguments();

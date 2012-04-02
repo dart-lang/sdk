@@ -21,6 +21,8 @@ class SsaOptimizerTask extends CompilerTask {
   void optimize(WorkItem work, HGraph graph) {
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
+          new SsaTypePropagator(compiler),
+          new SsaCheckInserter(compiler),
           new SsaConstantFolder(compiler),
           new SsaRedundantPhiEliminator(),
           new SsaDeadPhiEliminator(),
@@ -38,7 +40,7 @@ class SsaOptimizerTask extends CompilerTask {
       // types non-speculatively. For example, it propagates the type
       // array for a call to the List constructor.
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          new SsaTypePropagator(compiler),
+          new SsaSpeculativeTypePropagator(compiler),
           new SsaTypeGuardBuilder(compiler, work),
           new SsaCheckInserter(compiler)];
       runPhases(graph, phases);
@@ -95,11 +97,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         }
         block.rewrite(instruction, replacement);
         block.remove(instruction);
-        // Because the constant folder runs after type propagation, we
-        // must update the type of this instruction manually. Later
-        // phases can then optimize this instruction based on its
-        // type.
-        replacement.updateType();
+        // If the replacement instruction does not know its type yet,
+        // use the type of the instruction.
+        if (!replacement.type.isKnown()) {
+          replacement.type = instruction.type;
+        }
       }
       instruction = next;
     }
@@ -297,6 +299,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitIndex(HIndex node) {
     if (!node.builtin) return;
+    if (node.index is HBoundsCheck) return;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndex newInstruction = new HIndex(node.target, node.receiver, index);
@@ -307,6 +310,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitIndexAssign(HIndexAssign node) {
     if (!node.builtin) return;
+    if (node.index is HBoundsCheck) return;
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndexAssign newInstruction =

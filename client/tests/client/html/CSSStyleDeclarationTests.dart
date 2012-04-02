@@ -66,7 +66,7 @@ testCSSStyleDeclaration() {
     style.color = "red";
     style.transform = "translate(10px, 20px)";
     Expect.equals(
-      "width: 2px !important; color: red; -webkit-transform: translate(10px, 20px); ",
+      "color: red; width: 2px !important; -webkit-transform: translate(10px, 20px); ",
       style.cssText);
   });
 }

@@ -76,7 +76,7 @@ main() {
     if (selectors.containsKey('utils')) {
       queue.addTestSuite(new UtilsTestSuite(conf));
     }
-    if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
+    if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
       queue.addTestSuite(new VMDartTestSuite(conf));
     }
