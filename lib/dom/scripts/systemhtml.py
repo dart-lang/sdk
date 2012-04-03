@@ -1453,98 +1453,15 @@ class HtmlDartiumInterfaceGenerator(object):
     if self._interface.id == 'NodeList':
       return
 
-    self._members_emitter.Emit(
-        '\n'
-        '  void add($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addLast($TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void addAll(Collection<$TYPE> collection) {\n'
-        '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void sort(int compare($TYPE a, $TYPE b)) {\n'
-        '    throw new UnsupportedOperationException("Cannot sort immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void copyFrom(List<Object> src, int srcStart, '
-        'int dstStart, int count) {\n'
-        '    throw new UnsupportedOperationException("This object is immutable.");\n'
-        '  }\n'
-        '\n'
-        '  int indexOf($TYPE element, [int start = 0]) {\n'
-        '    return _Lists.indexOf(this, element, start, this.length);\n'
-        '  }\n'
-        '\n'
-        '  int lastIndexOf($TYPE element, [int start = null]) {\n'
-        '    if (start === null) start = length - 1;\n'
-        '    return _Lists.lastIndexOf(this, element, start);\n'
-        '  }\n'
-        '\n'
-        '  int clear() {\n'
-        '    throw new UnsupportedOperationException("Cannot clear immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE removeLast() {\n'
-        '    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  $TYPE last() {\n'
-        '    return this[length - 1];\n'
-        '  }\n'
-        '\n'
-        '  void forEach(void f($TYPE element)) {\n'
-        '    _Collections.forEach(this, f);\n'
-        '  }\n'
-        '\n'
-        '  Collection map(f($TYPE element)) {\n'
-        '    return _Collections.map(this, [], f);\n'
-        '  }\n'
-        '\n'
-        '  Collection<$TYPE> filter(bool f($TYPE element)) {\n'
-        '    return _Collections.filter(this, new List<$TYPE>(), f);\n'
-        '  }\n'
-        '\n'
-        '  bool every(bool f($TYPE element)) {\n'
-        '    return _Collections.every(this, f);\n'
-        '  }\n'
-        '\n'
-        '  bool some(bool f($TYPE element)) {\n'
-        '    return _Collections.some(this, f);\n'
-        '  }\n'
-        '\n'
-        '  void setRange(int start, int length, List<$TYPE> from, [int startFrom]) {\n'
-        '    throw new UnsupportedOperationException("Cannot setRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void removeRange(int start, int length) {\n'
-        '    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  void insertRange(int start, int length, [$TYPE initialValue]) {\n'
-        '    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");\n'
-        '  }\n'
-        '\n'
-        '  List<$TYPE> getRange(int start, int length) {\n'
-        '    throw new NotImplementedException();\n'
-        '  }\n'
-        '\n'
-        '  bool isEmpty() {\n'
-        '    return length == 0;\n'
-        '  }\n'
-        '\n'
-        '  Iterator<$TYPE> iterator() {\n'
-        '    return new _FixedSizeListIterator<$TYPE>(this);\n'
-        '  }\n',
-        TYPE=DartType(element_type))
+    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
+    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
+    template_file = 'immutable_list_mixin.darttemplate'
+    template = self._system._templates.Load(template_file)
+    self._members_emitter.Emit(template, E=DartType(element_type))
 
   def _HasNativeIndexGetter(self, interface):
-    return ('HasIndexGetter' in interface.ext_attrs or
-            'HasNumericIndexGetter' in interface.ext_attrs)
+    return ('IndexedGetter' in interface.ext_attrs or
+            'NumericIndexedGetter' in interface.ext_attrs)
 
   def _EmitNativeIndexGetter(self, interface, element_type):
     method_name = '_index'
@@ -1555,7 +1472,7 @@ class HtmlDartiumInterfaceGenerator(object):
         METHOD=method_name)
 
   def _HasNativeIndexSetter(self, interface):
-    return 'HasCustomIndexSetter' in interface.ext_attrs
+    return 'CustomIndexedSetter' in interface.ext_attrs
 
   def _EmitNativeIndexSetter(self, interface, element_type):
     method_name = '_set_index'

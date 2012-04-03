@@ -46,6 +46,7 @@ dom/*: Skip
 html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
 html/TypedArrays2Test: Skip
 html/TypedArrays3Test: Skip
+html/TypedArrays4Test: Skip
 
 # TODO(nweiz): enable this test again once the functionality being tested
 # is supported.
