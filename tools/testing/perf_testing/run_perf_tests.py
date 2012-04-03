@@ -57,7 +57,9 @@ GRAPH_OUT_DIR = 'graphs'
 BROWSER_PERF = 'browser-perf'
 TIME_SIZE = 'code-time-size'
 CL_PERF = 'cl-results'
+# TODO(vsm): Merge these?
 DROMAEO = 'dromaeo'
+DROMAEO_SIZE = 'dromaeo-size'
 
 SLEEP_TIME = 200
 VERBOSE = False
@@ -202,7 +204,7 @@ def upload_to_app_engine(username, password):
   os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
       'perf_testing'))
   # TODO(vsm): Factor out this list.
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO]:
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO, DROMAEO_SIZE]:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     shutil.rmtree(path, ignore_errors=True)
     os.makedirs(path)
@@ -216,7 +218,7 @@ def upload_to_app_engine(username, password):
           os.path.join(path, f[1]+'.txt'))
   # Generate directory listing.
   # TODO(vsm): Factor out this list.
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO]:
+  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO, DROMAEO_SIZE]:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     out = open(os.path.join('appengine', 'static',
         '%s-%s.html' % (data, utils.GuessOS())), 'w')
@@ -632,6 +634,121 @@ class DromaeoTest(PerformanceTest):
     self.calculate_geometric_mean(browser, version, revision_num)
 
 
+class DromaeoSizeTest(TestRunner):
+  """Run tests to determine the compiled file output size of Dromaeo."""
+  def __init__(self):
+    super(DromaeoSizeTest, self).__init__(
+        DROMAEO_SIZE,
+        ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
+        ['attr', 'modify', 'query', 'traverse'])
+
+  def run_tests(self):
+    # Build tests.
+    dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
+    current_path = os.getcwd()
+    os.chdir(dromaeo_path)
+    run_cmd(['python', os.path.join('generate_frog_tests.py')])
+    os.chdir(current_path)
+
+    self.trace_file = os.path.join('tools', 'testing', 'perf_testing',
+        self.result_folder_name, self.result_folder_name + self.cur_time)
+    self.add_svn_revision_to_trace(self.trace_file)
+
+    variants = [
+        ('frog_dom', ''),
+        ('frog_html', '-html'),
+        ('frog_htmlidiomatic', '-htmlidiomatic')]
+
+    test_path = os.path.join(dromaeo_path, 'tests')
+    frog_path = os.path.join(test_path, 'frog')
+    total_size = {}
+    for (variant, _) in variants:
+      total_size[variant] = 0
+    total_dart_size = 0
+    for suite in ['attr', 'modify', 'query', 'traverse']:
+      dart_size = 0
+      try:
+        dart_size = os.path.getsize(os.path.join(test_path,
+                                                 'dom-%s.dart' % suite))
+      except OSError:
+        pass #If compilation failed, continue on running other tests.
+
+      total_dart_size += dart_size
+      run_cmd(['echo', 'Size (dart, %s): %s' % (suite, str(dart_size))],
+              self.trace_file, append=True)
+
+      for (variant, suffix) in variants:
+        name = 'dom-%s%s.dart.js' % (suite, suffix)
+        js_size = 0
+        try:
+          # TODO(vsm): Strip comments at least.  Consider compression.
+          js_size = os.path.getsize(os.path.join(frog_path, name))
+        except OSError:
+          pass #If compilation failed, continue on running other tests.
+
+        total_size[variant] += js_size
+        run_cmd(['echo', 'Size (%s, %s): %s' % (variant, suite,
+                                                str(js_size))],
+                self.trace_file, append=True)
+
+    # TODO(vsm): Change GEO_MEAN to sum.  The base class assumes
+    # GEO_MEAN right now.
+    run_cmd(['echo', 'Size (dart, %s): %s' % (total_dart_size, GEO_MEAN)],
+            self.trace_file, append=True)
+    for (variant, _) in variants:
+      run_cmd(['echo', 'Size (%s, %s): %s' % (variant, GEO_MEAN,
+                                              total_size[variant])],
+              self.trace_file, append=True)
+
+
+  def process_file(self, afile):
+    """Pull all the relevant information out of a given tracefile.
+
+    Args:
+      afile: is the filename string we will be processing."""
+    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+        'perf_testing'))
+    f = open(os.path.join(self.result_folder_name, afile))
+    tabulate_data = False
+    revision_num = 0
+    revision_pattern = r'Revision: (\d+)'
+    result_pattern = r'Size \((\w+), ([a-zA-Z0-9-]+)\): (\d+)'
+
+    for line in f.readlines():
+      rev = re.match(revision_pattern, line.strip())
+      if rev:
+        revision_num = int(rev.group(1))
+        continue
+
+      result = re.match(result_pattern, line.strip())
+      if result:
+        variant = result.group(1)
+        metric = result.group(2)
+        num = result.group(3)
+        if num.find('.') == -1:
+          num = int(num)
+        else:
+          num = float(num)
+        self.values_dict['browser'][variant][metric] += [num]
+        self.revision_dict['browser'][variant][metric] += [revision_num]
+
+    f.close()
+
+  def plot_results(self, png_filename):
+    self.style_and_save_perf_plot(
+        'Compiled Dromaeo Sizes',
+        'Size (in bytes)', 10, 10, 'lower left', png_filename,
+        ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
+        ['attr', 'modify', 'query', 'traverse'])
+
+    self.style_and_save_perf_plot(
+        'Compiled Dromaeo Sizes',
+        'Size (in bytes)', 10, 10, 'lower left', '2' + png_filename,
+        ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
+        [GEO_MEAN])
+
+
+
 class CompileTimeAndSizeTest(TestRunner):
   """Run tests to determine how long minfrog takes to compile, and the compiled
   file output size of some benchmarking files."""
@@ -751,6 +868,9 @@ def parse_args():
   parser.add_option('--dromaeo', '-d', dest='dromaeo',
       help='Run the Dromaeo performance tests',
       action='store_true', default=False)
+  parser.add_option('--dromaeo-size', '-D', dest='dsize',
+      help='Run the Dromaeo size tests',
+      action='store_true', default=False)
   parser.add_option('--forever', '-f', dest='continuous',
       help='Run this script forever, always checking for the next svn '
       'checkin', action='store_true', default=False)
@@ -770,13 +890,13 @@ def parse_args():
   else:
     print 'Warning: performance data will not be uploaded to App Engine' + \
         ' if you do not provide a username.'
-  if not (args.cl or args.size or args.perf or args.dromaeo):
-    args.cl = args.size = args.perf = args.dromaeo = True
-  return (args.cl, args.size, args.perf, args.dromaeo, args.continuous,
-          args.verbose, args.no_build, args.graph_only,
+  if not (args.cl or args.size or args.perf or args.dromaeo or args.dsize):
+    args.cl = args.size = args.perf = args.dromaeo = args.dsize = True
+  return (args.cl, args.size, args.perf, args.dromaeo, args.dsize,
+          args.continuous, args.verbose, args.no_build, args.graph_only,
           args.username, password)
 
-def run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
+def run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
                       username, password):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
@@ -790,24 +910,26 @@ def run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
     BrowserStandalonePerformanceTest().run(graph_only)
   if dromaeo:
     DromaeoTest().run(graph_only)
+  if dsize:
+    DromaeoSizeTest().run(graph_only)
 
   if username != '':
     upload_to_app_engine(username, password)
 
 def main():
   global VERBOSE
-  (cl, size, perf, dromaeo, continuous, verbose, no_build, graph_only,
+  (cl, size, perf, dromaeo, dsize, continuous, verbose, no_build, graph_only,
       username, password) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
+        run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
                           username, password)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(cl, size, perf, dromaeo, no_build, graph_only,
+    run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
                       username, password)
 
 if __name__ == '__main__':
