@@ -112,20 +112,18 @@ public class TopLevelElementBuilder {
         }
       }
       // Report two duplicate for both old/new nodes.
-      reportDuplicateDeclaration(listener, oldElement);
-      reportDuplicateDeclaration(listener, newElement);
+      reportDuplicateDeclaration(listener, oldElement, newElement);
+      reportDuplicateDeclaration(listener, newElement, oldElement);
     }
   }
 
   /**
-   * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DEFINITION} for given named element.
+   * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DECLARATION} for given named element.
    */
-  private void reportDuplicateDeclaration(DartCompilerListener listener, Element element) {
-    compilationError(
-        listener,
-        element.getNameLocation(),
-        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
-        element.getName());
+  private void reportDuplicateDeclaration(DartCompilerListener listener, Element element,
+      Element otherElement) {
+    compilationError(listener, element.getNameLocation(), ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION,
+        otherElement, Elements.getRelativeElementLocation(element, otherElement));
   }
 
   /**
