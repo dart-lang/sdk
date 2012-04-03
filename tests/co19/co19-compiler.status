@@ -26,18 +26,18 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
-Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/15_Getter_Invocation_A07_t07: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/16_Assignment_A04_t05: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/17_Conditional_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # TODO(dartc-team): New failure, please triage.
-Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # TODO(dartc-team): New failure, please triage.
+Language/10_Expressions/13_Function_Invocation/1_Actual_Argument_List_Evaluation_A01_t05: Fail # Issue 2407
+Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A01_t05: Fail # Issue 2407
+Language/10_Expressions/14_Method_Invocation/2_Static_Invocation_A01_t05: Fail # Issue 2407
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A01_t05: Fail # Issue 2407
+Language/10_Expressions/15_Getter_Invocation_A07_t07: Fail # Issue 2408
+Language/10_Expressions/16_Assignment_A04_t05: Fail # Issue 2408
+Language/10_Expressions/17_Conditional_A01_t01: Fail # Issue 2371
+Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Issue 2371
+Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail # Issue 2409
+Language/10_Expressions/19_Bitwise_Expressions_A03_t01: Fail # Issue 2409
+Language/10_Expressions/19_Bitwise_Expressions_A03_t02: Fail # Issue 2409
+Language/10_Expressions/19_Bitwise_Expressions_A03_t03: Fail # Issue 2409
 Language/10_Expressions/20_Equality_A01_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/20_Equality_A03_t01: Fail # TODO(dartc-team): New failure, please triage.
 Language/10_Expressions/20_Equality_A05_t01: Fail # TODO(dartc-team): New failure, please triage.
@@ -191,9 +191,9 @@ Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
 Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Fail # Issue 2385
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
-Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # TODO(dartc-team): New failure at r164. Please triage.
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # TODO(dartc-team): New failure at r164. Please triage.
+Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
+Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 issue 109, 111
+Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # Issue 2406
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
