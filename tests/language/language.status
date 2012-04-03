@@ -69,9 +69,6 @@ CallOperatorTest: Fail
 
 ConstConstructorSyntaxTest/05: Fail
 
-AssignStaticTypeTest/01: Skip # Issue 2070 (fails only in checked mode)
-AssignStaticTypeTest/02: Skip # Issue 2070 (fails only in checked mode)
-
 ConstructorRedirectTest/01: Fail # Issue 2103.
 
 # DartC or Frog specific tests that should not be run by the VM

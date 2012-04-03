@@ -167,15 +167,14 @@ void CodeGenerator::IntrinsifySetter() {
 
 bool CodeGenerator::TryIntrinsify() {
   if (!CanOptimize()) return false;
-  if (FLAG_intrinsify && !FLAG_trace_functions) {
+  // Intrinsification skips arguments checks, therefore disable if in checked
+  // mode.
+  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
     if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
       IntrinsifyGetter();
       return true;
     }
-    // Intrinsification skips arguments checks, therefore disable if in checked
-    // mode.
-    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter) &&
-        !FLAG_enable_type_checks) {
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter)) {
       IntrinsifySetter();
       return true;
     }
@@ -775,10 +774,13 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
     const bool returns_null = node->value()->IsLiteralNode() &&
        node->value()->AsLiteralNode()->literal().IsNull();
     const RawFunction::Kind kind = parsed_function().function().kind();
-    // Implicit getters do not need a type check at return.
-    if (!returns_null &&
-        (kind != RawFunction::kImplicitGetter) &&
-        (kind != RawFunction::kConstImplicitGetter)) {
+    const bool is_implicit_getter =
+        (kind == RawFunction::kImplicitGetter) ||
+        (kind == RawFunction::kConstImplicitGetter);
+    const bool is_static = parsed_function().function().is_static();
+    // Implicit getters do not need a type check at return, unless they compute
+    // the initial value of a static field.
+    if (!returns_null && (is_static || !is_implicit_getter)) {
       GenerateAssertAssignable(
           node->id(),
           node->value()->token_index(),

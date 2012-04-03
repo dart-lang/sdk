@@ -154,9 +154,13 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const RawFunction::Kind kind = owner()->parsed_function().function().kind();
-    // Implicit getters do not need a type check at return.
-    if ((kind != RawFunction::kImplicitGetter) &&
-        (kind != RawFunction::kConstImplicitGetter)) {
+    const bool is_implicit_getter =
+        (kind == RawFunction::kImplicitGetter) ||
+        (kind == RawFunction::kConstImplicitGetter);
+    const bool is_static = owner()->parsed_function().function().is_static();
+    // Implicit getters do not need a type check at return, unless they compute
+    // the initial value of a static field.
+    if (is_static || !is_implicit_getter) {
       const AbstractType& type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());

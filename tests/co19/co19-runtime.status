@@ -129,9 +129,8 @@ LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip  # Issue 331
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
 LibTest/core/TypeError/srcType_A01_t01: Fail # Issue co19 - 102
-
-
-
+Language/12_Libraries_and_Scripts/3_Scripts_A02_t01: Fail # Issue co19 - 110
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A01_t01: Fail # Issue co19 - 110
 
 
 [ $runtime == vm && $system == windows ]

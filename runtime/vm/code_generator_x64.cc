@@ -714,10 +714,13 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
     const bool returns_null = node->value()->IsLiteralNode() &&
        node->value()->AsLiteralNode()->literal().IsNull();
     const RawFunction::Kind kind = parsed_function().function().kind();
-    // Implicit getters do not need a type check at return.
-    if (!returns_null &&
-        (kind != RawFunction::kImplicitGetter) &&
-        (kind != RawFunction::kConstImplicitGetter)) {
+    const bool is_implicit_getter =
+        (kind == RawFunction::kImplicitGetter) ||
+        (kind == RawFunction::kConstImplicitGetter);
+    const bool is_static = parsed_function().function().is_static();
+    // Implicit getters do not need a type check at return, unless they compute
+    // the initial value of a static field.
+    if (!returns_null && (is_static || !is_implicit_getter)) {
       GenerateAssertAssignable(
           node->id(),
           node->value()->token_index(),

@@ -233,7 +233,7 @@ class Parser : ValueObject {
       const Error& prev_error, intptr_t token_index, const char* format, ...);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
-  void RunStaticFieldInitializer(const Field& field);
+  AstNode* RunStaticFieldInitializer(const Field& field);
   RawObject* EvaluateConstConstructorCall(
       const Class& type_class,
       const AbstractTypeArguments& type_arguments,
