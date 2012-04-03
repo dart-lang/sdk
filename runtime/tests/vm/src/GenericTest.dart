@@ -44,24 +44,24 @@ class E {
 class GenericTest {
   static test() {
     int result = 0;
+    D d = new D();
+    Expect.equals(true, d.caa_.b_ is B<AA>);
+    Expect.equals(true, d.caa_.b_.isT(const AA()));
+    C c = new C(const AA());  // c is of raw type C, T in C<T> is Dynamic.
+    Expect.equals(true, c.b_ is B);
+    Expect.equals(true, c.b_ is B<AA>);
+    Expect.equals(true, c.b_.isT(const AA()));
+    Expect.equals(true, c.b_.isT(const AX()));
     try {
-      D d = new D();
-      Expect.equals(true, d.caa_.b_ is B<AA>);
-      Expect.equals(true, d.caa_.b_.isT(const AA()));
-      C c = new C(const AA());  // c is of raw type C, T in C<T> is Dynamic.
-      Expect.equals(true, c.b_ is B);
-      Expect.equals(true, c.b_ is B<AA>);
-      Expect.equals(true, c.b_.isT(const AA()));
-      Expect.equals(true, c.b_.isT(const AX()));
       E e = new E();  // Throws a type error, if type checks are enabled.
     } catch (TypeError error) {
       result = 1;
       // TODO(regis): The error below is detected too late.
-      // It should be reported on line 26, at new B<AX>().
+      // It should be reported on line 31, at new B<T>(), i.e. new B<AX>().
       // This will be detected when we check the subtyping constraints.
       Expect.equals("A", error.dstType);
       Expect.equals("AX", error.srcType);
-      Expect.equals("a_", error.dstName);
+      Expect.equals("a_", error.dstName);  // VM specific field.
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
         pos = error.url.lastIndexOf("\\", error.url.length);
