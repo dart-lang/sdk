@@ -7143,15 +7143,15 @@ class FilteredElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
-    _filtered.getRange(start, length).forEach((el) => el.remove());
+  void removeRange(int start, int rangeLength) {
+    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
@@ -7162,11 +7162,11 @@ class FilteredElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      last.remove();
+    final result = this.last();
+    if (result != null) {
+      result.remove();
     }
-    return last;
+    return result;
   }
 
   Collection map(f(Element element)) => _filtered.map(f);
@@ -7177,8 +7177,8 @@ class FilteredElementList implements ElementList {
   int get length() => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int length) =>
-    _filtered.getRange(start, length);
+  List<Element> getRange(int start, int rangeLength) =>
+    _filtered.getRange(start, rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 
@@ -7580,20 +7580,20 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const NotImplementedException();
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, length,
+  List getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
         <Element>[]));
 
   int indexOf(Element element, [int start = 0]) {
@@ -7611,11 +7611,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _element.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _element.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   Element last() {
@@ -7708,20 +7708,20 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const UnsupportedOperationException('');
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const UnsupportedOperationException('');
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -7770,8 +7770,8 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
   ElementList filter(bool f(Element element)) =>
     new _ElementList(super.filter(f));
 
-  ElementList getRange(int start, int length) =>
-    new _ElementList(super.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -12515,11 +12515,11 @@ class _ChildNodeListLazy implements NodeList {
   }
 
   _NodeImpl removeLast() {
-    final last = last();
-    if (last != null) {
-      _this.$dom_removeChild(last);
+    final result = last();
+    if (result != null) {
+      _this.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -12561,21 +12561,21 @@ class _ChildNodeListLazy implements NodeList {
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException(
         "Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException(
         "Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -12762,15 +12762,17 @@ class _ListWrapper<E> implements List<E> {
 
   E last() => _list.last();
 
-  List<E> getRange(int start, int length) => _list.getRange(start, length);
+  List<E> getRange(int start, int rangeLength) =>
+    _list.getRange(start, rangeLength);
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
+      => _list.setRange(start, rangeLength, from, startFrom);
 
-  void removeRange(int start, int length) => _list.removeRange(start, length);
+  void removeRange(int start, int rangeLength) =>
+    _list.removeRange(start, rangeLength);
 
-  void insertRange(int start, int length, [E initialValue = null]) =>
-    _list.insertRange(start, length, initialValue);
+  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
+    _list.insertRange(start, rangeLength, initialValue);
 
   E get first() => _list[0];
 }
@@ -12785,8 +12787,8 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_list.getRange(start, length));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
 class _NodeListImpl extends _DOMTypeBase implements NodeList {
@@ -12821,11 +12823,11 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   }
 
   _NodeImpl removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _parent.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _parent.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -12865,17 +12867,17 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   Node get first() => this[0];
 
   // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -14408,15 +14410,15 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 
   String get outerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.add(clone);
+    final SVGElement cloned = this.clone(true);
+    container.elements.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.addAll(clone.elements);
+    final SVGElement cloned = this.clone(true);
+    container.elements.addAll(cloned.elements);
     return container.innerHTML;
   }
 

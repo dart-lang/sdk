@@ -30,15 +30,15 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   String get outerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.add(clone);
+    final SVGElement cloned = this.clone(true);
+    container.elements.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.addAll(clone.elements);
+    final SVGElement cloned = this.clone(true);
+    container.elements.addAll(cloned.elements);
     return container.innerHTML;
   }
 

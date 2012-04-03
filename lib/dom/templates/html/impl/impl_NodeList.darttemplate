@@ -50,15 +50,17 @@ class _ListWrapper<E> implements List<E> {
 
   E last() => _list.last();
 
-  List<E> getRange(int start, int length) => _list.getRange(start, length);
+  List<E> getRange(int start, int rangeLength) =>
+    _list.getRange(start, rangeLength);
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
+      => _list.setRange(start, rangeLength, from, startFrom);
 
-  void removeRange(int start, int length) => _list.removeRange(start, length);
+  void removeRange(int start, int rangeLength) =>
+    _list.removeRange(start, rangeLength);
 
-  void insertRange(int start, int length, [E initialValue = null]) =>
-    _list.insertRange(start, length, initialValue);
+  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
+    _list.insertRange(start, rangeLength, initialValue);
 
   E get first() => _list[0];
 }
@@ -73,8 +75,8 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_list.getRange(start, length));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
 class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -109,11 +111,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   }
 
   _NodeImpl removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _parent.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _parent.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -153,17 +155,17 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   Node get first() => this[0];
 
   // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 

@@ -6,7 +6,7 @@ class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
   // _EventTargetImpl or EventTarget
-  final var _ptr;
+  final Dynamic _ptr;
 
   _EventsImpl(this._ptr);
 
@@ -20,7 +20,7 @@ class _EventsImpl implements Events {
 class _EventListenerListImpl implements EventListenerList {
   
   // TODO(jacobr): make this _EventTargetImpl
-  final var _ptr;
+  final Dynamic _ptr;
   final String _type;
 
   _EventListenerListImpl(this._ptr, this._type);

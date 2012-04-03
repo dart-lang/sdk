@@ -611,18 +611,18 @@ class _CanvasPixelArrayJs extends _DOMTypeJs implements CanvasPixelArray native 
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 }
@@ -2381,18 +2381,18 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   num last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [num initialValue]) {
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<num> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <num>[]);
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -2463,18 +2463,18 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   num last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [num initialValue]) {
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<num> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <num>[]);
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -2762,18 +2762,18 @@ class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HT
 
   Node last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -4409,18 +4409,18 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -4491,18 +4491,18 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -4573,18 +4573,18 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -4808,18 +4808,18 @@ class _MediaListJs extends _DOMTypeJs implements MediaList native "*MediaList" {
 
   String last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<String> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [String initialValue]) {
+  void insertRange(int start, int rangeLength, [String initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<String> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <String>[]);
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
 
   // -- end List<String> mixins.
 
@@ -5076,18 +5076,18 @@ class _NamedNodeMapJs extends _DOMTypeJs implements NamedNodeMap native "*NamedN
 
   Node last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -5385,18 +5385,18 @@ class _NodeListJs extends _DOMTypeJs implements NodeList native "*NodeList" {
 
   Node last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -9552,18 +9552,18 @@ class _StyleSheetListJs extends _DOMTypeJs implements StyleSheetList native "*St
 
   StyleSheet last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [StyleSheet initialValue]) {
+  void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<StyleSheet> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <StyleSheet>[]);
+  List<StyleSheet> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
 
   // -- end List<StyleSheet> mixins.
 
@@ -9804,18 +9804,18 @@ class _TouchListJs extends _DOMTypeJs implements TouchList native "*TouchList" {
 
   Touch last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Touch initialValue]) {
+  void insertRange(int start, int rangeLength, [Touch initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Touch> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Touch>[]);
+  List<Touch> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Touch>[]);
 
   // -- end List<Touch> mixins.
 
@@ -9939,18 +9939,18 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -10021,18 +10021,18 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -10103,18 +10103,18 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 

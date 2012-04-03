@@ -64,15 +64,15 @@ class FilteredElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
-    _filtered.getRange(start, length).forEach((el) => el.remove());
+  void removeRange(int start, int rangeLength) {
+    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
@@ -83,11 +83,11 @@ class FilteredElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      last.remove();
+    final result = this.last();
+    if (result != null) {
+      result.remove();
     }
-    return last;
+    return result;
   }
 
   Collection map(f(Element element)) => _filtered.map(f);
@@ -98,8 +98,8 @@ class FilteredElementList implements ElementList {
   int get length() => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int length) =>
-    _filtered.getRange(start, length);
+  List<Element> getRange(int start, int rangeLength) =>
+    _filtered.getRange(start, rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 

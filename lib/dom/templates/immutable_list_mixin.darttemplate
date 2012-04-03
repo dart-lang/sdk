@@ -51,17 +51,17 @@
 
   $E last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<$E> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<$E> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [$E initialValue]) {
+  void insertRange(int start, int rangeLength, [$E initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<$E> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <$E>[]);
+  List<$E> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <$E>[]);
 
   // -- end List<$E> mixins.
