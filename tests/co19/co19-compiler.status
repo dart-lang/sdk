@@ -5,7 +5,6 @@
 [ $compiler == dartc ]
 Language/05_Variables/05_Variables_A03_t08: Fail # Issue 2372
 Language/09_Generics/09_Generics_A04_t04: Fail # Issue 2373
-Language/09_Generics/09_Generics_A04_t05: Fail # Issue 2374
 Language/10_Expressions/01_Constants_A15_t16: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473

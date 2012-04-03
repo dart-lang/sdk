@@ -1058,9 +1058,11 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "class A<T> {",
         "  static foo() { new T(); }", // can't ref type variable in method
+        "  static bar() { T variable = 1; }",
         "}"),
         ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR,
+        TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT);
   }
 
   public void testTypeVariableShadowsClass() {
