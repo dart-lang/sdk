@@ -28,6 +28,7 @@ MapsTest: Fail
 MathParseDoubleTest: Fail
 RegExpAllMatchesTest: Fail
 RegExp4Test: Fail # New test added on 10/28.
+StopwatchTest: Pass,Fail # Issue 2398
 StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
