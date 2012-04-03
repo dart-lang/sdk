@@ -111,6 +111,14 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
+  if (function.is_compiling()) {
+    ASSERT(function.is_const() && function.IsConstructor());
+    const String& msg = String::Handle(String::NewFormatted(
+        "Illegal recursion in const constructor '%s'.",
+        String::Handle(function.name()).ToCString()));
+    return LanguageError::New(msg);
+  }
+  function.set_is_compiling(true);
   Isolate* isolate = Isolate::Current();
   Error& error = Error::Handle();
   LongJump* base = isolate->long_jump_base();
@@ -303,6 +311,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     isolate->object_store()->clear_sticky_error();
   }
   isolate->set_long_jump_base(base);
+  function.set_is_compiling(false);
   return error.raw();
 }
 

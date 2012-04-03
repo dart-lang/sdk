@@ -1398,6 +1398,13 @@ class Function : public Object {
   }
   void set_is_optimizable(bool value) const;
 
+  bool is_compiling() const {
+    return raw_ptr()->is_compiling_;
+  }
+  void set_is_compiling(bool value) const {
+    raw_ptr()->is_compiling_ = value;
+  }
+
   bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
