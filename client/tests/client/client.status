@@ -16,9 +16,6 @@ dom/TypedArrays3Test: Fail   # Investigate: setElements is not generated.
 html/TypedArrays3Test: Fail  # Investigate: setElements is not generated.
 html/html_tests: Pass, Fail   # Issue 1946.
 
-[ $component == dartium && $system == windows ]
-dom/DOMIsolatesTest: Skip
-
 [ $compiler == none && $runtime == drt && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
 dom/CSSTest: Skip
