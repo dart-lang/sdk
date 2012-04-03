@@ -278,7 +278,7 @@ class TestOutputImpl implements TestOutput {
       for (String line in testCase.output.stdout) {
         if (line.startsWith('VM exited with signal 1073741819')) {
           if (!alreadyPrintedWarning) {
-            print("WARNING: VM crashed on this test with signal 1073741819. " + 
+            print("WARNING: VM crashed on this test with signal 1073741819. " +
                 "This is a fake pass!!");
             alreadyPrintedWarning = true;
           }
@@ -383,7 +383,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     Expect.isNotNull(outcome);
     if (outcome.contains('compile-time error') && errors.length > 0) {
       return true;
-    } else if (outcome.contains('static type warning') 
+    } else if (outcome.contains('static type warning')
         && staticWarnings.length > 0) {
       return true;
     } else if (outcome.isEmpty()
@@ -528,8 +528,8 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (allowRetries && testCase.usesWebDriver 
-        && testCase.output.unexpectedOutput 
+    if (allowRetries && testCase.usesWebDriver
+        && testCase.output.unexpectedOutput
         && testCase.dynamic.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
@@ -561,8 +561,8 @@ class RunningProcess {
       stderr.add('test.dart: Compilation failed$suffix, exit code $exitCode\n');
       testComplete(exitCode);
     } else {
-      stderr.add('test.dart: Compilion finished $suffix\n');
-      stdout.add('test.dart: Compilion finished $suffix\n');
+      stderr.add('test.dart: Compilation finished $suffix\n');
+      stdout.add('test.dart: Compilation finished $suffix\n');
       if (currentStep == totalSteps - 1 && testCase.usesWebDriver &&
           !testCase.configuration['noBatch']) {
         // Note: processQueue will always be non-null for runtime == ie, ff,
