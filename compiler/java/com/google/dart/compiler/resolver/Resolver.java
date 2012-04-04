@@ -1050,6 +1050,17 @@ public class Resolver {
                 onError(x.getName(), ResolverErrorCode.NOT_A_STATIC_FIELD,
                     x.getPropertyName());
               }
+              if (Elements.inGetterContext(x)) {
+                if (field.getGetter() == null  && field.getSetter() != null) {
+                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER);
+                }
+              }
+              if (Elements.inSetterContext(x)) {
+                if (field.getSetter() == null && field.getGetter() != null) {
+                  onError(x.getName(), ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER);
+                }
+              }              
+              
               break;
 
             case NONE:

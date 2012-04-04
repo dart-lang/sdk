@@ -1133,4 +1133,35 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
         errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
   }
+  
+  public void testNoGetterOrSetter() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "get getter1() {}",
+        "set setter1(arg) {}",
+        "class A {",
+        "  static get getter2() {}",
+        "  static set setter2(arg) {}",        
+        "  get getter3() {}",
+        "  set setter3(arg) {}",                
+        "}",
+        "method() {",
+        "  var result;",
+        "  result = getter1;",
+        "  getter1 = 1;",
+        "  result = setter1;",
+        "  setter1 = 1;",        
+        "  result = A.getter2;",
+        "  A.getter2 = 1;",
+        "  result = A.setter2;",
+        "  A.setter2 = 1;",                
+        "  var instance = new A();",
+        "  result = instance.getter3;",
+        "  instance.getter3 = 1;",
+        "  result = instance.setter3;",
+        "  instance.setter3 = 1;",        
+        "}"),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
+        errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));
+  }
 }
