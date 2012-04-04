@@ -45,9 +45,6 @@
 #import("../frog/tests/leg_only/test_config.dart");
 #import("../frog/tests/native/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
-#import("../utils/tests/css/test_config.dart");
-#import("../utils/tests/import_mapper/test_config.dart");
-#import("../utils/tests/peg/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -56,6 +53,9 @@
  * basically add the directory here and you're done.)
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'utils/tests/css',
+  'utils/tests/import_mapper',
+  'utils/tests/peg',
   'utils/tests/pub'
 ];
 
@@ -138,15 +138,6 @@ main() {
     }
     if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new JUnitDartcTestSuite(conf));
-    }
-    if (selectors.containsKey('css')) {
-      queue.addTestSuite(new CssTestSuite(conf));
-    }
-    if (selectors.containsKey('import_mapper')) {
-      queue.addTestSuite(new ImportMapperTestSuite(conf));
-    }
-    if (selectors.containsKey('peg')) {
-      queue.addTestSuite(new PegTestSuite(conf));
     }
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));

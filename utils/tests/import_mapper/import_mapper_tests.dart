@@ -4,17 +4,17 @@
 
 #library('import_mapper_tests');
 
-#import('../../../import_mapper/import_mapper.dart', prefix: 'mapper');
+#import('../../import_mapper/import_mapper.dart', prefix: 'mapper');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../../lib/unittest/unittest_vm.dart');
+#import('../../../lib/unittest/unittest_vm.dart');
 
 main() {
   group('generateImportMap', () {
     test('walks import graph', () {
       final expected = { 'b.dart': 'b.dart', 'c.dart': 'c.dart' };
       final actual = mapper.generateImportMap(
-          'utils/tests/import_mapper/src/c.dart',
+          'utils/tests/import_mapper/c.dart',
           (context, name) => name);
       expect(actual).equals(expected);
     });
