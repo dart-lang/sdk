@@ -80,10 +80,21 @@ class Legpad {
 
     setText("output", output);
     setText("warnings", warnings);
-    String timing = "generated ${output.length} characters in " +
+    int lineCount = lineCount(output);
+    String timing = "generated $lineCount lines " + 
+        "(${output.length} characters) in " +
         "${((elapsedMillis) / 1000).toStringAsPrecision(3)} seconds";
     setText("timing", timing);
   }
+  
+  static int lineCount(String s) {
+    Iterable<Match> matches = "\n".allMatches(s);
+    int n = 0;
+    for (Match m in matches) {
+      n++;
+    }
+    return n;
+  } 
 
   void runLeg() {
     uri_lib.Uri mainUri = new uri_lib.Uri.fromString(getText(MAIN_ID));

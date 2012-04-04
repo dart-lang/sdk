@@ -19,4 +19,7 @@ dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'g
 # We don't support is checks with generic types.
 dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
 
+dom/TypedArrays4Test: Fail  # Bad codegen for indexOf - missing function.
+html/TypedArrays4Test: Fail # Bad codegen for indexOf - missing function.
+
 dom/IsolatesTest: Skip # Timeout because leg does not support web workers.

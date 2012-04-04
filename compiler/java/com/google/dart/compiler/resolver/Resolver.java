@@ -597,10 +597,15 @@ public class Resolver {
       }
 
       DartBlock body = functionNode.getBody();
+      boolean isInterface = false;
+      if (ElementKind.of(member.getEnclosingElement()).equals(ElementKind.CLASS) 
+          && ((ClassElement) member.getEnclosingElement()).isInterface()) {
+        isInterface =true;
+      }
       if (body == null 
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
-          && !((ClassElement) member.getEnclosingElement()).isInterface()) {
+          && !isInterface) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
       resolve(functionNode.getBody());

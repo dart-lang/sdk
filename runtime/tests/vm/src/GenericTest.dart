@@ -61,6 +61,7 @@ class GenericTest {
       // This will be detected when we check the subtyping constraints.
       Expect.equals("A", error.dstType);
       Expect.equals("AX", error.srcType);
+      Expect.equals("a_", error.dstName);  // VM specific field.
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
         pos = error.url.lastIndexOf("\\", error.url.length);

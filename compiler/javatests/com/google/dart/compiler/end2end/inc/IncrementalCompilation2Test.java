@@ -525,8 +525,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // Both A and B have errors.
     assertErrors(
         errors,
-        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 8),
-        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 8));
+        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 8),
+        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 8));
   }
 
   /**

@@ -4739,10 +4739,22 @@ class _CanvasPixelArrayImpl extends _DOMTypeBase implements CanvasPixelArray {
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -4756,78 +4768,56 @@ class _CanvasPixelArrayImpl extends _DOMTypeBase implements CanvasPixelArray {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 }
 
 class _CanvasRenderingContextImpl extends _DOMTypeBase implements CanvasRenderingContext {
@@ -7143,15 +7133,15 @@ class FilteredElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
-    _filtered.getRange(start, length).forEach((el) => el.remove());
+  void removeRange(int start, int rangeLength) {
+    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
@@ -7162,11 +7152,11 @@ class FilteredElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      last.remove();
+    final result = this.last();
+    if (result != null) {
+      result.remove();
     }
-    return last;
+    return result;
   }
 
   Collection map(f(Element element)) => _filtered.map(f);
@@ -7177,8 +7167,8 @@ class FilteredElementList implements ElementList {
   int get length() => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int length) =>
-    _filtered.getRange(start, length);
+  List<Element> getRange(int start, int rangeLength) =>
+    _filtered.getRange(start, rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 
@@ -7580,20 +7570,20 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const NotImplementedException();
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, length,
+  List getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
         <Element>[]));
 
   int indexOf(Element element, [int start = 0]) {
@@ -7611,11 +7601,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _element.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _element.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   Element last() {
@@ -7708,20 +7698,20 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const UnsupportedOperationException('');
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const UnsupportedOperationException('');
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -7770,8 +7760,8 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
   ElementList filter(bool f(Element element)) =>
     new _ElementList(super.filter(f));
 
-  ElementList getRange(int start, int length) =>
-    new _ElementList(super.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -9376,10 +9366,22 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   num operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, num value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  // From Collection<num>:
 
   void add(num value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -9393,78 +9395,56 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(num element)) => _Collections.forEach(this, f);
+
+  Collection map(f(num element)) => _Collections.map(this, [], f);
+
+  Collection<num> filter(bool f(num element)) =>
+     _Collections.filter(this, <num>[], f);
+
+  bool every(bool f(num element)) => _Collections.every(this, f);
+
+  bool some(bool f(num element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<num>:
+
   void sort(int compare(num a, num b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(num element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(num element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(num element, [int start = null]) {
+  int lastIndexOf(num element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  num last() => this[length - 1];
 
   num removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  num last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(num element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(num element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<num> filter(bool f(num element)) {
-    return _Collections.filter(this, new List<num>(), f);
-  }
-
-  bool every(bool f(num element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(num element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [num initialValue]) {
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<num> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<num> iterator() {
-    return new _FixedSizeListIterator<num>(this);
-  }
+  // -- end List<num> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -9492,10 +9472,22 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   num operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, num value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  // From Collection<num>:
 
   void add(num value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -9509,78 +9501,56 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(num element)) => _Collections.forEach(this, f);
+
+  Collection map(f(num element)) => _Collections.map(this, [], f);
+
+  Collection<num> filter(bool f(num element)) =>
+     _Collections.filter(this, <num>[], f);
+
+  bool every(bool f(num element)) => _Collections.every(this, f);
+
+  bool some(bool f(num element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<num>:
+
   void sort(int compare(num a, num b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(num element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(num element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(num element, [int start = null]) {
+  int lastIndexOf(num element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  num last() => this[length - 1];
 
   num removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  num last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(num element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(num element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<num> filter(bool f(num element)) {
-    return _Collections.filter(this, new List<num>(), f);
-  }
-
-  bool every(bool f(num element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(num element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [num initialValue]) {
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<num> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<num> iterator() {
-    return new _FixedSizeListIterator<num>(this);
-  }
+  // -- end List<num> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -9852,10 +9822,22 @@ class _HTMLCollectionImpl extends _DOMTypeBase implements HTMLCollection {
 
   Node operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, Node value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
 
   void add(Node value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -9869,78 +9851,56 @@ class _HTMLCollectionImpl extends _DOMTypeBase implements HTMLCollection {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
   void sort(int compare(Node a, Node b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(Node element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Node element, [int start = null]) {
+  int lastIndexOf(Node element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  Node last() => this[length - 1];
 
   Node removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  Node last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(Node element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(Node element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<Node> filter(bool f(Node element)) {
-    return _Collections.filter(this, new List<Node>(), f);
-  }
-
-  bool every(bool f(Node element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(Node element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<Node> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<Node> iterator() {
-    return new _FixedSizeListIterator<Node>(this);
-  }
+  // -- end List<Node> mixins.
 
   Node item(int index) {
     return _wrap(_ptr.item(_unwrap(index)));
@@ -10924,10 +10884,22 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -10941,78 +10913,56 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -11040,10 +10990,22 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -11057,78 +11019,56 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -11156,10 +11096,22 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -11173,78 +11125,56 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -11831,10 +11761,22 @@ class _MediaListImpl extends _DOMTypeBase implements MediaList {
 
   String operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
 
   void add(String value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -11848,78 +11790,56 @@ class _MediaListImpl extends _DOMTypeBase implements MediaList {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
   void sort(int compare(String a, String b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(String element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(String element, [int start = null]) {
+  int lastIndexOf(String element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  String last() => this[length - 1];
 
   String removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  String last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(String element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(String element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<String> filter(bool f(String element)) {
-    return _Collections.filter(this, new List<String>(), f);
-  }
-
-  bool every(bool f(String element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(String element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<String> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [String initialValue]) {
+  void insertRange(int start, int rangeLength, [String initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<String> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<String> iterator() {
-    return new _FixedSizeListIterator<String>(this);
-  }
+  // -- end List<String> mixins.
 
   void appendMedium(String newMedium) {
     _ptr.appendMedium(_unwrap(newMedium));
@@ -12299,10 +12219,22 @@ class _NamedNodeMapImpl extends _DOMTypeBase implements NamedNodeMap {
 
   Node operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, Node value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
 
   void add(Node value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -12316,78 +12248,56 @@ class _NamedNodeMapImpl extends _DOMTypeBase implements NamedNodeMap {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
   void sort(int compare(Node a, Node b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(Node element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Node element, [int start = null]) {
+  int lastIndexOf(Node element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  Node last() => this[length - 1];
 
   Node removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  Node last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(Node element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(Node element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<Node> filter(bool f(Node element)) {
-    return _Collections.filter(this, new List<Node>(), f);
-  }
-
-  bool every(bool f(Node element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(Node element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<Node> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<Node> iterator() {
-    return new _FixedSizeListIterator<Node>(this);
-  }
+  // -- end List<Node> mixins.
 
   Node getNamedItem(String name) {
     return _wrap(_ptr.getNamedItem(_unwrap(name)));
@@ -12515,11 +12425,11 @@ class _ChildNodeListLazy implements NodeList {
   }
 
   _NodeImpl removeLast() {
-    final last = last();
-    if (last != null) {
-      _this.$dom_removeChild(last);
+    final result = last();
+    if (result != null) {
+      _this.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -12561,21 +12471,21 @@ class _ChildNodeListLazy implements NodeList {
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException(
         "Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException(
         "Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -12762,15 +12672,17 @@ class _ListWrapper<E> implements List<E> {
 
   E last() => _list.last();
 
-  List<E> getRange(int start, int length) => _list.getRange(start, length);
+  List<E> getRange(int start, int rangeLength) =>
+    _list.getRange(start, rangeLength);
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
+      => _list.setRange(start, rangeLength, from, startFrom);
 
-  void removeRange(int start, int length) => _list.removeRange(start, length);
+  void removeRange(int start, int rangeLength) =>
+    _list.removeRange(start, rangeLength);
 
-  void insertRange(int start, int length, [E initialValue = null]) =>
-    _list.insertRange(start, length, initialValue);
+  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
+    _list.insertRange(start, rangeLength, initialValue);
 
   E get first() => _list[0];
 }
@@ -12785,8 +12697,8 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_list.getRange(start, length));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
 class _NodeListImpl extends _DOMTypeBase implements NodeList {
@@ -12821,11 +12733,11 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   }
 
   _NodeImpl removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _parent.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _parent.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -12865,17 +12777,17 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   Node get first() => this[0];
 
   // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -12884,7 +12796,6 @@ class _NodeListImpl extends _DOMTypeBase implements NodeList {
   int get length() => _wrap(_ptr.length);
 
   Node operator[](int index) => _wrap(_ptr[index]);
-
 
 }
 
@@ -14408,15 +14319,15 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 
   String get outerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.add(clone);
+    final SVGElement cloned = this.clone(true);
+    container.elements.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.addAll(clone.elements);
+    final SVGElement cloned = this.clone(true);
+    container.elements.addAll(cloned.elements);
     return container.innerHTML;
   }
 
@@ -18388,34 +18299,85 @@ class _SpeechRecognitionResultListImpl extends _DOMTypeBase implements SpeechRec
     return _wrap(_ptr.item(_unwrap(index)));
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _StorageImpl extends _DOMTypeBase implements Storage {
+
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(String value) => getValues().some((e) => e == value);
+
+  bool containsKey(String key) => $dom_getItem(key) != null;
+
+  String operator [](String key) => $dom_getItem(key);
+
+  void operator []=(String key, String value) => $dom_setItem(key, value);
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key];
+  }
+
+  String remove(String key) {
+    final value = this[key];
+    $dom_removeItem(key);
+    return value;
+  }
+
+  void clear() => $dom_clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = $dom_key(i);
+      if (key == null) return;
+
+      f(key, this[key]);
+    }
+  }
+
+  Collection<String> getKeys() {
+    final keys = [];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = [];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length() => $dom_length;
+
+  bool isEmpty() => $dom_key(0) == null;
   _StorageImpl._wrap(ptr) : super._wrap(ptr);
 
-  int get length() => _wrap(_ptr.length);
+  int get $dom_length() => _wrap(_ptr.length);
 
-  void clear() {
+  void $dom_clear() {
     _ptr.clear();
     return;
   }
 
-  String getItem(String key) {
+  String $dom_getItem(String key) {
     return _wrap(_ptr.getItem(_unwrap(key)));
   }
 
-  String key(int index) {
+  String $dom_key(int index) {
     return _wrap(_ptr.key(_unwrap(index)));
   }
 
-  void removeItem(String key) {
+  void $dom_removeItem(String key) {
     _ptr.removeItem(_unwrap(key));
     return;
   }
 
-  void setItem(String key, String data) {
+  void $dom_setItem(String key, String data) {
     _ptr.setItem(_unwrap(key), _unwrap(data));
     return;
   }
+
 }
 
 class _StorageEventImpl extends _EventImpl implements StorageEvent {
@@ -18532,10 +18494,22 @@ class _StyleSheetListImpl extends _DOMTypeBase implements StyleSheetList {
 
   StyleSheet operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<StyleSheet> mixins.
+  // StyleSheet is the element type.
+
+  // From Iterable<StyleSheet>:
+
+  Iterator<StyleSheet> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<StyleSheet>(this);
+  }
+
+  // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -18549,78 +18523,56 @@ class _StyleSheetListImpl extends _DOMTypeBase implements StyleSheetList {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+
+  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+
+  Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
+     _Collections.filter(this, <StyleSheet>[], f);
+
+  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+
+  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<StyleSheet>:
+
   void sort(int compare(StyleSheet a, StyleSheet b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(StyleSheet element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(StyleSheet element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(StyleSheet element, [int start = null]) {
+  int lastIndexOf(StyleSheet element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  StyleSheet last() => this[length - 1];
 
   StyleSheet removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  StyleSheet last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(StyleSheet element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(StyleSheet element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<StyleSheet> filter(bool f(StyleSheet element)) {
-    return _Collections.filter(this, new List<StyleSheet>(), f);
-  }
-
-  bool every(bool f(StyleSheet element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(StyleSheet element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [StyleSheet initialValue]) {
+  void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<StyleSheet> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<StyleSheet> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<StyleSheet> iterator() {
-    return new _FixedSizeListIterator<StyleSheet>(this);
-  }
+  // -- end List<StyleSheet> mixins.
 
   StyleSheet item(int index) {
     return _wrap(_ptr.item(_unwrap(index)));
@@ -19290,10 +19242,22 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
 
   Touch operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, Touch value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Touch> mixins.
+  // Touch is the element type.
+
+  // From Iterable<Touch>:
+
+  Iterator<Touch> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Touch>(this);
+  }
+
+  // From Collection<Touch>:
 
   void add(Touch value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -19307,78 +19271,56 @@ class _TouchListImpl extends _DOMTypeBase implements TouchList {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+
+  Collection<Touch> filter(bool f(Touch element)) =>
+     _Collections.filter(this, <Touch>[], f);
+
+  bool every(bool f(Touch element)) => _Collections.every(this, f);
+
+  bool some(bool f(Touch element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Touch>:
+
   void sort(int compare(Touch a, Touch b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(Touch element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(Touch element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Touch element, [int start = null]) {
+  int lastIndexOf(Touch element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  Touch last() => this[length - 1];
 
   Touch removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  Touch last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(Touch element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(Touch element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<Touch> filter(bool f(Touch element)) {
-    return _Collections.filter(this, new List<Touch>(), f);
-  }
-
-  bool every(bool f(Touch element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(Touch element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [Touch initialValue]) {
+  void insertRange(int start, int rangeLength, [Touch initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<Touch> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<Touch> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Touch>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<Touch> iterator() {
-    return new _FixedSizeListIterator<Touch>(this);
-  }
+  // -- end List<Touch> mixins.
 
   Touch item(int index) {
     return _wrap(_ptr.item(_unwrap(index)));
@@ -19517,10 +19459,22 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -19534,78 +19488,56 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -19633,10 +19565,22 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -19650,78 +19594,56 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -19749,10 +19671,22 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   int operator[](int index) => _wrap(_ptr[index]);
 
-
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _ptr[index] = _unwrap(value);
   }
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -19766,78 +19700,56 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
     throw new UnsupportedOperationException("Cannot add to immutable List.");
   }
 
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
   void sort(int compare(int a, int b)) {
     throw new UnsupportedOperationException("Cannot sort immutable List.");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
-    throw new UnsupportedOperationException("This object is immutable.");
-  }
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
 
-  int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(int element, [int start = null]) {
+  int lastIndexOf(int element, [int start]) {
     if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
-  int clear() {
-    throw new UnsupportedOperationException("Cannot clear immutable List.");
-  }
+  int last() => this[length - 1];
 
   int removeLast() {
     throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
   }
 
-  int last() {
-    return this[length - 1];
-  }
-
-  void forEach(void f(int element)) {
-    _Collections.forEach(this, f);
-  }
-
-  Collection map(f(int element)) {
-    return _Collections.map(this, [], f);
-  }
-
-  Collection<int> filter(bool f(int element)) {
-    return _Collections.filter(this, new List<int>(), f);
-  }
-
-  bool every(bool f(int element)) {
-    return _Collections.every(this, f);
-  }
-
-  bool some(bool f(int element)) {
-    return _Collections.some(this, f);
-  }
-
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int length, [int initialValue]) {
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
 
-  List<int> getRange(int start, int length) {
-    throw new NotImplementedException();
-  }
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
-  bool isEmpty() {
-    return length == 0;
-  }
-
-  Iterator<int> iterator() {
-    return new _FixedSizeListIterator<int>(this);
-  }
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) {
     if (offset === null) {
@@ -33759,21 +33671,20 @@ interface SpeechRecognitionResultList {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface Storage extends Map<String, String> {
 
-interface Storage {
+  final int $dom_length;
 
-  final int length;
+  void $dom_clear();
 
-  void clear();
+  String $dom_getItem(String key);
 
-  String getItem(String key);
+  String $dom_key(int index);
 
-  String key(int index);
+  void $dom_removeItem(String key);
 
-  void removeItem(String key);
+  void $dom_setItem(String key, String data);
 
-  void setItem(String key, String data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

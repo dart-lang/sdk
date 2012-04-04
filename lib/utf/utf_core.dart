@@ -219,13 +219,13 @@ class _ListRange implements Iterable {
       this._offset = offset,
       this._length = (length == null ? source.length - offset : length) {
     if (_offset < 0 || _offset > _source.length) {
-      throw new IndexOutOfRangeException("offset out of range (< 0)");
+      throw new IndexOutOfRangeException(_offset);
     }
     if (_length != null && (_length < 0)) {
-      throw new IndexOutOfRangeException("length out of range (< 0)");
+      throw new IndexOutOfRangeException(_length);
     }
     if (_length + _offset > _source.length) {
-      throw new IndexOutOfRangeException("offset + length > source.length");
+      throw new IndexOutOfRangeException(_length + _offset);
     }
   }
 

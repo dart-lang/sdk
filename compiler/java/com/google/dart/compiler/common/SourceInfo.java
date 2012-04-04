@@ -71,7 +71,6 @@ public final class SourceInfo implements Serializable {
     try {
       reader = new BufferedReader(source.getSourceReader());
       int offset = 0;
-      boolean ignoreLF = false;
       List<Integer> lineOffsets = Lists.newArrayList(0);
       while (true) {
         int charValue = reader.read();
@@ -80,8 +79,7 @@ public final class SourceInfo implements Serializable {
         }
         offset++;
         char c = (char) charValue;
-        ignoreLF = c == '\n';
-        if (c == '\n' || c == '\r' && !ignoreLF) {
+        if (c == '\n') {
           lineOffsets.add(offset);
         }
       }

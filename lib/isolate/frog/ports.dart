@@ -7,7 +7,7 @@ class _BaseSendPort implements SendPort {
   /** Id for the destination isolate. */
   final int _isolateId;
 
-  _BaseSendPort(this._isolateId);
+  const _BaseSendPort(this._isolateId);
 
   static void checkReplyTo(SendPort replyTo) {
     if (replyTo !== null

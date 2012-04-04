@@ -114,6 +114,13 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     if( null == this.systemLibraryManager.expandRelativeDartUri(systemUri) ) {
       return null;
     }
+
+    // Ensure we are using the short form if it exists
+    URI shortUri = systemLibraryManager.getShortUri(systemUri);
+    if (shortUri != null) {
+      systemUri = shortUri;
+    }
+
     return new UrlLibrarySource(systemUri, this.systemLibraryManager);
   }
 

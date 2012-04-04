@@ -249,8 +249,10 @@ public class SystemLibraryManager {
         }
         explicitShortNames.add(shortName);
         String scheme = shortName.substring(0, index + 1);
-        String host = shortName.substring(index + 1);
-        addLib(scheme, host, host, file.getParentFile(), file.getName());
+        String name = shortName.substring(index + 1);
+        index = name.indexOf('/');
+        String host = index > 0 ? name.substring(0, index) : name;
+        addLib(scheme, host, name, file.getParentFile(), file.getName());
       }
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);

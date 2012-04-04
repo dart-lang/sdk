@@ -3817,23 +3817,32 @@ class _CanvasPixelArrayImpl implements CanvasPixelArray native "*CanvasPixelArra
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 }
@@ -4950,15 +4959,15 @@ class FilteredElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
-    _filtered.getRange(start, length).forEach((el) => el.remove());
+  void removeRange(int start, int rangeLength) {
+    _filtered.getRange(start, rangeLength).forEach((el) => el.remove());
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
@@ -4969,11 +4978,11 @@ class FilteredElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      last.remove();
+    final result = this.last();
+    if (result != null) {
+      result.remove();
     }
-    return last;
+    return result;
   }
 
   Collection map(f(Element element)) => _filtered.map(f);
@@ -4984,8 +4993,8 @@ class FilteredElementList implements ElementList {
   int get length() => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> iterator() => _filtered.iterator();
-  List<Element> getRange(int start, int length) =>
-    _filtered.getRange(start, length);
+  List<Element> getRange(int start, int rangeLength) =>
+    _filtered.getRange(start, rangeLength);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 
@@ -5381,20 +5390,20 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const NotImplementedException();
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, length,
+  List getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
         <Element>[]));
 
   int indexOf(Element element, [int start = 0]) {
@@ -5412,11 +5421,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _element.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _element.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   Element last() {
@@ -5509,20 +5518,20 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const UnsupportedOperationException('');
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const UnsupportedOperationException('');
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -5571,8 +5580,8 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
   ElementList filter(bool f(Element element)) =>
     new _ElementList(super.filter(f));
 
-  ElementList getRange(int start, int length) =>
-    new _ElementList(super.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {
@@ -6528,7 +6537,7 @@ class _EventsImpl implements Events {
   /* Raw event target. */
   // TODO(jacobr): it would be nice if we could specify this as
   // _EventTargetImpl or EventTarget
-  final var _ptr;
+  final Dynamic _ptr;
 
   _EventsImpl(this._ptr);
 
@@ -6542,7 +6551,7 @@ class _EventsImpl implements Events {
 class _EventListenerListImpl implements EventListenerList {
   
   // TODO(jacobr): make this _EventTargetImpl
-  final var _ptr;
+  final Dynamic _ptr;
   final String _type;
 
   _EventListenerListImpl(this._ptr, this._type);
@@ -6864,23 +6873,32 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
   int indexOf(num element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(num element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(num element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   num last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  num removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [num initialValue]) {
+
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<num> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <num>[]);
+
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -6946,23 +6964,32 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
   int indexOf(num element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(num element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(num element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   num last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<num> from, [int startFrom]) {
+  num removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [num initialValue]) {
+
+  void insertRange(int start, int rangeLength, [num initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<num> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <num>[]);
+
+  List<num> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <num>[]);
 
   // -- end List<num> mixins.
 
@@ -7175,23 +7202,32 @@ class _HTMLCollectionImpl implements HTMLCollection native "*HTMLCollection" {
   int indexOf(Node element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(Node element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   Node last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  Node removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -7780,23 +7816,32 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -7862,23 +7907,32 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -7944,23 +7998,32 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -8407,23 +8470,32 @@ class _MediaListImpl implements MediaList native "*MediaList" {
   int indexOf(String element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(String element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(String element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   String last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<String> from, [int startFrom]) {
+  String removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [String initialValue]) {
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<String> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <String>[]);
+
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
 
   // -- end List<String> mixins.
 
@@ -8724,23 +8796,32 @@ class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
   int indexOf(Node element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(Node element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(Node element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   Node last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  Node removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Node> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Node>[]);
+
+  List<Node> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Node>[]);
 
   // -- end List<Node> mixins.
 
@@ -8840,11 +8921,11 @@ class _ChildNodeListLazy implements NodeList {
   }
 
   _NodeImpl removeLast() {
-    final last = last();
-    if (last != null) {
-      _this.$dom_removeChild(last);
+    final result = last();
+    if (result != null) {
+      _this.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -8886,21 +8967,21 @@ class _ChildNodeListLazy implements NodeList {
   int lastIndexOf(Node element, [int start = 0]) =>
       _Lists.lastIndexOf(this, element, start);
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException(
         "Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException(
         "Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException(
         "Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -9129,15 +9210,17 @@ class _ListWrapper<E> implements List<E> {
 
   E last() => _list.last();
 
-  List<E> getRange(int start, int length) => _list.getRange(start, length);
+  List<E> getRange(int start, int rangeLength) =>
+    _list.getRange(start, rangeLength);
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0])
+      => _list.setRange(start, rangeLength, from, startFrom);
 
-  void removeRange(int start, int length) => _list.removeRange(start, length);
+  void removeRange(int start, int rangeLength) =>
+    _list.removeRange(start, rangeLength);
 
-  void insertRange(int start, int length, [E initialValue = null]) =>
-    _list.insertRange(start, length, initialValue);
+  void insertRange(int start, int rangeLength, [E initialValue = null]) =>
+    _list.insertRange(start, rangeLength, initialValue);
 
   E get first() => _list[0];
 }
@@ -9152,8 +9235,8 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
   NodeList filter(bool f(Node element)) =>
     new _NodeListWrapper(_list.filter(f));
 
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_list.getRange(start, length));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
 class _NodeListImpl implements NodeList native "*NodeList" {
@@ -9188,11 +9271,11 @@ class _NodeListImpl implements NodeList native "*NodeList" {
   }
 
   _NodeImpl removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _parent.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _parent.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   void clear() {
@@ -9232,17 +9315,17 @@ class _NodeListImpl implements NodeList native "*NodeList" {
   Node get first() => this[0];
 
   // FIXME: implement thesee.
-  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Node initialValue]) {
+  void insertRange(int start, int rangeLength, [Node initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  NodeList getRange(int start, int length) =>
-    new _NodeListWrapper(_Lists.getRange(this, start, length, <Node>[]));
+  NodeList getRange(int start, int rangeLength) =>
+    new _NodeListWrapper(_Lists.getRange(this, start, rangeLength, <Node>[]));
 
   // -- end List<Node> mixins.
 
@@ -10423,15 +10506,15 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement native "*SVGEle
 
   String get outerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.add(clone);
+    final SVGElement cloned = this.clone(true);
+    container.elements.add(cloned);
     return container.innerHTML;
   }
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    final SVGElement clone = this.clone(true);
-    container.elements.addAll(clone.elements);
+    final SVGElement cloned = this.clone(true);
+    container.elements.addAll(cloned.elements);
     return container.innerHTML;
   }
 
@@ -13639,20 +13722,71 @@ class _SpeechRecognitionResultListImpl implements SpeechRecognitionResultList na
 
   _SpeechRecognitionResultImpl item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _StorageImpl implements Storage native "*Storage" {
 
-  final int length;
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(String value) => getValues().some((e) => e == value);
 
-  void clear() native;
+  bool containsKey(String key) => $dom_getItem(key) != null;
 
-  String getItem(String key) native;
+  String operator [](String key) => $dom_getItem(key);
 
-  String key(int index) native;
+  void operator []=(String key, String value) => $dom_setItem(key, value);
 
-  void removeItem(String key) native;
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key];
+  }
 
-  void setItem(String key, String data) native;
+  String remove(String key) {
+    final value = this[key];
+    $dom_removeItem(key);
+    return value;
+  }
+
+  void clear() => $dom_clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = $dom_key(i);
+      if (key == null) return;
+
+      f(key, this[key]);
+    }
+  }
+
+  Collection<String> getKeys() {
+    final keys = [];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Collection<String> getValues() {
+    final values = [];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length() => $dom_length;
+
+  bool isEmpty() => $dom_key(0) == null;
+
+  int get $dom_length() native "return this.length;";
+
+  void $dom_clear() native "clear";
+
+  String $dom_getItem(String key) native "getItem";
+
+  String $dom_key(int index) native "key";
+
+  void $dom_removeItem(String key) native "removeItem";
+
+  void $dom_setItem(String key, String data) native "setItem";
+
 }
 
 class _StorageEventImpl extends _EventImpl implements StorageEvent native "*StorageEvent" {
@@ -13773,23 +13907,32 @@ class _StyleSheetListImpl implements StyleSheetList native "*StyleSheetList" {
   int indexOf(StyleSheet element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(StyleSheet element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(StyleSheet element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   StyleSheet last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+  StyleSheet removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [StyleSheet initialValue]) {
+
+  void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<StyleSheet> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <StyleSheet>[]);
+
+  List<StyleSheet> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <StyleSheet>[]);
 
   // -- end List<StyleSheet> mixins.
 
@@ -14223,23 +14366,32 @@ class _TouchListImpl implements TouchList native "*TouchList" {
   int indexOf(Touch element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(Touch element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(Touch element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   Touch last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+  Touch removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [Touch initialValue]) {
+
+  void insertRange(int start, int rangeLength, [Touch initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<Touch> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <Touch>[]);
+
+  List<Touch> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <Touch>[]);
 
   // -- end List<Touch> mixins.
 
@@ -14399,23 +14551,32 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -14481,23 +14642,32 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -14563,23 +14733,32 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
   int indexOf(int element, [int start = 0]) =>
       _Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(int element, [int start = 0]) =>
-      _Lists.lastIndexOf(this, element, start);
+  int lastIndexOf(int element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
 
   int last() => this[length - 1];
 
-  // FIXME: implement thesee.
-  void setRange(int start, int length, List<int> from, [int startFrom]) {
+  int removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
     throw new UnsupportedOperationException("Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int length) {
+
+  void removeRange(int start, int rangeLength) {
     throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int length, [int initialValue]) {
+
+  void insertRange(int start, int rangeLength, [int initialValue]) {
     throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
   }
-  List<int> getRange(int start, int length) =>
-      _Lists.getRange(this, start, length, <int>[]);
+
+  List<int> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <int>[]);
 
   // -- end List<int> mixins.
 
@@ -28106,21 +28285,20 @@ interface SpeechRecognitionResultList {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+interface Storage extends Map<String, String> {
 
-interface Storage {
+  final int $dom_length;
 
-  final int length;
+  void $dom_clear();
 
-  void clear();
+  String $dom_getItem(String key);
 
-  String getItem(String key);
+  String $dom_key(int index);
 
-  String key(int index);
+  void $dom_removeItem(String key);
 
-  void removeItem(String key);
+  void $dom_setItem(String key, String data);
 
-  void setItem(String key, String data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

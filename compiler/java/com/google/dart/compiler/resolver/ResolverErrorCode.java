@@ -73,7 +73,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
   DUPLICATE_PARAMETER("Duplicate parameter '%s'"),
   DUPLICATE_PARAMETER_WARNING(ErrorSeverity.WARNING, "Parameter '%s' is hiding '%s' at %s"),
-  DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),
+  DUPLICATE_TOP_LEVEL_DECLARATION("duplicate top-level declaration '%s' at %s"),
   DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
   DUPLICATE_TYPE_VARIABLE_WARNING(ErrorSeverity.WARNING, "Type variable '%s' is hiding '%s' at %s"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(

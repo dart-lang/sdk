@@ -5,8 +5,8 @@
 package com.google.dart.compiler;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -100,9 +100,9 @@ public abstract class UrlSource implements Source {
   public Reader getSourceReader() throws IOException {
     initProperties();
     if (sourceFile != null) {
-      return new FileReader(sourceFile);
+      return new InputStreamReader(new FileInputStream(sourceFile), UTF8);
     } else if (jarConn != null) {
-      return new InputStreamReader(jarConn.getInputStream());
+      return new InputStreamReader(jarConn.getInputStream(), UTF8);
     }
     // fall back case
     if (translatedUri != null) {

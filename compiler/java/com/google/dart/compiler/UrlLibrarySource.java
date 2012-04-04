@@ -41,7 +41,18 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
   @Override
   public LibrarySource getImportFor(String relPath) {
     try {
-      return new UrlLibrarySource(getUri().resolve(relPath).normalize(), systemLibraryManager);
+      // Force the creation of an escaped relative URI to deal with spaces, etc.
+      URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();
+      String path = uri.getPath();
+      // Resolve relative reference out of one system library into another
+      if (SystemLibraryManager.isDartUri(uri) && path != null && path.startsWith("/..")) {
+        URI fileUri = systemLibraryManager.resolveDartUri(uri);
+        URI shortUri = systemLibraryManager.getShortUri(fileUri);
+        if (shortUri != null) {
+          uri = shortUri;
+        }
+      }
+      return new UrlLibrarySource(uri, systemLibraryManager);
     } catch (Throwable e) {
       return null;
     }

@@ -1715,15 +1715,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitArrayLiteral(DartArrayLiteral node) {
       visit(node.getTypeArguments());
-      InterfaceType type = node.getType();
-      Type elementType = type.getArguments().get(0);
-      for (DartExpression expression : node.getExpressions()) {
-        boolean isValueAssignable = checkAssignable(elementType, expression);
-        if (developerModeChecks && !isValueAssignable) {
-          typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE, elementType);
+      InterfaceType interfaceType = node.getType();
+      if (interfaceType != null
+          && interfaceType.getArguments() != null
+          && interfaceType.getArguments().size() > 0) {
+        Type elementType = interfaceType.getArguments().get(0);
+        for (DartExpression expression : node.getExpressions()) {
+          boolean isValueAssignable = checkAssignable(elementType, expression);
+          if (developerModeChecks && !isValueAssignable) {
+            typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE, elementType);
+          }
         }
       }
-      return type;
+      return interfaceType;
     }
 
     @Override

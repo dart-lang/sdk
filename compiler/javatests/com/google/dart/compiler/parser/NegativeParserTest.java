@@ -303,19 +303,7 @@ public class NegativeParserTest extends CompilerTestCase {
         "foo.baz() {}",
         errEx(ParserErrorCode.FUNCTION_NAME_EXPECTED_IDENTIFIER, 1, 1, 7));
   }
-
-  public void testReservedWordClass() {
-    parseExpectErrors(
-        Joiner.on("\n").join(
-            "class foo {}",
-            "main() {",
-            "  int class = 10;",
-            "  print(\"class = $class\");",
-            "}"),
-        errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 7, 5),
-        errEx(ParserErrorCode.UNEXPECTED_TOKEN, 4, 19, 5));
-  }
-
+  
   public void testInvalidStringInterpolation() {
     parseExpectErrors(
         Joiner.on("\n").join(

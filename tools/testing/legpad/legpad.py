@@ -286,9 +286,7 @@ class File(object):
     self.pad = pad
     self.name = name
     self.id = pad.make_id(name)
-    check_exists(name)
-    with open(self.name, "r") as f:
-      self.contents = f.read()
+    self.contents = read_file(name)
 
   def directives(self):
     """Load files referenced by #source, #import and #native directives."""

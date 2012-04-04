@@ -327,8 +327,14 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "foo() {}",
             "class foo {}"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 1, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 7, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 1, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 7, 3));
+    assertEquals(
+        "duplicate top-level declaration 'CLASS foo' at Test.dart:foo:3:7",
+        errors.get(0).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'METHOD foo' at Test.dart::2:1",
+        errors.get(1).getMessage());
   }
 
   public void test_nameShadow_topLevel_getterSetter_class() {
@@ -339,10 +345,10 @@ public class NegativeResolverTest extends CompilerTestCase {
             "set bar(x) {}",
             "class foo {}",
             "class bar{}"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 5, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3),
@@ -357,10 +363,22 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class bar {}",
             "get foo() {}",
             "set bar(x) {}"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 5, 5, 3));
+    assertEquals(
+        "duplicate top-level declaration 'FIELD foo' at Test.dart::4:5",
+        errors.get(0).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'CLASS foo' at Test.dart:foo:2:7",
+        errors.get(1).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'FIELD bar' at Test.dart::5:5",
+        errors.get(2).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'CLASS bar' at Test.dart:bar:3:7",
+        errors.get(3).getMessage());
   }
 
   public void test_nameShadow_topLevel_getter_setter() {
@@ -383,8 +401,14 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "get bar() {}",
             "get bar() {}"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
+    assertEquals(
+        "duplicate top-level declaration 'FIELD bar' at Test.dart::3:5",
+        errors.get(0).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'FIELD bar' at Test.dart::2:5",
+        errors.get(1).getMessage());
   }
 
   public void test_nameShadow_topLevel_setters() {
@@ -393,8 +417,14 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "set bar(x) {}",
             "set bar(x) {}"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
+    assertEquals(
+        "duplicate top-level declaration 'FIELD bar' at Test.dart::3:5",
+        errors.get(0).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'FIELD bar' at Test.dart::2:5",
+        errors.get(1).getMessage());
   }
 
   public void test_nameShadow_topLevel_variables() {
@@ -404,8 +434,14 @@ public class NegativeResolverTest extends CompilerTestCase {
             "var foo;",
             "var bar;",
             "var foo;"),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 5, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3));
+    assertEquals(
+        "duplicate top-level declaration 'FIELD foo' at Test.dart::4:5",
+        errors.get(0).getMessage());
+    assertEquals(
+        "duplicate top-level declaration 'FIELD foo' at Test.dart::2:5",
+        errors.get(1).getMessage());
   }
 
   /**

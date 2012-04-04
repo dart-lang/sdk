@@ -111,20 +111,20 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const NotImplementedException();
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const NotImplementedException();
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_Lists.getRange(this, start, length,
+  List getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_Lists.getRange(this, start, rangeLength,
         <Element>[]));
 
   int indexOf(Element element, [int start = 0]) {
@@ -142,11 +142,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last = this.last();
-    if (last != null) {
-      _element.$dom_removeChild(last);
+    final result = this.last();
+    if (result != null) {
+      _element.$dom_removeChild(result);
     }
-    return last;
+    return result;
   }
 
   Element last() {
@@ -239,20 +239,20 @@ class _FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw const UnsupportedOperationException('');
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int rangeLength) {
     throw const UnsupportedOperationException('');
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
+  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw const UnsupportedOperationException('');
   }
 
-  ElementList getRange(int start, int length) =>
-    new _FrozenElementList._wrap(_nodeList.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _FrozenElementList._wrap(_nodeList.getRange(start, rangeLength));
 
   int indexOf(Element element, [int start = 0]) =>
     _nodeList.indexOf(element, start);
@@ -301,8 +301,8 @@ class _ElementList extends _ListWrapper<Element> implements ElementList {
   ElementList filter(bool f(Element element)) =>
     new _ElementList(super.filter(f));
 
-  ElementList getRange(int start, int length) =>
-    new _ElementList(super.getRange(start, length));
+  ElementList getRange(int start, int rangeLength) =>
+    new _ElementList(super.getRange(start, rangeLength));
 }
 
 class _ElementAttributeMap implements AttributeMap {

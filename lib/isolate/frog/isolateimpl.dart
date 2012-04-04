@@ -116,8 +116,8 @@ class _Manager {
   _Manager() {
     _nativeDetectEnvironment();
     topEventLoop = new _EventLoop();
-    isolates = {};
-    managers = {};
+    isolates = new Map<int, _IsolateContext>();
+    managers = new Map<int, _ManagerStub>();
     if (isWorker) {  // "if we are not the main manager ourself" is the intent.
       mainManager = new _MainManagerStub();
       _nativeInitWorkerMessageHandler();
@@ -160,7 +160,7 @@ class _IsolateContext {
 
   _IsolateContext() {
     id = _globalState.nextIsolateId++;
-    ports = {};
+    ports = new Map<int, ReceivePort>();
     initGlobals();
   }
 
@@ -188,7 +188,7 @@ class _IsolateContext {
   void _setGlobals() native @'$setGlobals(this);';
 
   /** Lookup a port registered for this isolate. */
-  ReceivePort lookup(int id) => ports[id];
+  ReceivePort lookup(int portId) => ports[portId];
 
   /** Register a port on this isolate. */
   void register(int portId, ReceivePort port)  {
@@ -322,6 +322,9 @@ interface _ManagerStub {
 class _MainManagerStub implements _ManagerStub {
   get id() => 0;
   void set id(int i) { throw new NotImplementedException(); }
+  void set onmessage(f) {
+    throw new Exception("onmessage should not be set on MainManagerStub");
+  }
   void postMessage(msg) native @"$globalThis.postMessage(msg);";
   void terminate() {}  // Nothing useful to do here.
 }
@@ -339,6 +342,7 @@ class _WorkerStub implements _ManagerStub native "*Worker" {
   void set onmessage(f) native "this.onmessage = f;";
   void postMessage(msg) native "return this.postMessage(msg);";
   // terminate() is implemented by Worker.
+  abstract void terminate();
 }
 
 final String _SPAWNED_SIGNAL = "spawned";
@@ -508,7 +512,7 @@ class _IsolateNatives {
     } else {
       try {
         _consoleLog(msg);
-      } catch(e, trace) {
+      } catch(var e, var trace) {
         throw new Exception(trace);
       }
     }
@@ -521,22 +525,22 @@ class _IsolateNatives {
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
    */
-  static var _getJSConstructor(Isolate runnable) native """
+  static Dynamic _getJSConstructor(Isolate runnable) native """
     return runnable.constructor;
   """;
 
   /** Extract the constructor name of a runnable */
   // TODO(sigmund): find a browser-generic way to support this.
-  static var _getJSConstructorName(Isolate runnable) native """
+  static Dynamic _getJSConstructorName(Isolate runnable) native """
     return runnable.constructor.name;
   """;
 
   /** Find a constructor given its name. */
-  static var _getJSConstructorFromName(String factoryName) native """
+  static Dynamic _getJSConstructorFromName(String factoryName) native """
     return \$globalThis[factoryName];
   """;
 
-  static var _getJSFunctionFromName(String functionName) native """
+  static Dynamic _getJSFunctionFromName(String functionName) native """
     return \$globalThis[functionName];
   """;
 
@@ -570,7 +574,7 @@ class _IsolateNatives {
   """;
 
   /** Create a new JavaScript object instance given its constructor. */
-  static var _allocate(var ctor) native "return new ctor();";
+  static Dynamic _allocate(var ctor) native "return new ctor();";
 
   /** Starts a non-worker isolate. */
   static SendPort _startNonWorker(Isolate runnable, SendPort replyTo) {

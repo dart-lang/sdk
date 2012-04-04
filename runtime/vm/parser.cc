@@ -100,8 +100,7 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 }
 
 
-static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
-                                                  const Object& obj) {
+static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
   UnhandledException& excp = UnhandledException::Handle();
   excp ^= obj.raw();
   const Instance& exception = Instance::ZoneHandle(excp.exception());
@@ -2476,7 +2475,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     if (CurrentToken() != Token::kLPAREN) {
       ErrorMsg("left parenthesis expected");
     }
-  } else if ((CurrentToken() == Token::kGET) &&
+  } else if ((CurrentToken() == Token::kGET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
@@ -2485,8 +2484,11 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
+    if (CurrentToken() != Token::kLPAREN) {
+      ErrorMsg("'(' expected");
+    }
     // If the result type was not specified, it will be set to DynamicType.
-  } else if ((CurrentToken() == Token::kSET) &&
+  } else if ((CurrentToken() == Token::kSET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
@@ -2495,12 +2497,15 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
+    if (CurrentToken() != Token::kLPAREN) {
+      ErrorMsg("'(' expected");
+    }
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is Dynamic.
     if (member.type == NULL) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
-  } else if ((CurrentToken() == Token::kOPERATOR) &&
+  } else if ((CurrentToken() == Token::kOPERATOR) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
              (LookaheadToken(1) != Token::kCOMMA)  &&
@@ -5151,7 +5156,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     }
     if (!generic_catch_seen) {
       // No generic catch handler exists so execute this finally block
-      // before rethrowing the excetion.
+      // before rethrowing the exception.
       finally_block = ParseFinallyBlock();
       catch_handler_list->Add(finally_block);
       token_index_ = finally_pos;
@@ -6173,9 +6178,12 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
 AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
                                            intptr_t ident_pos) {
   // Run static field initializer first if necessary.
-  RunStaticFieldInitializer(field);
-
-  // Access the field
+  // May return an exception throwing ast node.
+  AstNode* throw_exception = RunStaticFieldInitializer(field);
+  if (throw_exception != NULL) {
+    return throw_exception;
+  }
+  // Access the field.
   if (field.is_final()) {
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
   } else {
@@ -6642,7 +6650,10 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
-void Parser::RunStaticFieldInitializer(const Field& field) {
+// Returns null on success.
+// Returns a throw node if evaluation of the static initializer results in an
+// unhandled exception.
+AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Instance& value = Instance::Handle(field.value());
   if (value.raw() == Object::transition_sentinel()) {
@@ -6673,11 +6684,19 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
     Object& const_value = Object::Handle(
         DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
     if (const_value.IsError()) {
+      Error& error = Error::Handle();
+      error ^= const_value.raw();
       if (const_value.IsUnhandledException()) {
-        ErrorMsg("exception thrown in Parser::RunStaticFieldInitializer");
+        // It is a compile-time error if evaluation of a compile-time constant
+        // would raise an exception.
+        if (field.is_final()) {
+          AppendErrorMsg(error, token_index_,
+                         "error initializing final field '%s'",
+                         String::Handle(field.name()).ToCString());
+        } else {
+          return GenerateRethrow(token_index_, const_value);
+        }
       } else {
-        Error& error = Error::Handle();
-        error ^= const_value.raw();
         Isolate::Current()->long_jump_base()->Jump(1, error);
       }
     }
@@ -6689,6 +6708,7 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
     }
     field.set_value(instance);
   }
+  return NULL;
 }
 
 
@@ -7400,7 +7420,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                      map_constr,
                                      constr_args));
     if (constructor_result.IsUnhandledException()) {
-      return CreateEvalConstConstructorThrow(literal_pos, constructor_result);
+      return GenerateRethrow(literal_pos, constructor_result);
     } else {
       Instance& const_instance = Instance::ZoneHandle();
       const_instance ^= constructor_result.raw();
@@ -7668,7 +7688,7 @@ AstNode* Parser::ParseNewOperator() {
                                      constructor,
                                      arguments));
     if (constructor_result.IsUnhandledException()) {
-      new_object = CreateEvalConstConstructorThrow(new_pos, constructor_result);
+      new_object = GenerateRethrow(new_pos, constructor_result);
     } else {
       Instance& const_instance = Instance::ZoneHandle();
       const_instance ^= constructor_result.raw();
@@ -7724,6 +7744,7 @@ String& Parser::Interpolate(ArrayNode* values) {
                                           interpolate_arg,
                                           kNoArgumentNames);
   if (concatenated.IsUnhandledException()) {
+    // TODO(regis): Report
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
   concatenated = String::NewSymbol(concatenated);

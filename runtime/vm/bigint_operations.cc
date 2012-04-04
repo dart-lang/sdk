@@ -355,12 +355,12 @@ const char* BigintOperations::ToDecimalCString(
 
   // We divide the input into pieces of ~27 bits which can be efficiently
   // handled.
-  const intptr_t kDivisorValue = 100000000;
-  const int kPowerOfTen = 8;
-  ASSERT(pow(10.0, kPowerOfTen) == kDivisorValue);
-  ASSERT(static_cast<Chunk>(kDivisorValue) < kDigitMaxValue);
-  ASSERT(Smi::IsValid(kDivisorValue));
-  const Bigint& divisor = Bigint::Handle(NewFromInt64(kDivisorValue));
+  const intptr_t kChunkDivisor = 100000000;
+  const int kChunkDigits = 8;
+  ASSERT(pow(10.0, kChunkDigits) == kChunkDivisor);
+  ASSERT(static_cast<Chunk>(kChunkDivisor) < kDigitMaxValue);
+  ASSERT(Smi::IsValid(kChunkDivisor));
+  const Bigint& divisor = Bigint::Handle(NewFromInt64(kChunkDivisor));
 
   // Rest contains the remaining bigint that needs to be printed.
   Bigint& rest = Bigint::Handle(bigint.raw());
@@ -372,7 +372,7 @@ const char* BigintOperations::ToDecimalCString(
     intptr_t part = (remainder.Length() == 1)
         ? static_cast<intptr_t>(remainder.GetChunkAt(0))
         : 0;
-    for (int i = 0; i < kPowerOfTen; i++) {
+    for (int i = 0; i < kChunkDigits; i++) {
       result[result_pos++] = '0' + (part % 10);
       part /= 10;
     }
