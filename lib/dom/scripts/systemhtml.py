@@ -796,6 +796,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         EXTENDS=extends,
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
+    if self._members_emitter == None:
+      raise Exception("Class %s doesn't use the $!MEMBERS variable" %
+                      self._class_name)
 
     # Emit a factory provider class for the constructor.
     constructor_info = AnalyzeConstructor(interface)
