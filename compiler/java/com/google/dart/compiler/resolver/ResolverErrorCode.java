@@ -145,6 +145,7 @@ public enum ResolverErrorCode implements ErrorCode {
   THIS_OUTSIDE_OF_METHOD("Cannot use 'this' outside of a method"),
   THIS_IN_FACTORY_CONSTRUCTOR("Cannot use 'this' in a factory constructor"),
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
+  TOPLEVEL_FINAL_REQUIRES_VALUE("Top-level final fields must have an initial value"),  
   TYPE_ARGS_ONLY_ON_CONSTRUCTORS("Type arguments are only allowed on constructor methods"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),

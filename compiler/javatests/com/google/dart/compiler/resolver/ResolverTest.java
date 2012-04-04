@@ -1112,4 +1112,25 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3),
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 21, 7, 3));
   }
+  
+  public void testFinalInit() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "final f1 = 1;",
+        "final f2;",  // error
+        "class A {",
+        "  final f3 = 1;",
+        "  final f4;",  // not really ok, should be initialized in constructor
+        "  static final f5 = 1;",
+        "  static final f6;",    // error    
+        "  method() {",
+        "    final f7 = 1;",
+        "    final f8;",  // error
+        "  }",
+        "}"),
+        errEx(ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE, 4, 7 , 2),
+        errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
+        errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
+  }
 }

@@ -22,8 +22,6 @@ Language/03_Overview/2_Privacy_A01_t12: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
-Language/05_Variables/05_Variables_A03_t04: Fail
-Language/05_Variables/05_Variables_A03_t08: Fail # Issue 2372
 Language/05_Variables/05_Variables_A05_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # issue 963
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail

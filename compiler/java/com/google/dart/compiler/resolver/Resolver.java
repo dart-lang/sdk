@@ -634,13 +634,9 @@ public class Resolver {
     public Element visitField(DartField node) {
       DartExpression expression = node.getValue();
       Modifiers modifiers = node.getModifiers();
-      boolean isStatic = modifiers.isStatic();
       boolean isFinal = modifiers.isFinal();
       boolean isTopLevel = ElementKind.of(currentHolder).equals(ElementKind.LIBRARY);
-
-      if (isTopLevel && isFinal) {
-        modifiers.makeStatic();
-      }
+      boolean isStatic = modifiers.isStatic();
 
       if (expression != null) {
         resolve(expression);
@@ -653,6 +649,8 @@ public class Resolver {
       } else if (isFinal) {
         if (isStatic) {
           onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+        } else if (isTopLevel) {
+          onError(node, ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE);          
         } else {
           // If a final instance field wasn't initialized at declaration, we must check
           // at construction time.
