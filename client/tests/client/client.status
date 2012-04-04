@@ -14,6 +14,7 @@ html/frog_html_tests: Skip
 html/TypedArrays2Test: Fail  # Dartium dart:html needs to implement 3 arg constructor
 dom/TypedArrays3Test: Fail   # Investigate: setElements is not generated.
 html/TypedArrays3Test: Fail  # Investigate: setElements is not generated.
+html/TypedArrays4Test: Fail  # Needs refresh of dart:html embedded in DRT.
 html/html_tests: Pass, Fail   # Issue 1946.
 
 [ $compiler == none && $runtime == drt && $mode == debug ]
