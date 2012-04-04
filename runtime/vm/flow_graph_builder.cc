@@ -5,11 +5,14 @@
 #include "vm/flow_graph_builder.h"
 
 #include "vm/ast_printer.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/resolver.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -305,8 +308,79 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
+void EffectGraphVisitor::CompiletimeStringInterpolation(
+    const Function& interpol_func, const Array& literals) {
+  // Do nothing.
+}
+
+
+void ValueGraphVisitor::CompiletimeStringInterpolation(
+    const Function& interpol_func, const Array& literals) {
+  // Build argument array to pass to the interpolation function.
+  GrowableArray<const Object*> interpolate_arg;
+  interpolate_arg.Add(&literals);
+  const Array& kNoArgumentNames = Array::Handle();
+  // Call the interpolation function.
+  String& concatenated = String::ZoneHandle();
+  concatenated ^= DartEntry::InvokeStatic(interpol_func,
+                                          interpolate_arg,
+                                          kNoArgumentNames);
+  if (concatenated.IsUnhandledException()) {
+    // TODO(srdjan): Remove this node and this UNREACHABLE.
+    UNREACHABLE();
+  }
+  ASSERT(!concatenated.IsNull());
+  concatenated = String::NewSymbol(concatenated);
+  ReturnValue(new ConstantVal(concatenated));
+}
+
+
+
+// TODO(srdjan): Remove this node once the "+" string operator has been
+// eliminated.
 void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
-  Bailout("EffectGraphVisitor::VisitStringConcatNode");
+  const String& cls_name = String::Handle(String::NewSymbol("StringBase"));
+  const Library& core_lib = Library::Handle(
+      Isolate::Current()->object_store()->core_library());
+  const Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
+  ASSERT(!cls.IsNull());
+  const String& func_name = String::Handle(String::NewSymbol("_interpolate"));
+  const int number_of_parameters = 1;
+  const Function& interpol_func = Function::ZoneHandle(
+      Resolver::ResolveStatic(cls, func_name,
+                              number_of_parameters,
+                              Array::Handle(),
+                              Resolver::kIsQualified));
+  ASSERT(!interpol_func.IsNull());
+
+  // First try to concatenate and canonicalize the values at compile time.
+  bool compile_time_interpolation = true;
+  Array& literals = Array::Handle(Array::New(node->values()->length()));
+  for (int i = 0; i < node->values()->length(); i++) {
+    if (node->values()->ElementAt(i)->IsLiteralNode()) {
+      LiteralNode* lit = node->values()->ElementAt(i)->AsLiteralNode();
+      literals.SetAt(i, lit->literal());
+    } else {
+      compile_time_interpolation = false;
+      break;
+    }
+  }
+  if (compile_time_interpolation) {
+    // Not needed for effect, only for value
+    CompiletimeStringInterpolation(interpol_func, literals);
+    return;
+  }
+  // Runtime string interpolation.
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
+  ArgumentListNode* interpol_arg = new ArgumentListNode(node->token_index());
+  interpol_arg->Add(node->values());
+  TranslateArgumentList(*interpol_arg, temp_index(), values);
+  StaticCallComp* call =
+      new StaticCallComp(node->token_index(),
+                         interpol_func,
+                         interpol_arg->names(),
+                         values);
+  ReturnComputation(call);
 }
 
 
