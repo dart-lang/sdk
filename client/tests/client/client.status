@@ -8,7 +8,6 @@ dom/WebGL1Test: Skip  # Issue 1495
 # TODO(vsm): Triage DOM tests.
 dom/HTMLElementTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-html/frog_html_tests: Skip
 html/TypedArrays2Test: Fail  # Dartium dart:html needs to implement 3 arg constructor
 html/TypedArrays3Test: Fail  # Investigate: setElements is not generated.
 html/TypedArrays4Test: Fail  # Needs refresh of dart:html embedded in DRT.
