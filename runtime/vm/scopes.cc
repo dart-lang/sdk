@@ -206,7 +206,10 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors() {
 void LocalScope::CollectLocalVariables(GrowableArray<LocalVariable*>* vars) {
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
-    if ((var->owner() == this) && Scanner::IsIdent(var->name())) {
+    // TODO(hausner): Remove the is_captured() condition once the debugger
+    // can handle getting values of captured variables.
+    if (!var->is_captured() && (var->owner() == this) &&
+        Scanner::IsIdent(var->name())) {
       vars->Add(this->variables_[i]);
     }
   }
