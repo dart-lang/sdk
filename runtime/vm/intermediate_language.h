@@ -55,6 +55,7 @@ class LocalVariable;
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
   M(AllocateContext, AllocateContextComp)                                      \
   M(ChainContext, ChainContextComp)                                            \
+  M(CloneContext, CloneContextComp)                                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -805,6 +806,32 @@ class ChainContextComp : public Computation {
   Value* context_value_;
 
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
+};
+
+
+class CloneContextComp : public Computation {
+ public:
+  CloneContextComp(intptr_t node_id,
+                   intptr_t token_index,
+                   Value* context_value)
+      : node_id_(node_id),
+        token_index_(token_index),
+        context_value_(context_value) {
+    ASSERT(context_value_ != NULL);
+  }
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* context_value() const { return context_value_; }
+
+  DECLARE_COMPUTATION(CloneContext)
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  Value* context_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
 };
 
 

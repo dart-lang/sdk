@@ -813,6 +813,18 @@ void FlowGraphCompiler::VisitChainContext(ChainContextComp* comp) {
 }
 
 
+void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
+  __ popq(RAX);  // Get context value from stack.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushq(RAX);
+  GenerateCallRuntime(comp->node_id(),
+                      comp->token_index(),
+                      kCloneContextRuntimeEntry);
+  __ popq(RAX);  // Remove argument.
+  __ popq(RAX);  // Get result (cloned context).
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Compile the block entry.

@@ -1267,7 +1267,12 @@ void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  Bailout("EffectGraphVisitor::VisitCloneContextNode");
+  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
+  TempVal* ctx = new TempVal(temp_index());
+  AddInstruction(new BindInstr(temp_index(),
+                 new CloneContextComp(node->id(), node->token_index(), ctx)));
+  TempVal* cloned_ctx = new TempVal(temp_index());
+  ReturnComputation(new StoreContextComp(cloned_ctx));
 }
 
 
@@ -2125,6 +2130,13 @@ void FlowGraphPrinter::VisitAllocateContext(AllocateContextComp* comp) {
 
 void FlowGraphPrinter::VisitChainContext(ChainContextComp* comp) {
   OS::Print("ChainContext(");
+  comp->context_value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitCloneContext(CloneContextComp* comp) {
+  OS::Print("CloneContext(");
   comp->context_value()->Accept(this);
   OS::Print(")");
 }
