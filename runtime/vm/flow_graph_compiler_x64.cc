@@ -635,7 +635,6 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 
   const Class& cls = Class::Handle(function.signature_class());
   if (cls.HasTypeArguments()) {
-    UNIMPLEMENTED();  // We should have bailed out.
     __ popq(RCX);  // Discard type arguments.
   }
   if (function.IsImplicitInstanceClosureFunction()) {

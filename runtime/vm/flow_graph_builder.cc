@@ -1187,11 +1187,14 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
   const bool requires_type_arguments = cls.HasTypeArguments();
+  Value* type_arguments = NULL;
   if (requires_type_arguments) {
-    Bailout("Closure creation requiring type arguments");
+    ASSERT(!function.IsImplicitStaticClosureFunction());
+    type_arguments =
+        BuildInstantiatorTypeArguments(node->token_index(), temp_index());
   }
 
-  CreateClosureComp* create = new CreateClosureComp(node);
+  CreateClosureComp* create = new CreateClosureComp(node, type_arguments);
   ReturnComputation(create);
 }
 
@@ -2073,7 +2076,12 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
 
 
 void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
-  OS::Print("CreateClosure(%s)", comp->function().ToCString());
+  OS::Print("CreateClosure(%s", comp->function().ToCString());
+  if (comp->type_arguments() != NULL) {
+    OS::Print(", ");
+    comp->type_arguments()->Accept(this);
+  }
+  OS::Print(")");
 }
 
 

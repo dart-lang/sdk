@@ -650,15 +650,19 @@ class CreateArrayComp : public Computation {
 
 class CreateClosureComp : public Computation {
  public:
-  explicit CreateClosureComp(ClosureNode* node) : ast_node_(*node) { }
+  // 'type_arguments' is null if function() does not require type arguments.
+  CreateClosureComp(ClosureNode* node, Value* type_arguments)
+      : ast_node_(*node), type_arguments_(type_arguments) { }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
   const Function& function() const { return ast_node_.function(); }
+  Value* type_arguments() const { return type_arguments_; }
 
  private:
   const ClosureNode& ast_node_;
+  Value* type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
