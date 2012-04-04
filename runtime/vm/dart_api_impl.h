@@ -73,7 +73,7 @@ void SetupErrorResult(Dart_Handle* handle);
 class Api : AllStatic {
  public:
   // Creates a new local handle.
-  static Dart_Handle NewLocalHandle(const Object& object);
+  static Dart_Handle NewLocalHandle(Isolate* isolate, const Object& object);
 
   // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);
@@ -81,7 +81,8 @@ class Api : AllStatic {
   // Unwraps a raw Type from the handle.  The handle will be null if
   // the object was not of the requested Type.
 #define DECLARE_UNWRAP(Type)                                                  \
-  static const Type& Unwrap##Type##Handle(Dart_Handle object);
+  static const Type& Unwrap##Type##Handle(Isolate* isolate,                   \
+                                          Dart_Handle object);
   CLASS_LIST_NO_OBJECT(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
 
@@ -108,25 +109,28 @@ class Api : AllStatic {
   static Dart_Isolate CastIsolate(Isolate* isolate);
 
   // Gets the handle used to designate successful return.
-  static Dart_Handle Success();
+  static Dart_Handle Success(Isolate* isolate);
 
   // Generates a handle used to designate an error return.
   static Dart_Handle NewError(const char* format, ...);
 
   // Gets a handle to Null.
-  static Dart_Handle Null();
+  static Dart_Handle Null(Isolate* isolate);
 
   // Gets a handle to True.
-  static Dart_Handle True();
+  static Dart_Handle True(Isolate* isolate);
 
   // Gets a handle to False
-  static Dart_Handle False();
+  static Dart_Handle False(Isolate* isolate);
 
   // Allocates space in the local zone.
-  static uword Allocate(intptr_t size);
+  static uword Allocate(Isolate* isolate, intptr_t size);
 
   // Reallocates space in the local zone.
-  static uword Reallocate(uword ptr, intptr_t old_size, intptr_t new_size);
+  static uword Reallocate(Isolate* isolate,
+                          uword ptr,
+                          intptr_t old_size,
+                          intptr_t new_size);
 
   // Performs one-time initialization needed by the API.
   static void InitOnce();

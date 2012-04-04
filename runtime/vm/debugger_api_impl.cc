@@ -51,7 +51,7 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(
   CHECK_NOT_NULL(length);
   CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
   *length = stack_trace->Length();
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -69,7 +69,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
   }
   *frame = reinterpret_cast<Dart_ActivationFrame>(
        stack_trace->ActivationFrameAt(frame_index));
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -94,16 +94,16 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != NULL) {
     const String& name = String::Handle(frame->QualifiedFunctionName());
-    *function_name = Api::NewLocalHandle(name);
+    *function_name = Api::NewLocalHandle(isolate, name);
   }
   if (script_url != NULL) {
     const String& url = String::Handle(frame->SourceUrl());
-    *script_url = Api::NewLocalHandle(url);
+    *script_url = Api::NewLocalHandle(isolate, url);
   }
   if (line_number != NULL) {
     *line_number = frame->LineNumber();
   }
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -113,7 +113,7 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   const Array& variables = Array::Handle(frame->GetLocalVariables());
-  return Api::NewLocalHandle(variables);
+  return Api::NewLocalHandle(isolate, variables);
 }
 
 
@@ -140,7 +140,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
     return Api::NewError(msg);
   }
 
-  Dart_Handle result = Api::True();
+  Dart_Handle result = Api::True(isolate);
   *breakpoint = NULL;
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
@@ -190,7 +190,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                          function_name.ToCString());
   }
 
-  Dart_Handle result = Api::True();
+  Dart_Handle result = Api::True(isolate);
   *breakpoint = NULL;
 
   SourceBreakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
@@ -212,7 +212,7 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
 
   CHECK_AND_CAST(SourceBreakpoint, breakpoint, breakpoint_in);
   isolate->debugger()->RemoveBreakpoint(breakpoint);
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -220,7 +220,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepOver();
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -228,7 +228,7 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepInto();
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -236,7 +236,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepOut();
-  return Api::True();
+  return Api::True(isolate);
 }
 
 
@@ -247,7 +247,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   Array& fields = Array::Handle();
   fields = isolate->debugger()->GetInstanceFields(obj);
-  return Api::NewLocalHandle(fields);
+  return Api::NewLocalHandle(isolate, fields);
 }
 
 
@@ -258,7 +258,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   Array& fields = Array::Handle();
   fields = isolate->debugger()->GetStaticFields(cls);
-  return Api::NewLocalHandle(fields);
+  return Api::NewLocalHandle(isolate, fields);
 }
 
 
@@ -268,7 +268,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   const Class& cls = Class::Handle(obj.clazz());
-  return Api::NewLocalHandle(cls);
+  return Api::NewLocalHandle(isolate, cls);
 }
 
 
@@ -278,7 +278,7 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
   Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   cls = cls.SuperClass();
-  return Api::NewLocalHandle(cls);
+  return Api::NewLocalHandle(isolate, cls);
 }
 
 
@@ -306,7 +306,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
   }
 
   const String& source = String::Handle(script.source());
-  return Api::NewLocalHandle(source);
+  return Api::NewLocalHandle(isolate, source);
 }
 
 
@@ -332,7 +332,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
     url = script.url();
     script_list.SetAt(i, url);
   }
-  return Api::NewLocalHandle(script_list);
+  return Api::NewLocalHandle(isolate, script_list);
 }
 
 
@@ -360,7 +360,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
     library_list.SetAt(i, lib_url);
     lib = lib.next_registered();
   }
-  return Api::NewLocalHandle(library_list);
+  return Api::NewLocalHandle(isolate, library_list);
 }
 
 }  // namespace dart
