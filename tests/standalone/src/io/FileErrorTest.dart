@@ -35,14 +35,23 @@ bool checkOpenNonExistentFileException(e) {
 }
 
 void testOpenNonExistent() {
-  var file = new File("${tempDir().path}/nonExistentFile");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.openSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
   file.open(FileMode.READ, (raf) => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkOpenNonExistentFileException(e);
+  file.onError = (e) {
+    checkOpenNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 bool checkDeleteNonExistentFileException(e) {
@@ -66,14 +75,23 @@ bool checkDeleteNonExistentFileException(e) {
 }
 
 void testDeleteNonExistent() {
-  var file = new File("${tempDir().path}/nonExistentFile");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile");
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.deleteSync(),
                 (e) => checkDeleteNonExistentFileException(e));
 
   file.delete(() => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkDeleteNonExistentFileException(e);
+  file.onError = (e) {
+    checkDeleteNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 bool checkCreateInNonExistentDirectoryException(e) {
@@ -98,14 +116,23 @@ bool checkCreateInNonExistentDirectoryException(e) {
 }
 
 void testCreateInNonExistentDirectory() {
-  var file = new File("${tempDir().path}/nonExistentDirectory/newFile");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
   // Create in non-existent directory should throw exception.
   Expect.throws(() => file.createSync(),
                 (e) => checkCreateInNonExistentDirectoryException(e));
 
   file.create(() => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkCreateInNonExistentDirectoryException(e);
+  file.onError = (e) {
+    checkCreateInNonExistentDirectoryException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 bool checkFullPathOnNonExistentDirectoryException(e) {
@@ -129,14 +156,23 @@ bool checkFullPathOnNonExistentDirectoryException(e) {
 }
 
 void testFullPathOnNonExistentDirectory() {
-  var file = new File("${tempDir().path}/nonExistentDirectory");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentDirectory");
 
   // Full path non-existent directory should throw exception.
   Expect.throws(() => file.fullPathSync(),
                 (e) => checkFullPathOnNonExistentDirectoryException(e));
 
   file.fullPath((path) => Expect.fail("Unreachable code $path"));
-  file.onError = (e) => checkFullPathOnNonExistentDirectoryException(e);
+  file.onError = (e) {
+    checkFullPathOnNonExistentDirectoryException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 bool checkDirectoryInNonExistentDirectoryException(e) {
@@ -161,47 +197,83 @@ bool checkDirectoryInNonExistentDirectoryException(e) {
 }
 
 void testDirectoryInNonExistentDirectory() {
-  var file = new File("${tempDir().path}/nonExistentDirectory/newFile");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentDirectory/newFile");
 
   // Create in non-existent directory should throw exception.
   Expect.throws(() => file.directorySync(),
                 (e) => checkDirectoryInNonExistentDirectoryException(e));
 
   file.directory((directory) => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkDirectoryInNonExistentDirectoryException(e);
+  file.onError = (e) {
+    checkDirectoryInNonExistentDirectoryException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 void testReadAsBytesNonExistent() {
-  var file = new File("${tempDir().path}/nonExistentFile3");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile3");
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsBytesSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
   file.readAsBytes((data) => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkOpenNonExistentFileException(e);
+  file.onError = (e) {
+    checkOpenNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 void testReadAsTextNonExistent() {
-  var file = new File("${tempDir().path}/nonExistentFile4");
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile4");
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsTextSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
   file.readAsText(Encoding.ASCII, (data) => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkOpenNonExistentFileException(e);
+  file.onError = (e) {
+    checkOpenNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
 }
 
-void testReadAsLinesNonExistent() {
-  var file = new File("${tempDir().path}/nonExistentFile5");
+testReadAsLinesNonExistent() {
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile5");
 
   // Non-existing file should throw exception.
   Expect.throws(() => file.readAsLinesSync(),
                 (e) => checkOpenNonExistentFileException(e));
 
   file.readAsLines(Encoding.ASCII, (data) => Expect.fail("Unreachable code"));
-  file.onError = (e) => checkOpenNonExistentFileException(e);
+  file.onError = (e) {
+    checkOpenNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
 }
 
 bool checkWriteReadOnlyFileException(e) {
@@ -214,7 +286,7 @@ bool checkWriteReadOnlyFileException(e) {
 testWriteByteToReadOnlyFile() {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
-  p.receive((x,y) {
+  p.receive((x, y) {
     p.close();
     temp.deleteRecursivelySync();
   });
@@ -237,7 +309,7 @@ testWriteByteToReadOnlyFile() {
 testWriteListToReadOnlyFile() {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
-  p.receive((x,y) {
+  p.receive((x, y) {
     p.close();
     temp.deleteRecursivelySync();
   });
@@ -261,7 +333,7 @@ testWriteListToReadOnlyFile() {
 testTruncateReadOnlyFile() {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
-  p.receive((x,y) {
+  p.receive((x, y) {
     p.close();
     temp.deleteRecursivelySync();
   });
@@ -294,12 +366,12 @@ bool checkFileClosedException(e) {
 testOperateOnClosedFile() {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
-  p.receive((x,y) {
+  p.receive((x, y) {
     p.close();
     temp.deleteRecursivelySync();
   });
 
-  var file = new File("${tempDir().path}/test_file");
+  var file = new File("${temp.path}/test_file");
   file.createSync();
   var openedFile = file.openSync(FileMode.READ);
   openedFile.closeSync();
