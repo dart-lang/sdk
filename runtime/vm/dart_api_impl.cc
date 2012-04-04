@@ -2919,6 +2919,11 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
   DARTSCOPE(Isolate::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  if (index < 0 || index >= arguments->Count()) {
+    return Api::NewError(
+        "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
+        CURRENT_FUNC, arguments->Count() - 1, index);
+  }
   const Object& obj = Object::Handle(arguments->At(index));
   return Api::NewLocalHandle(obj);
 }
