@@ -5,7 +5,12 @@ ARGC=$#
 
 if [[ $ARGC -eq 1 ]];
 then
-  if [[ $1 = "simple1" ]];
+  if [[ $1 = "simple" ]];
+  then
+    ./../../template/template name_entry_simple.tmpl name_entry.dart
+    cd ../../../frog
+    ./frog.py --html -- ../utils/tests/template/test_simple.dart
+  elif [[ $1 = "simple1" ]];
   then
     ./../../template/template name_entry.tmpl name_entry.dart
     cd ../../../frog
@@ -107,6 +112,7 @@ else
   echo -e "\033[31mUnknown test\033[0m"
   echo -e ""
   echo -e "Known tests are:"
+  echo -e "  simple"
   echo -e "  simple1"
   echo -e "  simple2"
   echo -e "  simple3"

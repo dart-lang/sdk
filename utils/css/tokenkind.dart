@@ -470,7 +470,7 @@ class TokenKind {
     throw new NoColorMatchException(text);
   }
 
-  static String decimalToHex(int num) {
+  static String decimalToHex(int num, [int minDigits = 1]) {
     final String _HEX_DIGITS = '0123456789abcdef';
 
     List<String> result = new List<String>();
@@ -485,9 +485,14 @@ class TokenKind {
     }
 
     StringBuffer invertResult = new StringBuffer();
+    int paddings = minDigits - result.length;
+    while (paddings-- > 0) {
+      invertResult.add('0');
+    }
     for (int idx = result.length - 1; idx >= 0; idx--) {
       invertResult.add(result[idx]);
     }
+
     return invertResult.toString();
   }
 

@@ -32,12 +32,13 @@ class TokenKind {
   static final int EQUAL = 21;                  // =
   static final int DOUBLE_QUOTE = 22;           // "
   static final int SINGLE_QUOTE = 23;           // '
+  static final int ASTERISK = 24;               // *
 
   // WARNING: END_TOKENS must be 1 greater than the last token above (last
   //          character in our list).  Also add to kindToString function and the
   //          constructor for TokenKind.
 
-  static final int END_TOKENS = 24;             // Marker for last token in list
+  static final int END_TOKENS = 25;             // Marker for last token in list
 
   // Synthesized tokens:
 
@@ -194,6 +195,12 @@ class TokenKind {
     const {'type': TokenKind.TEMPLATE_KEYWORD, 'value' : 'template'},
   ];
 
+  static final List<int> _NON_SCOPED_ELEMENTS = const [
+    BR_ELEMENT,
+  ];
+
+  // tag values starting with a minus sign implies tag can be unscoped e.g.,
+  // <br> is valid without <br></br> or <br/>
   static final List<Map<int, String>> _ELEMENTS = const [
     const {'type': TokenKind.A_ELEMENT, 'value' : 'a'},
     const {'type': TokenKind.ABBR_ELEMENT, 'value' : 'abbr'},
@@ -326,15 +333,6 @@ class TokenKind {
     return -1;  // Not a unit token.
   }
 
-  /* Map _ELEMENTS type to the real name. */
-  static String elementsToName(int kind) {
-    for (final entry in TokenKind._ELEMENTS) {
-      if (kind == entry['type']) {
-        return entry['value'];
-      }
-    }
-  }
-
   /*
    * Return the token that matches the element ident found.
    */
@@ -343,14 +341,23 @@ class TokenKind {
   }
 
   static String tagNameFromTokenId(int tagTokenId) {
-    if (tagTokenId >= TokenKind.START_HTML_ELEMENT &&
-        tagTokenId <= TokenKind.END_HTML_ELEMENT) {
+    if (TokenKind.validTagName(tagTokenId)) {
       for (final tag in TokenKind._ELEMENTS) {
         if (tag['type'] == tagTokenId) {
           return tag['value'];
         }
       }
     }
+  }
+
+  static bool unscopedTag(int tagTokenId) {
+    for (final tagId in TokenKind._NON_SCOPED_ELEMENTS) {
+      if (tagId == tagTokenId) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   static int matchKeywords(String text, int offset, int length) {
@@ -383,6 +390,7 @@ class TokenKind {
       case TokenKind.EQUAL: return '=';
       case TokenKind.DOUBLE_QUOTE: return '"';
       case TokenKind.SINGLE_QUOTE: return "'";
+      case TokenKind.ASTERISK: return "*";
       case TokenKind.END_NO_SCOPE_TAG: return '/>';
       case TokenKind.START_EXPRESSION: return '\${';
       case TokenKind.START_COMMAND: return '\${#';
@@ -439,6 +447,7 @@ class TokenKind {
     tokens.add(TokenKind.kindToString(TokenKind.EQUAL).charCodeAt(0));
     tokens.add(TokenKind.kindToString(TokenKind.DOUBLE_QUOTE).charCodeAt(0));
     tokens.add(TokenKind.kindToString(TokenKind.SINGLE_QUOTE).charCodeAt(0));
+    tokens.add(TokenKind.kindToString(TokenKind.ASTERISK).charCodeAt(0));
 
     assert(tokens.length == TokenKind.END_TOKENS);
   }
