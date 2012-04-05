@@ -117,7 +117,8 @@ class SourceLabel : public ZoneAllocated {
       continue_label_(),
       break_label_(),
       join_for_break_(NULL),
-      join_for_continue_(NULL) {
+      join_for_continue_(NULL),
+      is_continue_target_(false) {
   }
 
   static SourceLabel* New(intptr_t token_index, String* name, Kind kind) {
@@ -151,6 +152,9 @@ class SourceLabel : public ZoneAllocated {
     return join_for_continue_;
   }
 
+  bool is_continue_target() const { return is_continue_target_; }
+  void set_is_continue_target(bool value) { is_continue_target_ = value; }
+
   void set_join_for_break(JoinEntryInstr* join) {
     ASSERT(join_for_break_ == NULL);
     join_for_break_ = join;
@@ -175,6 +179,7 @@ class SourceLabel : public ZoneAllocated {
   Label break_label_;
   JoinEntryInstr* join_for_break_;
   JoinEntryInstr* join_for_continue_;
+  bool is_continue_target_;  // Needed for CaseNode.
   static const char* kDefaultLabelName;
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);

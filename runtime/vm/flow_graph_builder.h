@@ -154,6 +154,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
 
+  virtual void CompiletimeStringInterpolation(const Function& interpol_func,
+                                              const Array& literals);
+
  private:
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.
@@ -210,6 +213,9 @@ class ValueGraphVisitor : public EffectGraphVisitor {
     AddInstruction(new BindInstr(temp_index(), computation));
     value_ = new TempVal(AllocateTempIndex());
   }
+
+  virtual void CompiletimeStringInterpolation(const Function& interpol_func,
+                                              const Array& literals);
 };
 
 

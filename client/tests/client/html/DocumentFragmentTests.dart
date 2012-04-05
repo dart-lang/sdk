@@ -61,6 +61,12 @@ testDocumentFragment() {
     //   final fragment = new DocumentFragment.svg('<a>foo</a>');
     //   Expect.isTrue(fragment.elements.first is SVGAElement);
     // });
+
+    // TODO(nweiz): enable this once XML is ported.
+    // test('.xml parses input as XML', () {
+    //   final fragment = new DocumentFragment.xml('<a>foo</a>');
+    //   Expect.isTrue(fragment.elements.first is XMLElement);
+    // });
   });
 
   test('Unsupported operations throw errors', () {

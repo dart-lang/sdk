@@ -40,19 +40,24 @@ class LocalScope;
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
   }                                                                            \
-  static object& Handle(Isolate* islt, Raw##object* raw_ptr) {                 \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(islt));  \
+  static object& Handle(Isolate* isolate, Raw##object* raw_ptr) {              \
+    object* obj =                                                              \
+        reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
   static object& Handle() {                                                    \
     return Handle(Isolate::Current(), object::null());                         \
   }                                                                            \
+  static object& Handle(Isolate* isolate) {                                    \
+    return Handle(isolate, object::null());                                    \
+  }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
     return Handle(Isolate::Current(), raw_ptr);                                \
   }                                                                            \
-  static object& CheckedHandle(Isolate* islt, RawObject* raw_ptr) {            \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(islt));  \
+  static object& CheckedHandle(Isolate* isolate, RawObject* raw_ptr) {         \
+    object* obj =                                                              \
+        reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
       FATAL("Handle check failed.");                                           \
@@ -231,6 +236,10 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
   static Object& Handle() {
     return Handle(Isolate::Current(), null_);
+  }
+
+  static Object& Handle(Isolate* isolate) {
+    return Handle(isolate, null_);
   }
 
   static Object& Handle(RawObject* raw_ptr) {

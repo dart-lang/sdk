@@ -635,7 +635,6 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
 
   const Class& cls = Class::Handle(function.signature_class());
   if (cls.HasTypeArguments()) {
-    UNIMPLEMENTED();  // We should have bailed out.
     __ popq(RCX);  // Discard type arguments.
   }
   if (function.IsImplicitInstanceClosureFunction()) {
@@ -811,6 +810,18 @@ void FlowGraphCompiler::VisitChainContext(ChainContextComp* comp) {
                      CTX);
   // Set new context as current context.
   __ movq(CTX, RAX);
+}
+
+
+void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
+  __ popq(RAX);  // Get context value from stack.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushq(RAX);
+  GenerateCallRuntime(comp->node_id(),
+                      comp->token_index(),
+                      kCloneContextRuntimeEntry);
+  __ popq(RAX);  // Remove argument.
+  __ popq(RAX);  // Get result (cloned context).
 }
 
 

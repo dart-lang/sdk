@@ -8,7 +8,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -126,20 +125,7 @@ import java.util.Set;
  * Analyzer of static type information.
  */
 public class TypeAnalyzer implements DartCompilationPhase {
-  private static final ImmutableSet<Token> ASSIGN_OPERATORS =
-      Sets.immutableEnumSet(
-          Token.ASSIGN,
-          Token.ASSIGN_BIT_OR,
-          Token.ASSIGN_BIT_XOR,
-          Token.ASSIGN_BIT_AND,
-          Token.ASSIGN_SHL,
-          Token.ASSIGN_SAR,
-          Token.ASSIGN_ADD,
-          Token.ASSIGN_SUB,
-          Token.ASSIGN_MUL,
-          Token.ASSIGN_DIV,
-          Token.ASSIGN_MOD,
-          Token.ASSIGN_TRUNC);
+  
   private final Set<ClassElement> diagnosedAbstractClasses = Sets.newHashSet();
 
   /**
@@ -1379,8 +1365,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           FieldElement fieldElement = (FieldElement) element;
           MethodElement getter = fieldElement.getGetter();
           MethodElement setter = fieldElement.getSetter();
-          boolean inSetterContext = inSetterContext(node);
-          boolean inGetterContext = inGetterContext(node);
+          boolean inSetterContext = Elements.inSetterContext(node);
+          boolean inGetterContext = Elements.inGetterContext(node);
           ClassElement enclosingClass = null;
           if (fieldElement.getEnclosingElement() instanceof ClassElement) {
             enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
@@ -1421,30 +1407,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         default:
           throw internalError(node.getName(), "unexpected kind %s", element.getKind());
       }
-    }
-
-    private boolean inSetterContext(DartNode node) {
-      if (node.getParent() instanceof DartBinaryExpression) {
-        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-        if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * An assignment of the form node = <expr> is a write-only expression.  Other types
-     * of assignments also read the value and require a getter access.
-     */
-    private boolean inGetterContext(DartNode node) {
-      if (node.getParent() instanceof DartBinaryExpression) {
-        DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
-        if (Token.ASSIGN.equals(expr.getOperator()) && expr.getArg1() == node) {
-          return false;
-        }
-      }
-      return true;
     }
 
     @Override

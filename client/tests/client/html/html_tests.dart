@@ -18,6 +18,10 @@
 #source('SVGElementTests.dart');
 #source('XHRTests.dart');
 
+// TODO(nweiz): enable these once the XML document work is ported over.
+// #source('XMLDocumentTests.dart');
+// #source('XMLElementTests.dart');
+
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
   group('DocumentFragment', testDocumentFragment);
@@ -29,4 +33,8 @@ main() {
   group('Node', testNode);
   group('SVGElement', testSVGElement);
   group('XHR', testXHR);
+
+  // group('DocumentFragment', testDocumentFragment);
+  // group('XMLDocument', testXMLDocument);
+  // group('XMLElement', testXMLElement);
 }

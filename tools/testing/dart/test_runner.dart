@@ -314,13 +314,19 @@ class BrowserTestOutputImpl extends TestOutputImpl {
     }
 
     // Browser tests fail unless stdout contains
-    // 'Content-Type: text/plain\nPASS'.
-    String previous_line = '';
+    // 'Content-Type: text/plain' followed by 'PASS'.
+    bool has_content_type = false;
     for (String line in super.stdout) {
-      if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
-        return (exitCode != 0 && !hasCrashed);
+      switch (line) {
+        case 'Content-Type: text/plain':
+          has_content_type = true;
+          break;
+
+        case 'PASS':
+          if (has_content_type) {
+            return (exitCode != 0 && !hasCrashed);
+          }
       }
-      previous_line = line;
     }
     return true;
   }

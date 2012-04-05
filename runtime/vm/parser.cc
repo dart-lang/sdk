@@ -3393,14 +3393,15 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
                                           const String& url,
                                           const Array& import_map) {
-  Dart_LibraryTagHandler handler = Isolate::Current()->library_tag_handler();
+  Isolate* isolate = Isolate::Current();
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
-                               Api::NewLocalHandle(library_),
-                               Api::NewLocalHandle(url),
-                               Api::NewLocalHandle(import_map));
+                               Api::NewLocalHandle(isolate, library_),
+                               Api::NewLocalHandle(isolate, url),
+                               Api::NewLocalHandle(isolate, import_map));
   if (Dart_IsError(result)) {
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);

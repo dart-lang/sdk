@@ -5,11 +5,14 @@
 #include "vm/flow_graph_builder.h"
 
 #include "vm/ast_printer.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/parser.h"
+#include "vm/resolver.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -305,8 +308,79 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
+void EffectGraphVisitor::CompiletimeStringInterpolation(
+    const Function& interpol_func, const Array& literals) {
+  // Do nothing.
+}
+
+
+void ValueGraphVisitor::CompiletimeStringInterpolation(
+    const Function& interpol_func, const Array& literals) {
+  // Build argument array to pass to the interpolation function.
+  GrowableArray<const Object*> interpolate_arg;
+  interpolate_arg.Add(&literals);
+  const Array& kNoArgumentNames = Array::Handle();
+  // Call the interpolation function.
+  String& concatenated = String::ZoneHandle();
+  concatenated ^= DartEntry::InvokeStatic(interpol_func,
+                                          interpolate_arg,
+                                          kNoArgumentNames);
+  if (concatenated.IsUnhandledException()) {
+    // TODO(srdjan): Remove this node and this UNREACHABLE.
+    UNREACHABLE();
+  }
+  ASSERT(!concatenated.IsNull());
+  concatenated = String::NewSymbol(concatenated);
+  ReturnValue(new ConstantVal(concatenated));
+}
+
+
+
+// TODO(srdjan): Remove this node once the "+" string operator has been
+// eliminated.
 void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
-  Bailout("EffectGraphVisitor::VisitStringConcatNode");
+  const String& cls_name = String::Handle(String::NewSymbol("StringBase"));
+  const Library& core_lib = Library::Handle(
+      Isolate::Current()->object_store()->core_library());
+  const Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
+  ASSERT(!cls.IsNull());
+  const String& func_name = String::Handle(String::NewSymbol("_interpolate"));
+  const int number_of_parameters = 1;
+  const Function& interpol_func = Function::ZoneHandle(
+      Resolver::ResolveStatic(cls, func_name,
+                              number_of_parameters,
+                              Array::Handle(),
+                              Resolver::kIsQualified));
+  ASSERT(!interpol_func.IsNull());
+
+  // First try to concatenate and canonicalize the values at compile time.
+  bool compile_time_interpolation = true;
+  Array& literals = Array::Handle(Array::New(node->values()->length()));
+  for (int i = 0; i < node->values()->length(); i++) {
+    if (node->values()->ElementAt(i)->IsLiteralNode()) {
+      LiteralNode* lit = node->values()->ElementAt(i)->AsLiteralNode();
+      literals.SetAt(i, lit->literal());
+    } else {
+      compile_time_interpolation = false;
+      break;
+    }
+  }
+  if (compile_time_interpolation) {
+    // Not needed for effect, only for value
+    CompiletimeStringInterpolation(interpol_func, literals);
+    return;
+  }
+  // Runtime string interpolation.
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
+  ArgumentListNode* interpol_arg = new ArgumentListNode(node->token_index());
+  interpol_arg->Add(node->values());
+  TranslateArgumentList(*interpol_arg, temp_index(), values);
+  StaticCallComp* call =
+      new StaticCallComp(node->token_index(),
+                         interpol_func,
+                         interpol_arg->names(),
+                         values);
+  ReturnComputation(call);
 }
 
 
@@ -705,12 +779,144 @@ void EffectGraphVisitor::VisitIfNode(IfNode* node) {
 
 
 void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
-  Bailout("EffectGraphVisitor::VisitSwitchNode");
+  EffectGraphVisitor switch_body(owner(), temp_index());
+  node->body()->Visit(&switch_body);
+  Append(switch_body);
+  if ((node->label() != NULL) && (node->label()->join_for_break() != NULL)) {
+    if (is_open()) {
+      AddInstruction(node->label()->join_for_break());
+    } else {
+      exit_ = node->label()->join_for_break();
+    }
+  }
+  // No continue label allowed.
+  ASSERT((node->label() == NULL) ||
+         (node->label()->join_for_continue() == NULL));
 }
 
 
+// A case node contains zero or more case expressions, can contain default
+// and a case statement body.
+// Compose fragment as follows:
+// - if no case expressions, must have default:
+//   a) target
+//   b) [ case-statements ]
+//
+// - if has 1 or more case statements
+//   a) target-0
+//   b) [ case-expression-0 ] -> (true-target-0, target-1)
+//   c) target-1
+//   d) [ case-expression-1 ] -> (true-target-1, exit-target)
+//   e) true-target-0 -> case-statements-join
+//   f) true-target-1 -> case-statements-join
+//   g) case-statements-join
+//   h) [ case-statements ] -> exit-join
+//   i) exit-target -> exit-join
+//   j) exit-join
+//
+// Note: The specification of switch/case is under discussion and may change
+// drastically.
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
-  Bailout("EffectGraphVisitor::VisitCaseNode");
+  const intptr_t len = node->case_expressions()->length();
+  // Create case statements instructions.
+  const bool needs_join_at_statement_entry =
+      (len > 1) || ((len > 0) && (node->contains_default()));
+  EffectGraphVisitor for_case_statements(owner(), temp_index());
+  // Compute start of statements fragment.
+  BlockEntryInstr* statement_start = NULL;
+  if ((node->label() != NULL) && (node->label()->is_continue_target())) {
+    // Since a labeled jump continue statement occur in a different case node,
+    // allocate JoinNode here and use it as statement start.
+    if (node->label()->join_for_continue() == NULL) {
+      node->label()->set_join_for_continue(new JoinEntryInstr());
+    }
+    statement_start = node->label()->join_for_continue();
+  } else if (needs_join_at_statement_entry) {
+    statement_start = new JoinEntryInstr();
+  } else {
+    statement_start = new TargetEntryInstr();
+  }
+  for_case_statements.AddInstruction(statement_start);
+  node->statements()->Visit(&for_case_statements);
+  if (is_open() && (len == 0)) {
+    ASSERT(node->contains_default());
+    // Default only case node.
+    Append(for_case_statements);
+    return;
+  }
+
+  // Generate instructions for all case expressions and collect data to
+  // connect them.
+  GrowableArray<TargetEntryInstr**> case_true_addresses;
+  GrowableArray<TargetEntryInstr**> case_false_addresses;
+  GrowableArray<TargetEntryInstr*> case_entries;
+  for (intptr_t i = 0; i < len; i++) {
+    AstNode* case_expr = node->case_expressions()->NodeAt(i);
+    TestGraphVisitor for_case_expression(owner(), temp_index());
+    if (i == 0) {
+      case_entries.Add(NULL);  // Not to be used
+      case_expr->Visit(&for_case_expression);
+      // Append only the first one, everything else is connected from it.
+      Append(for_case_expression);
+    } else {
+      TargetEntryInstr* case_entry_target = new TargetEntryInstr();
+      case_entries.Add(case_entry_target);
+      for_case_expression.AddInstruction(case_entry_target);
+      case_expr->Visit(&for_case_expression);
+    }
+    case_true_addresses.Add(for_case_expression.true_successor_address());
+    case_false_addresses.Add(for_case_expression.false_successor_address());
+  }
+
+  // Once a test fragment has been added, this fragment is closed.
+  ASSERT(!is_open());
+
+  // Connect all test cases except the last one.
+  for (intptr_t i = 0; i < (len - 1); i++) {
+    ASSERT(needs_join_at_statement_entry);
+    *case_false_addresses[i] = case_entries[i + 1];
+    TargetEntryInstr* true_target = new TargetEntryInstr();
+    *case_true_addresses[i] = true_target;
+    true_target->SetSuccessor(statement_start);
+  }
+
+  BlockEntryInstr* exit_instruction = NULL;
+  // Handle last (or only) case: false goes to exit or to statement if this
+  // node contains default.
+  if (len > 0) {
+    if (statement_start->IsTargetEntry()) {
+      *case_true_addresses[len - 1] = statement_start->AsTargetEntry();
+    } else {
+      TargetEntryInstr* true_target = new TargetEntryInstr();
+      *case_true_addresses[len - 1] = true_target;
+      true_target->SetSuccessor(statement_start);
+    }
+    TargetEntryInstr* false_target = new TargetEntryInstr();
+    *case_false_addresses[len - 1] = false_target;
+    if (node->contains_default()) {
+      // True and false go to statement start.
+      false_target->SetSuccessor(statement_start);
+      if (for_case_statements.is_open()) {
+        exit_instruction = new TargetEntryInstr();
+        for_case_statements.exit()->SetSuccessor(exit_instruction);
+      }
+    } else {
+      if (for_case_statements.is_open()) {
+        exit_instruction = new JoinEntryInstr();
+        for_case_statements.exit()->SetSuccessor(exit_instruction);
+      } else {
+        exit_instruction = new TargetEntryInstr();
+      }
+      false_target->SetSuccessor(exit_instruction);
+    }
+  } else {
+    // A CaseNode without case expressions must contain default.
+    ASSERT(node->contains_default());
+    AddInstruction(statement_start);
+  }
+
+  ASSERT(!is_open());
+  exit_ = exit_instruction;
 }
 
 
@@ -981,11 +1187,14 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Class& cls = Class::Handle(function.signature_class());
   ASSERT(!cls.IsNull());
   const bool requires_type_arguments = cls.HasTypeArguments();
+  Value* type_arguments = NULL;
   if (requires_type_arguments) {
-    Bailout("Closure creation requiring type arguments");
+    ASSERT(!function.IsImplicitStaticClosureFunction());
+    type_arguments =
+        BuildInstantiatorTypeArguments(node->token_index(), temp_index());
   }
 
-  CreateClosureComp* create = new CreateClosureComp(node);
+  CreateClosureComp* create = new CreateClosureComp(node, type_arguments);
   ReturnComputation(create);
 }
 
@@ -1058,7 +1267,12 @@ void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  Bailout("EffectGraphVisitor::VisitCloneContextNode");
+  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
+  TempVal* ctx = new TempVal(temp_index());
+  AddInstruction(new BindInstr(temp_index(),
+                 new CloneContextComp(node->id(), node->token_index(), ctx)));
+  TempVal* cloned_ctx = new TempVal(temp_index());
+  ReturnComputation(new StoreContextComp(cloned_ctx));
 }
 
 
@@ -1867,7 +2081,12 @@ void FlowGraphPrinter::VisitCreateArray(CreateArrayComp* comp) {
 
 
 void FlowGraphPrinter::VisitCreateClosure(CreateClosureComp* comp) {
-  OS::Print("CreateClosure(%s)", comp->function().ToCString());
+  OS::Print("CreateClosure(%s", comp->function().ToCString());
+  if (comp->type_arguments() != NULL) {
+    OS::Print(", ");
+    comp->type_arguments()->Accept(this);
+  }
+  OS::Print(")");
 }
 
 
@@ -1911,6 +2130,13 @@ void FlowGraphPrinter::VisitAllocateContext(AllocateContextComp* comp) {
 
 void FlowGraphPrinter::VisitChainContext(ChainContextComp* comp) {
   OS::Print("ChainContext(");
+  comp->context_value()->Accept(this);
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitCloneContext(CloneContextComp* comp) {
+  OS::Print("CloneContext(");
   comp->context_value()->Accept(this);
   OS::Print(")");
 }

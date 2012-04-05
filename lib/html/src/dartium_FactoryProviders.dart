@@ -90,25 +90,25 @@ class _TypedArrayFactoryProvider {
   static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
   static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
 
-  static Float32Array _F32_2(arg1, arg2) => _wrap(new dom.Float32Array(arg1, arg2));
-  static Float64Array _F64_2(arg1, arg2) => _wrap(new dom.Float64Array(arg1, arg2));
-  static Int8Array _I8_2(arg1, arg2) => _wrap(new dom.Int8Array(arg1, arg2));
-  static Int16Array _I16_2(arg1, arg2) => _wrap(new dom.Int16Array(arg1, arg2));
-  static Int32Array _I32_2(arg1, arg2) => _wrap(new dom.Int32Array(arg1, arg2));
-  static Uint8Array _U8_2(arg1, arg2) => _wrap(new dom.Uint8Array(arg1, arg2));
-  static Uint16Array _U16_2(arg1, arg2) => _wrap(new dom.Uint16Array(arg1, arg2));
-  static Uint32Array _U32_2(arg1, arg2) => _wrap(new dom.Uint32Array(arg1, arg2));
-  static Uint8ClampedArray _U8C_2(arg1, arg2) => _wrap(new dom.Uint8ClampedArray(arg1, arg2));
+  static Float32Array _F32_2(buffer, byteOffset) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Float64Array _F64_2(buffer, byteOffset) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Int8Array _I8_2(buffer, byteOffset) => _wrap(new dom.Int8Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Int16Array _I16_2(buffer, byteOffset) => _wrap(new dom.Int16Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Int32Array _I32_2(buffer, byteOffset) => _wrap(new dom.Int32Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Uint8Array _U8_2(buffer, byteOffset) => _wrap(new dom.Uint8Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Uint16Array _U16_2(buffer, byteOffset) => _wrap(new dom.Uint16Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Uint32Array _U32_2(buffer, byteOffset) => _wrap(new dom.Uint32Array.fromBuffer(_unwrap(buffer), byteOffset));
+  static Uint8ClampedArray _U8C_2(buffer, byteOffset) => _wrap(new dom.Uint8ClampedArray.fromBuffer(_unwrap(buffer), byteOffset));
 
-  static Float32Array _F32_3(arg1, arg2, arg3) => _wrap(new dom.Float32Array(arg1, arg2, arg3));
-  static Float64Array _F64_3(arg1, arg2, arg3) => _wrap(new dom.Float64Array(arg1, arg2, arg3));
-  static Int8Array _I8_3(arg1, arg2, arg3) => _wrap(new dom.Int8Array(arg1, arg2, arg3));
-  static Int16Array _I16_3(arg1, arg2, arg3) => _wrap(new dom.Int16Array(arg1, arg2, arg3));
-  static Int32Array _I32_3(arg1, arg2, arg3) => _wrap(new dom.Int32Array(arg1, arg2, arg3));
-  static Uint8Array _U8_3(arg1, arg2, arg3) => _wrap(new dom.Uint8Array(arg1, arg2, arg3));
-  static Uint16Array _U16_3(arg1, arg2, arg3) => _wrap(new dom.Uint16Array(arg1, arg2, arg3));
-  static Uint32Array _U32_3(arg1, arg2, arg3) => _wrap(new dom.Uint32Array(arg1, arg2, arg3));
-  static Uint8ClampedArray _U8C_3(arg1, arg2, arg3) => _wrap(new dom.Uint8ClampedArray(arg1, arg2, arg3));
+  static Float32Array _F32_3(buffer, byteOffset, length) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Float64Array _F64_3(buffer, byteOffset, length) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Int8Array _I8_3(buffer, byteOffset, length) => _wrap(new dom.Int8Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Int16Array _I16_3(buffer, byteOffset, length) => _wrap(new dom.Int16Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Int32Array _I32_3(buffer, byteOffset, length) => _wrap(new dom.Int32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Uint8Array _U8_3(buffer, byteOffset, length) => _wrap(new dom.Uint8Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Uint16Array _U16_3(buffer, byteOffset, length) => _wrap(new dom.Uint16Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Uint32Array _U32_3(buffer, byteOffset, length) => _wrap(new dom.Uint32Array.fromBuffer(_unwrap(buffer), byteOffset, length));
+  static Uint8ClampedArray _U8C_3(buffer, byteOffset, length) => _wrap(new dom.Uint8ClampedArray.fromBuffer(_unwrap(buffer), byteOffset, length));
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }

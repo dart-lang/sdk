@@ -1114,6 +1114,9 @@ class JumpNode : public AstNode {
       inlined_finally_list_(NULL) {
     ASSERT(label_ != NULL);
     ASSERT(kind_ == Token::kBREAK || kind_ == Token::kCONTINUE);
+    if (kind_ == Token::kCONTINUE) {
+      label_->set_is_continue_target(true);
+    }
   }
 
   SourceLabel* label() const { return label_; }

@@ -55,6 +55,7 @@ class LocalVariable;
   M(ExtractConstructorInstantiator, ExtractConstructorInstantiatorComp)        \
   M(AllocateContext, AllocateContextComp)                                      \
   M(ChainContext, ChainContextComp)                                            \
+  M(CloneContext, CloneContextComp)                                            \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -650,15 +651,19 @@ class CreateArrayComp : public Computation {
 
 class CreateClosureComp : public Computation {
  public:
-  explicit CreateClosureComp(ClosureNode* node) : ast_node_(*node) { }
+  // 'type_arguments' is null if function() does not require type arguments.
+  CreateClosureComp(ClosureNode* node, Value* type_arguments)
+      : ast_node_(*node), type_arguments_(type_arguments) { }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
   const Function& function() const { return ast_node_.function(); }
+  Value* type_arguments() const { return type_arguments_; }
 
  private:
   const ClosureNode& ast_node_;
+  Value* type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
@@ -801,6 +806,32 @@ class ChainContextComp : public Computation {
   Value* context_value_;
 
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
+};
+
+
+class CloneContextComp : public Computation {
+ public:
+  CloneContextComp(intptr_t node_id,
+                   intptr_t token_index,
+                   Value* context_value)
+      : node_id_(node_id),
+        token_index_(token_index),
+        context_value_(context_value) {
+    ASSERT(context_value_ != NULL);
+  }
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  Value* context_value() const { return context_value_; }
+
+  DECLARE_COMPUTATION(CloneContext)
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  Value* context_value_;
+
+  DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
 };
 
 
