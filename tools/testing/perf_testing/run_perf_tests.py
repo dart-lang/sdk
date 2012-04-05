@@ -235,6 +235,8 @@ def upload_to_app_engine(username, password, suite_names):
   shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
   shutil.copyfile('index.html', os.path.join('appengine', 'static',
       'index.html'))
+  shutil.copyfile('dromaeo.html', os.path.join('appengine', 'static',
+      'dromaeo.html'))
   shutil.copyfile('data.html', os.path.join('appengine', 'static',
       'data.html'))
   p = subprocess.Popen([os.path.join('..', '..', '..', 'third_party',
