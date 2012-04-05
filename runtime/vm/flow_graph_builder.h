@@ -157,6 +157,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
+  TempVal* BuildObjectAllocation(ConstructorCallNode* node,
+                                 int start_index);
+  void BuildConstructorCall(ConstructorCallNode* node,
+                            int start_index,
+                            Value* alloc_value);
+
  private:
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.

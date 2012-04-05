@@ -1276,6 +1276,43 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 }
 
 
+TempVal* EffectGraphVisitor::BuildObjectAllocation(ConstructorCallNode* node,
+                                                   int start_index) {
+  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  const bool requires_type_arguments = cls.HasTypeArguments();
+
+  ZoneGrowableArray<Value*>* allocate_arguments =
+      new ZoneGrowableArray<Value*>();
+  if (requires_type_arguments) {
+    BuildConstructorTypeArguments(node, start_index, allocate_arguments);
+  }
+  AllocateObjectComp* alloc_comp =
+      new AllocateObjectComp(node, allocate_arguments);
+  AddInstruction(new BindInstr(start_index, alloc_comp));
+  return new TempVal(start_index);
+}
+
+
+void EffectGraphVisitor::BuildConstructorCall(ConstructorCallNode* node,
+                                              int start_index,
+                                              Value* alloc_value) {
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
+  values->Add(alloc_value);
+  const Smi& ctor_arg = Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll));
+  TempVal* ctor_arg_value = new TempVal(start_index);
+  AddInstruction(
+      new BindInstr(ctor_arg_value->index(), new ConstantVal(ctor_arg)));
+  values->Add(ctor_arg_value);
+  TranslateArgumentList(*node->arguments(), start_index + 1, values);
+  StaticCallComp* call =
+      new StaticCallComp(node->token_index(),
+                         node->constructor(),
+                         node->arguments()->names(),
+                         values);
+  AddInstruction(new DoInstr(call));
+}
+
+
 void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     ZoneGrowableArray<Value*>* factory_arguments =
@@ -1293,7 +1330,14 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     ReturnComputation(call);
     return;
   }
-  Bailout("EffectGraphVisitor::VisitConstructorCallNode");
+  // t_n contains the allocated and initialized object.
+  //   t_n      <- AllocateObject(class)
+  //   t_n+1    <- ctor-arg
+  //   t_n+2... <- constructor arguments start here
+  //   StaticCall(constructor, t_n+1, t_n+2, ...)
+  // No need to preserve allocated value (simpler than in ValueGraphVisitor).
+  TempVal* alloc_value = BuildObjectAllocation(node, temp_index());
+  BuildConstructorCall(node, alloc_value->index() + 1, alloc_value);
 }
 
 
@@ -1411,14 +1455,6 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     return;
   }
 
-  const Class& cls = Class::ZoneHandle(node->constructor().owner());
-  const bool requires_type_arguments = cls.HasTypeArguments();
-
-  ZoneGrowableArray<Value*>* allocate_arguments =
-      new ZoneGrowableArray<Value*>();
-  if (requires_type_arguments) {
-    BuildConstructorTypeArguments(node, temp_index(), allocate_arguments);
-  }
   // t_n contains the allocated and initialized object.
   //   t_n      <- AllocateObject(class)
   //   t_n+1    <- Pick(t_n)
@@ -1426,29 +1462,14 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   t_n+3... <- constructor arguments start here
   //   StaticCall(constructor, t_n+1, t_n+2, ...)
 
-  AllocateObjectComp* alloc_comp =
-      new AllocateObjectComp(node, allocate_arguments);
-  AddInstruction(new BindInstr(temp_index(), alloc_comp));
+  TempVal* alloc_value = BuildObjectAllocation(node, temp_index());
   intptr_t result_index = AllocateTempIndex();
-  TempVal* alloc_value = new TempVal(result_index);
+
   TempVal* dup_alloc_value = new TempVal(result_index + 1);
-  TempVal* ctor_arg_value = new TempVal(result_index + 2);
   AddInstruction(
       new PickTempInstr(dup_alloc_value->index(), alloc_value->index()));
 
-  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
-  values->Add(dup_alloc_value);
-  const Smi& ctor_arg = Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll));
-  AddInstruction(
-      new BindInstr(ctor_arg_value->index(), new ConstantVal(ctor_arg)));
-  values->Add(ctor_arg_value);
-  TranslateArgumentList(*node->arguments(), result_index + 3, values);
-  StaticCallComp* call =
-      new StaticCallComp(node->token_index(),
-                         node->constructor(),
-                         node->arguments()->names(),
-                         values);
-  AddInstruction(new DoInstr(call));
+  BuildConstructorCall(node, dup_alloc_value->index() + 1, dup_alloc_value);
   ReturnValue(alloc_value);
 }
 
@@ -1522,7 +1543,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
 
 
 void EffectGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
-  Bailout("EffectGraphVisitor::VisitPrimaryNode");
+  // PrimaryNodes are temporary during parsing.
+  UNREACHABLE();
 }
 
 
@@ -1790,18 +1812,23 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
+  // No continue on sequence allowed.
+  ASSERT((node->label() == NULL) ||
+         (node->label()->join_for_continue() == NULL));
   // If this node sequence is labeled, a break out of the sequence will have
   // taken care of unchaining the context.
   if ((node->label() != NULL) &&
-      ((node->label()->join_for_break() != NULL) ||
-      (node->label()->join_for_continue() != NULL))) {
-    Bailout("Jump in SequenceNode");
+      (node->label()->join_for_break() != NULL)) {
+    if (is_open()) {
+      AddInstruction(node->label()->join_for_break());
+    } else {
+      exit_ = node->label()->join_for_break();
+    }
   }
 
-  if (node->label() != NULL) {
-    // TODO(srdjan): Check that the break label is bound? Is this a jump?
-    Bailout("VisitSequenceNode bind break and unchain CTX");
-  }
+  // The outermost function sequence cannot contain a label.
+  ASSERT((node->label() == NULL) ||
+         (node != owner()->parsed_function().node_sequence()));
   owner()->set_context_level(previous_context_level);
 }
 

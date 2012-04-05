@@ -902,12 +902,8 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   // taken care of unchaining the context.
   if (node_sequence->label() != NULL) {
     __ Bind(node_sequence->label()->break_label());
-
-    // The context saved on entry must be restored.
-    if ((node_sequence == parsed_function_.node_sequence()) &&
-        (parsed_function_.saved_context_var() != NULL)) {
-      GenerateLoadVariable(CTX, *parsed_function_.saved_context_var());
-    }
+    // Outermost sequence cannot have a label.
+    ASSERT(node_sequence != parsed_function_.node_sequence());
   }
   set_context_level(previous_context_level);
 }
