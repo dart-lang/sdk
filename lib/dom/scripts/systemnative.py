@@ -46,7 +46,7 @@ class NativeImplementationSystem(System):
     cpp_impl_path = self._FilePathForCppImplementation(interface_name)
     self._cpp_impl_files.append(cpp_impl_path)
 
-    return NativeImplementationGenerator(self, interface, super_interface_name,
+    return NativeImplementationGenerator(self, interface,
         self._emitters.FileEmitter(dart_impl_path),
         self._emitters.FileEmitter(cpp_header_path),
         self._emitters.FileEmitter(cpp_impl_path),
@@ -195,7 +195,7 @@ class NativeImplementationSystem(System):
 class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, system, interface, super_interface,
+  def __init__(self, system, interface,
                dart_impl_emitter, cpp_header_emitter, cpp_impl_emitter,
                base_members, templates):
     """Generates Dart and C++ code for the given interface.
@@ -205,8 +205,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       interface: an IDLInterface instance. It is assumed that all types have
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
-      super_interface: A string or None, the name of the common interface that
-         this interface implements, if any.
       dart_impl_emitter: an Emitter for the file containing the Dart
          implementation class.
       cpp_header_emitter: an Emitter for the file containing the C++ header.
@@ -217,7 +215,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     """
     self._system = system
     self._interface = interface
-    self._super_interface = super_interface
     self._dart_impl_emitter = dart_impl_emitter
     self._cpp_header_emitter = cpp_header_emitter
     self._cpp_impl_emitter = cpp_impl_emitter
@@ -390,13 +387,16 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         INTERFACE=self._interface.id,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
+
+    wrapper_type = _DOMWrapperType(self._system._database, self._interface)
     self._cpp_header_emitter.Emit(
         self._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         TO_DART_VALUE=to_dart_value_emitter.Fragments(),
-        DECLARATIONS=self._cpp_declarations_emitter.Fragments())
+        DECLARATIONS=self._cpp_declarations_emitter.Fragments(),
+        NATIVE_TRAITS_TYPE='DartDOMWrapper::%sTraits' % wrapper_type)
 
   def _GenerateCallWithHandling(self, node, parameter_definitions_emitter, arguments):
     if 'CallWith' not in node.ext_attrs:
@@ -838,3 +838,19 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in includes])
+
+def _DOMWrapperType(database, interface):
+  if _InstanceOfNode(database, interface):
+    return 'DOMNode'
+  return 'DOMObject'
+
+def _InstanceOfNode(database, interface):
+  if interface.id == 'Node':
+    return True
+  for parent in interface.parents:
+    if not database.HasInterface(parent.type.id):
+      continue
+    parent_interface = database.GetInterface(parent.type.id)
+    if _InstanceOfNode(database, parent_interface):
+      return True
+  return False
