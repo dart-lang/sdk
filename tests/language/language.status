@@ -18,7 +18,7 @@
 [ $compiler == none ]
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
-FBoundedQuantificationTest: Skip # Issue 439
+FBoundedQuantificationTest: Fail # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
 FieldOverrideTest/02: Fail    # Issue 742: field shadowing now allowed

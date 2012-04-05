@@ -790,6 +790,7 @@ class AbstractType : public Object {
   virtual intptr_t token_index() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other) const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -896,11 +897,13 @@ class Type : public AbstractType {
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
+  RawString* TypeClassName() const;
   virtual RawAbstractTypeArguments* arguments() const;
   void set_arguments(const AbstractTypeArguments& value) const;
   virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
@@ -986,6 +989,7 @@ class TypeParameter : public AbstractType {
   virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
@@ -1066,6 +1070,11 @@ class AbstractTypeArguments : public Object {
   static bool AreEqual(const AbstractTypeArguments& arguments,
                        const AbstractTypeArguments& other_arguments);
 
+  // Returns true if both arguments represent vectors of possibly still
+  // unresolved identical types.
+  static bool AreIdentical(const AbstractTypeArguments& arguments,
+                           const AbstractTypeArguments& other_arguments);
+
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
@@ -1135,11 +1144,6 @@ class AbstractTypeArguments : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public AbstractTypeArguments {
  public:
-  // Returns true if both arguments represent identical vectors of type
-  // parameters, in number and names (but the type class may be different).
-  static bool AreIdenticalTypeParameters(const TypeArguments& arguments,
-                                         const TypeArguments& other_arguments);
-
   virtual intptr_t Length() const;
   virtual RawAbstractType* TypeAt(intptr_t index) const;
   static intptr_t type_at_offset(intptr_t index) {

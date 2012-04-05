@@ -57,7 +57,7 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
       }
       ResolveSuperType(cls);
       if (cls.is_interface()) {
-        ResolveDefaultClass(cls);
+        ResolveFactoryClass(cls);
       }
     }
     // Finalize all classes.
@@ -339,7 +339,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
 }
 
 
-void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
+void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
   ASSERT(interface.is_interface());
   if (interface.is_finalized() ||
       !interface.HasFactoryClass() ||
@@ -369,7 +369,8 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
                 factory_name.ToCString());
   }
   interface.set_factory_class(factory_class);
-  ResolveAndFinalizeUpperBounds(factory_class);
+  // It is not necessary to finalize the bounds before comparing them between
+  // the expected and actual factory class.
   const Class& factory_signature_class = Class::Handle(
       unresolved_factory_class.factory_signature_class());
   ASSERT(!factory_signature_class.IsNull());
@@ -377,7 +378,6 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   // can be omitted), verify that it matches the list of type parameters of
   // the factory class in number, names, and bounds.
   if (factory_signature_class.NumTypeParameters() > 0) {
-    ResolveAndFinalizeUpperBounds(factory_signature_class);
     const TypeArguments& expected_type_parameters =
         TypeArguments::Handle(factory_signature_class.type_parameters());
     const TypeArguments& actual_type_parameters =
@@ -386,10 +386,10 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
         TypeArguments::Handle(factory_signature_class.type_parameter_bounds());
     const TypeArguments& actual_type_parameter_bounds =
         TypeArguments::Handle(factory_class.type_parameter_bounds());
-    if (!TypeArguments::AreIdenticalTypeParameters(expected_type_parameters,
-                                                   actual_type_parameters) ||
-        !AbstractTypeArguments::AreEqual(expected_type_parameter_bounds,
-                                         actual_type_parameter_bounds)) {
+    if (!AbstractTypeArguments::AreIdentical(expected_type_parameters,
+                                             actual_type_parameters) ||
+        !AbstractTypeArguments::AreIdentical(expected_type_parameter_bounds,
+                                             actual_type_parameter_bounds)) {
       const String& interface_name = String::Handle(interface.Name());
       const String& factory_name = String::Handle(factory_class.Name());
       const Script& script = Script::Handle(interface.script());
@@ -407,8 +407,8 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
       TypeArguments::Handle(interface.type_parameters());
   const TypeArguments& factory_type_parameters =
       TypeArguments::Handle(factory_class.type_parameters());
-  if (!TypeArguments::AreIdenticalTypeParameters(interface_type_parameters,
-                                                 factory_type_parameters)) {
+  if (!AbstractTypeArguments::AreIdentical(interface_type_parameters,
+                                           factory_type_parameters)) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());

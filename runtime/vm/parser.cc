@@ -2910,12 +2910,9 @@ void Parser::ParseInterfaceDefinition(
     // can be omitted), verify that it matches the list of type parameters of
     // the interface in number and names.
     if (factory_class.NumTypeParameters() > 0) {
-      const TypeArguments& interface_type_parameters =
-          TypeArguments::Handle(interface.type_parameters());
-      const TypeArguments& factory_type_parameters =
-          TypeArguments::Handle(factory_class.type_parameters());
-      if (!TypeArguments::AreIdenticalTypeParameters(interface_type_parameters,
-                                                     factory_type_parameters)) {
+      if (!AbstractTypeArguments::AreIdentical(
+          AbstractTypeArguments::Handle(interface.type_parameters()),
+          AbstractTypeArguments::Handle(factory_class.type_parameters()))) {
         const String& interface_name = String::Handle(interface.Name());
         ErrorMsg(factory_name.ident_pos,
                  "mismatch in number or names of type parameters between "

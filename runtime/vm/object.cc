@@ -2004,6 +2004,13 @@ bool AbstractType::Equals(const AbstractType& other) const {
 }
 
 
+bool AbstractType::IsIdentical(const AbstractType& other) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawAbstractType* AbstractType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractType is an abstract class.
@@ -2309,6 +2316,17 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
+RawString* Type::TypeClassName() const {
+  if (HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(type_class());
+    return cls.Name();
+  } else {
+    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
+    return cls.Name();
+  }
+}
+
+
 RawAbstractTypeArguments* Type::arguments() const {
   return raw_ptr()->arguments_;
 }
@@ -2347,12 +2365,33 @@ bool Type::Equals(const AbstractType& other) const {
   if (IsMalformed() || !other.IsType() || other.IsMalformed()) {
     return false;
   }
-  Type& other_parameterized_type = Type::Handle();
-  other_parameterized_type ^= other.raw();
-  if (type_class() != other_parameterized_type.type_class()) {
+  Type& other_type = Type::Handle();
+  other_type ^= other.raw();
+  if (type_class() != other_type.type_class()) {
     return false;
   }
   return AbstractTypeArguments::AreEqual(
+      AbstractTypeArguments::Handle(arguments()),
+      AbstractTypeArguments::Handle(other.arguments()));
+}
+
+
+bool Type::IsIdentical(const AbstractType& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsType()) {
+    return false;
+  }
+  Type& other_type = Type::Handle();
+  other_type ^= other.raw();
+  // Both type classes may not be resolved yet.
+  String& name = String::Handle(TypeClassName());
+  String& other_name = String::Handle(other_type.TypeClassName());
+  if (!name.Equals(other_name)) {
+    return false;
+  }
+  return AbstractTypeArguments::AreIdentical(
       AbstractTypeArguments::Handle(arguments()),
       AbstractTypeArguments::Handle(other.arguments()));
 }
@@ -2512,6 +2551,23 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   const String& name = String::Handle(Name());
   const String& other_type_param_name = String::Handle(other_type_param.Name());
   return name.Equals(other_type_param_name);
+}
+
+
+bool TypeParameter::IsIdentical(const AbstractType& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsTypeParameter()) {
+    return false;
+  }
+  TypeParameter& other_type_param = TypeParameter::Handle();
+  other_type_param ^= other.raw();
+  // Both type parameters may have different type_class and their index may be
+  // different after finalization, which is OK. Do not check.
+  String& name = String::Handle(Name());
+  String& other_name = String::Handle(other_type_param.Name());
+  return name.Equals(other_name);
 }
 
 
@@ -2756,6 +2812,33 @@ bool AbstractTypeArguments::AreEqual(
 }
 
 
+bool AbstractTypeArguments::AreIdentical(
+    const AbstractTypeArguments& arguments,
+    const AbstractTypeArguments& other_arguments) {
+  if (arguments.raw() == other_arguments.raw()) {
+    return true;
+  }
+  if (arguments.IsNull() || other_arguments.IsNull()) {
+    return false;
+  }
+  intptr_t num_types = arguments.Length();
+  if (num_types != other_arguments.Length()) {
+    return false;
+  }
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& other_type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type ^= arguments.TypeAt(i);
+    ASSERT(!type.IsNull());
+    other_type ^= other_arguments.TypeAt(i);
+    if (!type.IsIdentical(other_type)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractTypeArguments is an abstract class.
@@ -2977,41 +3060,6 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
     instantiated_array.SetTypeAt(i, type);
   }
   return instantiated_array.raw();
-}
-
-
-bool TypeArguments::AreIdenticalTypeParameters(
-    const TypeArguments& arguments,
-    const TypeArguments& other_arguments) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull() || other_arguments.IsNull()) {
-    return false;
-  }
-  intptr_t num_types = arguments.Length();
-  if (num_types != other_arguments.Length()) {
-    return false;
-  }
-  TypeParameter& type = TypeParameter::Handle();
-  TypeParameter& other_type = TypeParameter::Handle();
-  String& name = String::Handle();
-  String& other_name = String::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type ^= arguments.TypeAt(i);
-    other_type ^= other_arguments.TypeAt(i);
-    if (type.raw() == other_type.raw()) {
-      continue;
-    }
-    // Both type parameters may have different type_class and their index may be
-    // different after finalization, which is OK. Do not check.
-    name = type.Name();
-    other_name = other_type.Name();
-    if (!name.Equals(other_name)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
