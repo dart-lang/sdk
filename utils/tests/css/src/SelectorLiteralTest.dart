@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../css/css.dart");
+#import("../../../css/css.dart");
 
 class SelectorLiteralTest {
   static final String ERROR = 'CompilerException: <buffer>:';
@@ -136,7 +136,7 @@ class SelectorLiteralTest {
           e.toString());
     }
 
-    // class and element id not allowed together.
+    // class and element id not allowed together. 
     css = '@{.foobar foo|div}';
     try {
       cssParseAndValidate('${css}', cssWorld);
@@ -146,7 +146,7 @@ class SelectorLiteralTest {
           e.toString());
     }
 
-    // Element id and namespace not allowed together.
+    // Element id and namespace not allowed together. 
     css = '@{#id1 foo|div}';
     try {
       cssParseAndValidate('${css}', cssWorld);
@@ -156,7 +156,7 @@ class SelectorLiteralTest {
           e.toString());
     }
 
-    // namespace and element id not allowed together.
+    // namespace and element id not allowed together. 
     css = '@{foo|div #id1}';
     try {
       cssParseAndValidate('${css}', cssWorld);
