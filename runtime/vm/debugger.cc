@@ -737,9 +737,23 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
 
 RawObject* Debugger::GetStaticField(const Class& cls,
                                     const String& field_name) {
+  const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
+  if (!fld.IsNull()) {
+    // Return the value in the field if it has been initialized already.
+    const Instance& value = Instance::Handle(fld.value());
+    ASSERT(value.raw() != Object::transition_sentinel());
+    if (value.raw() != Object::sentinel()) {
+      return value.raw();
+    }
+  }
+  // There is no field or the field has not been initialized yet.
+  // We must have a getter. Run the getter.
   const Function& getter_func =
       Function::Handle(cls.LookupGetterFunction(field_name));
   ASSERT(!getter_func.IsNull());
+  if (getter_func.IsNull()) {
+    return Object::null();
+  }
 
   Object& result = Object::Handle();
   LongJump* base = isolate_->long_jump_base();
