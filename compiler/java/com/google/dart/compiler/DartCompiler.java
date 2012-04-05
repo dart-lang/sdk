@@ -242,15 +242,13 @@ public class DartCompiler {
           Set<String> newUnitPaths = Sets.newHashSet();
 
           // Parse each compilation unit.
-          for (LibraryNode libNode : lib.getSourcePaths()) {
-            String relPath = libNode.getText();
+          for (LibraryNode sourcePathNode : lib.getSourcePaths()) {
+            String relPath = sourcePathNode.getText();
             newUnitPaths.add(relPath);
 
             // Prepare DartSource for "#source" unit.
             final DartSource dartSrc = libSrc.getSourceFor(relPath);
             if (dartSrc == null || !dartSrc.exists()) {
-              // Dart Editor needs to have all missing files reported as compilation errors.
-              reportMissingSource(context, libSrc, libNode);
               continue;
             }
 
@@ -258,20 +256,28 @@ public class DartCompiler {
                 || SystemLibraryManager.isDartUri(libSrc.getUri())
                 || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
-
-              // If we just parsed unit of library, report problems with its "#import" declarations.
-              if (libNode == selfSourcePath) {
+              // If we just parsed unit of library, report problems.
+              if (sourcePathNode == selfSourcePath) {
+                // report "#import" problems
                 for (LibraryNode importPathNode : lib.getImportPaths()) {
                   LibrarySource dep = getImportSource(libSrc, importPathNode);
                   if (dep == null) {
                     reportMissingSource(context, libSrc, importPathNode);
                   }
                 }
+                // report "#source" problems
+                for (LibraryNode checkSourcePathNode : lib.getSourcePaths()) {
+                  String checkRelPath = checkSourcePathNode.getText();
+                  final DartSource checkSource = libSrc.getSourceFor(checkRelPath);
+                  if (checkSource == null || !checkSource.exists()) {
+                    reportMissingSource(context, libSrc, checkSourcePathNode);
+                  }
+                }
               }
 
               // Process unit, if exists.
               if (unit != null) {
-                if (libNode == selfSourcePath) {
+                if (sourcePathNode == selfSourcePath) {
                   lib.setSelfDartUnit(unit);
                 }
                 // Replace unit within the library.
@@ -293,7 +299,7 @@ public class DartCompiler {
             } else {
               DartUnit dietUnit = parse(dartSrc, lib.getPrefixes(), true);
               if (dietUnit != null) {
-                if (libNode == selfSourcePath) {
+                if (sourcePathNode == selfSourcePath) {
                   lib.setSelfDartUnit(dietUnit);
                 }
                 lib.putUnit(dietUnit);

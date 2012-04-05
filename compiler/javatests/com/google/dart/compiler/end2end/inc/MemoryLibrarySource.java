@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
@@ -21,13 +21,11 @@ import java.util.Map;
  */
 public class MemoryLibrarySource implements LibrarySource {
   private final String libName;
-  private final String libContent;
   private final Map<String, String> sourceContentMap = Maps.newHashMap();
   private final Map<String, Long> sourceLastModifiedMap = Maps.newHashMap();
 
-  public MemoryLibrarySource(String libName, String libContent) throws URISyntaxException {
+  public MemoryLibrarySource(String libName) throws URISyntaxException {
     this.libName = libName;
-    this.libContent = libContent;
   }
 
   @Override
@@ -49,15 +47,16 @@ public class MemoryLibrarySource implements LibrarySource {
   public URI getUri() {
     return URI.create(libName);
   }
-  
+
   @Override
   public long getLastModified() {
-    return 0;
+    return sourceLastModifiedMap.get(libName);
   }
-  
+
   @Override
   public Reader getSourceReader() throws IOException {
-    return new StringReader(libContent);
+    String content = sourceContentMap.get(libName);
+    return new StringReader(content);
   }
 
   @Override
@@ -68,15 +67,8 @@ public class MemoryLibrarySource implements LibrarySource {
 
   @Override
   public DartSource getSourceFor(final String relPath) {
-    final String content;
-    final Long sourceLastModified;
-    if (sourceContentMap.containsKey(relPath)) {
-      content = sourceContentMap.get(relPath);
-      sourceLastModified = sourceLastModifiedMap.get(relPath);
-    } else {
-      content = "";
-      sourceLastModified = Long.valueOf(0);
-    }
+    final String content = sourceContentMap.get(relPath);
+    final Long sourceLastModified = sourceLastModifiedMap.get(relPath);
     // Return fake UrlDateSource with in-memory content.
     URI uri = URI.create(relPath);
     return new UrlDartSource(uri, relPath, this) {
@@ -87,7 +79,7 @@ public class MemoryLibrarySource implements LibrarySource {
 
       @Override
       public boolean exists() {
-        return true;
+        return content != null;
       }
 
       @Override
