@@ -6,12 +6,6 @@
 <project default="dist">
   <import file="sources.xml"/>
   <import file="test_sources.xml"/>
-  <import file="corelib_sources.xml"/>
-  <import file="compiler_corelib_sources.xml"/>
-  <import file="domlib_sources.xml"/>
-  <import file="htmllib_sources.xml"/>
-  <import file="jsonlib_sources.xml"/>
-  <import file="isolatelib_sources.xml"/>
 
   <!--
     The file build.properties does not exist. If provided, properties can be customized.
@@ -137,7 +131,7 @@
 
     <copy file="scripts/dartc.sh" tofile="${dist.dir}/bin/dartc">
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:$DARTC_LIBS/isolatelib.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${dist.dir}/bin/dartc" perm="a+rx"/>
@@ -151,7 +145,7 @@
         <include name="dartc_metrics.sh"/>
       </fileset>
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/corelib.jar:$DARTC_LIBS/domlib.jar:$DARTC_LIBS/htmllib.jar:$DARTC_LIBS/jsonlib.jar:$DARTC_LIBS/isolatelib.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${build.dir}/dartc_run.sh" perm="a+rx"/>
