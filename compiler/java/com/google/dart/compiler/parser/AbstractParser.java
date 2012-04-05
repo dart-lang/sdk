@@ -6,6 +6,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.parser.DartScanner.Location;
 
 /**
  * Abstract base class for sharing common utility methods between implementation
@@ -106,6 +107,23 @@ abstract class AbstractParser {
     DartCompilationError dartError = new DartCompilationError(ctx.getSource(), location, errorCode,
         arguments);
     lastErrorPosition = position.getPos();
+    ctx.error(dartError);
+  }
+  
+  /**
+   * Even though you pass a 'Position' to {@link #reportError} above, it only uses that to 
+   * prevent logging more than one error at that position.  This method actually uses the passed
+   * position to create the error event.
+   */
+  protected void reportErrorAtPosition(DartScanner.Position startPosition,
+                                       DartScanner.Position endPosition,
+                                       ErrorCode errorCode, Object... arguments) {
+    DartScanner.Location location = ctx.getTokenLocation();
+    if (location.getBegin().getPos() <= lastErrorPosition) {
+      return;
+    }
+    DartCompilationError dartError = new DartCompilationError(ctx.getSource(),
+        new Location(startPosition, endPosition), errorCode, arguments);
     ctx.error(dartError);
   }
 

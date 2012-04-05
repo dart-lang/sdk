@@ -82,6 +82,11 @@ public enum ParserErrorCode implements ErrorCode {
   REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor can not have initializers"),
   SKIPPED_SOURCE("This part of the source was not parsed because of a previous parsing problem"),
   SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
+  SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND(
+      "'super' cannot be used as the second operand in a binary expression."),
+  SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND("'super' is not valid as a boolean operand"),
+  SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND(
+      "'super' is not valid alone or as a boolean operand"),      
   TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method can not be static"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),

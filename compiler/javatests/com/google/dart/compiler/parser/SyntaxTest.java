@@ -27,6 +27,10 @@ import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.parser.ParserErrorCode;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
+
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.util.List;
 
@@ -463,4 +467,59 @@ public class SyntaxTest extends AbstractParserTest {
             "  typedef();",
             "}"));
   }
+  
+  /**
+   * The token 'super' is valid by itself (not as a qualifier or assignment selector) in only some
+   * cases.
+   */
+  public void testLoneSuperExpression1() {
+    parseUnit("phony_lone_super_expression1.dart",
+              Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    super;",
+            "    super ? true : false;",
+            "    true ? true : super;",
+            "    true ? super : false;",
+            "    if (super && true) { }",
+            "    if (super || false) { }",
+            "  }",
+            "}"),
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 3, 5,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 4, 5,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 5, 19,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 6, 12,
+            ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND, 7, 9,
+            ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND, 8, 9);
+  }
+  
+  public void testLoneSuperExpression2() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  method() {",
+            "    if (1 + super) { }", // error
+            "    if (super + 1) { }",  // ok
+            "    if (1 == super) { }", // error
+            "    if (super == 1) { }",  // ok            
+            "    if (1 | super) { }", // error
+            "    if (super | 1) { }",  // ok                        
+            "    if (1 < super) { }", // error
+            "    if (super < 1) { }",  // ok                                    
+            "    if (1 << super) { }", // error
+            "    if (super << 1) { }",  // ok                                                
+            "    if (1 * super) { }", // error
+            "    if (super * 1) { }",  // ok                                               
+            "    var f = -super;", // ok
+            "  }",
+            "}"),
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 5, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 7, 14,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 9, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 11, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
+  }  
 }

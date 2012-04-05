@@ -1827,10 +1827,18 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseBinaryExpression(int precedence) {
     assert (precedence >= 4);
     beginBinaryExpression();
-    DartExpression result = parseUnaryExpression();
+    DartExpression lastResult = parseUnaryExpression();
+    DartExpression result = lastResult;
     for (int level = peek(0).getPrecedence(); level >= precedence; level--) {
       while (peek(0).getPrecedence() == level) {
+        Position prevPositionStart = ctx.getTokenLocation().getBegin();
+        Position prevPositionEnd = ctx.getTokenLocation().getEnd();
         Token token = next();
+        if (lastResult instanceof DartSuperExpression 
+            && (token == Token.AND || token == Token.OR)) {
+          reportErrorAtPosition(prevPositionStart, prevPositionEnd, 
+                                ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND);
+        }
         DartExpression right;
         if (token == Token.IS) {
           beginTypeExpression();
@@ -1844,6 +1852,11 @@ public class DartParser extends CompletionHooksParserBase {
         } else {
           right = parseBinaryExpression(level + 1);
         }
+        if (right instanceof DartSuperExpression) {
+          reportError(position(), ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND);
+        }
+        
+        lastResult = right;
         result = doneWithoutConsuming(new DartBinaryExpression(token, result, right));
         if ((token == Token.IS)
             || token.isRelationalOperator()
@@ -1934,6 +1947,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseConditionalExpression() {
     beginConditionalExpression();
     DartExpression result = parseBinaryExpression(4);
+    if (result instanceof DartSuperExpression) { 
+      reportError(position(), ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND);
+    }    
     if (peek(0) != Token.CONDITIONAL) {
       return done(result);
     }
@@ -2283,7 +2299,7 @@ public class DartParser extends CompletionHooksParserBase {
       ensureAssignable(result);
       consume(token);
       result = doneWithoutConsuming(new DartUnaryExpression(token, result, false));
-    }
+    } 
 
     return done(result);
   }
@@ -2677,7 +2693,7 @@ public class DartParser extends CompletionHooksParserBase {
       case SUPER: {
         beginSuperExpression();
         consume(Token.SUPER);
-        return done(parseAssignableSelector(doneWithoutConsuming(DartSuperExpression.get())));
+        return done(DartSuperExpression.get());
       }
 
       case NEW: {

@@ -161,7 +161,6 @@ StaticField2aRunNegativeTest: Fail # issue 1662
 StringEscape1NegativeTest: Fail # Issue 1351.
 StringEscape4NegativeTest: Fail # Issue 1351.
 StringInterpolation8Test: Fail # Issue 2126.
-SuperOperatorTest: Fail      # Bug 4995463.
 Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
