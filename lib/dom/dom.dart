@@ -375,17 +375,17 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   AudioGainNode createGainNode();
 
-  HighPass2FilterNode createHighPass2Filter();
-
   JavaScriptAudioNode createJavaScriptNode(int bufferSize);
 
-  LowPass2FilterNode createLowPass2Filter();
-
   MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
+  Oscillator createOscillator();
 
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
@@ -753,6 +753,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -3602,6 +3608,8 @@ interface HTMLEmbedElement extends HTMLElement {
 
 interface HTMLFieldSetElement extends HTMLElement {
 
+  bool disabled;
+
   final HTMLFormElement form;
 
   String name;
@@ -3795,6 +3803,8 @@ interface HTMLIFrameElement extends HTMLElement {
   String scrolling;
 
   String src;
+
+  String srcdoc;
 
   String width;
 
@@ -4978,18 +4988,6 @@ interface HashChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface HighPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface History {
 
   final int length;
@@ -5089,18 +5087,6 @@ interface IDBDatabase {
   IDBVersionChangeRequest setVersion(String version);
 
   IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface IDBDatabaseError {
-
-  int code;
-
-  String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5569,18 +5555,6 @@ interface Location {
 
 // WARNING: Do not edit - generated code.
 
-interface LowPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface MediaController default _MediaControllerFactoryProvider {
 
   MediaController();
@@ -5906,6 +5880,14 @@ interface MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+interface MutationCallback {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface MutationEvent extends Event {
 
   static final int ADDITION = 2;
@@ -5925,6 +5907,32 @@ interface MutationEvent extends Event {
   final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationRecord {
+
+  final NodeList addedNodes;
+
+  final String attributeName;
+
+  final String attributeNamespace;
+
+  final Node nextSibling;
+
+  final String oldValue;
+
+  final Node previousSibling;
+
+  final NodeList removedNodes;
+
+  final Node target;
+
+  final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6252,11 +6260,11 @@ interface Notification extends EventTarget {
 
   String dir;
 
-  String replaceId;
+  String tag;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void cancel();
+  void close();
 
   bool dispatchEvent(Event evt);
 
@@ -6343,6 +6351,32 @@ interface OperationNotAllowedException {
   final String name;
 
   String toString();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final AudioParam detune;
+
+  final AudioParam frequency;
+
+  int type;
+
+  void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10371,6 +10405,14 @@ interface WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface WaveTable {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLActiveInfo {
 
   final String name;
@@ -11233,6 +11275,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
+
   String getShaderSource(WebGLShader shader);
 
   Object getTexParameter(int target, int pname);
@@ -11372,6 +11416,20 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 interface WebGLShader {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLShaderPrecisionFormat {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11642,6 +11700,16 @@ interface WebKitCSSTransformValue extends CSSValueList {
   static final int CSS_TRANSLATEZ = 12;
 
   final int operationType;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebKitMutationObserver {
+
+  void disconnect();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

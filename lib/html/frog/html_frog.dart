@@ -307,17 +307,17 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _AudioGainNodeImpl createGainNode() native;
 
-  _HighPass2FilterNodeImpl createHighPass2Filter() native;
-
   _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize) native;
 
-  _LowPass2FilterNodeImpl createLowPass2Filter() native;
-
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
+
+  _OscillatorImpl createOscillator() native;
 
   _AudioPannerNodeImpl createPanner() native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
+
+  _WaveTableImpl createWaveTable(_Float32ArrayImpl real, _Float32ArrayImpl imag) native;
 
   void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
 
@@ -783,6 +783,12 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -6601,6 +6607,8 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 
 class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement native "*HTMLFieldSetElement" {
 
+  bool disabled;
+
   final _FormElementImpl form;
 
   String name;
@@ -7267,13 +7275,6 @@ class _HeadingElementImpl extends _ElementImpl implements HeadingElement native 
   String align;
 }
 
-class _HighPass2FilterNodeImpl extends _AudioNodeImpl implements HighPass2FilterNode native "*HighPass2FilterNode" {
-
-  final _AudioParamImpl cutoff;
-
-  final _AudioParamImpl resonance;
-}
-
 class _HistoryImpl implements History native "*History" {
 
   final int length;
@@ -7356,13 +7357,6 @@ class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
   _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
-}
-
-class _IDBDatabaseErrorImpl implements IDBDatabaseError native "*IDBDatabaseError" {
-
-  int code;
-
-  String message;
 }
 
 class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -7582,6 +7576,8 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String scrolling;
 
   String src;
+
+  String srcdoc;
 
   String width;
 
@@ -8202,13 +8198,6 @@ class _LocationImpl implements Location native "*Location" {
   String toString() native;
 }
 
-class _LowPass2FilterNodeImpl extends _AudioNodeImpl implements LowPass2FilterNode native "*LowPass2FilterNode" {
-
-  final _AudioParamImpl cutoff;
-
-  final _AudioParamImpl resonance;
-}
-
 class _MapElementImpl extends _ElementImpl implements MapElement native "*HTMLMapElement" {
 
   final _HTMLCollectionImpl areas;
@@ -8718,6 +8707,9 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
+class _MutationCallbackImpl implements MutationCallback native "*MutationCallback" {
+}
+
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
@@ -8737,6 +8729,27 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
   final _NodeImpl relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
+}
+
+class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
+
+  final _NodeListImpl addedNodes;
+
+  final String attributeName;
+
+  final String attributeNamespace;
+
+  final _NodeImpl nextSibling;
+
+  final String oldValue;
+
+  final _NodeImpl previousSibling;
+
+  final _NodeListImpl removedNodes;
+
+  final _NodeImpl target;
+
+  final String type;
 }
 
 class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
@@ -9357,9 +9370,9 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   String dir;
 
-  String replaceId;
+  String tag;
 
-  void cancel() native;
+  void close() native;
 
   void show() native;
 }
@@ -9508,6 +9521,27 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
   bool selected;
 
   String value;
+}
+
+class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final _AudioParamImpl detune;
+
+  final _AudioParamImpl frequency;
+
+  int type;
+
+  void setWaveTable(_WaveTableImpl waveTable) native;
 }
 
 class _OutputElementImpl extends _ElementImpl implements OutputElement native "*HTMLOutputElement" {
@@ -14835,6 +14869,9 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode nativ
   _Float32ArrayImpl curve;
 }
 
+class _WaveTableImpl implements WaveTable native "*WaveTable" {
+}
+
 class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   final String name;
@@ -15642,6 +15679,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   Object getShaderParameter(_WebGLShaderImpl shader, int pname) native;
 
+  _WebGLShaderPrecisionFormatImpl getShaderPrecisionFormat(int shadertype, int precisiontype) native;
+
   String getShaderSource(_WebGLShaderImpl shader) native;
 
   Object getTexParameter(int target, int pname) native;
@@ -15778,6 +15817,15 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
 }
 
+class _WebGLShaderPrecisionFormatImpl implements WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
+}
+
 class _WebGLTextureImpl implements WebGLTexture native "*WebGLTexture" {
 }
 
@@ -15790,6 +15838,11 @@ class _WebGLVertexArrayObjectOESImpl implements WebGLVertexArrayObjectOES native
 class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
 
   final _CSSRuleListImpl cssRules;
+}
+
+class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
+
+  void disconnect() native;
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
@@ -17168,17 +17221,17 @@ interface AudioContext {
 
   AudioGainNode createGainNode();
 
-  HighPass2FilterNode createHighPass2Filter();
-
   JavaScriptAudioNode createJavaScriptNode(int bufferSize);
 
-  LowPass2FilterNode createLowPass2Filter();
-
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
+
+  Oscillator createOscillator();
 
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
@@ -17798,6 +17851,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -21925,6 +21984,8 @@ interface EventTarget {
 
 interface FieldSetElement extends Element {
 
+  bool disabled;
+
   final FormElement form;
 
   String name;
@@ -22511,18 +22572,6 @@ interface HeadingElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface HighPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface History {
 
   final int length;
@@ -22630,18 +22679,6 @@ interface IDBDatabase {
   IDBVersionChangeRequest setVersion(String version);
 
   IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface IDBDatabaseError {
-
-  int code;
-
-  String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22916,6 +22953,8 @@ interface IFrameElement extends Element {
   String scrolling;
 
   String src;
+
+  String srcdoc;
 
   String width;
 
@@ -23404,18 +23443,6 @@ interface Location {
   void replace(String url);
 
   String toString();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface LowPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23987,6 +24014,14 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+interface MutationCallback {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface MutationEvent extends Event {
 
   static final int ADDITION = 2;
@@ -24006,6 +24041,32 @@ interface MutationEvent extends Event {
   final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationRecord {
+
+  final NodeList addedNodes;
+
+  final String attributeName;
+
+  final String attributeNamespace;
+
+  final Node nextSibling;
+
+  final String oldValue;
+
+  final Node previousSibling;
+
+  final NodeList removedNodes;
+
+  final Node target;
+
+  final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24317,9 +24378,9 @@ interface Notification extends EventTarget {
 
   String dir;
 
-  String replaceId;
+  String tag;
 
-  void cancel();
+  void close();
 
   void show();
 }
@@ -24519,6 +24580,32 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
   bool selected;
 
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final AudioParam detune;
+
+  final AudioParam frequency;
+
+  int type;
+
+  void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29203,6 +29290,14 @@ interface WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface WaveTable {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLActiveInfo {
 
   final String name;
@@ -30065,6 +30160,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
+
   String getShaderSource(WebGLShader shader);
 
   Object getTexParameter(int target, int pname);
@@ -30211,6 +30308,20 @@ interface WebGLShader {
 
 // WARNING: Do not edit - generated code.
 
+interface WebGLShaderPrecisionFormat {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30238,6 +30349,16 @@ interface WebGLVertexArrayObjectOES {
 interface WebKitCSSRegionRule extends CSSRule {
 
   final CSSRuleList cssRules;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebKitMutationObserver {
+
+  void disconnect();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
