@@ -1178,7 +1178,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private DartMethodDefinition parseMethod(Modifiers modifiers, DartTypeNode returnType) {
-    DartExpression name = null;
+    DartExpression name = new DartIdentifier("");
 
     if (modifiers.isFactory()) {
       if (modifiers.isAbstract()) {
@@ -1219,8 +1219,30 @@ public class DartParser extends CompletionHooksParserBase {
           && ctx.getTokenString().equals(CALL_KEYWORD)) {
         name = done(new DartIdentifier(CALL_KEYWORD));
       } else {
-        reportUnexpectedToken(position(), Token.COMMENT, operation);
-        done(null);
+        // Not a valid operator.  Try to recover.
+        boolean found = false;
+        for (int i = 0; i < 4; ++i) {
+          if (peek(i).equals(Token.LPAREN)) {
+            found = true;
+            break;
+          }
+        }        
+        StringBuilder buf = new StringBuilder();
+        buf.append(operation.getSyntax());
+        if (found) {
+          reportError(position(), ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
+          while(true) {
+            Token token = peek(0);
+            if (token.equals(Token.LPAREN)) {
+              break;
+            }
+            buf.append(next().getSyntax());
+          }
+          name = done(new DartIdentifier(buf.toString()));
+        } else {
+          reportUnexpectedToken(position(), Token.COMMENT, operation);
+          done(null);
+        }
       }
     } else {
       beginMethodName();

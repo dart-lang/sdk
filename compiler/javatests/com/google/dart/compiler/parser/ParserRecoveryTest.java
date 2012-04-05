@@ -252,4 +252,31 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartClass bar = (DartClass)unit.getTopLevelNodes().get(3);
     assertEquals("bar", bar.getName().getName());        
   }
+  
+  public void testBadOperatorRecovery() {
+    DartUnit unit = parseUnit("phony_bad_operator_recovery",
+        Joiner.on("\n").join(
+            "class foo {",
+            "  operator / (arg) {}",
+            "  operator /= (arg) {}",            
+            "  operator ][ (arg) {}",
+            "  operator === (arg) {}",
+            "  operator + (arg) {}",            
+            "}"),
+            ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE, 3, 12,
+            ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE, 4, 12,
+            ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE, 5, 12);
+    DartClass foo =  (DartClass)unit.getTopLevelNodes().get(0);
+    assertEquals("foo", foo.getName().getName());
+    DartMethodDefinition opDiv = (DartMethodDefinition)foo.getMembers().get(0);
+    assertEquals("/", ((DartIdentifier)opDiv.getName()).getName());
+    DartMethodDefinition opAssignDiv = (DartMethodDefinition)foo.getMembers().get(1);
+    assertEquals("/=", ((DartIdentifier)opAssignDiv.getName()).getName());
+    DartMethodDefinition opNonsense = (DartMethodDefinition)foo.getMembers().get(2);
+    assertEquals("][", ((DartIdentifier)opNonsense.getName()).getName());
+    DartMethodDefinition opEquiv = (DartMethodDefinition)foo.getMembers().get(3);
+    assertEquals("===", ((DartIdentifier)opEquiv.getName()).getName());    
+    DartMethodDefinition opPlus = (DartMethodDefinition)foo.getMembers().get(4);
+    assertEquals("+", ((DartIdentifier)opPlus.getName()).getName());
+  }
 }

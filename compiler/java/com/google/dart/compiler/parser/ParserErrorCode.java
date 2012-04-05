@@ -75,6 +75,7 @@ public enum ParserErrorCode implements ErrorCode {
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
+  OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
