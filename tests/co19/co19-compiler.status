@@ -126,8 +126,6 @@ Language/11_Statements/13_Continue_A02_t12: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t15: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t16: Fail # Issue 2441
-Language/11_Statements/14_Throw_A02_t01: Fail # Issue 2406
-Language/11_Statements/14_Throw_A03_t01: Fail # Issue 2406
 Language/11_Statements/15_Assert_A05_t01: Fail # Issue 2443
 Language/11_Statements/15_Assert_A05_t04: Fail # Issue 2443
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 issue 109
@@ -141,7 +139,6 @@ Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 issue 109, 111
-Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # Issue 2406
 Language/13_Types/1_Static_Types_A02_t08: Fail
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
 Language/13_Types/4_Interface_Types_A11_t04: Fail

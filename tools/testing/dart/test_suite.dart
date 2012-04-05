@@ -750,6 +750,17 @@ class StandardTestSuite implements TestSuite {
         return null;
     }
   }
+  
+  String get hasRuntime() {
+    switch(configuration['runtime']) {
+      case null:
+        Expect.fail("configuration['runtime'] is not set");
+      case 'none':
+        return false;
+      default:
+        return true;
+    }
+  }
 
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_').replaceAll(':', '_')
@@ -896,8 +907,11 @@ class StandardTestSuite implements TestSuite {
       otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
     }
 
-    if (contents.contains("@compile-error") ||
-        contents.contains("@runtime-error")) {
+    if (contents.contains("@compile-error")) {
+      isNegative = true;
+    }
+    
+    if (contents.contains("@runtime-error") && hasRuntime) {
       isNegative = true;
     }
 

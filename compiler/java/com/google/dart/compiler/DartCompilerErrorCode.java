@@ -8,15 +8,17 @@ package com.google.dart.compiler;
  * Valid error codes for the errors produced by the Dart compiler.
  */
 public enum DartCompilerErrorCode implements ErrorCode {
-  ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS("Main entry point method cannot have parameters"),
-  ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER("Entry point \"%s\" may not be a getter"),
-  ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER("Entry point \"%s\" may not be a setter"),
+  ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS(ErrorSeverity.WARNING, 
+      "Main entry point method cannot have parameters"),
+  ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER(ErrorSeverity.WARNING,
+      "Entry point \"%s\" may not be a getter"),
+  ENTRY_POINT_METHOD_MAY_NOT_BE_SETTER(ErrorSeverity.WARNING,
+      "Entry point \"%s\" may not be a setter"),
   ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("A source which was included by another source via a "
       + "#source directive cannot itself contain directives: %s"),
   IO("Input/Output error: %s"),
   MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a #library directive: %s"),
-  MISSING_SOURCE("Cannot find referenced source: %s"),
-  NO_ENTRY_POINT("No entrypoint specified for app");
+  MISSING_SOURCE("Cannot find referenced source: %s");
   private final ErrorSeverity severity;
   private final String message;
 
