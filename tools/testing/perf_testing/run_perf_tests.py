@@ -55,8 +55,8 @@ COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'black']
 GRAPH_OUT_DIR = 'graphs'
 
 BROWSER_PERF = 'browser-perf'
-TIME_SIZE = 'code-time-size'
-CL_PERF = 'cl-results'
+TIME_SIZE = 'time-size'
+CL_PERF = 'cl-perf'
 # TODO(vsm): Merge these?
 DROMAEO = 'dromaeo'
 DROMAEO_SIZE = 'dromaeo-size'
@@ -191,11 +191,12 @@ def get_os_directory():
   else:
     return 'linux'
 
-def upload_to_app_engine(username, password):
+def upload_to_app_engine(username, password, suite_names):
   """Upload our results to our appengine server.
   Arguments:
     username: App Engine username for uploading data to dartperf.googleplex.com
     password: App Engine password
+    suite_names: Directories to upload data from (should match suite names)
   """
   # TODO(efortuna): This is the most basic way to get the data up
   # for others to view. Revisit this once we're serving nicer graphs (Google
@@ -203,8 +204,7 @@ def upload_to_app_engine(username, password):
   # organize the data in a useful manner(!!).
   os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
       'perf_testing'))
-  # TODO(vsm): Factor out this list.
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO, DROMAEO_SIZE]:
+  for data in suite_names:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     shutil.rmtree(path, ignore_errors=True)
     os.makedirs(path)
@@ -217,8 +217,7 @@ def upload_to_app_engine(username, password):
       shutil.copyfile(os.path.join(data, f[1]),
           os.path.join(path, f[1]+'.txt'))
   # Generate directory listing.
-  # TODO(vsm): Factor out this list.
-  for data in [BROWSER_PERF, TIME_SIZE, CL_PERF, DROMAEO, DROMAEO_SIZE]:
+  for data in suite_names:
     path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
     out = open(os.path.join('appengine', 'static',
         '%s-%s.html' % (data, utils.GuessOS())), 'w')
@@ -498,7 +497,7 @@ class BrowserStandalonePerformanceTest(PerformanceTest):
             'benchmark_page_%s.html' % version)
         run_cmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'),
             '--out', file_path, '--browser', browser,
-            '--timeout', '600', '--perf'], self.trace_file, append=True)
+            '--timeout', '600', '--mode', 'perf'], self.trace_file, append=True)
 
   def process_file(self, afile):
     """Comb through the html to find the performance results."""
@@ -593,8 +592,9 @@ class DromaeoTest(PerformanceTest):
         file_path = os.path.join(os.getcwd(), dromaeo_path,
             'index-js.html?%s' % version)
         run_cmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'),
-            '--out', file_path, '--browser', browser,
-            '--timeout', '200', '--dromaeo'], self.trace_file, append=True)
+                 '--out', file_path, '--browser', browser,
+                 '--timeout', '200', '--mode', 'dromaeo'], self.trace_file,
+                append=True)
 
   def process_file(self, afile):
     """Comb through the html to find the performance results."""
@@ -853,24 +853,23 @@ class CompileTimeAndSizeTest(TestRunner):
         'Seconds', 10, 10, 'lower left', '2' + png_filename, [COMMAND_LINE],
         [FROG], ['Bootstrapping', 'Compiling on Dart VM'])
 
+# TODO(vsm): Make these names consistent with BROWSER_PERF, CL_PERF,
+# etc. above.
+SUITES = {
+    CL_PERF: CommandLinePerformanceTest,
+    TIME_SIZE: CompileTimeAndSizeTest,
+    BROWSER_PERF: BrowserStandalonePerformanceTest,
+    DROMAEO: DromaeoTest,
+    DROMAEO_SIZE: DromaeoSizeTest,
+}
+
 def parse_args():
   parser = optparse.OptionParser()
   # TODO(vsm): Change to a list to scale.
-  parser.add_option('--command-line', '-c', dest='cl',
-      help='Run the command line tests',
-      action='store_true', default=False)
-  parser.add_option('--size-time', '-s', dest='size',
-      help='Run the code size and timing tests',
-      action='store_true', default=False)
-  parser.add_option('--browser-perf', '-b', dest='perf',
-      help='Run the browser performance tests',
-      action='store_true', default=False)
-  parser.add_option('--dromaeo', '-d', dest='dromaeo',
-      help='Run the Dromaeo performance tests',
-      action='store_true', default=False)
-  parser.add_option('--dromaeo-size', '-D', dest='dsize',
-      help='Run the Dromaeo size tests',
-      action='store_true', default=False)
+  parser.add_option('--suites', '-s', dest='suites',
+      help='Run the specified comma-separated test suites from set: %s' % \
+                      ','.join(SUITES.keys()),
+      action='store', default=None)
   parser.add_option('--forever', '-f', dest='continuous',
       help='Run this script forever, always checking for the next svn '
       'checkin', action='store_true', default=False)
@@ -890,46 +889,49 @@ def parse_args():
   else:
     print 'Warning: performance data will not be uploaded to App Engine' + \
         ' if you do not provide a username.'
-  if not (args.cl or args.size or args.perf or args.dromaeo or args.dsize):
-    args.cl = args.size = args.perf = args.dromaeo = args.dsize = True
-  return (args.cl, args.size, args.perf, args.dromaeo, args.dsize,
-          args.continuous, args.verbose, args.no_build, args.graph_only,
-          args.username, password)
 
-def run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
+  if not args.suites:
+    suites = SUITES.values()
+  else:
+    suites = []
+    suitelist = args.suites.split(',')
+    for name in suitelist:
+      if name in SUITES:
+        suites.append(SUITES[name])
+      else:
+        print 'Error: Invalid suite %s not in %s' % (name,
+                                                     ','.join(SUITES.keys()))
+        sys.exit(1)
+  return (suites, args.continuous, args.verbose, args.no_build,
+          args.graph_only, args.username, password)
+
+def run_test_sequence(suites, no_build, graph_only,
                       username, password):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
   if (not no_build or not graph_only) and sync_and_build() == 1:
     return # The build is broken.
-  if size:
-    CompileTimeAndSizeTest().run(graph_only)
-  if cl:
-    CommandLinePerformanceTest().run(graph_only)
-  if perf:
-    BrowserStandalonePerformanceTest().run(graph_only)
-  if dromaeo:
-    DromaeoTest().run(graph_only)
-  if dsize:
-    DromaeoSizeTest().run(graph_only)
+
+  for test in suites:
+    test().run(graph_only)
 
   if username != '':
-    upload_to_app_engine(username, password)
+    upload_to_app_engine(username, password, SUITES.keys())
 
 def main():
   global VERBOSE
-  (cl, size, perf, dromaeo, dsize, continuous, verbose, no_build, graph_only,
-      username, password) = parse_args()
+  (suites, continuous, verbose, no_build, graph_only,
+   username, password) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
+        run_test_sequence(suites, no_build, graph_only,
                           username, password)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(cl, size, perf, dromaeo, dsize, no_build, graph_only,
+    run_test_sequence(suites, no_build, graph_only,
                       username, password)
 
 if __name__ == '__main__':
