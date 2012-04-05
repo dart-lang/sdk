@@ -17,7 +17,6 @@ dom/AudioContextTest: Skip
 # TODO(vsm): Triage Dartium failures.
 dom/CSSTest: Skip
 dom/DOMIsolatesTest: Skip
-dom/NativeGCTest: Skip
 dom/TypedArrays1Test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
