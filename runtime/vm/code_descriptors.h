@@ -111,6 +111,52 @@ class StackmapBuilder : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(StackmapBuilder);
 };
 
+
+class ExceptionHandlerList : public ZoneAllocated {
+ public:
+  struct HandlerDesc {
+    intptr_t try_index;  // Try block index handled by the handler.
+    intptr_t pc_offset;  // Handler PC offset value.
+  };
+
+  ExceptionHandlerList() : list_() {}
+
+  intptr_t Length() const {
+    return list_.length();
+  }
+
+  intptr_t TryIndex(int index) const {
+    return list_[index].try_index;
+  }
+  intptr_t PcOffset(int index) const {
+    return list_[index].pc_offset;
+  }
+  void SetPcOffset(int index, intptr_t handler_pc) {
+    list_[index].pc_offset = handler_pc;
+  }
+
+  void AddHandler(intptr_t try_index, intptr_t pc_offset) {
+    struct HandlerDesc data;
+    data.try_index = try_index;
+    data.pc_offset = pc_offset;
+    list_.Add(data);
+  }
+
+  RawExceptionHandlers* FinalizeExceptionHandlers(uword entry_point) {
+    intptr_t num_handlers = Length();
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
+    for (intptr_t i = 0; i < num_handlers; i++) {
+      handlers.SetHandlerEntry(i, TryIndex(i), (entry_point + PcOffset(i)));
+    }
+    return handlers.raw();
+  }
+
+ private:
+  GrowableArray<struct HandlerDesc> list_;
+  DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
+};
+
 }  // namespace dart
 
 #endif  // VM_CODE_DESCRIPTORS_H_

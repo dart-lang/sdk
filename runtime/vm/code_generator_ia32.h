@@ -21,6 +21,7 @@ class Assembler;
 class AstNode;
 class CodeGenerator;
 class DescriptorList;
+class ExceptionHandlerList;
 class SourceLabel;
 class StackmapBuilder;
 
@@ -118,9 +119,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // TODO(srdjan): Remove the friendship once the two compilers are properly
   // structured.
   friend class OptimizingCodeGenerator;
-
-  // Forward declarations.
-  class HandlerList;
 
   // Return true if intrinsification succeeded and no more code is needed.
   // Returns false if either no intrinsification occured or if intrinsified
@@ -220,7 +218,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   CodeGeneratorState* state_;
   DescriptorList* pc_descriptors_list_;
   StackmapBuilder* stackmap_builder_;
-  HandlerList* exception_handlers_list_;
+  ExceptionHandlerList* exception_handlers_list_;
   int try_index_;
   // The runtime context level is only incremented when a new context is
   // allocated and chained to the list of contexts.
