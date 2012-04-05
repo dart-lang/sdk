@@ -671,10 +671,11 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
 
   def AddAttribute(self, getter, setter):
+    dom_name = DartDomNameOfAttribute(getter)
     html_getter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, DartDomNameOfAttribute(getter), 'get:')
+      self._interface, dom_name, 'get:')
     html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface, DartDomNameOfAttribute(getter), 'set:')
+      self._interface, dom_name, 'set:')
 
     if not html_getter_name or self._shared.IsPrivate(html_getter_name):
       getter = None
@@ -686,6 +687,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     # We don't yet handle inconsistent renames of the getter and setter yet.
     if html_getter_name and html_setter_name:
       assert html_getter_name == html_setter_name
+    if html_getter_name != dom_name:
+      self._members_emitter.Emit('\n  /** @domName $DOMNAME */',
+          DOMNAME = dom_name)
     if (getter and setter and
         DartType(getter.type.id) == DartType(setter.type.id)):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
@@ -709,6 +713,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     html_name = self._shared.RenameInHtmlLibrary(
         self._interface, info.name)
     if html_name and not self._shared.IsPrivate(html_name):
+      if html_name != info.name:
+        self._members_emitter.Emit('\n  /** @domName $DOMNAME */',
+            DOMNAME = info.name)
+
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
                                  TYPE=info.type_name,         
