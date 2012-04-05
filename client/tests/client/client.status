@@ -66,3 +66,6 @@ html/frog_html_tests: Skip # Issue 1884
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
+
+[ $checked ]
+dom/IndexedDB1Test: Fail   # Type check fails for IDBKey.  Needs to be renamed to Object.

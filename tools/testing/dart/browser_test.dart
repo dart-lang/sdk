@@ -23,7 +23,11 @@ String GetHtmlContents(String title,
   <script type="text/javascript" src="$controllerScript"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
-    onerror = function() { window.layoutTestController.notifyDone() };
+    onerror = function(message, url, lineNumber) {
+       if (window.layoutTestController) {
+         window.layoutTestController.notifyDone();
+       }
+    };
 
     document.onreadystatechange = function() {
       if (document.readyState != "loaded") return;
