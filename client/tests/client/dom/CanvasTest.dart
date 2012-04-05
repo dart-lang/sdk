@@ -30,6 +30,14 @@ main() {
     checkPixel(data, 29 + width * 10, [255, 0, 0, 255]);
     checkPixel(data, 30 + width * 10, [0, 0, 0, 0]);
   });
+  test('FillStyleGradient', () {
+    var gradient = context.createLinearGradient(0,0,20,20);
+    gradient.addColorStop(0,'red');
+    gradient.addColorStop(1,'blue');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 20, 20);
+    expect(context.fillStyle is CanvasGradient).isTrue();
+  });
   test('SetFillColor', () {
     // With floats.
     context.setFillColor(10, 10, 10, 10);
