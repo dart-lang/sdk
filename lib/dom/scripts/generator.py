@@ -17,6 +17,7 @@ _idl_to_dart_type_conversions = {
     'DOMObject': 'Object',
     'DOMString': 'String',
     'DOMStringList': 'List<String>',
+    'DOMStringMap': 'Map<String, String>',
     'DOMTimeStamp': 'int',
     'Date': 'Date',
     # Map to num to enable callers to pass in Dart int, rational
@@ -529,13 +530,18 @@ class IDLTypeInfo(object):
     return 'receiver->'
 
   def conversion_includes(self):
-    def NeededDartType(type_name):
+    def NeededDartTypes(type_name):
       match = re.match(r'List<(\w*)>$', type_name)
       if match:
-        return NeededDartType(match.group(1))
-      return type_name
+        return NeededDartTypes(match.group(1))
+      match = re.match(r'Map<(\w*), (\w*)>$', type_name)
+      if match:
+        return NeededDartTypes(match.group(1)) + NeededDartTypes(match.group(2))
+      if IsPrimitiveType(type_name):
+        return []
+      return [type_name]
 
-    return ['"Dart%s.h"' % include for include in [NeededDartType(self.dart_type())] + self._conversion_includes]
+    return ['"Dart%s.h"' % include for include in NeededDartTypes(self.dart_type()) + self._conversion_includes]
 
   def conversion_cast(self, expression):
     if self._conversion_template:
