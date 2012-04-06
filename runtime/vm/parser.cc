@@ -6685,6 +6685,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       Error& error = Error::Handle();
       error ^= const_value.raw();
       if (const_value.IsUnhandledException()) {
+        field.set_value(Instance::Handle());
         // It is a compile-time error if evaluation of a compile-time constant
         // would raise an exception.
         if (field.is_final()) {

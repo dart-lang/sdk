@@ -16,6 +16,7 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
+StaticInitializerTypeErrorTest: Fail # Issue 2472
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Fail # Issue 439
@@ -203,6 +204,7 @@ BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
 
 [ $compiler == frog  || $compiler == frogsh ]
+StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail

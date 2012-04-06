@@ -9,6 +9,7 @@
 [ $compiler == dart2js]
 AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
+StaticInitializerTypeErrorTest: Fail # Checked mode not supported.
 
 
 # Compilation errors.
