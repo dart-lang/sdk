@@ -135,6 +135,8 @@ def sync_and_build():
       onerror=on_rm_error)
   lines = run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release',
       '--arch=ia32', 'create_sdk'])
+  lines = run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release',
+      '--arch=ia32', 'dart2js']) #Built only for the v8 target for CL tests.
 
   for line in lines:
     if 'BUILD FAILED' in lines:
@@ -191,11 +193,9 @@ def get_os_directory():
   else:
     return 'linux'
 
-def upload_to_app_engine(username, password, suite_names):
+def upload_to_app_engine(suite_names):
   """Upload our results to our appengine server.
   Arguments:
-    username: App Engine username for uploading data to dartperf.googleplex.com
-    password: App Engine password
     suite_names: Directories to upload data from (should match suite names)
   """
   # TODO(efortuna): This is the most basic way to get the data up
@@ -240,10 +240,8 @@ def upload_to_app_engine(username, password, suite_names):
   shutil.copyfile('data.html', os.path.join('appengine', 'static',
       'data.html'))
   p = subprocess.Popen([os.path.join('..', '..', '..', 'third_party',
-      'appengine-python', 'appcfg.py'), 'update',
+      'appengine-python', 'appcfg.py'), '--oauth2', 'update',
       'appengine/'], shell=HAS_SHELL, stdin=subprocess.PIPE)
-  p.stdin.write(username + '\n')
-  p.stdin.write(password + '\n')
   p.communicate()
 
 
@@ -673,7 +671,7 @@ class DromaeoTest(PerformanceTest):
 
     f.close()
     self.calculate_geometric_mean(browser, version, revision_num)
-
+  
 
 class DromaeoSizeTest(TestRunner):
   """Run tests to determine the compiled file output size of Dromaeo."""
@@ -681,7 +679,7 @@ class DromaeoSizeTest(TestRunner):
     super(DromaeoSizeTest, self).__init__(
         DROMAEO_SIZE,
         ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
-        DROMAEO_BENCHMARK.keys())
+        DROMAEO_BENCHMARKS.keys())
 
   def run_tests(self):
     # Build tests.
@@ -706,7 +704,7 @@ class DromaeoSizeTest(TestRunner):
     for (variant, _) in variants:
       total_size[variant] = 0
     total_dart_size = 0
-    for suite in DROMAEO_BENCHMARK.keys():
+    for suite in DROMAEO_BENCHMARKS.keys():
       dart_size = 0
       try:
         dart_size = os.path.getsize(os.path.join(test_path,
@@ -780,7 +778,7 @@ class DromaeoSizeTest(TestRunner):
         'Compiled Dromaeo Sizes',
         'Size (in bytes)', 10, 10, 'lower left', png_filename,
         ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
-        DROMEAO_BENCHMARK.keys())
+        DROMAEO_BENCHMARKS.keys())
 
     self.style_and_save_perf_plot(
         'Compiled Dromaeo Sizes',
@@ -914,22 +912,17 @@ def parse_args():
   parser.add_option('--forever', '-f', dest='continuous',
       help='Run this script forever, always checking for the next svn '
       'checkin', action='store_true', default=False)
-  parser.add_option('--verbose', '-v', dest='verbose',
-      help='Print extra debug output', action='store_true', default=False)
-  parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
-      help='Do not sync with the repository and do not rebuild.', default=False)
   parser.add_option('--graph-only', '-g', dest='graph_only', default=False,
       help='Do not run tests, only regenerate graphs', action='store_true')
-  parser.add_option('--user', '-u', dest='username',
-      help='Username for submitting new data to App Engine', default='')
+  parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
+      help='Do not sync with the repository and do not rebuild.', default=False)
+  parser.add_option('--upload', '-u', dest='upload',
+      help='Upload data to app engine (will require authentication).', 
+      action='store_true', default=False)
+  parser.add_option('--verbose', '-v', dest='verbose',
+      help='Print extra debug output', action='store_true', default=False)
 
   args, ignored = parser.parse_args()
-  password = ''
-  if args.username != '':
-    password = getpass.getpass("App Engine Password: ")
-  else:
-    print 'Warning: performance data will not be uploaded to App Engine' + \
-        ' if you do not provide a username.'
 
   if not args.suites:
     suites = SUITES.values()
@@ -944,10 +937,9 @@ def parse_args():
                                                      ','.join(SUITES.keys()))
         sys.exit(1)
   return (suites, args.continuous, args.verbose, args.no_build,
-          args.graph_only, args.username, password)
+          args.graph_only, args.upload)
 
-def run_test_sequence(suites, no_build, graph_only,
-                      username, password):
+def run_test_sequence(suites, no_build, graph_only, upload):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
   if (not no_build or not graph_only) and sync_and_build() == 1:
@@ -956,24 +948,21 @@ def run_test_sequence(suites, no_build, graph_only,
   for test in suites:
     test().run(graph_only)
 
-  if username != '':
-    upload_to_app_engine(username, password, SUITES.keys())
+  if upload:
+    upload_to_app_engine(SUITES.keys())
 
 def main():
   global VERBOSE
-  (suites, continuous, verbose, no_build, graph_only,
-   username, password) = parse_args()
+  (suites, continuous, verbose, no_build, graph_only, upload) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
       if has_new_code():
-        run_test_sequence(suites, no_build, graph_only,
-                          username, password)
+        run_test_sequence(suites, no_build, graph_only, upload)
       else:
         time.sleep(SLEEP_TIME)
   else:
-    run_test_sequence(suites, no_build, graph_only,
-                      username, password)
+    run_test_sequence(suites, no_build, graph_only, upload)
 
 if __name__ == '__main__':
   main()
