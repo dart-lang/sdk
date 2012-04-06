@@ -1,8 +1,8 @@
 Overview:
  These are the instructions to run a wide variety of browser tests using 
  test.dart --component=webdriver or 
- dart/tools/testing/perf_testing/create_graph.py. Currently the results of
- create_graph are uploaded to https://dartperf.googleplex.com/. 
+ dart/tools/testing/perf_testing/run_perf_tests.py. Currently the results of
+ run_perf_tests are uploaded to https://dartperf.googleplex.com/. 
  
 ============== Windows Setup ==============
 
@@ -79,7 +79,7 @@ d) Download the selenium server (version 2.15 or newer) and place it in this
    http://code.google.com/appengine/downloads.html
 
 14) Run the tests! While standing in dart/tools/testing/perf_testing, run 
-    $> python create_graph.py --forever --verbose 
+    $> python run_perf_tests.py --forever --verbose 
     to run all the tests (browser performance, language correctness in the
     browser, command line performance, and self-hosted compile time and compiled
     code size). 

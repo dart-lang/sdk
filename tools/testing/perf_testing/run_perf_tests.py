@@ -7,8 +7,11 @@
 import datetime
 import getpass
 import math
-from matplotlib.font_manager import FontProperties
-import matplotlib.pyplot as plt
+try:
+  from matplotlib.font_manager import FontProperties
+  import matplotlib.pyplot as plt
+except ImportError:
+  pass # Only needed if we want to make graphs.
 import optparse
 import os
 from os.path import dirname, abspath
@@ -375,7 +378,12 @@ class TestRunner(object):
       if not afile.startswith('.'):
         self.process_file(afile)
 
-    self.plot_results('%s.png' % self.result_folder_name)
+    if 'plt' in globals():
+      # Only run Matplotlib if it is installed.
+      self.plot_results('%s.png' % self.result_folder_name)
+    else:
+      print 'Unable to import Matplotlib and therefore unable to generate ' + \
+          'graphs. Please install it for this version of Python.'
 
 class PerformanceTest(TestRunner):
   """Super class for all performance testing."""
@@ -942,7 +950,7 @@ def parse_args():
 def run_test_sequence(suites, no_build, graph_only, upload):
   # The buildbot already builds and syncs to a specific revision. Don't fight
   # with it or replicate work.
-  if (not no_build or not graph_only) and sync_and_build() == 1:
+  if not no_build and sync_and_build() == 1:
     return # The build is broken.
 
   for test in suites:
