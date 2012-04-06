@@ -311,9 +311,13 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
+  _OscillatorImpl createOscillator() native;
+
   _AudioPannerNodeImpl createPanner() native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
+
+  _WaveTableImpl createWaveTable(_Float32ArrayImpl real, _Float32ArrayImpl imag) native;
 
   void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
 
@@ -6020,6 +6024,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   String contentEditable;
 
+  final Map<String, String> dataset;
+
   String dir;
 
   bool draggable;
@@ -9517,6 +9523,27 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
   bool selected;
 
   String value;
+}
+
+class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final _AudioParamImpl detune;
+
+  final _AudioParamImpl frequency;
+
+  int type;
+
+  void setWaveTable(_WaveTableImpl waveTable) native;
 }
 
 class _OutputElementImpl extends _ElementImpl implements OutputElement native "*HTMLOutputElement" {
@@ -14844,6 +14871,9 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode nativ
   _Float32ArrayImpl curve;
 }
 
+class _WaveTableImpl implements WaveTable native "*WaveTable" {
+}
+
 class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   final String name;
@@ -15651,6 +15681,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   Object getShaderParameter(_WebGLShaderImpl shader, int pname) native;
 
+  _WebGLShaderPrecisionFormatImpl getShaderPrecisionFormat(int shadertype, int precisiontype) native;
+
   String getShaderSource(_WebGLShaderImpl shader) native;
 
   Object getTexParameter(int target, int pname) native;
@@ -15785,6 +15817,15 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 }
 
 class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
+}
+
+class _WebGLShaderPrecisionFormatImpl implements WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
 }
 
 class _WebGLTextureImpl implements WebGLTexture native "*WebGLTexture" {
@@ -16057,6 +16098,8 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _WindowImpl open(String url, String name, [String options = null]) native;
 
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
@@ -16302,6 +16345,10 @@ class _WorkerContextImpl implements WorkerContext native "*WorkerContext" {
   bool dispatchEvent(_EventImpl evt) native;
 
   void importScripts() native;
+
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
+  _DatabaseSyncImpl openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -17183,9 +17230,13 @@ interface AudioContext {
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
 
+  Oscillator createOscillator();
+
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
@@ -21383,6 +21434,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String contentEditable;
 
+  final Map<String, String> dataset;
+
   String dir;
 
   bool draggable;
@@ -24607,6 +24660,32 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
   bool selected;
 
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final AudioParam detune;
+
+  final AudioParam frequency;
+
+  int type;
+
+  void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29302,6 +29381,14 @@ interface WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface WaveTable {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLActiveInfo {
 
   final String name;
@@ -30164,6 +30251,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
+
   String getShaderSource(WebGLShader shader);
 
   Object getTexParameter(int target, int pname);
@@ -30303,6 +30392,20 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 interface WebGLShader {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLShaderPrecisionFormat {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30625,6 +30728,8 @@ interface Window extends EventTarget {
 
   Window open(String url, String name, [String options]);
 
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
 
   void print();
@@ -30880,6 +30985,10 @@ interface WorkerContext {
   bool dispatchEvent(Event evt);
 
   void importScripts();
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 

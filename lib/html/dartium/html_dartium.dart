@@ -300,6 +300,7 @@ _wrap(raw) {
     case 'OperationNotAllowedException': return new _OperationNotAllowedExceptionImpl._wrap(domObject);
     case 'HTMLOptGroupElement': return new _OptGroupElementImpl._wrap(domObject);
     case 'HTMLOptionElement': return new _OptionElementImpl._wrap(domObject);
+    case 'Oscillator': return new _OscillatorImpl._wrap(domObject);
     case 'HTMLOutputElement': return new _OutputElementImpl._wrap(domObject);
     case 'OverflowEvent': return new _OverflowEventImpl._wrap(domObject);
     case 'PageTransitionEvent': return new _PageTransitionEventImpl._wrap(domObject);
@@ -540,6 +541,7 @@ _wrap(raw) {
     case 'ValidityState': return new _ValidityStateImpl._wrap(domObject);
     case 'HTMLVideoElement': return new _VideoElementImpl._wrap(domObject);
     case 'WaveShaperNode': return new _WaveShaperNodeImpl._wrap(domObject);
+    case 'WaveTable': return new _WaveTableImpl._wrap(domObject);
     case 'WebGLActiveInfo': return new _WebGLActiveInfoImpl._wrap(domObject);
     case 'WebGLBuffer': return new _WebGLBufferImpl._wrap(domObject);
     case 'WebGLCompressedTextureS3TC': return new _WebGLCompressedTextureS3TCImpl._wrap(domObject);
@@ -553,6 +555,7 @@ _wrap(raw) {
     case 'WebGLRenderbuffer': return new _WebGLRenderbufferImpl._wrap(domObject);
     case 'WebGLRenderingContext': return new _WebGLRenderingContextImpl._wrap(domObject);
     case 'WebGLShader': return new _WebGLShaderImpl._wrap(domObject);
+    case 'WebGLShaderPrecisionFormat': return new _WebGLShaderPrecisionFormatImpl._wrap(domObject);
     case 'WebGLTexture': return new _WebGLTextureImpl._wrap(domObject);
     case 'WebGLUniformLocation': return new _WebGLUniformLocationImpl._wrap(domObject);
     case 'WebGLVertexArrayObjectOES': return new _WebGLVertexArrayObjectOESImpl._wrap(domObject);
@@ -1041,12 +1044,20 @@ class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
     return _wrap(_ptr.createMediaElementSource(_unwrap(mediaElement)));
   }
 
+  Oscillator createOscillator() {
+    return _wrap(_ptr.createOscillator());
+  }
+
   AudioPannerNode createPanner() {
     return _wrap(_ptr.createPanner());
   }
 
   WaveShaperNode createWaveShaper() {
     return _wrap(_ptr.createWaveShaper());
+  }
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag) {
+    return _wrap(_ptr.createWaveTable(_unwrap(real), _unwrap(imag)));
   }
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) {
@@ -8193,6 +8204,8 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   void set contentEditable(String value) { _ptr.contentEditable = _unwrap(value); }
 
+  Map<String, String> get dataset() => _wrap(_ptr.dataset);
+
   String get dir() => _wrap(_ptr.dir);
 
   void set dir(String value) { _ptr.dir = _unwrap(value); }
@@ -13072,6 +13085,23 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement {
   String get value() => _wrap(_ptr.value);
 
   void set value(String value) { _ptr.value = _unwrap(value); }
+}
+
+class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator {
+  _OscillatorImpl._wrap(ptr) : super._wrap(ptr);
+
+  AudioParam get detune() => _wrap(_ptr.detune);
+
+  AudioParam get frequency() => _wrap(_ptr.frequency);
+
+  int get type() => _wrap(_ptr.type);
+
+  void set type(int value) { _ptr.type = _unwrap(value); }
+
+  void setWaveTable(WaveTable waveTable) {
+    _ptr.setWaveTable(_unwrap(waveTable));
+    return;
+  }
 }
 
 class _OutputElementImpl extends _ElementImpl implements OutputElement {
@@ -19874,6 +19904,10 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
   void set curve(Float32Array value) { _ptr.curve = _unwrap(value); }
 }
 
+class _WaveTableImpl extends _DOMTypeBase implements WaveTable {
+  _WaveTableImpl._wrap(ptr) : super._wrap(ptr);
+}
+
 class _WebGLActiveInfoImpl extends _DOMTypeBase implements WebGLActiveInfo {
   _WebGLActiveInfoImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -20315,6 +20349,10 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
     return _wrap(_ptr.getShaderParameter(_unwrap(shader), _unwrap(pname)));
   }
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) {
+    return _wrap(_ptr.getShaderPrecisionFormat(_unwrap(shadertype), _unwrap(precisiontype)));
+  }
+
   String getShaderSource(WebGLShader shader) {
     return _wrap(_ptr.getShaderSource(_unwrap(shader)));
   }
@@ -20722,6 +20760,16 @@ class _WebGLShaderImpl extends _DOMTypeBase implements WebGLShader {
   _WebGLShaderImpl._wrap(ptr) : super._wrap(ptr);
 }
 
+class _WebGLShaderPrecisionFormatImpl extends _DOMTypeBase implements WebGLShaderPrecisionFormat {
+  _WebGLShaderPrecisionFormatImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get precision() => _wrap(_ptr.precision);
+
+  int get rangeMax() => _wrap(_ptr.rangeMax);
+
+  int get rangeMin() => _wrap(_ptr.rangeMin);
+}
+
 class _WebGLTextureImpl extends _DOMTypeBase implements WebGLTexture {
   _WebGLTextureImpl._wrap(ptr) : super._wrap(ptr);
 }
@@ -21105,6 +21153,14 @@ class _WindowImpl extends _EventTargetImpl implements Window {
       return _wrap(_ptr.open(_unwrap(url), _unwrap(name)));
     } else {
       return _wrap(_ptr.open(_unwrap(url), _unwrap(name), _unwrap(options)));
+    }
+  }
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
+    } else {
+      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
     }
   }
 
@@ -21498,6 +21554,22 @@ class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
   void importScripts() {
     _ptr.importScripts();
     return;
+  }
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
+    } else {
+      return _wrap(_ptr.openDatabase(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
+    }
+  }
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize)));
+    } else {
+      return _wrap(_ptr.openDatabaseSync(_unwrap(name), _unwrap(version), _unwrap(displayName), _unwrap(estimatedSize), _unwrap(creationCallback)));
+    }
   }
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
@@ -22544,9 +22616,13 @@ interface AudioContext {
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
 
+  Oscillator createOscillator();
+
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
@@ -26744,6 +26820,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String contentEditable;
 
+  final Map<String, String> dataset;
+
   String dir;
 
   bool draggable;
@@ -29968,6 +30046,32 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
   bool selected;
 
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final AudioParam detune;
+
+  final AudioParam frequency;
+
+  int type;
+
+  void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34663,6 +34767,14 @@ interface WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+interface WaveTable {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLActiveInfo {
 
   final String name;
@@ -35525,6 +35637,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
+
   String getShaderSource(WebGLShader shader);
 
   Object getTexParameter(int target, int pname);
@@ -35664,6 +35778,20 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 interface WebGLShader {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLShaderPrecisionFormat {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35986,6 +36114,8 @@ interface Window extends EventTarget {
 
   Window open(String url, String name, [String options]);
 
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
 
   void print();
@@ -36241,6 +36371,10 @@ interface WorkerContext {
   bool dispatchEvent(Event evt);
 
   void importScripts();
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
