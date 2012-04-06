@@ -6281,6 +6281,8 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
 
   EventListenerList get touchEnd() => _get('touchend');
 
+  EventListenerList get touchEnter() => _get('touchenter');
+
   EventListenerList get touchLeave() => _get('touchleave');
 
   EventListenerList get touchMove() => _get('touchmove');
@@ -21649,6 +21651,8 @@ interface ElementEvents extends Events {
   EventListenerList get touchCancel();
 
   EventListenerList get touchEnd();
+
+  EventListenerList get touchEnter();
 
   EventListenerList get touchLeave();
 

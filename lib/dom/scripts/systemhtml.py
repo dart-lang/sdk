@@ -275,7 +275,7 @@ _html_library_remove = set([
 # onEventName methods in the IDL but some events aren't listed so we need
 # to manually add them here so that they are easy for users to find.
 _html_manual_events = {
-  'Element': ['touchleave', 'webkitTransitionEnd'],
+  'Element': ['touchleave', 'touchenter', 'webkitTransitionEnd'],
   'Window': ['DOMContentLoaded']
 }
 
@@ -379,6 +379,7 @@ _html_event_names = {
   'timeupdate': 'timeUpdate',
   'touchcancel': 'touchCancel',
   'touchend': 'touchEnd',
+  'touchenter': 'touchEnter',
   'touchmove': 'touchMove',
   'touchstart': 'touchStart',
   'unload': 'unload',
