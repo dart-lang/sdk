@@ -57,6 +57,9 @@ class CodePatcher : public AllStatic {
   static RawICData* GetInstanceCallIcDataAt(uword return_address);
 
   static intptr_t InstanceCallSizeInBytes();
+
+  static RawArray* GetTypeTestArray(uword instruction_address);
+  static void SetTypeTestArray(uword instruction_address, const Array& value);
 };
 
 }  // namespace dart

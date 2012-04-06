@@ -556,7 +556,10 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+  const Immediate node_id_as_smi =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(node_id)));
   __ pushq(location);  // Push the source location.
+  __ pushq(node_id_as_smi);
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -567,7 +570,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addq(RSP, Immediate(4 * kWordSize));
+  __ addq(RSP, Immediate(5 * kWordSize));
   if (negate_result) {
     Label negate_done;
     __ popq(RDX);

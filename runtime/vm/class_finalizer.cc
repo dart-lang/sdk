@@ -1220,16 +1220,27 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   } else {
     OS::Print(" (null library):\n");
   }
-  const Array& interfaces_array = Array::Handle(cls.interfaces());
-  AbstractType& interface = AbstractType::Handle();
-  intptr_t len = interfaces_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    interface ^= interfaces_array.At(i);
-    OS::Print("  %s\n", interface.ToCString());
+  const Type& super_type = Type::Handle(cls.super_type());
+  if (super_type.IsNull()) {
+    OS::Print("  Super: NULL");
+  } else {
+    const String& super_name = String::Handle(super_type.Name());
+    OS::Print("  Super: %s", super_name.ToCString());
   }
+  const Array& interfaces_array = Array::Handle(cls.interfaces());
+  if (interfaces_array.Length() > 0) {
+    OS::Print("; interfaces: ");
+    AbstractType& interface = AbstractType::Handle();
+    intptr_t len = interfaces_array.Length();
+    for (intptr_t i = 0; i < len; i++) {
+      interface ^= interfaces_array.At(i);
+      OS::Print("  %s ", interface.ToCString());
+    }
+  }
+  OS::Print("\n");
   const Array& functions_array = Array::Handle(cls.functions());
   Function& function = Function::Handle();
-  len = functions_array.Length();
+  intptr_t len = functions_array.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= functions_array.At(i);
     OS::Print("  %s\n", function.ToCString());

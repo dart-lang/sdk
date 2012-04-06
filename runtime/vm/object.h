@@ -1983,6 +1983,7 @@ class PcDescriptors : public Object {
     kIcCall,     // IC call.
     kFuncCall,   // Call to known target, e.g. static call, closure call.
     kReturn,     // Return from function.
+    kTypeTest,   // Array caching previous type tests.
     kOther
   };
 
@@ -2239,6 +2240,7 @@ class Code : public Object {
   uword GetPatchCodePc() const;
 
   uword GetDeoptPcAtNodeId(intptr_t node_id) const;
+  uword GetTypeTestAtNodeId(intptr_t node_id) const;
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).

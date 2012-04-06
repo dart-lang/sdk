@@ -1310,7 +1310,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done;
+  Label done, check_negate_done;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -1366,6 +1366,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       __ Bind(&runtime_call);
       // Fall through to runtime call.
     } else {
+      ASSERT(!requires_type_arguments);
+      // Test if object is Smi and for a couple known test-classes.
       Label compare_classes;
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -1393,9 +1395,47 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
         compare_class = &Class::ZoneHandle(
             Isolate::Current()->object_store()->bool_class());
       } else if (!type_class.is_interface()) {
-        compare_class = &type_class;
+        // Use equality test in prolog of cache test.
+        compare_class = NULL;
       }
-      if (compare_class != NULL) {
+      // EAX: instance being tested.
+      if (compare_class == NULL) {
+        // Optional quick equality check and then the type test cache test.
+        Label loop, runtime_call, found_in_cache, cache_test;
+        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+        if (!type_class.is_interface()) {
+          // Class equality test first.
+          __ CompareObject(ECX, type_class);
+          __ j(NOT_EQUAL, &cache_test, Assembler::kNearJump);
+          // Equal!
+          __ PushObject(negate_result ? bool_false : bool_true);
+          __ jmp(&done, Assembler::kNearJump);
+        }
+        __ Bind(&cache_test);
+        // TODO(srdjan): Convert other tests to this simple form.
+        // Class we are testing against has no type arguments.
+        // TODO(srdjan): Canonicalize initial array?
+        // TODO(srdjan): Account for 'negate_result' in cache.
+        // The type test array is null-terminated. Two consecutive
+        // array elements correspond to one test:
+        //   array[i + 0] : class.
+        //   array[i + 1] : result for the class.
+        AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
+        __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
+        __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+        __ Bind(&loop);
+        __ movl(EBX, Address(EDX, 0));
+        __ cmpl(ECX, EBX);
+        __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
+        __ addl(EDX, Immediate(kWordSize * 2));
+        __ cmpl(EBX, raw_null);
+        __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+        __ jmp(&runtime_call, Assembler::kNearJump);
+        __ Bind(&found_in_cache);
+        __ pushl(Address(EDX, kWordSize));
+        __ jmp(&check_negate_done);
+        __ Bind(&runtime_call);
+      } else {
         Label runtime_call;
         __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
         __ CompareObject(ECX, *compare_class);
@@ -1409,7 +1449,10 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
+  const Immediate node_id_as_smi =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(node_id)));
   __ pushl(location);  // Push the source location.
+  __ pushl(node_id_as_smi);  // node-id.
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
@@ -1420,7 +1463,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ addl(ESP, Immediate(4 * kWordSize));
+  __ addl(ESP, Immediate(5 * kWordSize));
+  __ Bind(&check_negate_done);
   if (negate_result) {
     Label negate_done;
     __ popl(EDX);

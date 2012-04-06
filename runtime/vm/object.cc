@@ -5489,6 +5489,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kIcCall: return "ic-call";
     case PcDescriptors::kFuncCall: return "func-call";
     case PcDescriptors::kReturn: return "return";
+    case PcDescriptors::kTypeTest: return "type-test";
     case PcDescriptors::kOther: return "other";
   }
   UNREACHABLE();
@@ -5925,6 +5926,18 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if ((descriptors.NodeId(i) == node_id) &&
         (descriptors.DescriptorKind(i) == PcDescriptors::kDeopt)) {
+      return descriptors.PC(i);
+    }
+  }
+  return 0;
+}
+
+
+uword Code::GetTypeTestAtNodeId(intptr_t node_id) const {
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    if ((descriptors.NodeId(i) == node_id) &&
+        (descriptors.DescriptorKind(i) == PcDescriptors::kTypeTest)) {
       return descriptors.PC(i);
     }
   }

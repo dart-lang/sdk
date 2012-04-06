@@ -259,6 +259,22 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return DartCallPattern::kNumInstructions * DartCallPattern::kInstructionSize;
 }
 
+
+RawArray* CodePatcher::GetTypeTestArray(uword instruction_address) {
+  Array& result = Array::Handle();
+  uint32_t* target_addr = reinterpret_cast<uint32_t*>(instruction_address + 1);
+  result ^= reinterpret_cast<RawObject*>(*target_addr);
+  return result.raw();
+}
+
+
+void CodePatcher::SetTypeTestArray(uword instruction_address,
+                                   const Array& value) {
+  uint32_t* target_addr = reinterpret_cast<uint32_t*>(instruction_address + 1);
+  *target_addr = reinterpret_cast<uint32_t>(value.raw());
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32
