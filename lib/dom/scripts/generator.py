@@ -652,6 +652,7 @@ _idl_type_registry = {
     'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
     'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
+    'IDBKey': IDLTypeInfo('IDBKey', has_dart_wrapper=False),
     'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
     'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
