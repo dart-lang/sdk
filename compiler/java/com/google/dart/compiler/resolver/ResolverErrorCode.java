@@ -33,8 +33,10 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
-  CANNOT_RESOLVE_METHOD("cannot resolve method %s"),
-  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method %s"),
+  CANNOT_RESOLVE_METHOD("cannot resolve method '%s'"),
+  CANNOT_RESOLVE_METHOD_IN_CLASS("cannot resolve method '%s' in class '%s'"),
+  CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
+  CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
   CIRCULAR_REFERENCE(
@@ -157,6 +159,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
+  
   private final ErrorSeverity severity;
   private final String message;
 

@@ -1211,4 +1211,15 @@ public class NegativeResolverTest extends CompilerTestCase {
     Type boundType = typeParameter.getBound().getType();
     assertEquals("A", boundType.getElement().getName());
   }
+  
+  public void test_methodCannotBeResolved() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "class A {",
+            "}",
+            "method() {",
+            "  A.method();", // error
+            "}"),
+            errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, 4, 5, 6));
+  }
 }

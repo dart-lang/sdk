@@ -1131,6 +1131,9 @@ public class Resolver {
         default:
           break;
       }
+      if (x.getName() != null) {
+        recordElement(x.getName(), element);
+      }
       return recordElement(x, element);
     }
 
@@ -1154,7 +1157,7 @@ public class Resolver {
             element = Elements.lookupLocalField(classElement, x.getFunctionNameString());
           }
           if (element == null || !element.getModifiers().isStatic()) {
-            diagnoseErrorInMethodInvocation(x, (ClassElement) target, element);
+            diagnoseErrorInMethodInvocation(x, classElement, element);
           }
           break;
         }
@@ -1178,7 +1181,7 @@ public class Resolver {
           element = library.getScope().findElement(context.getScope().getLibrary(),
                                                    x.getFunctionNameString());
           if (element == null) {
-            diagnoseErrorInMethodInvocation(x, null, null);
+            diagnoseErrorInMethodInvocation(x, library, null);
           } else {
             x.getFunctionName().setElement(element);
           }
@@ -1384,25 +1387,37 @@ public class Resolver {
       }
     }
 
-    private void diagnoseErrorInMethodInvocation(DartMethodInvocation node, ClassElement klass,
+    private void diagnoseErrorInMethodInvocation(DartMethodInvocation node, Element classOrLibrary,
                                                  Element element) {
       String name = node.getFunctionNameString();
       ElementKind kind = ElementKind.of(element);
       DartNode errorNode = node.getFunctionName();
       switch (kind) {
         case NONE:
-          onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
+          switch (ElementKind.of(classOrLibrary)) {
+            case CLASS:
+              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, name, 
+                      classOrLibrary.getName());
+              break;
+            case LIBRARY:
+              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_LIBRARY, name, 
+                      classOrLibrary.getName());
+              break;              
+            default:
+              onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD, name);
+          }
+          
           break;
 
         case CONSTRUCTOR:
-          onError(errorNode, ResolverErrorCode.IS_A_CONSTRUCTOR, klass.getName(),
+          onError(errorNode, ResolverErrorCode.IS_A_CONSTRUCTOR, classOrLibrary.getName(),
                           name);
           break;
 
         case METHOD: {
           assert !((MethodElement) element).getModifiers().isStatic();
           onError(errorNode, ResolverErrorCode.IS_AN_INSTANCE_METHOD,
-              klass.getName(), name);
+              classOrLibrary.getName(), name);
           break;
         }
 
