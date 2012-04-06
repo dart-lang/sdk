@@ -30,6 +30,7 @@
     'ast_printer.h',
     'ast_printer.cc',
     'ast_printer_test.cc',
+    'base_isolate.h',
     'bigint_operations.cc',
     'bigint_operations.h',
     'bigint_operations_test.cc',

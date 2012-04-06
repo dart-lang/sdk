@@ -83,6 +83,14 @@ void IsolateMessageHandler::CheckAccess() {
 #endif
 
 
+#if defined(DEBUG)
+// static
+void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
+  ASSERT(isolate == Isolate::Current());
+}
+#endif
+
+
 Isolate::Isolate()
     : store_buffer_(),
       message_notify_callback_(NULL),
@@ -90,14 +98,7 @@ Isolate::Isolate()
       main_port_(0),
       heap_(NULL),
       object_store_(NULL),
-      top_resource_(NULL),
       top_context_(Context::null()),
-      current_zone_(NULL),
-#if defined(DEBUG)
-      no_gc_scope_depth_(0),
-      no_handle_scope_depth_(0),
-      top_handle_scope_(NULL),
-#endif
       random_seed_(Random::kDefaultRandomSeed),
       top_exit_frame_info_(0),
       init_callback_data_(NULL),
@@ -119,7 +120,6 @@ Isolate::~Isolate() {
   delete [] name_;
   delete heap_;
   delete object_store_;
-  // Do not delete stack resources: top_resource_ and current_zone_.
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;
@@ -308,7 +308,7 @@ void Isolate::PrintInvokedFunctions() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  ASSERT(top_resource_ == NULL);
+  ASSERT(top_resource() == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
   // Clean up debugger resources. Shutting down the debugger
