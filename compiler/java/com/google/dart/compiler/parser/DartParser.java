@@ -253,6 +253,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.EOS, Token.CLASS})
   public DartUnit parseUnit(DartSource source) {
     beginCompilationUnit();
     ctx.unitAboutToCompile(source, isDietParse);
@@ -1786,6 +1787,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     : expression (',' expression)*
    *     ;
    */
+  @Terminals(tokens={Token.COMMA})
   private DartExpression parseExpressionList() {
     beginExpressionList();
     DartExpression result = parseExpression();
@@ -1916,7 +1918,8 @@ public class DartParser extends CompletionHooksParserBase {
    *
    * @return a list of expressions containing the arguments to be passed
    */
-  private List<DartExpression> parseArguments() {
+  @Terminals(tokens={Token.RPAREN, Token.COMMA})
+  public List<DartExpression> parseArguments() {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
     expect(Token.LPAREN);
     // SEMICOLON is for error recovery

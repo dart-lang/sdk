@@ -279,4 +279,60 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartMethodDefinition opPlus = (DartMethodDefinition)foo.getMembers().get(4);
     assertEquals("+", ((DartIdentifier)opPlus.getName()).getName());
   }
+  
+  public void testPropertyAccessInArgumentListRecovery1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = new B(null, foo.);",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+  
+  public void testPropertyAccessInArgumentListRecovery2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = new B(null, foo.,);",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+  
+  public void testPropertyAccessInArgumentListRecovery3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = new B(null,, foo);",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+  
+  public void testPropertyAccessInArgumentListRecovery4() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access4.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = new B(null,+, foo);",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
 }
