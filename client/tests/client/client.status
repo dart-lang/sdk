@@ -7,6 +7,8 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $compiler == none && $runtime == drt ]
 # TODO(vsm): Triage DOM tests.
 dom/HTMLElementTest: Fail
+dom/IndexedDB1Test: Fail  # IDBDatabaseImplementation._transaction "Not supported yet'.
+
 dom/NativeGCTest: Fail  # Issue 1448.
 html/html_tests: Pass, Fail   # Issue 1946.
 
@@ -66,3 +68,6 @@ html/frog_html_tests: Skip # Issue 1884
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
+
+[ $checked ]
+dom/IndexedDB1Test: Skip  # Type check fails for IDBKey, causing Fail or Timeout.  Needs to be renamed to Object or Dynamic.
