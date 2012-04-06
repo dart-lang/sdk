@@ -586,6 +586,19 @@ DROMAEO_BENCHMARKS = {
         'childNodes'])
 }
 
+# Use legal appengine filenames for benchmark names.
+def legalize_filename(str):
+  remap = {
+      ' ': '_',
+      '(': '_',
+      ')': '_',
+      '*': 'ALL',
+      '=': 'ASSIGN',
+      }
+  for (old, new) in remap.iteritems():
+    str = str.replace(old, new)
+  return str
+
 # TODO(vsm): This is a hack to skip breaking tests.  Triage this
 # failure properly.  The modify suite fails on 32-bit chrome on
 # the mac.
@@ -600,7 +613,7 @@ def get_dromaeo_benchmarks():
   benchmarks = reduce(lambda l1,l2: l1+l2,
                       [tests for (tag, tests) in
                        DROMAEO_BENCHMARKS.values() if tag in valid])
-  return map(lambda str: str.replace(' ', '_'), benchmarks)
+  return map(legalize_filename, benchmarks)
 
 def get_dromaeo_versions():
   return ['js', 'frog_dom', 'frog_html']
@@ -672,14 +685,14 @@ class DromaeoTest(PerformanceTest):
           if results:
             for result in results:
               r = re.match(result_pattern, result)
-              name = r.group(1).strip(':').replace(' ', '_')
+              name = legalize_filename(r.group(1).strip(':'))
               score = float(r.group(2))
               bench_dict[name] += [float(score)]
               self.revision_dict[browser][version][name] += [revision_num]
 
     f.close()
     self.calculate_geometric_mean(browser, version, revision_num)
-  
+
 
 class DromaeoSizeTest(TestRunner):
   """Run tests to determine the compiled file output size of Dromaeo."""
