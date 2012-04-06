@@ -93,12 +93,10 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != NULL) {
-    const String& name = String::Handle(frame->QualifiedFunctionName());
-    *function_name = Api::NewLocalHandle(isolate, name);
+    *function_name = Api::NewHandle(isolate, frame->QualifiedFunctionName());
   }
   if (script_url != NULL) {
-    const String& url = String::Handle(frame->SourceUrl());
-    *script_url = Api::NewLocalHandle(isolate, url);
+    *script_url = Api::NewHandle(isolate, frame->SourceUrl());
   }
   if (line_number != NULL) {
     *line_number = frame->LineNumber();
@@ -112,8 +110,7 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
-  const Array& variables = Array::Handle(frame->GetLocalVariables());
-  return Api::NewLocalHandle(isolate, variables);
+  return Api::NewHandle(isolate, frame->GetLocalVariables());
 }
 
 
@@ -245,9 +242,7 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   DARTSCOPE(isolate);
   Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  Array& fields = Array::Handle();
-  fields = isolate->debugger()->GetInstanceFields(obj);
-  return Api::NewLocalHandle(isolate, fields);
+  return Api::NewHandle(isolate, isolate->debugger()->GetInstanceFields(obj));
 }
 
 
@@ -256,9 +251,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
   DARTSCOPE(isolate);
   Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
-  Array& fields = Array::Handle();
-  fields = isolate->debugger()->GetStaticFields(cls);
-  return Api::NewLocalHandle(isolate, fields);
+  return Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
 }
 
 
@@ -267,8 +260,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   DARTSCOPE(isolate);
   Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  const Class& cls = Class::Handle(obj.clazz());
-  return Api::NewLocalHandle(isolate, cls);
+  return Api::NewHandle(isolate, obj.clazz());
 }
 
 
@@ -277,8 +269,7 @@ DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
   DARTSCOPE(isolate);
   Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
-  cls = cls.SuperClass();
-  return Api::NewLocalHandle(isolate, cls);
+  return Api::NewHandle(isolate, cls.SuperClass());
 }
 
 
@@ -305,8 +296,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
                          library_url.ToCString());
   }
 
-  const String& source = String::Handle(script.source());
-  return Api::NewLocalHandle(isolate, source);
+  return Api::NewHandle(isolate, script.source());
 }
 
 
@@ -332,7 +322,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
     url = script.url();
     script_list.SetAt(i, url);
   }
-  return Api::NewLocalHandle(isolate, script_list);
+  return Api::NewHandle(isolate, script_list.raw());
 }
 
 
@@ -360,7 +350,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
     library_list.SetAt(i, lib_url);
     lib = lib.next_registered();
   }
-  return Api::NewLocalHandle(isolate, library_list);
+  return Api::NewHandle(isolate, library_list.raw());
 }
 
 }  // namespace dart

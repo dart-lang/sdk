@@ -3396,9 +3396,9 @@ Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
-                               Api::NewLocalHandle(isolate, library_),
-                               Api::NewLocalHandle(isolate, url),
-                               Api::NewLocalHandle(isolate, import_map));
+                               Api::NewHandle(isolate, library_.raw()),
+                               Api::NewHandle(isolate, url.raw()),
+                               Api::NewHandle(isolate, import_map.raw()));
   if (Dart_IsError(result)) {
     Error& prev_error = Error::Handle();
     prev_error ^= Api::UnwrapHandle(result);

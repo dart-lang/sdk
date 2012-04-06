@@ -73,7 +73,7 @@ void SetupErrorResult(Dart_Handle* handle);
 class Api : AllStatic {
  public:
   // Creates a new local handle.
-  static Dart_Handle NewLocalHandle(Isolate* isolate, const Object& object);
+  static Dart_Handle NewHandle(Isolate* isolate, RawObject* raw);
 
   // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);

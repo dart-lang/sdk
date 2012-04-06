@@ -165,10 +165,8 @@ TEST_CASE(IsSame) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE_NOCHECKS(isolate);
-    const Object& cls1 = Object::Handle(Object::null_class());
-    const Object& cls2 = Object::Handle(Object::class_class());
-    Dart_Handle class1 = Api::NewLocalHandle(isolate, cls1);
-    Dart_Handle class2 = Api::NewLocalHandle(isolate, cls2);
+    Dart_Handle class1 = Api::NewHandle(isolate, Object::null_class());
+    Dart_Handle class2 = Api::NewHandle(isolate, Object::class_class());
 
     EXPECT_VALID(Dart_IsSame(class1, class1, &same));
     EXPECT(same);
@@ -1129,7 +1127,7 @@ UNIT_TEST_CASE(EnterExitScope) {
     EXPECT(state->top_scope() != NULL);
     DARTSCOPE_NOCHECKS(isolate);
     const String& str1 = String::Handle(String::New("Test String"));
-    Dart_Handle ref = Api::NewLocalHandle(isolate, str1);
+    Dart_Handle ref = Api::NewHandle(isolate, str1.raw());
     String& str2 = String::Handle();
     str2 ^= Api::UnwrapHandle(ref);
     EXPECT(str1.Equals(str2));
@@ -1153,14 +1151,12 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_EnterScope();
   {
     DARTSCOPE_NOCHECKS(isolate);
-    const String& str1 = String::Handle(String::New(kTestString1));
-    Dart_Handle ref1 = Api::NewLocalHandle(isolate, str1);
+    Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
     }
     Dart_EnterScope();
-    const String& str2 = String::Handle(String::New(kTestString2));
-    Dart_Handle ref2 = Api::NewLocalHandle(isolate, str2);
+    Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
     for (int i = 1000; i < 2000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref2);
     }
@@ -1257,9 +1253,7 @@ TEST_CASE(WeakPersistentHandle) {
     {
       Isolate* isolate = Isolate::Current();
       DARTSCOPE(isolate);
-      const String& str =
-          String::Handle(String::New("old string", Heap::kOld));
-      old_ref = Api::NewLocalHandle(isolate, str);
+      old_ref = Api::NewHandle(isolate, String::New("old string", Heap::kOld));
       EXPECT_VALID(old_ref);
     }
 
@@ -1394,34 +1388,33 @@ TEST_CASE(ObjectGroups) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    String& str = String::Handle();
 
-    str ^= String::New("strongly reachable", Heap::kOld);
-    strong = Dart_NewPersistentHandle(Api::NewLocalHandle(isolate, str));
+    strong = Dart_NewPersistentHandle(
+        Api::NewHandle(isolate, String::New("strongly reachable", Heap::kOld)));
     EXPECT_VALID(strong);
     EXPECT(!Dart_IsNull(strong));
 
-    str ^= String::New("weakly reachable 1", Heap::kOld);
     weak1 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
+        NULL, NULL);
     EXPECT_VALID(weak1);
     EXPECT(!Dart_IsNull(weak1));
 
-    str ^= String::New("weakly reachable 2", Heap::kOld);
     weak2 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
+        NULL, NULL);
     EXPECT_VALID(weak2);
     EXPECT(!Dart_IsNull(weak2));
 
-    str ^= String::New("weakly reachable 3", Heap::kOld);
     weak3 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
+        NULL, NULL);
     EXPECT_VALID(weak3);
     EXPECT(!Dart_IsNull(weak3));
 
-    str ^= String::New("weakly reachable 4", Heap::kOld);
     weak4 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 4", Heap::kOld)),
+        NULL, NULL);
     EXPECT_VALID(weak4);
     EXPECT(!Dart_IsNull(weak4));
   }
@@ -1577,18 +1570,18 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    String& str = String::Handle();
-    str ^= String::New("new space prologue weak", Heap::kNew);
     new_pwph = Dart_NewPrologueWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate,
+                       String::New("new space prologue weak", Heap::kNew)),
+        NULL, NULL);
     EXPECT_VALID(new_pwph);
     EXPECT(!Dart_IsNull(new_pwph));
-    str ^= String::New("old space prologue weak", Heap::kOld);
     old_pwph = Dart_NewPrologueWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate,
+                       String::New("old space prologue weak", Heap::kOld)),
+        NULL, NULL);
     EXPECT_VALID(old_pwph);
     EXPECT(!Dart_IsNull(old_pwph));
-    str ^= String::null();
   }
   Dart_ExitScope();
   EXPECT_VALID(new_pwph);
@@ -1643,28 +1636,27 @@ TEST_CASE(ImplicitReferences) {
   {
     Isolate* isolate = Isolate::Current();
     DARTSCOPE(isolate);
-    String& str = String::Handle();
 
-    str ^= String::New("strongly reachable", Heap::kOld);
-    strong = Dart_NewPersistentHandle(Api::NewLocalHandle(isolate, str));
+    strong = Dart_NewPersistentHandle(
+        Api::NewHandle(isolate, String::New("strongly reachable", Heap::kOld)));
     EXPECT(!Dart_IsNull(strong));
     EXPECT_VALID(strong);
 
-    str ^= String::New("weakly reachable 1", Heap::kOld);
     weak1 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kOld)),
+        NULL, NULL);
     EXPECT(!Dart_IsNull(weak1));
     EXPECT_VALID(weak1);
 
-    str ^= String::New("weakly reachable 2", Heap::kOld);
     weak2 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kOld)),
+        NULL, NULL);
     EXPECT(!Dart_IsNull(weak2));
     EXPECT_VALID(weak2);
 
-    str ^= String::New("weakly reachable 3", Heap::kOld);
     weak3 = Dart_NewWeakPersistentHandle(
-        Api::NewLocalHandle(isolate, str), NULL, NULL);
+        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kOld)),
+        NULL, NULL);
     EXPECT(!Dart_IsNull(weak3));
     EXPECT_VALID(weak3);
   }
@@ -1984,8 +1976,7 @@ UNIT_TEST_CASE(LocalHandles) {
     // Start a new scope and allocate some local handles.
     Dart_EnterScope();
     for (int i = 0; i < 100; i++) {
-      val ^= Smi::New(i);
-      handles[i] = Api::NewLocalHandle(isolate, val);
+      handles[i] = Api::NewHandle(isolate, Smi::New(i));
     }
     EXPECT_EQ(100, state->CountLocalHandles());
     for (int i = 0; i < 100; i++) {
@@ -1996,8 +1987,7 @@ UNIT_TEST_CASE(LocalHandles) {
     {
       Dart_EnterScope();
       for (int i = 100; i < 200; i++) {
-        val ^= Smi::New(i);
-        handles[i] = Api::NewLocalHandle(isolate, val);
+        handles[i] = Api::NewHandle(isolate, Smi::New(i));
       }
       EXPECT_EQ(200, state->CountLocalHandles());
       for (int i = 100; i < 200; i++) {
@@ -2009,8 +1999,7 @@ UNIT_TEST_CASE(LocalHandles) {
       {
         Dart_EnterScope();
         for (int i = 200; i < 300; i++) {
-          val ^= Smi::New(i);
-          handles[i] = Api::NewLocalHandle(isolate, val);
+          handles[i] = Api::NewHandle(isolate, Smi::New(i));
         }
         EXPECT_EQ(300, state->CountLocalHandles());
         for (int i = 200; i < 300; i++) {
@@ -3543,8 +3532,7 @@ TEST_CASE(NullReceiver) {
 
   Dart_Handle function_name = Dart_NewString("toString");
   const int number_of_arguments = 0;
-  Dart_Handle null_receiver = Api::NewLocalHandle(isolate, Object::Handle());
-  Dart_Handle result = Dart_InvokeDynamic(null_receiver,
+  Dart_Handle result = Dart_InvokeDynamic(Dart_Null(),
                                           function_name,
                                           number_of_arguments,
                                           NULL);

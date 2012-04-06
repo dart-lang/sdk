@@ -25,7 +25,7 @@ NativeFunction NativeEntry::ResolveNative(const Class& cls,
   Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
-      resolver(Api::NewLocalHandle(Isolate::Current(), function_name),
+      resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
                number_of_arguments);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
