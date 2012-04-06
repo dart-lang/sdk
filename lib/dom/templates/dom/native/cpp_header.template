@@ -23,11 +23,6 @@ struct Dart$INTERFACE {
         return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);
     }
 
-    static bool instanceOf(Dart_Handle handle)
-    {
-        return DartDOMWrapper::instanceOf(dartImplementationClassName, handle);
-    }
-
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);
 };
 
