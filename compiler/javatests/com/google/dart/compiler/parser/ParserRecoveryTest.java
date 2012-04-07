@@ -5,11 +5,17 @@
 package com.google.dart.compiler.parser;
 
 import com.google.common.base.Joiner;
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.DartVariableStatement;
 
 public class ParserRecoveryTest extends AbstractParserTest {
 
@@ -17,7 +23,7 @@ public class ParserRecoveryTest extends AbstractParserTest {
   public void testStringsErrors() {
     // Implemented elsewhere
   }
-  
+
   public void testVarOnMethodDefinition() {
     // This syntax is illegal, and should produce errors, but since it is a common error,
     // we want to make sure it produce a valid AST for editor users
@@ -37,9 +43,9 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("f2", ((DartIdentifier)(f2.getName())).getName());
     // Make sure that parsing continue
     DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
-    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());    
+    assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());
   }
-  
+
   public void testFinalOnMethodDefinition() {
     // This syntax is illegal, and should produce errors, but since it is a common error,
     // we want to make sure it produce a valid AST for editor users
@@ -62,9 +68,9 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartMethodDefinition f3 = (DartMethodDefinition)(A.getMembers().get(1));
     assertEquals("f3", ((DartIdentifier)(f3.getName())).getName());
     DartMethodDefinition f4 = (DartMethodDefinition)(A.getMembers().get(2));
-    assertEquals("f4", ((DartIdentifier)(f4.getName())).getName());    
+    assertEquals("f4", ((DartIdentifier)(f4.getName())).getName());
   }
-  
+
   public void testRecoverToTopLevel1() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel1.dart",
         Joiner.on("\n").join(
@@ -104,8 +110,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  } 
-  
+  }
+
   public void testRecoverToTopLevel3() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel3.dart",
         Joiner.on("\n").join(
@@ -125,8 +131,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  }   
-  
+  }
+
   public void testRecoverToTopLevel4() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel4.dart",
         Joiner.on("\n").join(
@@ -146,8 +152,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  }  
-  
+  }
+
   public void testRecoverToTopLevel5() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel5.dart",
         Joiner.on("\n").join(
@@ -167,8 +173,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  } 
-  
+  }
+
   public void testRecoverToTopLevel6() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel6.dart",
         Joiner.on("\n").join(
@@ -188,8 +194,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  } 
-  
+  }
+
   public void testRecoverToTopLevel7() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel7.dart",
         Joiner.on("\n").join(
@@ -209,8 +215,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  } 
-  
+  }
+
   public void testRecoverToTopLevel8() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel8.dart",
         Joiner.on("\n").join(
@@ -232,8 +238,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("B", B.getName().getName());
     DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
     assertEquals("b", B_b.getFields().get(0).getName().getName());
-  }   
-  
+  }
+
   public void testReservedWordClass() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_reserved_word_class",
         Joiner.on("\n").join(
@@ -247,21 +253,21 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("foo", foo.getName().getName());
     DartMethodDefinition mainMethod = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
     assertEquals("main", ((DartIdentifier)mainMethod.getName()).getName());
-    // The recovery on 'int class' closes the main method, assuming int class = 10 is a 
+    // The recovery on 'int class' closes the main method, assuming int class = 10 is a
     // new toplevel so 'print' ends up as a bogus top level node.
     DartClass bar = (DartClass)unit.getTopLevelNodes().get(3);
-    assertEquals("bar", bar.getName().getName());        
+    assertEquals("bar", bar.getName().getName());
   }
-  
+
   public void testBadOperatorRecovery() {
     DartUnit unit = parseUnit("phony_bad_operator_recovery",
         Joiner.on("\n").join(
             "class foo {",
             "  operator / (arg) {}",
-            "  operator /= (arg) {}",            
+            "  operator /= (arg) {}",
             "  operator ][ (arg) {}",
             "  operator === (arg) {}",
-            "  operator + (arg) {}",            
+            "  operator + (arg) {}",
             "}"),
             ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE, 3, 12,
             ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE, 4, 12,
@@ -275,11 +281,11 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartMethodDefinition opNonsense = (DartMethodDefinition)foo.getMembers().get(2);
     assertEquals("][", ((DartIdentifier)opNonsense.getName()).getName());
     DartMethodDefinition opEquiv = (DartMethodDefinition)foo.getMembers().get(3);
-    assertEquals("===", ((DartIdentifier)opEquiv.getName()).getName());    
+    assertEquals("===", ((DartIdentifier)opEquiv.getName()).getName());
     DartMethodDefinition opPlus = (DartMethodDefinition)foo.getMembers().get(4);
     assertEquals("+", ((DartIdentifier)opPlus.getName()).getName());
   }
-  
+
   public void testPropertyAccessInArgumentListRecovery1() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access1.dart",
         Joiner.on("\n").join(
@@ -293,7 +299,7 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
-  
+
   public void testPropertyAccessInArgumentListRecovery2() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access2.dart",
         Joiner.on("\n").join(
@@ -307,7 +313,7 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
-  
+
   public void testPropertyAccessInArgumentListRecovery3() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access3.dart",
         Joiner.on("\n").join(
@@ -321,7 +327,7 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
-  
+
   public void testPropertyAccessInArgumentListRecovery4() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access4.dart",
         Joiner.on("\n").join(
@@ -332,6 +338,110 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("before", before.getFields().get(0).getName().getName());
     DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
     assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { foo( }", // unterminated invocation
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation)
+        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    assertEquals("foo", invocation.getTarget().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { foo }", // unterminated statement
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartIdentifier ident = (DartIdentifier)
+        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    assertEquals("foo", ident.getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { foo. }", // unterminated statement
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartPropertyAccess prop = (DartPropertyAccess)
+        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock4() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block4.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { var foo = }", // unterminated variable decl
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartVariable foo = ((DartVariableStatement)bad.getFunction().getBody().getStatements().get(0))
+        .getVariables().get(0);
+    assertEquals("foo", foo.getVariableName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock5() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block5.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { foo(bar. }", // unterminated invocation
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation)
+        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    assertEquals("foo", invocation.getTarget().getName());
+    DartPropertyAccess arg0 = (DartPropertyAccess)invocation.getArguments().get(0);
+    assertEquals("bar", ((DartIdentifier)arg0.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverInBlock6() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block6.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "bad() { foo + }", // incomplete expression
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartBinaryExpression expr = (DartBinaryExpression)
+        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    assertEquals("foo", ((DartIdentifier)expr.getArg1()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
