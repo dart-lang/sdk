@@ -73,7 +73,7 @@ if platform.system() == 'Windows':
 
 """First, some utility methods."""
 
-def run_cmd(cmd_list, outfile=None, append=False):
+def run_cmd(cmd_list, outfile=None, append=False, std_in=''):
   """Run the specified command and print out any output to stdout.
 
   Args:
@@ -94,9 +94,9 @@ def run_cmd(cmd_list, outfile=None, append=False):
       # explicitly go to the end of the file.
       # http://mail.python.org/pipermail/python-list/2009-October/1221859.html
       out.seek(0, os.SEEK_END)
-  p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE,
-      shell=HAS_SHELL)
-  output, not_used = p.communicate();
+  p = subprocess.Popen(cmd_list, stdout = out, stderr=subprocess.PIPE,
+      stdin=subprocess.PIPE, shell=HAS_SHELL)
+  output, not_used = p.communicate(std_in);
   if output:
     print output
   return output
@@ -164,7 +164,9 @@ def ensure_output_directory(dir_name):
 def has_new_code():
   """Tests if there are any newer versions of files on the server."""
   os.chdir(DART_INSTALL_LOCATION)
-  results = run_cmd(['svn', 'st', '-u'])
+  # Pass 'p' in if we have a new certificate for the svn server, we want to
+  # (p)ermanently accept it.
+  results = run_cmd(['svn', 'st', '-u'], std_in='p')
   for line in results:
     if '*' in line:
       return True
@@ -242,10 +244,9 @@ def upload_to_app_engine(suite_names):
       'dromaeo.html'))
   shutil.copyfile('data.html', os.path.join('appengine', 'static',
       'data.html'))
-  p = subprocess.Popen([os.path.join('..', '..', '..', 'third_party',
+  run_cmd([os.path.join('..', '..', '..', 'third_party',
       'appengine-python', 'appcfg.py'), '--oauth2', 'update',
-      'appengine/'], shell=HAS_SHELL, stdin=subprocess.PIPE)
-  p.communicate()
+      'appengine/'])
 
 
 class TestRunner(object):
