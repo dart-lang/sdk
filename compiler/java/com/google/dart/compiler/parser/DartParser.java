@@ -518,6 +518,7 @@ public class DartParser extends CompletionHooksParserBase {
     do {
       DartTypeParameter typeParameter = parseTypeParameter();
       types.add(typeParameter);
+
     } while (optional(Token.COMMA));
     expect(Token.GT);
     return types;
@@ -1578,6 +1579,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens = {Token.RBRACK, Token.COMMA, Token.RPAREN})
   private List<DartParameter> parseFormalParameterList() {
     beginFormalParameterList();
     List<DartParameter> params = new ArrayList<DartParameter>();
@@ -1592,15 +1594,18 @@ public class DartParser extends CompletionHooksParserBase {
       DartParameter param = parseFormalParameter(isNamed);
       params.add(param);
 
+      // Must keep in sync with @Terminals above
       done = optional(Token.RBRACK);
       if (done) {
         expectCloseParen();
       } else {
+        // Must keep in sync with @Terminals above
         done = optional(Token.RPAREN);
       }
 
       if (!done) {
         // Ensure termination if token is anything other than COMMA.
+        // Must keep in sync with @Terminals above
         done = !expect(Token.COMMA);
       }
     }
@@ -1791,6 +1796,7 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseExpressionList() {
     beginExpressionList();
     DartExpression result = parseExpression();
+    // Must keep in sync with @Terminals above
     while (optional(Token.COMMA)) {
       result = new DartBinaryExpression(Token.COMMA, result, parseExpression());
       if (match(Token.COMMA)) {
@@ -1940,9 +1946,11 @@ public class DartParser extends CompletionHooksParserBase {
       }
       arguments.add(done(expression));
       switch(peek(0)) {
+        // Must keep in sync with @Terminals above
         case COMMA:
           consume(Token.COMMA);
           break;
+          // Must keep in sync with @Terminals above
         case RPAREN:
           break;
         default:

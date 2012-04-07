@@ -9,6 +9,8 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartForStatement;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -342,6 +344,108 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
 
+  public void testPropertyAccessInInitializerListRecovery1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  var before;",
+            "  A() : before = foo. ;",
+            "  var after;",
+            "}"));
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(0);
+    DartFieldDefinition before = (DartFieldDefinition)A.getMembers().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(1);
+    assertEquals("A", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)A.getMembers().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInFormalParameterList1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter1.dart",
+        Joiner.on("\n").join(
+                "var before;",
+                "typedef void bad(bar.);",
+            "var after;"));
+        DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+        assertEquals("before", before.getFields().get(0).getName().getName());
+        DartFunctionTypeAlias bad = (DartFunctionTypeAlias)unit.getTopLevelNodes().get(1);
+        assertEquals("bad", bad.getName().getName());
+        DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+        assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInFormalParameterList2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "typedef void bad(bar.,baz);",
+        "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFunctionTypeAlias bad = (DartFunctionTypeAlias)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInFormalParameterList3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "typedef void bad(foo, [bar.]);", // incomplete property access
+        "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFunctionTypeAlias bad = (DartFunctionTypeAlias)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+
+  public void testPropertyAccessInFormalParameterList4() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter4.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "typedef void bad(int bar.);", // a property access is not valid here
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFunctionTypeAlias bad = (DartFunctionTypeAlias)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInFormalParameterList5() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter5.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = (bar.) {};", // incomplete property access
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInFormalParameterList6() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_parameter6.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "void bad(foo.);", // incomplete property access
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
   public void testRecoverInBlock1() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_in_block1.dart",
         Joiner.on("\n").join(
@@ -387,8 +491,8 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
     assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
     DartPropertyAccess prop = (DartPropertyAccess)
-        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
-    assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
+    ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
   }
@@ -440,9 +544,57 @@ public class ParserRecoveryTest extends AbstractParserTest {
     DartMethodDefinition bad = (DartMethodDefinition)unit.getTopLevelNodes().get(1);
     assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
     DartBinaryExpression expr = (DartBinaryExpression)
-        ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
+    ((DartExprStmt)bad.getFunction().getBody().getStatements().get(0)).getExpression();
     assertEquals("foo", ((DartIdentifier)expr.getArg1()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
+ }
+
+  public void testPropertyAccessInExpressionList1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_expression_list1.dart",
+        Joiner.on("\n").join(
+                "method() {",
+                "  var before;",
+                "  for (var i=0;i < 2;before, foo.,after) {}",
+                "  var after;",
+                "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    DartVariable before = ((DartVariableStatement) method.getFunction().getBody().getStatements()
+        .get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartForStatement forStatement = (DartForStatement) method.getFunction().getBody()
+        .getStatements().get(1);
+    DartBinaryExpression increment = (DartBinaryExpression) forStatement.getIncrement();
+    DartBinaryExpression i1 = (DartBinaryExpression) increment.getArg1();
+    DartIdentifier beforeIdent = (DartIdentifier) i1.getArg1();
+    assertEquals("before", beforeIdent.getName());
+    DartPropertyAccess foo = (DartPropertyAccess) i1.getArg2();
+    assertEquals("foo", ((DartIdentifier) foo.getQualifier()).getName());
+    DartIdentifier afterIdent = (DartIdentifier) increment.getArg2();
+    assertEquals("after", afterIdent.getName());
+    DartVariable after = ((DartVariableStatement) method.getFunction().getBody().getStatements()
+        .get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testPropertyAccessInExpressionList2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_expression_list2.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  var before;",
+            "  for (var i=0;i < 2; foo.) {}",
+            "  var after;",
+        "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    DartVariable before = ((DartVariableStatement) method.getFunction().getBody().getStatements()
+        .get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartForStatement forStatement = (DartForStatement) method.getFunction().getBody()
+        .getStatements().get(1);
+    DartPropertyAccess foo = (DartPropertyAccess) forStatement.getIncrement();
+    assertEquals("foo", ((DartIdentifier) foo.getQualifier()).getName());
+    DartVariable after = ((DartVariableStatement) method.getFunction().getBody().getStatements()
+        .get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
   }
 }
