@@ -65,8 +65,7 @@ class StackmapBuilder : public ZoneAllocated {
       builder_(new BitmapBuilder()),
       code_(Code::ZoneHandle()),
       stack_map_(Stackmap::ZoneHandle()),
-      list_(GrowableObjectArray::ZoneHandle(
-          GrowableObjectArray::New(Heap::kOld))) { }
+      list_(GrowableObjectArray::ZoneHandle(GrowableObjectArray::New())) { }
   ~StackmapBuilder() { }
 
   // Gets state of stack slot (object or regular value).

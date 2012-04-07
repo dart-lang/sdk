@@ -4,6 +4,7 @@
 
 #include "vm/runtime_entry.h"
 
+#include "vm/code_index_table.h"
 #include "vm/object.h"
 #include "vm/verifier.h"
 
@@ -24,6 +25,9 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   Library& lib = Library::Handle(Library::CoreLibrary());
   lib.AddClass(cls);
   function.SetCode(code);
+  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+  ASSERT(code_index_table != NULL);
+  code_index_table->AddCode(code);
   return function;
 }
 

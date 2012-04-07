@@ -130,7 +130,6 @@ class LocalScope;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
-  friend class DartFrame;                                                      \
 
 class Object {
  public:
@@ -2077,10 +2076,10 @@ class Stackmap : public Object {
   void SetCode(const Code& code) const;
 
   // Return the offset of the highest stack slot that has an object.
-  intptr_t MaximumBitOffset() const { return raw_ptr()->max_set_bit_offset_; }
+  intptr_t Maximum() const;
 
   // Return the offset of the lowest stack slot that has an object.
-  intptr_t MinimumBitOffset() const { return raw_ptr()->min_set_bit_offset_; }
+  intptr_t Minimum() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
@@ -2089,17 +2088,10 @@ class Stackmap : public Object {
   static intptr_t InstanceSize(intptr_t size) {
     return RoundedAllocationSize(sizeof(RawStackmap) + (size * kWordSize));
   }
-  static RawStackmap* New(uword pc, BitmapBuilder* bmap);
+  static RawStackmap* New(uword pc, const Code& code, BitmapBuilder* bmap);
 
  private:
   inline intptr_t SizeInBits() const;
-
-  void SetMinBitOffset(intptr_t value) const {
-    raw_ptr()->min_set_bit_offset_ = value;
-  }
-  void SetMaxBitOffset(intptr_t value) const {
-    raw_ptr()->max_set_bit_offset_ = value;
-  }
 
   bool InRange(intptr_t offset) const { return offset < SizeInBits(); }
 
@@ -2107,6 +2099,8 @@ class Stackmap : public Object {
   void SetBit(intptr_t bit_offset, bool value) const;
 
   void set_bitmap_size_in_bytes(intptr_t value) const;
+  void set_pc(uword value) const;
+  void set_code(const Code& code) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
   friend class Class;
@@ -2202,7 +2196,6 @@ class Code : public Object {
     return raw_ptr()->stackmaps_;
   }
   void set_stackmaps(const Array& maps) const;
-  RawStackmap* GetStackmap(uword pc, Array* stackmaps, Stackmap* map) const;
 
   RawLocalVarDescriptors* var_descriptors() const {
     return raw_ptr()->var_descriptors_;

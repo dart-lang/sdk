@@ -11,7 +11,6 @@
 #include "vm/code_index_table.h"
 #include "vm/heap.h"
 #include "vm/os.h"
-#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -427,15 +426,18 @@ void X86Decoder::PrintAddress(uword addr) {
       Print(name_of_stub);
       Print("]");
     } else {
-      // Print only if jumping to entry point.
-      const Code& code = Code::Handle(
-          StackFrame::LookupCode(Isolate::Current(), addr));
-      if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const Function& function = Function::Handle(code.function());
-        const char* name_of_function = function.ToFullyQualifiedCString();
-        Print(" [");
-        Print(name_of_function);
-        Print("]");
+      CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+      if (code_index_table != NULL) {
+        // Print only if jumping to entry point.
+        const Code& code = Code::Handle(
+            code_index_table->LookupCode(addr));
+        if (!code.IsNull() && (code.EntryPoint() == addr)) {
+          const Function& function = Function::Handle(code.function());
+          const char* name_of_function = function.ToFullyQualifiedCString();
+          Print(" [");
+          Print(name_of_function);
+          Print("]");
+        }
       }
     }
   }

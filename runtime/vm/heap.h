@@ -84,15 +84,6 @@ class Heap {
   void IterateOldPointers(ObjectPointerVisitor* visitor);
   void IterateCodePointers(ObjectPointerVisitor* visitor);
 
-  // Find an object by visiting all pointers in the specified heap space,
-  // the 'visitor' is used to determine if an object is found or not.
-  // The 'visitor' function should be set up to return true if the
-  // object is found, traversal through the heap space stops at that
-  // point.
-  // The 'visitor' function should return false if the object is not found,
-  // traversal through the heap space continues.
-  RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor);
-
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks);
   void CollectAllGarbage();

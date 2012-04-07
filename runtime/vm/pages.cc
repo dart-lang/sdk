@@ -49,21 +49,6 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
-RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
-  uword obj_addr = first_object_start();
-  uword end_addr = top();
-  while (obj_addr < end_addr) {
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-    if (raw_obj->FindObject(visitor)) {
-      return raw_obj;  // Found object, return it.
-    }
-    obj_addr += raw_obj->Size();
-  }
-  ASSERT(obj_addr == end_addr);
-  return Object::null();
-}
-
-
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
     : freelist_(),
       heap_(heap),
@@ -218,29 +203,6 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
     page->VisitObjectPointers(visitor);
     page = page->next();
   }
-}
-
-
-RawObject* PageSpace::FindObject(FindObjectVisitor* visitor) const {
-  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    RawObject* obj = page->FindObject(visitor);
-    if (obj != Object::null()) {
-      return obj;
-    }
-    page = page->next();
-  }
-
-  page = large_pages_;
-  while (page != NULL) {
-    RawObject* obj = page->FindObject(visitor);
-    if (obj != Object::null()) {
-      return obj;
-    }
-    page = page->next();
-  }
-  return Object::null();
 }
 
 

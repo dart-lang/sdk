@@ -7,6 +7,7 @@
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/code_generator.h"
+#include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -128,6 +129,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
 
+    CodeIndexTable* code_index_table = isolate->code_index_table();
+    ASSERT(code_index_table != NULL);
     bool is_compiled = false;
     if (FLAG_use_new_compiler) {
       ASSERT(!optimized);
@@ -159,6 +162,7 @@ static RawError* CompileFunctionHelper(const Function& function,
         function.set_unoptimized_code(code);
         function.SetCode(code);
         ASSERT(CodePatcher::CodeIsPatchable(code));
+        code_index_table->AddCode(code);
         is_compiled = true;
       } else {
         // We bailed out.
@@ -196,6 +200,7 @@ static RawError* CompileFunctionHelper(const Function& function,
         code_gen.FinalizeStackmaps(code);
         code_gen.FinalizeExceptionHandlers(code);
         function.SetCode(code);
+        code_index_table->AddCode(code);
         CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
         if (FLAG_trace_compiler) {
           OS::Print("--> patching entry 0x%x\n",
@@ -218,6 +223,7 @@ static RawError* CompileFunctionHelper(const Function& function,
           function.set_unoptimized_code(code);
           function.SetCode(code);
           ASSERT(CodePatcher::CodeIsPatchable(code));
+          code_index_table->AddCode(code);
         } else {
           // Disable optimized code.
           ASSERT(function.HasOptimizedCode());
@@ -372,6 +378,12 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     const Code& code = Code::Handle(Code::FinalizeCode(kEvalConst, &assembler));
 
     func.SetCode(code);
+    CodeIndexTable* code_index_table = isolate->code_index_table();
+    ASSERT(code_index_table != NULL);
+    code_index_table->AddCode(code);
+    // TODO(hausner): We need a way to remove these one-time execution
+    // functions from the global code description (PC mapping) tables so
+    // we don't pollute the system unnecessarily with stale data.
     code_gen.FinalizePcDescriptors(code);
     code_gen.FinalizeStackmaps(code);
     code_gen.FinalizeExceptionHandlers(code);

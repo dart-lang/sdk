@@ -37,7 +37,8 @@ TEST_CASE(BitmapBuilder) {
     value = !value;
   }
   // Create a Bitmap object from the builder and verify it's contents.
-  const Stackmap& bmap1 = Stackmap::Handle(Stackmap::New(0, bmap1_builder));
+  const Stackmap& bmap1 = Stackmap::Handle(
+      Stackmap::New(0, Code::Handle(), bmap1_builder));
   EXPECT_EQ(1022, bmap1_builder->Maximum());
   EXPECT_EQ(0, bmap1_builder->Minimum());
   OS::Print("%s\n", bmap1.ToCString());
@@ -61,7 +62,8 @@ TEST_CASE(BitmapBuilder) {
   for (int32_t i = 1025; i <= 2048; i++) {
     EXPECT(!bmap1_builder->Get(i));
   }
-  const Stackmap& bmap2 = Stackmap::Handle(Stackmap::New(0, bmap1_builder));
+  const Stackmap& bmap2 = Stackmap::Handle(
+      Stackmap::New(0, Code::Handle(), bmap1_builder));
   EXPECT_EQ(1024, bmap1_builder->Maximum());
   EXPECT_EQ(257, bmap1_builder->Minimum());
   for (int32_t i = 0; i <= 256; i++) {

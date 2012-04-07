@@ -9,6 +9,7 @@
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/code_generator.h"
+#include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -25,7 +26,6 @@
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
-#include "vm/stack_frame.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 
@@ -5566,6 +5566,26 @@ void Stackmap::SetCode(const Code& code) const {
 }
 
 
+// Return the bit offset of the highest bit set.
+intptr_t Stackmap::Maximum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = (bound - 1); i >= 0; i--) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMaximum;
+}
+
+
+// Return the bit offset of the lowest bit set.
+intptr_t Stackmap::Minimum() const {
+  intptr_t bound = SizeInBits();
+  for (intptr_t i = 0; i < bound; i++) {
+    if (IsObject(i)) return i;
+  }
+  return kNoMinimum;
+}
+
+
 bool Stackmap::GetBit(intptr_t bit_offset) const {
   ASSERT(InRange(bit_offset));
   int byte_offset = bit_offset >> kBitsPerByteLog2;
@@ -5590,7 +5610,7 @@ void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(uword pc, const Code& code, BitmapBuilder* bmap) {
   const Class& cls = Class::Handle(Object::stackmap_class());
   ASSERT(!cls.IsNull());
   ASSERT(bmap != NULL);
@@ -5605,13 +5625,12 @@ RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
     result ^= raw;
     result.set_bitmap_size_in_bytes(size);
   }
-  result.SetPC(pc_offset);
+  result.set_pc(pc);
+  result.set_code(code);
   intptr_t bound = bmap->SizeInBits();
   for (intptr_t i = 0; i < bound; i++) {
     result.SetBit(i, bmap->Get(i));
   }
-  result.SetMinBitOffset(bmap->Minimum());
-  result.SetMaxBitOffset(bmap->Maximum());
   return result.raw();
 }
 
@@ -5623,18 +5642,27 @@ void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
 }
 
 
+void Stackmap::set_pc(uword value) const {
+  raw_ptr()->pc_ = value;
+}
+
+
+void Stackmap::set_code(const Code& code) const {
+  StorePointer(&raw_ptr()->code_, code.raw());
+}
+
+
 const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
     intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
-    intptr_t alloc_size =
-        index + ((MaximumBitOffset() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    intptr_t alloc_size = index + ((Maximum() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
     char* chars = reinterpret_cast<char*>(
         isolate->current_zone()->Allocate(alloc_size));
     index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
-    for (intptr_t i = 0; i <= MaximumBitOffset(); i++) {
+    for (intptr_t i = 0; i <= Maximum(); i++) {
       index += OS::SNPrint((chars + index),
                            (alloc_size - index),
                            "%d ",
@@ -5964,38 +5992,6 @@ void Code::ExtractIcDataArraysAtCalls(
       ic_data_objs.Add(ic_data_obj);
     }
   }
-}
-
-
-RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
-  // This code is used only during iterating frames during a GC and hence
-  // it should not in turn start a GC.
-  NoGCScope no_gc;
-  if (stackmaps() == Array::null()) {
-    // No stack maps are present in the code object which means this
-    // frame relies on tagged pointers.
-    return Stackmap::null();
-  }
-  // A stack map is present in the code object, use the stack map to visit
-  // frame slots which are marked as having objects.
-  RawStackmap* previous_map = Stackmap::null();
-  *maps = stackmaps();
-  *map = Stackmap::null();
-  for (intptr_t i = 0; i < maps->Length(); i++) {
-    *map ^= maps->At(i);
-    ASSERT(!map->IsNull());
-    if (map->PC() == pc) {
-      break;  // We found a stack map for this frame.
-    }
-    if (map->PC() > pc) {
-      // We have not found a stackmap corresponding to the PC of this frame,
-      // we will use the closest previous stack map.
-      *map = previous_map;
-      break;
-    }
-    previous_map = map->raw();
-  }
-  return map->raw();
 }
 
 
@@ -8883,16 +8879,17 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 
 void Stacktrace::SetupStacktrace(intptr_t index,
                                  const GrowableArray<uword>& frame_pcs) const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Function& function = Function::Handle(isolate, Function::null());
-  Code& code = Code::Handle(isolate, Code::null());
-  Smi& pc_offset = Smi::Handle(isolate, Smi::New(0));
+  ASSERT(Isolate::Current() != NULL);
+  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+  ASSERT(code_index_table != NULL);
+  Function& function = Function::Handle();
+  Code& code = Code::Handle();
+  Smi& pc_offset = Smi::Handle();
   const Array& function_array = Array::Handle(raw_ptr()->function_array_);
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    code = StackFrame::LookupCode(isolate, frame_pcs[i]);
+    code = code_index_table->LookupCode(frame_pcs[i]);
     ASSERT(!code.IsNull());
     function = code.function();
     function_array.SetAt((index + i), function);

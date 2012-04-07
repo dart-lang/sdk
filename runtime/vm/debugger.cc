@@ -4,6 +4,7 @@
 
 #include "vm/debugger.h"
 
+#include "vm/code_index_table.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -100,9 +101,10 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp)
 
 const Function& ActivationFrame::DartFunction() {
   if (function_.IsNull()) {
-    Isolate* isolate = Isolate::Current();
-    ASSERT(isolate != NULL);
-    const Code& code = Code::Handle(StackFrame::LookupCode(isolate, pc_));
+    ASSERT(Isolate::Current() != NULL);
+    CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+    ASSERT(code_index_table != NULL);
+    const Code& code = Code::Handle(code_index_table->LookupCode(pc_));
     function_ = code.function();
   }
   return function_;

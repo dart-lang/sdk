@@ -44,8 +44,6 @@ class HeapPage {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
-
  private:
   static HeapPage* Initialize(VirtualMemory* memory, bool is_executable);
   static HeapPage* Allocate(intptr_t size, bool is_executable);
@@ -87,8 +85,6 @@ class PageSpace {
   }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
-
-  RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks);

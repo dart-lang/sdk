@@ -129,14 +129,6 @@ void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
 }
 
 
-RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
-  // The code heap can only have RawInstructions objects.
-  RawObject* raw_obj = code_space_->FindObject(visitor);
-  ASSERT(raw_obj->ptr()->class_->ptr()->instance_kind_ == kInstructions);
-  return reinterpret_cast<RawInstructions*>(raw_obj);
-}
-
-
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {
