@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.util.List;
 import java.util.Set;
@@ -303,7 +303,7 @@ public class NegativeParserTest extends CompilerTestCase {
         "foo.baz() {}",
         errEx(ParserErrorCode.FUNCTION_NAME_EXPECTED_IDENTIFIER, 1, 1, 7));
   }
-  
+
   public void testInvalidStringInterpolation() {
     parseExpectErrors(
         Joiner.on("\n").join(
@@ -329,7 +329,7 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 1),
         errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 8, 1, 1),
         errEx(ParserErrorCode.INCOMPLETE_STRING_LITERAL, 8, 1, 1),
-        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 8, 2, 0));
+        errEx(ParserErrorCode.EXPECTED_SEMICOLON, 8, 2, 0));
   }
 
   public void testDeprecatedFactoryInInterface() {
