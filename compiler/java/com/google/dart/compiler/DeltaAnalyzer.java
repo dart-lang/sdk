@@ -8,6 +8,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
@@ -77,6 +78,14 @@ class DeltaAnalyzer {
   private Scope deltaLibraryScope(Source originalSource, DartUnit unit) {
     // Create a library unit which holds the new unit.
     LibraryUnit libraryUnit = new LibraryUnit(makeLibrarySource("delta"));
+    // Copy all the imports
+    for (LibraryNode path : enclosingLibrary.getLibraryUnit().getImportPaths()) {
+      libraryUnit.addImportPath(path);
+    }
+    for (LibraryUnit importUnit : enclosingLibrary.getLibraryUnit().getImports()) {
+      libraryUnit.addImport(importUnit, importUnit.getEntryNode());
+    }
+    libraryUnit.initializePrefixes(enclosingLibrary.getLibraryUnit());
     libraryUnit.putUnit(unit);
 
     // Create top-level elements for the new unit.
