@@ -2253,6 +2253,7 @@ public class DartParser extends CompletionHooksParserBase {
    * <pre> mapLiteral : '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}' ;
    * </pre>
    */
+  @Terminals(tokens={Token.RBRACE, Token.COMMA})
   private DartExpression parseMapLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
     beginMapLiteral();
     expect(Token.LBRACE);
@@ -2275,16 +2276,24 @@ public class DartParser extends CompletionHooksParserBase {
       if (entry != null) {
         entries.add(entry);
       }
-      switch (peek(0)) {
+      Token nextToken = peek(0);
+      switch (nextToken) {
+        // Must keep in sync with @Terminals above
         case COMMA:
           consume(Token.COMMA);
           break;
+        // Must keep in sync with @Terminals above
         case RBRACE:
           break;
         default:
           if (entry == null) {
-            // Ensure the parser makes progress.
-            ctx.advance();
+            Set<Token> terminals = collectTerminalAnnotations();
+            if (!terminals.contains(nextToken) && !looksLikeTopLevelKeyword()) {
+              if (entry == null) {
+                // Ensure the parser makes progress.
+                ctx.advance();
+              }
+            }
           }
           reportError(position(), ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_BRACE);
           break;
@@ -2306,6 +2315,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.RBRACK, Token.COMMA})
   private DartExpression parseArrayLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
     beginArrayLiteral();
     expect(Token.LBRACK);
@@ -2313,10 +2323,12 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartExpression> exprs = new ArrayList<DartExpression>();
     while (!match(Token.RBRACK) && !EOS()) {
       exprs.add(parseExpression());
+      // Must keep in sync with @Terminals above
       if (!optional(Token.COMMA)) {
         break;
       }
     }
+    // Must keep in sync with @Terminals above
     expect(Token.RBRACK);
     setAllowFunctionExpression(save);
     return done(new DartArrayLiteral(isConst, typeArguments, exprs));

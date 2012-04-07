@@ -5,6 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.common.base.Joiner;
+import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -12,6 +13,7 @@ import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
@@ -596,5 +598,107 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     DartVariable after = ((DartVariableStatement) method.getFunction().getBody().getStatements()
         .get(2)).getVariables().get(0);
     assertEquals("after", after.getName().getName());
+  }
+
+  public void testPropertyAccessInArrayLiteral1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_array_literal1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = [foo.];",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartArrayLiteral literal = (DartArrayLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getExpressions().get(0);
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInArrayLiteral2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_array_literal2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = [foo.,];",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartArrayLiteral literal = (DartArrayLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getExpressions().get(0);
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInArrayLiteral3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_array_literal2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = [foo. + ];",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartArrayLiteral literal = (DartArrayLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getExpressions().get(0);
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInMapLiteral1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_map_literal1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = {\"key\" : foo.};",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartMapLiteral literal = (DartMapLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getEntries().get(0).getValue();
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInMapLiteral2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_map_literal2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = {\"key\" : foo.,};",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartMapLiteral literal = (DartMapLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getEntries().get(0).getValue();
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInMapLiteral3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_map_literal3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "var bad = {\"key\" : foo. +};",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartMapLiteral literal = (DartMapLiteral)bad.getFields().get(0).getValue();
+    DartPropertyAccess foo = (DartPropertyAccess)literal.getEntries().get(0).getValue();
+    assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
   }
 }
