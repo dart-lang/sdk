@@ -208,7 +208,6 @@ Language/08_Interfaces/4_Superinterfaces_A02_t04: Fail
 Language/09_Generics/09_Generics_A04_t06: Fail
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail
-LibTest/core/List/lastIndexOf_A03_t01: Fail
 LibTest/core/Match/group_A01_t01: Fail # co19 issue 92
 LibTest/core/Match/groups_A01_t01: Fail # co19 issue 92
 LibTest/core/ReceivePort/receive_A01_t02: Fail
