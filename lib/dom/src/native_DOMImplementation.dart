@@ -78,3 +78,21 @@ class LocationCrossFrameImplementation extends DOMWrapperBase implements Locatio
 
   String get typeName() => "Location";
 }
+
+class DOMStringMapImplementation extends DOMWrapperBase implements Map<String, String> {
+  static DOMStringMapImplementation _createDOMStringMapImplementation() => new DOMStringMapImplementation._createDOMStringMapImplementation();
+  DOMStringMapImplementation._createDOMStringMapImplementation();
+
+  bool containsValue(String value) => Maps.containsValue(this, value);
+  bool containsKey(String key) native "DOMStringMap_containsKey_Callback";
+  String operator [](String key) native "DOMStringMap_item_Callback";
+  void operator []=(String key, String value) native "DOMStringMap_setItem_Callback";
+  String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
+  String remove(String key) native "DOMStringMap_remove_Callback";
+  void clear() => Maps.clear(this);
+  void forEach(void f(String key, String value)) => Maps.forEach(this, f);
+  Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
+  Collection<String> getValues() => Maps.getValues(this);
+  int get length() => Maps.length(this);
+  bool isEmpty() => Maps.isEmpty(this);
+}

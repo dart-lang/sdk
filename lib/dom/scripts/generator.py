@@ -531,6 +531,8 @@ class IDLTypeInfo(object):
 
   def conversion_includes(self):
     def NeededDartTypes(type_name):
+      if type_name == 'Map<String, String>':
+        return ['DOMStringMap']
       match = re.match(r'List<(\w*)>$', type_name)
       if match:
         return NeededDartTypes(match.group(1))
