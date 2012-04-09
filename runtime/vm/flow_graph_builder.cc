@@ -1843,7 +1843,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
+void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
@@ -1861,7 +1861,21 @@ void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
                              for_stack_trace.value());
   }
   AddInstruction(instr);
+}
+
+
+void EffectGraphVisitor::VisitThrowNode(ThrowNode* node) {
+  BuildThrowNode(node);
   CloseFragment();
+}
+
+
+// A throw cannot be part of an expression, however, the parser may replace
+// certain expression nodes with a throw. In that case generate a literal null
+// so that the fragment is not closed in the middle of an expression.
+void ValueGraphVisitor::VisitThrowNode(ThrowNode* node) {
+  BuildThrowNode(node);
+  ReturnValue(new ConstantVal(Instance::ZoneHandle()));
 }
 
 

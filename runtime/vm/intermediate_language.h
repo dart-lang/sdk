@@ -1186,7 +1186,10 @@ class ReturnInstr : public Instruction {
 class ThrowInstr : public Instruction {
  public:
   ThrowInstr(intptr_t node_id, intptr_t token_index, Value* exception)
-      : node_id_(node_id), token_index_(token_index), exception_(exception) {
+      : node_id_(node_id),
+        token_index_(token_index),
+        exception_(exception),
+        successor_(NULL) {
     ASSERT(exception_ != NULL);
   }
 
@@ -1196,13 +1199,20 @@ class ThrowInstr : public Instruction {
   intptr_t token_index() const { return token_index_; }
   Value* exception() const { return exception_; }
 
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+  // Parser can generate a throw within an expression tree.
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL);
+    successor_ = instr;
+  }
 
  private:
   intptr_t node_id_;
   intptr_t token_index_;
   Value* exception_;
+  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -1217,7 +1227,8 @@ class ReThrowInstr : public Instruction {
       : node_id_(node_id),
         token_index_(token_index),
         exception_(exception),
-        stack_trace_(stack_trace) {
+        stack_trace_(stack_trace),
+        successor_(NULL) {
     ASSERT(exception_ != NULL);
     ASSERT(stack_trace_ != NULL);
   }
@@ -1229,14 +1240,21 @@ class ReThrowInstr : public Instruction {
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+  // Parser can generate a rethrow within an expression tree.
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL);
+    successor_ = instr;
+  }
 
  private:
   intptr_t node_id_;
   intptr_t token_index_;
   Value* exception_;
   Value* stack_trace_;
+  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
