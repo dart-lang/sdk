@@ -30,6 +30,7 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING,
       "Deprecated use of the 'factory' keyword: use 'default' instead"),
+  DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
@@ -74,6 +75,7 @@ public enum ParserErrorCode implements ErrorCode {
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
+  ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
@@ -87,7 +89,7 @@ public enum ParserErrorCode implements ErrorCode {
       "'super' cannot be used as the second operand in a binary expression."),
   SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND("'super' is not valid as a boolean operand"),
   SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND(
-      "'super' is not valid alone or as a boolean operand"),      
+      "'super' is not valid alone or as a boolean operand"),
   TOP_LEVEL_CANNOT_BE_STATIC("Top-level field or method can not be static"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
@@ -95,7 +97,7 @@ public enum ParserErrorCode implements ErrorCode {
   VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
   VOID_FIELD("Field cannot be of type void"),
   VOID_PARAMETER("Parameter cannot be of type void");
-  
+
   private final ErrorSeverity severity;
   private final String message;
 

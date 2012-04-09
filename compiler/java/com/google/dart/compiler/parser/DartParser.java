@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDefault;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
@@ -253,7 +254,8 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
-  @Terminals(tokens={Token.EOS, Token.CLASS})
+  @Terminals(tokens={Token.EOS, Token.CLASS, Token.LIBRARY, Token.IMPORT, Token.SOURCE,
+      Token.RESOURCE, Token.NATIVE})
   public DartUnit parseUnit(DartSource source) {
     beginCompilationUnit();
     ctx.unitAboutToCompile(source, isDietParse);
@@ -287,6 +289,12 @@ public class DartParser extends CompletionHooksParserBase {
             && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
           consume(Token.IDENTIFIER);
           node = done(parseFunctionTypeAlias());
+        } else if (looksLikeDirective()) {
+          ctx.begin();
+          next();
+          reportError(position(), ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+          ctx.rollback();
+          parseDirectives(unit);
         } else {
           node = done(parseFieldOrMethod(false));
         }
@@ -318,6 +326,18 @@ public class DartParser extends CompletionHooksParserBase {
     }
     expect(Token.EOS);
     return done(unit);
+  }
+
+  private boolean looksLikeDirective() {
+    switch(peek(0)) {
+      case LIBRARY:
+      case IMPORT:
+      case SOURCE:
+      case RESOURCE:
+      case NATIVE:
+        return true;
+    }
+    return false;
   }
 
   /**
@@ -411,7 +431,15 @@ public class DartParser extends CompletionHooksParserBase {
   private void parseDirectives(DartUnit unit) {
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      unit.getDirectives().add(done(parseLibraryDirective()));
+      DartLibraryDirective libraryDirective = parseLibraryDirective();
+      for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartLibraryDirective) {
+          reportError(position(), ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
+          break;
+        }
+      }
+      unit.getDirectives().add(libraryDirective);
+      done(libraryDirective);
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
