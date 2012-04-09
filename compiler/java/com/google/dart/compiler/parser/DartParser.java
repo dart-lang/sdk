@@ -665,7 +665,17 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the members.
     List<DartNode> members = new ArrayList<DartNode>();
-    parseClassOrInterfaceBody(members);
+    if (optional(Token.LBRACE)) {
+      while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
+        DartNode member = parseFieldOrMethod(true);
+        if (member != null) {
+          members.add(member);
+        }
+      }
+      expectCloseBrace();
+    } else {
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
+    }
 
     if (isParsingInterface) {
       return done(new DartClass(name, superType, interfaces, members, typeParameters, defaultClass));
@@ -677,31 +687,6 @@ public class DartParser extends CompletionHooksParserBase {
           members,
           typeParameters,
           modifiers));
-    }
-  }
-
-  /**
-   * Helper for {@link #parseClass()}.
-   *
-   * '{' classMemberDefinition* '}'
-   *
-   */
-  @Terminals(tokens={Token.RBRACE, Token.SEMICOLON})
-  private void parseClassOrInterfaceBody(List<DartNode> members) {
-    if (optional(Token.LBRACE)) {
-      while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
-        DartNode member = parseFieldOrMethod(true);
-        if (member != null) {
-          members.add(member);
-        }
-        // Recover at a semicolon
-        if (optional(Token.SEMICOLON)) {
-          reportUnexpectedToken(position(), null, Token.SEMICOLON);
-        }
-      }
-      expectCloseBrace(true);
-    } else {
-      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
     }
   }
 
@@ -2271,7 +2256,7 @@ public class DartParser extends CompletionHooksParserBase {
   @Terminals(tokens={Token.RBRACE, Token.COMMA})
   private DartExpression parseMapLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
     beginMapLiteral();
-    boolean foundOpenBrace = expect(Token.LBRACE);
+    expect(Token.LBRACE);
     boolean save = setAllowFunctionExpression(true);
     List<DartMapLiteralEntry> entries = new ArrayList<DartMapLiteralEntry>();
 
@@ -2315,7 +2300,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
     }
 
-    expectCloseBrace(foundOpenBrace);
+    expectCloseBrace();
     setAllowFunctionExpression(save);
     return done(new DartMapLiteral(isConst, typeArguments, entries));
   }
@@ -3016,7 +3001,7 @@ public class DartParser extends CompletionHooksParserBase {
       }
       beginBlock();
       List<DartStatement> statements = new ArrayList<DartStatement>();
-      boolean foundOpenBrace = expect(Token.LBRACE);
+      expect(Token.LBRACE);
       while (!match(Token.RBRACE) && !EOS()) {
         if (looksLikeTopLevelKeyword()) {
           reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
@@ -3028,7 +3013,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         statements.add(newStatement);
       }
-      expectCloseBrace(foundOpenBrace);
+      expectCloseBrace();
       return done(new DartBlock(statements));
     }
   }
@@ -3502,30 +3487,33 @@ public class DartParser extends CompletionHooksParserBase {
    * Expect a close brace, reporting an error and consuming tokens until a
    * plausible continuation is found if it isn't present.
    */
-  private void expectCloseBrace(boolean foundOpenBrace) {
+  private void expectCloseBrace() {
     // If a top level keyword is seen, bail out to recover.
     if (looksLikeTopLevelKeyword()) {
-      reportUnexpectedToken(position(), Token.RBRACE, peek(0));
+      reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
       return;
     }
+    int braceCount = 1;
+    switch (peek(0)) {
+      case RBRACE:
+        expect(Token.RBRACE);
+        return;
 
-    int braceCount = 0;
-    if (foundOpenBrace) {
-      braceCount++;
-    }
-    Token nextToken = peek(0);
-    if (expect(Token.RBRACE)) {
-      return;
-    }
-    if (nextToken == Token.LBRACE) {
-      braceCount++;
+      case EOS:
+      case SEMICOLON:
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+        return;
+
+      case LBRACE:
+        ++braceCount;
+        //$FALL-THROUGH$
+      default:
+        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+        break;
     }
 
     // eat tokens until we get a matching close brace or end of stream
     while (braceCount > 0) {
-      if (looksLikeTopLevelKeyword()) {
-        return;
-      }
       switch (next()) {
         case RBRACE:
           braceCount--;
@@ -3891,7 +3879,7 @@ public class DartParser extends CompletionHooksParserBase {
     expectCloseParen();
 
     List<DartSwitchMember> members = new ArrayList<DartSwitchMember>();
-    boolean foundOpenBrace = expect(Token.LBRACE);
+    expect(Token.LBRACE);
 
     boolean done = optional(Token.RBRACE);
     while (!done) {
@@ -3916,7 +3904,7 @@ public class DartParser extends CompletionHooksParserBase {
         if (peek(0) != Token.EOS) {
           members.add(parseDefaultMember(label));
         }
-        expectCloseBrace(foundOpenBrace);
+        expectCloseBrace();
         done = true; // Ensure termination.
       }
     }
