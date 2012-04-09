@@ -8,7 +8,7 @@ Language/03_Overview/1_Scoping_A01_t35: Fail # Issue 2380
 Language/03_Overview/1_Scoping_A01_t39: Fail # Issue 2381
 Language/03_Overview/1_Scoping_A01_t40: Fail # Issue 2381
 Language/03_Overview/1_Scoping_A01_t41: Fail # Issue 2381
-Language/03_Overview/1_Scoping_A02_t05: Fail # Issue 2241 (co19 issue)
+Language/03_Overview/1_Scoping_A02_t05: Fail # Issue 2241 (co19 Issue)
 Language/03_Overview/1_Scoping_A02_t10: Fail # Issue 2382
 Language/03_Overview/1_Scoping_A03_t05: Fail # valid test?
 Language/03_Overview/2_Privacy_A01_t02: Fail # Issue 2383 
@@ -23,11 +23,11 @@ Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t19: Fail # Issue 2383
 Language/03_Overview/2_Privacy_A01_t20: Fail # Issue 2383
 Language/05_Variables/05_Variables_A05_t04: Fail # Issue 961
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # issue 963
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail # Issue 963
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # Issue 2137,2493
 Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
 Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # issue 379
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/2_Getters_A04_t03: Fail # Issue 973
 Language/07_Classes/2_Getters_A04_t04: Fail # Issue 973
@@ -75,7 +75,7 @@ Language/10_Expressions/07_Maps_A02_t01: Fail # Issue 1483
 Language/10_Expressions/07_Maps_A02_t02: Fail # Issue 1483
 Language/10_Expressions/08_Function_Expressions_A01_t01: Fail # Issue 2378
 Language/10_Expressions/08_Function_Expressions_A01_t02: Fail # Issue 2378
-Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # co19 issue 107
+Language/10_Expressions/08_Function_Expressions_A01_t05: Fail # co19 Issue 107
 Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # Issue  2379
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t01: Fail # Issue 1473
 Language/10_Expressions/10_Instance_Creation/2_Const_A06_t02: Fail # Issue 1473
@@ -128,9 +128,9 @@ Language/11_Statements/13_Continue_A02_t15: Fail # Issue 2441
 Language/11_Statements/13_Continue_A02_t16: Fail # Issue 2441
 Language/11_Statements/15_Assert_A05_t01: Fail # Issue 2443
 Language/11_Statements/15_Assert_A05_t04: Fail # Issue 2443
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 issue 109
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 issue 109
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue 2383
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t04: Fail # Issue 2383
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
@@ -138,24 +138,24 @@ Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Fail # Issue 2385
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 issue 109, 111
-Language/13_Types/1_Static_Types_A02_t08: Fail
+Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
+Language/13_Types/1_Static_Types_A02_t08: Fail # Issue 2494
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # Issue 2443
-Language/13_Types/4_Interface_Types_A11_t04: Fail
+Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 
 LibTest/core/Dispatcher/*: Skip
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
-LibTest/core/FallThroughError/toString_A01_t01: Fail
-LibTest/core/Isolate/*: Skip # missing #import("dart:isolate") (co19 issue #80)
-LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
-LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
-LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
+LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
+LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269
+LibTest/core/Isolate/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
+LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
+LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
+LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/Promise/*: Skip
 LibTest/core/Proxy/*: Skip
-LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
-LibTest/core/ReceivePort/receive_A01_t02: Fail # missing import co19 issue 108
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail
-LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
+LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
+LibTest/core/ReceivePort/receive_A01_t02: Fail # missing import co19 Issue 108
+LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # (co19 issue #115)
+LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 Issue #80)
 
 
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
