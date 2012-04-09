@@ -9,7 +9,6 @@
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/code_generator.h"
-#include "vm/code_index_table.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/disassembler.h"
@@ -174,9 +173,6 @@ void CodeGenTest::Compile() {
       OS::Print("}\n");
     }
     function_.SetCode(code);
-    CodeIndexTable* code_index_table = isolate->code_index_table();
-    ASSERT(code_index_table != NULL);
-    code_index_table->AddCode(code);
     retval = true;
   } else {
     retval = false;

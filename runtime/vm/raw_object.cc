@@ -228,6 +228,12 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+bool RawObject::FindObject(FindObjectVisitor* visitor) {
+  ASSERT(visitor != NULL);
+  return visitor->FindObject(const_cast<RawObject*>(this));
+}
+
+
 intptr_t RawClass::VisitClassPointers(RawClass* raw_obj,
                                       ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -366,6 +372,23 @@ intptr_t RawInstructions::VisitInstructionsPointers(
   RawInstructions* obj = raw_obj->ptr();
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->code_));
   return Instructions::InstanceSize(obj->size_);
+}
+
+
+bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
+  RawClass* raw_class = raw_obj->ptr()->class_;
+  ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
+  if (instance_kind == kInstructions) {
+    RawInstructions* raw_instr = reinterpret_cast<RawInstructions*>(raw_obj);
+    uword start_pc =
+        reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
+    uword end_pc = start_pc + raw_instr->ptr()->size_;
+    ASSERT(end_pc > start_pc);
+    if ((pc >= start_pc) && (pc < end_pc)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 

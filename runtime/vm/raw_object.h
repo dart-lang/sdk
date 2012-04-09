@@ -127,6 +127,7 @@ enum {
   VISITOR_SUPPORT(object)                                                      \
   friend class object;                                                         \
   friend class RawObject;                                                      \
+  friend class Heap;                                                           \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
@@ -251,6 +252,7 @@ class RawObject {
 
   void Validate() const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
+  bool FindObject(FindObjectVisitor* visitor);
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -291,8 +293,10 @@ class RawObject {
 
   intptr_t SizeFromClass() const;
 
+  friend class Heap;
   friend class Object;
   friend class Array;
+  friend class RawInstructions;
   friend class SnapshotWriter;
   friend class SnapshotReader;
   friend class MarkingVisitor;
@@ -347,6 +351,7 @@ class RawClass : public RawObject {
 
   friend class Object;
   friend class RawInstance;
+  friend class RawInstructions;
   friend RawClass* AllocateFakeClass();
   friend class SnapshotReader;
 };
@@ -668,6 +673,9 @@ class RawCode : public RawObject {
 
   // Variable length data follows here.
   int32_t data_[0];
+
+  friend class DartFrame;
+  friend class StubFrame;
 };
 
 
@@ -680,7 +688,13 @@ class RawInstructions : public RawObject {
   // Variable length data follows here.
   uint8_t data_[0];
 
+  // Private helper function used while visiting stack frames. The
+  // code which iterates over dart frames is also called during GC and
+  // is not allowed to create handles.
+  static bool ContainsPC(RawObject* raw_obj, uword pc);
+
   friend class RawCode;
+  friend class StackFrame;
 };
 
 
@@ -714,6 +728,8 @@ class RawStackmap : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->bitmap_size_in_bytes_);
   }
   uword pc_;  // PC corresponding to this stack map representation.
+  intptr_t min_set_bit_offset_;  // Minimum bit offset which is set.
+  intptr_t max_set_bit_offset_;  // Maximum bit offset which is set.
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t data_[0];
@@ -1034,6 +1050,7 @@ class RawArray : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->data()[length - 1]);
   }
 
+  friend class RawCode;
   friend class RawImmutableArray;
   friend class SnapshotReader;
   friend class GrowableObjectArray;

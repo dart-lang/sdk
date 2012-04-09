@@ -4,7 +4,6 @@
 
 #include "vm/code_generator.h"
 
-#include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -1287,9 +1286,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  CodeIndexTable* ci_table = isolate->code_index_table();
-  const Code& optimized_code =
-      Code::Handle(ci_table->LookupCode(caller_frame->pc()));
+  const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   const Function& function = Function::Handle(optimized_code.function());
   ASSERT(!function.IsNull());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
