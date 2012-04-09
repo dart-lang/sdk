@@ -75,6 +75,7 @@ def run_test_in_browser(browser, html_out, timeout, mode):
   """Run the desired test in the browser using Selenium 2.0 WebDriver syntax,
   and wait for the test to complete. This is the newer syntax, that currently
   supports Firefox, Chrome, IE, Opera (and some mobile browsers)."""
+
   if isinstance(browser, selenium.selenium):
     return run_test_in_browser_selenium_rc(browser, html_out, timeout, mode)
 
@@ -131,6 +132,19 @@ def start_browser(browser, html_out):
     # installing Chrome. Also note that the build bot runs have a different path
     # from a normal user -- check the build logs.
     return selenium.webdriver.Chrome()
+  elif browser == 'dartium':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
+                               'dartium')
+    options = selenium.webdriver.chrome.options.Options()
+    if platform.system() == 'Windows':
+      options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
+    elif platform.system() == 'Darwin':
+      options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
+                                             'Contents', 'MacOS', 'Chromium')
+    else:
+      options.binary_location = os.path.join(dartium_dir, 'chrome')
+    return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'ff':
     profile = selenium.webdriver.firefox.firefox_profile.FirefoxProfile()
     profile.set_preference('dom.max_script_run_time', 0)
