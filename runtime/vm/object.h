@@ -3501,6 +3501,16 @@ class GrowableObjectArray : public Instance {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
   }
+  void SetLength(intptr_t value) const {
+    // This is only safe because we create a new Smi, which does not cause
+    // heap allocation.
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+  RawArray* data() const { return raw_ptr()->data_; }
+  void SetData(const Array& value) const {
+    StorePointer(&raw_ptr()->data_, value.raw());
+  }
 
   RawObject* At(intptr_t index) const {
     NoGCScope no_gc;
@@ -3516,6 +3526,7 @@ class GrowableObjectArray : public Instance {
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;
+  void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
@@ -3525,9 +3536,14 @@ class GrowableObjectArray : public Instance {
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
+    raw_ptr()->type_arguments_ = value.Canonicalize();
   }
 
   virtual bool Equals(const Instance& other) const;
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(RawGrowableObjectArray, type_arguments_);
+  }
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawGrowableObjectArray, length_);
@@ -3545,17 +3561,10 @@ class GrowableObjectArray : public Instance {
   }
   static RawGrowableObjectArray* New(intptr_t capacity,
                                      Heap::Space space = Heap::kNew);
+  static RawGrowableObjectArray* New(const Array& array,
+                                     Heap::Space space = Heap::kNew);
 
  private:
-  RawArray* data() const { return raw_ptr()->data_; }
-  void SetLength(intptr_t value) const {
-    // This is only safe because we create a new Smi, which does not cause
-    // heap allocation.
-    raw_ptr()->length_ = Smi::New(value);
-  }
-  void SetData(const Array& value) const {
-    StorePointer(&raw_ptr()->data_, value.raw());
-  }
   RawArray* DataArray() const { return data()->ptr(); }
   RawObject** ObjectAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));

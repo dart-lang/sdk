@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class GrowableObjectArray<T> implements List<T> {
-  ObjectArray<T> backingArray;
-
   factory GrowableObjectArray._uninstantiable() {
     throw const UnsupportedOperationException(
         "GrowableObjectArray can only be allocated by the VM");
@@ -34,9 +32,9 @@ class GrowableObjectArray<T> implements List<T> {
     if (start + length > this.length) {
       throw new IndexOutOfRangeException(start + length);
     }
-    Arrays.copy(backingArray,
+    Arrays.copy(this,
                 start + length,
-                backingArray,
+                this,
                 start,
                 this.length - length - start);
     this.length = this.length - length;
@@ -46,26 +44,24 @@ class GrowableObjectArray<T> implements List<T> {
     if (length == 0) {
       return;
     }
-    if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
+    if ((length < 0) || (length is! int)) {
+      throw new IllegalArgumentException("invalid length specified $length");
     }
     if (start < 0 || start > this.length) {
       throw new IndexOutOfRangeException(start);
     }
-    if (this.length + length > backingArray.length) {
-      grow(backingArray.length + length);
-    }
-    Arrays.copy(backingArray,
+    var old_length = this.length;
+    this.length = old_length + length;  // Will expand if needed.
+    Arrays.copy(this,
                 start,
-                backingArray,
+                this,
                 start + length,
-                this.length - start);
+                old_length - start);
     if (initialValue !== null) {
       for (int i = start; i < start + length; i++) {
-        backingArray[i] = initialValue;
+        this[i] = initialValue;
       }
     }
-    this.length = this.length + length;
   }
 
   List<T> getRange(int start, int length) {
@@ -77,21 +73,14 @@ class GrowableObjectArray<T> implements List<T> {
     return list;
   }
 
-  // The length of this growable array. It is always less than or equal to the
-  // length of the backing array, which itself is always greater than 0, so that
-  // grow() does not have to check for a zero length backing array before
-  // doubling its size.
-  int _length;
+  factory GrowableObjectArray() {
+    var data = new ObjectArray<T>(4);
+    return new GrowableObjectArray<T>.fromObjectArray(data);
+  }
 
-  GrowableObjectArray()
-      : _length = 0, backingArray = new ObjectArray<T>(4) {}
-
-  GrowableObjectArray.withCapacity(int capacity) {
-    _length = 0;
-    if (capacity <= 0) {
-      capacity = 4;
-    }
-    backingArray = new ObjectArray<T>(capacity);
+  factory GrowableObjectArray.withCapacity(int capacity) {
+    var data = new ObjectArray<T>(capacity);
+    return new GrowableObjectArray<T>.fromObjectArray(data);
   }
 
   factory GrowableObjectArray.from(Collection<T> other) {
@@ -100,56 +89,43 @@ class GrowableObjectArray<T> implements List<T> {
     return result;
   }
 
-  int get length() {
-    return _length;
-  }
+  factory GrowableObjectArray.fromObjectArray(ObjectArray<T> data)
+    native "GrowableObjectArray_allocate";
+
+  int get length() native "GrowableObjectArray_getLength";
+
+  int get capacity() native "GrowableObjectArray_getCapacity";
 
   void set length(int new_length) {
-    if (new_length > backingArray.length) {
-      grow(new_length);
+    if (new_length > capacity) {
+      _grow(new_length);
     } else {
-      for (int i = new_length; i < _length; i++) {
-        backingArray[i] = null;
+      for (int i = new_length; i < length; i++) {
+        this[i] = null;
       }
     }
-    _length = new_length;
+    _setLength(new_length);
   }
 
-  T operator [](int index) {
-    if (index is !int) {
-      throw new IllegalArgumentException("[] with $index");
-    }
-    if (index >= _length) {
-      throw new IndexOutOfRangeException(index);
-    }
-    return backingArray[index];
-  }
+  void _setLength(int new_length) native "GrowableObjectArray_setLength";
 
-  void operator []=(int index, T value) {
-   if (index is !int) {
-     throw new IllegalArgumentException("[]= with $index");
-   }
-   if (index >= _length) {
-      throw new IndexOutOfRangeException(index);
-    }
-    backingArray[index] = value;
-  }
+  void set data(ObjectArray<T> array) native "GrowableObjectArray_setData";
 
-  void grow(int capacity) {
-    ObjectArray<T> newArray = new ObjectArray<T>(capacity);
-    int length = backingArray.length;
-    for (int i = 0; i < length; i++) {
-      newArray[i] = backingArray[i];
-    }
-    backingArray = newArray;
-  }
+  T operator [](int index) native "GrowableObjectArray_getIndexed";
 
+  void operator []=(int index, T value) native "GrowableObjectArray_setIndexed";
+
+  // The length of this growable array. It is always less than or equal to the
+  // length of the object array, which itself is always greater than 0, so that
+  // grow() does not have to check for a zero length object array before
+  // doubling its size.
   void add(T value) {
-    if (_length == backingArray.length) {
-      grow(_length * 2);
+    var len = length;
+    if (len == capacity) {
+      _grow(len * 2);
     }
-    backingArray[_length] = value;
-    ++_length;
+    _setLength(len + 1);
+    this[len] = value;
   }
 
   void addLast(T element) {
@@ -163,27 +139,38 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T removeLast() {
-    if (_length == 0) {
+    var len = length - 1;
+    if (len < 0) {
       throw new IndexOutOfRangeException(-1);
     }
-    _length--;
-    return backingArray[_length];
+    var elem = this[len];
+    this[len] = null;
+    _setLength(len);
+    return elem;
   }
 
   T last() {
-    if (_length === 0) {
+    if (length === 0) {
       throw new IndexOutOfRangeException(-1);
     }
-    return backingArray[_length - 1];
+    return this[length - 1];
   }
 
   int indexOf(T element, [int start = 0]) {
-    return Arrays.indexOf(backingArray, element, start, _length);
+    return Arrays.indexOf(this, element, start, length);
   }
 
   int lastIndexOf(T element, [int start = null]) {
     if (start === null) start = length - 1;
-    return Arrays.lastIndexOf(backingArray, element, start);
+    return Arrays.lastIndexOf(this, element, start);
+  }
+
+  void _grow(int new_length) {
+    var new_data = new ObjectArray<T>(new_length);
+    for (int i = 0; i < length; i++) {
+      new_data[i] = this[i];
+    }
+    data = new_data;
   }
 
   /**
@@ -192,14 +179,15 @@ class GrowableObjectArray<T> implements List<T> {
 
   void forEach(f(T element)) {
     // TODO(srdjan): Use Collections.forEach(this, f);
-    // Using backingArray directly improves DeltaBlue performance by 25%.
-    for (int i = 0; i < _length; i++) {
-      f(backingArray[i]);
+    // Accessing the list directly improves DeltaBlue performance by 25%.
+    for (int i = 0; i < length; i++) {
+      f(this[i]);
     }
   }
 
   Collection map(f(T element)) {
-    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+    return Collections.map(this,
+                           new GrowableObjectArray.withCapacity(length), f);
   }
 
   Collection<T> filter(bool f(T element)) {
@@ -243,7 +231,7 @@ class VariableSizeArrayIterator<T> implements Iterator<T> {
   }
 
   bool hasNext() {
-    return _array._length > _pos;
+    return _array.length > _pos;
   }
 
   T next() {
@@ -256,4 +244,3 @@ class VariableSizeArrayIterator<T> implements Iterator<T> {
   final GrowableObjectArray<T> _array;
   int _pos;
 }
-

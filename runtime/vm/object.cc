@@ -457,6 +457,8 @@ RawError* Object::Init(Isolate* isolate) {
   // class is setup as one of its field is an array object).
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
+  cls.set_type_arguments_instance_field_offset(
+      GrowableObjectArray::type_arguments_offset());
 
   // Setup the symbol table used within the String class.
   const int kInitialSymbolTableSize = 16;
@@ -519,6 +521,10 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->array_class();  // Was allocated above.
   RegisterClass(cls, "ObjectArray", impl_script, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = object_store->growable_object_array_class();  // Was allocated above.
+  RegisterClass(cls, "GrowableObjectArray", impl_script, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
@@ -8572,7 +8578,8 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
   ASSERT(!IsNull());
   Array& contents = Array::Handle(data());
   if (Length() == Capacity()) {
-    intptr_t new_capacity = Capacity() * 2;
+    // TODO(Issue 2500): Need a better growth strategy.
+    intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
     if (new_capacity <= Capacity()) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
@@ -8581,14 +8588,21 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
       Exceptions::Throw(exception);
       UNREACHABLE();
     }
-    StorePointer(&(raw_ptr()->data_),
-                 Array::Grow(contents, new_capacity, space));
+    Grow(new_capacity, space);
     contents = data();
   }
   ASSERT(Length() < Capacity());
   intptr_t index = Length();
   SetLength(index + 1);
   contents.SetAt(index, value);
+}
+
+
+void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
+  ASSERT(new_capacity > Capacity());
+  Array& contents = Array::Handle(data());
+  StorePointer(&(raw_ptr()->data_),
+               Array::Grow(contents, new_capacity, space));
 }
 
 
@@ -8644,9 +8658,15 @@ bool GrowableObjectArray::Equals(const Instance& other) const {
 
 RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
                                                  Heap::Space space) {
+  const Array& data = Array::Handle(Array::New(capacity, space));
+  return New(data, space);
+}
+
+
+RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
+                                                 Heap::Space space) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Class& cls = Class::Handle(object_store->growable_object_array_class());
-  const Array& data = Array::Handle(Array::New(capacity, space));
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
     RawObject* raw = Object::Allocate(cls,
@@ -8655,7 +8675,7 @@ RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(0);
-    result.SetData(data);
+    result.SetData(array);
   }
   return result.raw();
 }

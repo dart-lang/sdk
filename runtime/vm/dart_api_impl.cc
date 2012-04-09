@@ -1590,8 +1590,7 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
-  return (obj.IsArray() ||
+  return (obj.IsArray() || obj.IsGrowableObjectArray() ||
           (GetListInstance(isolate, obj) != Instance::null()));
 }
 
@@ -1603,23 +1602,26 @@ DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
 }
 
 
+#define GET_LIST_LENGTH(isolate, type, obj, len)                               \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  *len = array.Length();                                                       \
+  return Api::Success(isolate);                                                \
+
+
 DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsByteArray()) {
-    ByteArray& byte_array = ByteArray::Handle(isolate);
-    byte_array ^= obj.raw();
-    *len = byte_array.Length();
-    return Api::Success(isolate);
+    GET_LIST_LENGTH(isolate, ByteArray, obj, len);
   }
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    *len = array_obj.Length();
-    return Api::Success(isolate);
+    GET_LIST_LENGTH(isolate, Array, obj, len);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_LENGTH(isolate, GrowableObjectArray, obj, len);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1662,19 +1664,25 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
 }
 
 
+#define GET_LIST_ELEMENT(isolate, type, obj, index)                            \
+  type& array_obj = type::Handle(isolate);                                     \
+  array_obj ^= obj.raw();                                                      \
+  if ((index >= 0) && (index < array_obj.Length())) {                          \
+    return Api::NewHandle(isolate, array_obj.At(index));                       \
+  }                                                                            \
+  return Api::NewError("Invalid index passed in to access list element");      \
+
+
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    if ((index >= 0) && (index < array_obj.Length())) {
-      return Api::NewHandle(isolate, array_obj.At(index));
-    }
-    return Api::NewError("Invalid index passed in to access array element");
+    GET_LIST_ELEMENT(isolate, Array, obj, index);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1698,6 +1706,17 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
 }
 
 
+#define SET_LIST_ELEMENT(isolate, type, obj, index, value)                     \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value)); \
+  if ((index >= 0) && (index < array.Length())) {                              \
+    array.SetAt(index, value_obj);                                             \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid index passed in to set list element");         \
+
+
 DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
                                        intptr_t index,
                                        Dart_Handle value) {
@@ -1708,16 +1727,11 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");
     }
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value));
-    if ((index >= 0) && (index < array_obj.Length())) {
-      array_obj.SetAt(index, value_obj);
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid index passed in to set array element");
+    SET_LIST_ELEMENT(isolate, Array, obj, index, value);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    SET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index, value);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1743,6 +1757,29 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
 }
 
 
+// TODO(hpayer): value should always be smaller then 0xff. Add error handling.
+#define GET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
+                                   length)                                     \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  if (Utils::RangeCheck(offset, length, array.Length())) {                     \
+    Object& element = Object::Handle(isolate);                                 \
+    Integer& integer  = Integer::Handle(isolate);                              \
+    for (int i = 0; i < length; i++) {                                         \
+      element = array.At(offset + i);                                          \
+      if (!element.IsInteger()) {                                              \
+        return Api::NewError("%s expects the argument 'list' to be "           \
+                             "a List of int", CURRENT_FUNC);                   \
+      }                                                                        \
+      integer ^= element.raw();                                                \
+      native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
+      ASSERT(integer.AsInt64Value() <= 0xff);                                  \
+    }                                                                          \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid length passed in to access array elements");   \
+
+
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
@@ -1760,28 +1797,20 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     return Api::NewError("Invalid length passed in to access list elements");
   }
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
-      Object& element = Object::Handle(isolate);
-      Integer& integer  = Integer::Handle(isolate);
-      for (int i = 0; i < length; i++) {
-        element = array_obj.At(offset + i);
-        if (!element.IsInteger()) {
-          return Api::NewError("%s expects the argument 'list' to be "
-                            "a List of int", CURRENT_FUNC);
-        }
-        integer ^= element.raw();
-        native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);
-        ASSERT(integer.AsInt64Value() <= 0xff);
-        // TODO(hpayer): value should always be smaller then 0xff. Add error
-        // handling.
-      }
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid length passed in to access array elements");
+    GET_LIST_ELEMENT_AS_BYTES(isolate,
+                              Array,
+                              obj,
+                              native_array,
+                              offset,
+                              length);  }
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_ELEMENT_AS_BYTES(isolate,
+                              GrowableObjectArray,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1820,6 +1849,21 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
 }
 
 
+#define SET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
+                                  length)                                      \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  Integer& integer = Integer::Handle(isolate);                                 \
+  if (Utils::RangeCheck(offset, length, array.Length())) {                     \
+    for (int i = 0; i < length; i++) {                                         \
+      integer = Integer::New(native_array[i]);                                 \
+      array.SetAt(offset + i, integer);                                        \
+    }                                                                          \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid length passed in to set array elements");      \
+
+
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
                                             uint8_t* native_array,
@@ -1840,19 +1884,21 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");
     }
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    Integer& integer = Integer::Handle(isolate);
-    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
-      for (int i = 0; i < length; i++) {
-        integer = Integer::New(native_array[i]);
-        array_obj.SetAt(offset + i, integer);
-      }
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid length passed in to set array elements");
+    SET_LIST_ELEMENT_AS_BYTES(isolate,
+                              Array,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    SET_LIST_ELEMENT_AS_BYTES(isolate,
+                              GrowableObjectArray,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));

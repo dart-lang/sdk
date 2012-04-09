@@ -152,7 +152,13 @@ namespace dart {
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 1)                                                  \
   V(Mirrors_send, 3)                                                           \
-
+  V(GrowableObjectArray_allocate, 2)                                           \
+  V(GrowableObjectArray_getIndexed, 2)                                         \
+  V(GrowableObjectArray_setIndexed, 3)                                         \
+  V(GrowableObjectArray_getLength, 1)                                          \
+  V(GrowableObjectArray_getCapacity, 1)                                        \
+  V(GrowableObjectArray_setLength, 2)                                          \
+  V(GrowableObjectArray_setData, 2)                                            \
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)
 

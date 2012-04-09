@@ -237,11 +237,6 @@ class ClassesForLocals : public ZoneAllocated {
 };
 
 
-static const char* kGrowableArrayClassName = "GrowableObjectArray";
-static const char* kGrowableArrayLengthFieldName = "_length";
-static const char* kGrowableArrayArrayFieldName = "backingArray";
-
-
 OptimizingCodeGenerator::OptimizingCodeGenerator(
     Assembler* assembler, const ParsedFunction& parsed_function)
         : CodeGenerator(assembler, parsed_function),
@@ -250,7 +245,9 @@ OptimizingCodeGenerator::OptimizingCodeGenerator(
           smi_class_(Class::ZoneHandle(Isolate::Current()->object_store()
               ->smi_class())),
           double_class_(Class::ZoneHandle(Isolate::Current()->object_store()
-              ->double_class())) {
+              ->double_class())),
+          growable_object_array_class_(Class::ZoneHandle(Isolate::Current()
+              ->object_store()->growable_object_array_class())) {
   ASSERT(parsed_function.function().is_optimizable());
 }
 
@@ -1624,10 +1621,7 @@ void OptimizingCodeGenerator::InlineInstanceGettersWithSameTarget(
     }
     case Recognizer::kGrowableArrayLength: {
       TraceOpt(node, "Inlines GrowableObjectArray.length");
-      intptr_t field_offset = GetFieldOffset(
-          cls,
-          String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName)));
-      __ movl(EAX, FieldAddress(EBX, field_offset));
+      __ movl(EAX, FieldAddress(EBX, GrowableObjectArray::length_offset()));
       return;
     }
     case Recognizer::kStringBaseLength: {
@@ -2375,21 +2369,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     return;
   }
 
-  const String& growable_object_array_class_name = String::Handle(
-      String::NewSymbol(kGrowableArrayClassName));
-  const Class& growable_array_class = Class::ZoneHandle(
-      Library::Handle(Library::CoreImplLibrary()).
-          LookupClass(growable_object_array_class_name));
-  ASSERT(!growable_array_class.IsNull());
-  if (AtIdNodeHasClassAt(node, node->id(), growable_array_class, 0)) {
-    const String& growable_array_length_field_name =
-        String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
-    const String& growable_array_array_field_name =
-        String::Handle(String::NewSymbol(kGrowableArrayArrayFieldName));
-    intptr_t length_offset = GetFieldOffset(growable_array_class,
-                                            growable_array_length_field_name);
-    intptr_t array_offset = GetFieldOffset(growable_array_class,
-                                           growable_array_array_field_name);
+  if (AtIdNodeHasClassAt(node, node->id(), growable_object_array_class_, 0)) {
     CodeGenInfo array_info(node->array());
     CodeGenInfo index_info(node->index_expr());
     VisitLoadTwo(node->array(), node->index_expr(), EDX, EAX);
@@ -2401,18 +2381,18 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
       __ j(NOT_ZERO, deopt_blob->label());  // Not Smi index.
       PropagateBackLocalClass(node->index_expr(), smi_class_);
     }
-    if (!array_info.IsClass(growable_array_class)) {
+    if (!array_info.IsClass(growable_object_array_class_)) {
       __ testl(EDX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is Smi.
       __ movl(EBX, FieldAddress(EDX, Object::class_offset()));
-      __ CompareObject(EBX, growable_array_class);
+      __ CompareObject(EBX, growable_object_array_class_);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
-      PropagateBackLocalClass(node->array(), growable_array_class);
+      PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
     // Range check: deoptimize if out of bounds.
-    __ cmpl(EAX, FieldAddress(EDX, length_offset));
+    __ cmpl(EAX, FieldAddress(EDX, GrowableObjectArray::length_offset()));
     __ j(ABOVE_EQUAL, deopt_blob->label());
-    __ movl(EDX, FieldAddress(EDX, array_offset));  // backingArray.
+    __ movl(EDX, FieldAddress(EDX, GrowableObjectArray::data_offset()));
     // Note that EAX is Smi, i.e, times 2.
     ASSERT(kSmiTagShift == 1);
     __ movl(EAX, FieldAddress(EDX, EAX, TIMES_2, sizeof(RawArray)));
@@ -2494,21 +2474,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     return;
   }
 
-  const String& growable_object_array_class_name = String::Handle(
-      String::NewSymbol(kGrowableArrayClassName));
-  const Class& growable_array_class = Class::ZoneHandle(
-      Library::Handle(Library::CoreImplLibrary()).
-          LookupClass(growable_object_array_class_name));
-  ASSERT(!growable_array_class.IsNull());
-  if (AtIdNodeHasClassAt(node, node->id(), growable_array_class, 0)) {
-    const String& growable_array_length_field_name =
-        String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
-    const String& growable_array_array_field_name =
-        String::Handle(String::NewSymbol(kGrowableArrayArrayFieldName));
-    intptr_t length_offset = GetFieldOffset(growable_array_class,
-                                            growable_array_length_field_name);
-    intptr_t array_offset = GetFieldOffset(growable_array_class,
-                                           growable_array_array_field_name);
+  if (AtIdNodeHasClassAt(node, node->id(), growable_object_array_class_, 0)) {
     bool index_is_smi = false;
     // Release CodeGenInfo of index quickly as it may be used in the value,
     // e.g. a[i] += 3. Fixes issue 1570.
@@ -2524,13 +2490,13 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array, EDX: scratch.
     // Check class of array.
-    if (class_of_this_array.raw() != growable_array_class.raw()) {
+    if (class_of_this_array.raw() != growable_object_array_class_.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
       __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
-      __ CompareObject(EDX, growable_array_class);
+      __ CompareObject(EDX, growable_object_array_class_);
       __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
-      PropagateBackLocalClass(node->array(), growable_array_class);
+      PropagateBackLocalClass(node->array(), growable_object_array_class_);
     }
     // Check class of index.
     if (!index_is_smi) {
@@ -2539,9 +2505,9 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
       PropagateBackLocalClass(node->index_expr(), smi_class_);
     }
     // Range check: deoptimize if out of bounds.
-    __ cmpl(EBX, FieldAddress(EAX, length_offset));
+    __ cmpl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
     __ j(ABOVE_EQUAL, deopt_blob->label());
-    __ movl(EDX, FieldAddress(EAX, array_offset));  // backingArray.
+    __ movl(EDX, FieldAddress(EAX, GrowableObjectArray::data_offset()));
     // Note that EAX is Smi, i.e, times 2.
     ASSERT(kSmiTagShift == 1);
     __ StoreIntoObject(EDX,
