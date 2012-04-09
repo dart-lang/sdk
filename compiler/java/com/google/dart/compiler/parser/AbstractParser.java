@@ -11,7 +11,6 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.parser.DartScanner.Location;
 
-import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,10 +38,10 @@ abstract class AbstractParser {
 
     private static void init(StackTraceElement[] stackTrace) {
       if (classes == null) {
-        classes = Maps.newHashMap(); 
+        classes = Maps.newHashMap();
         methods = Maps.newHashMap();
       }
-      
+
       for (StackTraceElement frame : stackTrace) {
         Class<?> thisClass = classes.get(frame.getClassName());
         if (thisClass == null) {
@@ -57,7 +56,7 @@ abstract class AbstractParser {
                 methods.put(thisClass.getName() + "." + method.getName(), tokens);
               }
               // look for annotations
-              Terminals terminalsAnnotation = (Terminals) method
+              Terminals terminalsAnnotation = method
                   .getAnnotation(Terminals.class);
               if (terminalsAnnotation != null) {
                 for (Token token : terminalsAnnotation.tokens()) {
@@ -84,8 +83,7 @@ abstract class AbstractParser {
       return results;
     }
   }
-  
-  
+
   /**
    * Uses reflection to walk up the stack and look for @Terminals method
    * annotations. It gathers up the tokens in these annotations and returns them

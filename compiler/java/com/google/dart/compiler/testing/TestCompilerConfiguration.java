@@ -7,7 +7,6 @@ package com.google.dart.compiler.testing;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
-import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;

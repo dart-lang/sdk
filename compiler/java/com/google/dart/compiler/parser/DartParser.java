@@ -2954,15 +2954,6 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartExpression parseAssignableSelector(DartExpression receiver) {
-    DartExpression expression = tryParseAssignableSelector(receiver);
-    if (expression == null) {
-      reportError(position(), ParserErrorCode.EXPECTED_PERIOD_OR_LEFT_BRACKET);
-      expression = receiver;
-    }
-    return expression;
-  }
-
   /**
    * <pre>
    * block
