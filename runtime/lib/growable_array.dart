@@ -79,7 +79,7 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   factory GrowableObjectArray.withCapacity(int capacity) {
-    var data = new ObjectArray<T>(capacity);
+    var data = new ObjectArray<T>((capacity == 0)? 4 : capacity);
     return new GrowableObjectArray<T>.fromObjectArray(data);
   }
 
