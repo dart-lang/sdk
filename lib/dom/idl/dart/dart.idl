@@ -50,6 +50,11 @@ module dom {
     getter attribute Element previousElementSibling;
   };
   Element implements ElementTraversal;
+
+  [Callback]
+  interface TimeoutHandler {
+    void handleEvent();
+  };
 };
 
 module html {

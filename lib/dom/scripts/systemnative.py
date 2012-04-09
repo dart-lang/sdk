@@ -59,6 +59,9 @@ class NativeImplementationSystem(System):
     dart_interface_path = self._FilePathForDartInterface(self._interface.id)
     self._dom_public_files.append(dart_interface_path)
 
+    if IsPureInterface(self._interface.id):
+      return None
+
     cpp_impl_includes = set()
     cpp_header_handlers_emitter = emitter.Emitter()
     cpp_impl_handlers_emitter = emitter.Emitter()

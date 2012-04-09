@@ -67,7 +67,8 @@ _pure_interfaces = set([
     'SVGTransformable',
     'SVGURIReference',
     'SVGViewSpec',
-    'SVGZoomAndPan'])
+    'SVGZoomAndPan',
+    'TimeoutHandler'])
 
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
