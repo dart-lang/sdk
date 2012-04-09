@@ -244,6 +244,41 @@ public class ParserRecoveryTest extends AbstractParserTest {
     assertEquals("b", B_b.getFields().get(0).getName().getName());
   }
 
+  public void testRecoverToTopLevel9() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel9.dart",
+        Joiner.on("\n").join(
+            "class A ", // missing braces
+            "class B { ",  // error recovery should pick up class B
+            "  var b;",
+            "}"));
+    // Make sure class B is still around
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(0);
+    assertEquals("A", A.getName().getName());
+    DartClass B = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("B", B.getName().getName());
+    DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
+    assertEquals("b", B_b.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoverToTopLevel10() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recover_to_toplevel10.dart",
+        Joiner.on("\n").join(
+            "class A ", // missing opening brace
+            "  var a;",
+            "}",
+            "class B { ",  // error recovery should pick up class B
+            "  var b;",
+            "}"));
+    // Make sure class B is still around
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(0);
+    assertEquals("A", A.getName().getName());
+    // In this case, the parser chooses to promote 'var a' to a top level element
+    DartClass B = (DartClass)unit.getTopLevelNodes().get(2);
+    assertEquals("B", B.getName().getName());
+    DartFieldDefinition B_b = (DartFieldDefinition)B.getMembers().get(0);
+    assertEquals("b", B_b.getFields().get(0).getName().getName());
+  }
+
   public void testReservedWordClass() {
     DartUnit unit = parseUnitUnspecifiedErrors("phony_reserved_word_class",
         Joiner.on("\n").join(
@@ -700,5 +735,227 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     assertEquals("foo", ((DartIdentifier)foo.getQualifier()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testRecoveryClassRbrace1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  int bad =,",  // incomplete field definition
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartFieldDefinition bad = (DartFieldDefinition)A.getMembers().get(0);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  int bad( arg a,",  // incomplete method definition
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  int bad( arg a, ; complete garbage follows",  // incomplete method definition
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace4() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace4.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  int bad(arg a) { junk }; ",  // trailing semicolon
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace5() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace5.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  var bad = int foo(arg a) { =  junk }; ",  // jibberish value with trailing semicolon
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartFieldDefinition bad = (DartFieldDefinition)A.getMembers().get(0);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace6() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace6.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  bad() ",  // incomplete method
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace7() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace7.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  bad() }",  // incomplete method
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace8() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace8.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  bad( }",  // incomplete method
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace9() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace9.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  bad",  // incomplete declaration
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartMethodDefinition bad = (DartMethodDefinition)A.getMembers().get(0);
+    assertEquals("bad", ((DartIdentifier)bad.getName()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace10() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace10.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  void",  // incomplete declaration
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace11() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace11.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  const",  // incomplete declaration
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryClassRbrace12() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_recovery_class_rbrace12.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class A {",
+            "  ;;;;",  // stray semicolons
+            "}",
+            "int after;")); // use 'int' instead of 'var' because it is harder to recover to
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass A = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("A", A.getClassName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+    assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
   }
 }
