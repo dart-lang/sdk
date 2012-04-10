@@ -139,16 +139,9 @@ class ScavengerWeakVisitor : public HandleVisitor {
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
-    RawObject* raw_obj = handle->raw();
-    if (!raw_obj->IsHeapObject()) return;
-    uword raw_addr = RawObject::ToAddr(raw_obj);
-    if (scavenger_->from_->Contains(raw_addr)) {
-      uword header = *reinterpret_cast<uword*>(raw_addr);
-      if (IsForwarding(header)) {
-        handle->set_raw(RawObject::FromAddr(ForwardedAddr(header)));
-      } else {
-        FinalizablePersistentHandle::Finalize(handle);
-      }
+    RawObject** p = reinterpret_cast<RawObject**>(handle);
+    if (scavenger_->IsUnreachable(p)) {
+      FinalizablePersistentHandle::Finalize(handle);
     }
   }
 
@@ -225,7 +218,7 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
   if (invoke_api_callbacks) {
-    isolate->gc_prologue_callbacks().Invoke();
+    isolate->gc_epilogue_callbacks().Invoke();
   }
 }
 
@@ -237,6 +230,80 @@ void Scavenger::IterateRoots(Isolate* isolate,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
+}
+
+
+bool Scavenger::IsUnreachable(RawObject** p) {
+  RawObject* raw_obj = *p;
+  if (!raw_obj->IsHeapObject()) {
+    return false;
+  }
+  if (!raw_obj->IsNewObject()) {
+    return false;
+  }
+  uword raw_addr = RawObject::ToAddr(raw_obj);
+  if (!from_->Contains(raw_addr)) {
+    return false;
+  }
+  uword header = *reinterpret_cast<uword*>(raw_addr);
+  if (IsForwarding(header)) {
+    uword new_addr = ForwardedAddr(header);
+    *p = RawObject::FromAddr(new_addr);
+    return false;
+  }
+  return true;
+}
+
+
+void Scavenger::IterateWeakReferences(Isolate* isolate,
+                                      ObjectPointerVisitor* visitor) {
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  while (true) {
+    WeakReference* queue = state->delayed_weak_references();
+    if (queue == NULL) {
+      // The delay queue is empty therefore no clean-up is required.
+      return;
+    }
+    state->set_delayed_weak_references(NULL);
+    while (queue != NULL) {
+      WeakReference* reference = WeakReference::Pop(&queue);
+      ASSERT(reference != NULL);
+      bool is_unreachable = true;
+      // Test each key object for reachability.  If a key object is
+      // reachable, all value objects should be scavenged.
+      for (intptr_t k = 0; k < reference->num_keys(); ++k) {
+        if (!IsUnreachable(reference->get_key(k))) {
+          for (intptr_t v = 0; v < reference->num_values(); ++v) {
+            visitor->VisitPointer(reference->get_value(v));
+          }
+          is_unreachable = false;
+          delete reference;
+          break;
+        }
+      }
+      // If all key objects are unreachable put the reference on a
+      // delay queue.  This reference will be revisited if another
+      // reference is scavenged.
+      if (is_unreachable) {
+        state->DelayWeakReference(reference);
+      }
+    }
+    if ((FirstObjectStart() < top_) || PromotedStackHasMore()) {
+      ProcessToSpace(visitor);
+    } else {
+      // Break out of the loop if there has been no forward process.
+      break;
+    }
+  }
+  // Deallocate any unreachable references on the delay queue.
+  if (state->delayed_weak_references() != NULL) {
+    WeakReference* queue = state->delayed_weak_references();
+    state->set_delayed_weak_references(NULL);
+    while (queue != NULL) {
+      delete WeakReference::Pop(&queue);
+    }
+  }
 }
 
 
@@ -303,6 +370,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   Prologue(isolate, invoke_api_callbacks);
   IterateRoots(isolate, &visitor, !invoke_api_callbacks);
   ProcessToSpace(&visitor);
+  IterateWeakReferences(isolate, &visitor);
   ScavengerWeakVisitor weak_visitor(this);
   IterateWeakRoots(isolate, &weak_visitor, invoke_api_callbacks);
   Epilogue(isolate, invoke_api_callbacks);

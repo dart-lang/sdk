@@ -1618,7 +1618,7 @@ TEST_CASE(PrologueWeakPersistentHandles) {
 }
 
 
-TEST_CASE(ImplicitReferences) {
+TEST_CASE(ImplicitReferencesOldSpace) {
   Dart_Handle strong = Dart_Null();
   EXPECT(Dart_IsNull(strong));
 
@@ -1630,7 +1630,6 @@ TEST_CASE(ImplicitReferences) {
 
   Dart_Handle weak3 = Dart_Null();
   EXPECT(Dart_IsNull(weak3));
-
 
   Dart_EnterScope();
   {
@@ -1703,6 +1702,88 @@ TEST_CASE(ImplicitReferences) {
   // All weak references except weak3 should be preserved.
   EXPECT(!Dart_IsNull(weak1));
   EXPECT(!Dart_IsNull(weak2));
+  EXPECT(Dart_IsNull(weak3));
+}
+
+
+TEST_CASE(ImplicitReferencesNewSpace) {
+  Dart_Handle strong = Dart_Null();
+  EXPECT(Dart_IsNull(strong));
+
+  Dart_Handle weak1 = Dart_Null();
+  EXPECT(Dart_IsNull(weak1));
+
+  Dart_Handle weak2 = Dart_Null();
+  EXPECT(Dart_IsNull(weak2));
+
+  Dart_Handle weak3 = Dart_Null();
+  EXPECT(Dart_IsNull(weak3));
+
+  Dart_EnterScope();
+  {
+    Isolate* isolate = Isolate::Current();
+    DARTSCOPE(isolate);
+
+    strong = Dart_NewPersistentHandle(
+        Api::NewHandle(isolate, String::New("strongly reachable", Heap::kNew)));
+    EXPECT(!Dart_IsNull(strong));
+    EXPECT_VALID(strong);
+
+    weak1 = Dart_NewWeakPersistentHandle(
+        Api::NewHandle(isolate, String::New("weakly reachable 1", Heap::kNew)),
+        NULL, NULL);
+    EXPECT(!Dart_IsNull(weak1));
+    EXPECT_VALID(weak1);
+
+    weak2 = Dart_NewWeakPersistentHandle(
+        Api::NewHandle(isolate, String::New("weakly reachable 2", Heap::kNew)),
+        NULL, NULL);
+    EXPECT(!Dart_IsNull(weak2));
+    EXPECT_VALID(weak2);
+
+    weak3 = Dart_NewWeakPersistentHandle(
+        Api::NewHandle(isolate, String::New("weakly reachable 3", Heap::kNew)),
+        NULL, NULL);
+    EXPECT(!Dart_IsNull(weak3));
+    EXPECT_VALID(weak3);
+  }
+  Dart_ExitScope();
+
+  EXPECT_VALID(strong);
+
+  EXPECT_VALID(weak1);
+  EXPECT_VALID(weak2);
+  EXPECT_VALID(weak3);
+
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+  // Old space collection should not affect old space objects.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+
+  // A strongly referenced key should preserve all the values.
+  {
+    Dart_Handle keys[] = { strong };
+    Dart_Handle values[] = { weak1, weak2, weak3 };
+    EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
+                                          values, ARRAY_SIZE(values)));
+
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                               Heap::kInvokeApiCallbacks);
+  }
+
+  // All weak references should be preserved.
+  EXPECT(!Dart_IsNull(weak1));
+  EXPECT(!Dart_IsNull(weak2));
+  EXPECT(!Dart_IsNull(weak3));
+
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kIgnoreApiCallbacks);
+
+  // No weak references should be preserved.
+  EXPECT(Dart_IsNull(weak1));
+  EXPECT(Dart_IsNull(weak2));
   EXPECT(Dart_IsNull(weak3));
 }
 
@@ -1815,16 +1896,36 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // Add a prologue callback.
   EXPECT_VALID(Dart_AddGcPrologueCallback(&PrologueCallbackTimes2));
 
-  // Garbage collect new space.  This should not invoke the prologue
-  // callback.  No status values should change.
+  // Garbage collect new space ignoring callbacks.  This should not
+  // invoke the prologue callback.  No status values should change.
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
+  // Garbage collect new space invoking callbacks.  This should
+  // invoke the prologue callback.  No status values should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kInvokeApiCallbacks);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
+  // Garbage collect old space ignoring callbacks.  This should invoke
+  // the prologue callback.  The prologue status value should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kIgnoreApiCallbacks);
+  EXPECT_EQ(3, global_prologue_callback_status);
+  EXPECT_EQ(7, global_epilogue_callback_status);
+
   // Garbage collect old space.  This should invoke the prologue
   // callback.  The prologue status value should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
@@ -1846,10 +1947,27 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
+  // Garbage collect new space.  This should invoke the prologue and
+  // the epilogue callback.  The prologue and epilogue status values
+  // should change.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
+                                             Heap::kInvokeApiCallbacks);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(28, global_epilogue_callback_status);
+
   // Garbage collect old space.  This should invoke the prologue and
   // the epilogue callbacks.  The prologue and epilogue status values
   // should change.
+  global_prologue_callback_status = 3;
+  global_epilogue_callback_status = 7;
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(6, global_prologue_callback_status);
+  EXPECT_EQ(28, global_epilogue_callback_status);
+
+  // Garbage collect old space again without invoking callbacks.
+  // Nothing should change.
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                             Heap::kIgnoreApiCallbacks);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(28, global_epilogue_callback_status);
 
