@@ -18,11 +18,7 @@ class ParsedFunction;
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder: public ValueObject {
  public:
-  explicit FlowGraphBuilder(const ParsedFunction& parsed_function)
-      : parsed_function_(parsed_function),
-        preorder_block_entries_(),
-        postorder_block_entries_(),
-        context_level_(0) { }
+  explicit FlowGraphBuilder(const ParsedFunction& parsed_function);
 
   void BuildGraph();
 
@@ -37,6 +33,15 @@ class FlowGraphBuilder: public ValueObject {
   void set_context_level(intptr_t value) { context_level_ = value; }
   intptr_t context_level() const { return context_level_; }
 
+  // Each try in this function gets its own try index.
+  intptr_t AllocateTryIndex() { return ++last_used_try_index_; }
+
+  // Manage the currently active try index.
+  void set_try_index(intptr_t value) { try_index_ = value; }
+  intptr_t try_index() const { return try_index_; }
+
+  void AddCatchEntry(intptr_t try_index, Instruction* entry);
+
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
                          GrowableArray<intptr_t>* parent);
@@ -49,6 +54,11 @@ class FlowGraphBuilder: public ValueObject {
   GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;
   intptr_t context_level_;
+  intptr_t last_used_try_index_;
+  intptr_t try_index_;
+  GrowableArray<Instruction*> catch_entries_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
 
 
@@ -162,6 +172,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             int start_index,
                             Value* alloc_value);
+
+  void BuildStoreContext(const LocalVariable& variable, intptr_t start_index);
+  void BuildLoadContext(const LocalVariable& variable, intptr_t start_index);
 
   void BuildThrowNode(ThrowNode* node);
 

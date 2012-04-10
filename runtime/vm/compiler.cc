@@ -264,7 +264,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       }
       OS::Print("}\n");
       OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
-      OS::Print("(pc, kind, id, try-index, token-index)\n");
+      OS::Print("(pc\t\tkind\tid\ttry-ix\ttoken-index)\n");
       const PcDescriptors& descriptors =
           PcDescriptors::Handle(code.pc_descriptors());
       OS::Print("%s", descriptors.ToCString());

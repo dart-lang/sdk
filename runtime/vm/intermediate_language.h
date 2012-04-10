@@ -56,6 +56,7 @@ class LocalVariable;
   M(AllocateContext, AllocateContextComp)                                      \
   M(ChainContext, ChainContextComp)                                            \
   M(CloneContext, CloneContextComp)                                            \
+  M(CatchEntry, CatchEntryComp)                                                \
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -185,9 +186,11 @@ class StoreContextComp : public Computation {
 class ClosureCallComp : public Computation {
  public:
   ClosureCallComp(ClosureCallNode* node,
+                  intptr_t try_index,
                   Value* context,
                   ZoneGrowableArray<Value*>* arguments)
       : ast_node_(*node),
+        try_index_(try_index),
         context_(context),
         arguments_(arguments) {
     ASSERT(context->IsTemp());
@@ -197,6 +200,7 @@ class ClosureCallComp : public Computation {
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
 
   Value* context() const { return context_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -204,6 +208,7 @@ class ClosureCallComp : public Computation {
 
  private:
   const ClosureCallNode& ast_node_;
+  const intptr_t try_index_;
   Value* context_;
   ZoneGrowableArray<Value*>* arguments_;
 
@@ -215,12 +220,14 @@ class InstanceCallComp : public Computation {
  public:
   InstanceCallComp(intptr_t node_id,
                    intptr_t token_index,
+                   intptr_t try_index,
                    const String& function_name,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         function_name_(function_name),
         arguments_(arguments),
         argument_names_(argument_names),
@@ -234,6 +241,7 @@ class InstanceCallComp : public Computation {
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
@@ -243,6 +251,7 @@ class InstanceCallComp : public Computation {
  private:
   const intptr_t node_id_;
   const intptr_t token_index_;
+  const intptr_t try_index_;
   const String& function_name_;
   ZoneGrowableArray<Value*>* const arguments_;
   const Array& argument_names_;
@@ -277,10 +286,12 @@ class StrictCompareComp : public Computation {
 class StaticCallComp : public Computation {
  public:
   StaticCallComp(intptr_t token_index,
+                 intptr_t try_index,
                  const Function& function,
                  const Array& argument_names,
                  ZoneGrowableArray<Value*>* arguments)
       : token_index_(token_index),
+        try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments) {
@@ -294,12 +305,14 @@ class StaticCallComp : public Computation {
   const Function& function() const { return function_; }
   const Array& argument_names() const { return argument_names_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
   Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
 
  private:
   const intptr_t token_index_;
+  const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<Value*>* arguments_;
@@ -350,11 +363,13 @@ class StoreLocalComp : public Computation {
 
 class NativeCallComp : public Computation {
  public:
-  explicit NativeCallComp(NativeBodyNode* node) : ast_node_(*node) {}
+  NativeCallComp(NativeBodyNode* node, intptr_t try_index)
+      : ast_node_(*node), try_index_(try_index) {}
 
   DECLARE_COMPUTATION(NativeCall)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
 
   const String& native_name() const {
     return ast_node_.native_c_function_name();
@@ -372,6 +387,7 @@ class NativeCallComp : public Computation {
 
  private:
   const NativeBodyNode& ast_node_;
+  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallComp);
 };
@@ -469,11 +485,13 @@ class StoreIndexedComp : public Computation {
  public:
   StoreIndexedComp(intptr_t node_id,
                    intptr_t token_index,
+                   intptr_t try_index,
                    Value* array,
                    Value* index,
                    Value* value)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         array_(array),
         index_(index),
         value_(value) { }
@@ -482,13 +500,15 @@ class StoreIndexedComp : public Computation {
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   Value* array() const { return array_; }
   Value* index() const { return index_; }
   Value* value() const { return value_; }
 
  private:
-  intptr_t node_id_;
-  intptr_t token_index_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* array_;
   Value* index_;
   Value* value_;
@@ -503,11 +523,13 @@ class InstanceSetterComp : public Computation {
  public:
   InstanceSetterComp(intptr_t node_id,
                      intptr_t token_index,
+                     intptr_t try_index,
                      const String& field_name,
                      Value* receiver,
                      Value* value)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         field_name_(field_name),
         receiver_(receiver),
         value_(value) { }
@@ -516,6 +538,7 @@ class InstanceSetterComp : public Computation {
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
   Value* receiver() const { return receiver_; }
   Value* value() const { return value_; }
@@ -523,6 +546,7 @@ class InstanceSetterComp : public Computation {
  private:
   const intptr_t node_id_;
   const intptr_t token_index_;
+  const intptr_t try_index_;
   const String& field_name_;
   Value* const receiver_;
   Value* const value_;
@@ -536,20 +560,24 @@ class InstanceSetterComp : public Computation {
 class StaticSetterComp : public Computation {
  public:
   StaticSetterComp(intptr_t token_index,
+                   intptr_t try_index,
                    const Function& setter_function,
                    Value* value)
       : token_index_(token_index),
+        try_index_(try_index),
         setter_function_(setter_function),
         value_(value) { }
 
   DECLARE_COMPUTATION(StaticSetter)
 
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   const Function& setter_function() const { return setter_function_; }
   Value* value() const { return value_; }
 
  private:
   const intptr_t token_index_;
+  const intptr_t try_index_;
   const Function& setter_function_;
   Value* const value_;
 
@@ -577,11 +605,13 @@ class InstanceOfComp : public Computation {
  public:
   InstanceOfComp(intptr_t node_id,
                  intptr_t token_index,
+                 intptr_t try_index,
                  Value* value,
                  const AbstractType& type,
                  bool negate_result)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         value_(value),
         type_(type),
         negate_result_(negate_result) {}
@@ -593,10 +623,12 @@ class InstanceOfComp : public Computation {
   const AbstractType& type() const { return type_; }
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
 
  private:
   const intptr_t node_id_;
   const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* value_;
   const AbstractType& type_;
   const bool negate_result_;
@@ -608,8 +640,9 @@ class InstanceOfComp : public Computation {
 class AllocateObjectComp : public Computation {
  public:
   AllocateObjectComp(ConstructorCallNode* node,
+                     intptr_t try_index,
                      ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), arguments_(arguments) {
+      : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -618,10 +651,12 @@ class AllocateObjectComp : public Computation {
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
  private:
   const ConstructorCallNode& ast_node_;
+  const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const arguments_;
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
 };
@@ -629,12 +664,15 @@ class AllocateObjectComp : public Computation {
 
 class CreateArrayComp : public Computation {
  public:
-  CreateArrayComp(ArrayNode* node, ZoneGrowableArray<Value*>* elements)
-      : ast_node_(*node), elements_(elements) { }
+  CreateArrayComp(ArrayNode* node,
+                  intptr_t try_index,
+                  ZoneGrowableArray<Value*>* elements)
+      : ast_node_(*node), try_index_(try_index), elements_(elements) { }
 
   DECLARE_COMPUTATION(CreateArray)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
   const AbstractTypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
@@ -643,6 +681,7 @@ class CreateArrayComp : public Computation {
 
  private:
   const ArrayNode& ast_node_;
+  const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
@@ -652,17 +691,23 @@ class CreateArrayComp : public Computation {
 class CreateClosureComp : public Computation {
  public:
   // 'type_arguments' is null if function() does not require type arguments.
-  CreateClosureComp(ClosureNode* node, Value* type_arguments)
-      : ast_node_(*node), type_arguments_(type_arguments) { }
+  CreateClosureComp(ClosureNode* node,
+                    intptr_t try_index,
+                    Value* type_arguments)
+      : ast_node_(*node),
+        try_index_(try_index),
+        type_arguments_(type_arguments) {}
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
   Value* type_arguments() const { return type_arguments_; }
 
  private:
   const ClosureNode& ast_node_;
+  const intptr_t try_index_;
   Value* type_arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
@@ -692,8 +737,11 @@ class NativeLoadFieldComp : public Computation {
 class ExtractFactoryTypeArgumentsComp : public Computation {
  public:
   ExtractFactoryTypeArgumentsComp(ConstructorCallNode* ast_node,
+                                  intptr_t try_index,
                                   Value* instantiator)
-      : ast_node_(*ast_node), instantiator_(instantiator) {
+      : ast_node_(*ast_node),
+        try_index_(try_index),
+        instantiator_(instantiator) {
     ASSERT(instantiator_ != NULL);
   }
 
@@ -706,9 +754,11 @@ class ExtractFactoryTypeArgumentsComp : public Computation {
   const Function& factory() const { return ast_node_.constructor(); }
   intptr_t node_id() const { return ast_node_.id(); }
   intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t try_index() const { return try_index_; }
 
  private:
   const ConstructorCallNode& ast_node_;
+  const intptr_t try_index_;
   Value* instantiator_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractFactoryTypeArgumentsComp);
@@ -774,17 +824,22 @@ class ExtractConstructorInstantiatorComp : public Computation {
 
 class AllocateContextComp : public Computation {
  public:
-  AllocateContextComp(intptr_t token_index, intptr_t num_context_variables)
+  AllocateContextComp(intptr_t token_index,
+                      intptr_t try_index,
+                      intptr_t num_context_variables)
       : token_index_(token_index),
+        try_index_(try_index),
         num_context_variables_(num_context_variables) {}
 
   DECLARE_COMPUTATION(AllocateContext);
 
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
  private:
   const intptr_t token_index_;
+  const intptr_t try_index_;
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextComp);
@@ -813,15 +868,18 @@ class CloneContextComp : public Computation {
  public:
   CloneContextComp(intptr_t node_id,
                    intptr_t token_index,
+                   intptr_t try_index,
                    Value* context_value)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         context_value_(context_value) {
     ASSERT(context_value_ != NULL);
   }
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   Value* context_value() const { return context_value_; }
 
   DECLARE_COMPUTATION(CloneContext)
@@ -829,9 +887,29 @@ class CloneContextComp : public Computation {
  private:
   const intptr_t node_id_;
   const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* context_value_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
+};
+
+
+class CatchEntryComp : public Computation {
+ public:
+  CatchEntryComp(const LocalVariable& exception_var,
+                 const LocalVariable& stacktrace_var)
+      : exception_var_(exception_var), stacktrace_var_(stacktrace_var) {}
+
+  const LocalVariable& exception_var() const { return exception_var_; }
+  const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
+
+  DECLARE_COMPUTATION(CatchEntry)
+
+ private:
+  const LocalVariable& exception_var_;
+  const LocalVariable& stacktrace_var_;
+
+  DISALLOW_COPY_AND_ASSIGN(CatchEntryComp);
 };
 
 
@@ -1004,7 +1082,17 @@ class JoinEntryInstr : public BlockEntryInstr {
 class TargetEntryInstr : public BlockEntryInstr {
  public:
   TargetEntryInstr()
-      : BlockEntryInstr(), predecessor_(NULL), successor_(NULL) { }
+      : BlockEntryInstr(),
+        predecessor_(NULL),
+        successor_(NULL),
+        try_index_(CatchClauseNode::kInvalidTryIndex) { }
+
+  // Used for exception catch entries.
+  explicit TargetEntryInstr(intptr_t try_index)
+      : BlockEntryInstr(),
+        predecessor_(NULL),
+        successor_(NULL),
+        try_index_(try_index) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
 
@@ -1030,9 +1118,19 @@ class TargetEntryInstr : public BlockEntryInstr {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent);
 
+  bool HasTryIndex() const {
+    return try_index_ != CatchClauseNode::kInvalidTryIndex;
+  }
+
+  intptr_t try_index() const {
+    ASSERT(HasTryIndex());
+    return try_index_;
+  }
+
  private:
   BlockEntryInstr* predecessor_;
   Instruction* successor_;
+  const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
@@ -1185,9 +1283,13 @@ class ReturnInstr : public Instruction {
 
 class ThrowInstr : public Instruction {
  public:
-  ThrowInstr(intptr_t node_id, intptr_t token_index, Value* exception)
+  ThrowInstr(intptr_t node_id,
+             intptr_t token_index,
+             intptr_t try_index,
+             Value* exception)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         exception_(exception),
         successor_(NULL) {
     ASSERT(exception_ != NULL);
@@ -1197,6 +1299,7 @@ class ThrowInstr : public Instruction {
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
 
   // Parser can generate a throw within an expression tree.
@@ -1209,8 +1312,9 @@ class ThrowInstr : public Instruction {
   }
 
  private:
-  intptr_t node_id_;
-  intptr_t token_index_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* exception_;
   Instruction* successor_;
 
@@ -1222,10 +1326,12 @@ class ReThrowInstr : public Instruction {
  public:
   ReThrowInstr(intptr_t node_id,
               intptr_t token_index,
+              intptr_t try_index,
               Value* exception,
               Value* stack_trace)
       : node_id_(node_id),
         token_index_(token_index),
+        try_index_(try_index),
         exception_(exception),
         stack_trace_(stack_trace),
         successor_(NULL) {
@@ -1237,6 +1343,7 @@ class ReThrowInstr : public Instruction {
 
   intptr_t node_id() const { return node_id_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
@@ -1250,8 +1357,9 @@ class ReThrowInstr : public Instruction {
   }
 
  private:
-  intptr_t node_id_;
-  intptr_t token_index_;
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* exception_;
   Value* stack_trace_;
   Instruction* successor_;

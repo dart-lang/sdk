@@ -17,6 +17,7 @@
 namespace dart {
 
 class Code;
+class ExceptionHandlerList;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
@@ -70,6 +71,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   // Emit an instance call.
   void EmitInstanceCall(intptr_t node_id,
                         intptr_t token_index,
+                        intptr_t try_index,
                         const String& function_name,
                         intptr_t argument_count,
                         const Array& argument_names,
@@ -77,20 +79,24 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   // Emit a static call.
   void EmitStaticCall(intptr_t token_index,
+                      intptr_t try_index,
                       const Function& function,
                       intptr_t argument_count,
                       const Array& argument_names);
 
   // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_index,
+                    intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
   void GenerateCallRuntime(intptr_t node_id,
                            intptr_t token_index,
+                           intptr_t try_index,
                            const RuntimeEntry& entry);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
                             intptr_t node_id,
-                            intptr_t token_index);
+                            intptr_t token_index,
+                            intptr_t try_index);
 
   void GenerateAssertAssignable(intptr_t node_id,
                                 intptr_t token_index,
@@ -99,6 +105,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   void GenerateInstanceOf(intptr_t node_id,
                           intptr_t token_index,
+                          intptr_t try_index,
                           const AbstractType& type,
                           bool negate_result);
 
@@ -115,10 +122,9 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   // for convenience.  This is not the block's index in the block order,
   // which is reverse postorder.
   GrowableArray<BlockInfo*> block_info_;
-
   BlockEntryInstr* current_block_;
-
   DescriptorList* pc_descriptors_list_;
+  ExceptionHandlerList* exception_handlers_list_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

@@ -5493,9 +5493,9 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kDeopt: return "deopt";
     case PcDescriptors::kPatchCode: return "patch";
     case PcDescriptors::kIcCall: return "ic-call";
-    case PcDescriptors::kFuncCall: return "func-call";
+    case PcDescriptors::kFuncCall: return "fn-call";
     case PcDescriptors::kReturn: return "return";
-    case PcDescriptors::kTypeTest: return "type-test";
+    case PcDescriptors::kTypeTest: return "ty-test";
     case PcDescriptors::kOther: return "other";
   }
   UNREACHABLE();
@@ -5507,7 +5507,7 @@ const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
     return "No pc descriptors\n";
   }
-  const char* kFormat = "0x%x, %s %ld %ld, %ld\n";
+  const char* kFormat = "0x%x\t%s\t%ld\t%ld\t%ld\n";
   // First compute the buffer size required.
   intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {

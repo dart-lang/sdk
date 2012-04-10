@@ -31,7 +31,8 @@ FlowGraphCompiler::FlowGraphCompiler(
       parsed_function_(parsed_function),
       block_info_(block_order.length()),
       current_block_(NULL),
-      pc_descriptors_list_(new DescriptorList()) {
+      pc_descriptors_list_(new DescriptorList()),
+      exception_handlers_list_(new ExceptionHandlerList()) {
   for (int i = 0; i < block_order.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
@@ -139,6 +140,7 @@ static bool VerifyValues(Value* v1, Value* v2) {
 
 void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
                                          intptr_t token_index,
+                                         intptr_t try_index,
                                          const String& function_name,
                                          intptr_t argument_count,
                                          const Array& argument_names,
@@ -166,12 +168,13 @@ void FlowGraphCompiler::EmitInstanceCall(intptr_t node_id,
   }
   ExternalLabel target_label("InlineCache", label_address);
   __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kIcCall, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kIcCall, node_id, token_index, try_index);
   __ addq(RSP, Immediate(argument_count * kWordSize));
 }
 
 
 void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
+                                       intptr_t try_index,
                                        const Function& function,
                                        intptr_t argument_count,
                                        const Array& argument_names) {
@@ -181,6 +184,7 @@ void FlowGraphCompiler::EmitStaticCall(intptr_t token_index,
   __ LoadObject(R10, arguments_descriptor);
 
   GenerateCall(token_index,
+               try_index,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   __ addq(RSP, Immediate(argument_count * kWordSize));
@@ -210,6 +214,7 @@ void FlowGraphCompiler::VisitClosureCall(ClosureCallComp* comp) {
   __ LoadObject(R10, arguments_descriptor);
 
   GenerateCall(comp->token_index(),
+               comp->try_index(),
                &StubCode::CallClosureFunctionLabel(),
                PcDescriptors::kOther);
   __ addq(RSP, Immediate(argument_count * kWordSize));
@@ -221,6 +226,7 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
   ASSERT(VerifyCallComputation(comp));
   EmitInstanceCall(comp->node_id(),
                    comp->token_index(),
+                   comp->try_index(),
                    comp->function_name(),
                    comp->ArgumentCount(),
                    comp->argument_names(),
@@ -251,6 +257,7 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
 void FlowGraphCompiler::VisitStaticCall(StaticCallComp* comp) {
   ASSERT(VerifyCallComputation(comp));
   EmitStaticCall(comp->token_index(),
+                 comp->try_index(),
                  comp->function(),
                  comp->ArgumentCount(),
                  comp->argument_names());
@@ -314,6 +321,7 @@ void FlowGraphCompiler::VisitNativeCall(NativeCallComp* comp) {
   __ movq(RBX, Immediate(reinterpret_cast<uword>(comp->native_c_function())));
   __ movq(R10, Immediate(comp->argument_count()));
   GenerateCall(comp->token_index(),
+               comp->try_index(),
                &StubCode::CallNativeCFunctionLabel(),
                PcDescriptors::kOther);
   __ popq(RAX);
@@ -362,8 +370,13 @@ void FlowGraphCompiler::VisitStoreIndexed(StoreIndexedComp* comp) {
   __ pushq(RCX);
   __ pushq(RBX);
   __ pushq(RAX);
-  EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 3,
-                   Array::ZoneHandle(), 1);
+  EmitInstanceCall(comp->node_id(),
+                   comp->token_index(),
+                   comp->try_index(),
+                   function_name,
+                   3,
+                   Array::ZoneHandle(),
+                   1);
   __ popq(RAX);
 }
 
@@ -380,8 +393,13 @@ void FlowGraphCompiler::VisitInstanceSetter(InstanceSetterComp* comp) {
   __ pushq(RAX);
   __ pushq(RBX);
   __ pushq(RAX);
-  EmitInstanceCall(comp->node_id(), comp->token_index(), function_name, 2,
-                   Array::ZoneHandle(), 1);
+  EmitInstanceCall(comp->node_id(),
+                   comp->token_index(),
+                   comp->try_index(),
+                   function_name,
+                   2,
+                   Array::ZoneHandle(),
+                   1);
   __ popq(RAX);
 }
 
@@ -393,7 +411,10 @@ void FlowGraphCompiler::VisitStaticSetter(StaticSetterComp* comp) {
   // Duplicate the argument.
   __ movq(RAX, Address(RSP, 0));
   __ pushq(RAX);
-  EmitStaticCall(comp->token_index(), comp->setter_function(), 1,
+  EmitStaticCall(comp->token_index(),
+                 comp->try_index(),
+                 comp->setter_function(),
+                 1,
                  Array::ZoneHandle());
   __ popq(RAX);
 }
@@ -439,6 +460,7 @@ void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
                                            intptr_t token_index,
+                                           intptr_t try_index,
                                            const AbstractType& type,
                                            bool negate_result) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
@@ -567,7 +589,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   } else {
     __ pushq(raw_null);  // Null instantiator.
   }
-  GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
+  GenerateCallRuntime(node_id, token_index, try_index, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
   __ addq(RSP, Immediate(5 * kWordSize));
@@ -590,6 +612,7 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
   __ popq(RAX);
   GenerateInstanceOf(comp->node_id(),
                      comp->token_index(),
+                     comp->try_index(),
                      comp->type(),
                      comp->negate_result());
 }
@@ -599,7 +622,8 @@ void FlowGraphCompiler::VisitAllocateObject(AllocateObjectComp* comp) {
   const Class& cls = Class::ZoneHandle(comp->constructor().owner());
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
+  GenerateCall(comp->token_index(), comp->try_index(), &label,
+               PcDescriptors::kOther);
   for (intptr_t i = 0; i < comp->arguments().length(); i++) {
     __ popq(RCX);  // Discard allocation argument
   }
@@ -613,6 +637,7 @@ void FlowGraphCompiler::VisitCreateArray(CreateArrayComp* comp) {
   ASSERT(element_type.IsNull() || element_type.IsInstantiated());
   __ LoadObject(RBX, element_type);
   GenerateCall(comp->token_index(),
+               comp->try_index(),
                &StubCode::AllocateArrayLabel(),
                PcDescriptors::kOther);
 
@@ -634,7 +659,8 @@ void FlowGraphCompiler::VisitCreateClosure(CreateClosureComp* comp) {
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
+  GenerateCall(comp->token_index(), comp->try_index(), &label,
+               PcDescriptors::kOther);
 
   const Class& cls = Class::Handle(function.signature_class());
   if (cls.HasTypeArguments()) {
@@ -692,6 +718,7 @@ void FlowGraphCompiler::VisitExtractFactoryTypeArguments(
   __ pushq(RAX);  // Push instantiator type arguments.
   GenerateCallRuntime(comp->node_id(),
                       comp->token_index(),
+                      comp->try_index(),
                       kInstantiateTypeArgumentsRuntimeEntry);
   __ popq(RAX);  // Pop instantiator type arguments.
   __ popq(RAX);  // Pop uninstantiated type arguments.
@@ -801,7 +828,8 @@ void FlowGraphCompiler::VisitAllocateContext(AllocateContextComp* comp) {
   __ movq(R10, Immediate(comp->num_context_variables()));
   const ExternalLabel label("alloc_context",
                             StubCode::AllocateContextEntryPoint());
-  GenerateCall(comp->token_index(), &label, PcDescriptors::kOther);
+  GenerateCall(comp->token_index(), comp->try_index(), &label,
+               PcDescriptors::kOther);
 }
 
 
@@ -822,9 +850,29 @@ void FlowGraphCompiler::VisitCloneContext(CloneContextComp* comp) {
   __ pushq(RAX);
   GenerateCallRuntime(comp->node_id(),
                       comp->token_index(),
+                      comp->try_index(),
                       kCloneContextRuntimeEntry);
   __ popq(RAX);  // Remove argument.
   __ popq(RAX);  // Get result (cloned context).
+}
+
+
+// Restore stack and initialize the two exception variables:
+// exception and stack trace variables.
+void FlowGraphCompiler::VisitCatchEntry(CatchEntryComp* comp) {
+  // Restore RSP from RBP as we are coming from a throw and the code for
+  // popping arguments has not been run.
+  const intptr_t locals_space_size = StackSize() * kWordSize;
+  ASSERT(locals_space_size >= 0);
+  __ movq(RSP, RBP);
+  __ subq(RSP, Immediate(locals_space_size));
+
+  ASSERT(!comp->exception_var().is_captured());
+  ASSERT(!comp->stacktrace_var().is_captured());
+  __ movq(Address(RBP, comp->exception_var().index() * kWordSize),
+          kExceptionObjectReg);
+  __ movq(Address(RBP, comp->stacktrace_var().index() * kWordSize),
+          kStackTraceObjectReg);
 }
 
 
@@ -859,6 +907,11 @@ void FlowGraphCompiler::VisitJoinEntry(JoinEntryInstr* instr) {
 
 void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
   __ Bind(&block_info_[instr->postorder_number()]->label);
+  if (instr->HasTryIndex()) {
+    exception_handlers_list_->AddHandler(instr->try_index(),
+                                         assembler_->CodeSize());
+    // Bailout("Untested CatchEntry");
+  }
 }
 
 
@@ -917,6 +970,7 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
     __ pushq(RBX);
     GenerateCallRuntime(AstNode::kNoId,
                         0,
+                        CatchClauseNode::kInvalidTryIndex,
                         kTraceFunctionExitRuntimeEntry);
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
@@ -936,7 +990,8 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   __ nop(1);
   AddCurrentDescriptor(PcDescriptors::kReturn,
                        AstNode::kNoId,
-                       instr->token_index());
+                       instr->token_index(),
+                       CatchClauseNode::kInvalidTryIndex);  // try-index.
 }
 
 
@@ -945,19 +1000,22 @@ void FlowGraphCompiler::VisitThrow(ThrowInstr* instr) {
   __ pushq(RAX);
   GenerateCallRuntime(instr->node_id(),
                       instr->token_index(),
+                      instr->try_index(),
                       kThrowRuntimeEntry);
   __ int3();
 }
 
 
 void FlowGraphCompiler::VisitReThrow(ReThrowInstr* instr) {
-  LoadValue(RBX, instr->stack_trace());
   LoadValue(RAX, instr->exception());
   __ pushq(RAX);
-  __ pushq(RBX);
-  GenerateCallRuntime(
-      instr->node_id(), instr->token_index(), kReThrowRuntimeEntry);
-  Bailout("ReThrow Untested");
+  LoadValue(RAX, instr->stack_trace());
+  __ pushq(RAX);
+  GenerateCallRuntime(instr->node_id(),
+                      instr->token_index(),
+                      instr->try_index(),
+                      kReThrowRuntimeEntry);
+  __ int3();
 }
 
 
@@ -1109,6 +1167,7 @@ void FlowGraphCompiler::CopyParameters() {
   if (function.IsClosureFunction()) {
     GenerateCallRuntime(AstNode::kNoId,
                         0,
+                        CatchClauseNode::kInvalidTryIndex,
                         kClosureArgumentMismatchRuntimeEntry);
   } else {
     // Invoke noSuchMethod function.
@@ -1133,6 +1192,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ PushObject(Function::ZoneHandle(function.raw()));
     GenerateCallRuntime(AstNode::kNoId,
                         0,
+                        CatchClauseNode::kInvalidTryIndex,
                         kTraceFunctionExitRuntimeEntry);
     __ popq(RAX);  // Remove argument.
     __ popq(RAX);  // Restore result.
@@ -1193,6 +1253,7 @@ void FlowGraphCompiler::CompileGraph() {
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
                             function.token_index(),
+                            CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry);
       } else {
         __ Stop("Wrong number of arguments");
@@ -1220,6 +1281,7 @@ void FlowGraphCompiler::CompileGraph() {
   __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
   GenerateCallRuntime(AstNode::kNoId,
                       function.token_index(),
+                      CatchClauseNode::kInvalidTryIndex,
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 
@@ -1249,30 +1311,33 @@ void FlowGraphCompiler::CompileGraph() {
 
 // Infrastructure copied from class CodeGenerator.
 void FlowGraphCompiler::GenerateCall(intptr_t token_index,
+                                     intptr_t try_index,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind) {
   __ call(label);
-  AddCurrentDescriptor(kind, AstNode::kNoId, token_index);
+  AddCurrentDescriptor(kind, AstNode::kNoId, token_index, try_index);
 }
 
 
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t node_id,
                                             intptr_t token_index,
+                                            intptr_t try_index,
                                             const RuntimeEntry& entry) {
   __ CallRuntimeFromDart(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index, try_index);
 }
 
 
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t node_id,
-                                             intptr_t token_index) {
+                                             intptr_t token_index,
+                                             intptr_t try_index) {
   pc_descriptors_list_->AddDescriptor(kind,
                                       assembler_->CodeSize(),
                                       node_id,
                                       token_index,
-                                      CatchClauseNode::kInvalidTryIndex);
+                                      try_index);
 }
 
 
@@ -1293,9 +1358,10 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
-  // We don't compile exception handlers yet.
-  code.set_exception_handlers(
-      ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
+  ASSERT(exception_handlers_list_ != NULL);
+  const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
+      exception_handlers_list_->FinalizeExceptionHandlers(code.EntryPoint()));
+  code.set_exception_handlers(handlers);
 }
 
 
