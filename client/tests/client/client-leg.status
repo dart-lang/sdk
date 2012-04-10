@@ -4,7 +4,7 @@
 
 [ $compiler == dart2js ]
 dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
-
+dom/CallbacksTest: Fail # webkitRequestAnimationFrame now takes one argument.
 
 [ $compiler == dart2js && $runtime == drt ]
 
