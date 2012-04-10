@@ -15,7 +15,6 @@ StaticInitializerTypeErrorTest: Fail # Checked mode not supported.
 CTConstTest: Fail # We don't take the generic type into account yet.
 CallOperatorTest: Fail # Unexpected token 'call'
 CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
-ConstObjectsAreImmutableTest: Fail # Const objects are not immutable.
 Constructor6Test: Fail # Closures inside initializers not implemented.
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DynamicTest: Fail # cannot resolve type F1

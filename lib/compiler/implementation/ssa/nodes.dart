@@ -152,7 +152,7 @@ class HGraph {
     if (constant.isInt()) return HType.INTEGER;
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
-    if (constant.isList()) return HType.ARRAY;
+    if (constant.isList()) return HType.READABLE_ARRAY;
     return HType.UNKNOWN;
   }
 
@@ -757,17 +757,22 @@ class HType {
   static final int FLAG_BOOLEAN = FLAG_UNKNOWN << 1;
   static final int FLAG_INTEGER = FLAG_BOOLEAN << 1;
   static final int FLAG_STRING = FLAG_INTEGER << 1;
-  static final int FLAG_ARRAY = FLAG_STRING << 1;
-  static final int FLAG_DOUBLE = FLAG_ARRAY << 1;
+  static final int FLAG_READABLE_ARRAY = FLAG_STRING << 1;
+  // FLAG_WRITABLE_ARRAY implies FLAG_READABLE_ARRAY.
+  static final int FLAG_WRITEABLE_ARRAY = FLAG_READABLE_ARRAY << 1;
+  static final int FLAG_DOUBLE = FLAG_WRITEABLE_ARRAY << 1;
 
   static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
   static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
   static final HType BOOLEAN = const HType(FLAG_BOOLEAN);
   static final HType STRING = const HType(FLAG_STRING);
-  static final HType ARRAY = const HType(FLAG_ARRAY);
+  static final HType READABLE_ARRAY = const HType(FLAG_READABLE_ARRAY);
+  static final HType MUTABLE_ARRAY =
+      const HType(FLAG_READABLE_ARRAY | FLAG_WRITEABLE_ARRAY);
   static final HType INTEGER = const HType(FLAG_INTEGER);
   static final HType DOUBLE = const HType(FLAG_DOUBLE);
-  static final HType STRING_OR_ARRAY = const HType(FLAG_STRING | FLAG_ARRAY);
+  static final HType STRING_OR_ARRAY =
+      const HType(FLAG_STRING | FLAG_READABLE_ARRAY | FLAG_WRITEABLE_ARRAY);
   static final HType NUMBER = const HType(FLAG_DOUBLE | FLAG_INTEGER);
 
   bool isConflicting() => this === CONFLICTING;
@@ -776,9 +781,11 @@ class HType {
   bool isInteger() => this === INTEGER;
   bool isDouble() => this === DOUBLE;
   bool isString() => this === STRING;
-  bool isArray() => this === ARRAY;
+  bool isArray() => (this.flag & FLAG_READABLE_ARRAY) != 0;
+  bool isMutableArray() => this === MUTABLE_ARRAY;
   bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
-  bool isStringOrArray() => (this.flag & (FLAG_STRING | FLAG_ARRAY)) != 0;
+  bool isStringOrArray() =>
+      (this.flag & (FLAG_STRING | FLAG_READABLE_ARRAY)) != 0;
   bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
 
   static HType getTypeFromFlag(int flag) {
@@ -788,7 +795,8 @@ class HType {
     if (flag === INTEGER.flag) return INTEGER;
     if (flag === DOUBLE.flag) return DOUBLE;
     if (flag === STRING.flag) return STRING;
-    if (flag === ARRAY.flag) return ARRAY;
+    if (flag === READABLE_ARRAY.flag) return READABLE_ARRAY;
+    if (flag === MUTABLE_ARRAY.flag) return MUTABLE_ARRAY;
     if (flag === NUMBER.flag) return NUMBER;
     if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
     assert(false);
@@ -801,6 +809,7 @@ class HType {
     if (isInteger()) return 'integer';
     if (isDouble()) return 'double';
     if (isString()) return 'string';
+    if (isMutableArray()) return 'mutable array';
     if (isArray()) return 'array';
     if (isNumber()) return 'number';
     if (isStringOrArray()) return 'string or array';
@@ -860,6 +869,7 @@ class HInstruction implements Hashable {
   bool isControlFlow() => false;
 
   bool isArray() => type.isArray();
+  bool isMutableArray() => type.isMutableArray();
   bool isBoolean() => type.isBoolean();
   bool isInteger() => type.isInteger();
   bool isNumber() => type.isNumber();
@@ -1170,7 +1180,7 @@ class HInvokeStatic extends HInvoke {
 
   HType computeType() {
     if (isArrayConstructor()) {
-      return HType.ARRAY;
+      return HType.MUTABLE_ARRAY;
     }
     return HType.UNKNOWN;
   }
@@ -1202,10 +1212,11 @@ class HInvokeInterceptor extends HInvokeStatic {
         && name == const SourceString('length')
         && inputs[1].isStringOrArray()) {
       return 'length';
-    } else if (name == const SourceString('add') && inputs[1].isArray()) {
+    } else if (name == const SourceString('add')
+               && inputs[1].isMutableArray()) {
       return 'push';
     } else if (name == const SourceString('removeLast')
-               && inputs[1].isArray()) {
+               && inputs[1].isMutableArray()) {
       return 'pop';
     }
     return null;
@@ -1225,7 +1236,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     if (input == inputs[1] && input.isStringOrArray()) {
       if (name == const SourceString('add')
           || name == const SourceString('removeLast')) {
-        return HType.ARRAY;
+        return HType.MUTABLE_ARRAY;
       }
     }
     return HType.UNKNOWN;
@@ -2002,7 +2013,7 @@ class HLiteralList extends HInstruction {
   HLiteralList(inputs) : super(inputs);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
-  HType computeType() => HType.ARRAY;
+  HType computeType() => HType.MUTABLE_ARRAY;
   bool hasExpectedType() => true;
 
   void prepareGvn() {
@@ -2056,11 +2067,11 @@ class HIndexAssign extends HInvokeStatic {
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
-    if (input == receiver) return HType.ARRAY;
+    if (input == receiver) return HType.MUTABLE_ARRAY;
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isArray();
+  bool get builtin() => receiver.isMutableArray();
   HType computeType() => value.type;
   // This instruction does not yield a new value, so it always
   // has the expected type (void).

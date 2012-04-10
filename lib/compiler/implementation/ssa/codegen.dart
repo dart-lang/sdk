@@ -1373,6 +1373,14 @@ class SsaCodeGenerator implements HVisitor {
     endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
+  void checkImmutableArray(HInstruction input) {
+    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add('!!');
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.immutable\$list');
+    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+  }
+
   void checkNull(HInstruction input) {
     beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     use(input, JSPrecedence.EQUALITY_PRECEDENCE);
@@ -1558,6 +1566,15 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkString(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a string');
+    } else if (node.isMutableArray()) {
+      buffer.add('if (');
+      checkObject(input, '!==');
+      buffer.add('||');
+      checkArray(input, '!==');
+      buffer.add('||');
+      checkImmutableArray(input);
+      buffer.add(') ');
+      bailout(node, 'Not a mutable array');      
     } else if (node.isArray()) {
       buffer.add('if (');
       checkObject(input, '!==');

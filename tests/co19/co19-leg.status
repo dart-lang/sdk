@@ -148,7 +148,6 @@ Language/13_Types/4_Interface_Types_A05_t04: Fail # compiler cancelled: cannot r
 Language/13_Types/4_Interface_Types_A08_t01: Fail # compiler cancelled: cannot resolve type S
 Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpected token 'call'
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
-LibTest/core/List/removeLast_A02_t01: Fail # constant list can be modified.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 
@@ -204,7 +203,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
 Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 2277
-Language/10_Expressions/06_Lists_A06_t01: Fail # const lists can be modified.
 Language/10_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
