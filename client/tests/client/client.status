@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 dom/WebGL1Test: Skip  # Issue 1495
-dom/CallbacksTest: Fail # webkitRequestAnimationFrame now takes one argument.
+dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argument.
 
 [ $compiler == none && $runtime == drt ]
 # TODO(vsm): Triage DOM tests.
