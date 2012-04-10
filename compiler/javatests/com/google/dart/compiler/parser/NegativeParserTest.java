@@ -232,8 +232,7 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   /**
-   * Type parameters declaration is not finished, stop parsing and restart from next top level
-   * element.
+   * Type parameters declaration is not finished.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=341
    */
@@ -250,13 +249,17 @@ public class NegativeParserTest extends CompilerTestCase {
     assertErrors(
         parserRunner.getErrors(),
         errEx(ParserErrorCode.EXPECTED_EXTENDS, 3, 11, 1),
-        errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 11, 3));
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 1, 1),
+        errEx(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE, 5, 1, 5));
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class B<X> {",
             "}",
             "",
             "class C {",
@@ -279,13 +282,18 @@ public class NegativeParserTest extends CompilerTestCase {
             "class C {",
             "}"));
     // check expected errors
-    assertErrors(parserRunner.getErrors(), errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 9, 1));
+    assertErrors(parserRunner.getErrors(),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 1, 5));
+
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class B<X> {",
             "}",
             "",
             "class C {",
@@ -329,7 +337,7 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 1),
         errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 8, 1, 1),
         errEx(ParserErrorCode.INCOMPLETE_STRING_LITERAL, 8, 1, 1),
-        errEx(ParserErrorCode.EXPECTED_SEMICOLON, 8, 2, 0));
+        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 8, 2, 0));
   }
 
   public void testDeprecatedFactoryInInterface() {

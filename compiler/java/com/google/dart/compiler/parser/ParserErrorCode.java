@@ -69,6 +69,7 @@ public enum ParserErrorCode implements ErrorCode {
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
   INTERFACE_METHOD_WITH_BODY("Interface method can not have a body"),
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
+  INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
@@ -83,7 +84,6 @@ public enum ParserErrorCode implements ErrorCode {
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
   REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
   REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor can not have initializers"),
-  SKIPPED_SOURCE("This part of the source was not parsed because of a previous parsing problem"),
   SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
   SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND(
       "'super' cannot be used as the second operand in a binary expression."),

@@ -80,6 +80,7 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartThrowStatement;
@@ -125,7 +126,7 @@ import java.util.Set;
  * Analyzer of static type information.
  */
 public class TypeAnalyzer implements DartCompilationPhase {
-  
+
   private final Set<ClassElement> diagnosedAbstractClasses = Sets.newHashSet();
 
   /**
@@ -170,7 +171,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    
+
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
      * outside of any catch block.
@@ -780,7 +781,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitMethodInvocation(DartMethodInvocation node) {
       String name = node.getFunctionNameString();
-      Element element = (Element) node.getElement();
+      Element element = node.getElement();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
         node.setElement(element);
@@ -1031,6 +1032,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
         checkCyclicBounds(type.getElement().getTypeParameters());
       }
       return typeAsVoid(node);
+    }
+
+    @Override
+    public Type visitSyntheticErrorIdentifier(DartSyntheticErrorIdentifier node) {
+      return dynamicType;
     }
 
     @Override

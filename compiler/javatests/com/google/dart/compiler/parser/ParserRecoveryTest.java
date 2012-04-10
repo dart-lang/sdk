@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -778,5 +779,98 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     assertEquals("a", a.getLibraryUri().getValue());
     DartClass b = (DartClass)unit.getTopLevelNodes().get(0);
     assertEquals("b", b.getClassName());
+  }
+
+  public void testPropertyAccessInTypeArgsRecovery1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_type_args1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "List<foo.> bad;",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartTypeNode badTypeNode = bad.getTypeNode().getTypeArguments().get(0);
+    assertEquals("foo", ((DartIdentifier)((DartPropertyAccess)badTypeNode.getIdentifier()).getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInTypeArgsRecovery2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_type_args2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "List<foo. +> bad;",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartFieldDefinition bad = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getFields().get(0).getName().getName());
+    DartTypeNode badTypeNode = bad.getTypeNode().getTypeArguments().get(0);
+    assertEquals("foo", ((DartIdentifier)((DartPropertyAccess)badTypeNode.getIdentifier()).getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInTypeParametersRecovery1() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_type_param1.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class bad<T extends foo.> {}",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass bad = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getClassName());
+    DartTypeNode badTypeNode = bad.getTypeParameters().get(0).getBound();
+    assertEquals("foo", ((DartIdentifier)((DartPropertyAccess)badTypeNode.getIdentifier()).getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInTypeParametersRecovery2() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_type_param2.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class bad<T extends foo. +> {}",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass bad = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getClassName());
+    DartTypeNode badTypeNode = bad.getTypeParameters().get(0).getBound();
+    assertEquals("foo", ((DartIdentifier)((DartPropertyAccess)badTypeNode.getIdentifier()).getQualifier()).getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testPropertyAccessInTypeParametersRecovery3() {
+    DartUnit unit = parseUnitUnspecifiedErrors("phony_property_access_type_param3.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class bad<foo +> {}",
+            "var after;"));
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+    DartClass bad = (DartClass)unit.getTopLevelNodes().get(1);
+    assertEquals("bad", bad.getClassName());
+    assertEquals("foo", bad.getTypeParameters().get(0).getName().getName());
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
+    assertEquals("after", after.getFields().get(0).getName().getName());
+  }
+
+  public void testInvalidIdentifier1() {
+    DartUnit unit = parseUnit("phony_invalid_identifier.dart",
+        Joiner.on("\n").join(
+            "var before;",
+            "class void {}",
+            "var after;"),
+            ParserErrorCode.INVALID_IDENTIFIER, 2, 7);
+    DartFieldDefinition before = (DartFieldDefinition)unit.getTopLevelNodes().get(0);
+    assertEquals("before", before.getFields().get(0).getName().getName());
+
+    DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(1);
+    assertEquals("after", after.getFields().get(0).getName().getName());
   }
 }

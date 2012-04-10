@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -42,7 +43,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   private final DartCompilerContext context;
   private final CoreTypeProvider typeProvider;
   private final boolean suppressSdkWarnings;
-  
+
   ResolutionContext(String name, LibraryElement library, DartCompilerContext context,
                     CoreTypeProvider typeProvider) {
     this(new Scope(name, library), context, typeProvider);
@@ -240,7 +241,7 @@ public class ResolutionContext implements ResolutionErrorListener {
                     identifier);
               } else {
                 onError(identifier, TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                    identifier);                
+                    identifier);
               }
               return typeProvider.getDynamicType();
 
@@ -269,7 +270,9 @@ public class ResolutionContext implements ResolutionErrorListener {
         }
         break;
       default:
-        onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+        if (!(identifier instanceof DartSyntheticErrorIdentifier)) {
+          onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+        }
     }
     onError(identifier, errorCode, identifier);
     return typeProvider.getDynamicType();
@@ -396,6 +399,11 @@ public class ResolutionContext implements ResolutionErrorListener {
     public Element visitIdentifier(DartIdentifier node) {
       String name = node.getName();
       return scope.findElement(scope.getLibrary(), name);
+    }
+
+    @Override
+    public Element visitSyntheticErrorIdentifier(DartSyntheticErrorIdentifier node) {
+      return Elements.dynamicElement();
     }
   }
 }

@@ -132,7 +132,6 @@ abstract class AbstractParser {
           next();
         }
       }
-
       return false;
     }
     return true;
@@ -221,6 +220,8 @@ abstract class AbstractParser {
                                        Token expected, Token actual) {
     if (expected == Token.EOS) {
       reportError(position, ParserErrorCode.EXPECTED_EOS, actual);
+    } else if (expected == Token.IDENTIFIER) {
+      reportError(position, ParserErrorCode.INVALID_IDENTIFIER, actual);
     } else if (expected == null) {
       reportError(position, ParserErrorCode.UNEXPECTED_TOKEN, actual);
     } else {
