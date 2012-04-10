@@ -171,7 +171,7 @@ class _IsolateContext {
    * Run [code] in the context of the isolate represented by [this]. Note this
    * is called from JavaScript (see $wrap_call in corejs.dart).
    */
-  void eval(Function code) {
+  Dynamic eval(Function code) {
     var old = _globalState.currentContext;
     _globalState.currentContext = this;
     this._setGlobals();
