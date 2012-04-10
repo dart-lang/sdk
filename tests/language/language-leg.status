@@ -59,7 +59,6 @@ SwitchLabelTest: Fail # error: target of continue is not a loop or switch case
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
-BadNamedParametersTest: Fail # NullPointerException
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
