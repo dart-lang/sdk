@@ -55,7 +55,11 @@ dom/InnerFrameTest: Fail
 dom/SVG3Test: Fail
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
 #   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
-dom/TypingTest: Pass, Fail # TODO(sigmund): investigate.
+# Note this test now passes for the wrong reasons. It used to be that the only
+# forEach in this program was in NodeList. Due to dependencies from the unittest
+# framework, frog no longer resolves forEach statically, and instead it
+# dynamically binds forEach on a bunch of classes, including HTMLCollection.
+dom/TypingTest: Pass
 dom/WebSocketTest: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
