@@ -114,6 +114,9 @@ LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.
 LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toRadixString_A01_t01: Fail, OK # Bad test: uses Expect.fail, Expect.throws, assumes case of result, and uses unsupported radixes.
+LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # Co19 Issue 112.
+LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # Co19 Issue 114.
+LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # Co19 Issue 113.
 LibTest/core/String/contains_A01_t02: Fail, OK # co19 issue 105.
 Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int != double.
 
@@ -121,9 +124,6 @@ Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int !
 #
 # The following tests may be broken, but require further review.
 #
-LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 

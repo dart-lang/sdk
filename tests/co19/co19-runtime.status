@@ -89,12 +89,12 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
-LibTest/core/double/toStringAsExponential_A01_t01: Fail # Issue 463
-LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Issue 463
+LibTest/core/double/toStringAsExponential_A01_t01: Fail, Ok # Unimplemented test stub.
+LibTest/core/double/toStringAsPrecision_A01_t01: Fail, Ok # Unimplemented test stub.
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
-LibTest/core/int/toStringAsExponential_A01_t01: Fail, Crash # Issue 460
-LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460
+LibTest/core/int/toStringAsExponential_A01_t01: Fail # Issue 460, Issue co19 - 112
+LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460, Issue co19 - 114
+LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460, Issue co19 - 113
 
 [ $runtime == vm ]
 LibTest/core/Math/acos_A01_t01: Fail, Pass # Issue co19 - 44

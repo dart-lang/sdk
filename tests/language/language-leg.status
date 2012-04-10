@@ -7,7 +7,6 @@
 
 
 [ $compiler == dart2js]
-AdjacentConstStringLiteralsTest: Pass # Not recognizing 'const' constructor call.
 CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 StaticInitializerTypeErrorTest: Fail # Checked mode not supported.
 
@@ -20,10 +19,10 @@ ConstObjectsAreImmutableTest: Fail # Const objects are not immutable.
 Constructor6Test: Fail # Closures inside initializers not implemented.
 DefaultFactoryLibraryTest: Fail # lib is not a type
 DynamicTest: Fail # cannot resolve type F1
-Factory3Test: Fail # Handling of compile-time constants.
-FinalSyntaxTest/none: Fail # Incorrect compile-time constant handling.
+Factory3Test: Fail # internal error: visitIs for type variables not implemented
 FunctionLiterals2Test: Fail # Closures inside initializers not implemented.
 FunctionSyntaxTest: Fail # Closures inside initializers not implemented.
+FunctionTest: Fail # internal error: Closures inside initializers not implemented
 FunctionTypeAlias2Test: Fail # cannot resolve type f1
 FunctionTypeAlias3Test: Fail # cannot resolve type F
 FunctionTypeAlias4Test: Fail # cannot resolve type F
@@ -41,41 +40,38 @@ LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 ManyGenericInstanceofTest: Fail # cannot resolve type T
 MapLiteral2Test: Fail # expected a constant string
-MapLiteral4Test: Fail # map not implemented
 MethodBindingTest: Fail # internal error: super property read not implemented.
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
 NamedParameters2Test: Fail # Unimplemented non-matching static call
 NamedParameters3Test: Fail # Unimplemented non-matching static call
 NamedParameters4Test: Fail # Unimplemented non-matching static call
-NamedParametersTypeTest: Fail # Internal Error: Cannot find value
 NamingTest: Fail # Broken because operator negate is not accessible as if it was a method.
 ParameterInitializerTest: Fail # internal error: super property read not implemented
 PseudoKWTest: Fail # Unexpected token '('
-SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
-SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-SuperFieldTest: Fail # no method named city in class B
-SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-SuperOperatorTest: Fail # no method named + in class A
-SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
-SwitchLabelTest: Fail # switch cases are not implemented
-TypeDartcTest: Fail # non-empty instruction stack
+SuperAllNamedConstructorTest: Fail # internal error: Cannot find value parameter(v).
+SuperFieldAccessTest: Fail # internal error: super property read not implemented
+SuperFieldTest: Fail # internal error: super property read not implemented
+SuperImplicitClosureTest: Fail # internal error: super property read not implemented
+SuperOperatorTest: Fail # internal error: super property store not implemented
+SuperSetterTest: Fail # internal error: super property read not implemented
+SwitchLabelTest: Fail # error: target of continue is not a loop or switch case
 
 
 # Implementation errors (library or generated code).
-AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
+AssertionTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 BadNamedParametersTest: Fail # NullPointerException
-BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
-ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
-FunctionTest: Fail # continue not implemented
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
-TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+ListLiteral4Test: Fail # Illegal argument(s): 0 -- checked mode test.
+MapLiteral4Test: Fail # Attempt to modify an immutable object -- checked mode test.
+NamedParametersTypeTest: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
+TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+TypeDartcTest: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
 
 
 #
@@ -206,13 +202,16 @@ NumbersTest: Fail, OK # (unintended?) VM specific test.
 
 
 DivByZeroTest: Fail, OK # Leg only has doubles.
+BitOperationsTest: Fail, OK # Tests bit operations outside the 32 bit range.
 
+ExpectTest: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
 
 RegExp3Test: Fail, OK # Expects exception from const constructor.
 
 
 ListTest: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
 
+FinalSyntaxTest/none: Fail, OK # Uses deprecated "StrConstant + StrConstant".
 
 [ $compiler == dart2js && $mode == release ]
 AssignTopMethodNegativeTest: Crash
