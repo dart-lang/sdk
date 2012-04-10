@@ -161,13 +161,20 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 
 
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
+  if (str == NULL || size == 0) {
+    return _vscprintf(format, args);
+  }
   int written =_vsnprintf(str, size, format, args);
+  if (written < 0) {
+    // _vsnprintf returns -1 if the number of characters to be written is
+    // larger than 'size', so we call _vscprintf which returns the number
+    // of characters that would have been written.
+    written = _vscprintf(format, args);
+  }
   // Make sure to zero-terminate the string if the output was
   // truncated or if there was an error.
-  if (written < 0 || written >= size) {
-    if (size > 0) {
-      str[size - 1] = '\0';
-    }
+  if (written >= size) {
+    str[size - 1] = '\0';
   }
   return written;
 }
