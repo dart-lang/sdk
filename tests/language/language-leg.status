@@ -212,3 +212,6 @@ FinalSyntaxTest/none: Fail, OK # Uses deprecated "StrConstant + StrConstant".
 
 [ $compiler == dart2js && $mode == release ]
 AssignTopMethodNegativeTest: Crash
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

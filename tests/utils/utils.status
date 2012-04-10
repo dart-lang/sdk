@@ -28,3 +28,6 @@ DummyCompilerTest: Fail # Issue 2263.
 
 [ $compiler == dart2js && $runtime == drt ]
 *: Skip
+
+[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+*: Skip

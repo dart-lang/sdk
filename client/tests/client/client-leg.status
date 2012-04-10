@@ -24,3 +24,6 @@ html/TypedArrays4Test: Fail # Bad codegen for indexOf - missing function.
 dom/IsolatesTest: Skip # Timeout because leg does not support web workers.
 
 dom/IndexedDB1Test: Skip # Timeout because callbacks don't appear to be called.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

@@ -33,6 +33,9 @@ NestedSpawnTest: Skip
 IsolateNegativeTest: Skip
 Isolate2NegativeTest: Skip
 
+[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+*: Skip
+
 [ $runtime == safari ]
 CrossIsolateMessageTest: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120

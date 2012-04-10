@@ -460,6 +460,9 @@ StaticField2RunNegativeTest: Pass # but error is not correct
 ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
 ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
 
+[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+*: Skip
+
 [ $arch == simarm ]
 *: Skip
 
