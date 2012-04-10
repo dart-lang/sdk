@@ -1134,10 +1134,17 @@ class JUnitTestSuite implements TestSuite {
             dartDir + '/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-
+    
+    // Lengthen the timeout for JUnit tests.  It is normal for them
+    // to run for a few minutes.
+    Map updatedConfiguration = new Map();
+    configuration.forEach((key, value) {
+      updatedConfiguration[key] = value;
+    });
+    updatedConfiguration['timeout'] *= 2;
     doTest(new TestCase(suiteName,
                         [new Command('java', args)],
-                        configuration,
+                        updatedConfiguration,
                         completeHandler,
                         new Set<String>.from([PASS])));
     doDone();
