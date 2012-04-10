@@ -10,6 +10,7 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+#define DART_INET_ADDRSTRLEN 16
 
 class Socket {
  public:
@@ -23,7 +24,7 @@ class Socket {
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
-  static intptr_t GetRemotePort(intptr_t fd);
+  static bool GetRemotePeer(intptr_t fd, char *host, int *port);
   static void GetError(intptr_t fd, OSError* os_error);
   static intptr_t GetStdioHandle(int num);
 

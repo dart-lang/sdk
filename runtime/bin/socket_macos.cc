@@ -102,7 +102,8 @@ intptr_t Socket::GetPort(intptr_t fd) {
 }
 
 
-intptr_t Socket::GetRemotePort(intptr_t fd) {
+bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
+  ASSERT(DART_INET_ADDRSTRLEN >= INET_ADDRSTRLEN);
   ASSERT(fd >= 0);
   struct sockaddr_in socket_address;
   socklen_t size = sizeof(socket_address);
@@ -111,9 +112,17 @@ intptr_t Socket::GetRemotePort(intptr_t fd) {
                       reinterpret_cast<struct sockaddr *>(&socket_address),
                       &size))) {
     fprintf(stderr, "Error getpeername: %s\n", strerror(errno));
-    return 0;
+    return false;
   }
-  return ntohs(socket_address.sin_port);
+  if (inet_ntop(socket_address.sin_family,
+                reinterpret_cast<const void *>(&socket_address.sin_addr),
+                host,
+                INET_ADDRSTRLEN) == NULL) {
+    fprintf(stderr, "Error inet_ntop: %s\n", strerror(errno));
+    return false;
+  }
+  *port = ntohs(socket_address.sin_port);
+  return true;
 }
 
 

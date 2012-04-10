@@ -112,6 +112,11 @@ interface Socket extends Hashable default _Socket {
   int get remotePort();
 
   /**
+   * Returns the remote host connected to by this socket.
+   */
+  String get remoteHost();
+
+  /**
    * Closes the socket. Calling [close] will never throw an exception
    * and calling it several times is supported. If [halfClose] is true
    * the socket will only be closed for writing and it might still be

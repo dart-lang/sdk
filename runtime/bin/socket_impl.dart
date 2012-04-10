@@ -551,12 +551,21 @@ class _Socket extends _SocketBase implements Socket {
 
   int get remotePort() {
     if (_remotePort === null) {
-      _remotePort = _getRemotePort();
+      remoteHost;
     }
     return _remotePort;
   }
 
-  int _getRemotePort() native "Socket_GetRemotePort";
+  String get remoteHost() {
+    if (_remoteHost === null) {
+      List peer = _getRemotePeer();
+      _remoteHost = peer[0];
+      _remotePort = peer[1];
+    }
+    return _remoteHost;
+  }
+
+  List _getRemotePeer() native "Socket_GetRemotePeer";
 
   static SendPort _newServicePort() native "Socket_NewServicePort";
 
@@ -572,6 +581,7 @@ class _Socket extends _SocketBase implements Socket {
   Function _clientWriteHandler;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
+  String _remoteHost;
   int _remotePort;
   static SendPort _socketService;
 }

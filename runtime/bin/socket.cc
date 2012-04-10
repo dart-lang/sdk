@@ -153,15 +153,19 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Socket_GetRemotePort)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                  DartUtils::kIdFieldName);
   OSError os_error;
-  intptr_t port = Socket::GetRemotePort(socket);
-  if (port > 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(port));
+  intptr_t port = 0;
+  char host[DART_INET_ADDRSTRLEN];
+  if (Socket::GetRemotePeer(socket, host, &port)) {
+    Dart_Handle list = Dart_NewList(2);
+    Dart_ListSetAt(list, 0, Dart_NewString(host));
+    Dart_ListSetAt(list, 1, Dart_NewInteger(port));
+    Dart_SetReturnValue(args, list);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
