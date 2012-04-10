@@ -616,6 +616,9 @@ class StandardTestSuite implements TestSuite {
             '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
             '--out=$htmlPath'];
+        if (runtime == 'dartium') {
+          args.add('--executable=$dartiumFilename');
+        }
       } else {
         args = [
             '$dartDir/tools/testing/drt-trampoline.py',
@@ -775,10 +778,21 @@ class StandardTestSuite implements TestSuite {
       return configuration['drt'];
     }
     if (new Platform().operatingSystem() == 'macos') {
-      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/' +
+      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/'
           'MacOS/DumpRenderTree';
     }
     return '$dartDir/client/tests/drt/DumpRenderTree';
+  }
+
+  String get dartiumFilename() {
+    if (configuration['dartium'] != '') {
+      return configuration['dartium'];
+    }
+    if (new Platform().operatingSystem() == 'macos') {
+      return '$dartDir/client/tests/dartium/Chromium.app/Contents/'
+          'MacOS/Chromium';
+    }
+    return '$dartDir/client/tests/dartium/chrome';
   }
 
   void testGeneratorStarted() {

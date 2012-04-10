@@ -415,6 +415,14 @@ is 'dart file.dart' and you specify special command
       print("Error: shard index is ${config['shard']} out of " + 
             "${config['shards']} shards");
     }
+    if (config['runtime'] == 'dartium' && config['compiler'] == 'none' &&
+        config['checked']) {
+      // TODO(vsm): Set the DART_FLAGS environment appropriately when
+      // invoking Selenium to support checked mode.  It's not clear
+      // the current selenium API supports this.
+      isValid = false;
+      print("Warning: checked mode is not yet supported for dartium tests.");
+    }
     return isValid;
   }
 

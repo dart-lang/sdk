@@ -5,7 +5,7 @@
 dom/WebGL1Test: Skip  # Issue 1495
 dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argument.
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
 dom/IndexedDB1Test: Fail  # IDBDatabaseImplementation._transaction "Not supported yet'.
 dom/NativeGCTest: Fail  # Issue 1448.
@@ -23,9 +23,11 @@ dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
+[ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+dom/HistoryTest: Fail
+
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
-dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
 [ $runtime == safari || $runtime == ie ]
