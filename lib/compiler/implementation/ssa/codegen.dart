@@ -1262,20 +1262,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitLiteralList(HLiteralList node) {
-    if (node.isConst) {
-      // TODO(floitsch): Remove this when CTC handles arrays.
-      SourceString name = new SourceString('makeLiteralListConst');
-      Element helper = compiler.findHelper(name);
-      compiler.registerStaticUse(helper);
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
-      buffer.add(compiler.namer.isolateAccess(helper));
-      buffer.add('(');
-      generateArrayLiteral(node);
-      buffer.add(')');
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
-    } else {
-      generateArrayLiteral(node);
-    }
+    generateArrayLiteral(node);
   }
 
   void generateArrayLiteral(HLiteralList node) {

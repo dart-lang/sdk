@@ -1999,12 +1999,11 @@ class HStaticStore extends HInstruction {
 }
 
 class HLiteralList extends HInstruction {
-  HLiteralList(inputs, this.isConst) : super(inputs);
+  HLiteralList(inputs) : super(inputs);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
   HType computeType() => HType.ARRAY;
   bool hasExpectedType() => true;
-  final bool isConst; // TODO(floitsch): Remove when CTC handles arrays.
 
   void prepareGvn() {
     assert(!hasSideEffects());

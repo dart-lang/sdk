@@ -629,7 +629,8 @@ interface JumpHandler default JumpHandlerImpl {
   void generateBreak([LabelElement label]);
   void generateContinue([LabelElement label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
-  void forEachContinue(void action(HBreak instruction, LocalsHandler locals));
+  void forEachContinue(void action(HContinue instruction,
+                                   LocalsHandler locals));
   void close();
   final TargetElement target;
   List<LabelElement> labels();
@@ -1973,7 +1974,8 @@ class SsaBuilder implements Visitor {
 
   void handleForeignDartClosureToJs(Send node) {
     if (node.arguments.isEmpty() || !node.arguments.tail.isEmpty()) {
-      compiler.cancel('Exactly one argument required', node: node.arguments);
+      compiler.cancel('Exactly one argument required',
+                      node: node.argumentsNode);
     }
     Node closure = node.arguments.head;
     Element element = elements[closure];
@@ -1983,7 +1985,7 @@ class SsaBuilder implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionParameters parameters = element.computeParameters(compiler);
+    FunctionParameters parameters = function.computeParameters(compiler);
     if (parameters.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
@@ -2032,7 +2034,7 @@ class SsaBuilder implements Visitor {
       Identifier identifier = node.selector.asIdentifier();
       String name = identifier.source.slowToString();
       // TODO(ahe): Add the arguments to this list.
-      push(new HLiteralList([], true));
+      push(new HLiteralList([]));
       var inputs = <HInstruction>[
           target,
           self,
@@ -2333,7 +2335,7 @@ class SsaBuilder implements Visitor {
       visit(link.head);
       inputs.add(pop());
     }
-    push(new HLiteralList(inputs, node.isConst()));
+    push(new HLiteralList(inputs));
   }
 
   visitConditional(Conditional node) {
@@ -2551,7 +2553,7 @@ class SsaBuilder implements Visitor {
       inputs.addLast(pop());
       inputs.addLast(pop());
     }
-    HLiteralList keyValuePairs = new HLiteralList(inputs, node.isConst());
+    HLiteralList keyValuePairs = new HLiteralList(inputs);
     HStatic mapMaker = new HStatic(interceptors.getMapMaker());
     add(keyValuePairs);
     add(mapMaker);
@@ -2881,7 +2883,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   visitNode(Node node) {
-    compiler.internalError('unexpected node', node: node);
+    builder.compiler.internalError('unexpected node', node: node);
   }
 
   void visitExpression(Node node) {
