@@ -63,7 +63,6 @@ FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fail
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
-InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Illegal argument(s): 0 -- checked mode test.
 MapLiteral4Test: Fail # Attempt to modify an immutable object -- checked mode test.
