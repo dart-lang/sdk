@@ -1213,6 +1213,7 @@ class _HttpClient implements HttpClient {
                 if (socketConn._idleTime(now).inMilliseconds >
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();
+                  socketConn._socket.close();
                 } else {
                   break;
                 }
