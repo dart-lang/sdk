@@ -808,6 +808,12 @@ class StandardTestSuite implements TestSuite {
       args.add('--error_format');
       args.add('machine');
     }
+    if ((configuration['compiler'] == 'frog'
+          || configuration['compiler'] == 'frogsh'
+          || configuration['compiler'] == 'dart2js')
+        && (configuration['runtime'] == 'none')) {
+      args.add('--compile-only');
+    }
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
