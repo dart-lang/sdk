@@ -67,7 +67,7 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     return false;
   }
   if (inet_ntop(socket_address.sin_family,
-                reinterpret_cast<const void *>(&socket_address.sin_addr),
+                reinterpret_cast<void *>(&socket_address.sin_addr),
                 host,
                 INET_ADDRSTRLEN) == NULL) {
     fprintf(stderr, "Error inet_ntop: %s\n", strerror(errno));
@@ -75,7 +75,7 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   }
   *port = ntohs(socket_address.sin_port);
   return true;
-
+}
 
 intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
