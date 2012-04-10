@@ -4458,6 +4458,8 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
   _BlobImpl getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
+
+  void webkitGetAsEntry([EntryCallback callback = null]) native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -15847,6 +15849,8 @@ class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRu
 class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
+
+  List<MutationRecord> takeRecords() native;
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
@@ -16140,7 +16144,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, _ElementImpl element) native;
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
@@ -20744,6 +20748,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30461,6 +30467,8 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitMutationObserver {
 
   void disconnect();
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30780,7 +30788,7 @@ interface Window extends EventTarget {
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 

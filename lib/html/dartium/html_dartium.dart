@@ -6218,6 +6218,16 @@ class _DataTransferItemImpl extends _DOMTypeBase implements DataTransferItem {
       return;
     }
   }
+
+  void webkitGetAsEntry([EntryCallback callback = null]) {
+    if (callback === null) {
+      _ptr.webkitGetAsEntry();
+      return;
+    } else {
+      _ptr.webkitGetAsEntry(_unwrap(callback));
+      return;
+    }
+  }
 }
 
 class _DataTransferItemListImpl extends _DOMTypeBase implements DataTransferItemList {
@@ -20797,6 +20807,10 @@ class _WebKitMutationObserverImpl extends _DOMTypeBase implements WebKitMutation
     _ptr.disconnect();
     return;
   }
+
+  List<MutationRecord> takeRecords() {
+    return _wrap(_ptr.takeRecords());
+  }
 }
 
 class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
@@ -21281,8 +21295,8 @@ class _WindowImpl extends _EventTargetImpl implements Window {
     }
   }
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) {
-    return _wrap(_ptr.webkitRequestAnimationFrame(_unwrap(callback), _unwrap(element)));
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) {
+    return _wrap(_ptr.webkitRequestAnimationFrame(_unwrap(callback)));
   }
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
@@ -26130,6 +26144,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35847,6 +35863,8 @@ interface WebKitCSSRegionRule extends CSSRule {
 interface WebKitMutationObserver {
 
   void disconnect();
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36166,7 +36184,7 @@ interface Window extends EventTarget {
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 

@@ -1396,7 +1396,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, _ElementJs element) native;
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
@@ -1418,6 +1418,8 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
   _BlobJs getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
+
+  void webkitGetAsEntry([EntryCallback callback = null]) native;
 }
 
 class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
@@ -11496,6 +11498,8 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 class _WebKitMutationObserverJs extends _DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
+
+  List<MutationRecord> takeRecords() native;
 }
 
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
@@ -13772,7 +13776,7 @@ interface Window extends EventTarget {
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 
@@ -13800,6 +13804,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23628,6 +23634,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 interface WebKitMutationObserver {
 
   void disconnect();
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
