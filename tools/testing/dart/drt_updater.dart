@@ -7,35 +7,66 @@
 #import("dart:io");
 #import("dart:builtin");
 
-class DumpRenderTreeUpdater {
-  static bool isActive = false;
-  static bool updated = false;
-  static List onUpdated;
+class _DartiumUpdater {
+  String name;
+  String script;
+  String option;
 
-  static Process _updatingProcess;
+  bool isActive = false;
+  bool updated = false;
+  List onUpdated;
 
-  static void update() {
+  Process _updatingProcess;
+
+  _DartiumUpdater(this.name, this.script, [this.option = null]);
+
+  void update() {
     if (!isActive) {
       isActive = true;
-      print('Updating DumpRenderTree.');
+      print('Updating $name.');
       onUpdated = [() {updated = true;} ];
-      _updatingProcess = new Process.start('python', [_getDrtPath]);
+      _updatingProcess = new Process.start('python', _getUpdateCommand);
       _updatingProcess.onExit = _onUpdatedHandler;
       _updatingProcess.onError = (error) {
-        print("Error starting get_drt.py process: $error");
+        print("Error starting $script process: $error");
         _onUpdatedHandler(-1);  // Continue anyway.
       };
     }
   }
 
-  static String get _getDrtPath() {
+  String get _getUpdateCommand() {
     String scriptPath = new Options().script.replaceAll('\\', '/');
     String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-    return '$toolsDir/get_drt.py';
+    List<String> command = ['$toolsDir/$script'];
+    if (null !== option) {
+      command.add(option);
+    }
+    return command;
   }
 
-  static void _onUpdatedHandler(int exit_code) {
-    print('DumpRenderTree updated ($exit_code)');
+  void _onUpdatedHandler(int exit_code) {
+    print('$name updated ($exit_code)');
     for (var callback in onUpdated ) callback();
+  }
+}
+
+_DartiumUpdater _dumpRenderTreeUpdater;
+_DartiumUpdater _dartiumUpdater;
+
+_DartiumUpdater runtimeUpdater(String runtime) {
+  if (runtime == 'drt') {
+    if (_dumpRenderTreeUpdater === null) {
+      _dumpRenderTreeUpdater = new _DartiumUpdater('DumpRenderTree',
+                                                   'get_drt.py');
+    }
+    return _dumpRenderTreeUpdater;
+  } else if (runtime == 'dartium') {
+    if (_dartiumUpdater === null) {
+      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome', 'get_drt.py',
+                                            '--dartium');
+    }
+    return _dartiumUpdater;
+  } else {
+    return null;
   }
 }

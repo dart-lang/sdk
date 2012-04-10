@@ -275,10 +275,12 @@ class StandardTestSuite implements TestSuite {
 
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone = null]) {
-    // If DumpRenderTree is required, and not yet updated, wait for update.
-    if (configuration['runtime'] == 'drt' && !DumpRenderTreeUpdater.updated) {
-      Expect.isTrue(DumpRenderTreeUpdater.isActive);
-      DumpRenderTreeUpdater.onUpdated.add(() {
+    // If DumpRenderTree/Dartium is required, and not yet updated,
+    // wait for update.
+    var updater = runtimeUpdater(configuration['runtime']);
+    if (updater !== null && !updater.updated) {
+      Expect.isTrue(updater.isActive);
+      updater.onUpdated.add(() {
         forEachTest(onTest, testCache, globalTempDir, onDone);
       });
       return;
@@ -558,7 +560,7 @@ class StandardTestSuite implements TestSuite {
         }
         htmlPath = '${tempDir.path}/../$htmlFilename';
       }
-      final String scriptPath = (compiler == 'none' && runtime == 'drt') ?
+      final String scriptPath = (compiler == 'none') ?
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
@@ -609,7 +611,7 @@ class StandardTestSuite implements TestSuite {
       // Construct the command that executes the browser test
       List<String> args;
       if (runtime == 'ie' || runtime == 'ff' || runtime == 'chrome' ||
-        runtime == 'safari' || runtime == 'opera') {
+          runtime == 'safari' || runtime == 'opera' || runtime == 'dartium') {
         args = ['$dartDir/tools/testing/run_selenium.py',
             '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
@@ -1312,6 +1314,7 @@ class TestUtils {
 
   static bool isBrowserRuntime(String runtime) =>
       const <String>['drt',
+                     'dartium',
                      'ie',
                      'safari',
                      'opera',

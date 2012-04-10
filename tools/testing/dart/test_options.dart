@@ -95,13 +95,15 @@ is 'dart file.dart' and you specify special command
     drt: Run Dart or JavaScript in the headless version of Chrome,
          DumpRenderTree.
 
+    dartium: Run Dart or JavaScript in Dartium.
+
     [ff | chrome | safari | ie | opera]: Run JavaScript in the specified 
          browser.
 
     none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
               ['-r', '--runtime'],
-              ['vm', 'd8', 'drt', 'ff', 'firefox', 'chrome',
+              ['vm', 'd8', 'drt', 'dartium', 'ff', 'firefox', 'chrome',
               'safari', 'ie', 'opera', 'none'],
               'vm'),
           new _TestOptionSpecification(
@@ -230,6 +232,12 @@ is 'dart file.dart' and you specify special command
               'drt',
               'Path to DumpRenderTree executable',
               ['--drt'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'dartium',
+              'Path to Dartium Chrome executable',
+              ['--dartium'],
               [],
               ''),
           new _TestOptionSpecification(
@@ -381,14 +389,16 @@ is 'dart file.dart' and you specify special command
           // runs test.py -c dart2js -r drt,none the dart2js_none and
           // dart2js_drt will be duplicating work. If later we don't need 'none'
           // with dart2js, we should remove it from here.
-          isValid = (const ['d8', 'drt', 'ff', 'chrome', 'safari', 'ie',
-              'opera', 'none']).indexOf(config['runtime']) >= 0;
+          isValid = (const ['d8', 'drt', 'dartium', 'ff',
+                            'chrome', 'safari', 'ie', 'opera',
+                            'none']).indexOf(config['runtime']) >= 0;
           break;
         case 'dartc':
           isValid = config['runtime'] == 'none';
           break;
         case 'none':
-          isValid = (const ['vm', 'drt']).indexOf(config['runtime']) >= 0;
+          isValid = (const ['vm', 'drt',
+                            'dartium']).indexOf(config['runtime']) >= 0;
       }
     if (!isValid) {
       print("Warning: combination of ${config['compiler']} and " +
@@ -499,8 +509,9 @@ is 'dart file.dart' and you specify special command
       return _expandHelper('runtime', configuration);
     } else {
       // All runtimes eventually go through this path, after expansion.
-      if (runtimes == 'drt') {
-        DumpRenderTreeUpdater.update();
+      var updater = runtimeUpdater(runtimes);
+      if (updater !== null) {
+        updater.update();
       }
     }
 
@@ -528,8 +539,9 @@ is 'dart file.dart' and you specify special command
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
           }
-          if (configuration['runtime'] == 'drt') {
-            timeout *= 4;
+          if ((const ['drt', 'dartium']).indexOf(configuration['runtime'])
+              >= 0) {
+            timeout *= 4; // Allow additional time for browser testing to run.
           }
           break;
       }

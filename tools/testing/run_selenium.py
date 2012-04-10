@@ -114,6 +114,9 @@ def parse_args(args=None):
   parser.add_option('--browser', dest='browser',
       help = 'The browser type (default = chrome)',
       action = 'store', default = 'chrome')
+  parser.add_option('--executable', dest='executable',
+      help = 'The browser executable path (only for browser=dartium)',
+      action = 'store', default = None)
   # TODO(efortuna): Put this back up to be more than the default timeout in
   # test.dart. Right now it needs to be less than 60 so that when test.dart
   # times out, this script also closes the browser windows.
@@ -123,10 +126,13 @@ def parse_args(args=None):
   parser.add_option('--mode', dest = 'mode',
       help = 'The type of test we are running',
       action = 'store', default='correctness')
-  args, ignored = parser.parse_args(args=args)
-  return args.out, args.browser, args.timeout, args.mode
+  args, _ = parser.parse_args(args=args)
+  if args.executable and args.browser != 'dartium':
+    print 'Executable path only supported when browser=dartium.'
+    sys.exit(1)
+  return args.out, args.browser, args.executable, args.timeout, args.mode
 
-def start_browser(browser, html_out):
+def start_browser(browser, executable_path, html_out):
   if browser == 'chrome':
     # Note: you need ChromeDriver *in your path* to run Chrome, in addition to
     # installing Chrome. Also note that the build bot runs have a different path
@@ -137,7 +143,9 @@ def start_browser(browser, html_out):
     dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
                                'dartium')
     options = selenium.webdriver.chrome.options.Options()
-    if platform.system() == 'Windows':
+    if executable_path is not None:
+      options.binary_location = executable_path
+    elif platform.system() == 'Windows':
       options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
     elif platform.system() == 'Darwin':
       options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
@@ -249,7 +257,8 @@ def run_batch_tests():
       if line == '--terminate\n':
         break
 
-      html_out, browser_name, timeout, mode = parse_args(line.split())
+      (html_out, browser_name, executable_path,
+       timeout, mode) = parse_args(line.split())
 
       # Sanity checks that test.dart is passing flags we can handle.
       if mode != 'correctness':
@@ -263,7 +272,7 @@ def run_batch_tests():
       # Start the browser on the first run
       if browser is None:
         current_browser_name = browser_name
-        browser = start_browser(browser_name, html_out)
+        browser = start_browser(browser_name, executable_path, html_out)
 
       source = run_test_in_browser(browser, html_out, timeout, mode)
 
@@ -292,8 +301,8 @@ def main(args):
     return run_batch_tests()
 
   # Run a single test
-  html_out, browser_name, timeout, mode = parse_args()
-  browser = start_browser(browser_name, html_out)
+  html_out, browser_name, executable_path, timeout, mode = parse_args()
+  browser = start_browser(browser_name, executable_path, html_out)
 
   try:
     output = run_test_in_browser(browser, html_out, timeout, mode)
