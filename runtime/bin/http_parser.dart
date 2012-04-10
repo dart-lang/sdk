@@ -51,6 +51,7 @@ class _State {
   static final int HEADER_VALUE_FOLDING_OR_ENDING = 13;
   static final int HEADER_VALUE_FOLD_OR_END = 14;
   static final int HEADER_ENDING = 15;
+
   static final int CHUNK_SIZE_STARTING_CR = 16;
   static final int CHUNK_SIZE_STARTING_LF = 17;
   static final int CHUNK_SIZE = 18;
@@ -59,7 +60,10 @@ class _State {
   static final int CHUNKED_BODY_DONE_CR = 21;
   static final int CHUNKED_BODY_DONE_LF = 22;
   static final int BODY = 23;
-  static final int FAILURE = 24;
+  static final int CLOSED = 24;
+  static final int FAILURE = 25;
+
+  static final int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
 }
 
 
@@ -109,6 +113,9 @@ class _HttpParser {
     int index = offset;
     int lastIndex = offset + count;
     try {
+      if (_state == _State.CLOSED) {
+        throw new HttpParserException("Data on closed connection");
+      }
       while ((index < lastIndex) && _state != _State.FAILURE) {
         int byte = buffer[index];
         switch (_state) {
@@ -287,9 +294,12 @@ class _HttpParser {
               // is chunked (RFC 2616 section 4.4)
               if (headerField == "content-length" && !_chunked) {
                 _contentLength = Math.parseInt(headerValue);
-              } else if (headerField == "connection" &&
-                         headerValue == "keep-alive") {
-                _keepAlive = true;
+              } else if (headerField == "connection") {
+                if (headerValue == "keep-alive") {
+                  _keepAlive = true;
+                } else if (headerValue == "close") {
+                  _connectionClose = true;
+                }
               } else if (headerField == "transfer-encoding" &&
                          headerValue == "chunked") {
                 _chunked = true;
@@ -314,7 +324,6 @@ class _HttpParser {
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
             if (headersComplete != null) headersComplete();
-
             if (_chunked) {
               _state = _State.CHUNK_SIZE;
               _remainingContent = 0;
@@ -325,8 +334,8 @@ class _HttpParser {
                         (_noMessageBody || _responseToMethod == "HEAD"))) {
               // If there is no message body get ready to process the
               // next request.
-              if (dataEnd != null) dataEnd();
-              _state = _State.START;
+              _bodyEnd();
+              _reset();
             } else if (_contentLength > 0) {
               _remainingContent = _contentLength;
               _state = _State.BODY;
@@ -380,7 +389,7 @@ class _HttpParser {
 
           case _State.CHUNKED_BODY_DONE_LF:
             _expect(byte, _CharCode.LF);
-            if (dataEnd != null) dataEnd();
+            _bodyEnd();
             _reset();
             break;
 
@@ -404,7 +413,7 @@ class _HttpParser {
             index += data.length;
             if (_remainingContent == 0) {
               if (!_chunked) {
-                if (dataEnd != null) dataEnd();
+                _bodyEnd();
                 _reset();
               } else {
                 _state = _State.CHUNK_SIZE_STARTING_CR;
@@ -445,18 +454,35 @@ class _HttpParser {
   }
 
   int connectionClosed() {
+    if (_state < _State.FIRST_BODY_STATE) {
+      _state = _State.FAILURE;
+      // Report the error through the error callback if any. Otherwise
+      // throw the error.
+      var e = new HttpParserException(
+          "Connection closed before full header was received");
+      if (error != null) {
+        error(e);
+        return;
+      }
+      throw e;
+    }
+
     if (!_chunked && _contentLength == -1) {
-      if (dataEnd != null) dataEnd();
+      if (_state != _State.START) {
+        if (dataEnd != null) dataEnd(true);
+      }
+      _state = _State.CLOSED;
     } else {
+      _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
       var e = new HttpParserException(
           "Connection closed before full body was received");
       if (error != null) {
         error(e);
-      } else {
-        throw e;
+        return;
       }
+      throw e;
     }
   }
 
@@ -465,6 +491,14 @@ class _HttpParser {
   bool get keepAlive() => _keepAlive;
 
   void set responseToMethod(String method) => _responseToMethod = method;
+
+  bool get isIdle() => _state == _State.START;
+
+  void _bodyEnd() {
+    if (dataEnd != null) {
+      dataEnd(_messageType == _MessageType.RESPONSE && _connectionClose);
+    }
+  }
 
   _reset() {
     _state = _State.START;
@@ -476,6 +510,7 @@ class _HttpParser {
 
     _contentLength = -1;
     _keepAlive = false;
+    _connectionClose = false;
     _chunked = false;
 
     _noMessageBody = false;
@@ -518,6 +553,7 @@ class _HttpParser {
 
   int _contentLength;
   bool _keepAlive;
+  bool _connectionClose;
   bool _chunked;
 
   bool _noMessageBody;

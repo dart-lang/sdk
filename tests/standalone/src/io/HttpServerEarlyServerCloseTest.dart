@@ -7,10 +7,10 @@ class Server {
     server.listen("127.0.0.1", 0);
     port = server.port;
     server.onRequest = (HttpRequest request, HttpResponse response) {
-      new Timer(100, (timer) => server.close());
+      new Timer(0, (timer) => server.close());
     };
-    server.onError = (Object exception) {
-      Expect.fail("Close should not give an error.");
+    server.onError = (e) {
+      Expect.fail("No server errors expected: $e");
     };
   }
   int port;
@@ -27,7 +27,7 @@ class Client {
     c.onResponse = (HttpClientResponse response) {
       Expect.fail("Response should not be given, as not data was returned.");
     };
-    c.onError = (Object exception) {
+    c.onError = (e) {
       r.close();
     };
   }

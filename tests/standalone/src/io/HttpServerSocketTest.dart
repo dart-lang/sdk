@@ -9,7 +9,7 @@ class ExpectedDataOutputStream implements OutputStream {
   ExpectedDataOutputStream(List<int> this._data,
                            int this._cutoff,
                            bool this._closeAsError,
-                           SocketImpl this._socket);
+                           SocketMock this._socket);
 
   void set onNoPendingWrites(void callback()) {
     _onNoPendingWrites = callback;
@@ -49,7 +49,7 @@ class ExpectedDataOutputStream implements OutputStream {
   int _written = 0;
   int _cutoff;
   bool _closeAsError;
-  SocketImpl _socket;
+  SocketMock _socket;
 }
 
 class SocketMock implements Socket {

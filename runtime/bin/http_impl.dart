@@ -260,6 +260,16 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     return _outputStream;
   }
 
+  void _responseEnd() {
+    _state = DONE;
+    // Stop tracking no pending write events.
+    _httpConnection._onNoPendingWrites = null;
+    // Ensure that any trailing data is written.
+    _writeDone();
+    // Indicate to the connection that the response handling is done.
+    _httpConnection._responseDone();
+  }
+
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
     return _write(buffer, copyBuffer);
@@ -270,17 +280,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _streamClose() {
-    _httpConnection._phase = _HttpConnectionBase.PHASE_IDLE;
-    _state = DONE;
-    // Stop tracking no pending write events.
-    _httpConnection._onNoPendingWrites = null;
-    // Ensure that any trailing data is written.
-    _writeDone();
-    // If the connection is closing then close the output stream to
-    // fully close the socket.
-    if (_httpConnection._closing) {
-      _httpConnection._close();
-    }
+    _responseEnd();
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
@@ -469,12 +469,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 
 class _HttpConnectionBase implements Hashable {
-  static final int PHASE_IDLE = 0;
-  static final int PHASE_REQUEST = 1;
-  static final int PHASE_RESPONSE = 2;
-
-  _HttpConnectionBase() : _phase = PHASE_IDLE,
-                          _sendBuffers = new Queue(),
+  _HttpConnectionBase() : _sendBuffers = new Queue(),
                           _httpParser = new _HttpParser();
 
   void _connectionEstablished(Socket socket) {
@@ -519,15 +514,7 @@ class _HttpConnectionBase implements Hashable {
   }
 
   void _onClosed() {
-    if (_phase != PHASE_IDLE) {
-      // Client closed socket for writing. Socket should still be open
-      // for writing the response.
-      _closing = true;
-    } else {
-      // The connection is currently not used by any request just close it.
-      _socket.close();
-    }
-    if (_onDisconnectCallback != null) _onDisconnectCallback();
+    _onConnectionClosed(null);
   }
 
   void _onError(Exception e) {
@@ -536,21 +523,11 @@ class _HttpConnectionBase implements Hashable {
     if (_socket != null) {
       _socket.close();
     }
-    if (_onErrorCallback != null) {
-      _onErrorCallback(e);
-    }
-    _propagateError(e);
+    _onConnectionClosed(e);
   }
 
-  abstract void _propagateError(Exception e);
-
-  void set onDisconnect(void callback()) {
-    _onDisconnectCallback = callback;
-  }
-
-  void set onError(void callback(Exception e)) {
-    _onErrorCallback = callback;
-  }
+  abstract void _onConnectionClosed(Exception e);
+  abstract void _responseDone();
 
   void set _onNoPendingWrites(void callback()) {
     if (!_error) {
@@ -560,16 +537,12 @@ class _HttpConnectionBase implements Hashable {
 
   int hashCode() => _socket.hashCode();
 
-  int _phase;
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
   bool _error = false;  // Is the socket closed due to an error?
   _HttpParser _httpParser;
 
   Queue _sendBuffers;
-
-  Function _onDisconnectCallback;
-  Function _onErrorCallback;
 }
 
 
@@ -586,13 +559,42 @@ class _HttpConnection extends _HttpConnectionBase {
         (name, value) => _onHeaderReceived(name, value);
     _httpParser.headersComplete = () => _onHeadersComplete();
     _httpParser.dataReceived = (data) => _onDataReceived(data);
-    _httpParser.dataEnd = () => _onDataEnd();
+    _httpParser.dataEnd = (close) => _onDataEnd(close);
     _httpParser.error = (e) => _onError(e);
+  }
+
+  void _onConnectionClosed(Exception e) {
+    if (e != null && onError != null) {
+      onError(e);
+      // Propagate the error to the streams.
+      if (_request != null && _request._streamErrorHandler != null) {
+        _request._streamErrorHandler(e);
+      }
+      if (_response != null && _response._streamErrorHandler != null) {
+        _response._streamErrorHandler(e);
+      }
+    }
+
+    // If currently not processing any request just close the socket.
+    if (_httpParser.isIdle) {
+      _socket.close();
+      if (onClosed != null && e == null) {
+        // Don't call onClosed if onError has been called.
+        onClosed();
+      }
+      return;
+    }
+
+    // Processing a request.
+    if (e == null) {
+      // Indicate connection close to the HTTP parser.
+      _httpParser.connectionClosed();
+      _closing = true;
+    }
   }
 
   void _onRequestStart(String method, String uri) {
     // Create new request and response objects for this request.
-    _phase = PHASE_REQUEST;
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
     _request._onRequestStart(method, uri);
@@ -609,8 +611,8 @@ class _HttpConnection extends _HttpConnectionBase {
   void _onHeadersComplete() {
     _request._onHeadersComplete();
     _response.keepAlive = _httpParser.keepAlive;
-    if (requestReceived != null) {
-      requestReceived(_request, _response);
+    if (onRequestReceived != null) {
+      onRequestReceived(_request, _response);
     }
   }
 
@@ -618,22 +620,20 @@ class _HttpConnection extends _HttpConnectionBase {
     _request._onDataReceived(data);
   }
 
-  void _onDataEnd() {
-    // Phase might already have gone to PHASE_IDLE if the response is
-    // sent without waiting for request body.
-    if (_phase == PHASE_REQUEST) {
-      _phase = PHASE_RESPONSE;
+  void _onDataEnd(bool close) {
+    if (_request != null) {
+      _request._onDataEnd();
     }
-    _request._onDataEnd();
+    _request = null;
   }
 
-  void _propagateError(Exception e) {
-    if (_request != null && _request._streamErrorHandler != null) {
-      _request._streamErrorHandler(e);
+  void _responseDone() {
+    // If the connection is closing then close the output stream to
+    // fully close the socket.
+    if (_closing) {
+      outputStream.close();
     }
-    if (_response != null && _response._streamErrorHandler != null) {
-      _response._streamErrorHandler(e);
-    }
+    _response = null;
   }
 
   HttpServer _server;
@@ -641,7 +641,9 @@ class _HttpConnection extends _HttpConnectionBase {
   HttpResponse _response;
 
   // Callbacks.
-  var requestReceived;
+  Function onRequestReceived;
+  Function onClosed;
+  Function onError;
 }
 
 
@@ -659,9 +661,11 @@ class _HttpServer implements HttpServer {
     void onConnection(Socket socket) {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
-      connection.requestReceived = _onRequest;
-      connection.onDisconnect = () => _connections.remove(connection);
+      connection._connectionEstablished(socket);
+      connection.onRequestReceived = _onRequest;
+      connection.onClosed = () => _connections.remove(connection);
       connection.onError = (e) {
+        _connections.remove(connection);
         if (_onError != null) _onError(e);
       };
       connection._connectionEstablished(socket);
@@ -792,11 +796,6 @@ class _HttpClientRequest
     _httpConnection._onNoPendingWrites = null;
     // Ensure that any trailing data is written.
     _writeDone();
-    // If the connection is closing then close the output stream to
-    // fully close the socket.
-    if (_httpConnection._closing) {
-      _httpConnection._close();
-    }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
@@ -905,6 +904,7 @@ class _HttpClientResponse
 
   void _onDataEnd() {
     if (_inputStream != null) _inputStream._closeReceived();
+    _connection._responseDone();
   }
 
   // Delegate functions for the HttpInputStream implementation.
@@ -953,18 +953,22 @@ class _HttpClientConnection
         (name, value) => _onHeaderReceived(name, value);
     _httpParser.headersComplete = () => _onHeadersComplete();
     _httpParser.dataReceived = (data) => _onDataReceived(data);
-    _httpParser.dataEnd = () => _onDataEnd();
+    _httpParser.dataEnd = (closed) => _onDataEnd(closed);
     _httpParser.error = (e) => _onError(e);
     // Tell the HTTP parser the method it is expecting a response to.
     _httpParser.responseToMethod = _method;
-
-    onDisconnect = _onDisconnected;
   }
 
-  void _propagateError(Exception e) {
-    if (_response != null && _response._streamErrorHandler != null) {
-      _response._streamErrorHandler(e);
+  void _responseDone() {
+    if (_closing) {
+      if (_socket != null) {
+        _socket.close();
+      }
+    } else {
+      _client._returnSocketConnection(_socketConn);
     }
+    _socket = null;
+    _socketConn = null;
   }
 
   HttpClientRequest open(String method, String uri) {
@@ -973,6 +977,28 @@ class _HttpClientConnection
     _request.keepAlive = true;
     _response = new _HttpClientResponse(this);
     return _request;
+  }
+
+  void _onConnectionClosed(Exception e) {
+    // Socket is closed either due to an error or due to normal socket close.
+    if (e != null) {
+      if (_onErrorCallback != null) {
+        _onErrorCallback(e);
+      }
+    }
+    _closing = true;
+    if (e != null) {
+      // Propagate the error to the streams.
+      if (_response != null && _response._streamErrorHandler != null) {
+        _response._streamErrorHandler(e);
+      }
+      _responseDone();
+    } else {
+      // If there was no socket error the socket was closed
+      // normally. Indicate closing to the HTTP Parser as there might
+      // still be an HTTP error.
+      _httpParser.connectionClosed();
+    }
   }
 
   void _onRequestStart(String method, String uri) {
@@ -995,15 +1021,8 @@ class _HttpClientConnection
     _response._onDataReceived(data);
   }
 
-  void _onDataEnd() {
-    onDisconnect = null;
-    if (_response.headers["connection"] == "close") {
-      _socket.close();
-    } else {
-      _client._returnSocketConnection(_socketConn);
-    }
-    _socket = null;
-    _socketConn = null;
+  void _onDataEnd(bool close) {
+    if (close) _closing = true;
     _response._onDataEnd();
   }
 
@@ -1015,15 +1034,13 @@ class _HttpClientConnection
     _onResponse = handler;
   }
 
-  void _onDisconnected() {
-    if (_onErrorCallback !== null) {
-      _onErrorCallback(new HttpException(
-          "Client disconnected before response was received."));
-    }
+  void set onError(void callback(Exception e)) {
+    _onErrorCallback = callback;
   }
 
   Function _onRequest;
   Function _onResponse;
+  Function _onErrorCallback;
 
   _HttpClient _client;
   _SocketConnection _socketConn;
