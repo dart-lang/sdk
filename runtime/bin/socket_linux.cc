@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <arpa/inet.h>
 #include <errno.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
 #include "bin/fdutils.h"
@@ -103,7 +100,6 @@ intptr_t Socket::GetPort(intptr_t fd) {
 
 
 bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
-  ASSERT(DART_INET_ADDRSTRLEN >= INET_ADDRSTRLEN);
   ASSERT(fd >= 0);
   struct sockaddr_in socket_address;
   socklen_t size = sizeof(socket_address);

@@ -7,10 +7,20 @@
 
 #include "bin/builtin.h"
 #include "bin/utils.h"
+
 #include "platform/globals.h"
 #include "platform/thread.h"
+// Declare the OS-specific types ahead of defining the generic class.
+#if defined(TARGET_OS_LINUX)
+#include "bin/socket_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "bin/socket_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "bin/socket_win.h"
+#else
+#error Unknown target os.
+#endif
 
-#define DART_INET_ADDRSTRLEN 16
 
 class Socket {
  public:

@@ -6,6 +6,8 @@
 #include "bin/dartutils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+
+#include "platform/globals.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
 
@@ -160,7 +162,7 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
                                  DartUtils::kIdFieldName);
   OSError os_error;
   intptr_t port = 0;
-  char host[DART_INET_ADDRSTRLEN];
+  char host[INET_ADDRSTRLEN];
   if (Socket::GetRemotePeer(socket, host, &port)) {
     Dart_Handle list = Dart_NewList(2);
     Dart_ListSetAt(list, 0, Dart_NewString(host));

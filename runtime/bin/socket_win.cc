@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <mswsock.h>
-
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
 #include "bin/socket.h"
@@ -55,7 +51,6 @@ intptr_t Socket::GetPort(intptr_t fd) {
 
 
 bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
-  ASSERT(DART_INET_ADDRSTRLEN >= INET_ADDRSTRLEN);
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   struct sockaddr_in socket_address;
