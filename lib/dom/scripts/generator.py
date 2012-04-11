@@ -8,50 +8,6 @@ Dart APIs from the IDL database."""
 
 import re
 
-# IDL->Dart primitive types conversion.
-_idl_to_dart_type_conversions = {
-    'any': 'Object',
-    'any[]': 'List',
-    'custom': 'Dynamic',
-    'boolean': 'bool',
-    'DOMObject': 'Object',
-    'DOMString': 'String',
-    'DOMStringList': 'List<String>',
-    'DOMStringMap': 'Map<String, String>',
-    'DOMTimeStamp': 'int',
-    'Date': 'Date',
-    # Map to num to enable callers to pass in Dart int, rational
-    # types.  Our implementations will need to convert these to
-    # doubles or floats as needed.
-    'double': 'num',
-    'float': 'num',
-    'int': 'int',
-    # Map to extra precision - int is a bignum in Dart.
-    'long': 'int',
-    'long long': 'int',
-    'object': 'Object',
-    # Map to extra precision - int is a bignum in Dart.
-    'short': 'int',
-    'string': 'String',
-    'void': 'void',
-    'Array': 'List',
-    'sequence': 'List',
-    # TODO(sra): Come up with some meaningful name so that where this appears in
-    # the documentation, the user is made aware that only a limited subset of
-    # serializable types are actually permitted.
-    'SerializedScriptValue': 'Dynamic',
-    # TODO(vsm): Automatically recognize types defined in src.
-    'TimeoutHandler': 'TimeoutHandler',
-    'RequestAnimationFrameCallback': 'RequestAnimationFrameCallback',
-
-    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
-    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'WebKitFlags': 'Object',
-    }
-
-_dart_to_idl_type_conversions = dict((v,k) for k, v in
-                                     _idl_to_dart_type_conversions.iteritems())
-
 _pure_interfaces = set([
     'ElementTimeControl',
     'ElementTraversal',
@@ -163,19 +119,8 @@ dom_frog_native_bodies = {
       """,
 }
 
-
-def ConvertPrimitiveType(type_name):
-  if type_name.startswith('unsigned '):
-    type_name = type_name[len('unsigned '):]
-
-  if type_name in _idl_to_dart_type_conversions:
-    # Primitive type conversion
-    return _idl_to_dart_type_conversions[type_name]
-  return None
-
 def IsPrimitiveType(type_name):
-  return (ConvertPrimitiveType(type_name) is not None or
-          type_name in _dart_to_idl_type_conversions)
+  return isinstance(GetIDLTypeInfo(type_name), PrimitiveIDLTypeInfo)
 
 def MaybeListElementTypeName(type_name):
   """Returns the List element type T from string of form "List<T>", or None."""
@@ -643,10 +588,21 @@ _idl_type_registry = {
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
     'List<String>': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
+    'Map<String, String>': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
+    # TODO(sra): Come up with some meaningful name so that where this appears in
+    # the documentation, the user is made aware that only a limited subset of
+    # serializable types are actually permitted.
     'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic', ref_counted=True),
+    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
+    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
+
+    'DOMStringList': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
+    'DOMStringMap': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
+    'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
+    'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
