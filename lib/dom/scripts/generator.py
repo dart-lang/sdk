@@ -477,16 +477,9 @@ class IDLTypeInfo(object):
 
   def conversion_includes(self):
     def NeededDartTypes(type_name):
-      if type_name == 'Map<String, String>':
-        return ['DOMStringMap']
       match = re.match(r'List<(\w*)>$', type_name)
       if match:
         return NeededDartTypes(match.group(1))
-      match = re.match(r'Map<(\w*), (\w*)>$', type_name)
-      if match:
-        return NeededDartTypes(match.group(1)) + NeededDartTypes(match.group(2))
-      if IsPrimitiveType(type_name):
-        return []
       return [type_name]
 
     return ['"Dart%s.h"' % include for include in NeededDartTypes(self.dart_type()) + self._conversion_includes]
@@ -501,12 +494,13 @@ class IDLTypeInfo(object):
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, dart_type, native_type=None, ref_counted=False,
-               conversion_template=None,
+               conversion_template=None, conversion_includes=[],
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute'):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
         native_type=native_type, ref_counted=ref_counted,
-        conversion_template=conversion_template)
+        conversion_template=conversion_template,
+        conversion_includes=conversion_includes)
     self._webcore_getter_name = webcore_getter_name
     self._webcore_setter_name = webcore_setter_name
 
@@ -522,7 +516,7 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return self.native_type()
 
   def conversion_includes(self):
-    return []
+    return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
   def webcore_getter_name(self):
     return self._webcore_getter_name
@@ -588,7 +582,8 @@ _idl_type_registry = {
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
     'List<String>': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
-    'Map<String, String>': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
+    'Map<String, String>': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>',
+        conversion_includes=['DOMStringMap']),
     'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
@@ -600,7 +595,8 @@ _idl_type_registry = {
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
     'DOMStringList': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
-    'DOMStringMap': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
+    'DOMStringMap': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>',
+        conversion_includes=['DOMStringMap']),
     'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
