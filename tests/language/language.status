@@ -16,7 +16,6 @@
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
-StaticInitializerTypeErrorTest: Fail # Issue 2472
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Fail # Issue 439

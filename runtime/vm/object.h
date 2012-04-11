@@ -1528,6 +1528,9 @@ class Field : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   bool is_static() const { return raw_ptr()->is_static_; }
   bool is_final() const { return raw_ptr()->is_final_; }
+  // TODO(regis): Implement support for const fields. Until then, current final
+  // fields are considered const.
+  bool is_const() const { return raw_ptr()->is_final_; }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value) const;

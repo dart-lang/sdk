@@ -689,6 +689,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 }
 
 
+// TODO(regis): Implement support for non-const final static fields (currently
+// supported "final" fields are actually const fields).
+// TODO(regis): Since a const variable is implicitly final,
+// rename ParseStaticConstGetter to ParseStaticFinalGetter and
+// rename kConstImplicitGetter to kImplicitFinalGetter.
 SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   TRACE_PARSER("ParseStaticConstGetter");
   ParamList params;
@@ -700,8 +705,12 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   OpenFunctionBlock(func);
   AddFormalParamsToScope(&params, current_block_->scope);
 
+  const String& field_name = *ExpectIdentifier("field name expected");
+  const Class& field_class = Class::Handle(func.owner());
+  const Field& field =
+      Field::ZoneHandle(field_class.LookupStaticField(field_name));
+
   // Static const fields must have an initializer.
-  ExpectIdentifier("field name expected");
   ExpectToken(Token::kASSIGN);
 
   // We don't want to use ParseConstExpr() here because we don't want
@@ -711,11 +720,84 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   // leave the evaluation to the getter function.
   const intptr_t expr_pos = token_index_;
   AstNode* expr = ParseExpr(kAllowConst);
-  if (expr->EvalConstExpr() == NULL) {
-    ErrorMsg(expr_pos, "initializer must be a compile time constant");
+  if (field.is_const()) {
+    // This getter will only be called once at compile time.
+    if (expr->EvalConstExpr() == NULL) {
+      ErrorMsg(expr_pos, "initializer must be a compile time constant");
+    }
+    ReturnNode* return_node = new ReturnNode(token_index_, expr);
+    current_block_->statements->Add(return_node);
+  } else {
+    // This getter may be called each time the static field is accessed.
+    // The following generated code lazily initializes the field:
+    // if (field.value === transition_sentinel) {
+    //   field.value = null;
+    //   throw("circular dependency in field initialization");
+    // }
+    // if (field.value === sentinel) {
+    //   field.value = transition_sentinel;
+    //   field.value = expr;
+    // }
+    // return field.value;  // Type check is executed here in checked mode.
+
+    // TODO(regis): Remove this check once we support proper const fields.
+    if (expr->EvalConstExpr() == NULL) {
+      ErrorMsg(expr_pos, "initializer must be a compile time constant");
+    }
+
+    // Generate code checking for circular dependency in field initialization.
+    AstNode* compare_circular = new ComparisonNode(
+        token_index_,
+        Token::kEQ_STRICT,
+        new LoadStaticFieldNode(token_index_, field),
+        new LiteralNode(token_index_,
+                        Instance::ZoneHandle(Object::transition_sentinel())));
+    // Set field to null prior to throwing exception, so that subsequent
+    // accesses to the field do not throw again, since initializers should only
+    // be executed once.
+    SequenceNode* report_circular = new SequenceNode(token_index_, NULL);
+    report_circular->Add(
+        new StoreStaticFieldNode(
+            token_index_,
+            field,
+            new LiteralNode(token_index_, Instance::ZoneHandle())));
+    // TODO(regis): Exception to throw is not specified by spec.
+    const String& circular_error = String::ZoneHandle(
+        String::NewSymbol("circular dependency in field initialization"));
+    report_circular->Add(
+        new ThrowNode(token_index_,
+                      new LiteralNode(token_index_, circular_error),
+                      NULL));
+    AstNode* circular_check =
+        new IfNode(token_index_, compare_circular, report_circular, NULL);
+    current_block_->statements->Add(circular_check);
+
+    // Generate code checking for uninitialized field.
+    AstNode* compare_uninitialized = new ComparisonNode(
+        token_index_,
+        Token::kEQ_STRICT,
+        new LoadStaticFieldNode(token_index_, field),
+        new LiteralNode(token_index_,
+                        Instance::ZoneHandle(Object::sentinel())));
+    SequenceNode* initialize_field = new SequenceNode(token_index_, NULL);
+    initialize_field->Add(
+        new StoreStaticFieldNode(
+            token_index_,
+            field,
+            new LiteralNode(
+                token_index_,
+                Instance::ZoneHandle(Object::transition_sentinel()))));
+    initialize_field->Add(new StoreStaticFieldNode(token_index_, field, expr));
+    AstNode* uninitialized_check =
+        new IfNode(token_index_, compare_uninitialized, initialize_field, NULL);
+    current_block_->statements->Add(uninitialized_check);
+
+    // Generate code returning the field value.
+    ReturnNode* return_node =
+        new ReturnNode(token_index_,
+                       new LoadStaticFieldNode(token_index_, field));
+    current_block_->statements->Add(return_node);
   }
-  ReturnNode* return_node = new ReturnNode(token_index_, expr);
-  current_block_->statements->Add(return_node);
   return CloseBlock();
 }
 
@@ -6180,19 +6262,22 @@ AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
 
 AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
                                            intptr_t ident_pos) {
-  // Run static field initializer first if necessary.
-  // May return an exception throwing ast node.
-  AstNode* throw_exception = RunStaticFieldInitializer(field);
-  if (throw_exception != NULL) {
-    return throw_exception;
+  // If the static field has an initializer, initialize the field at compile
+  // time, which is only possible if the field is const.
+  AstNode* initializing_getter = RunStaticFieldInitializer(field);
+  if (initializing_getter != NULL) {
+    // The field is not yet initialized and could not be initialized at compile
+    // time. The getter will initialize the field.
+    return initializing_getter;
   }
-  // Access the field.
-  if (field.is_final()) {
+  // The field is initialized.
+  if (field.is_const()) {
+    ASSERT(field.value() != Object::sentinel());
+    ASSERT(field.value() != Object::transition_sentinel());
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
-  } else {
-    return new LoadStaticFieldNode(ident_pos,
-                                   Field::ZoneHandle(field.raw()));
   }
+  // Access the field directly.
+  return new LoadStaticFieldNode(ident_pos, Field::ZoneHandle(field.raw()));
 }
 
 
@@ -6653,64 +6738,71 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
-// Returns null on success.
-// Returns a throw node if evaluation of the static initializer results in an
-// unhandled exception.
+// If the field is already initialized, return no ast (NULL).
+// Otherwise, if the field is constant, initialize the field and return no ast.
+// If the field is not initialized and not const, return the ast for the getter.
 AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Instance& value = Instance::Handle(field.value());
   if (value.raw() == Object::transition_sentinel()) {
-    ErrorMsg("circular dependency while initializing static field '%s'",
-             String::Handle(field.name()).ToCString());
-
+    if (field.is_const()) {
+      ErrorMsg("circular dependency while initializing static field '%s'",
+               String::Handle(field.name()).ToCString());
+    } else {
+      // The implicit static getter will throw the exception if necessary.
+      return new StaticGetterNode(token_index_,
+                                  Class::ZoneHandle(field.owner()),
+                                  String::ZoneHandle(field.name()));
+    }
   } else if (value.raw() == Object::sentinel()) {
     // This field has not been referenced yet and thus the value has
-    // not been evaluated. Call the static getter method to evaluate
-    // the expression and canonicalize the value.
-
-    field.set_value(Instance::Handle(Object::transition_sentinel()));
-    const String& field_name = String::Handle(field.name());
-    const String& getter_name =
-        String::Handle(Field::GetterName(field_name));
-    const Class& cls = Class::Handle(field.owner());
-    GrowableArray<const Object*> arguments;  // no arguments.
-    const int kNumArguments = 0;  // no arguments.
-    const Array& kNoArgumentNames = Array::Handle();
-    const Function& func =
-        Function::Handle(Resolver::ResolveStatic(cls,
-                                                 getter_name,
-                                                 kNumArguments,
-                                                 kNoArgumentNames,
-                                                 Resolver::kIsQualified));
-    ASSERT(!func.IsNull());
-    ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
-    Object& const_value = Object::Handle(
-        DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
-    if (const_value.IsError()) {
-      Error& error = Error::Handle();
-      error ^= const_value.raw();
-      if (const_value.IsUnhandledException()) {
-        field.set_value(Instance::Handle());
-        // It is a compile-time error if evaluation of a compile-time constant
-        // would raise an exception.
-        if (field.is_final()) {
+    // not been evaluated. If the field is const, call the static getter method
+    // to evaluate the expression and canonicalize the value.
+    if (field.is_const()) {
+      field.set_value(Instance::Handle(Object::transition_sentinel()));
+      const String& field_name = String::Handle(field.name());
+      const String& getter_name =
+          String::Handle(Field::GetterName(field_name));
+      const Class& cls = Class::Handle(field.owner());
+      GrowableArray<const Object*> arguments;  // no arguments.
+      const int kNumArguments = 0;  // no arguments.
+      const Array& kNoArgumentNames = Array::Handle();
+      const Function& func =
+          Function::Handle(Resolver::ResolveStatic(cls,
+                                                   getter_name,
+                                                   kNumArguments,
+                                                   kNoArgumentNames,
+                                                   Resolver::kIsQualified));
+      ASSERT(!func.IsNull());
+      ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
+      Object& const_value = Object::Handle(
+          DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
+      if (const_value.IsError()) {
+        Error& error = Error::Handle();
+        error ^= const_value.raw();
+        if (const_value.IsUnhandledException()) {
+          field.set_value(Instance::Handle());
+          // It is a compile-time error if evaluation of a compile-time constant
+          // would raise an exception.
           AppendErrorMsg(error, token_index_,
                          "error initializing final field '%s'",
                          String::Handle(field.name()).ToCString());
         } else {
-          return GenerateRethrow(token_index_, const_value);
+          Isolate::Current()->long_jump_base()->Jump(1, error);
         }
-      } else {
-        Isolate::Current()->long_jump_base()->Jump(1, error);
       }
+      ASSERT(const_value.IsNull() || const_value.IsInstance());
+      Instance& instance = Instance::Handle();
+      instance ^= const_value.raw();
+      if (!instance.IsNull()) {
+        instance ^= instance.Canonicalize();
+      }
+      field.set_value(instance);
+    } else {
+      return new StaticGetterNode(token_index_,
+                                  Class::ZoneHandle(field.owner()),
+                                  String::ZoneHandle(field.name()));
     }
-    ASSERT(const_value.IsNull() || const_value.IsInstance());
-    Instance& instance = Instance::Handle();
-    instance ^= const_value.raw();
-    if (!instance.IsNull()) {
-      instance ^= instance.Canonicalize();
-    }
-    field.set_value(instance);
   }
   return NULL;
 }
