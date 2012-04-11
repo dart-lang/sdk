@@ -26,6 +26,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DEFINE_FLAG(bool, allow_string_plus, true, "Allow + operator on strings.");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -5702,8 +5703,12 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           if (left_operand->IsLiteralNode()) {
             LiteralNode* lit = left_operand->AsLiteralNode();
             if (lit->literal().IsString()) {
-              str_concat = new StringConcatNode(lit->token_index());
-              str_concat->AddExpr(lit);
+              if (FLAG_allow_string_plus) {
+                str_concat = new StringConcatNode(lit->token_index());
+                str_concat->AddExpr(lit);
+              } else {
+                ErrorMsg(op_pos, "operator + on strings no longer allowed");
+              }
             }
           } else if (left_operand->IsStringConcatNode()) {
             str_concat = left_operand->AsStringConcatNode();
