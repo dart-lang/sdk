@@ -6,7 +6,7 @@
 var trace = "";
 
 int rec(int i) {
-  trace += "$i ";
+  trace = trace.concat("$i ");
   return i;
 }
 

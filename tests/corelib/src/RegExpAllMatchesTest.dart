@@ -31,22 +31,22 @@ class RegExpAllMatchesTest {
 
   static testForEach() {
     var matches = new RegExp("foo").allMatches("foo foo");
-    var str = "";
+    var strbuf = new StringBuffer();
     matches.forEach((Match m) {
-      str += m.group(0);
+      strbuf.add(m.group(0));
     });
-    Expect.equals("foofoo", str);
+    Expect.equals("foofoo", strbuf.toString());
   }
 
   static testMap() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    var mapped = matches.map((Match m) => m.group(0) + "bar");
+    var mapped = matches.map((Match m) => "${m.group(0)}bar");
     Expect.equals(4, mapped.length);
-    var str = "";
+    var strbuf = new StringBuffer();
     for (String s in mapped) {
-      str += s;
+      strbuf.add(s);
     }
-    Expect.equals("foobarfobarfoobarfobar", str);
+    Expect.equals("foobarfobarfoobarfobar", strbuf.toString());
   }
 
   static testFilter() {
@@ -55,11 +55,11 @@ class RegExpAllMatchesTest {
       return m.group(0) == 'foo';
     });
     Expect.equals(2, filtered.length);
-    var str = "";
+    var strbuf = new StringBuffer();
     for (Match m in filtered) {
-      str += m.group(0);
+      strbuf.add(m.group(0));
     }
-    Expect.equals("foofoo", str);
+    Expect.equals("foofoo", strbuf.toString());
   }
 
   static testEvery() {

@@ -6,12 +6,12 @@
 String message;
 
 foo() {
-  message += 'foo';
+  message = message.concat('foo');
   return 1;
 }
 
 bar() {
-  message += 'bar';
+  message = message.concat('bar');
   return 2;
 }
 

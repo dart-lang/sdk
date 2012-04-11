@@ -42,7 +42,7 @@ interface Interface2 default FactoryProvider {
 class SomeImplementation implements Interface2 {
   String _secret;
 
-  SomeImplementation(String one, String two) : _secret = one + two {}
+  SomeImplementation(String one, String two) : _secret = "${one}${two}" {}
 
   String GetSecret() { return _secret; }
 }
