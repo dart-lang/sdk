@@ -39,7 +39,11 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   int64_t socket = DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                               DartUtils::kIdFieldName);
   intptr_t available = Socket::Available(socket);
-  Dart_SetReturnValue(args, Dart_NewInteger(available));
+  if (available >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(available));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 

@@ -347,13 +347,19 @@ class _Socket extends _SocketBase implements Socket {
 
   int available() {
     if (_id >= 0) {
-      return _available();
+      var result = _available();
+      if (result is OSError) {
+        _reportError(result, "Available failed");
+        return 0;
+      } else {
+        return result;
+      }
     }
     throw new
         SocketIOException("Error: available failed - invalid socket handle");
   }
 
-  int _available() native "Socket_Available";
+  _available() native "Socket_Available";
 
   int readList(List<int> buffer, int offset, int bytes) {
     if (_id >= 0) {
