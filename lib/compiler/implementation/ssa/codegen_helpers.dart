@@ -351,3 +351,69 @@ class JSBinaryOperatorPrecedence {
   // All binary operators (excluding assignment) are left associative.
   int get precedence() => left;
 }
+
+class PhiEquivalator {
+  final Equivalence<HPhi> equivalence;
+  final Map<HPhi, String> logicalOperations;
+  PhiEquivalator(this.equivalence, this.logicalOperations);
+
+  void analyzeGraph(HGraph graph) {
+    graph.blocks.forEach((HBasicBlock block) => analyzeBlock(block));
+  }
+
+  void analyzeBlock(HBasicBlock block) {
+    for (HPhi phi = block.phis.first; phi !== null; phi = phi.next) {
+      if (!logicalOperations.containsKey(phi) &&
+          phi.usedBy.length == 1 &&
+          phi.usedBy[0] is HPhi) {
+        equivalence.makeEquivalent(phi, phi.usedBy[0]);
+      }
+    }
+  }
+}
+
+
+/**
+ * Try to figure out which phis can be represented by the same temporary
+ * variable, to avoid creating a new variable for each phi.
+ */
+class Equivalence<T extends Hashable> {
+  // Represent equivalence classes of HPhi nodes as a forest of trees,
+  // where each tree is one equivalence class, and the root is the
+  // canonical representative for the equivalence class.
+  // Implement the forest by having each phi point to its parent in the tree,
+  // transitively linking it to the root, which itself doesn't have a parent.
+  final Map<T,T> representative;
+
+  Equivalence() : representative = new Map<T,T>();
+
+  T makeEquivalent(T a, T b) {
+    T root1 = getRepresentative(a);
+    T root2 = getRepresentative(b);
+    if (root1 !== root2) {
+      // Merge the trees for the two classes into one.
+      representative[root1] = root2;
+    }
+  }
+
+  /**
+   * Get the canonical representative for an equivalence class of phis.
+   */
+  T getRepresentative(T element) {
+    T parent = representative[element];
+    if (parent === null) {
+      // This is the root of a tree (a previously unseen node is considered
+      // the root of its own tree).
+      return element;
+    }
+    // Shorten the path for all the elements on the way to the root,
+    // improving the performance of future lookups.
+    T root = getRepresentative(parent);
+    if (root !== parent) representative[element] = root;
+    return root;
+  }
+
+  bool areEquivalent(T a, T b) {
+    return getRepresentative(a) === getRepresentative(b);
+  }
+}
