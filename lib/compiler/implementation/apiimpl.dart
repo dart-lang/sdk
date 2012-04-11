@@ -19,6 +19,7 @@ class Compiler extends leg.Compiler {
   ReadUriFromString provider;
   DiagnosticHandler handler;
   Uri libraryRoot;
+  Uri packageRoot;
   List<String> options;
   bool mockableLibraryUsed = false;
 
@@ -38,6 +39,8 @@ class Compiler extends leg.Compiler {
   leg.Script readScript(Uri uri, [leg.ScriptTag node]) {
     if (uri.scheme == 'dart') {
       uri = translateDartUri(uri, node);
+    } else if (uri.scheme == 'package') {
+      uri = translatePackageUri(uri, node);
     }
     String text = "";
     try {
@@ -65,12 +68,20 @@ class Compiler extends leg.Compiler {
     return libraryRoot.resolve(path);
   }
 
+  translatePackageUri(Uri uri, leg.ScriptTag node) =>
+    packageRoot.resolve(uri.path);
+
   bool run(Uri uri) {
-    bool success = super.run(uri);
-    for (final task in tasks) {
-      log('${task.name} took ${task.timing}msec');
+    try {
+      packageRoot = uri.resolve('packages/');
+      bool success = super.run(uri);
+      for (final task in tasks) {
+        log('${task.name} took ${task.timing}msec');
+      }
+      return success;
+    } finally {
+      packageRoot = null;
     }
-    return success;
   }
 
   void reportDiagnostic(leg.SourceSpan span, String message, bool fatal) {
