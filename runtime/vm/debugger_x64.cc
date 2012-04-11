@@ -32,7 +32,7 @@ RawInstance* ActivationFrame::GetInstanceCallReceiver(
 void CodeBreakpoint::PatchFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
   // movq %rbp,%rsp
-  ASSERT((code[0] == 0x48) && (code[1] == 0x8b) && (code[2] == 0xe5));
+  ASSERT((code[0] == 0x48) && (code[1] == 0x89) && (code[2] == 0xec));
   ASSERT(code[3] == 0x5d);  // popq %rbp
   ASSERT(code[4] == 0xc3);  // ret
   // Next 8 bytes are nop instructions
@@ -56,8 +56,8 @@ void CodeBreakpoint::RestoreFunctionReturn() {
   uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 13);
   ASSERT((code[0] == 0x49) && (code[1] == 0xbb));
   code[0] = 0x48;  // movq %rbp,%rsp
-  code[1] = 0x8b;
-  code[2] = 0xe5;
+  code[1] = 0x89;
+  code[2] = 0xec;
   code[3] = 0x5d;  // popq %rbp
   code[4] = 0xc3;  // ret
   code[5] = 0x90;  // nop
