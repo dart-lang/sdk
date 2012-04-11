@@ -8,15 +8,12 @@ main() {
   int width = 100;
   int height = 100;
 
-  // FIXME: once main is run on content loaded, this hack won't be necessary.
-  window.setTimeout(() {
-    canvas = document.createElement('canvas');
-    canvas.setAttribute('width', '$width');
-    canvas.setAttribute('height', '$height');
-    document.body.appendChild(canvas);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '$width');
+  canvas.setAttribute('height', '$height');
+  document.body.appendChild(canvas);
 
-    context = canvas.getContext('2d');
-  }, 0);
+  context = canvas.getContext('2d');
 
   forLayoutTests();
   test('FillStyle', () {
