@@ -300,6 +300,18 @@ X-Header-B: bbb\r
 
     request = """
 POST /test HTTP/1.1\r
+Empty-Header-1:\r
+Empty-Header-2:\r
+        \r
+\r
+""";
+    headers = new Map();
+    headers["empty-header-1"] = "";
+    headers["empty-header-2"] = "";
+    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+
+    request = """
+POST /test HTTP/1.1\r
 Header-A:   AAA\r
 X-Header-B:\t \t bbb\r
 \r
@@ -570,15 +582,12 @@ HTTP/1.1 200 OK\r
     request = "GET / HTTP/1.\r\n\r\n";
     _testParseInvalidRequest(request);
 
+    request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
+    _testParseInvalidRequest(request);
+
     // Currently no HTTP 1.0 support.
     request = "GET / HTTP/1.0\r\n\r\n";
     _testParseInvalidRequest(request);
-
-    Expect.throws(() {
-      // TODO(2370): HTTP parser error.
-      request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
-      _testParseInvalidRequest(request);
-    });
   }
 
   static void testParseInvalidResponse() {
@@ -615,6 +624,9 @@ HTTP/1.1 200 OK\r
     _testParseInvalidResponse(response);
 
     response = "HTTP/1.1 200 OK\r\nContent-Length: x\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200 OK\r\nbadheader\r\n\r\n";
     _testParseInvalidResponse(response);
 
     response = """

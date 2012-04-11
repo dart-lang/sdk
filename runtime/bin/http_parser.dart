@@ -259,12 +259,17 @@ class _HttpParser {
             if (byte == _CharCode.COLON) {
               _state = _State.HEADER_VALUE_START;
             } else {
+              if (!_isTokenChar(byte)) {
+                throw new HttpParserException("Invalid header field name");
+              }
               _headerField.addCharCode(_toLowerCase(byte));
             }
             break;
 
           case _State.HEADER_VALUE_START:
-            if (byte != _CharCode.SP && byte != _CharCode.HT) {
+            if (byte == _CharCode.CR) {
+              _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+            } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
               // Start of new header value.
               _headerValue.addCharCode(byte);
               _state = _State.HEADER_VALUE;
@@ -516,6 +521,10 @@ class _HttpParser {
     _noMessageBody = false;
     _responseToMethod = null;
     _remainingContent = null;
+  }
+
+  bool _isTokenChar(int byte) {
+    return byte > 31 && byte < 128 && _Const.SEPARATORS.indexOf(byte) == -1;
   }
 
   int _toLowerCase(int byte) {
