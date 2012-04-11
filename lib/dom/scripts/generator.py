@@ -568,20 +568,22 @@ _idl_type_registry = {
         webcore_setter_name='setUnsignedIntegralAttribute'),
     'long long': PrimitiveIDLTypeInfo('long long', dart_type='int'),
     'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long', dart_type='int'),
+    'float': PrimitiveIDLTypeInfo('float', dart_type='num', native_type='double'),
     'double': PrimitiveIDLTypeInfo('double', dart_type='num'),
-    'float': PrimitiveIDLTypeInfo('float', dart_type='num'),
 
     'any': PrimitiveIDLTypeInfo('any', dart_type='Object'),
     'any[]': PrimitiveIDLTypeInfo('any[]', dart_type='List'),
     'Array': PrimitiveIDLTypeInfo('Array', dart_type='List'),
     'custom': PrimitiveIDLTypeInfo('custom', dart_type='Dynamic'),
     'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
-    'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object'),
+    'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object', native_type='ScriptValue'),
     'DOMString': PrimitiveIDLTypeInfo('DOMString', dart_type='String', native_type='String'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
     'List<String>': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
+    # TODO: there is no Map<String, String> type in idls. Fix the
+    # fremontcut builder and remove this entry.
     'Map<String, String>': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>',
         conversion_includes=['DOMStringMap']),
     'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),

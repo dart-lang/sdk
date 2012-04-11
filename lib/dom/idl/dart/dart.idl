@@ -26,7 +26,7 @@ module default {
 module core {
   [Supplemental]
   interface Document {
-    [Suppressed] object getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+    [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
     CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
   };
 };
