@@ -1948,8 +1948,11 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     }
   }
 
-  if (node->finally_block() != NULL) {
-    Bailout("EffectGraphVisitor::VisitTryCatchNode finally");
+  // Generate code for the finally block if one exists.
+  if ((node->finally_block() != NULL) && is_open()) {
+    EffectGraphVisitor for_finally_block(owner(), temp_index());
+    node->finally_block()->Visit(&for_finally_block);
+    Append(for_finally_block);
   }
 }
 
@@ -1994,7 +1997,20 @@ void ValueGraphVisitor::VisitThrowNode(ThrowNode* node) {
 
 
 void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
-  Bailout("EffectGraphVisitor::VisitInlinedFinallyNode");
+  const intptr_t try_index = owner()->try_index();
+  if (try_index >= 0) {
+    // We are about to generate code for an inlined finally block. Exceptions
+    // thrown in this block of code should be treated as though they are
+    // thrown not from the current try block but the outer try block if any.
+    owner()->set_try_index((try_index - 1));
+  }
+  BuildLoadContext(node->context_var(), temp_index());
+  EffectGraphVisitor for_finally_block(owner(), temp_index());
+  node->finally_block()->Visit(&for_finally_block);
+  Append(for_finally_block);
+  if (try_index >= 0) {
+    owner()->set_try_index(try_index);
+  }
 }
 
 
