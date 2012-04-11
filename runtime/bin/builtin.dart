@@ -133,18 +133,3 @@ String _filePathFromPackageUri(Uri uri) {
   _logResolution("# Package: $path");
   return path;
 }
-
-String _filePathFromPackageUri(Uri uri) {
-  if (uri.domain != '') {
-    var path = (uri.path != '') ? '${uri.domain}${uri.path}' : uri.domain;
-    var right = 'package:$path';
-    var wrong = 'package://$path';
-
-    throw "URIs using the 'package:' scheme should look like " +
-          "'$right', not '$wrong'.";
-  }
-
-  var path = _entrypoint.resolve('packages/${uri.path}').path;
-  _logResolution("# Package: $path");
-  return path;
-}

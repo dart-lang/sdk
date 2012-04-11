@@ -39,8 +39,7 @@ package/*: Skip # Do not run those in Dartium.
 *: Skip
 
 [ $compiler == dart2js ]
-package/PackageTest: Skip    # TODO(rnystrom): Re-enable these once dart2js
-package/InvalidUriTest: Skip # supports "package:".
+package/*: Skip # TODO(rnystrom): Re-enable when dart2js supports "package:".
 
 [ $arch == x64 ]
 MediumIntegerTest: Fail # Issue 1146.
