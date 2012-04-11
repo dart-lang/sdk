@@ -6,6 +6,8 @@ TimeoutTest: Skip  # Timeout test for testing the test runner.
 FailTest: Fail, OK # Fails intentionally
 OutOfMemoryTest: Skip # Issue 2345
 
+package/InvalidUriTest: Fail, OK # Fails intentionally
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/ProcessInvalidArgumentsTest: Fail, OK
