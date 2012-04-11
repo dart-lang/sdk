@@ -42,6 +42,16 @@ class HeapPage {
     used_ += size;
   }
 
+  uword TryBumpAllocate(intptr_t size) {
+    uword result = top();
+    intptr_t remaining_space = end() - result;
+    if (remaining_space < size) {
+      return 0;
+    }
+    set_top(result + size);
+    return result;
+  }
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
@@ -121,6 +131,13 @@ class PageSpace {
   HeapPage* pages_;
   HeapPage* pages_tail_;
   HeapPage* large_pages_;
+
+  // Page being used for bump allocation.
+  // The value has different meanings:
+  // NULL: Still bump allocating from last allocated fresh page.
+  // !NULL: Last page that had enough room to bump allocate, when we reach the
+  // tail page, we give up bump allocating.
+  HeapPage* bump_page_;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_;
