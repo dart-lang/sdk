@@ -121,8 +121,27 @@ class WrongArgumentCountException implements Exception {
 
 
 class NullPointerException implements Exception {
-  const NullPointerException();
-  String toString() => "NullPointerException";
+  const NullPointerException([this.functionName,
+                              this.arguments = const[]]);
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for (var arg in arguments) {
+      if (!sb.isEmpty()) sb.add(", ");
+      sb.add(arg);
+    }
+    if (functionName == null) {
+      return exceptionName;
+    } else {
+      return "$exceptionName : method: '$functionName'\n"
+          "Receiver: null\n"
+          "Arguments: [$sb]";
+    }
+  }
+  
+  String get exceptionName() => "NullPointerException";
+
+  final String functionName;
+  final List arguments;
 }
 
 
