@@ -836,20 +836,6 @@ class FileTest {
     file.deleteSync();
   }
 
-  static void testMixedSyncAndAsync() {
-    var name = getFilename("tests/vm/data/fixed_length_file");
-    var f = new File(name);
-    f.onError = (e) => Expect.fail("No errors expected: $e");
-    f.exists((exists) {
-      try {
-        f.existsSync();
-        Expect.fail("Expected exception");
-      } catch (var e) {
-        Expect.isTrue(e is FileIOException);
-      }
-    });
-  }
-
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
     f.open(FileMode.READ, (r) => Expect.fail('Directory opened as file'));
@@ -1056,7 +1042,6 @@ class FileTest {
     testLengthSync();
     testPosition();
     testPositionSync();
-    testMixedSyncAndAsync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
     testReadAsBytes();
