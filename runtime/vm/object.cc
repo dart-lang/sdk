@@ -291,9 +291,9 @@ void Object::InitOnce() {
   // field.
   null_->ptr()->class_ = null_class_;
 
-  // Allocate and initialize the sentinel values of an instance class.
+  // Allocate and initialize the sentinel values of Null class.
   {
-    cls = Class::New<Instance>();
+    cls = null_class_;
     Instance& sentinel = Instance::Handle();
     sentinel ^= Object::Allocate(cls, Instance::InstanceSize(), Heap::kOld);
     sentinel_ = sentinel.raw();
@@ -6519,6 +6519,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     return other_class.IsObjectClass() || other_class.IsDynamicClass();
   }
   const Class& cls = Class::Handle(clazz());
+  // We must not encounter Object::sentinel() or Object::transition_sentinel(),
+  // both instances of class NullClass, but not instance Object::null().
+  ASSERT(!cls.IsNullClass());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {
@@ -6602,6 +6605,10 @@ bool Instance::IsValidFieldOffset(int offset) const {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
+  } else if (raw() == Object::sentinel()) {
+    return "sentinel";
+  } else if (raw() == Object::transition_sentinel()) {
+    return "transition_sentinel";
   } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";

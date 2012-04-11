@@ -26,6 +26,7 @@ TEST_CASE(DartEntry) {
   Script& script = Script::Handle(Script::New(url, source, RawScript::kScript));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(String::NewSymbol("A"))));
   EXPECT(!cls.IsNull());
