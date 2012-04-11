@@ -37,6 +37,9 @@ io/*: Skip # Don't run tests using dart:io in the browser
 [ $compiler == frog || $compiler == frogsh || ($compiler == dart2js && $runtime == drt) ]
 *: Skip
 
+[ $compiler == dart2js ]
+package/PackageTest: Skip    # TODO(rnystrom): Re-enable these once dart2js
+package/InvalidUriTest: Skip # supports "package:".
 
 [ $arch == x64 ]
 MediumIntegerTest: Fail # Issue 1146.

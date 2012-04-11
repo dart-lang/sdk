@@ -90,15 +90,24 @@ String _filePathFromUri(String userUri) {
   var uri = new Uri.fromString(userUri);
   _logResolution("# Getting file path from: $uri");
 
+  var path;
   switch (uri.scheme) {
-  case 'file':    return _filePathFromFileUri(uri);
-  case 'package': return _filePathFromPackageUri(uri);
+  case 'file':    path = _filePathFromFileUri(uri); break;
+  case 'package': path = _filePathFromPackageUri(uri); break;
 
   default:
     // Only handling file and package URIs in standalone binary.
     _logResolution("# Not a file or package URI.");
     throw "Not a known scheme: $uri";
   }
+
+  if (_is_windows) {
+    // Drop the leading / before the drive letter.
+    path = path.substring(1);
+    _logResolution("# path: $path");
+  }
+
+  return path;
 }
 
 String _filePathFromFileUri(Uri uri) {
@@ -106,13 +115,22 @@ String _filePathFromFileUri(Uri uri) {
     throw "URIs using the 'file:' scheme may not contain a domain.";
   }
 
-  var path = uri.path;
-  _logResolution("# Path: $path");
-  if (_is_windows) {
-    // Drop the leading / before the drive letter.
-    path = path.substring(1);
-    _logResolution("# path: $path");
+  _logResolution("# Path: ${uri.path}");
+  return uri.path;
+}
+
+String _filePathFromPackageUri(Uri uri) {
+  if (uri.domain != '') {
+    var path = (uri.path != '') ? '${uri.domain}${uri.path}' : uri.domain;
+    var right = 'package:$path';
+    var wrong = 'package://$path';
+
+    throw "URIs using the 'package:' scheme should look like " +
+          "'$right', not '$wrong'.";
   }
+
+  var path = _entrypoint.resolve('packages/${uri.path}').path;
+  _logResolution("# Package: $path");
   return path;
 }
 
