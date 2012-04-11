@@ -26,3 +26,16 @@ void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewString(File::PathSeparator()));
   Dart_ExitScope();
 }
+
+
+void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const intptr_t HOSTNAME_LENGTH = 256;
+  char hostname[HOSTNAME_LENGTH];
+  if (Platform::LocalHostname(hostname, HOSTNAME_LENGTH)) {
+    Dart_SetReturnValue(args, Dart_NewString(hostname));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+  Dart_ExitScope();
+}

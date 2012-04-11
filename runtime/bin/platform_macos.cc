@@ -34,6 +34,11 @@ const char* Platform::OperatingSystem() {
 }
 
 
+bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+  return gethostname(buffer, buffer_length) == 0;
+}
+
+
 char* Platform::StrError(int error_code) {
   static const int kBufferSize = 1024;
   char* error = static_cast<char*>(malloc(kBufferSize));

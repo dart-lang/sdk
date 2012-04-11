@@ -48,6 +48,7 @@
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
+  V(Platform_LocalHostname, 0)                                                 \
   V(Process_Start, 9)                                                          \
   V(Process_Kill, 2)                                                           \
   V(ServerSocket_CreateBindListen, 4)                                          \

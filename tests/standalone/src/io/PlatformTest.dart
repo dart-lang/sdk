@@ -11,4 +11,6 @@ main() {
   Expect.isTrue(os == "linux" || os == "macos" || os == "windows");
   var sep = p.pathSeparator();
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
+  var hostname = p.localHostname();
+  Expect.isTrue(hostname is String && hostname != "");
 }

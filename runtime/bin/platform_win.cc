@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/platform.h"
+#include "bin/socket.h"
 
 
 bool Platform::Initialize() {
@@ -20,6 +21,17 @@ int Platform::NumberOfProcessors() {
 
 const char* Platform::OperatingSystem() {
   return "windows";
+}
+
+
+bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+  static bool socketInitialized = false;
+  if (!socketInitialized) {
+    // Initialize Socket for gethostname.
+    if (!Socket::Initialize()) return false;
+    socketInitialized = true;
+  }
+  return gethostname(buffer, buffer_length) == 0;
 }
 
 
