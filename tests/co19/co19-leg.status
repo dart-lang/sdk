@@ -427,7 +427,6 @@ Language/08_Interfaces/3_Factories_and_Constructors_A02_t10: Fail, OK # @compile
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t02: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A04_t01: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail, OK # @compile-error
@@ -497,7 +496,6 @@ Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A07_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Includes_A03_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail, OK # @compile-error

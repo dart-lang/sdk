@@ -52,19 +52,19 @@
 #source('../../../../runtime/bin/timer.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
 
-class _File implements File {
+class _File {
   factory File(arg) {
     throw new UnsupportedOperationException('new File($arg)');
   }
 }
 
-class _Platform implements Platform {
+class _Platform {
   factory Platform() {
     throw new UnsupportedOperationException('new Platform()');
   }
 }
 
-class _Directory implements Directory {
+class _Directory {
   factory Directory(arg) {
     throw new UnsupportedOperationException('new Directory($arg)');
   }
@@ -74,7 +74,7 @@ class _Directory implements Directory {
   }
 }
 
-class _Process implements Process {
+class _Process {
   factory Process.start(String executable,
                         List<String> arguments,
                         [String workingDirectory]) {
@@ -83,14 +83,14 @@ class _Process implements Process {
   }
 }
 
-class _ServerSocket implements ServerSocket {
-  factory _ServerSocket(String bindAddress, int port, int backlog) {
+class _ServerSocket {
+  factory ServerSocket(String bindAddress, int port, int backlog) {
     throw new UnsupportedOperationException(
         'new ServerSocket($bindAddress, $port, $backlog)');
   }
 }
 
-class _Socket implements Socket {
+class _Socket {
   factory Socket(String host, int port) {
     throw new UnsupportedOperationException('new Socket($host, $port)');
   }

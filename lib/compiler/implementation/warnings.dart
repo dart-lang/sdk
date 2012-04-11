@@ -53,7 +53,7 @@ class MessageKind {
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
   static final CANNOT_FIND_CONSTRUCTOR2 = const MessageKind(
-      'cannot find constructor #{1} or #{2}');
+      'cannot find constructor #{1} in #{2}');
   static final CYCLIC_CLASS_HIERARCHY = const MessageKind(
       '#{1} creates a cycle in the class hierarchy');
   static final INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
