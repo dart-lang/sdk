@@ -481,13 +481,13 @@ class _HttpConnectionBase implements Hashable {
   }
 
   bool _write(List<int> data, [bool copyBuffer = false]) {
-    if (!_error) {
+    if (!_error && !_closing) {
       return _socket.outputStream.write(data, copyBuffer);
     }
   }
 
   bool _writeFrom(List<int> buffer, [int offset, int len]) {
-    if (!_error) {
+    if (!_error && !_closing) {
       return _socket.outputStream.writeFrom(buffer, offset, len);
     }
   }
@@ -514,6 +514,7 @@ class _HttpConnectionBase implements Hashable {
   }
 
   void _onClosed() {
+    _closing = true;
     _onConnectionClosed(null);
   }
 
@@ -589,7 +590,6 @@ class _HttpConnection extends _HttpConnectionBase {
     if (e == null) {
       // Indicate connection close to the HTTP parser.
       _httpParser.connectionClosed();
-      _closing = true;
     }
   }
 
