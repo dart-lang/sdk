@@ -8,6 +8,7 @@ dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argume
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
 dom/IndexedDB1Test: Fail  # IDBDatabaseImplementation._transaction "Not supported yet'.
+dom/IndexedDB2Test: Fail  # Crazy results.
 dom/NativeGCTest: Fail  # Issue 1448.
 html/html_tests: Pass, Fail   # Issue 1946.
 
@@ -20,6 +21,8 @@ dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
+dom/IndexedDB2Test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
@@ -36,9 +39,9 @@ html/html_tests: Fail
 dom/*: Skip
 
 [ $runtime == ff ]
-dom/AudioContextTest: Fail   # FF only has Audio element
+dom/AudioContextTest: Fail    # FF only has Audio element
 dom/CSSTest: Fail             # No analogue to WebKitCSSMatrix
-dom/CallbacksTest: Fail      # (webkit|moz|ms)RequestAnimationFrame
+dom/CallbacksTest: Fail       # (webkit|moz|ms)RequestAnimationFrame
 dom/CanvasTest: Fail          # No setFillColor() method.  Use fillstyle attribute instead.
 dom/CanvasUsingHtmlTest: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 dom/DartObjectLocalStorageTest: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
@@ -48,6 +51,7 @@ dom/HiddenDom1Test: Fail
 # _toDartException fails to translate TypeError for call to x.appendChild$_(y)
 dom/HiddenDom2Test: Fail
 dom/IndexedDB1Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+dom/IndexedDB2Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/InstanceOfTest: Fail     # FF context.createImageData returns Uint8ClampedArray, not ImageData.
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
 dom/InnerFrameTest: Fail
