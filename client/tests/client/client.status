@@ -7,7 +7,6 @@ dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argume
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
-dom/IndexedDB1Test: Fail  # IDBDatabaseImplementation._transaction "Not supported yet'.
 dom/IndexedDB2Test: Fail  # Crazy results.
 dom/NativeGCTest: Fail  # Issue 1448.
 html/html_tests: Pass, Fail   # Issue 1946.
