@@ -449,7 +449,8 @@ void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
 
 
 // Copied from CodeGenerator.
-// Optimize instanceof type test by adding inlined tests for:
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
 // - NULL -> return false.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
@@ -461,19 +462,49 @@ void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
                                            intptr_t token_index,
                                            intptr_t try_index,
+                                           Value* value,
                                            const AbstractType& type,
                                            bool negate_result) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
-  // All instances are of a subtype of the Object type.
+  // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type =
       Type::Handle(Isolate::Current()->object_store()->object_type());
   Error& malformed_error = Error::Handle();
   if (type.IsInstantiated() &&
       object_type.IsSubtypeOf(type, &malformed_error)) {
     __ LoadObject(RAX, negate_result ? bool_false : bool_true);
+    return;
+  }
+
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((value != NULL) && value->IsConstant() && type.IsInstantiated()) {
+    // TODO(regis): A constant value should be an instance, not an object.
+    Instance& literal_value = Instance::Handle();
+    literal_value ^= value->AsConstant()->value().raw();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    if (cls.IsNullClass()) {
+      ASSERT(literal_value.IsNull() ||
+             (literal_value.raw() == Object::sentinel()) ||
+             (literal_value.raw() == Object::transition_sentinel()));
+      // A null object is only an instance of Object and Dynamic, which has
+      // already been checked above (if the type is instantiated). So we can
+      // return false here if the instance is null (and if the type is
+      // instantiated).
+      __ PushObject(negate_result ? bool_true : bool_false);
+    } else {
+      Error& malformed_error = Error::Handle();
+      if (literal_value.IsInstanceOf(type,
+                                     TypeArguments::Handle(),
+                                     &malformed_error)) {
+        __ PushObject(negate_result ? bool_false : bool_true);
+      } else {
+        ASSERT(malformed_error.IsNull());
+        __ PushObject(negate_result ? bool_true : bool_false);
+      }
+    }
     return;
   }
 
@@ -535,6 +566,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
       __ Bind(&runtime_call);
       // Fall through to runtime call.
     } else {
+      ASSERT(!requires_type_arguments);
+      // Test if object is Smi and for a couple known test-classes.
       Label compare_classes;
       __ testq(RAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -613,6 +646,7 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
   GenerateInstanceOf(comp->node_id(),
                      comp->token_index(),
                      comp->try_index(),
+                     comp->value(),
                      comp->type(),
                      comp->negate_result());
 }

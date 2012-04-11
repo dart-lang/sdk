@@ -657,8 +657,6 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
 
   // Generate type check.
   if (FLAG_enable_type_checks) {
-    const bool returns_null = node->value()->IsLiteralNode() &&
-       node->value()->AsLiteralNode()->literal().IsNull();
     const RawFunction::Kind kind = parsed_function().function().kind();
     const bool is_implicit_getter =
         (kind == RawFunction::kImplicitGetter) ||
@@ -666,10 +664,11 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
     const bool is_static = parsed_function().function().is_static();
     // Implicit getters do not need a type check at return, unless they compute
     // the initial value of a static field.
-    if (!returns_null && (is_static || !is_implicit_getter)) {
+    if (is_static || !is_implicit_getter) {
       GenerateAssertAssignable(
           node->id(),
           node->value()->token_index(),
+          node->value(),
           AbstractType::ZoneHandle(parsed_function().function().result_type()),
           String::ZoneHandle(String::NewSymbol("function result")));
     }
@@ -696,6 +695,7 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
   __ popq(RAX);
   GenerateAssertAssignable(node->id(),
                            node->token_index(),
+                           node->expr(),
                            node->type(),
                            node->dst_name());
   if (IsResultNeeded(node)) {
@@ -907,6 +907,7 @@ void CodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->value()->token_index(),
+                             node->value(),
                              node->local().type(),
                              node->local().name());
   }
@@ -936,6 +937,7 @@ void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->value()->token_index(),
+                             node->value(),
                              AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
   }
@@ -1039,6 +1041,7 @@ void CodeGenerator::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->value()->token_index(),
+                             node->value(),
                              AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
   }
@@ -1125,6 +1128,7 @@ void CodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
                              node->token_index(),
+                             NULL,
                              node->local().type(),
                              node->local().name());
   }
@@ -1217,7 +1221,8 @@ static const Class* CoreClass(const char* c_name) {
 }
 
 
-// Optimize instanceof type test by adding inlined tests for:
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
 // - NULL -> return false.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
@@ -1228,19 +1233,47 @@ static const Class* CoreClass(const char* c_name) {
 // - true or false on stack.
 void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
                                        intptr_t token_index,
+                                       AstNode* value,
                                        const AbstractType& type,
                                        bool negate_result) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
-  // All instances are of a subtype of the Object type.
+  // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type =
       Type::Handle(Isolate::Current()->object_store()->object_type());
   Error& malformed_error = Error::Handle();
   if (type.IsInstantiated() &&
       object_type.IsSubtypeOf(type, &malformed_error)) {
     __ PushObject(negate_result ? bool_false : bool_true);
+    return;
+  }
+
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((value != NULL) && value->IsLiteralNode() && type.IsInstantiated()) {
+    const Instance& literal_value = value->AsLiteralNode()->literal();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    if (cls.IsNullClass()) {
+      ASSERT(literal_value.IsNull() ||
+             (literal_value.raw() == Object::sentinel()) ||
+             (literal_value.raw() == Object::transition_sentinel()));
+      // A null object is only an instance of Object and Dynamic, which has
+      // already been checked above (if the type is instantiated). So we can
+      // return false here if the instance is null (and if the type is
+      // instantiated).
+      __ PushObject(negate_result ? bool_true : bool_false);
+    } else {
+      Error& malformed_error = Error::Handle();
+      if (literal_value.IsInstanceOf(type,
+                                     TypeArguments::Handle(),
+                                     &malformed_error)) {
+        __ PushObject(negate_result ? bool_false : bool_true);
+      } else {
+        ASSERT(malformed_error.IsNull());
+        __ PushObject(negate_result ? bool_true : bool_false);
+      }
+    }
     return;
   }
 
@@ -1302,6 +1335,8 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       __ Bind(&runtime_call);
       // Fall through to runtime call.
     } else {
+      ASSERT(!requires_type_arguments);
+      // Test if object is Smi and for a couple known test-classes.
       Label compare_classes;
       __ testq(RAX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
@@ -1383,7 +1418,8 @@ void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
 }
 
 
-// Optimize assignable type check by adding inlined tests for:
+// If type check cannot be performed successfully at compile time and therefore
+// eliminated, optimize it by adding inlined tests for:
 // - NULL -> return NULL.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
@@ -1392,8 +1428,11 @@ void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
 // Destroys RCX and RDX.
 // Returns:
 // - object in RAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
                                              intptr_t token_index,
+                                             AstNode* value,
                                              const AbstractType& dst_type,
                                              const String& dst_name) {
   ASSERT(FLAG_enable_type_checks);
@@ -1415,6 +1454,26 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   // function.
   if (dst_type.IsVoidType()) {
     return;
+  }
+
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((value != NULL) && value->IsLiteralNode()) {
+    const Instance& literal_value = value->AsLiteralNode()->literal();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    if (cls.IsNullClass()) {
+      ASSERT(literal_value.IsNull() ||
+             (literal_value.raw() == Object::sentinel()) ||
+             (literal_value.raw() == Object::transition_sentinel()));
+      return;
+    }
+    Error& malformed_error = Error::Handle();
+    if (!dst_type.IsMalformed() &&
+        dst_type.IsInstantiated() &&
+        literal_value.IsInstanceOf(dst_type,
+                                   TypeArguments::Handle(),
+                                   &malformed_error)) {
+      return;
+    }
   }
 
   // A null object is always assignable and is returned as result.
@@ -1579,6 +1638,7 @@ void CodeGenerator::GenerateArgumentTypeChecks() {
     GenerateLoadVariable(RAX, *parameter);
     GenerateAssertAssignable(AstNode::kNoId,
                              parameter->token_index(),
+                             NULL,
                              parameter->type(),
                              parameter->name());
   }
@@ -1635,6 +1695,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
                        node->token_index(),
+                       node->left(),
                        node->right()->AsTypeNode()->type(),
                        (node->kind() == Token::kISNOT));
     if (!IsResultNeeded(node)) {

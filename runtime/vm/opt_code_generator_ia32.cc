@@ -2292,6 +2292,7 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
                        node->token_index(),
+                       node->left(),
                        node->right()->AsTypeNode()->type(),
                        (node->kind() == Token::kISNOT));
     if (!IsResultNeeded(node)) {

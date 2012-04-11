@@ -7152,22 +7152,10 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       if (FLAG_enable_type_checks &&
           !is_const &&
           !element_type.IsDynamicType()) {
-        // The expression needs to be type checked at runtime.
-        // Eliminate the type check if it can be performed at compile time and
-        // if it succeeds.
-        Error& malformed_error = Error::Handle();
-        if (!element_type.IsInstantiated() ||
-            !element->IsLiteralNode() ||
-            (!element->AsLiteralNode()->literal().IsNull() &&
-             !element->AsLiteralNode()->literal().IsInstanceOf(
-                 element_type,
-                 TypeArguments::Handle(),
-                 &malformed_error))) {
-          element = new AssignableNode(element_pos,
-                                       element,
-                                       element_type,
-                                       dst_name);
-        }
+        element = new AssignableNode(element_pos,
+                                     element,
+                                     element_type,
+                                     dst_name);
       }
       list->AddElement(element);
       if (CurrentToken() == Token::kCOMMA) {
@@ -7339,20 +7327,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (FLAG_enable_type_checks &&
         !is_const &&
         !value_type.IsDynamicType()) {
-      // The expression needs to be type checked at runtime.
-      // Eliminate the type check if it can be performed at compile time and
-      // if it succeeds.
-      Error& malformed_error = Error::Handle();
-      if (!value_type.IsInstantiated() ||
-          !value->IsLiteralNode() ||
-          (!value->AsLiteralNode()->literal().IsNull() &&
-           !value->AsLiteralNode()->literal().IsInstanceOf(
-               value_type, TypeArguments::Handle(), &malformed_error))) {
-        value = new AssignableNode(value_pos,
-                                   value,
-                                   value_type,
-                                   dst_name);
-      }
+      value = new AssignableNode(value_pos,
+                                 value,
+                                 value_type,
+                                 dst_name);
     }
     AddKeyValuePair(kv_pairs, is_const, key, value);
 

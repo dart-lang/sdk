@@ -169,10 +169,12 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   void GenerateInstanceOf(intptr_t node_id,
                           intptr_t token_index,
+                          AstNode* value,
                           const AbstractType& type,
                           bool negate_result);
   void GenerateAssertAssignable(intptr_t node_id,
                                 intptr_t token_index,
+                                AstNode* value,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
   void GenerateArgumentTypeChecks();
