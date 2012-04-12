@@ -38,7 +38,6 @@ function(child, parent) {
   final NativeEmitter nativeEmitter;
   Set<ClassElement> generatedClasses;
   StringBuffer mainBuffer;
-  String isolatePrototype;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
@@ -50,6 +49,12 @@ function(child, parent) {
   String get name() => 'CodeEmitter';
 
   String get inheritsName() => '${namer.ISOLATE}.\$inherits';
+
+  String get objectClassName() {
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    return namer.isolatePropertyAccess(objectClass);
+  }
 
   void addInheritFunctionIfNecessary() {
     if (addedInheritFunction) return;
@@ -251,10 +256,9 @@ function(child, parent) {
     ClassElement superclass = cls.superclass;
     if (superclass !== null) {
       addInheritFunctionIfNecessary();
-      String className = namer.getName(cls);
-      String superName = namer.getName(superclass);
-      buffer.add('${inheritsName}($isolatePrototype.$className, ');
-      buffer.add('$isolatePrototype.$superName);\n');
+      String className = namer.isolatePropertyAccess(cls);
+      String superName = namer.isolatePropertyAccess(superclass);
+      buffer.add('${inheritsName}($className, $superName);\n');
     }
   }
 
@@ -278,7 +282,7 @@ function(child, parent) {
       buffer = mainBuffer;
     }
 
-    String className = '${isolatePrototype}.${namer.getName(classElement)}';
+    String className = namer.isolatePropertyAccess(classElement);
     String constructorName = namer.safeName(classElement.name.slowToString());
     buffer.add('$className = function $constructorName(');
     StringBuffer bodyBuffer = new StringBuffer();
@@ -354,8 +358,7 @@ function(child, parent) {
                                     String functionNamer(Element element)) {
     generatedCode.forEach((Element element, String codeBlock) {
       if (!element.isInstanceMember()) {
-        buffer.add(isolatePrototype);
-        buffer.add('.${functionNamer(element)} = ');
+        buffer.add('${functionNamer(element)} = ');
         buffer.add(codeBlock);
         buffer.add(';\n\n');
       }
@@ -365,10 +368,10 @@ function(child, parent) {
   void emitStaticFunctions(StringBuffer buffer) {
     emitStaticFunctionsWithNamer(buffer,
                                  compiler.universe.generatedCode,
-                                 namer.getName);
+                                 namer.isolatePropertyAccess);
     emitStaticFunctionsWithNamer(buffer,
                                  compiler.universe.generatedBailoutCode,
-                                 namer.getBailoutName);
+                                 namer.isolateBailoutPropertyAccess);
   }
 
   void emitStaticFunctionGetters(StringBuffer buffer) {
@@ -381,18 +384,13 @@ function(child, parent) {
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
           new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
-      String staticName = namer.getName(element);
+      String staticName = namer.isolatePropertyAccess(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
           namer.instanceMethodName(element.getLibrary(), callElement.name,
                                    parameterCount);
-      buffer.add(isolatePrototype);
-      buffer.add(".$staticName.$invocationName = ");
-      buffer.add(isolatePrototype);
-      buffer.add(".$staticName;\n");
-      addParameterStubs(callElement,
-                        (name) => '$isolatePrototype.$staticName.$name',
-                        buffer);
+      buffer.add("$staticName.$invocationName = $staticName;\n");
+      addParameterStubs(callElement, (name) => '$staticName.$name', buffer);
     }
   }
 
@@ -421,17 +419,16 @@ function(child, parent) {
     SourceString name = const SourceString("BoundClosure");
     ClassElement closureClassElement =
         new ClosureClassElement(compiler, member.getCompilationUnit());
-    String mangledName = namer.getName(closureClassElement);
+    String isolateAccess = namer.isolatePropertyAccess(closureClassElement);
     ensureGenerated(closureClassElement.superclass, buffer);
 
     // Define the constructor with a name so that Object.toString can
     // find the class name of the closure class.
-    buffer.add(isolatePrototype);
-    buffer.add(".$mangledName = function $name(self) ");
+    buffer.add("$isolateAccess = function $name(self) ");
     buffer.add("{ this.self = self; };\n");
     emitInherits(closureClassElement, buffer);
 
-    String prototype = "$isolatePrototype.$mangledName.prototype";
+    String prototype = "$isolateAccess.prototype";
 
     // Now add the methods on the closure class. The instance method does not
     // have the correct name. Since [addParameterStubs] use the name to create
@@ -455,7 +452,7 @@ function(child, parent) {
     buffer.add("  return this.self.$targetName($joinedArgs);\n");
     buffer.add("};\n");
     addParameterStubs(callElement,
-                      (stubName) => '$prototype.$stubName',
+                      (invocationName) => '$prototype.$invocationName',
                       buffer);
 
     // And finally the getter.
@@ -519,6 +516,7 @@ function(child, parent) {
   void emitCompileTimeConstants(StringBuffer buffer) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
+    String prototype = "${namer.ISOLATE}.prototype";
     bool addedMakeConstantList = false;
     for (Constant constant in constants) {
       String name = handler.getNameForConstant(constant);
@@ -528,16 +526,16 @@ function(child, parent) {
       if (name === null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
-        emitMakeConstantList(buffer);
+        emitMakeConstantList(prototype, buffer);
       }
-      buffer.add('$isolatePrototype.$name = ');
+      buffer.add('$prototype.$name = ');
       handler.writeJsCode(buffer, constant);
       buffer.add(';\n');
     }
   }
 
-  void emitMakeConstantList(StringBuffer buffer) {
-    buffer.add(isolatePrototype);
+  void emitMakeConstantList(String prototype, StringBuffer buffer) {
+    buffer.add(prototype);
     buffer.add(@'''.makeConstantList = function(list) {
   list.immutable$list = true;
   list.fixed$length = true;
@@ -551,8 +549,7 @@ function(child, parent) {
     List<VariableElement> staticFinalFields =
         handler.getStaticFinalFieldsForEmission();
     for (VariableElement element in staticFinalFields) {
-      buffer.add(isolatePrototype);
-      buffer.add('.${namer.getName(element)} = ');
+      buffer.add('${namer.isolatePropertyAccess(element)} = ');
       compiler.withCurrentElement(element, () {
           handler.writeJsCodeForVariable(buffer, element);
         });
@@ -571,7 +568,8 @@ function(child, parent) {
       }
     } else if (member.kind == ElementKind.FUNCTION) {
       if (compiler.universe.invokedGetters.contains(member.name)) {
-        compiler.emitter.emitDynamicFunctionGetter(buffer, attachTo, member);
+        compiler.emitter.emitDynamicFunctionGetter(
+            buffer, attachTo, member);
       }
     }
   }
@@ -582,10 +580,8 @@ function(child, parent) {
 
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
-    String className = namer.getName(objectClass);
-    String prototype = '$isolatePrototype.$className.prototype';
-    String runtimeObjectPrototype =
-        '${namer.isolateAccess(objectClass)}.prototype';
+    String className = namer.isolatePropertyAccess(objectClass);
+    String prototype = '$className.prototype';
     String noSuchMethodName =
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
     Collection<LibraryElement> libraries =
@@ -605,7 +601,7 @@ function(child, parent) {
       buffer.add(' ($args) {\n');
       buffer.add('  return this.$noSuchMethodName\n');
       buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
-      buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
+      buffer.add("      : $objectClassName.prototype.$noSuchMethodName.call(");
       buffer.add("this, '$methodName', [$args])\n");
       buffer.add('}\n');
     }
@@ -722,19 +718,14 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       mainBuffer.add('function ${namer.ISOLATE}() {');
       emitStaticNonFinalFieldInitializations(mainBuffer);
       mainBuffer.add('}\n\n');
-      // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
-      isolatePrototype = namer.CURRENT_ISOLATE;
-      mainBuffer.add('var $isolatePrototype = ${namer.ISOLATE}.prototype;\n');
       emitClasses(mainBuffer);
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
       emitStaticFinalFieldInitializations(mainBuffer);
-
-      isolatePrototype = '${namer.ISOLATE}.prototype;\n';
+      nativeEmitter.emitDynamicDispatchMetadata();
       mainBuffer.add(
           'var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      nativeEmitter.emitDynamicDispatchMetadata();
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
       compiler.assembledCode = mainBuffer.toString();
