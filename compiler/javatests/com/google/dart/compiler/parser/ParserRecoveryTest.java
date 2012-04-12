@@ -7,23 +7,39 @@ package com.google.dart.compiler.parser;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartContinueStatement;
+import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartSwitchStatement;
+import com.google.dart.compiler.ast.DartThrowStatement;
+import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.ast.DartWhileStatement;
+
+import java.math.BigInteger;
+import java.util.List;
 
 public class ParserRecoveryTest extends AbstractParserTest {
 
@@ -299,7 +315,6 @@ public class ParserRecoveryTest extends AbstractParserTest {
     // The recovery on 'int class' closes the main method, assuming int class = 10 is a
     // new toplevel so 'print' ends up as a bogus top level node.
     DartClass bar = (DartClass)unit.getTopLevelNodes().get(3);
-    assertEquals("bar", bar.getName().getName());
   }
 
   public void testBadOperatorRecovery() {
@@ -1130,5 +1145,505 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     DartFieldDefinition after = (DartFieldDefinition)unit.getTopLevelNodes().get(2);
     assertEquals("after", after.getFields().get(0).getName().getName());
     assertEquals("int", ((DartIdentifier)after.getTypeNode().getIdentifier()).getName());
+  }
+
+  public void testRecoveryBeforeIf1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_if1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  if (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartIfStatement ifStatement = (DartIfStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)ifStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeIf2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_if2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  if (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartIfStatement ifStatement = (DartIfStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)ifStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeSwitch1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_switch1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  switch (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartSwitchStatement switchStatement = (DartSwitchStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)switchStatement.getExpression()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeSwitch2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_switch2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  switch (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartSwitchStatement switchStatement = (DartSwitchStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)switchStatement.getExpression()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeWhile1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_while1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  while (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartWhileStatement whileStatement = (DartWhileStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)whileStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeWhile2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_while2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  while (false) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = ((DartIdentifier)((DartExprStmt) statements.get(1)).getExpression());
+    assertEquals("bad", bad.getName());
+    DartWhileStatement whileStatement = (DartWhileStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)whileStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeDo1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_do1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  do {} while (false);",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartDoWhileStatement doStatement = (DartDoWhileStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)doStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeDo2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_do2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  do {} while (false);",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartDoWhileStatement doStatement = (DartDoWhileStatement) statements.get(2);
+    assertEquals(false, ((DartBooleanLiteral)doStatement.getCondition()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeFor1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_for1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  for(var i in []) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartForInStatement forInStatement = (DartForInStatement) statements.get(2);
+    assertEquals("i", forInStatement.getVariableStatement()
+        .getVariables().get(0).getName().getName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeFor2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_for2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  for(var i = 0 ; i < 1 ; i++) {}",
+            "  int after;", // use 'int' instead of 'var' because it is harder to recover to
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartForStatement forStatement = (DartForStatement) statements.get(2);
+    assertEquals("i", ((DartVariableStatement)forStatement.getInit())
+        .getVariables().get(0).getName().getName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeVar1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_var1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  var after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartVariable after = ((DartVariableStatement) statements.get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeVar2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_var2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  var after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartVariable after = ((DartVariableStatement) statements.get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeFinal1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_final1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  final int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartVariable after = ((DartVariableStatement) statements.get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+    assertTrue(((DartVariableStatement)statements.get(2)).getModifiers().isFinal());
+  }
+
+  public void testRecoveryBeforeFinal2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_final2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  final int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartVariable after = ((DartVariableStatement) statements.get(2)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+    assertTrue(((DartVariableStatement)statements.get(2)).getModifiers().isFinal());
+  }
+
+  public void testRecoveryBeforeTry1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_try1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  try {}",
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartTryStatement tryStatement = (DartTryStatement) statements.get(2);
+    assertEquals(0, tryStatement.getTryBlock().getStatements().size());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeTry2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_try1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  try {}",
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartTryStatement tryStatement = (DartTryStatement) statements.get(2);
+    assertEquals(0, tryStatement.getTryBlock().getStatements().size());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeContinue1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_continue1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  continue;",  // Not really legal here, but the parser doesn't know.
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartContinueStatement continueStatement = (DartContinueStatement) statements.get(2);
+    assertNull(continueStatement.getTargetName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeContinue2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_continue2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  continue;",  // Not really legal here, but the parser doesn't know.
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartContinueStatement continueStatement = (DartContinueStatement) statements.get(2);
+    assertNull(continueStatement.getTargetName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeBreak1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break1.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad.",
+            "  break;",  // Not really legal here, but the parser doesn't know.
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartBreakStatement breakStatement = (DartBreakStatement) statements.get(2);
+    assertNull(breakStatement.getTargetName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeBreak2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break2.dart",
+        Joiner.on("\n").join("method() {",
+            "  var before;",
+            "  bad",
+            "  break;",  // Not really legal here, but the parser doesn't know.
+            "  int after;",
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartBreakStatement breakStatement = (DartBreakStatement) statements.get(2);
+    assertNull(breakStatement.getTargetName());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeReturn1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break1.dart",
+        Joiner.on("\n").join(
+            "int method() {",
+            "  var before;",
+            "  bad.",
+            "  return 1;",
+            "  int after;",  // Never reached, but the parser doesn't know.
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartReturnStatement returnStatement = (DartReturnStatement) statements.get(2);
+    assertEquals(BigInteger.valueOf(1), ((DartIntegerLiteral)returnStatement.getValue()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeReturn2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break1.dart",
+        Joiner.on("\n").join(
+            "int method() {",
+            "  var before;",
+            "  bad",
+            "  return 1;",
+            "  int after;",  // Never reached, but the parser doesn't know.
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartReturnStatement returnStatement = (DartReturnStatement) statements.get(2);
+    assertEquals(BigInteger.valueOf(1), ((DartIntegerLiteral)returnStatement.getValue()).getValue());
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeThrow1() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break1.dart",
+        Joiner.on("\n").join(
+            "int method() {",
+            "  var before;",
+            "  bad.",
+            "  throw new Exception();",
+            "  int after;",  // Never reached, but the parser doesn't know.
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartPropertyAccess bad = (DartPropertyAccess) ((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", ((DartIdentifier) bad.getQualifier()).getName());
+    DartThrowStatement throwStatement = (DartThrowStatement) statements.get(2);
+    assertNotNull(throwStatement);
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
+  }
+
+  public void testRecoveryBeforeThrow2() {
+    DartUnit unit = parseUnitUnspecifiedErrors(
+        "phony_recovery_before_break2.dart",
+        Joiner.on("\n").join(
+            "int method() {",
+            "  var before;",
+            "  bad",
+            "  throw new Exception();",
+            "  int after;",  // Never reached, but the parser doesn't know.
+            "}"));
+    DartMethodDefinition method = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    List<DartStatement> statements = method.getFunction().getBody().getStatements();
+    DartVariable before = ((DartVariableStatement) statements.get(0)).getVariables().get(0);
+    assertEquals("before", before.getName().getName());
+    DartIdentifier bad = (DartIdentifier)((DartExprStmt) statements.get(1)).getExpression();
+    assertEquals("bad", bad.getName());
+    DartThrowStatement throwStatement = (DartThrowStatement) statements.get(2);
+    assertNotNull(throwStatement);
+    DartVariable after = ((DartVariableStatement) statements.get(3)).getVariables().get(0);
+    assertEquals("after", after.getName().getName());
   }
 }

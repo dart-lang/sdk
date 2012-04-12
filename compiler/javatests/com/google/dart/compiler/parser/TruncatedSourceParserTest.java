@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,13 +11,18 @@ import com.google.dart.compiler.ast.DartUnit;
 
 public class TruncatedSourceParserTest extends AbstractParserTest {
 
+  private static final int RESULTS_TIMEOUT_SECONDS = 10;
+  private static enum ParseState {
+    INIT, STARTED_PARSE, STOP,
+  }
+
   /**
    * Performs parsing in a separate thread such that the test can detect infinite loop.
    */
   private class ParserThread extends Thread {
     private final Object lock = new Object();
     private final String srcName;
-    private int state = 0;
+    private ParseState state = ParseState.INIT;
     private String srcCode;
     private DartUnit result;
 
@@ -42,23 +47,23 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
     /**
      * Queue the specified source to be parsed on a separate thread. Wait up to 10 seconds for the
      * result
-     * 
+     *
      * @return <code>true</code> if finished parsing
      */
     public boolean parse(String srcCode) {
       assert (srcCode != null);
-      assert (state == 0);
+      assert (state == ParseState.INIT);
       synchronized (lock) {
         this.srcCode = srcCode;
         result = null;
-        state = 1;
+        state = ParseState.STARTED_PARSE;
         lock.notifyAll();
         try {
-          lock.wait(10000);
+          lock.wait(RESULTS_TIMEOUT_SECONDS * 1000);
         } catch (InterruptedException e) {
           // Fall through
         }
-        return state == 0;
+        return state == ParseState.INIT;
       }
     }
 
@@ -71,14 +76,14 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
         DartSourceTest src;
         ParserContext context;
         synchronized (lock) {
-          while (state == 0) {
+          while (state == ParseState.INIT) {
             try {
               lock.wait();
             } catch (InterruptedException e) {
               // Fall through
             }
           }
-          if (state == 2) {
+          if (state == ParseState.STOP) {
             return;
           }
           src = new DartSourceTest(srcName, srcCode, null);
@@ -86,10 +91,10 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
         }
         DartUnit unit = makeParser(context).parseUnit(src);
         synchronized (lock) {
-          if (state == 2) {
+          if (state == ParseState.STOP) {
             return;
           }
-          state = 0;
+          state = ParseState.INIT;
           result = unit;
           lock.notifyAll();
         }
@@ -101,7 +106,7 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
      */
     public void stopParsing() {
       synchronized (lock) {
-        state = 2;
+        state = ParseState.STOP;
         lock.notify();
       }
     }
