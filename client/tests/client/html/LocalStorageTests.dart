@@ -4,8 +4,6 @@
 
 
 void testLocalStorage() {
-  forLayoutTests();
-
   void testWithLocalStorage(String name, fn()) {
     test(name, () {
       window.localStorage['key1'] = 'val1';

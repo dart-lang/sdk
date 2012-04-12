@@ -1,9 +1,10 @@
 #library('DocumentTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
 
   test('CreateElement', () {
     // FIXME: nifty way crashes, do it boring way.

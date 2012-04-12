@@ -1,5 +1,6 @@
 #library('InstanceOfTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
@@ -10,7 +11,7 @@ main() {
   canvas.setAttribute('height', '100');
   document.body.appendChild(canvas);
 
-  forLayoutTests();
+  useDomConfiguration();
   test('Instanceof', () {
     Expect.isFalse(canvas is CanvasRenderingContext);
     Expect.isFalse(canvas is CanvasRenderingContext2D);

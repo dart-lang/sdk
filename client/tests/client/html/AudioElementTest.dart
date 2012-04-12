@@ -1,10 +1,10 @@
 #library('AudioElementTest');
-#import('../../../../lib/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
 #import('dart:html');
 
 main() {
-
-  forLayoutTests();
+  useHtmlConfiguration();
 
   test('constructorTest1', () {
       var audio = new AudioElement();

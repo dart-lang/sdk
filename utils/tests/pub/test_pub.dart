@@ -12,7 +12,7 @@
 
 #import('dart:io');
 
-#import('../../../lib/unittest/unittest_vm.dart');
+#import('../../../lib/unittest/unittest.dart');
 #import('../../lib/file_system.dart');
 
 void testOutput(String description, List<String> pubArgs, String expected,

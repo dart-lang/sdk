@@ -4,9 +4,11 @@
         src="../../lib/unittest/test_controller.js"></script>
 <script type="application/dart">
 #import('dart:dom');
-#import('../../lib/unittest/unittest_dom.dart');
+#import('../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/dom_configuration.dart');
 
 void main() {
+  useDomConfiguration();
   test('MathTest', () { Expect.equals(2, 1 + 1); });
   test('BoolTest', () { Expect.notEquals(true, false); });
 }

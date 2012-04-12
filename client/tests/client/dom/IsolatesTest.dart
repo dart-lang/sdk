@@ -1,5 +1,6 @@
 #library('IsolatesTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 #import('dart:json');
 #import('dart:isolate', prefix:'isolate');
@@ -31,7 +32,7 @@ class PingPongIsolate extends isolate.Isolate {
 }
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   asyncTest('IsolateSpawn', 1, () {
     new PingPongIsolate().spawn().then((isolate.SendPort port) {
       callbackDone();

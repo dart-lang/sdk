@@ -1,9 +1,10 @@
 #library('TypingTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
 
   test('NodeList', () {
     List<Node> asList = window.document.getElementsByTagName('body');

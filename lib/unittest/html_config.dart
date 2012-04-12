@@ -8,39 +8,24 @@
 #library('unittest');
 
 #import('dart:html');
-#import('dart:isolate');
+#import('unittest.dart');
 
-#source('config.dart');
-#source('shared.dart');
 #source('html_print.dart');
 
-/** Whether this is run within dartium layout tests. */
-bool _isLayoutTest = false;
+class HtmlConfiguration extends Configuration {
+  /** Whether this is run within dartium layout tests. */
+  final bool _isLayoutTest;
+  HtmlConfiguration(this._isLayoutTest);
 
-void forLayoutTests() {
-  _isLayoutTest = true;
-}
-
-class PlatformConfiguration extends Configuration {
   // TODO(rnystrom): Get rid of this if we get canonical closures for methods.
   EventListener _onErrorClosure;
 
   void onInit() {
-    _onErrorClosure = (e) { _onError(e); };
-  }
-
-  void _onError(e) {
-   if (_currentTest < _tests.length) {
-      final testCase = _tests[_currentTest];
+    _onErrorClosure = (e) {
       // TODO(vsm): figure out how to expose the stack trace here
       // Currently e.message works in dartium, but not in dartc.
-      testCase.error('(DOM callback has errors) Caught ${e}', '');
-      _state = _UNCAUGHT_ERROR;
-      if (testCase.callbacks > 0) {
-        _currentTest++;
-        _testRunner();
-      }
-    }
+      notifyError('(DOM callback has errors) Caught ${e}', '');
+    };
   }
 
   void onStart() {
@@ -56,4 +41,8 @@ class PlatformConfiguration extends Configuration {
     _showResultsInPage(passed, failed, errors, results, _isLayoutTest);
     window.postMessage('unittest-suite-done', '*');
   }
+}
+
+void useHtmlConfiguration([bool isLayoutTest = false]) {
+  configure(new HtmlConfiguration(isLayoutTest));
 }

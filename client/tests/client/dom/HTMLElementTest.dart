@@ -1,9 +1,10 @@
 #library('HTMLElementTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   test('InnerHTML', () {
     HTMLElement element = document.createElement('div');
     element.id = 'test';

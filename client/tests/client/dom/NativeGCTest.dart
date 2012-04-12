@@ -1,8 +1,10 @@
 #library('NativeGCTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
+  useDomConfiguration();
 
   test('EventListener', () {
       final int N = 1000000;

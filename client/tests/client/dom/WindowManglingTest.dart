@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('WindowManglingTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom', prefix: 'dom');
 
 // Defined in dom.Window.
@@ -13,6 +14,7 @@ $eq(x, y) => false;
 $eq$(x, y) => false;
 
 main() {
+  useDomConfiguration();
   var win = dom.window;
 
   test('windowMethod', () {

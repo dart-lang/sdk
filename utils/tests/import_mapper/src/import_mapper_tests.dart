@@ -7,7 +7,7 @@
 #import('../../../import_mapper/import_mapper.dart', prefix: 'mapper');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../../lib/unittest/unittest_vm.dart');
+#import('../../../../lib/unittest/unittest.dart');
 
 main() {
   group('generateImportMap', () {

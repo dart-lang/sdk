@@ -6,9 +6,11 @@
 
 #import('dart:json');
 #import('dart:html');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
 
 main() {
+  useHtmlConfiguration();
   test('Parse', () {
     // Scalars.
     expect(JSON.parse(' 5 ')).equals(5);

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('TypedArrays1Test');
-#import('../../../../lib/unittest/unittest_html.dart');
-#import('dart:dom');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-
-  forLayoutTests();
+  useHtmlConfiguration();
 
   test('createByLengthTest', () {
       var a = new Float32Array(10);

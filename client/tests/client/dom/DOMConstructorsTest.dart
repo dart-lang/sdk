@@ -1,9 +1,10 @@
 #library('DOMConstructorsTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   test('FileReader', () {
     FileReader fileReader = new FileReader();
     Expect.equals(FileReader.EMPTY, fileReader.readyState);

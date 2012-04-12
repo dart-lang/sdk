@@ -1,12 +1,13 @@
 #library('HiddenDom2Test');
-#import('../../../../lib/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
 #import('dart:html');
 
 // Test that the dart:html API does not leak native jsdom methods:
 //   appendChild operation.
 
 main() {
-  forLayoutTests();
+  useHtmlConfiguration();
 
   test('test1', () {
     document.body.elements.add(new Element.html(@'''

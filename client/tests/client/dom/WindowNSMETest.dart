@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('WindowNSMETest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom', prefix: 'dom');
 
 // Not defined in dom.Window.
@@ -16,6 +17,7 @@ class Unused {
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
+  useDomConfiguration();
   var things = [new Unused(), dom.window];
 
   test('windowNonMethod', () {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/** This file is sourced by unitest.dart. */
+
 /**
  * Hooks to configure the unittest library for different platforms. This class
  * implements the API in a platform-independent way. Tests that want to take
@@ -36,11 +38,11 @@ class Configuration {
    */
   void onDone(int passed, int failed, int errors, List<TestCase> results) {
     // Print each test's result.
-    for (final test in _tests) {
-      print('${test.result.toUpperCase()}: ${test.description}');
+    for (final t in _tests) {
+      print('${t.result.toUpperCase()}: ${t.description}');
 
-      if (test.message != '') {
-        print('  ${test.message}');
+      if (t.message != '') {
+        print('  ${t.message}');
       }
     }
 

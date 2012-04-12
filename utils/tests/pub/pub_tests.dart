@@ -7,7 +7,7 @@
 #import('dart:io');
 
 #import('test_pub.dart');
-#import('../../../lib/unittest/unittest_vm.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 main() {
   group('running pub with no command', () {

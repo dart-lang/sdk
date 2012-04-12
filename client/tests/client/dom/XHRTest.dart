@@ -1,9 +1,10 @@
 #library('XHRTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   asyncTest('XHR', 1, () {
     XMLHttpRequest xhr = new XMLHttpRequest();
     // TODO: figure out how to place a resource file with fixed name alongside
