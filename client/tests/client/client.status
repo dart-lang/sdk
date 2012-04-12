@@ -8,8 +8,10 @@ dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argume
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
 dom/IndexedDB2Test: Fail  # Crazy results.
-dom/NativeGCTest: Fail  # Issue 1448.
 html/html_tests: Pass, Fail   # Issue 1946.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
+dom/NativeGCTest: Skip  # Issue 2538.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 dom/AudioContextTest: Skip
