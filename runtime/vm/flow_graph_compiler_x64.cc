@@ -442,12 +442,6 @@ static const Class* CoreClass(const char* c_name) {
 }
 
 
-void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
-    intptr_t token_index) {
-  Bailout("FlowGraphCompiler::GenerateInstantiatorTypeArguments");
-}
-
-
 // Copied from CodeGenerator.
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
@@ -456,6 +450,7 @@ void FlowGraphCompiler::GenerateInstantiatorTypeArguments(
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - RAX: object.
+// - RDX: optional type-arguments.
 // Destroys RCX.
 // Returns:
 // - true or false in RAX.
@@ -618,7 +613,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
-    GenerateInstantiatorTypeArguments(token_index);
+    __ pushq(RDX);  // Type arguments.
   } else {
     __ pushq(raw_null);  // Null instantiator.
   }
@@ -642,6 +637,9 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
 
 
 void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
+  if (comp->type_arguments() != NULL) {
+    __ popq(RDX);
+  }
   __ popq(RAX);
   GenerateInstanceOf(comp->node_id(),
                      comp->token_index(),
@@ -944,7 +942,6 @@ void FlowGraphCompiler::VisitTargetEntry(TargetEntryInstr* instr) {
   if (instr->HasTryIndex()) {
     exception_handlers_list_->AddHandler(instr->try_index(),
                                          assembler_->CodeSize());
-    // Bailout("Untested CatchEntry");
   }
 }
 

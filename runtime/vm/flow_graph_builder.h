@@ -156,6 +156,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatorTypeArguments(intptr_t token_index,
                                         intptr_t start_index);
 
+  void BuildInstanceOf(ComparisonNode* node);
+
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
   // Moves parent context into the context register.

@@ -607,18 +607,24 @@ class InstanceOfComp : public Computation {
                  intptr_t token_index,
                  intptr_t try_index,
                  Value* value,
+                 Value* type_arguments,  // Can be NULL.
                  const AbstractType& type,
                  bool negate_result)
       : node_id_(node_id),
         token_index_(token_index),
         try_index_(try_index),
         value_(value),
+        type_arguments_(type_arguments),
         type_(type),
-        negate_result_(negate_result) {}
+        negate_result_(negate_result) {
+    ASSERT(value_ != NULL);
+    ASSERT(!type.IsNull());
+  }
 
   DECLARE_COMPUTATION(InstanceOf)
 
   Value* value() const { return value_; }
+  Value* type_arguments() const { return type_arguments_; }
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
   intptr_t node_id() const { return node_id_; }
@@ -630,6 +636,7 @@ class InstanceOfComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
+  Value* type_arguments_;
   const AbstractType& type_;
   const bool negate_result_;
 

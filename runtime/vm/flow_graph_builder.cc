@@ -426,22 +426,36 @@ void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
 }
 
 
+void EffectGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
+  ASSERT(Token::IsInstanceofOperator(node->kind()));
+  ArgumentGraphVisitor for_left_value(owner(), temp_index());
+  node->left()->Visit(&for_left_value);
+  Append(for_left_value);
+  const AbstractType& type = node->right()->AsTypeNode()->type();
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  Value* type_arguments = NULL;
+  if (!type.IsInstantiated()) {
+    type_arguments = BuildInstantiatorTypeArguments(
+        node->token_index(), for_left_value.temp_index());
+  }
+  InstanceOfComp* instance_of = new InstanceOfComp(
+      node->id(),
+      node->token_index(),
+      owner()->try_index(),
+      for_left_value.value(),
+      type_arguments,
+      node->right()->AsTypeNode()->type(),
+      (node->kind() == Token::kISNOT));
+  ReturnComputation(instance_of);
+}
+
+
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   if (Token::IsInstanceofOperator(node->kind())) {
-    ArgumentGraphVisitor for_left_value(owner(), temp_index());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    InstanceOfComp* instance_of = new InstanceOfComp(
-        node->id(),
-        node->token_index(),
-        owner()->try_index(),
-        for_left_value.value(),
-        node->right()->AsTypeNode()->type(),
-        (node->kind() == Token::kISNOT));
-    ReturnComputation(instance_of);
+    BuildInstanceOf(node);
     return;
   }
   if ((node->kind() == Token::kEQ_STRICT) ||
@@ -2227,6 +2241,11 @@ void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
   OS::Print(" %s %s",
       comp->negate_result() ? "ISNOT" : "IS",
       String::Handle(comp->type().Name()).ToCString());
+  if (comp->type_arguments() != NULL) {
+    OS::Print(" (type-arg:");
+    comp->type_arguments()->Accept(this);
+    OS::Print(")");
+  }
 }
 
 
