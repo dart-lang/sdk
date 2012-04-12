@@ -1787,7 +1787,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (looksLikeTopLevelKeyword() || peek(0).equals(Token.RBRACE)) {
       // Allow recovery back to the top level.
       reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
-      return done(DartNullLiteral.get());
+      return done(null);
     }
     DartExpression result = parseConditionalExpression();
     Token token = peek(0);
@@ -1958,7 +1958,9 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
         }
       }
-      arguments.add(done(expression));
+      if (expression != null) {
+        arguments.add(done(expression));
+      }
       switch(peek(0)) {
         // Must keep in sync with @Terminals above
         case COMMA:
@@ -2246,7 +2248,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (expect(Token.COLON)) {
       value = parseExpression();
     } else {
-      value = doneWithoutConsuming(DartNullLiteral.get());
+      value = doneWithoutConsuming(new DartSyntheticErrorExpression());
     }
     return done(new DartMapLiteralEntry(keyExpr, value));
   }
@@ -3090,6 +3092,9 @@ public class DartParser extends CompletionHooksParserBase {
       beginFunctionStatementBody();
       if (optional(Token.ARROW)) {
         DartExpression expr = parseExpression();
+        if (expr == null) {
+          expr = new DartSyntheticErrorExpression();
+        }
         if (requireSemicolonForArrow) {
           expect(Token.SEMICOLON);
         }
@@ -3438,6 +3443,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();
+
     return done(new DartExprStmt(expression));
   }
 
