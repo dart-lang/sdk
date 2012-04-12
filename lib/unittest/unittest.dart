@@ -192,53 +192,14 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
   }
 }
 
-class _Sentinel {
-  static final _sentinel = const _Sentinel();
-
-  const _Sentinel();
-}
-
-
 /**
- * Indicate to the unittest framework that a callback is expected. [callback]
- * can take any number of arguments between 0 and 4.
+ * Indicate to the unittest framework that a 0-argument callback is expected.
  *
  * The framework will wait for the callback to run before it continues with the
  * following test. The callback must excute once and only once. Using [later]
  * will also ensure that errors that occur within the callback are tracked and
  * reported by the unittest framework.
  */
-// TODO(sigmund): expose this functionality
-Function _later(Function callback) {
-  Expect.isTrue(_currentTest < _tests.length);
-  var testCase = _tests[_currentTest];
-  testCase.callbacks++;
-  // We simulate spread arguments using named arguments:
-  // Note: this works in the vm and dart2js, but not in frog.
-  return ([arg0 = _Sentinel.value, arg1 = _Sentinel.value,
-           arg2 = _Sentinel.value, arg3 = _Sentinel.value,
-           arg4 = _Sentinel.value]) {
-    _guard(() {
-      if (arg0 == _Sentinel.value) {
-        callback();
-      } else if (arg1 == _Sentinel.value) {
-        callback(arg0);
-      } else if (arg2 == _Sentinel.value) {
-        callback(arg0, arg1);
-      } else if (arg3 == _Sentinel.value) {
-        callback(arg0, arg1, arg2);
-      } else if (arg4 == _Sentinel.value) {
-        callback(arg0, arg1, arg2, arg3);
-      } else {
-        testCase.error(
-           'unittest lib does not support callbacks with more than 4 arguments',
-           '');
-        _state = _UNCAUGHT_ERROR;
-      }
-    }, callbackDone);
-  };
-}
-
 // TODO(sigmund): expose this functionality
 Function _later0(Function callback) {
   Expect.isTrue(_currentTest < _tests.length);
@@ -250,6 +211,7 @@ Function _later0(Function callback) {
 }
 
 // TODO(sigmund): expose this functionality
+/** Like [_later0] but expecting a callback with 1 argument. */
 Function _later1(Function callback) {
   Expect.isTrue(_currentTest < _tests.length);
   var testCase = _tests[_currentTest];
@@ -260,6 +222,7 @@ Function _later1(Function callback) {
 }
 
 // TODO(sigmund): expose this functionality
+/** Like [_later0] but expecting a callback with 2 arguments. */
 Function _later2(Function callback) {
   Expect.isTrue(_currentTest < _tests.length);
   var testCase = _tests[_currentTest];
