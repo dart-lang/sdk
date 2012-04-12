@@ -4169,7 +4169,7 @@ public class DartParser extends CompletionHooksParserBase {
       return done(new DartSyntheticErrorIdentifier());
     }
     DartIdentifier identifier;
-    if (expect(Token.IDENTIFIER)) {
+    if (expect(Token.IDENTIFIER) && ctx.getTokenString() != null) {
       identifier = new DartIdentifier(ctx.getTokenString());
     } else {
       identifier = new DartSyntheticErrorIdentifier();
