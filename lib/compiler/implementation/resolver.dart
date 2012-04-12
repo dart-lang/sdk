@@ -167,24 +167,26 @@ class ResolverTask extends CompilerTask {
     // [intrface] is an interface, let's say "MyInterface".
     // [defaultClass] is a class, let's say "MyClass".
 
-    // First look up the constructor named "MyInterface.name".
-    constructor.defaultImplementation =
-      defaultClass.lookupConstructor(constructor.name);
+    // If the default class implements the interface then we must use the
+    // default class' name. Otherwise we look for a factory with the name
+    // of the interface.
+    SourceString name;
+    if (defaultClass.implementsInterface(intrface)) {
+      // TODO(ahe): Don't use string replacement here.
+      name = new SourceString(constructor.name.slowToString().replaceFirst(
+                 intrface.name.slowToString(),
+                 defaultClass.name.slowToString()));
+    } else {
+      name = constructor.name;
+    }
+    constructor.defaultImplementation = defaultClass.lookupConstructor(name);
 
-    // If that fails, try looking up "MyClass.name".
     if (constructor.defaultImplementation === null) {
-      SourceString name =
-          new SourceString(constructor.name.slowToString().replaceFirst(
-              intrface.name.slowToString(),
-              defaultClass.name.slowToString()));
-      constructor.defaultImplementation = defaultClass.lookupConstructor(name);
-
-      if (constructor.defaultImplementation === null) {
-        // We failed find a constrcutor named either
-        // "MyInterface.name" or "MyClass.name".
-        error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR2,
-              [constructor.name, name]);
-      }
+      // We failed to find a constructor named either
+      // "MyInterface.name" or "MyClass.name".
+      error(node,
+            MessageKind.CANNOT_FIND_CONSTRUCTOR2,
+            [name, defaultClass.name]);
     }
   }
 

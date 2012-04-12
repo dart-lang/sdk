@@ -14,7 +14,6 @@
 #source('$AUXILIARY_DIR/KeyLocation.dart');
 #source('$AUXILIARY_DIR/KeyName.dart');
 #source('$AUXILIARY_DIR/ReadyState.dart');
-#source('$AUXILIARY_DIR/TimeoutHandler.dart');
 #source('$AUXILIARY_DIR/native_DOMPublic.dart');
 #source('$AUXILIARY_DIR/native_GlobalProperties.dart');
 #source('$AUXILIARY_DIR/native_FactoryProviders.dart');

@@ -3,22 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 dom/WebGL1Test: Skip  # Issue 1495
+dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argument.
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
-dom/HTMLElementTest: Fail
+dom/IndexedDB2Test: Fail  # Crazy results.
 dom/NativeGCTest: Fail  # Issue 1448.
 html/html_tests: Pass, Fail   # Issue 1946.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 dom/AudioContextTest: Skip
-
-[ $compiler == none && $runtime == drt && $mode == debug ]
-# TODO(vsm): Triage Dartium failures.
-dom/CSSTest: Skip
-dom/DOMIsolatesTest: Skip
-dom/NativeGCTest: Skip
-dom/TypedArrays1Test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
@@ -26,18 +20,53 @@ dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
+dom/IndexedDB2Test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
+[ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+dom/HistoryTest: Fail
+
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
-dom/HistoryTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
-[ $runtime == ff || $runtime == safari || $runtime == ie ]
+[ $runtime == safari || $runtime == ie ]
 html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
+
+[ $runtime == ff ]
+dom/AudioContextTest: Fail    # FF only has Audio element
+dom/CSSTest: Fail             # No analogue to WebKitCSSMatrix
+dom/CallbacksTest: Fail       # (webkit|moz|ms)RequestAnimationFrame
+dom/CanvasTest: Fail          # No setFillColor() method.  Use fillstyle attribute instead.
+dom/CanvasUsingHtmlTest: Fail # No setFillColor() method.  Use fillstyle attribute instead.
+dom/DartObjectLocalStorageTest: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+dom/ExceptionsTest: Fail      # Uses webkitotifications, no analogue in moz
+# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
+dom/HiddenDom1Test: Fail
+# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
+dom/HiddenDom2Test: Fail
+dom/IndexedDB1Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+dom/IndexedDB2Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+dom/InstanceOfTest: Fail     # FF context.createImageData returns Uint8ClampedArray, not ImageData.
+# setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
+dom/InnerFrameTest: Fail
+# Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
+dom/SVG3Test: Fail
+# document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
+#   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
+# Note this test now passes for the wrong reasons. It used to be that the only
+# forEach in this program was in NodeList. Due to dependencies from the unittest
+# framework, frog no longer resolves forEach statically, and instead it
+# dynamically binds forEach on a bunch of classes, including HTMLCollection.
+dom/TypingTest: Pass
+dom/WebSocketTest: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
+# Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
+#    (NS_ERROR_DOM_BAD_URI) ...
+dom/XHRTest: Fail 
 
 [ $runtime == ie ]
 html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
@@ -72,4 +101,11 @@ html/frog_html_tests: Skip # Issue 1884
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
+*: Skip
+
+[ $checked ]
+dom/IndexedDB1Test: Skip  # Type check fails for IDBKey, causing Fail or Timeout.  Needs to be renamed to Object or Dynamic.
+dom/IndexedDB2Test: Skip  # Type check fails for IDBKey, causing Fail or Timeout.  Needs to be renamed to Object or Dynamic.
+
+[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
 *: Skip

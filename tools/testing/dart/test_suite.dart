@@ -275,10 +275,12 @@ class StandardTestSuite implements TestSuite {
 
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone = null]) {
-    // If DumpRenderTree is required, and not yet updated, wait for update.
-    if (configuration['runtime'] == 'drt' && !DumpRenderTreeUpdater.updated) {
-      Expect.isTrue(DumpRenderTreeUpdater.isActive);
-      DumpRenderTreeUpdater.onUpdated.add(() {
+    // If DumpRenderTree/Dartium is required, and not yet updated,
+    // wait for update.
+    var updater = runtimeUpdater(configuration['runtime']);
+    if (updater !== null && !updater.updated) {
+      Expect.isTrue(updater.isActive);
+      updater.onUpdated.add(() {
         forEachTest(onTest, testCache, globalTempDir, onDone);
       });
       return;
@@ -558,7 +560,7 @@ class StandardTestSuite implements TestSuite {
         }
         htmlPath = '${tempDir.path}/../$htmlFilename';
       }
-      final String scriptPath = (compiler == 'none' && runtime == 'drt') ?
+      final String scriptPath = (compiler == 'none') ?
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
@@ -609,11 +611,14 @@ class StandardTestSuite implements TestSuite {
       // Construct the command that executes the browser test
       List<String> args;
       if (runtime == 'ie' || runtime == 'ff' || runtime == 'chrome' ||
-        runtime == 'safari' || runtime == 'opera') {
+          runtime == 'safari' || runtime == 'opera' || runtime == 'dartium') {
         args = ['$dartDir/tools/testing/run_selenium.py',
             '--browser=$runtime',
             '--timeout=${configuration["timeout"] - 2}',
             '--out=$htmlPath'];
+        if (runtime == 'dartium') {
+          args.add('--executable=$dartiumFilename');
+        }
       } else {
         args = [
             '$dartDir/tools/testing/drt-trampoline.py',
@@ -750,6 +755,17 @@ class StandardTestSuite implements TestSuite {
         return null;
     }
   }
+  
+  String get hasRuntime() {
+    switch(configuration['runtime']) {
+      case null:
+        Expect.fail("configuration['runtime'] is not set");
+      case 'none':
+        return false;
+      default:
+        return true;
+    }
+  }
 
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_').replaceAll(':', '_')
@@ -762,10 +778,21 @@ class StandardTestSuite implements TestSuite {
       return configuration['drt'];
     }
     if (new Platform().operatingSystem() == 'macos') {
-      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/' +
+      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/'
           'MacOS/DumpRenderTree';
     }
     return '$dartDir/client/tests/drt/DumpRenderTree';
+  }
+
+  String get dartiumFilename() {
+    if (configuration['dartium'] != '') {
+      return configuration['dartium'];
+    }
+    if (new Platform().operatingSystem() == 'macos') {
+      return '$dartDir/client/tests/dartium/Chromium.app/Contents/'
+          'MacOS/Chromium';
+    }
+    return '$dartDir/client/tests/dartium/chrome';
   }
 
   void testGeneratorStarted() {
@@ -796,6 +823,12 @@ class StandardTestSuite implements TestSuite {
     if (configuration['compiler'] == 'dartc') {
       args.add('--error_format');
       args.add('machine');
+    }
+    if ((configuration['compiler'] == 'frog'
+          || configuration['compiler'] == 'frogsh'
+          || configuration['compiler'] == 'dart2js')
+        && (configuration['runtime'] == 'none')) {
+      args.add('--compile-only');
     }
 
     bool isMultitest = optionsFromFile["isMultitest"];
@@ -896,8 +929,11 @@ class StandardTestSuite implements TestSuite {
       otherScripts.addAll(match[1].split(' ').filter((e) => e != ''));
     }
 
-    if (contents.contains("@compile-error") ||
-        contents.contains("@runtime-error")) {
+    if (contents.contains("@compile-error")) {
+      isNegative = true;
+    }
+    
+    if (contents.contains("@runtime-error") && hasRuntime) {
       isNegative = true;
     }
 
@@ -1114,10 +1150,17 @@ class JUnitTestSuite implements TestSuite {
             dartDir + '/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-
+    
+    // Lengthen the timeout for JUnit tests.  It is normal for them
+    // to run for a few minutes.
+    Map updatedConfiguration = new Map();
+    configuration.forEach((key, value) {
+      updatedConfiguration[key] = value;
+    });
+    updatedConfiguration['timeout'] *= 2;
     doTest(new TestCase(suiteName,
                         [new Command('java', args)],
-                        configuration,
+                        updatedConfiguration,
                         completeHandler,
                         new Set<String>.from([PASS])));
     doDone();
@@ -1285,6 +1328,7 @@ class TestUtils {
 
   static bool isBrowserRuntime(String runtime) =>
       const <String>['drt',
+                     'dartium',
                      'ie',
                      'safari',
                      'opera',

@@ -266,7 +266,7 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
 // }
 class HandleScope : public StackResource {
  public:
-  explicit HandleScope(Isolate* isolate);
+  explicit HandleScope(BaseIsolate* isolate);
   ~HandleScope();
 
  private:
@@ -298,7 +298,7 @@ class HandleScope : public StackResource {
 #if defined(DEBUG)
 class NoHandleScope : public StackResource {
  public:
-  explicit NoHandleScope(Isolate* isolate);
+  explicit NoHandleScope(BaseIsolate* isolate);
   ~NoHandleScope();
 
  private:
@@ -307,7 +307,7 @@ class NoHandleScope : public StackResource {
 #else  // defined(DEBUG)
 class NoHandleScope : public ValueObject {
  public:
-  explicit NoHandleScope(Isolate* isolate) { }
+  explicit NoHandleScope(BaseIsolate* isolate) { }
   ~NoHandleScope() { }
 
  private:

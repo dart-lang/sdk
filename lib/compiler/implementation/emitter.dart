@@ -519,11 +519,15 @@ function(child, parent) {
     String prototype = "${namer.ISOLATE}.prototype";
     bool addedMakeConstantList = false;
     for (Constant constant in constants) {
+      String name = handler.getNameForConstant(constant);
+      // The name is null when the constant is already a JS constant.
+      // TODO(floitsch): every constant should be registered, so that we can
+      // share the ones that take up too much space (like some strings).
+      if (name === null) continue;
       if (!addedMakeConstantList && constant.isList()) {
         addedMakeConstantList = true;
         emitMakeConstantList(prototype, buffer);
       }
-      String name = handler.getNameForConstant(constant);
       buffer.add('$prototype.$name = ');
       handler.writeJsCode(buffer, constant);
       buffer.add(';\n');

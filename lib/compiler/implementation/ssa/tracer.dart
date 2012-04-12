@@ -166,7 +166,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     switch (instruction.type) {
-      case HType.ARRAY: prefix = 'a'; break;
+      case HType.MUTABLE_ARRAY: prefix = 'a'; break;
+      case HType.READABLE_ARRAY: prefix = 'roa'; break;
       case HType.BOOLEAN: prefix = 'b'; break;
       case HType.INTEGER: prefix = 'i'; break;
       case HType.DOUBLE: prefix = 'd'; break;
@@ -402,7 +403,8 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTypeGuard(HTypeGuard node) {
     String type;
     switch (node.type) {
-      case HType.ARRAY: type = "array"; break;
+      case HType.MUTABLE_ARRAY: type = "mutable_array"; break;
+      case HType.READABLE_ARRAY: type = "readable_array"; break;
       case HType.BOOLEAN: type = "bool"; break;
       case HType.INTEGER: type = "integer"; break;
       case HType.DOUBLE: type = "double"; break;

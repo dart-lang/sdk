@@ -27,6 +27,10 @@ class _Logger {
 // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
 var _is_windows;
 
+// The URI that the entrypoint script was loaded from. Remembered so that
+// package imports can be resolved relative to it.
+Uri _entrypoint;
+
 void _logResolution(String msg) {
   final enabled = false;
   if (enabled) {
@@ -54,9 +58,10 @@ String _resolveScriptUri(String cwd, String scriptName, bool windows) {
     _logResolution("## scriptName: $scriptName");
   }
   var base = new Uri(scheme: "file", path: cwd.endsWith("/") ? cwd : "$cwd/");
-  var resolved = base.resolve(scriptName);
-  _logResolution("# Resolved to: $resolved");
-  return resolved.toString();
+  _entrypoint = base.resolve(scriptName);
+  _logResolution("# Resolved script to: $_entrypoint");
+
+  return _entrypoint.toString();
 }
 
 String _resolveUri(String base, String userString) {
@@ -84,17 +89,47 @@ String _resolveExtensionUri(String base, String userString) {
 String _filePathFromUri(String userUri) {
   var uri = new Uri.fromString(userUri);
   _logResolution("# Getting file path from: $uri");
-  if ("file" != uri.scheme) {
-    // Only handling file URIs in standalone binary.
-    _logResolution("# Not a file URI.");
-    throw "Not a file uri: $uri";
+
+  var path;
+  switch (uri.scheme) {
+  case 'file':    path = _filePathFromFileUri(uri); break;
+  case 'package': path = _filePathFromPackageUri(uri); break;
+
+  default:
+    // Only handling file and package URIs in standalone binary.
+    _logResolution("# Not a file or package URI.");
+    throw "Not a known scheme: $uri";
   }
-  var path = uri.path;
-  _logResolution("# Path: $path");
+
   if (_is_windows) {
     // Drop the leading / before the drive letter.
     path = path.substring(1);
     _logResolution("# path: $path");
   }
+
+  return path;
+}
+
+String _filePathFromFileUri(Uri uri) {
+  if (uri.domain != '') {
+    throw "URIs using the 'file:' scheme may not contain a domain.";
+  }
+
+  _logResolution("# Path: ${uri.path}");
+  return uri.path;
+}
+
+String _filePathFromPackageUri(Uri uri) {
+  if (uri.domain != '') {
+    var path = (uri.path != '') ? '${uri.domain}${uri.path}' : uri.domain;
+    var right = 'package:$path';
+    var wrong = 'package://$path';
+
+    throw "URIs using the 'package:' scheme should look like " +
+          "'$right', not '$wrong'.";
+  }
+
+  var path = _entrypoint.resolve('packages/${uri.path}').path;
+  _logResolution("# Package: $path");
   return path;
 }

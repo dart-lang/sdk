@@ -406,7 +406,28 @@ AstNode* LoadIndexedNode::MakeIncrOpNode(intptr_t token_index,
 
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StaticSetterNode(token_index(), cls(), field_name(), rhs);
+  // If no setter exist, set the field directly.
+  const String& setter_name = String::Handle(Field::SetterName(field_name()));
+  const Function& setter =
+      Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
+  if (setter.IsNull()) {
+    // Access to a lazily initialized static field that has not yet been
+    // initialized is compiled to a static implicit getter.
+    // A setter may not exist for such a field.
+#if defined(DEBUG)
+    const String& getter_name = String::Handle(Field::GetterName(field_name()));
+    const Function& getter =
+        Function::ZoneHandle(cls().LookupStaticFunction(getter_name));
+    ASSERT(!getter.IsNull() &&
+           (getter.kind() == RawFunction::kConstImplicitGetter));
+#endif
+    const Field& field = Field::ZoneHandle(
+        cls().LookupStaticField(field_name()));
+    ASSERT(!field.IsNull());
+    return new StoreStaticFieldNode(token_index(), field, rhs);
+  } else {
+    return new StaticSetterNode(token_index(), cls(), field_name(), rhs);
+  }
 }
 
 

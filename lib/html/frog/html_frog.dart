@@ -307,17 +307,17 @@ class _AudioContextImpl implements AudioContext native "*AudioContext" {
 
   _AudioGainNodeImpl createGainNode() native;
 
-  _HighPass2FilterNodeImpl createHighPass2Filter() native;
-
   _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize) native;
 
-  _LowPass2FilterNodeImpl createLowPass2Filter() native;
-
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
+
+  _OscillatorImpl createOscillator() native;
 
   _AudioPannerNodeImpl createPanner() native;
 
   _WaveShaperNodeImpl createWaveShaper() native;
+
+  _WaveTableImpl createWaveTable(_Float32ArrayImpl real, _Float32ArrayImpl imag) native;
 
   void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
 
@@ -783,6 +783,12 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -4452,6 +4458,8 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
   _BlobImpl getAsFile() native;
 
   void getAsString([StringCallback callback = null]) native;
+
+  void webkitGetAsEntry([EntryCallback callback = null]) native;
 }
 
 class _DataTransferItemListImpl implements DataTransferItemList native "*DataTransferItemList" {
@@ -6018,6 +6026,8 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   String contentEditable;
 
+  final Map<String, String> dataset;
+
   String dir;
 
   bool draggable;
@@ -6272,6 +6282,8 @@ class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   EventListenerList get touchCancel() => _get('touchcancel');
 
   EventListenerList get touchEnd() => _get('touchend');
+
+  EventListenerList get touchEnter() => _get('touchenter');
 
   EventListenerList get touchLeave() => _get('touchleave');
 
@@ -6600,6 +6612,8 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 }
 
 class _FieldSetElementImpl extends _ElementImpl implements FieldSetElement native "*HTMLFieldSetElement" {
+
+  bool disabled;
 
   final _FormElementImpl form;
 
@@ -7267,13 +7281,6 @@ class _HeadingElementImpl extends _ElementImpl implements HeadingElement native 
   String align;
 }
 
-class _HighPass2FilterNodeImpl extends _AudioNodeImpl implements HighPass2FilterNode native "*HighPass2FilterNode" {
-
-  final _AudioParamImpl cutoff;
-
-  final _AudioParamImpl resonance;
-}
-
 class _HistoryImpl implements History native "*History" {
 
   final int length;
@@ -7356,13 +7363,6 @@ class _IDBDatabaseImpl implements IDBDatabase native "*IDBDatabase" {
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
   _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
-}
-
-class _IDBDatabaseErrorImpl implements IDBDatabaseError native "*IDBDatabaseError" {
-
-  int code;
-
-  String message;
 }
 
 class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -7582,6 +7582,8 @@ class _IFrameElementImpl extends _ElementImpl implements IFrameElement native "*
   String scrolling;
 
   String src;
+
+  String srcdoc;
 
   String width;
 
@@ -8202,13 +8204,6 @@ class _LocationImpl implements Location native "*Location" {
   String toString() native;
 }
 
-class _LowPass2FilterNodeImpl extends _AudioNodeImpl implements LowPass2FilterNode native "*LowPass2FilterNode" {
-
-  final _AudioParamImpl cutoff;
-
-  final _AudioParamImpl resonance;
-}
-
 class _MapElementImpl extends _ElementImpl implements MapElement native "*HTMLMapElement" {
 
   final _HTMLCollectionImpl areas;
@@ -8718,6 +8713,9 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
+class _MutationCallbackImpl implements MutationCallback native "*MutationCallback" {
+}
+
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
@@ -8737,6 +8735,27 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
   final _NodeImpl relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
+}
+
+class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
+
+  final _NodeListImpl addedNodes;
+
+  final String attributeName;
+
+  final String attributeNamespace;
+
+  final _NodeImpl nextSibling;
+
+  final String oldValue;
+
+  final _NodeImpl previousSibling;
+
+  final _NodeListImpl removedNodes;
+
+  final _NodeImpl target;
+
+  final String type;
 }
 
 class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
@@ -9357,9 +9376,9 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   String dir;
 
-  String replaceId;
+  String tag;
 
-  void cancel() native;
+  void close() native;
 
   void show() native;
 }
@@ -9508,6 +9527,27 @@ class _OptionElementImpl extends _ElementImpl implements OptionElement native "*
   bool selected;
 
   String value;
+}
+
+class _OscillatorImpl extends _AudioSourceNodeImpl implements Oscillator native "*Oscillator" {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final _AudioParamImpl detune;
+
+  final _AudioParamImpl frequency;
+
+  int type;
+
+  void setWaveTable(_WaveTableImpl waveTable) native;
 }
 
 class _OutputElementImpl extends _ElementImpl implements OutputElement native "*HTMLOutputElement" {
@@ -14835,6 +14875,9 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode nativ
   _Float32ArrayImpl curve;
 }
 
+class _WaveTableImpl implements WaveTable native "*WaveTable" {
+}
+
 class _WebGLActiveInfoImpl implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   final String name;
@@ -15642,6 +15685,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   Object getShaderParameter(_WebGLShaderImpl shader, int pname) native;
 
+  _WebGLShaderPrecisionFormatImpl getShaderPrecisionFormat(int shadertype, int precisiontype) native;
+
   String getShaderSource(_WebGLShaderImpl shader) native;
 
   Object getTexParameter(int target, int pname) native;
@@ -15778,6 +15823,15 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 class _WebGLShaderImpl implements WebGLShader native "*WebGLShader" {
 }
 
+class _WebGLShaderPrecisionFormatImpl implements WebGLShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
+}
+
 class _WebGLTextureImpl implements WebGLTexture native "*WebGLTexture" {
 }
 
@@ -15790,6 +15844,13 @@ class _WebGLVertexArrayObjectOESImpl implements WebGLVertexArrayObjectOES native
 class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
 
   final _CSSRuleListImpl cssRules;
+}
+
+class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
+
+  void disconnect() native;
+
+  List<MutationRecord> takeRecords() native;
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
@@ -16083,7 +16144,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, _ElementImpl element) native;
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
@@ -16814,10 +16875,13 @@ interface AbstractWorker extends EventTarget {
 
   AbstractWorkerEvents get on();
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -17168,17 +17232,17 @@ interface AudioContext {
 
   AudioGainNode createGainNode();
 
-  HighPass2FilterNode createHighPass2Filter();
-
   JavaScriptAudioNode createJavaScriptNode(int bufferSize);
 
-  LowPass2FilterNode createLowPass2Filter();
-
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
+
+  Oscillator createOscillator();
 
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();
+
+  WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
@@ -17798,6 +17862,12 @@ interface CSSPrimitiveValue extends CSSValue {
   static final int CSS_UNKNOWN = 0;
 
   static final int CSS_URI = 20;
+
+  static final int CSS_VH = 27;
+
+  static final int CSS_VMIN = 28;
+
+  static final int CSS_VW = 26;
 
   final int primitiveType;
 
@@ -20329,10 +20399,13 @@ interface DOMApplicationCache extends EventTarget {
 
   void abort();
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void swapCache();
@@ -20675,6 +20748,8 @@ interface DataTransferItem {
   Blob getAsFile();
 
   void getAsString([StringCallback callback]);
+
+  void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20976,6 +21051,7 @@ interface Document extends HtmlElement {
 
   String cookie;
 
+  /** @domName defaultView */
   final Window window;
 
   final Element documentElement;
@@ -21018,18 +21094,23 @@ interface Document extends HtmlElement {
 
   DocumentFragment createDocumentFragment();
 
+  /** @domName createElement */
   Element $dom_createElement(String tagName);
 
+  /** @domName createElementNS */
   Element $dom_createElementNS(String namespaceURI, String qualifiedName);
 
+  /** @domName createEvent */
   Event $dom_createEvent(String eventType);
 
   Range createRange();
 
+  /** @domName createTextNode */
   Text $dom_createTextNode(String data);
 
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
 
+  /** @domName createTouchList */
   TouchList $dom_createTouchList();
 
   Element elementFromPoint(int x, int y);
@@ -21038,12 +21119,16 @@ interface Document extends HtmlElement {
 
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
+  /** @domName getElementById */
   Element $dom_getElementById(String elementId);
 
+  /** @domName getElementsByClassName */
   NodeList $dom_getElementsByClassName(String tagname);
 
+  /** @domName getElementsByName */
   NodeList $dom_getElementsByName(String elementName);
 
+  /** @domName getElementsByTagName */
   NodeList $dom_getElementsByTagName(String tagname);
 
   bool queryCommandEnabled(String command);
@@ -21056,8 +21141,10 @@ interface Document extends HtmlElement {
 
   String queryCommandValue(String command);
 
+  /** @domName querySelector */
   Element query(String selectors);
 
+  /** @domName querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
   void webkitCancelFullScreen();
@@ -21185,8 +21272,10 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
 
   ElementEvents get on();
 
+  /** @domName querySelector */
   Element query(String selectors);
 
+  /** @domName querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
 }
@@ -21330,26 +21419,36 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
+  /** @domName childElementCount */
   final int $dom_childElementCount;
 
+  /** @domName children */
   final HTMLCollection $dom_children;
 
+  /** @domName className */
   String $dom_className;
 
+  /** @domName clientHeight */
   final int $dom_clientHeight;
 
+  /** @domName clientLeft */
   final int $dom_clientLeft;
 
+  /** @domName clientTop */
   final int $dom_clientTop;
 
+  /** @domName clientWidth */
   final int $dom_clientWidth;
 
   String contentEditable;
+
+  final Map<String, String> dataset;
 
   String dir;
 
   bool draggable;
 
+  /** @domName firstElementChild */
   final Element $dom_firstElementChild;
 
   bool hidden;
@@ -21362,30 +21461,39 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   String lang;
 
+  /** @domName lastElementChild */
   final Element $dom_lastElementChild;
 
   final Element nextElementSibling;
 
+  /** @domName offsetHeight */
   final int $dom_offsetHeight;
 
+  /** @domName offsetLeft */
   final int $dom_offsetLeft;
 
   final Element offsetParent;
 
+  /** @domName offsetTop */
   final int $dom_offsetTop;
 
+  /** @domName offsetWidth */
   final int $dom_offsetWidth;
 
   final String outerHTML;
 
   final Element previousElementSibling;
 
+  /** @domName scrollHeight */
   final int $dom_scrollHeight;
 
+  /** @domName scrollLeft */
   int $dom_scrollLeft;
 
+  /** @domName scrollTop */
   int $dom_scrollTop;
 
+  /** @domName scrollWidth */
   final int $dom_scrollWidth;
 
   bool spellcheck;
@@ -21410,16 +21518,22 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void focus();
 
+  /** @domName getAttribute */
   String $dom_getAttribute(String name);
 
+  /** @domName getBoundingClientRect */
   ClientRect $dom_getBoundingClientRect();
 
+  /** @domName getClientRects */
   ClientRectList $dom_getClientRects();
 
+  /** @domName getElementsByClassName */
   NodeList $dom_getElementsByClassName(String name);
 
+  /** @domName getElementsByTagName */
   NodeList $dom_getElementsByTagName(String name);
 
+  /** @domName hasAttribute */
   bool $dom_hasAttribute(String name);
 
   Element insertAdjacentElement(String where, Element element);
@@ -21428,20 +21542,26 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   void insertAdjacentText(String where, String text);
 
+  /** @domName querySelector */
   Element query(String selectors);
 
+  /** @domName querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
+  /** @domName removeAttribute */
   void $dom_removeAttribute(String name);
 
   void scrollByLines(int lines);
 
   void scrollByPages(int pages);
 
+  /** @domName scrollIntoViewIfNeeded */
   void scrollIntoView([bool centerIfNeeded]);
 
+  /** @domName setAttribute */
   void $dom_setAttribute(String name, String value);
 
+  /** @domName webkitMatchesSelector */
   bool matchesSelector(String selectors);
 
   void webkitRequestFullScreen(int flags);
@@ -21537,6 +21657,8 @@ interface ElementEvents extends Events {
   EventListenerList get touchCancel();
 
   EventListenerList get touchEnd();
+
+  EventListenerList get touchEnter();
 
   EventListenerList get touchLeave();
 
@@ -21819,6 +21941,7 @@ interface Event default _EventFactoryProvider {
 
   final String type;
 
+  /** @domName initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
 
   void preventDefault();
@@ -21871,12 +21994,15 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   final String url;
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -21910,10 +22036,13 @@ interface EventTarget {
 
   final Events on;
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
 }
@@ -21924,6 +22053,8 @@ interface EventTarget {
 // WARNING: Do not edit - generated code.
 
 interface FieldSetElement extends Element {
+
+  bool disabled;
 
   final FormElement form;
 
@@ -22511,18 +22642,6 @@ interface HeadingElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface HighPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface History {
 
   final int length;
@@ -22630,18 +22749,6 @@ interface IDBDatabase {
   IDBVersionChangeRequest setVersion(String version);
 
   IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface IDBDatabaseError {
-
-  int code;
-
-  String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22916,6 +23023,8 @@ interface IFrameElement extends Element {
   String scrolling;
 
   String src;
+
+  String srcdoc;
 
   String width;
 
@@ -23411,18 +23520,6 @@ interface Location {
 
 // WARNING: Do not edit - generated code.
 
-interface LowPass2FilterNode extends AudioNode {
-
-  final AudioParam cutoff;
-
-  final AudioParam resonance;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface MapElement extends Element {
 
   final HTMLCollection areas;
@@ -23843,14 +23940,17 @@ interface MessagePort extends EventTarget {
 
   MessagePortEvents get on();
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
   void postMessage(String message, [List messagePorts]);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
@@ -23979,7 +24079,16 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
   final int y;
 
+  /** @domName initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationCallback {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24006,6 +24115,32 @@ interface MutationEvent extends Event {
   final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationRecord {
+
+  final NodeList addedNodes;
+
+  final String attributeName;
+
+  final String attributeNamespace;
+
+  final Node nextSibling;
+
+  final String oldValue;
+
+  final Node previousSibling;
+
+  final NodeList removedNodes;
+
+  final Node target;
+
+  final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24155,28 +24290,40 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
+  /** @domName attributes */
   final NamedNodeMap $dom_attributes;
 
+  /** @domName childNodes */
   final NodeList $dom_childNodes;
 
+  /** @domName firstChild */
   final Node $dom_firstChild;
 
+  /** @domName lastChild */
   final Node $dom_lastChild;
 
+  /** @domName nextSibling */
   final Node nextNode;
 
+  /** @domName nodeType */
   final int $dom_nodeType;
 
+  /** @domName ownerDocument */
   final Document document;
 
+  /** @domName parentNode */
   final Node parent;
 
+  /** @domName previousSibling */
   final Node previousNode;
 
+  /** @domName textContent */
   String text;
 
+  /** @domName appendChild */
   Node $dom_appendChild(Node newChild);
 
+  /** @domName cloneNode */
   Node clone(bool deep);
 
   bool contains(Node other);
@@ -24185,8 +24332,10 @@ interface Node extends EventTarget {
 
   Node insertBefore(Node newChild, Node refChild);
 
+  /** @domName removeChild */
   Node $dom_removeChild(Node oldChild);
 
+  /** @domName replaceChild */
   Node $dom_replaceChild(Node newChild, Node oldChild);
 
 }
@@ -24288,8 +24437,10 @@ interface NodeSelector {
   // ElementList queryAll(String selectors);
 
 
+  /** @domName querySelector */
   Element query(String selectors);
 
+  /** @domName querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
 }
@@ -24317,9 +24468,9 @@ interface Notification extends EventTarget {
 
   String dir;
 
-  String replaceId;
+  String tag;
 
-  void cancel();
+  void close();
 
   void show();
 }
@@ -24519,6 +24670,32 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
   bool selected;
 
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Oscillator extends AudioSourceNode {
+
+  static final int CUSTOM = 4;
+
+  static final int SAWTOOTH = 2;
+
+  static final int SINE = 0;
+
+  static final int SQUARE = 1;
+
+  static final int TRIANGLE = 3;
+
+  final AudioParam detune;
+
+  final AudioParam frequency;
+
+  int type;
+
+  void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25580,6 +25757,7 @@ interface SVGDocument extends Document {
 
   final SVGSVGElement rootElement;
 
+  /** @domName createEvent */
   Event $dom_createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25629,10 +25807,13 @@ interface SVGElementInstance extends EventTarget {
 
   final SVGElementInstance previousSibling;
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -27486,6 +27667,7 @@ interface SVGStringList {
 
 interface SVGStylable {
 
+  /** @domName className */
   final SVGAnimatedString $dom_svgClassName;
 
   final CSSStyleDeclaration style;
@@ -28287,16 +28469,22 @@ interface SpeechRecognitionResultList {
 
 interface Storage extends Map<String, String> {
 
+  /** @domName length */
   final int $dom_length;
 
+  /** @domName clear */
   void $dom_clear();
 
+  /** @domName getItem */
   String $dom_getItem(String key);
 
+  /** @domName key */
   String $dom_key(int index);
 
+  /** @domName removeItem */
   void $dom_removeItem(String key);
 
+  /** @domName setItem */
   void $dom_setItem(String key, String data);
 
 }
@@ -28826,6 +29014,13 @@ interface TimeRanges {
 
   num start(int index);
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef void TimeoutHandler();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29196,6 +29391,14 @@ typedef void VoidCallback();
 interface WaveShaperNode extends AudioNode {
 
   Float32Array curve;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WaveTable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30065,6 +30268,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
+
   String getShaderSource(WebGLShader shader);
 
   Object getTexParameter(int target, int pname);
@@ -30211,6 +30416,20 @@ interface WebGLShader {
 
 // WARNING: Do not edit - generated code.
 
+interface WebGLShaderPrecisionFormat {
+
+  final int precision;
+
+  final int rangeMax;
+
+  final int rangeMin;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30238,6 +30457,18 @@ interface WebGLVertexArrayObjectOES {
 interface WebKitCSSRegionRule extends CSSRule {
 
   final CSSRuleList cssRules;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebKitMutationObserver {
+
+  void disconnect();
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30285,12 +30516,15 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   final String url;
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close([int code, String reason]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool send(String data);
@@ -30470,6 +30704,7 @@ interface Window extends EventTarget {
 
   final Window window;
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void alert(String message);
@@ -30490,12 +30725,14 @@ interface Window extends EventTarget {
 
   bool confirm(String message);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
   void focus();
 
+  /** @domName getComputedStyle */
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
@@ -30520,6 +30757,7 @@ interface Window extends EventTarget {
 
   void releaseEvents();
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void resizeBy(num x, num y);
@@ -30550,7 +30788,7 @@ interface Window extends EventTarget {
 
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 
@@ -30878,8 +31116,10 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void abort();
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
   String getAllResponseHeaders();
@@ -30890,6 +31130,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void overrideMimeType(String override);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void send([var data]);
@@ -30955,10 +31196,13 @@ interface XMLHttpRequestUpload extends EventTarget {
 
   XMLHttpRequestUploadEvents get on();
 
+  /** @domName addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -31683,11 +31927,6 @@ interface ReadyState {
    */
   static final String COMPLETE = "complete";
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-typedef void TimeoutHandler();
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

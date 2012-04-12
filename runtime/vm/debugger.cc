@@ -4,7 +4,6 @@
 
 #include "vm/debugger.h"
 
-#include "vm/code_index_table.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -101,10 +100,9 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp)
 
 const Function& ActivationFrame::DartFunction() {
   if (function_.IsNull()) {
-    ASSERT(Isolate::Current() != NULL);
-    CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-    ASSERT(code_index_table != NULL);
-    const Code& code = Code::Handle(code_index_table->LookupCode(pc_));
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate != NULL);
+    const Code& code = Code::Handle(StackFrame::LookupCode(isolate, pc_));
     function_ = code.function();
   }
   return function_;
@@ -737,9 +735,23 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
 
 RawObject* Debugger::GetStaticField(const Class& cls,
                                     const String& field_name) {
+  const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
+  if (!fld.IsNull()) {
+    // Return the value in the field if it has been initialized already.
+    const Instance& value = Instance::Handle(fld.value());
+    ASSERT(value.raw() != Object::transition_sentinel());
+    if (value.raw() != Object::sentinel()) {
+      return value.raw();
+    }
+  }
+  // There is no field or the field has not been initialized yet.
+  // We must have a getter. Run the getter.
   const Function& getter_func =
       Function::Handle(cls.LookupGetterFunction(field_name));
   ASSERT(!getter_func.IsNull());
+  if (getter_func.IsNull()) {
+    return Object::null();
+  }
 
   Object& result = Object::Handle();
   LongJump* base = isolate_->long_jump_base();

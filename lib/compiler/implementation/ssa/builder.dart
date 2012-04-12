@@ -629,7 +629,8 @@ interface JumpHandler default JumpHandlerImpl {
   void generateBreak([LabelElement label]);
   void generateContinue([LabelElement label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
-  void forEachContinue(void action(HBreak instruction, LocalsHandler locals));
+  void forEachContinue(void action(HContinue instruction,
+                                   LocalsHandler locals));
   void close();
   final TargetElement target;
   List<LabelElement> labels();
@@ -1605,34 +1606,44 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  void generateGetter(Send send, Element element) {
+  HInstruction generateInstanceSendReceiver(Send send) {
+    assert(Elements.isInstanceSend(send, elements));
+    if (send.receiver == null) {
+      return localsHandler.readThis();
+    }
+    visit(send.receiver);
+    return pop();
+  }
+
+  void generateInstanceGetterWithCompiledReceiver(Send send,
+                                                  HInstruction receiver) {
+    assert(Elements.isInstanceSend(send, elements));
+    SourceString getterName = send.selector.asIdentifier().source;
     Selector selector = elements.getSelector(send);
+    Element staticInterceptor = null;
+    if (methodInterceptionEnabled) {
+      staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
+    }
+    if (staticInterceptor != null) {
+      HStatic target = new HStatic(staticInterceptor);
+      add(target);
+      List<HInstruction> inputs = <HInstruction>[target, receiver];
+      push(new HInvokeInterceptor(selector, getterName, true, inputs));
+    } else {
+      push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
+    }
+  }
+
+  void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
+      Selector selector = elements.getSelector(send);
       push(new HStatic(element));
       if (element.kind == ElementKind.GETTER) {
         push(new HInvokeStatic(selector, <HInstruction>[pop()]));
       }
     } else if (Elements.isInstanceSend(send, elements)) {
-      HInstruction receiver;
-      if (send.receiver == null) {
-        receiver = localsHandler.readThis();
-      } else {
-        visit(send.receiver);
-        receiver = pop();
-      }
-      SourceString getterName = send.selector.asIdentifier().source;
-      Element staticInterceptor = null;
-      if (methodInterceptionEnabled) {
-        staticInterceptor = interceptors.getStaticGetInterceptor(getterName);
-      }
-      if (staticInterceptor != null) {
-        HStatic target = new HStatic(staticInterceptor);
-        add(target);
-        List<HInstruction> inputs = <HInstruction>[target, receiver];
-        push(new HInvokeInterceptor(selector, getterName, true, inputs));
-      } else {
-        push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
-      }
+      HInstruction receiver = generateInstanceSendReceiver(send);
+      generateInstanceGetterWithCompiledReceiver(send, receiver);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
       push(new HStatic(element));
       compiler.registerGetOfStaticFunction(element);
@@ -1641,9 +1652,31 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  void generateSetter(SendSet send, Element element, HInstruction value) {
+  void generateInstanceSetterWithCompiledReceiver(Send send,
+                                                  HInstruction receiver,
+                                                  HInstruction value) {
+    assert(Elements.isInstanceSend(send, elements));
+    SourceString dartSetterName = send.selector.asIdentifier().source;
     Selector selector = elements.getSelector(send);
+    Element staticInterceptor = null;
+    if (methodInterceptionEnabled) {
+      staticInterceptor = interceptors.getStaticSetInterceptor(dartSetterName);
+    }
+    if (staticInterceptor != null) {
+      HStatic target = new HStatic(staticInterceptor);
+      add(target);
+      List<HInstruction> inputs = <HInstruction>[target, receiver, value];
+      add(new HInvokeInterceptor(selector, dartSetterName, false, inputs));
+    } else {
+      add(new HInvokeDynamicSetter(selector, null, dartSetterName,
+                                   receiver, value));
+    }
+    stack.add(value);
+  }
+
+  void generateSetter(SendSet send, Element element, HInstruction value) {
     if (Elements.isStaticOrTopLevelField(element)) {
+      Selector selector = elements.getSelector(send);
       if (element.kind == ElementKind.SETTER) {
         HStatic target = new HStatic(element);
         add(target);
@@ -1653,29 +1686,8 @@ class SsaBuilder implements Visitor {
       }
       stack.add(value);
     } else if (element === null || Elements.isInstanceField(element)) {
-      SourceString dartSetterName = send.selector.asIdentifier().source;
-      HInstruction receiver;
-      if (send.receiver == null) {
-        receiver = localsHandler.readThis();
-      } else {
-        visit(send.receiver);
-        receiver = pop();
-      }
-      Element staticInterceptor = null;
-      if (methodInterceptionEnabled) {
-        staticInterceptor =
-          interceptors.getStaticSetInterceptor(dartSetterName);
-      }
-      if (staticInterceptor != null) {
-        HStatic target = new HStatic(staticInterceptor);
-        add(target);
-        List<HInstruction> inputs = <HInstruction>[target, receiver, value];
-        add(new HInvokeInterceptor(selector, dartSetterName, false, inputs));
-      } else {
-        add(new HInvokeDynamicSetter(selector, null, dartSetterName,
-                                     receiver, value));
-      }
-      stack.add(value);
+      HInstruction receiver = generateInstanceSendReceiver(send);
+      generateInstanceSetterWithCompiledReceiver(send, receiver, value);
     } else {
       localsHandler.updateLocal(element, value);
       stack.add(value);
@@ -1973,7 +1985,8 @@ class SsaBuilder implements Visitor {
 
   void handleForeignDartClosureToJs(Send node) {
     if (node.arguments.isEmpty() || !node.arguments.tail.isEmpty()) {
-      compiler.cancel('Exactly one argument required', node: node.arguments);
+      compiler.cancel('Exactly one argument required',
+                      node: node.argumentsNode);
     }
     Node closure = node.arguments.head;
     Element element = elements[closure];
@@ -1983,7 +1996,7 @@ class SsaBuilder implements Visitor {
           node: closure);
     }
     FunctionElement function = element;
-    FunctionParameters parameters = element.computeParameters(compiler);
+    FunctionParameters parameters = function.computeParameters(compiler);
     if (parameters.optionalParameterCount !== 0) {
       compiler.cancel(
           'JS_TO_CLOSURE does not handle closure with optional parameters',
@@ -2032,7 +2045,7 @@ class SsaBuilder implements Visitor {
       Identifier identifier = node.selector.asIdentifier();
       String name = identifier.source.slowToString();
       // TODO(ahe): Add the arguments to this list.
-      push(new HLiteralList([], true));
+      push(new HLiteralList([]));
       var inputs = <HInstruction>[
           target,
           self,
@@ -2199,7 +2212,15 @@ class SsaBuilder implements Visitor {
       Element element = elements[node];
       bool isCompoundAssignment = !node.arguments.isEmpty();
       bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
-      generateGetter(node, elements[node.selector]);
+
+      // [receiver] is only used if the node is an instance send.
+      HInstruction receiver = null;
+      if (Elements.isInstanceSend(node, elements)) {
+        receiver = generateInstanceSendReceiver(node);
+        generateInstanceGetterWithCompiledReceiver(node, receiver);
+      } else {
+        generateGetter(node, elements[node.selector]);
+      }
       HInstruction left = pop();
       HInstruction right;
       if (isCompoundAssignment) {
@@ -2211,7 +2232,13 @@ class SsaBuilder implements Visitor {
       visitBinary(left, op, right);
       HInstruction operation = pop();
       assert(operation !== null);
-      generateSetter(node, element, operation);
+      if (Elements.isInstanceSend(node, elements)) {
+        assert(receiver !== null);
+        generateInstanceSetterWithCompiledReceiver(node, receiver, operation);
+      } else {
+        assert(receiver === null);
+        generateSetter(node, element, operation);
+      }
       if (!isPrefix) {
         pop();
         stack.add(left);
@@ -2333,7 +2360,7 @@ class SsaBuilder implements Visitor {
       visit(link.head);
       inputs.add(pop());
     }
-    push(new HLiteralList(inputs, node.isConst()));
+    push(new HLiteralList(inputs));
   }
 
   visitConditional(Conditional node) {
@@ -2551,7 +2578,7 @@ class SsaBuilder implements Visitor {
       inputs.addLast(pop());
       inputs.addLast(pop());
     }
-    HLiteralList keyValuePairs = new HLiteralList(inputs, node.isConst());
+    HLiteralList keyValuePairs = new HLiteralList(inputs);
     HStatic mapMaker = new HStatic(interceptors.getMapMaker());
     add(keyValuePairs);
     add(mapMaker);
@@ -2881,7 +2908,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   visitNode(Node node) {
-    compiler.internalError('unexpected node', node: node);
+    builder.compiler.internalError('unexpected node', node: node);
   }
 
   void visitExpression(Node node) {

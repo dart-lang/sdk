@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,9 +8,9 @@ import java.util.List;
 
 /**
  * A visitor for abstract syntax tree.
- * 
+ *
  * <pre>
- * 
+ *
  * public R visitArrayAccess(DartArrayAccess node) {
  *   // Actions before visiting subnodes.
  *   node.visitChildren(this);
@@ -18,13 +18,13 @@ import java.util.List;
  *   return node;
  * }
  * </pre>
- * 
+ *
  * <p>
  * In addition, this visitor takes advantage of the AST-node class hierarchy and makes it easy to
  * perform an action for, for example, all statements:
- * 
+ *
  * <pre>
- * 
+ *
  * public R visitStatement(DartStatement node) {
  *   // Action that must be performed for all statements.
  * }
@@ -289,6 +289,10 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
+  public R visitSyntheticErrorIdentifier(DartSyntheticErrorIdentifier node) {
+    return visitIdentifier(node);
+  }
+
   public R visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
     return visitStatement(node);
   }
@@ -355,5 +359,5 @@ public class ASTVisitor<R> {
 
   public R visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
     return visitInvocation(node);
-  }
+  } 
 }

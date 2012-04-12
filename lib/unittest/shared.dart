@@ -3,6 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * This file is sourced from unittest_html, unittest_dom, and unittest_vm.
+ * These libraries shold also source 'config.dart' and should define a class
+ * called [PlatformConfiguration] that implements [Configuration].
+ */
+
+/** [Configuration] used by the unittest library. */
+Configuration _config = null;
+
+/**
  * Description text of the current test group. If multiple groups are nested,
  * this will contain all of their text concatenated.
  */
@@ -16,9 +25,6 @@ List<TestCase> _tests;
  * if they want.
  */
 Function _testRunner;
-
-/** Whether this is run within dartium layout tests. */
-bool _isLayoutTest = false;
 
 /** Current test being executed. */
 int _currentTest = 0;
@@ -86,21 +92,6 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
   }
 }
 
-void serialInvokeAsync(List closures) {
-  final length = closures.length;
-  if (length > 0) {
-    int i = 0;
-    void invokeNext() {
-      closures[i]();
-      i++;
-      if (i < length) {
-        window.setTimeout(invokeNext, 0);
-      }
-    }
-    window.setTimeout(invokeNext, 0);
-  }
-}
-
 /**
  * Creates a new named group of tests. Calls to group() or test() within the
  * body of the function passed to this will inherit this group's description.
@@ -148,15 +139,24 @@ void callbackDone() {
   }
 }
 
-void forLayoutTests() {
-  _isLayoutTest = true;
+/** Runs [callback] at the end of the event loop. */
+_defer(void callback()) {
+  // Exploit isolate ports as a platform-independent mechanism to queue a
+  // message at the end of the event loop.
+  // TODO(sigmund): expose this functionality somewhere in our libraries.
+  final port = new ReceivePort();
+  port.receive((msg, reply) {
+    callback();
+    port.close();
+  });
+  port.toSendPort().send(null, null);
 }
 
 /** Runs all queued tests, one at a time. */
 _runTests() {
-  _platformStartTests();
+  _config.onStart();
 
-  _platformDefer(() {
+  _defer(() {
     assert (_currentTest == 0);
     _testRunner();
   });
@@ -226,7 +226,7 @@ _completeTests() {
     }
   }
 
-  _platformCompleteTests(testsPassed_, testsFailed_, testsErrors_);
+  _config.onDone(testsPassed_, testsFailed_, testsErrors_, _tests);
 }
 
 String _fullSpec(String spec) {
@@ -245,11 +245,16 @@ _ensureInitialized() {
   _state = _READY;
   _testRunner = _nextBatch;
 
-  _platformInitialize();
+  if (_config == null) {
+    // TODO(sigmund): make this [new Configuration], set configuration
+    // for each platform in test.dart
+    _config = new PlatformConfiguration();
+  }
+  _config.onInit();
 
   // Immediately queue the suite up. It will run after a timeout (i.e. after
   // main() has returned).
-  _platformDefer(_runTests);
+  _defer(_runTests);
 }
 
 /**

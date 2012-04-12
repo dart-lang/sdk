@@ -94,7 +94,7 @@ class ClassFinalizer : public AllStatic {
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
   static void ResolveSuperType(const Class& cls);
-  static void ResolveDefaultClass(const Class& cls);
+  static void ResolveFactoryClass(const Class& cls);
   static void ResolveInterfaces(const Class& cls,
                                 const GrowableObjectArray& visited);
   static void FinalizeTypeParameters(const Class& cls);

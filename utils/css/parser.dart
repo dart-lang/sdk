@@ -568,14 +568,14 @@ class Parser {
         // :pseudo-class ::pseudo-element
         // TODO(terry): '::' should be token.
         _eat(TokenKind.COLON);
-        bool pseudoClass = _peek() != TokenKind.COLON;
+        bool pseudoElement = _maybeEat(TokenKind.COLON);
         var name = identifier();
         // TODO(terry): Need to handle specific pseudo class/element name and
         // backward compatible names that are : as well as :: as well as
         // parameters.
-        return pseudoClass ?
-            new PseudoClassSelector(name, _makeSpan(start)) :
-            new PseudoElementSelector(name, _makeSpan(start));
+        return pseudoElement ?
+            new PseudoElementSelector(name, _makeSpan(start)) :
+            new PseudoClassSelector(name, _makeSpan(start));
       case TokenKind.LBRACK:
         return processAttribute();
     }
@@ -817,7 +817,7 @@ class Parser {
           int colorValue = TokenKind.matchColorName(nameValue.name);
 
           // Yes, process the color as an RGB value.
-          String rgbColor = TokenKind.decimalToHex(colorValue);
+          String rgbColor = TokenKind.decimalToHex(colorValue, 3);
           try {
             colorValue = parseHex(rgbColor);
           } catch (HexNumberException hne) {

@@ -14,6 +14,7 @@ namespace dart {
 
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
+static Dart_Handle script_lib = NULL;
 
 static const bool verbose = true;
 
@@ -24,8 +25,30 @@ static const bool verbose = true;
   EXPECT(!Dart_IsError(handle));
 
 
-static Dart_Handle Invoke(Dart_Handle lib, const char* func_name) {
-  return  Dart_InvokeStatic(lib,
+static void LoadScript(const char* source) {
+  script_lib = TestCase::LoadTestScript(source, NULL);
+  EXPECT(!Dart_IsError(script_lib));
+}
+
+
+static void SetBreakpointAtEntry(const char* cname, const char* fname) {
+  ASSERT(script_lib != NULL);
+  ASSERT(!Dart_IsError(script_lib));
+  ASSERT(Dart_IsLibrary(script_lib));
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(script_lib,
+                        Dart_NewString(cname),
+                        Dart_NewString(fname),
+                        &bpt);
+  EXPECT_NOT_ERROR(res);
+}
+
+
+static Dart_Handle Invoke(const char* func_name) {
+  ASSERT(script_lib != NULL);
+  ASSERT(!Dart_IsError(script_lib));
+  ASSERT(Dart_IsLibrary(script_lib));
+  return  Dart_InvokeStatic(script_lib,
                             Dart_NewString(""),
                             Dart_NewString(func_name),
                             0,
@@ -218,19 +241,12 @@ TEST_CASE(Debug_Breakpoint) {
       "  A.foo();             \n"
       "}                      \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&TestBreakpointHandler);
-
-  Dart_Handle c_name = Dart_NewString("A");
-  Dart_Handle f_name = Dart_NewString("foo");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("A", "foo");
 
   breakpoint_hit = false;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(breakpoint_hit == true);
 }
@@ -278,23 +294,17 @@ TEST_CASE(Debug_StepOut) {
       "  return foo();          \n"
       "}                        \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&TestStepOutHandler);
 
   // Set a breakpoint in function f1, then repeatedly step out until
   // we get to main. We should see one breakpoint each in f1,
   // foo, main, but not in f2.
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("f1");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "f1");
 
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
@@ -371,23 +381,17 @@ TEST_CASE(Debug_StepInto) {
       "  return foo();          \n"
       "}                        \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&TestStepIntoHandler);
 
   // Set a breakpoint in function f1, then repeatedly step out until
   // we get to main. We should see one breakpoint each in f1,
   // foo, main, but not in f2.
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("main");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "main");
 
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
@@ -423,20 +427,14 @@ TEST_CASE(Debug_IgnoreBP) {
       "  return x.i + 1;        \n"
       "}                        \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&StepIntoHandler);
 
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("main");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "main");
 
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
@@ -460,26 +458,21 @@ TEST_CASE(Debug_DeoptimizeFunction) {
       "  return foo(99);        \n"
       "}                        \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&StepIntoHandler);
 
 
   // Cause function foo to be optimized before we set a BP.
-  Dart_Handle res = Invoke(lib, "warmup");
+  Dart_Handle res = Invoke("warmup");
   EXPECT_NOT_ERROR(res);
 
   // Now set breakpoint in main and then step into optimized function foo.
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("main");
-  Dart_Breakpoint bpt;
-  res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "main");
+
 
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
@@ -532,20 +525,14 @@ TEST_CASE(Debug_SingleStep) {
       "  foo();                  \n"
       "}                         \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&TestSingleStepHandler);
 
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("moo");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "moo");
 
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT_NOT_ERROR(retval);
   EXPECT(breakpoint_hit == true);
 }
@@ -589,19 +576,13 @@ TEST_CASE(Debug_ClosureBreakpoint) {
       "  return 442;          \n"
       "}                      \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&ClosureBreakpointHandler);
 
-  Dart_Handle c_name = Dart_NewString("");
-  Dart_Handle f_name = Dart_NewString("callback");
-  Dart_Breakpoint bpt;
-  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
-  EXPECT_NOT_ERROR(res);
+  SetBreakpointAtEntry("", "callback");
 
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT_NOT_ERROR(retval);
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -630,9 +611,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
       "  return c(10, 20);    \n"
       "}                      \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
-
+  LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&ExprClosureBreakpointHandler);
 
   Dart_Handle script_url = Dart_NewString(TestCase::url());
@@ -642,7 +621,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   EXPECT_NOT_ERROR(res);
 
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT_NOT_ERROR(retval);
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -696,8 +675,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
       "  foo();               \n"
       "}                      \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
+  LoadScript(kScriptChars);
 
   Dart_Handle script_url = Dart_NewString(TestCase::url());
   Dart_Handle line_no = Dart_NewInteger(4);  // In function 'foo'.
@@ -712,9 +690,91 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   // breakpoint is removed by the handler, so we expect the breakpoint
   // to fire twice only.
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Invoke(lib, "main");
+  Dart_Handle retval = Invoke("main");
   EXPECT(!Dart_IsError(retval));
   EXPECT_EQ(2, breakpoint_hit_counter);
+}
+
+
+static void InspectStaticFieldHandler(Dart_Breakpoint bpt,
+                                      Dart_StackTrace trace) {
+  ASSERT(script_lib != NULL);
+  ASSERT(!Dart_IsError(script_lib));
+  ASSERT(Dart_IsLibrary(script_lib));
+  Dart_Handle class_A = Dart_GetClass(script_lib, Dart_NewString("A"));
+  EXPECT(!Dart_IsError(class_A));
+
+  const int expected_num_fields = 2;
+  struct {
+    const char* field_name;
+    const char* field_value;
+  } expected[] = {
+    // Expected values at first breakpoint.
+    { "bla", "yada yada yada"},
+    { "u", "null" },
+    // Expected values at second breakpoint.
+    { "bla", "silence is golden" },
+    { "u", "442" }
+  };
+  ASSERT(breakpoint_hit_counter < 2);
+  int expected_idx = breakpoint_hit_counter * expected_num_fields;
+  breakpoint_hit_counter++;
+
+  Dart_Handle fields = Dart_GetStaticFields(class_A);
+  ASSERT(!Dart_IsError(fields));
+  ASSERT(Dart_IsList(fields));
+
+  intptr_t list_length = 0;
+  Dart_Handle retval = Dart_ListLength(fields, &list_length);
+  EXPECT_NOT_ERROR(retval);
+  int num_fields = list_length / 2;
+  OS::Print("Class A has %d fields:\n", num_fields);
+  ASSERT(expected_num_fields == num_fields);
+
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(fields, i);
+    EXPECT_NOT_ERROR(name_handle);
+    EXPECT(Dart_IsString(name_handle));
+    char const* name;
+    Dart_StringToCString(name_handle, &name);
+    EXPECT_STREQ(expected[expected_idx].field_name, name);
+    Dart_Handle value_handle = Dart_ListGetAt(fields, i + 1);
+    EXPECT_NOT_ERROR(value_handle);
+    value_handle = Dart_ToString(value_handle);
+    EXPECT_NOT_ERROR(value_handle);
+    EXPECT(Dart_IsString(value_handle));
+    char const* value;
+    Dart_StringToCString(value_handle, &value);
+    EXPECT_STREQ(expected[expected_idx].field_value, value);
+    OS::Print("  %s: %s\n", name, value);
+    expected_idx++;
+  }
+}
+
+
+TEST_CASE(Debug_InspectStaticField) {
+  const char* kScriptChars =
+    " class A {                                 \n"
+    "   static var bla = 'yada yada yada';      \n"
+    "   static var u;                           \n"
+    " }                                         \n"
+    "                                           \n"
+    " debugBreak() { }                          \n"
+    " main() {                                  \n"
+    "   var a = new A();                        \n"
+    "   debugBreak();                           \n"
+    "   A.u = 442;                              \n"
+    "   A.bla = 'silence is golden';            \n"
+    "   debugBreak();                           \n"
+    " }                                         \n";
+
+  LoadScript(kScriptChars);
+  Dart_SetBreakpointHandler(&InspectStaticFieldHandler);
+  SetBreakpointAtEntry("", "debugBreak");
+
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke("main");
+  EXPECT(!Dart_IsError(retval));
 }
 
 
@@ -736,10 +796,9 @@ TEST_CASE(Debug_InspectObject) {
   // Number of instance fields in an object of class B.
   const intptr_t kNumObjectFields = 3;
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_NOT_ERROR(lib);
+  LoadScript(kScriptChars);
 
-  Dart_Handle object_b = Invoke(lib, "get_b");
+  Dart_Handle object_b = Invoke("get_b");
 
   EXPECT_NOT_ERROR(object_b);
 
@@ -769,7 +828,7 @@ TEST_CASE(Debug_InspectObject) {
   }
 
   // Check that an integer value returns an empty list of fields.
-  Dart_Handle triple_six = Invoke(lib, "get_int");
+  Dart_Handle triple_six = Invoke("get_int");
   EXPECT_NOT_ERROR(triple_six);
   EXPECT(Dart_IsInteger(triple_six));
   int64_t int_value = 0;
@@ -855,10 +914,10 @@ TEST_CASE(Debug_LookupSourceLine) {
   /*9*/  "}                         \n"
   /*10*/ "                          \n";
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT(!Dart_IsError(lib));
+  LoadScript(kScriptChars);
 
-  const Library& test_lib = Library::CheckedHandle(Api::UnwrapHandle(lib));
+  const Library& test_lib =
+      Library::CheckedHandle(Api::UnwrapHandle(script_lib));
   const String& script_url = String::Handle(String::New(TestCase::url()));
   Function& func = Function::Handle();
 

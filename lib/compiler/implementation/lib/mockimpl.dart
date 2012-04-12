@@ -388,7 +388,7 @@ class DateImplementation implements Date {
   var _asJs() => Primitives.lazyAsJsDate(this);
 }
 
-class ListFactory<E> implements List<E> {
+class ListFactory<E> {
   factory List([int length]) => Primitives.newList(length);
   factory List.from(Iterable<E> other) {
     List<E> result = new List<E>();

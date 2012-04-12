@@ -8,6 +8,7 @@ class _Platform implements Platform {
   static int _numberOfProcessors() native "Platform_NumberOfProcessors";
   static String _pathSeparator() native "Platform_PathSeparator";
   static String _operatingSystem() native "Platform_OperatingSystem";
+  static _localHostname() native "Platform_LocalHostname";
 
   int numberOfProcessors() {
     return _numberOfProcessors();
@@ -19,5 +20,14 @@ class _Platform implements Platform {
 
   String operatingSystem() {
     return _operatingSystem();
+  }
+
+  String localHostname() {
+    var result = _localHostname();
+    if (result is OSError) {
+      throw result;
+    } else {
+      return result;
+    }
   }
 }

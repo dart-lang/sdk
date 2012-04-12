@@ -4,10 +4,10 @@
 
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_index_table.h"
 #include "vm/compiler.h"
 #include "vm/object.h"
 #include "vm/pages.h"
+#include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -35,9 +35,8 @@ TEST_CASE(CodeIndexTable) {
   char buffer[256];
 
   // Get access to the code index table.
-  ASSERT(Isolate::Current() != NULL);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
 
   lib = Library::CoreLibrary();
 
@@ -126,7 +125,7 @@ TEST_CASE(CodeIndexTable) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(code_index_table->LookupCode(pc) == code.raw());
+  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
 
   OS::SNPrint(buffer, 256, "moo%d", 54);
   function_name = String::New(buffer);
@@ -135,7 +134,7 @@ TEST_CASE(CodeIndexTable) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-  EXPECT(code_index_table->LookupCode(pc) == code.raw());
+  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
 
   // Lookup the large function
   OS::SNPrint(buffer, 256, "moo%d", 0);
@@ -146,10 +145,10 @@ TEST_CASE(CodeIndexTable) {
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
   EXPECT(code.Size() > PageSpace::kPageSize);
-  EXPECT(code_index_table->LookupCode(pc) == code.raw());
+  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
-  EXPECT(code_index_table->LookupCode(pc) == code.raw());
+  EXPECT(StackFrame::LookupCode(isolate, pc) == code.raw());
 }
 
 #endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64

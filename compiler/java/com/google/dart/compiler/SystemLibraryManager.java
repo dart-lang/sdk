@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler;
 
-import com.google.common.collect.Lists;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,26 +25,26 @@ import java.util.Properties;
  * Manages the collection of {@link SystemLibrary}s.
  */
 public class SystemLibraryManager {
-  
+
   public static class NotADartShortUriException extends RuntimeException {
-    
+
     public NotADartShortUriException(String uriString) {
       super("Expected dart:<short name>, got: " + uriString);
     }
-    
+
     public NotADartShortUriException(URI uri) {
       super("Expected dart:<short name>, got: " + uri.toString());
     }
   }
-  
+
   /**
    * The "any" platform is meant to have definitions for all known dart system libraries.
    * Other implementations may only contain a subset.
    */
   public static final String DEFAULT_PLATFORM = "any";
-  public static final File DEFAULT_SDK_PATH = 
+  public static final File DEFAULT_SDK_PATH =
       new File(System.getProperty("com.google.dart.sdk", "../"));
-                                                       
+
   private static final String DART_SCHEME = "dart";
   private static final String DART_SCHEME_SPEC = "dart:";
   private static final String IMPORT_CONFIG = "import_%s.config";
@@ -63,13 +61,13 @@ public class SystemLibraryManager {
   public static boolean isDartUri(URI uri) {
     return uri != null && DART_SCHEME.equals(uri.getScheme());
   }
-  
+
   private HashMap<String, String> expansionMap;
   private Map<String, SystemLibrary> hostMap;
   private final File sdkLibPath;
   private final URI sdkLibPathUri;
   private final String platformName;
-  
+
   private Map<URI, URI> longToShortUriMap;
 
   private List<SystemLibrary> libraries;
@@ -88,10 +86,10 @@ public class SystemLibraryManager {
   /**
    * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
    * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart").
-   * 
+   *
    * @param uri the relative URI
-   * @return the expanded URI 
-   *  or the original URI if it could not be expanded 
+   * @return the expanded URI
+   *  or the original URI if it could not be expanded
    *  or null if the uri is of the form "dart:<libname>" but does not correspond to a system library
    */
   public URI expandRelativeDartUri(URI uri) throws AssertionError {
@@ -116,7 +114,7 @@ public class SystemLibraryManager {
 
   /**
    * Answer a collection of all bundled library URL specs (e.g. "dart:dom").
-   * 
+   *
    * @return a collection of specs (not <code>null</code>, contains no <code>null</code>s)
    */
   public Collection<String> getAllLibrarySpecs() {
@@ -128,10 +126,10 @@ public class SystemLibraryManager {
   }
 
   protected InputStream getImportConfigStream() {
-    File file = new File(new File(sdkLibPath, "config"), 
+    File file = new File(new File(sdkLibPath, "config"),
                          String.format(IMPORT_CONFIG, platformName));
     if (!file.exists()) {
-      throw new InternalCompilerException("Failed to find " + file.toString() 
+      throw new InternalCompilerException("Failed to find " + file.toString()
                                           + ".  Is dart-sdk path correct?");
     }
     try {
@@ -140,7 +138,7 @@ public class SystemLibraryManager {
       throw new InternalCompilerException("Failed to open " + file);
     }
   }
-  
+
   /**
    * Answer the original "dart:<libname>" URI for the specified resolved URI or <code>null</code> if
    * it does not map to a short URI.
@@ -148,7 +146,7 @@ public class SystemLibraryManager {
   public URI getShortUri(URI uri) {
     return longToShortUriMap.get(uri);
   }
-  
+
   /**
    * Expand a relative or short URI (e.g. "dart:dom") which is implementation independent to its
    * full URI (e.g. "dart://dom/com/google/dart/domlib/dom.dart") and then translate that URI to
@@ -185,15 +183,15 @@ public class SystemLibraryManager {
 
     return uri;
   }
-  
+
   public File getSdkLibPath() {
     return sdkLibPath;
   }
-  
+
   /**
    * Scan the directory returned by {@link #getLibrariesDir()} looking for libraries of the form
    * libraries/<name>/<name>_<platform>.dart and libraries/<name>/<name>.dart where <platform> is
-   * the value initialized in the {@link SystemLibraryManager}. 
+   * the value initialized in the {@link SystemLibraryManager}.
    */
   protected SystemLibrary[] getDefaultLibraries() {
     libraries = new ArrayList<SystemLibrary>();
@@ -214,7 +212,7 @@ public class SystemLibraryManager {
         continue;
       }
       if (!file.exists()) {
-        throw new InternalCompilerException("Can't find system library dart:" + shortName 
+        throw new InternalCompilerException("Can't find system library dart:" + shortName
                                             + " at " + file);
       }
 
@@ -235,7 +233,7 @@ public class SystemLibraryManager {
           }
           File dartFile = new File(child, child.getName() + ".dart");
           if (!dartFile.isFile()) {
-            // addLib() will throw an exception. In this case, we are just scanning 
+            // addLib() will throw an exception. In this case, we are just scanning
             // for libraries and don't want the error to be fatal.
             continue;
           }
@@ -257,7 +255,7 @@ public class SystemLibraryManager {
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
-  
+
   /**
    * Read the import.config content and return it as a collection of key/value pairs
    */
@@ -280,7 +278,7 @@ public class SystemLibraryManager {
       throws AssertionError {
     File libFile = new File(dir, libFileName);
     if (!libFile.isFile()) {
-      throw new InternalCompilerException("Error mapping dart:" + host + ", path " 
+      throw new InternalCompilerException("Error mapping dart:" + host + ", path "
           + libFile.getAbsolutePath() + " is not a file.");
     }
     SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir);

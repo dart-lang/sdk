@@ -13,6 +13,5 @@ $!GENERATED_DART_FILES
 #source('../src/KeyLocation.dart');
 #source('../src/KeyName.dart');
 #source('../src/ReadyState.dart');
-#source('../src/TimeoutHandler.dart');
 #source('../src/dummy_FactoryProviders.dart');
 #source('../src/dummy_GlobalProperties.dart');

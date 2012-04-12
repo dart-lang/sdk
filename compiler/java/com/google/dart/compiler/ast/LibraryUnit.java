@@ -170,6 +170,12 @@ public class LibraryUnit {
     return new HashSet<String>(prefixes.values());
   }
 
+  public void initializePrefixes(LibraryUnit source) {
+    for (Map.Entry<LibraryUnit,String> e : source.prefixes.entrySet()) {
+      prefixes.put(e.getKey(), e.getValue());
+    }
+  }
+
   /**
    * Return the path for dart source that corresponds to the same dart file as
    * this library unit. This is added to the set of sourcePaths for this unit.

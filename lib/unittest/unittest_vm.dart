@@ -8,47 +8,19 @@
 #library('unittest');
 
 #import('dart:io');
+#import('dart:isolate');
+
+#source('config.dart');
 #source('shared.dart');
 
-_platformInitialize() {
-  // Do nothing.
-}
-
-_platformDefer(void callback()) {
-  new Timer(0, (timer) {
-    callback();
-  });
-}
-
-_platformStartTests() {
-  // Do nothing.
-}
-
-_platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
-  // Print each test's result.
-  for (final test in _tests) {
-    print('${test.result.toUpperCase()}: ${test.description}');
-
-    if (test.message != '') {
-      print('  ${test.message}');
+class PlatformConfiguration extends Configuration {
+  void onDone(int passed, int failed, int errors, List<TestCase> results) {
+    try {
+      super.onDone(passed, failed, errors, results);
+    } catch (Exception ex) {
+      // A non-zero exit code is used by the test infrastructure to detect
+      // failure.
+      exit(1);
     }
   }
-
-  // Show the summary.
-  print('');
-
-  var success = false;
-  if (testsPassed == 0 && testsFailed == 0 && testsErrors == 0) {
-    print('No tests found.');
-    // This is considered a failure too: if this happens you probably have a
-    // bug in your unit tests.
-  } else if (testsFailed == 0 && testsErrors == 0) {
-    print('All $testsPassed tests passed.');
-    success = true;
-  } else {
-    print('$testsPassed PASSED, $testsFailed FAILED, $testsErrors ERRORS');
-  }
-
-  // A non-zero exit code is used by the test infrastructure to detect failure.
-  if (!success) exit(1);
 }

@@ -49,8 +49,7 @@ class SelectorKind {
 }
 
 class Selector implements Hashable {
-  // The numbers of arguments of the selector. Includes named
-  // arguments.
+  // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
   final SelectorKind kind;
   const Selector(this.kind, this.argumentCount);
@@ -83,6 +82,7 @@ class Selector implements Hashable {
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
+    if (positionalArgumentCount < requiredParameterCount) return false;
 
     bool hasOptionalParameters = !parameters.optionalParameters.isEmpty();
     if (namedArguments.isEmpty()) {

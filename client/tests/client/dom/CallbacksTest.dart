@@ -5,6 +5,6 @@
 main() {
   forLayoutTests();
   test('RequestAnimationFrameCallback', () {
-    window.webkitRequestAnimationFrame((int time) => false, document.body);
+    window.webkitRequestAnimationFrame((int time) => false);
   });
 }

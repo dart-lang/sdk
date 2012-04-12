@@ -16,15 +16,11 @@ namespace WebCore {
 struct Dart$INTERFACE {
     static const char* const dartImplementationClassName;
     typedef $WEBCORE_CLASS_NAME NativeType;
+    typedef $NATIVE_TRAITS_TYPE NativeTraits;
 
     static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception)
     {
         return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);
-    }
-
-    static bool instanceOf(Dart_Handle handle)
-    {
-        return DartDOMWrapper::instanceOf(dartImplementationClassName, handle);
     }
 
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);

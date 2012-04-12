@@ -20,3 +20,6 @@ BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.
 GrowableObjectArrayVMTest: Fail, OK # VM specific test.
 StringBaseVMTest: Fail, OK # VM specific test.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

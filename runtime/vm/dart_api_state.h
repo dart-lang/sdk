@@ -64,7 +64,7 @@ class LocalHandle {
  public:
   // Accessors.
   RawObject* raw() const { return raw_; }
-  void set_raw(const Object& object) { raw_ = object.raw(); }
+  void set_raw(RawObject* raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
 
  private:

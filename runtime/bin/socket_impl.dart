@@ -347,13 +347,19 @@ class _Socket extends _SocketBase implements Socket {
 
   int available() {
     if (_id >= 0) {
-      return _available();
+      var result = _available();
+      if (result is OSError) {
+        _reportError(result, "Available failed");
+        return 0;
+      } else {
+        return result;
+      }
     }
     throw new
         SocketIOException("Error: available failed - invalid socket handle");
   }
 
-  int _available() native "Socket_Available";
+  _available() native "Socket_Available";
 
   int readList(List<int> buffer, int offset, int bytes) {
     if (_id >= 0) {
@@ -551,12 +557,21 @@ class _Socket extends _SocketBase implements Socket {
 
   int get remotePort() {
     if (_remotePort === null) {
-      _remotePort = _getRemotePort();
+      remoteHost;
     }
     return _remotePort;
   }
 
-  int _getRemotePort() native "Socket_GetRemotePort";
+  String get remoteHost() {
+    if (_remoteHost === null) {
+      List peer = _getRemotePeer();
+      _remoteHost = peer[0];
+      _remotePort = peer[1];
+    }
+    return _remoteHost;
+  }
+
+  List _getRemotePeer() native "Socket_GetRemotePeer";
 
   static SendPort _newServicePort() native "Socket_NewServicePort";
 
@@ -572,6 +587,7 @@ class _Socket extends _SocketBase implements Socket {
   Function _clientWriteHandler;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
+  String _remoteHost;
   int _remotePort;
   static SendPort _socketService;
 }

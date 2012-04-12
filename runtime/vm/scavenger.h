@@ -78,11 +78,14 @@ class Scavenger {
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
                     bool visit_prologue_weak_persistent_handles);
+  void IterateWeakReferences(Isolate* isolate, ObjectPointerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate,
                         HandleVisitor* visitor,
                         bool visit_prologue_weak_persistent_handles);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
+
+  bool IsUnreachable(RawObject** p);
 
   // During a scavenge we need to remember the promoted objects.
   // This is implemented as a stack of objects at the end of the to space. As

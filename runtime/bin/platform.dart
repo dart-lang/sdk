@@ -28,4 +28,9 @@ interface Platform default _Platform {
    * operating system.
    */
   String operatingSystem();
+
+  /**
+   * Get the local hostname for the system.
+   */
+  String localHostname();
 }

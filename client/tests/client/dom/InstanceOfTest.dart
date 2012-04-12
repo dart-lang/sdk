@@ -5,13 +5,10 @@
 main() {
   HTMLCanvasElement canvas;
 
-  // FIXME: remove when main is ran on content loaded.
-  window.setTimeout(() {
-    canvas = document.createElement('canvas');
-    canvas.setAttribute('width', '100');
-    canvas.setAttribute('height', '100');
-    document.body.appendChild(canvas);
-  }, 0);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '100');
+  canvas.setAttribute('height', '100');
+  document.body.appendChild(canvas);
 
   forLayoutTests();
   test('Instanceof', () {

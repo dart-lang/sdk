@@ -14,6 +14,7 @@
     'date.dart',
     'double.cc',
     'double.dart',
+    'growable_array.cc',
     'growable_array.dart',
     'immutable_map.dart',
     'integers.cc',

@@ -70,9 +70,13 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(ObjectArray, get:length, Array_getLength)                                  \
   V(ObjectArray, [], Array_getIndexed)                                         \
   V(ObjectArray, []=, Array_setIndexed)                                        \
+  V(GrowableObjectArray, GrowableObjectArray.fromObjectArray, GArray_Allocate) \
   V(GrowableObjectArray, get:length, GrowableArray_getLength)                  \
+  V(GrowableObjectArray, get:capacity, GrowableArray_getCapacity)              \
   V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
   V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
+  V(GrowableObjectArray, _setLength, GrowableArray_setLength)                  \
+  V(GrowableObjectArray, set:data, GrowableArray_setData)                      \
   V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
   V(_ByteArrayBase, [], ByteArrayBase_getIndexed)                              \
   V(ImmutableArray, [], Array_getIndexed)                                      \
@@ -104,7 +108,7 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
   // Assert that length is a Smi.
   __ testl(EDI, Immediate(kSmiTagSize));
-  __ j(NOT_ZERO, &fall_through);
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   __ cmpl(EDI, Immediate(0));
   __ j(LESS, &fall_through, Assembler::kNearJump);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
@@ -304,36 +308,108 @@ static intptr_t GetOffsetForField(const char* class_name_p,
 }
 
 
-static const char* kGrowableArrayClassName = "GrowableObjectArray";
-static const char* kGrowableArrayLengthFieldName = "_length";
-static const char* kGrowableArrayArrayFieldName = "backingArray";
+// Allocate a GrowableObjectArray using the backing array specified.
+// On stack: type argument (+2), data (+1), return-address (+0).
+static bool GArray_Allocate(Assembler* assembler) {
+  // This snippet of inlined code uses the following registers:
+  // EAX, EBX
+  // and the newly allocated object is returned in EAX.
+  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+  const intptr_t kArrayOffset = 1 * kWordSize;
+  Label fall_through;
 
-// Read the length_ instance field.
+  // Compute the size to be allocated, it is based on the array length
+  // and it computed as:
+  // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
+  intptr_t fixed_size = GrowableObjectArray::InstanceSize();
+
+  Heap* heap = Isolate::Current()->heap();
+
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  __ leal(EBX, Address(EAX, fixed_size));
+
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new backing array object start.
+  // EBX: potential next object start.
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+
+  // Initialize the tags.
+  // EAX: new growable array object start as a tagged pointer.
+  __ movl(FieldAddress(EAX, GrowableObjectArray::tags_offset()),
+          Immediate(RawObject::SizeTag::update(fixed_size, 0)));
+
+  // Store backing array object in growable array object.
+  __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, GrowableObjectArray::data_offset()),
+                     EBX);
+
+  // Store class value for the growable array object.
+  // EAX: new growable array object start as a tagged pointer.
+  __ movl(EBX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EBX, Address(EBX, Isolate::object_store_offset()));
+  __ movl(EBX, Address(EBX, ObjectStore::growable_object_array_class_offset()));
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, GrowableObjectArray::class_offset()),
+                     EBX);
+
+  // Store the type argument field in the growable array object.
+  __ movl(EBX, Address(ESP, kTypeArgumentsOffset));  // type argument.
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX,
+                                  GrowableObjectArray::type_arguments_offset()),
+                     EBX);
+
+  // Set the length field in the growable array object to 0.
+  __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()),
+          Immediate(0));
+  __ ret();  // returns the newly allocated object in EAX.
+
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+// Get length of growable object array.
+// On stack: growable array (+1), return-address (+0).
 static bool GrowableArray_getLength(Assembler* assembler) {
-  intptr_t length_offset = GetOffsetForField(kGrowableArrayClassName,
-                                             kGrowableArrayLengthFieldName);
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, length_offset));
+  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   __ ret();
   return true;
 }
 
 
+// Get capacity of growable object array.
+// On stack: growable array (+1), return-address (+0).
+static bool GrowableArray_getCapacity(Assembler* assembler) {
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));
+  __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
+  __ ret();
+  return true;
+}
+
+
+// Access growable object array at specified index.
+// On stack: growable array (+2), index (+1), return-address (+0).
 static bool GrowableArray_getIndexed(Assembler* assembler) {
-  intptr_t length_offset = GetOffsetForField(kGrowableArrayClassName,
-                                             kGrowableArrayLengthFieldName);
-  intptr_t array_offset = GetOffsetForField(kGrowableArrayClassName,
-                                            kGrowableArrayArrayFieldName);
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // GrowableArray.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check using _length field.
-  __ cmpl(EBX, FieldAddress(EAX, length_offset));
+  __ cmpl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EAX, array_offset));  // backingArray.
+  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));  // data.
 
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
@@ -344,25 +420,22 @@ static bool GrowableArray_getIndexed(Assembler* assembler) {
 }
 
 
-// On stack: array (+3), index (+2), value (+1), return-address (+0).
+// Set value into growable object array at specified index.
+// On stack: growable array (+3), index (+2), value (+1), return-address (+0).
 static bool GrowableArray_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
   Label fall_through;
-  intptr_t length_offset = GetOffsetForField(kGrowableArrayClassName,
-                                             kGrowableArrayLengthFieldName);
-  intptr_t array_offset = GetOffsetForField(kGrowableArrayClassName,
-                                            kGrowableArrayArrayFieldName);
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // GrowableArray.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
   // Range check using _length field.
-  __ cmpl(EBX, FieldAddress(EAX, length_offset));
+  __ cmpl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, FieldAddress(EAX, array_offset));  // backingArray.
+  __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));  // data.
   __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Value.
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
@@ -372,6 +445,36 @@ static bool GrowableArray_setIndexed(Assembler* assembler) {
   __ ret();
   __ Bind(&fall_through);
   return false;
+}
+
+
+// Set length of growable object array.
+// On stack: growable array (+2), length (+1), return-address (+0).
+static bool GrowableArray_setLength(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));
+  __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
+  __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
+  __ j(ABOVE, &fall_through, Assembler::kNearJump);
+  __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()), EBX);
+  __ ret();
+  __ Bind(&fall_through);
+  return true;
+}
+
+
+// Set data of growable object array.
+// On stack: growable array (+2), data (+1), return-address (+0).
+static bool GrowableArray_setData(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));
+  __ movl(FieldAddress(EAX, GrowableObjectArray::data_offset()), EBX);
+  __ ret();
+  return true;
 }
 
 
@@ -1251,6 +1354,32 @@ static bool String_isEmpty(Assembler* assembler) {
 #undef __
 
 
+static bool CompareNames(const char* test_name, const char* name) {
+  if (strcmp(test_name, name) == 0) {
+    return true;
+  }
+  if ((name[0] == '_') && (test_name[0] == '_')) {
+    // Check if the private class is member of corelib and matches the
+    // test_class_name.
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    String& test_str = String::Handle(String::New(test_name));
+    String& test_str_with_key = String::Handle();
+    test_str_with_key =
+        String::Concat(test_str, String::Handle(core_lib.private_key()));
+    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
+      return true;
+    }
+    test_str_with_key =
+        String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
+    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 // Returns true if the function matches function_name and class_name, with
 // special recognition of corelib private classes
 static bool TestFunction(const Function& function,
@@ -1258,27 +1387,8 @@ static bool TestFunction(const Function& function,
                          const char* function_name,
                          const char* test_class_name,
                          const char* test_function_name) {
-  if (strcmp(test_function_name, function_name) != 0) return false;
-
-  if ((function_class_name[0] == '_') && (test_class_name[0] == '_')) {
-    // Check if the private class is member of corelib and matches the
-    // test_class_name.
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    String& test_str = String::Handle(String::New(test_class_name));
-    String& test_str_with_key = String::Handle();
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), function_class_name) == 0) {
-      return true;
-    }
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), function_class_name) == 0) {
-      return true;
-    }
-  }
-  return strcmp(test_class_name, function_class_name) == 0;
+  return CompareNames(test_class_name, function_class_name) &&
+         CompareNames(test_function_name, function_name);
 }
 
 

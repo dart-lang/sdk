@@ -83,7 +83,7 @@ class TemplateChildren extends ASTNode {
   List<ASTNode> children;
 
   TemplateChildren(this.children, SourceSpan span): super(span);
-  TemplateChildren.empty(SourceSpan span): super(span);
+  TemplateChildren.empty(SourceSpan span): children = [], super(span);
 
   add(var child) {
     if (children == null) {
@@ -110,11 +110,44 @@ class TemplateChildren extends ASTNode {
   }
 }
 
+class TemplateGetter extends ASTNode {
+  String name;
+  List<Map<Identifier, Identifier>> params;
+  TemplateDocument docFrag;
+
+  TemplateGetter(this.name, this.params, this.docFrag, SourceSpan span) :
+      super(span);
+
+  visit(TreeVisitor visitor) => visitor.visitTemplateGetter(this);
+
+  String paramsAsString() {
+    StringBuffer buff = new StringBuffer();
+    bool first = true;
+    for (final param in params) {
+      if (!first) {
+        buff.add(", ");
+      }
+      if (param['type'] != null && param['type'].length > 0) {
+        buff.add(param['type']);
+        buff.add(' ');
+      }
+      buff.add(param['name']);
+      first = false;
+    }
+
+    return buff.toString();
+  }
+
+  String getterSignatureAsString() => "${name}(${paramsAsString()})";
+}
+
 class TemplateContent extends ASTNode {
   css.Stylesheet css;
   TemplateDocument html;
+  List<TemplateGetter> getters;
 
-  TemplateContent(this.css, this.html, SourceSpan span) : super(span);
+  TemplateContent(this.css, this.html, this.getters, SourceSpan span) :
+      super(span);
 
   visit(TreeVisitor visitor) => visitor.visitTemplateContent(this);
 }
@@ -147,8 +180,10 @@ class TemplateElement extends TemplateChildren {
   String attributesToString() {
     StringBuffer buff = new StringBuffer();
 
-    for (final attr in attributes) {
-      buff.add(' ${attr.toString()}');
+    if (attributes != null) {
+      for (final attr in attributes) {
+        buff.add(' ${attr.toString()}');
+      }
     }
 
     return buff.toString();
@@ -157,7 +192,9 @@ class TemplateElement extends TemplateChildren {
   String get tagName() => isFragment ?
     'root' : TokenKind.tagNameFromTokenId(tagTokenId);
 
-  String tagStartToString() => "<${tagName} ${attributesToString()}>";
+  bool get scoped() => !TokenKind.unscopedTag(tagTokenId);
+
+  String tagStartToString() => "<${tagName}${attributesToString()}>";
 
   String tagEndToString() => "</${tagName}>";
 
@@ -204,7 +241,7 @@ class TemplateExpression extends ASTNode {
 
   visit(TreeVisitor visitor) => visitor.visitTemplateExpression(this);
 
-  String toString() => "\$\{value}";
+  String toString() => "\$\{${expression}}";
 }
 
 class TemplateEachCommand extends ASTNode {
@@ -266,6 +303,7 @@ interface TreeVisitor {
   void visitTemplateEachCommand(TemplateEachCommand node);
   void visitTemplateWithCommand(TemplateWithCommand node);
   void visitTemplateCall(TemplateCall node);
+  void visitTemplateGetter(TemplateGetter node);
 }
 
 class TreePrinter implements TreeVisitor {
@@ -313,13 +351,19 @@ class TreePrinter implements TreeVisitor {
       output.writeValue('---CSS---', node.css.toString());
       output.depth--;
     }
+    if (node.getters != null) {
+      output.depth++;
+      output.writeNodeList('---GETTERS---', node.getters);
+      output.depth--;
+    }
   }
 
   void visitTemplateDocument(TemplateDocument node) {
     output.heading('Content', node.span);
     output.depth++;
-    var child = node.children[0];
-    assert(node.children.length == 1 && child.tagTokenId == -1);
+    // TODO(terry): Ugly use dynamic[0] instead children[0] to surpress warning.
+    assert(node.children.length == 1 &&
+        node.children.dynamic[0].tagTokenId == -1);
     output.writeNodeList("document", node.children);
     output.depth--;
   }
@@ -371,5 +415,10 @@ class TreePrinter implements TreeVisitor {
     output.writeValue('params', node.params);
   }
 
+  void visitTemplateGetter(TemplateGetter node) {
+    output.heading('template getter', node.span);
+    output.writeValue('getter Signature', node.getterSignatureAsString());
+    visitTemplateDocument(node.docFrag);
+  }
 }
 

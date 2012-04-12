@@ -1063,7 +1063,6 @@
 #source('../dom/src/KeyLocation.dart');
 #source('../dom/src/KeyName.dart');
 #source('../dom/src/ReadyState.dart');
-#source('../dom/src/TimeoutHandler.dart');
 #source('../dom/src/_Collections.dart');
 #source('../dom/src/_XMLHttpRequestUtils.dart');
 #source('../html/src/Measurement.dart');

@@ -54,6 +54,10 @@ class StackFrame : public ValueObject {
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
 
+  // Find code object corresponding to pc (valid only for DartFrame and
+  // StubFrame.
+  static RawCode* LookupCode(Isolate* isolate, uword pc);
+
  protected:
   StackFrame() : fp_(0), sp_(0) { }
 
@@ -61,6 +65,21 @@ class StackFrame : public ValueObject {
   virtual const char* GetName() const = 0;
 
  private:
+  // An object finder visitor interface.
+  class FindRawCodeVisitor : public FindObjectVisitor {
+   public:
+    explicit FindRawCodeVisitor(uword pc) : pc_(pc) { }
+    virtual ~FindRawCodeVisitor() { }
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj);
+
+   private:
+    uword pc_;
+
+    DISALLOW_COPY_AND_ASSIGN(FindRawCodeVisitor);
+  };
+
   // Target specific implementations for locating pc and caller fp/sp values.
   static intptr_t PcAddressOffsetFromSp();
   uword GetCallerSp() const;

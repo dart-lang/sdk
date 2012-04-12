@@ -9,14 +9,11 @@ main() {
   HTMLCanvasElement canvas;
   CanvasRenderingContext2D context;
 
-  // FIXME: once main is run on content loaded, this hack won't be necessary.
-  window.setTimeout(() {
-    canvas = document.createElement('canvas');
-    canvas.setAttribute('width', '100');
-    canvas.setAttribute('height', '100');
-    document.body.appendChild(canvas);
-    context = canvas.getContext('2d');
-  }, 0);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '100');
+  canvas.setAttribute('height', '100');
+  document.body.appendChild(canvas);
+  context = canvas.getContext('2d');
 
   forLayoutTests();
   test('FillStyle', () {

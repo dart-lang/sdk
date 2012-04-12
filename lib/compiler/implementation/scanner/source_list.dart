@@ -14,7 +14,6 @@ final List<String> argv = const <String>[
 '../lib/dom/src/KeyLocation.dart',
 '../lib/dom/src/KeyName.dart',
 '../lib/dom/src/ReadyState.dart',
-'../lib/dom/src/TimeoutHandler.dart',
 '../lib/dom/src/_Collections.dart',
 '../lib/dom/src/_ListIterators.dart',
 '../lib/dom/src/_Lists.dart',

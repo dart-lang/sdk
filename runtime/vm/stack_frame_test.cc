@@ -96,6 +96,8 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       if (function.IsNull()) {
         FATAL("StackFrame_validateFrame fails, invalid dart frame.\n");
       }
+      const Code& code = Code::Handle(frame->LookupDartCode());
+      EXPECT(code.raw() == function.unoptimized_code());
       const char* name = function.ToFullyQualifiedCString();
       // Currently all unit tests are loaded as being part of dart:core-lib.
       Isolate* isolate = Isolate::Current();

@@ -76,6 +76,7 @@ public class ResolverTest extends ResolverTestCase {
    * class E extends C {}
    * class D extends C {}
    */
+  @SuppressWarnings("unused")
   public void testGetSubtypes() {
     DartClass a = makeClass("A", makeType("Object"));
     DartClass b = makeClass("B", makeType("A"));
@@ -100,6 +101,7 @@ public class ResolverTest extends ResolverTestCase {
    * class A extends IA {}
    * class B {}
    */
+  @SuppressWarnings("unused")
   public void testGetSubtypesWithInterfaceCycles() {
     DartClass ia = makeInterface("IA", makeTypes("ID"), makeDefault("B"));
     DartClass ib = makeInterface("IB", makeTypes("IA"), null);
@@ -133,6 +135,7 @@ public class ResolverTest extends ResolverTestCase {
    * interface IA extends IB {}
    * interface IB extends IA {}
    */
+  @SuppressWarnings("unused")
   public void testGetSubtypesWithSimpleInterfaceCycle() {
     DartClass ia = makeInterface("IA", makeTypes("IB"), null);
     DartClass ib = makeInterface("IB", makeTypes("IA"), null);
@@ -154,6 +157,7 @@ public class ResolverTest extends ResolverTestCase {
    * class B extends A<C> {}
    * class C {}
    */
+  @SuppressWarnings("unused")
   public void testGetSubtypesWithParemeterizedSupertypes() {
     DartClass a = makeClass("A", null, "T");
     DartClass b = makeClass("B", makeType("A", "C"));
@@ -649,6 +653,7 @@ public class ResolverTest extends ResolverTestCase {
    * Test that a class may implement the implied interface of another class and that interfaces may
    * extend the implied interface of a class.
    */
+  @SuppressWarnings("unused")
   public void testImpliedInterfaces() throws Exception {
     DartClass a = makeClass("A", null);
     DartClass b = makeClass("B", null, makeTypes("A"));
@@ -1074,7 +1079,7 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING);
   }
-  
+
   public void testConstClass() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1087,14 +1092,14 @@ public class ResolverTest extends ResolverTestCase {
         "  BadBase() {}",
         "  var foo;",
         "}",                                       // line 10
-        "class Bad {", 
-        "  const Bad() : bar = 1;",               
+        "class Bad {",
+        "  const Bad() : bar = 1;",
         "  var bar;", // error: non-final field in const class
         "}",
         "class BadSub1 extends BadBase {",
         "  const BadSub1() : super(),  bar = 1;", // error2: inherits non-final field, super !const
         "  final bar;",
-        "}", 
+        "}",
         "class BadSub2 extends GoodBase {",
         "  const BadSub2() : super(),  bar = 1;", // line 20
         "  var bar;",                             // error: non-final field in constant class
@@ -1112,7 +1117,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3),
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 21, 7, 3));
   }
-  
+
   public void testFinalInit() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1123,7 +1128,7 @@ public class ResolverTest extends ResolverTestCase {
         "  final f3 = 1;",
         "  final f4;",  // not really ok, should be initialized in constructor
         "  static final f5 = 1;",
-        "  static final f6;",    // error    
+        "  static final f6;",    // error
         "  method() {",
         "    final f7 = 1;",
         "    final f8;",  // error
@@ -1133,7 +1138,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
         errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
   }
-  
+
   public void testNoGetterOrSetter() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1141,25 +1146,25 @@ public class ResolverTest extends ResolverTestCase {
         "set setter1(arg) {}",
         "class A {",
         "  static get getter2() {}",
-        "  static set setter2(arg) {}",        
+        "  static set setter2(arg) {}",
         "  get getter3() {}",
-        "  set setter3(arg) {}",                
+        "  set setter3(arg) {}",
         "}",
         "method() {",
         "  var result;",
         "  result = getter1;",
         "  getter1 = 1;",
         "  result = setter1;",
-        "  setter1 = 1;",        
+        "  setter1 = 1;",
         "  result = A.getter2;",
         "  A.getter2 = 1;",
         "  result = A.setter2;",
-        "  A.setter2 = 1;",                
+        "  A.setter2 = 1;",
         "  var instance = new A();",
         "  result = instance.getter3;",
         "  instance.getter3 = 1;",
         "  result = instance.setter3;",
-        "  instance.setter3 = 1;",        
+        "  instance.setter3 = 1;",
         "}"),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_SETTER, 17, 5, 7),
         errEx(ResolverErrorCode.FIELD_DOES_NOT_HAVE_A_GETTER, 18, 14, 7));

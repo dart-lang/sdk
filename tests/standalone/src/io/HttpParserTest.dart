@@ -54,7 +54,10 @@ class HttpParserTest {
         Expect.isTrue(headersCompleteCalled);
         bytesReceived += data.length;
       };
-      httpParser.dataEnd = () => dataEndCalled = true;
+      httpParser.dataEnd = (close) {
+        Expect.isFalse(close);
+        dataEndCalled = true;
+      };
 
       headersCompleteCalled = false;
       dataEndCalled = false;
@@ -128,10 +131,12 @@ class HttpParserTest {
                                   Map expectedHeaders = null,
                                   bool chunked = false,
                                   bool close = false,
-                                  String responseToMethod = null]) {
+                                  String responseToMethod = null,
+                                  bool connectionClose = false]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
+    bool dataEndClose;
     int statusCode;
     String reasonPhrase;
     Map headers;
@@ -170,10 +175,14 @@ class HttpParserTest {
         Expect.isTrue(headersCompleteCalled);
         bytesReceived += data.length;
       };
-      httpParser.dataEnd = () => dataEndCalled = true;
+      httpParser.dataEnd = (close) {
+        dataEndCalled = true;
+        dataEndClose = close;
+      };
 
       headersCompleteCalled = false;
       dataEndCalled = false;
+      dataEndClose = null;
       statusCode = -1;
       reasonPhrase = null;
       headers = new Map();
@@ -194,6 +203,8 @@ class HttpParserTest {
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
       Expect.isTrue(dataEndCalled);
+      if (close) Expect.isTrue(dataEndClose);
+      Expect.equals(dataEndClose, connectionClose);
     }
 
     // Test parsing the request three times delivering the data in
@@ -289,6 +300,18 @@ X-Header-B: bbb\r
 
     request = """
 POST /test HTTP/1.1\r
+Empty-Header-1:\r
+Empty-Header-2:\r
+        \r
+\r
+""";
+    headers = new Map();
+    headers["empty-header-1"] = "";
+    headers["empty-header-2"] = "";
+    _testParseRequest(request, "POST", "/test", expectedHeaders: headers);
+
+    request = """
+POST /test HTTP/1.1\r
 Header-A:   AAA\r
 X-Header-B:\t \t bbb\r
 \r
@@ -322,6 +345,14 @@ Content-Length: 10\r
                       "/test",
                       expectedContentLength: 10,
                       expectedBytesReceived: 10);
+
+    // Test connection close header.
+    request = """
+GET /test HTTP/1.1\r
+Connection: close\r
+\r
+""";
+    _testParseRequest(request, "GET", "/test");
 
     // Test chunked encoding.
     request = """
@@ -495,6 +526,19 @@ Transfer-Encoding: chunked\r
                        expectedBytesReceived: 57,
                        chunked: true);
 
+    // Test connection close header.
+    response = """
+HTTP/1.1 200 OK\r
+Content-Length: 0\r
+Connection: close\r
+\r
+""";
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: 0,
+                       connectionClose: true);
+
     // Test HTTP response without any transfer length indications
     // where closing the connections indicates end of body.
     response = """
@@ -508,7 +552,8 @@ HTTP/1.1 200 OK\r
                      "OK",
                      expectedContentLength: -1,
                      expectedBytesReceived: 59,
-                     close: true);
+                     close: true,
+                     connectionClose: true);
   }
 
   static void testParseInvalidRequest() {
@@ -537,15 +582,12 @@ HTTP/1.1 200 OK\r
     request = "GET / HTTP/1.\r\n\r\n";
     _testParseInvalidRequest(request);
 
+    request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
+    _testParseInvalidRequest(request);
+
     // Currently no HTTP 1.0 support.
     request = "GET / HTTP/1.0\r\n\r\n";
     _testParseInvalidRequest(request);
-
-    Expect.throws(() {
-      // TODO(2370): HTTP parser error.
-      request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
-      _testParseInvalidRequest(request);
-    });
   }
 
   static void testParseInvalidResponse() {
@@ -582,6 +624,9 @@ HTTP/1.1 200 OK\r
     _testParseInvalidResponse(response);
 
     response = "HTTP/1.1 200 OK\r\nContent-Length: x\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 200 OK\r\nbadheader\r\n\r\n";
     _testParseInvalidResponse(response);
 
     response = """

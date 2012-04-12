@@ -70,7 +70,7 @@ class DeclarationTest {
       ".more {\n" +
         "  color: #ff0000;\n" +
         "  color: #aabbcc;\n" +
-        "  color: #ff;\n" +
+        "  color: #0ff;\n" +
         "  background-image: url(http://test.jpeg);\n" +
         "  background-image: url(http://double_quote.html);\n" +
         "  background-image: url(http://single_quote.html);\n" +

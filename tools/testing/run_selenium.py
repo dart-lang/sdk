@@ -71,17 +71,18 @@ CONFIGURATIONS = {
     'dromaeo': dromaeo_test_done
 }
 
-def run_test_in_browser(browser, html_out, timeout, config):
+def run_test_in_browser(browser, html_out, timeout, mode):
   """Run the desired test in the browser using Selenium 2.0 WebDriver syntax,
   and wait for the test to complete. This is the newer syntax, that currently
   supports Firefox, Chrome, IE, Opera (and some mobile browsers)."""
+
   if isinstance(browser, selenium.selenium):
-    return run_test_in_browser_selenium_rc(browser, html_out, timeout, config)
+    return run_test_in_browser_selenium_rc(browser, html_out, timeout, mode)
 
   browser.get("file://" + html_out)
   source = ''
   try:
-    test_done = CONFIGURATIONS[config]
+    test_done = CONFIGURATIONS[mode]
     element = WebDriverWait(browser, float(timeout)).until(
         lambda driver: test_done(driver.page_source))
     source = browser.page_source
@@ -89,13 +90,13 @@ def run_test_in_browser(browser, html_out, timeout, config):
     source = TIMEOUT_ERROR_MSG
   return source
 
-def run_test_in_browser_selenium_rc(sel, html_out, timeout, config):
+def run_test_in_browser_selenium_rc(sel, html_out, timeout, mode):
   """ Run the desired test in the browser using Selenium 1.0 syntax, and wait
   for the test to complete. This is used for Safari, since it is not currently
   supported on Selenium 2.0."""
   sel.open('file://' + html_out)
   source = sel.get_html_source()
-  end_condition = CONFIGURATIONS[config]
+  end_condition = CONFIGURATIONS[mode]
 
   elapsed = 0
   while (not end_condition(source)) and elapsed <= timeout:
@@ -113,34 +114,45 @@ def parse_args(args=None):
   parser.add_option('--browser', dest='browser',
       help = 'The browser type (default = chrome)',
       action = 'store', default = 'chrome')
+  parser.add_option('--executable', dest='executable',
+      help = 'The browser executable path (only for browser=dartium)',
+      action = 'store', default = None)
   # TODO(efortuna): Put this back up to be more than the default timeout in
   # test.dart. Right now it needs to be less than 60 so that when test.dart
   # times out, this script also closes the browser windows.
   parser.add_option('--timeout', dest = 'timeout',
       help = 'Amount of time (seconds) to wait before timeout', type = 'int',
       action = 'store', default=58)
-  parser.add_option('--perf', dest = 'is_perf',
-      help = 'Add this flag if we are running a browser performance test',
-      action = 'store_true', default=False)
-  # TODO(vsm): Abstract this out better.
-  parser.add_option('--dromaeo', dest = 'is_dromaeo',
-      help = 'Add this flag if we are running a browser performance test',
-      action = 'store_true', default=False)
-  args, ignored = parser.parse_args(args=args)
-  if args.is_perf:
-    config = 'perf'
-  elif args.is_dromaeo:
-    config = 'dromaeo'
-  else:
-    config = 'correctness'
-  return args.out, args.browser, args.timeout, config
+  parser.add_option('--mode', dest = 'mode',
+      help = 'The type of test we are running',
+      action = 'store', default='correctness')
+  args, _ = parser.parse_args(args=args)
+  if args.executable and args.browser != 'dartium':
+    print 'Executable path only supported when browser=dartium.'
+    sys.exit(1)
+  return args.out, args.browser, args.executable, args.timeout, args.mode
 
-def start_browser(browser, html_out):
+def start_browser(browser, executable_path, html_out):
   if browser == 'chrome':
     # Note: you need ChromeDriver *in your path* to run Chrome, in addition to
     # installing Chrome. Also note that the build bot runs have a different path
     # from a normal user -- check the build logs.
     return selenium.webdriver.Chrome()
+  elif browser == 'dartium':
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
+                               'dartium')
+    options = selenium.webdriver.chrome.options.Options()
+    if executable_path is not None:
+      options.binary_location = executable_path
+    elif platform.system() == 'Windows':
+      options.binary_location = os.path.join(dartium_dir, 'chrome.exe')
+    elif platform.system() == 'Darwin':
+      options.binary_location = os.path.join(dartium_dir, 'Chromium.app',
+                                             'Contents', 'MacOS', 'Chromium')
+    else:
+      options.binary_location = os.path.join(dartium_dir, 'chrome')
+    return selenium.webdriver.Chrome(chrome_options=options)
   elif browser == 'ff':
     profile = selenium.webdriver.firefox.firefox_profile.FirefoxProfile()
     profile.set_preference('dom.max_script_run_time', 0)
@@ -184,9 +196,9 @@ def close_browser(browser):
     # TODO(efortuna): Figure out why this crashes.... and avoid?
     pass
 
-def report_results(config, source):
+def report_results(mode, source):
   # TODO(vsm): Add a failure check for Dromaeo.
-  if config != 'correctness':
+  if mode != 'correctness':
     # We're running a performance test.
     print source.encode('utf8')
     sys.stdout.flush()
@@ -245,10 +257,11 @@ def run_batch_tests():
       if line == '--terminate\n':
         break
 
-      html_out, browser_name, timeout, config = parse_args(line.split())
+      (html_out, browser_name, executable_path,
+       timeout, mode) = parse_args(line.split())
 
       # Sanity checks that test.dart is passing flags we can handle.
-      if config != 'correctness':
+      if mode != 'correctness':
         print 'Batch test runner not compatible with perf testing'
         return 1
       if browser and current_browser_name != browser_name:
@@ -259,9 +272,9 @@ def run_batch_tests():
       # Start the browser on the first run
       if browser is None:
         current_browser_name = browser_name
-        browser = start_browser(browser_name, html_out)
+        browser = start_browser(browser_name, executable_path, html_out)
 
-      source = run_test_in_browser(browser, html_out, timeout, config)
+      source = run_test_in_browser(browser, html_out, timeout, mode)
 
       # Test is done. Write end token to stderr and flush.
       sys.stderr.write('>>> EOF STDERR\n')
@@ -269,7 +282,7 @@ def run_batch_tests():
 
       # print one of:
       # >>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}
-      status = report_results(config, source)
+      status = report_results(mode, source)
       if status == 0:
         print '>>> TEST PASS'
       elif source == TIMEOUT_ERROR_MSG:
@@ -288,12 +301,12 @@ def main(args):
     return run_batch_tests()
 
   # Run a single test
-  html_out, browser_name, timeout, config = parse_args()
-  browser = start_browser(browser_name, html_out)
+  html_out, browser_name, executable_path, timeout, mode = parse_args()
+  browser = start_browser(browser_name, executable_path, html_out)
 
   try:
-    output = run_test_in_browser(browser, html_out, timeout, config)
-    return report_results(config, output)
+    output = run_test_in_browser(browser, html_out, timeout, mode)
+    return report_results(mode, output)
   finally:
     close_browser(browser)
 

@@ -63,8 +63,8 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 
 
 void BitmapBuilder::SetBits(const Stackmap& bitmap) {
-  intptr_t min = bitmap.Minimum();
-  intptr_t max = bitmap.Maximum();
+  intptr_t min = bitmap.MinimumBitOffset();
+  intptr_t max = bitmap.MaximumBitOffset();
   if (min == Stackmap::kNoMinimum || max == Stackmap::kNoMaximum) {
     return;
   }

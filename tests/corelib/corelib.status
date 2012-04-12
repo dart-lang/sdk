@@ -36,6 +36,9 @@ StringTest: Fail  # Needs index out of range checks.
 [ $compiler == frogsh ]
 DoubleCompareTest: Fail
 
+[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+*: Skip
+
 [ $runtime == ff || $runtime == ie ]
 UnicodeTest: Fail
 

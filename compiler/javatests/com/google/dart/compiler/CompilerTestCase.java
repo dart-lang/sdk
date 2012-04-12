@@ -4,16 +4,14 @@
 
 package com.google.dart.compiler;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
@@ -22,13 +20,14 @@ import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+
 import junit.framework.TestCase;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -250,7 +249,7 @@ public abstract class CompilerTestCase extends TestCase {
     listener.checkAllErrorsReported();
     return unit;
   }
-  
+
   /**
    * Parse a single compilation unit for the name and source. The parse expects some kind of error,
    * but isn't picky about the actual contents. This is useful for testing parser recovery where we
@@ -270,7 +269,7 @@ public abstract class CompilerTestCase extends TestCase {
     assertTrue("Expected some compilation errors, got none.", errorsEncountered.size() > 0);
     return unit;
     }
-  
+
     protected DartUnit parseUnitAsSystemLibrary(final String srcName, String sourceCode,
                                               Object... errors) {
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null) {

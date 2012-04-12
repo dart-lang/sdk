@@ -1752,7 +1752,12 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   GrowableObjectArray& array = GrowableObjectArray::ZoneHandle(
-      reader->isolate(), reader->NewGrowableObjectArray());
+      reader->isolate(), GrowableObjectArray::null());
+  if (kind == Snapshot::kFull) {
+    array = reader->NewGrowableObjectArray();
+  } else {
+    array = GrowableObjectArray::New(0);
+  }
   reader->AddBackwardReference(object_id, &array);
   intptr_t length = reader->ReadSmiValue();
   array.SetLength(length);

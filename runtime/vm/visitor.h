@@ -28,6 +28,16 @@ class ObjectPointerVisitor {
   void VisitPointer(RawObject** p) { VisitPointers(p , p); }
 };
 
+
+// An object finder visitor interface.
+class FindObjectVisitor {
+ public:
+  virtual ~FindObjectVisitor() {}
+
+  // Check if object matches find condition.
+  virtual bool FindObject(RawObject* obj) = 0;
+};
+
 }  // namespace dart
 
 #endif  // VM_VISITOR_H_

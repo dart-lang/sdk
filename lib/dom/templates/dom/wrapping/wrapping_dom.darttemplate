@@ -13,7 +13,6 @@ $!GENERATED_DART_FILES
 #source('../src/KeyLocation.dart');
 #source('../src/KeyName.dart');
 #source('../src/ReadyState.dart');
-#source('../src/TimeoutHandler.dart');
 #source('../src/_Collections.dart');
 #source('../src/_ListIterators.dart');
 #source('../src/_Lists.dart');

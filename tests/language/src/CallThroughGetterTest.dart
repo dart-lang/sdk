@@ -111,7 +111,7 @@ class CallThroughGetterTest {
     var exception = catchException(fn);
     if (!(exception is ObjectNotClosureException)) {
       Expect.fail("Wrong exception.  Expected: ObjectNotClosureException"
-          + " got: ${exception}");
+          " got: ${exception}");
     }
   }
 
@@ -144,7 +144,7 @@ class A {
 
 class B {
 
-  B() : _order = "" { }
+  B() : _order = new StringBuffer("") { }
 
   get g0() { _mark('g'); return f0() { return _mark('f'); }; }
   get g1() { _mark('g'); return f1(x) { return _mark('f'); }; }
@@ -155,8 +155,8 @@ class B {
   get y() { _mark('y'); return 1; }
   get z() { _mark('z'); return 2; }
 
-  _mark(m) { _order += m; return _order; }
-  String _order;
+  _mark(m) { _order.add(m); return _order.toString(); }
+  StringBuffer _order;
 
 }
 

@@ -283,6 +283,7 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
   Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 

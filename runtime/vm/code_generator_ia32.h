@@ -21,6 +21,7 @@ class Assembler;
 class AstNode;
 class CodeGenerator;
 class DescriptorList;
+class ExceptionHandlerList;
 class SourceLabel;
 class StackmapBuilder;
 
@@ -119,9 +120,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // structured.
   friend class OptimizingCodeGenerator;
 
-  // Forward declarations.
-  class HandlerList;
-
   // Return true if intrinsification succeeded and no more code is needed.
   // Returns false if either no intrinsification occured or if intrinsified
   // code needs the rest for slow case execution.
@@ -171,10 +169,12 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   void GenerateInstanceOf(intptr_t node_id,
                           intptr_t token_index,
+                          AstNode* value,
                           const AbstractType& type,
                           bool negate_result);
   void GenerateAssertAssignable(intptr_t node_id,
                                 intptr_t token_index,
+                                AstNode* value,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
   void GenerateArgumentTypeChecks();
@@ -220,7 +220,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   CodeGeneratorState* state_;
   DescriptorList* pc_descriptors_list_;
   StackmapBuilder* stackmap_builder_;
-  HandlerList* exception_handlers_list_;
+  ExceptionHandlerList* exception_handlers_list_;
   int try_index_;
   // The runtime context level is only incremented when a new context is
   // allocated and chained to the list of contexts.

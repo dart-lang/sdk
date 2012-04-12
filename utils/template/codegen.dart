@@ -58,9 +58,7 @@ class CGBlock {
     }
   }
 
-  bool get anyStatements() => _stmts.length > 0;
-
-  CGStatement get last() => _stmts.last();
+  CGStatement get last() => _stmts.length > 0 ? _stmts.last() : null;
 
   /**
    * Returns mixed list of elements marked with the var attribute.  If the 
@@ -170,7 +168,7 @@ class CGStatement {
   bool get isClosed() => _closed;
 
   void close() {
-    if (_elem is TemplateElement) {
+    if (_elem is TemplateElement && _elem.scoped) {
       add("</${_elem.tagName}>");
     }
     _closed = true;
@@ -273,11 +271,6 @@ class Codegen {
 
     buff.add("// Generated Dart class from HTML template.\n");
     buff.add("// DO NOT EDIT.\n\n");
-
-    buff.add("String safeHTML(String html) {\n");
-    buff.add("  // TODO(terry): Escaping for XSS vulnerabilities TBD.\n");
-    buff.add("  return html;\n");
-    buff.add("}\n\n");
 
     String addStylesheetFuncName = "add_${filename}_templatesStyles";
     
@@ -388,14 +381,19 @@ class Codegen {
       world.error("Error at ${content}");
     }
 
-    var root = content.html.children[0];
+    var root = content.html.children.length > 0 ? content.html.children[0] :
+        content.html;
     bool firstTime = true;
     for (var child in root.children) {
       if (child is TemplateText) {
         if (!firstTime) {
           ecg.closeStatement();
         }
-        CGStatement stmt = ecg.pushStatement(child, "_fragment");
+
+        String textNodeValue = child.value.trim();
+        if (textNodeValue.length > 0) {
+          CGStatement stmt = ecg.pushStatement(child, "_fragment");
+        }
       }
       ecg.emitConstructHtml(child, "", "_fragment");
       firstTime = false;
@@ -435,6 +433,8 @@ class Codegen {
 
     buff.add("  }\n\n");        // End constructor
 
+    buff.add(emitGetters(content.getters));
+
     buff.add("  Element get root() => _fragment;\n");
 
     // Emit all CSS class selectors:
@@ -469,7 +469,30 @@ class Codegen {
       buff.add("\"\";\n");
     }
 
+    buff.add("  String safeHTML(String html) {\n");
+    buff.add("    // TODO(terry): Escaping for XSS vulnerabilities TBD.\n");
+    buff.add("    return html;\n");
+    buff.add("  }\n");
+
     buff.add("}\n");              // End class
+
+    return buff.toString();
+  }
+
+  // TODO(terry): Need to generate function to inject any TemplateExpressions
+  //              to call SafeHTML wrapper.
+  static String emitGetters(List<TemplateGetter> getters) {
+    StringBuffer buff = new StringBuffer();
+    for (final TemplateGetter getter in getters) {
+      buff.add('  String ${getter.getterSignatureAsString()} {\n');
+      buff.add('    return \'\'\'');
+      var docFrag = getter.docFrag.children[0];
+      for (final child in docFrag.children) {
+        buff.add(child.toString().trim());
+      }
+      buff.add('\'\'\';\n');
+      buff.add('  }\n\n');
+    }
 
     return buff.toString();
   }
@@ -601,7 +624,10 @@ Nested #each or #with must have a localName;
     return lastBlock.push(elem, parentName, true);
   }
 
-  bool get isClosedStatement() => lastBlock.last.isClosed;
+  bool get isClosedStatement() {
+    return (lastBlock != null && lastBlock.last != null) ?
+        lastBlock.last.isClosed : false;
+  }
 
   void closeStatement() {
     if (lastBlock != null && lastBlock.last != null &&
@@ -613,6 +639,12 @@ Nested #each or #with must have a localName;
   String get lastVariableName() {
     if (lastBlock != null && lastBlock.last != null) {
       return lastBlock.last.variableName;
+    }
+  }
+
+  String get lastParentName() {
+    if (lastBlock != null && lastBlock.last != null) {
+      return lastBlock.last.parentName;
     }
   }
 
@@ -655,16 +687,14 @@ Nested #each or #with must have a localName;
       String prevParent = lastVariableName;
       for (var childElem in elem.children) {
         if (childElem is TemplateElement) {
+          closeStatement();
           if (childElem.hasVar) {
-            closeStatement();
             emitConstructHtml(childElem, scopeName, prevParent,
               childElem.varName);
-            closeStatement();
           } else {
-            closeStatement();
             emitConstructHtml(childElem, scopeName, prevParent);
-            closeStatement();
           }
+          closeStatement();
         } else {
           emitElement(childElem, scopeName, parentVarOrIdx);
         }
@@ -673,7 +703,30 @@ Nested #each or #with must have a localName;
       // Close this tag.
       closeStatement();
     } else if (elem is TemplateText) {
-      add("${elem.value}");
+      String outputValue = elem.value.trim();
+      if (outputValue.length > 0) {
+        bool emitTextNode = false;
+        if (isClosedStatement) {
+          String prevParent = lastParentName;
+          CGStatement stmt = pushStatement(elem, prevParent);
+          emitTextNode = true;
+        }
+
+        // TODO(terry): Need to interpolate following:
+        //      {sp}  → space
+        //      {nil} → empty string
+        //      {\r}  → carriage return
+        //      {\n}  → new line (line feed)
+        //      {\t}  → tab
+        //      {lb}  → left brace
+        //      {rb}  → right brace
+      
+        add("${outputValue}");            // remove leading/trailing whitespace.
+
+        if (emitTextNode) {
+          closeStatement();
+        }
+      }
     } else if (elem is TemplateExpression) {
       emitExpressions(elem, scopeName);
     } else if (elem is TemplateEachCommand) {

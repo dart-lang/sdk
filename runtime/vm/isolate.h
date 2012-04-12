@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/thread.h"
+#include "vm/base_isolate.h"
 #include "vm/gc_callbacks.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
@@ -33,7 +34,7 @@ class StubCode;
 class Zone;
 
 
-class Isolate {
+class Isolate : public BaseIsolate {
  public:
   ~Isolate();
 
@@ -83,9 +84,6 @@ class Isolate {
     return OFFSET_OF(Isolate, object_store_);
   }
 
-  StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) { top_resource_ = value; }
-
   RawContext* top_context() const { return top_context_; }
   void set_top_context(RawContext* value) { top_context_ = value; }
   static intptr_t top_context_offset() {
@@ -117,68 +115,8 @@ class Isolate {
 
   TimerList& timer_list() { return timer_list_; }
 
-  Zone* current_zone() const { return current_zone_; }
-  void set_current_zone(Zone* zone) { current_zone_ = zone; }
   static intptr_t current_zone_offset() {
     return OFFSET_OF(Isolate, current_zone_);
-  }
-
-  int32_t no_gc_scope_depth() const {
-#if defined(DEBUG)
-    return no_gc_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoGCScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_gc_scope_depth_ < INT_MAX);
-    no_gc_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoGCScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_gc_scope_depth_ > 0);
-    no_gc_scope_depth_ -= 1;
-#endif
-  }
-
-  int32_t no_handle_scope_depth() const {
-#if defined(DEBUG)
-    return no_handle_scope_depth_;
-#else
-    return 0;
-#endif
-  }
-
-  void IncrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ < INT_MAX);
-    no_handle_scope_depth_ += 1;
-#endif
-  }
-
-  void DecrementNoHandleScopeDepth() {
-#if defined(DEBUG)
-    ASSERT(no_handle_scope_depth_ > 0);
-    no_handle_scope_depth_ -= 1;
-#endif
-  }
-
-  HandleScope* top_handle_scope() const {
-#if defined(DEBUG)
-    return top_handle_scope_;
-#else
-    return 0;
-#endif
-  }
-
-  void set_top_handle_scope(HandleScope* handle_scope) {
-#if defined(DEBUG)
-    top_handle_scope_ = handle_scope;
-#endif
   }
 
   void set_init_callback_data(void* value) {
@@ -263,14 +201,7 @@ class Isolate {
   Dart_Port main_port_;
   Heap* heap_;
   ObjectStore* object_store_;
-  StackResource* top_resource_;
   RawContext* top_context_;
-  Zone* current_zone_;
-#if defined(DEBUG)
-  int32_t no_gc_scope_depth_;
-  int32_t no_handle_scope_depth_;
-  HandleScope* top_handle_scope_;
-#endif
   int32_t random_seed_;
   uword top_exit_frame_info_;
   void* init_callback_data_;

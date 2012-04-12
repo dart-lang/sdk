@@ -99,7 +99,7 @@ class BaseZone {
 class Zone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Isolate.
-  explicit Zone(Isolate* isolate);
+  explicit Zone(BaseIsolate* isolate);
 
   // Delete all memory associated with the zone.
   ~Zone();

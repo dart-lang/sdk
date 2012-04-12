@@ -32,7 +32,7 @@ interface ByteArray extends List default _InternalByteArray {
 }
 
 class _InternalByteArray {
-  factory _InternalByteArray(int length) {
+  factory ByteArray(int length) {
     throw new UnsupportedOperationException("new ByteArray($length)");
   }
 }

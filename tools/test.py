@@ -24,8 +24,6 @@ def Main():
   client = os.path.abspath(os.path.join(tools_dir, '..'));
   if current_directory == os.path.join(client, 'runtime'):
     dart_script_name = 'test-runtime.dart'
-  elif current_directory == os.path.join(client, 'compiler'):
-    dart_script_name = 'test-compiler.dart'
   else:
     dart_script_name = 'test.dart'
   dart_test_script = string.join([tools_dir, dart_script_name], os.sep)

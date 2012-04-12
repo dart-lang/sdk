@@ -24,6 +24,9 @@ class Platform {
   // string must be deallocated by the caller.
   static char* StrError(int error_code);
 
+  // Extracts the local hostname.
+  static bool LocalHostname(char *buffer, intptr_t buffer_length);
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Platform);

@@ -7,13 +7,13 @@
 # Gets or updates a DumpRenderTree (a nearly headless build of chrome). This is
 # used for running browser tests of client applications.
 
+import optparse
 import os
-import sys
 import platform
-import errno
-import tempfile
 import shutil
 import subprocess
+import sys
+import tempfile
 
 def NormJoin(path1, path2):
   return os.path.normpath(os.path.join(path1, path2))
@@ -24,11 +24,18 @@ os.chdir(dart_src)
 
 GSUTIL_DIR = 'third_party/gsutil/20110627'
 GSUTIL = GSUTIL_DIR + '/gsutil'
+
 DRT_DIR = 'client/tests/drt'
-VERSION = DRT_DIR + '/LAST_VERSION'
-DRT_DARTIUM_LATEST_PATTERN = (
+DRT_VERSION = DRT_DIR + '/LAST_VERSION'
+DRT_LATEST_PATTERN = (
     'gs://dartium-archive/latest/drt-%(osname)s-inc-*.zip')
-DRT_DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/drt-%(osname)s-inc'
+DRT_PERMANENT_PREFIX = 'gs://dartium-archive/drt-%(osname)s-inc'
+
+DARTIUM_DIR = 'client/tests/dartium'
+DARTIUM_VERSION = DARTIUM_DIR + '/LAST_VERSION'
+DARTIUM_LATEST_PATTERN = (
+    'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
+DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 
 sys.path.append(GSUTIL_DIR + '/boto')
 import boto
@@ -91,7 +98,15 @@ def ensure_config():
     sys.exit(1)
 
 
-def main():
+def get_latest(directory, version_file, latest_pattern, permanent_prefix):
+  """Get the latest DumpRenderTree or Dartium binary depending on arguments.
+
+  Args:
+    directory: target directory (recreated) to install binary
+    version_file: name of file with the current version stamp
+    latest_pattern: the google store url pattern pointing to the latest binary
+    permanent_prefix: stable google store folder used to download versions
+  """
   system = platform.system()
   if system == 'Darwin':
     osname = 'mac'
@@ -105,31 +120,31 @@ def main():
   ensure_config()
 
   # Query for the lastest version
-  pattern = DRT_DARTIUM_LATEST_PATTERN  % { 'osname' : osname }
+  pattern = latest_pattern  % { 'osname' : osname }
   result, out = gsutil('ls', pattern)
   if result == 0:
     latest = out.split()[-1]
     # use permanent link instead, just in case the latest zip entry gets deleted
     # while we are downloading it.
-    latest = (DRT_DARTIUM_PERMANENT_PREFIX % { 'osname' : osname }
+    latest = (permanent_prefix % { 'osname' : osname }
               + latest[latest.rindex('/'):])
   else: # e.g. no access
     print "Couldn't download DumpRenderTree: %s\n%s" % (pattern, out)
-    if not os.path.exists(VERSION):
+    if not os.path.exists(version_file):
       print "Tests using DumpRenderTree will not work. Please try again later."
     return 0
 
   # Check if we need to update the file
-  if os.path.exists(VERSION):
-    v = open(VERSION, 'r').read()
+  if os.path.exists(version_file):
+    v = open(version_file, 'r').read()
     if v == latest:
       if not in_runhooks():
         print 'DumpRenderTree is up to date.\nVersion: ' + latest
       return 0 # up to date
 
-  if os.path.exists(DRT_DIR):
-    print 'Removing old DumpRenderTree tree %s' % DRT_DIR
-    shutil.rmtree(DRT_DIR)
+  if os.path.exists(directory):
+    print 'Removing old DumpRenderTree tree %s' % directory
+    shutil.rmtree(directory)
 
   # download the zip file to a temporary path, and unzip to the target location
   temp_dir = tempfile.mkdtemp()
@@ -143,17 +158,31 @@ def main():
       raise Exception('Execution of "unzip %s -d %s" failed: %s' %
                       (temp_zip, temp_dir, str(out)))
     unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] # remove .zip
-    shutil.move(unzipped_dir, DRT_DIR)
+    shutil.move(unzipped_dir, directory)
   finally:
     shutil.rmtree(temp_dir)
 
   # create the version stamp
-  v = open(VERSION, 'w')
+  v = open(version_file, 'w')
   v.write(latest)
   v.close()
 
-  print 'Successfully downloaded to %s' % DRT_DIR
+  print 'Successfully downloaded to %s' % directory
   return 0
+
+
+def main():
+  parser = optparse.OptionParser()
+  parser.add_option('--dartium', dest='dartium',
+                    help='Get latest Dartium', action='store_true',
+                    default=False)
+  args, _ = parser.parse_args()
+
+  if args.dartium:
+    get_latest(DARTIUM_DIR, DARTIUM_VERSION,
+               DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PREFIX)
+  else:
+    get_latest(DRT_DIR, DRT_VERSION, DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)
 
 if __name__ == '__main__':
   sys.exit(main())

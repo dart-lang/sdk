@@ -40,7 +40,6 @@ fixed_length_file_out
 third_party/gyp/
 third_party/v8/
 third_party/closure_compiler_src/
-third_party/WebCore/
 tests/co19/src/
 
 # Built by chromebot and downloaded from Google Storage

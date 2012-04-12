@@ -241,6 +241,19 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return DartCallPattern::kCallPatternSize;
 }
 
+
+RawArray* CodePatcher::GetTypeTestArray(uword instruction_address) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void CodePatcher::SetTypeTestArray(uword instruction_address,
+                                   const Array& value) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

@@ -48,6 +48,7 @@
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \
+  V(Platform_LocalHostname, 0)                                                 \
   V(Process_Start, 9)                                                          \
   V(Process_Kill, 2)                                                           \
   V(ServerSocket_CreateBindListen, 4)                                          \
@@ -57,7 +58,7 @@
   V(Socket_ReadList, 4)                                                        \
   V(Socket_WriteList, 4)                                                       \
   V(Socket_GetPort, 1)                                                         \
-  V(Socket_GetRemotePort, 1)                                                   \
+  V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_NewServicePort, 0)

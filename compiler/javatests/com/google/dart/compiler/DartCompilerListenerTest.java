@@ -63,15 +63,19 @@ public class DartCompilerListenerTest extends DartCompilerListener.Empty {
 
     if (errorCodes[current] != null) {
       CompilerTestCase.assertEquals(
-        "Wrong error code", errorCodes[current], event.getErrorCode());
+        "Wrong error code at " + event.getLineNumber() + ":" + event.getColumnNumber(), 
+        errorCodes[current], event.getErrorCode());
     } else {
       CompilerTestCase.assertEquals(
-        "Wrong error message", messages[current], event.getMessage());
+        "Wrong error message at " + event.getLineNumber() + ":" + event.getColumnNumber(), 
+        messages[current], event.getMessage());
     }
     CompilerTestCase.assertEquals(
-        "Wrong line number", line[current], event.getLineNumber());
+        "Wrong line number at " + event.getLineNumber() + ":" + event.getColumnNumber(),  
+        line[current], event.getLineNumber());
     CompilerTestCase.assertEquals(
-        "Wrong column number", column[current], event.getColumnNumber());
+        "Wrong column number at " + event.getLineNumber() + ":" + event.getColumnNumber(), 
+        column[current], event.getColumnNumber());
     current++;
   }
 

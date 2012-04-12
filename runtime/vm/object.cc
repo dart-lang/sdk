@@ -9,7 +9,6 @@
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/code_generator.h"
-#include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
@@ -26,6 +25,7 @@
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
+#include "vm/stack_frame.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 
@@ -291,9 +291,9 @@ void Object::InitOnce() {
   // field.
   null_->ptr()->class_ = null_class_;
 
-  // Allocate and initialize the sentinel values of an instance class.
+  // Allocate and initialize the sentinel values of Null class.
   {
-    cls = Class::New<Instance>();
+    cls = null_class_;
     Instance& sentinel = Instance::Handle();
     sentinel ^= Object::Allocate(cls, Instance::InstanceSize(), Heap::kOld);
     sentinel_ = sentinel.raw();
@@ -457,6 +457,8 @@ RawError* Object::Init(Isolate* isolate) {
   // class is setup as one of its field is an array object).
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
+  cls.set_type_arguments_instance_field_offset(
+      GrowableObjectArray::type_arguments_offset());
 
   // Setup the symbol table used within the String class.
   const int kInitialSymbolTableSize = 16;
@@ -519,6 +521,10 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->array_class();  // Was allocated above.
   RegisterClass(cls, "ObjectArray", impl_script, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = object_store->growable_object_array_class();  // Was allocated above.
+  RegisterClass(cls, "GrowableObjectArray", impl_script, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
@@ -2004,6 +2010,13 @@ bool AbstractType::Equals(const AbstractType& other) const {
 }
 
 
+bool AbstractType::IsIdentical(const AbstractType& other) const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 RawAbstractType* AbstractType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractType is an abstract class.
@@ -2309,6 +2322,17 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
+RawString* Type::TypeClassName() const {
+  if (HasResolvedTypeClass()) {
+    const Class& cls = Class::Handle(type_class());
+    return cls.Name();
+  } else {
+    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
+    return cls.Name();
+  }
+}
+
+
 RawAbstractTypeArguments* Type::arguments() const {
   return raw_ptr()->arguments_;
 }
@@ -2347,12 +2371,33 @@ bool Type::Equals(const AbstractType& other) const {
   if (IsMalformed() || !other.IsType() || other.IsMalformed()) {
     return false;
   }
-  Type& other_parameterized_type = Type::Handle();
-  other_parameterized_type ^= other.raw();
-  if (type_class() != other_parameterized_type.type_class()) {
+  Type& other_type = Type::Handle();
+  other_type ^= other.raw();
+  if (type_class() != other_type.type_class()) {
     return false;
   }
   return AbstractTypeArguments::AreEqual(
+      AbstractTypeArguments::Handle(arguments()),
+      AbstractTypeArguments::Handle(other.arguments()));
+}
+
+
+bool Type::IsIdentical(const AbstractType& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsType()) {
+    return false;
+  }
+  Type& other_type = Type::Handle();
+  other_type ^= other.raw();
+  // Both type classes may not be resolved yet.
+  String& name = String::Handle(TypeClassName());
+  String& other_name = String::Handle(other_type.TypeClassName());
+  if (!name.Equals(other_name)) {
+    return false;
+  }
+  return AbstractTypeArguments::AreIdentical(
       AbstractTypeArguments::Handle(arguments()),
       AbstractTypeArguments::Handle(other.arguments()));
 }
@@ -2512,6 +2557,23 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   const String& name = String::Handle(Name());
   const String& other_type_param_name = String::Handle(other_type_param.Name());
   return name.Equals(other_type_param_name);
+}
+
+
+bool TypeParameter::IsIdentical(const AbstractType& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsTypeParameter()) {
+    return false;
+  }
+  TypeParameter& other_type_param = TypeParameter::Handle();
+  other_type_param ^= other.raw();
+  // Both type parameters may have different type_class and their index may be
+  // different after finalization, which is OK. Do not check.
+  String& name = String::Handle(Name());
+  String& other_name = String::Handle(other_type_param.Name());
+  return name.Equals(other_name);
 }
 
 
@@ -2756,6 +2818,33 @@ bool AbstractTypeArguments::AreEqual(
 }
 
 
+bool AbstractTypeArguments::AreIdentical(
+    const AbstractTypeArguments& arguments,
+    const AbstractTypeArguments& other_arguments) {
+  if (arguments.raw() == other_arguments.raw()) {
+    return true;
+  }
+  if (arguments.IsNull() || other_arguments.IsNull()) {
+    return false;
+  }
+  intptr_t num_types = arguments.Length();
+  if (num_types != other_arguments.Length()) {
+    return false;
+  }
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& other_type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type ^= arguments.TypeAt(i);
+    ASSERT(!type.IsNull());
+    other_type ^= other_arguments.TypeAt(i);
+    if (!type.IsIdentical(other_type)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractTypeArguments is an abstract class.
@@ -2977,41 +3066,6 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
     instantiated_array.SetTypeAt(i, type);
   }
   return instantiated_array.raw();
-}
-
-
-bool TypeArguments::AreIdenticalTypeParameters(
-    const TypeArguments& arguments,
-    const TypeArguments& other_arguments) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull() || other_arguments.IsNull()) {
-    return false;
-  }
-  intptr_t num_types = arguments.Length();
-  if (num_types != other_arguments.Length()) {
-    return false;
-  }
-  TypeParameter& type = TypeParameter::Handle();
-  TypeParameter& other_type = TypeParameter::Handle();
-  String& name = String::Handle();
-  String& other_name = String::Handle();
-  for (intptr_t i = 0; i < num_types; i++) {
-    type ^= arguments.TypeAt(i);
-    other_type ^= other_arguments.TypeAt(i);
-    if (type.raw() == other_type.raw()) {
-      continue;
-    }
-    // Both type parameters may have different type_class and their index may be
-    // different after finalization, which is OK. Do not check.
-    name = type.Name();
-    other_name = other_type.Name();
-    if (!name.Equals(other_name)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -5439,8 +5493,9 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kDeopt: return "deopt";
     case PcDescriptors::kPatchCode: return "patch";
     case PcDescriptors::kIcCall: return "ic-call";
-    case PcDescriptors::kFuncCall: return "func-call";
+    case PcDescriptors::kFuncCall: return "fn-call";
     case PcDescriptors::kReturn: return "return";
+    case PcDescriptors::kTypeTest: return "ty-test";
     case PcDescriptors::kOther: return "other";
   }
   UNREACHABLE();
@@ -5452,7 +5507,7 @@ const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
     return "No pc descriptors\n";
   }
-  const char* kFormat = "0x%x, %s %ld %ld, %ld\n";
+  const char* kFormat = "0x%x\t%s\t%ld\t%ld\t%ld\n";
   // First compute the buffer size required.
   intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -5517,26 +5572,6 @@ void Stackmap::SetCode(const Code& code) const {
 }
 
 
-// Return the bit offset of the highest bit set.
-intptr_t Stackmap::Maximum() const {
-  intptr_t bound = SizeInBits();
-  for (intptr_t i = (bound - 1); i >= 0; i--) {
-    if (IsObject(i)) return i;
-  }
-  return kNoMaximum;
-}
-
-
-// Return the bit offset of the lowest bit set.
-intptr_t Stackmap::Minimum() const {
-  intptr_t bound = SizeInBits();
-  for (intptr_t i = 0; i < bound; i++) {
-    if (IsObject(i)) return i;
-  }
-  return kNoMinimum;
-}
-
-
 bool Stackmap::GetBit(intptr_t bit_offset) const {
   ASSERT(InRange(bit_offset));
   int byte_offset = bit_offset >> kBitsPerByteLog2;
@@ -5561,7 +5596,7 @@ void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(uword pc, const Code& code, BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
   const Class& cls = Class::Handle(Object::stackmap_class());
   ASSERT(!cls.IsNull());
   ASSERT(bmap != NULL);
@@ -5576,12 +5611,13 @@ RawStackmap* Stackmap::New(uword pc, const Code& code, BitmapBuilder* bmap) {
     result ^= raw;
     result.set_bitmap_size_in_bytes(size);
   }
-  result.set_pc(pc);
-  result.set_code(code);
+  result.SetPC(pc_offset);
   intptr_t bound = bmap->SizeInBits();
   for (intptr_t i = 0; i < bound; i++) {
     result.SetBit(i, bmap->Get(i));
   }
+  result.SetMinBitOffset(bmap->Minimum());
+  result.SetMaxBitOffset(bmap->Maximum());
   return result.raw();
 }
 
@@ -5593,27 +5629,18 @@ void Stackmap::set_bitmap_size_in_bytes(intptr_t value) const {
 }
 
 
-void Stackmap::set_pc(uword value) const {
-  raw_ptr()->pc_ = value;
-}
-
-
-void Stackmap::set_code(const Code& code) const {
-  StorePointer(&raw_ptr()->code_, code.raw());
-}
-
-
 const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
     intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
-    intptr_t alloc_size = index + ((Maximum() + 1) * 2) + 2;  // "{ 1 0 .... }".
+    intptr_t alloc_size =
+        index + ((MaximumBitOffset() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
     char* chars = reinterpret_cast<char*>(
         isolate->current_zone()->Allocate(alloc_size));
     index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
-    for (intptr_t i = 0; i <= Maximum(); i++) {
+    for (intptr_t i = 0; i <= MaximumBitOffset(); i++) {
       index += OS::SNPrint((chars + index),
                            (alloc_size - index),
                            "%d ",
@@ -5884,6 +5911,18 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 }
 
 
+uword Code::GetTypeTestAtNodeId(intptr_t node_id) const {
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    if ((descriptors.NodeId(i) == node_id) &&
+        (descriptors.DescriptorKind(i) == PcDescriptors::kTypeTest)) {
+      return descriptors.PC(i);
+    }
+  }
+  return 0;
+}
+
+
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
@@ -5931,6 +5970,38 @@ void Code::ExtractIcDataArraysAtCalls(
       ic_data_objs.Add(ic_data_obj);
     }
   }
+}
+
+
+RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
+  // This code is used only during iterating frames during a GC and hence
+  // it should not in turn start a GC.
+  NoGCScope no_gc;
+  if (stackmaps() == Array::null()) {
+    // No stack maps are present in the code object which means this
+    // frame relies on tagged pointers.
+    return Stackmap::null();
+  }
+  // A stack map is present in the code object, use the stack map to visit
+  // frame slots which are marked as having objects.
+  RawStackmap* previous_map = Stackmap::null();
+  *maps = stackmaps();
+  *map = Stackmap::null();
+  for (intptr_t i = 0; i < maps->Length(); i++) {
+    *map ^= maps->At(i);
+    ASSERT(!map->IsNull());
+    if (map->PC() == pc) {
+      break;  // We found a stack map for this frame.
+    }
+    if (map->PC() > pc) {
+      // We have not found a stackmap corresponding to the PC of this frame,
+      // we will use the closest previous stack map.
+      *map = previous_map;
+      break;
+    }
+    previous_map = map->raw();
+  }
+  return map->raw();
 }
 
 
@@ -6448,6 +6519,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     return other_class.IsObjectClass() || other_class.IsDynamicClass();
   }
   const Class& cls = Class::Handle(clazz());
+  // We must not encounter Object::sentinel() or Object::transition_sentinel(),
+  // both instances of class NullClass, but not instance Object::null().
+  ASSERT(!cls.IsNullClass());
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {
@@ -6531,6 +6605,10 @@ bool Instance::IsValidFieldOffset(int offset) const {
 const char* Instance::ToCString() const {
   if (IsNull()) {
     return "null";
+  } else if (raw() == Object::sentinel()) {
+    return "sentinel";
+  } else if (raw() == Object::transition_sentinel()) {
+    return "transition_sentinel";
   } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
@@ -8507,7 +8585,8 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
   ASSERT(!IsNull());
   Array& contents = Array::Handle(data());
   if (Length() == Capacity()) {
-    intptr_t new_capacity = Capacity() * 2;
+    // TODO(Issue 2500): Need a better growth strategy.
+    intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
     if (new_capacity <= Capacity()) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
@@ -8516,14 +8595,21 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
       Exceptions::Throw(exception);
       UNREACHABLE();
     }
-    StorePointer(&(raw_ptr()->data_),
-                 Array::Grow(contents, new_capacity, space));
+    Grow(new_capacity, space);
     contents = data();
   }
   ASSERT(Length() < Capacity());
   intptr_t index = Length();
   SetLength(index + 1);
   contents.SetAt(index, value);
+}
+
+
+void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
+  ASSERT(new_capacity > Capacity());
+  Array& contents = Array::Handle(data());
+  StorePointer(&(raw_ptr()->data_),
+               Array::Grow(contents, new_capacity, space));
 }
 
 
@@ -8579,9 +8665,15 @@ bool GrowableObjectArray::Equals(const Instance& other) const {
 
 RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
                                                  Heap::Space space) {
+  const Array& data = Array::Handle(Array::New(capacity, space));
+  return New(data, space);
+}
+
+
+RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
+                                                 Heap::Space space) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Class& cls = Class::Handle(object_store->growable_object_array_class());
-  const Array& data = Array::Handle(Array::New(capacity, space));
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
     RawObject* raw = Object::Allocate(cls,
@@ -8590,7 +8682,7 @@ RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(0);
-    result.SetData(data);
+    result.SetData(array);
   }
   return result.raw();
 }
@@ -8818,17 +8910,16 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 
 void Stacktrace::SetupStacktrace(intptr_t index,
                                  const GrowableArray<uword>& frame_pcs) const {
-  ASSERT(Isolate::Current() != NULL);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  Function& function = Function::Handle();
-  Code& code = Code::Handle();
-  Smi& pc_offset = Smi::Handle();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  Function& function = Function::Handle(isolate, Function::null());
+  Code& code = Code::Handle(isolate, Code::null());
+  Smi& pc_offset = Smi::Handle(isolate, Smi::New(0));
   const Array& function_array = Array::Handle(raw_ptr()->function_array_);
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
   for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    code = code_index_table->LookupCode(frame_pcs[i]);
+    code = StackFrame::LookupCode(isolate, frame_pcs[i]);
     ASSERT(!code.IsNull());
     function = code.function();
     function_array.SetAt((index + i), function);

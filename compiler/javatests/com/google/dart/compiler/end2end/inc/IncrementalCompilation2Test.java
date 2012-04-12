@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
@@ -27,7 +27,6 @@ import junit.framework.AssertionFailedError;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
@@ -62,14 +61,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   private DefaultCompilerConfiguration config;
   private IncMockArtifactProvider provider;
   private MemoryLibrarySource appSource;
-  private long appSourceLastModified = 0;
-  private String appSourceContent = makeCode(
-      "// filler filler filler filler filler filler filler filler filler filler filler",
-      "#library('application');",
-      "#source('A.dart');",
-      "#source('B.dart');",
-      "#source('C.dart');",
-      "");
   private final List<DartCompilationError> errors = Lists.newArrayList();
 
   @Override
@@ -81,17 +72,16 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       }
     };
     provider = new IncMockArtifactProvider();
-    appSource = new MemoryLibrarySource(APP, "<not-used>") {
-      @Override
-      public long getLastModified() {
-        return appSourceLastModified;
-      }
-
-      @Override
-      public Reader getSourceReader() throws IOException {
-        return new StringReader(appSourceContent);
-      }
-    };
+    appSource = new MemoryLibrarySource(APP);
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#source('A.dart');",
+            "#source('B.dart');",
+            "#source('C.dart');",
+            ""));
     appSource.setContent("A.dart", "");
     appSource.setContent("B.dart", "");
     appSource.setContent("C.dart", "");
@@ -449,13 +439,13 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 9));
     // Exclude A and compile.
-    appSourceLastModified++;
-    appSourceContent =
+    appSource.setContent(
+        APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "#library('app');",
             "#source('B.dart');",
-            "");
+            ""));
     compile();
     // Now there is top-level declarations conflict between A and B.
     // So:
@@ -533,13 +523,14 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * Test that invalid "#import" is reported as any other error between "unitAboutToCompile" and
    * "unitCompiled".
    */
-  public void test_reportMissingImportSourcce() throws Exception {
-    appSourceContent =
+  public void test_reportMissingImport() throws Exception {
+    appSource.setContent(
+        APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
             "#library('app');",
             "#import('dart:noSuchLib.dart');",
-            "");
+            ""));
     // Remember errors only between unitAboutToCompile/unitCompiled.
     errors.clear();
     DartCompilerListener listener = new DartCompilerListener.Empty() {
@@ -565,6 +556,45 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     DartCompiler.compileLib(appSource, config, provider, listener);
     // Check that errors where reported (and in correct time).
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 31));
+  }
+
+  /**
+   * Test that invalid "#source" is reported as any other error between "unitAboutToCompile" and
+   * "unitCompiled".
+   */
+  public void test_reportMissingSource() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('app');",
+            "#source('noSuchUnit.dart');",
+            ""));
+    // Remember errors only between unitAboutToCompile/unitCompiled.
+    errors.clear();
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
+      boolean isCompiling = false;
+
+      @Override
+      public void unitAboutToCompile(DartSource source, boolean diet) {
+        isCompiling = true;
+      }
+
+      @Override
+      public void onError(DartCompilationError event) {
+        if (isCompiling) {
+          errors.add(event);
+        }
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
+        isCompiling = false;
+      }
+    };
+    DartCompiler.compileLib(appSource, config, provider, listener);
+    // Check that errors where reported (and in correct time).
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 27));
   }
 
   private void assertAppBuilt() {

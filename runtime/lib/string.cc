@@ -117,6 +117,27 @@ DEFINE_NATIVE_ENTRY(String_concat, 2) {
 }
 
 
+// TODO(hausner): Remove obsolete String_plus.
+DECLARE_FLAG(bool, allow_string_plus);
+DEFINE_NATIVE_ENTRY(String_plus, 2) {
+  const String& receiver = String::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, b, arguments->At(1));
+  if (!FLAG_allow_string_plus) {
+    // Throw a noSuchMethod exception if operator + is not supported.
+    const String& func_name = String::Handle(String::New("+"));
+    const Array& func_args = Array::Handle(Array::New(1));
+    func_args.SetAt(0, b);
+    GrowableArray<const Object*> dart_arguments(3);
+    dart_arguments.Add(&receiver);
+    dart_arguments.Add(&func_name);
+    dart_arguments.Add(&func_args);
+    Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
+  }
+  const String& result = String::Handle(String::Concat(receiver, b));
+  arguments->SetReturn(result);
+}
+
+
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
   const String& receiver = String::CheckedHandle(arguments->At(0));
   ASSERT(!receiver.IsNull());

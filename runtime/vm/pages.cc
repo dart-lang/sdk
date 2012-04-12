@@ -49,12 +49,28 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
+RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
+  uword obj_addr = first_object_start();
+  uword end_addr = top();
+  while (obj_addr < end_addr) {
+    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
+    if (raw_obj->FindObject(visitor)) {
+      return raw_obj;  // Found object, return it.
+    }
+    obj_addr += raw_obj->Size();
+  }
+  ASSERT(obj_addr == end_addr);
+  return Object::null();
+}
+
+
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
     : freelist_(),
       heap_(heap),
       pages_(NULL),
       pages_tail_(NULL),
       large_pages_(NULL),
+      bump_page_(NULL),
       max_capacity_(max_capacity),
       capacity_(0),
       in_use_(0),
@@ -84,6 +100,7 @@ void PageSpace::AllocatePage() {
     pages_tail_->set_next(page);
   }
   pages_tail_ = page;
+  bump_page_ = NULL;  // Reenable scanning of pages for bump allocation.
   capacity_ += kPageSize;
 }
 
@@ -121,17 +138,28 @@ void PageSpace::FreePages(HeapPage* pages) {
 
 
 uword PageSpace::TryBumpAllocate(intptr_t size) {
-  HeapPage* page = pages_tail_;
-  if (page == NULL) {
+  if (pages_tail_ == NULL) {
     return 0;
   }
-  uword result = page->top();
-  intptr_t remaining_space = page->end() - result;
-  if (remaining_space < size) {
-    return 0;
+  uword result = pages_tail_->TryBumpAllocate(size);
+  if (result != 0) {
+    return result;
   }
-  page->set_top(result + size);
-  return result;
+  if (bump_page_ == NULL) {
+    // The bump page has not yet been used: Start at the beginning of the list.
+    bump_page_ = pages_;
+  }
+  // The last page has already been attempted above.
+  while (bump_page_ != pages_tail_) {
+    ASSERT(bump_page_->next() != NULL);
+    result = bump_page_->TryBumpAllocate(size);
+    if (result != 0) {
+      return result;
+    }
+    bump_page_ = bump_page_->next();
+  }
+  // Ran through all of the pages trying to bump allocate: Give up.
+  return 0;
 }
 
 
@@ -206,6 +234,29 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 
+RawObject* PageSpace::FindObject(FindObjectVisitor* visitor) const {
+  ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    RawObject* obj = page->FindObject(visitor);
+    if (obj != Object::null()) {
+      return obj;
+    }
+    page = page->next();
+  }
+
+  page = large_pages_;
+  while (page != NULL) {
+    RawObject* obj = page->FindObject(visitor);
+    if (obj != Object::null()) {
+      return obj;
+    }
+    page = page->next();
+  }
+  return Object::null();
+}
+
+
 void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // MarkSweep is not reentrant. Make sure that is the case.
   ASSERT(!sweeping_);
@@ -226,6 +277,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this, invoke_api_callbacks);
 
+  // Reset the bump allocation page to unused.
+  bump_page_ = NULL;
   // Reset the freelists and setup sweeping.
   freelist_.Reset();
   GCSweeper sweeper(heap_);
@@ -233,7 +286,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   HeapPage* page = pages_;
   while (page != NULL) {
-    in_use += sweeper.SweepPage(page, &freelist_);
+    intptr_t page_in_use = sweeper.SweepPage(page, &freelist_);
+    in_use += page_in_use;
     page = page->next();
   }
 

@@ -10,27 +10,6 @@
 
 namespace dart {
 
-StackResource::StackResource(Isolate* isolate)
-    : isolate_(isolate), previous_(NULL) {
-  // We can only have longjumps and exceptions when there is a current
-  // isolate.  If there is no current isolate, we don't need to
-  // protect this case.
-  if (isolate) {
-    previous_ = isolate->top_resource();
-    isolate->set_top_resource(this);
-  }
-}
-
-
-StackResource::~StackResource() {
-  if (isolate()) {
-    StackResource* top = isolate()->top_resource();
-    ASSERT(top == this);
-    isolate()->set_top_resource(previous_);
-  }
-  ASSERT(Isolate::Current() == isolate());
-}
-
 ZoneAllocated::~ZoneAllocated() {
   UNREACHABLE();
 }

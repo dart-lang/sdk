@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
@@ -38,6 +39,7 @@ TEST_CASE(CompileFunction) {
   Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
+  EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(String::NewSymbol("A"))));
   EXPECT(!cls.IsNull());

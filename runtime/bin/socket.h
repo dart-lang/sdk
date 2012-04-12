@@ -7,8 +7,19 @@
 
 #include "bin/builtin.h"
 #include "bin/utils.h"
+
 #include "platform/globals.h"
 #include "platform/thread.h"
+// Declare the OS-specific types ahead of defining the generic class.
+#if defined(TARGET_OS_LINUX)
+#include "bin/socket_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "bin/socket_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "bin/socket_win.h"
+#else
+#error Unknown target os.
+#endif
 
 
 class Socket {
@@ -23,7 +34,7 @@ class Socket {
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
   static intptr_t CreateConnect(const char* host, const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
-  static intptr_t GetRemotePort(intptr_t fd);
+  static bool GetRemotePeer(intptr_t fd, char *host, intptr_t *port);
   static void GetError(intptr_t fd, OSError* os_error);
   static intptr_t GetStdioHandle(int num);
 

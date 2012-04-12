@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.util.List;
 import java.util.Set;
@@ -232,8 +232,7 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   /**
-   * Type parameters declaration is not finished, stop parsing and restart from next top level
-   * element.
+   * Type parameters declaration is not finished.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=341
    */
@@ -250,13 +249,17 @@ public class NegativeParserTest extends CompilerTestCase {
     assertErrors(
         parserRunner.getErrors(),
         errEx(ParserErrorCode.EXPECTED_EXTENDS, 3, 11, 1),
-        errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 11, 3));
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 1, 1),
+        errEx(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE, 5, 1, 5));
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class B<X> {",
             "}",
             "",
             "class C {",
@@ -279,13 +282,18 @@ public class NegativeParserTest extends CompilerTestCase {
             "class C {",
             "}"));
     // check expected errors
-    assertErrors(parserRunner.getErrors(), errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 9, 1));
+    assertErrors(parserRunner.getErrors(),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 1, 5));
+
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class ClassWithLongEnoughName {",
+            "}",
+            "",
+            "class B<X> {",
             "}",
             "",
             "class C {",
@@ -303,7 +311,7 @@ public class NegativeParserTest extends CompilerTestCase {
         "foo.baz() {}",
         errEx(ParserErrorCode.FUNCTION_NAME_EXPECTED_IDENTIFIER, 1, 1, 7));
   }
-  
+
   public void testInvalidStringInterpolation() {
     parseExpectErrors(
         Joiner.on("\n").join(

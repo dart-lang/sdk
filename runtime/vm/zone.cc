@@ -216,7 +216,7 @@ void BaseZone::DumpZoneSizes() {
 #endif
 
 
-Zone::Zone(Isolate* isolate)
+Zone::Zone(BaseIsolate* isolate)
     : StackResource(isolate),
       zone_(),
       handles_(),

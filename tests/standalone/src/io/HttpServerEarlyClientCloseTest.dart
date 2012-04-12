@@ -58,17 +58,17 @@ void testEarlyClose() {
   // The empty packet is valid.
 
   // Close while sending header
-  add("G", "Connection closed before header was received");
-  add("GET /", "Failed to parse HTTP");
-  add("GET / HTTP/1.1", "Failed to parse HTTP");
-  add("GET / HTTP/1.1\r\n", "Failed to parse HTTP");
+  add("G", "Connection closed before full header was received");
+  add("GET /", "Connection closed before full header was received");
+  add("GET / HTTP/1.1", "Connection closed before full header was received");
+  add("GET / HTTP/1.1\r\n", "Connection closed before full header was received");
 
   // Close while sending content
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n",
-      "Failed to parse HTTP",
+      "Connection closed before full body was received",
       expectRequest: true);
   add("GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n1",
-      "Failed to parse HTTP",
+      "Connection closed before full body was received",
       expectRequest: true);
 
 

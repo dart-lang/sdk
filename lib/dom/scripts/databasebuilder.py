@@ -528,22 +528,6 @@ class DatabaseBuilder(object):
         return True
     return False
 
-  def import_idl_directory(self, directory_path,
-               import_options=DatabaseBuilderOptions()):
-    """Parses, loads into memory and cleans up all IDL files in a given
-    directory"""
-    if not os.path.exists(directory_path):
-      raise RuntimeError('directory not found: %s' % directory_path)
-
-    def visitor(arg, dir_name, names):
-      module = dir_name[len(directory_path) + 1:]
-      for name in names:
-        file_name = os.path.join(dir_name, name)
-        (interface, ext) = os.path.splitext(file_name)
-        if ext == '.idl' and not name.startswith('._'):
-          self.import_idl_file(file_name, import_options)
-    os.path.walk(directory_path, visitor, None)
-
   def fix_displacements(self, source):
     """E.g. In W3C, something is declared on HTMLDocument but in WebKit
     its on Document, so we need to mark that something in HTMLDocument

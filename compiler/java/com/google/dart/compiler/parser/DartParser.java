@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDefault;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartEmptyStatement;
@@ -75,6 +76,7 @@ import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartSwitchMember;
 import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartThrowStatement;
@@ -113,7 +115,7 @@ public class DartParser extends CompletionHooksParserBase {
   private final boolean isDietParse;
   private final Set<String> prefixes;
   private final boolean corelibParse;
-  private Set<Integer> errorHistory = new HashSet<Integer>();
+  private final Set<Integer> errorHistory = new HashSet<Integer>();
   private boolean isParsingInterface;
   private boolean isTopLevelAbstract;
   private DartScanner.Position topLevelAbstractModifierPosition;
@@ -161,7 +163,7 @@ public class DartParser extends CompletionHooksParserBase {
     STATIC_KEYWORD,
     TYPEDEF_KEYWORD
   };
-  
+
   public DartParser(Source source,
                     String sourceCode,
                     DartCompilerListener listener) {
@@ -253,6 +255,8 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.EOS, Token.CLASS, Token.LIBRARY, Token.IMPORT, Token.SOURCE,
+      Token.RESOURCE, Token.NATIVE})
   public DartUnit parseUnit(DartSource source) {
     beginCompilationUnit();
     ctx.unitAboutToCompile(source, isDietParse);
@@ -262,73 +266,62 @@ public class DartParser extends CompletionHooksParserBase {
     parseDirectives(unit);
 
     while (!EOS()) {
-      try {
-        DartNode node = null;
-        beginTopLevelElement();
-        isParsingClass = isParsingInterface = false;
-        // Check for ABSTRACT_KEYWORD.
-        isTopLevelAbstract = false;
-        topLevelAbstractModifierPosition = null;
-        if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-          isTopLevelAbstract = true;
-          topLevelAbstractModifierPosition = position();
+      DartNode node = null;
+      beginTopLevelElement();
+      isParsingClass = isParsingInterface = false;
+      // Check for ABSTRACT_KEYWORD.
+      isTopLevelAbstract = false;
+      topLevelAbstractModifierPosition = null;
+      if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+        isTopLevelAbstract = true;
+        topLevelAbstractModifierPosition = position();
+      }
+      // Parse top level element.
+      if (optional(Token.CLASS)) {
+        isParsingClass = true;
+        node = done(parseClass());
+      } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) && peek(1).equals(Token.IDENTIFIER)) {
+        consume(Token.IDENTIFIER);
+        isParsingInterface = true;
+        node = done(parseClass());
+      } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
+          && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
+        consume(Token.IDENTIFIER);
+        node = done(parseFunctionTypeAlias());
+      } else if (looksLikeDirective()) {
+        reportErrorWithoutAdvancing(ParserErrorCode.DIRECTIVE_OUT_OF_ORDER);
+        parseDirectives(unit);
+      } else {
+        node = done(parseFieldOrMethod(false));
+      }
+      // Parsing was successful, add node.
+      if (node != null) {
+        unit.getTopLevelNodes().add(node);
+        // Only "class" can be top-level abstract element.
+        if (isTopLevelAbstract && !isParsingClass) {
+          Position abstractPositionEnd = topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
+          Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
+          reportError(new DartCompilationError(source, location,
+              ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
         }
-        // Parse top level element.
-        if (optional(Token.CLASS)) {
-          isParsingClass = true;
-          node = done(parseClass());
-        } else if (peekPseudoKeyword(0, INTERFACE_KEYWORD) 
-            && peek(1).equals(Token.IDENTIFIER)) {
-          consume(Token.IDENTIFIER);
-          isParsingInterface = true;
-          node = done(parseClass());
-        } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)  
-            && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
-          consume(Token.IDENTIFIER);
-          node = done(parseFunctionTypeAlias());
-        } else {
-          node = done(parseFieldOrMethod(false));
-        }
-        // Parsing was successful, add node.
-        if (node != null) {
-          unit.getTopLevelNodes().add(node);
-          // Only "class" can be top-level abstract element.
-          if (isTopLevelAbstract && !isParsingClass) {
-            Position abstractPositionEnd =
-                topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
-            Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
-            reportError(new DartCompilationError(source,
-                location,
-                ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
-          }
-        }
-      } catch (ParserException e) {
-        Location beginLocation = ctx.getTokenLocation();
-        // Find known top level element to restart parsing.
-        while (peek(0) != Token.EOS && !looksLikeTopLevelKeyword()) {
-          next();
-        }
-        // Report skipped source.
-        Location endLocation = ctx.getTokenLocation();
-        reportError(new DartCompilationError(ctx.getSource(),
-            new Location(beginLocation.getBegin(), endLocation.getEnd()),
-            ParserErrorCode.SKIPPED_SOURCE));
       }
     }
     expect(Token.EOS);
     return done(unit);
   }
 
-  /**
-   * @return <code>true</code> if token at given position is keyword which can be used only on top
-   *         level.
-   */
-  private boolean peekTopLevelKeyword(int n) {
-    return peek(n) == Token.CLASS
-        || peekPseudoKeyword(n, INTERFACE_KEYWORD)
-        || peekPseudoKeyword(n, TYPEDEF_KEYWORD);
+  private boolean looksLikeDirective() {
+    switch(peek(0)) {
+      case LIBRARY:
+      case IMPORT:
+      case SOURCE:
+      case RESOURCE:
+      case NATIVE:
+        return true;
+    }
+    return false;
   }
-  
+
   /**
    * 'interface' and 'typedef' are valid to use as names of fields and methods, so you can't
    * just blindly recover when you see them in any context.  This does a further test to make
@@ -339,14 +332,13 @@ public class DartParser extends CompletionHooksParserBase {
     if (peek(0).equals(Token.CLASS)) {
       return true;
     }
-    if (peekPseudoKeyword(0, INTERFACE_KEYWORD) 
+    if (peekPseudoKeyword(0, INTERFACE_KEYWORD)
         && peek(1).equals(Token.IDENTIFIER)) {
       return true;
-    } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD) 
+    } else if (peekPseudoKeyword(0, TYPEDEF_KEYWORD)
         && (peek(1).equals(Token.IDENTIFIER) || peek(1).equals(Token.VOID))) {
       return true;
     }
-
     return false;
   }
 
@@ -410,7 +402,15 @@ public class DartParser extends CompletionHooksParserBase {
   private void parseDirectives(DartUnit unit) {
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      unit.getDirectives().add(done(parseLibraryDirective()));
+      DartLibraryDirective libraryDirective = parseLibraryDirective();
+      for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartLibraryDirective) {
+          reportError(position(), ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
+          break;
+        }
+      }
+      unit.getDirectives().add(libraryDirective);
+      done(libraryDirective);
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
@@ -511,12 +511,14 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.GT, Token.COMMA})
   private List<DartTypeParameter> parseTypeParameters() {
     List<DartTypeParameter> types = new ArrayList<DartTypeParameter>();
     expect(Token.LT);
     do {
       DartTypeParameter typeParameter = parseTypeParameter();
       types.add(typeParameter);
+
     } while (optional(Token.COMMA));
     expect(Token.GT);
     return types;
@@ -534,11 +536,8 @@ public class DartParser extends CompletionHooksParserBase {
       if (optionalPseudoKeyword(EXTENDS_KEYWORD)) {
         // OK, this is EXTENDS_KEYWORD, parse type.
         bound = parseTypeAnnotation();
-      } else if (peekTopLevelKeyword(0)) {
-        // class Foo<T{cursor}   class Bar {}
-        // User is typing type parameters now, next is top level element.
-        // Stop parsing of current top level element and restart from the next one.
-        throw new ParserException();
+      } else if (looksLikeTopLevelKeyword()) {
+        return done(new DartTypeParameter(name, bound));
       } else if (peek(0) == Token.IDENTIFIER && (peek(1) == Token.COMMA || peek(1) == Token.GT)) {
         // <X exte{cursor}>
         // User tries to type "extends", but it is not finished yet.
@@ -558,7 +557,6 @@ public class DartParser extends CompletionHooksParserBase {
         // Something else, restart parsing from next top level element.
         next();
         reportError(position(), ParserErrorCode.EXPECTED_EXTENDS);
-        throw new ParserException();
       }
     }
     // Ready to create DartTypeParameter.
@@ -612,6 +610,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartIdentifier name = parseIdentifier();
     if (name.getName().equals("")) {
       // something went horribly wrong.
+      if (peek(0).equals(Token.LBRACE)) {
+        parseBlock();
+      }
       return done(null);
     }
     List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
@@ -663,17 +664,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse the members.
     List<DartNode> members = new ArrayList<DartNode>();
-    if (optional(Token.LBRACE)) {
-      while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
-        DartNode member = parseFieldOrMethod(true);
-        if (member != null) {
-          members.add(member);
-        }
-      }
-      expectCloseBrace();
-    } else {
-      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
-    }
+    parseClassOrInterfaceBody(members);
 
     if (isParsingInterface) {
       return done(new DartClass(name, superType, interfaces, members, typeParameters, defaultClass));
@@ -685,6 +676,31 @@ public class DartParser extends CompletionHooksParserBase {
           members,
           typeParameters,
           modifiers));
+    }
+  }
+
+  /**
+   * Helper for {@link #parseClass()}.
+   *
+   * '{' classMemberDefinition* '}'
+   *
+   */
+  @Terminals(tokens={Token.RBRACE, Token.SEMICOLON})
+  private void parseClassOrInterfaceBody(List<DartNode> members) {
+    if (optional(Token.LBRACE)) {
+      while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
+        DartNode member = parseFieldOrMethod(true);
+        if (member != null) {
+          members.add(member);
+        }
+        // Recover at a semicolon
+        if (optional(Token.SEMICOLON)) {
+          reportUnexpectedToken(position(), null, Token.SEMICOLON);
+        }
+      }
+      expectCloseBrace(true);
+    } else {
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_CLASS_DECLARATION_LBRACE);
     }
   }
 
@@ -957,7 +973,7 @@ public class DartParser extends CompletionHooksParserBase {
           member = parseMethodOrAccessor(modifiers, null);
           break;
         }
-        
+
         member = parseFieldDeclaration(modifiers, null);
         expectStatmentTerminator();
         break;
@@ -989,13 +1005,13 @@ public class DartParser extends CompletionHooksParserBase {
             && peek(1) != Token.ASSIGN
             && peek(1) != Token.SEMICOLON) {
           type = parseTypeAnnotation();
-          
+
           // Check again for malformed method starting with 'final':   final String ^ foo() { }
           if (peek(0).equals(Token.IDENTIFIER) && looksLikeMethodOrAccessorDefinition()) {
             reportError(position(), ParserErrorCode.FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION);
             member = parseMethodOrAccessor(modifiers, null);
             break;
-          }          
+          }
         }
         member = parseFieldDeclaration(modifiers, type);
         expectStatmentTerminator();
@@ -1060,8 +1076,8 @@ public class DartParser extends CompletionHooksParserBase {
    *      | set identifier (
    *      | operator (
    *      | operator <op> (
-   *      | identifier (                 
-   *      | identifier DOT identifier  ( 
+   *      | identifier (
+   *      | identifier DOT identifier  (
    *      | identifier DOT identifier DOT identifier (
    *
    * @return <code>true</code> if the signature of a method has been found.  No tokens are consumed.
@@ -1084,40 +1100,40 @@ public class DartParser extends CompletionHooksParserBase {
         if (peekPseudoKeyword(0, NEGATE_KEYWORD) && peek(1).equals(Token.LPAREN)) {
           return true;
         }
-        // TODO(zundel): Look for valid operator overload tokens.  For now just assuming 
+        // TODO(zundel): Look for valid operator overload tokens.  For now just assuming
         // non-idents are good enough
         // operator ??? (
         if (!(peek(0).equals(Token.IDENTIFIER) &&  peek(1).equals(Token.LPAREN))) {
           return true;
         }
         if (peek(0).equals(Token.LBRACK) && peek(1).equals(Token.RBRACK)) {
-          // operator [] (           
+          // operator [] (
           if (peek(2).equals(Token.LPAREN)) {
             return true;
           }
-          // operator []= ( 
+          // operator []= (
           if (peek(2).equals(Token.ASSIGN) && peek(3).equals(Token.LPAREN)) {
             return true;
           }
         }
         return false;
       }
-      
+
       if (peekPseudoKeyword(0, GETTER_KEYWORD)
           || peekPseudoKeyword(0, SETTER_KEYWORD)) {
         next();
         // Using 'get' or 'set' as a field name is valid
         if (peek(0).equals(Token.SEMICOLON) || peek(0).equals(Token.ASSIGN)) {
           return false;
-        }        
+        }
         // Using 'get' or 'set' as a method name is valid (but discouraged)
         if (peek(0).equals(Token.LPAREN)) {
           return true;
-        }        
+        }
         // normal case:  get foo (
         if (peek(0).equals(Token.IDENTIFIER) && peek(1).equals(Token.LPAREN)) {
           return true;
-        } 
+        }
         return false;
       }
 
@@ -1178,7 +1194,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private DartMethodDefinition parseMethod(Modifiers modifiers, DartTypeNode returnType) {
-    DartExpression name = null;
+    DartExpression name = new DartIdentifier("");
 
     if (modifiers.isFactory()) {
       if (modifiers.isAbstract()) {
@@ -1219,8 +1235,30 @@ public class DartParser extends CompletionHooksParserBase {
           && ctx.getTokenString().equals(CALL_KEYWORD)) {
         name = done(new DartIdentifier(CALL_KEYWORD));
       } else {
-        reportUnexpectedToken(position(), Token.COMMENT, operation);
-        done(null);
+        // Not a valid operator.  Try to recover.
+        boolean found = false;
+        for (int i = 0; i < 4; ++i) {
+          if (peek(i).equals(Token.LPAREN)) {
+            found = true;
+            break;
+          }
+        }
+        StringBuilder buf = new StringBuilder();
+        buf.append(operation.getSyntax());
+        if (found) {
+          reportError(position(), ParserErrorCode.OPERATOR_IS_NOT_USER_DEFINABLE);
+          while(true) {
+            Token token = peek(0);
+            if (token.equals(Token.LPAREN)) {
+              break;
+            }
+            buf.append(next().getSyntax());
+          }
+          name = done(new DartIdentifier(buf.toString()));
+        } else {
+          reportUnexpectedToken(position(), Token.COMMENT, operation);
+          done(null);
+        }
       }
     } else {
       beginMethodName();
@@ -1555,6 +1593,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens = {Token.RBRACK, Token.COMMA, Token.RPAREN})
   private List<DartParameter> parseFormalParameterList() {
     beginFormalParameterList();
     List<DartParameter> params = new ArrayList<DartParameter>();
@@ -1569,15 +1608,18 @@ public class DartParser extends CompletionHooksParserBase {
       DartParameter param = parseFormalParameter(isNamed);
       params.add(param);
 
+      // Must keep in sync with @Terminals above
       done = optional(Token.RBRACK);
       if (done) {
         expectCloseParen();
       } else {
+        // Must keep in sync with @Terminals above
         done = optional(Token.RPAREN);
       }
 
       if (!done) {
         // Ensure termination if token is anything other than COMMA.
+        // Must keep in sync with @Terminals above
         done = !expect(Token.COMMA);
       }
     }
@@ -1764,9 +1806,11 @@ public class DartParser extends CompletionHooksParserBase {
    *     : expression (',' expression)*
    *     ;
    */
+  @Terminals(tokens={Token.COMMA})
   private DartExpression parseExpressionList() {
     beginExpressionList();
     DartExpression result = parseExpression();
+    // Must keep in sync with @Terminals above
     while (optional(Token.COMMA)) {
       result = new DartBinaryExpression(Token.COMMA, result, parseExpression());
       if (match(Token.COMMA)) {
@@ -1827,10 +1871,18 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseBinaryExpression(int precedence) {
     assert (precedence >= 4);
     beginBinaryExpression();
-    DartExpression result = parseUnaryExpression();
+    DartExpression lastResult = parseUnaryExpression();
+    DartExpression result = lastResult;
     for (int level = peek(0).getPrecedence(); level >= precedence; level--) {
       while (peek(0).getPrecedence() == level) {
+        Position prevPositionStart = ctx.getTokenLocation().getBegin();
+        Position prevPositionEnd = ctx.getTokenLocation().getEnd();
         Token token = next();
+        if (lastResult instanceof DartSuperExpression
+            && (token == Token.AND || token == Token.OR)) {
+          reportErrorAtPosition(prevPositionStart, prevPositionEnd,
+                                ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND);
+        }
         DartExpression right;
         if (token == Token.IS) {
           beginTypeExpression();
@@ -1844,6 +1896,11 @@ public class DartParser extends CompletionHooksParserBase {
         } else {
           right = parseBinaryExpression(level + 1);
         }
+        if (right instanceof DartSuperExpression) {
+          reportError(position(), ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND);
+        }
+
+        lastResult = right;
         result = doneWithoutConsuming(new DartBinaryExpression(token, result, right));
         if ((token == Token.IS)
             || token.isRelationalOperator()
@@ -1881,12 +1938,13 @@ public class DartParser extends CompletionHooksParserBase {
    *
    * @return a list of expressions containing the arguments to be passed
    */
-  private List<DartExpression> parseArguments() {
+  @Terminals(tokens={Token.RPAREN, Token.COMMA})
+  public List<DartExpression> parseArguments() {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
     expect(Token.LPAREN);
     // SEMICOLON is for error recovery
     boolean namedArgumentParsed = false;
-    while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
+    outer: while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
       beginParameter();
       DartExpression expression;
       if (peek(1) == Token.COLON) {
@@ -1902,15 +1960,24 @@ public class DartParser extends CompletionHooksParserBase {
       }
       arguments.add(done(expression));
       switch(peek(0)) {
+        // Must keep in sync with @Terminals above
         case COMMA:
           consume(Token.COMMA);
           break;
+          // Must keep in sync with @Terminals above
         case RPAREN:
           break;
         default:
-          // Make sure that the parser's state is advanced.
           Token actual = peek(0);
-          ctx.advance();
+          Set<Token> terminals = collectTerminalAnnotations();
+          if (terminals.contains(actual) || looksLikeTopLevelKeyword()) {
+            // Looks like a method already on the stack could use this token.
+            reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN);
+            break outer;
+          } else {
+            // Advance the parser state if no other method on the stack can use this token.
+            ctx.advance();
+          }
           reportError(ctx.getTokenLocation().getEnd(),
               ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, actual);
           break;
@@ -1934,6 +2001,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartExpression parseConditionalExpression() {
     beginConditionalExpression();
     DartExpression result = parseBinaryExpression(4);
+    if (result instanceof DartSuperExpression) {
+      reportError(position(), ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND);
+    }
     if (peek(0) != Token.CONDITIONAL) {
       return done(result);
     }
@@ -2037,7 +2107,7 @@ public class DartParser extends CompletionHooksParserBase {
       case STRING_SEGMENT:
       case STRING_EMBED_EXP_START:
         return parseStringInterpolation();
-        
+
       default:
         DartExpression expression = parseExpression();
         reportError(position(), ParserErrorCode.EXPECTED_STRING_LITERAL);
@@ -2141,7 +2211,13 @@ public class DartParser extends CompletionHooksParserBase {
         if (unexpectedString == null && unexpected != Token.EOS) {
           unexpectedString = unexpected.getSyntax();
         }
-        next();
+
+        // Don't eat tokens that could be used to successfully terminate a non-terminal
+        // further up the stack.
+        Set<Token> terminals = collectTerminalAnnotations();
+        if (!looksLikeTopLevelKeyword() && !terminals.contains(unexpected)) {
+          next();
+        }
         reportUnexpectedToken(position(), null, unexpected);
         StringBuilder tokenStr = new StringBuilder();
         if (unexpectedString != null) {
@@ -2188,9 +2264,10 @@ public class DartParser extends CompletionHooksParserBase {
    * <pre> mapLiteral : '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}' ;
    * </pre>
    */
+  @Terminals(tokens={Token.RBRACE, Token.COMMA})
   private DartExpression parseMapLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
     beginMapLiteral();
-    expect(Token.LBRACE);
+    boolean foundOpenBrace = expect(Token.LBRACE);
     boolean save = setAllowFunctionExpression(true);
     List<DartMapLiteralEntry> entries = new ArrayList<DartMapLiteralEntry>();
 
@@ -2210,23 +2287,31 @@ public class DartParser extends CompletionHooksParserBase {
       if (entry != null) {
         entries.add(entry);
       }
-      switch (peek(0)) {
+      Token nextToken = peek(0);
+      switch (nextToken) {
+        // Must keep in sync with @Terminals above
         case COMMA:
           consume(Token.COMMA);
           break;
+        // Must keep in sync with @Terminals above
         case RBRACE:
           break;
         default:
           if (entry == null) {
-            // Ensure the parser makes progress.
-            ctx.advance();
+            Set<Token> terminals = collectTerminalAnnotations();
+            if (!terminals.contains(nextToken) && !looksLikeTopLevelKeyword()) {
+              if (entry == null) {
+                // Ensure the parser makes progress.
+                ctx.advance();
+              }
+            }
           }
           reportError(position(), ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_BRACE);
           break;
       }
     }
 
-    expectCloseBrace();
+    expectCloseBrace(foundOpenBrace);
     setAllowFunctionExpression(save);
     return done(new DartMapLiteral(isConst, typeArguments, entries));
   }
@@ -2241,6 +2326,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.RBRACK, Token.COMMA})
   private DartExpression parseArrayLiteral(boolean isConst, List<DartTypeNode> typeArguments) {
     beginArrayLiteral();
     expect(Token.LBRACK);
@@ -2248,10 +2334,12 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartExpression> exprs = new ArrayList<DartExpression>();
     while (!match(Token.RBRACK) && !EOS()) {
       exprs.add(parseExpression());
+      // Must keep in sync with @Terminals above
       if (!optional(Token.COMMA)) {
         break;
       }
     }
+    // Must keep in sync with @Terminals above
     expect(Token.RBRACK);
     setAllowFunctionExpression(save);
     return done(new DartArrayLiteral(isConst, typeArguments, exprs));
@@ -2327,8 +2415,8 @@ public class DartParser extends CompletionHooksParserBase {
 
   private class DartStringInterpolationBuilder {
 
-    private List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
-    private List<DartExpression> expressions = new ArrayList<DartExpression>();
+    private final List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
+    private final List<DartExpression> expressions = new ArrayList<DartExpression>();
     private LastSeenNode lastSeen = LastSeenNode.NONE;
 
     DartStringInterpolationBuilder() {
@@ -2677,7 +2765,7 @@ public class DartParser extends CompletionHooksParserBase {
       case SUPER: {
         beginSuperExpression();
         consume(Token.SUPER);
-        return done(parseAssignableSelector(doneWithoutConsuming(DartSuperExpression.get())));
+        return done(DartSuperExpression.get());
       }
 
       case NEW: {
@@ -2877,15 +2965,6 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartExpression parseAssignableSelector(DartExpression receiver) {
-    DartExpression expression = tryParseAssignableSelector(receiver);
-    if (expression == null) {
-      reportError(position(), ParserErrorCode.EXPECTED_PERIOD_OR_LEFT_BRACKET);
-      expression = receiver;
-    }
-    return expression;
-  }
-
   /**
    * <pre>
    * block
@@ -2901,6 +2980,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.RBRACE})
   private DartBlock parseBlock() {
     if (isDietParse) {
       expect(Token.LBRACE);
@@ -2922,16 +3002,17 @@ public class DartParser extends CompletionHooksParserBase {
       // Return an empty block so we don't generate unparseable code.
       return emptyBlock;
     } else {
-      beginBlock();
-      List<DartStatement> statements = new ArrayList<DartStatement>();
       Token nextToken = peek(0);
       if (!nextToken.equals(Token.LBRACE)
           && (looksLikeTopLevelKeyword() || nextToken.equals(Token.RBRACE))) {
+        beginBlock();
         // Allow recovery back to the top level.
         reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
         return done(new DartBlock(new ArrayList<DartStatement>()));
-      }      
-      expect(Token.LBRACE);
+      }
+      beginBlock();
+      List<DartStatement> statements = new ArrayList<DartStatement>();
+      boolean foundOpenBrace = expect(Token.LBRACE);
       while (!match(Token.RBRACE) && !EOS()) {
         if (looksLikeTopLevelKeyword()) {
           reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
@@ -2943,7 +3024,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         statements.add(newStatement);
       }
-      expectCloseBrace();
+      expectCloseBrace(foundOpenBrace);
       return done(new DartBlock(statements));
     }
   }
@@ -3225,12 +3306,12 @@ public class DartParser extends CompletionHooksParserBase {
 
       // Things that we know can't be valid statements get a synthetic error statement
       case RBRACE:
-      case CLASS:        
+      case CLASS:
         // no need to create a separate parser event as the AST node is enough
         beginEmptyStatement();
         // TODO(jat): other tokens that should be caught here?
         return done(parseErrorStatement());
-        
+
       case IDENTIFIER:
         // We have already eliminated function declarations earlier, so check for:
         // a) variable declarations;
@@ -3358,7 +3439,8 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private void expectCloseParen() {
     int parenCount = 1;
-    switch (peek(0)) {
+    Token nextToken = peek(0);
+    switch (nextToken) {
       case RPAREN:
         expect(Token.RPAREN);
         return;
@@ -3366,14 +3448,20 @@ public class DartParser extends CompletionHooksParserBase {
       case EOS:
       case LBRACE:
       case SEMICOLON:
-        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+        reportError(position(), ParserErrorCode.EXPECTED_TOKEN, Token.RPAREN.getSyntax(),
+            nextToken.getSyntax());
         return;
 
       case LPAREN:
         ++parenCount;
         //$FALL-THROUGH$
       default:
-        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+        reportError(position(), ParserErrorCode.EXPECTED_TOKEN, Token.RPAREN.getSyntax(),
+            nextToken.getSyntax());
+        Set<Token> terminals = this.collectTerminalAnnotations();
+        if (terminals.contains(nextToken) || looksLikeTopLevelKeyword()) {
+          return;
+        }
         break;
     }
 
@@ -3410,33 +3498,30 @@ public class DartParser extends CompletionHooksParserBase {
    * Expect a close brace, reporting an error and consuming tokens until a
    * plausible continuation is found if it isn't present.
    */
-  private void expectCloseBrace() {
+  private void expectCloseBrace(boolean foundOpenBrace) {
     // If a top level keyword is seen, bail out to recover.
     if (looksLikeTopLevelKeyword()) {
-      reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+      reportUnexpectedToken(position(), Token.RBRACE, peek(0));
       return;
     }
-    int braceCount = 1;
-    switch (peek(0)) {
-      case RBRACE:
-        expect(Token.RBRACE);
-        return;
 
-      case EOS:
-      case SEMICOLON:
-        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
-        return;
-
-      case LBRACE:
-        ++braceCount;
-        //$FALL-THROUGH$
-      default:
-        reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
-        break;
+    int braceCount = 0;
+    if (foundOpenBrace) {
+      braceCount++;
+    }
+    Token nextToken = peek(0);
+    if (expect(Token.RBRACE)) {
+      return;
+    }
+    if (nextToken == Token.LBRACE) {
+      braceCount++;
     }
 
     // eat tokens until we get a matching close brace or end of stream
     while (braceCount > 0) {
+      if (looksLikeTopLevelKeyword()) {
+        return;
+      }
       switch (next()) {
         case RBRACE:
           braceCount--;
@@ -3802,7 +3887,7 @@ public class DartParser extends CompletionHooksParserBase {
     expectCloseParen();
 
     List<DartSwitchMember> members = new ArrayList<DartSwitchMember>();
-    expect(Token.LBRACE);
+    boolean foundOpenBrace = expect(Token.LBRACE);
 
     boolean done = optional(Token.RBRACE);
     while (!done) {
@@ -3827,7 +3912,7 @@ public class DartParser extends CompletionHooksParserBase {
         if (peek(0) != Token.EOS) {
           members.add(parseDefaultMember(label));
         }
-        expectCloseBrace();
+        expectCloseBrace(foundOpenBrace);
         done = true; // Ensure termination.
       }
     }
@@ -3974,6 +4059,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  @Terminals(tokens={Token.GT, Token.COMMA})
   private List<DartTypeNode> parseTypeArguments() {
     consume(Token.LT);
     List<DartTypeNode> arguments = new ArrayList<DartTypeNode>();
@@ -4079,12 +4165,16 @@ public class DartParser extends CompletionHooksParserBase {
   private DartIdentifier parseIdentifier() {
     beginIdentifier();
     if (looksLikeTopLevelKeyword()) {
-      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
-      return done(new DartIdentifier(""));
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_IDENTIFIER);
+      return done(new DartSyntheticErrorIdentifier());
     }
-    expect(Token.IDENTIFIER);
-    String token = ctx.getTokenString();
-    return done(new DartIdentifier(token != null ? token : ""));
+    DartIdentifier identifier;
+    if (expect(Token.IDENTIFIER)) {
+      identifier = new DartIdentifier(ctx.getTokenString());
+    } else {
+      identifier = new DartSyntheticErrorIdentifier();
+    }
+    return done(identifier);
   }
 
   public DartExpression parseEntryPoint() {

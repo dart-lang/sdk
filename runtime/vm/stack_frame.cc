@@ -4,7 +4,6 @@
 
 #include "vm/stack_frame.h"
 
-#include "vm/code_index_table.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -15,8 +14,31 @@
 
 namespace dart {
 
+bool StackFrame::FindRawCodeVisitor::FindObject(RawObject* obj) {
+  return RawInstructions::ContainsPC(obj, pc_);
+}
+
+
 void StackFrame::Print() const {
   OS::Print("[%-8s : sp(%p) ]\n", GetName(), sp());
+}
+
+
+RawCode* StackFrame::LookupCode(Isolate* isolate, uword pc) {
+  // TODO(asiva): Need to add a data structure for storing a (pc, code
+  // object) map in order to do a quick lookup and avoid having to
+  // traverse the code heap.
+  ASSERT(isolate != NULL);
+  // We add a no gc scope to ensure that the code below does not trigger
+  // a GC as we are handling raw object references here. It is possible
+  // that the code is called while a GC is in progress, that is ok.
+  NoGCScope no_gc;
+  FindRawCodeVisitor visitor(pc);
+  RawInstructions* instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
+  if (instr != Instructions::null()) {
+    return instr->ptr()->code_;
+  }
+  return Code::null();
 }
 
 
@@ -36,28 +58,62 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void DartFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects between SP and FP.
-  ASSERT(visitor != NULL);
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
-                         reinterpret_cast<RawObject**>(fp() - kWordSize));
+  // NOTE: This code runs while GC is in progress and runs within
+  // a NoHandleScope block. Hence it is not ok to use regular Zone or
+  // Scope handles. We use direct stack handles, the raw pointers in
+  // these handles are not traversed. The use of handles is mainly to
+  // be able to reuse the handle based code and avoid having to add
+  // helper functions to the raw object interface.
+  NoGCScope no_gc;
+  Code code;
+  code = LookupDartCode();
+  ASSERT(!code.IsNull());
+  Array maps;
+  maps = Array::null();
+  Stackmap map;
+  map = code.GetStackmap(pc(), &maps, &map);
+  if (map.IsNull()) {
+    // No stack maps are present in the code object which means this
+    // frame relies on tagged pointers and hence we visit each entry
+    // on the frame between SP and FP.
+    ASSERT(visitor != NULL);
+    visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
+                           reinterpret_cast<RawObject**>(fp() - kWordSize));
+    return;
+  }
+  // A stack map is present in the code object, use the stack map to visit
+  // frame slots which are marked as having objects.
+  intptr_t bit_offset = map.MinimumBitOffset();
+  intptr_t end_bit_offset = map.MaximumBitOffset();
+  while (bit_offset <= end_bit_offset) {
+    uword addr = (fp() - ((bit_offset + 1) * kWordSize));
+    ASSERT(addr >= sp());
+    if (map.IsObject(bit_offset)) {
+      visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
+    }
+    bit_offset += 1;
+  }
 }
 
 
 RawFunction* DartFrame::LookupDartFunction() const {
-  // Get access to the code index table.
-  ASSERT(Isolate::Current() != NULL);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  return Code::Handle(code_index_table->LookupCode(pc())).function();
+  const Code& code = Code::Handle(LookupDartCode());
+  if (!code.IsNull()) {
+    return code.function();
+  }
+  return Function::null();
 }
 
 
 RawCode* DartFrame::LookupDartCode() const {
-  // Get access to the code index table.
-  ASSERT(Isolate::Current() != NULL);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  return code_index_table->LookupCode(pc());
+  // We add a no gc scope to ensure that the code below does not trigger
+  // a GC as we are handling raw object references here. It is possible
+  // that the code is called while a GC is in progress, that is ok.
+  NoGCScope no_gc;
+  Isolate* isolate = Isolate::Current();
+  RawCode* code = StackFrame::LookupCode(isolate, pc());
+  ASSERT(code != Code::null() && code->ptr()->function_ != Function::null());
+  return code;
 }
 
 
@@ -93,11 +149,16 @@ bool DartFrame::FindExceptionHandler(uword* handler_pc) const {
 
 
 bool StubFrame::IsValid() const {
-  // Get access to the code index table.
-  ASSERT(Isolate::Current() != NULL);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  return Code::Handle(code_index_table->LookupCode(pc())).IsNull();
+  // We add a no gc scope to ensure that the code below does not trigger
+  // a GC as we are handling raw object references here. It is possible
+  // that the code is called while a GC is in progress, that is ok.
+  NoGCScope no_gc;
+  Isolate* isolate = Isolate::Current();
+  if (Dart::vm_isolate()->heap()->CodeContains(pc())) {
+    return true;  // Common stub code is generated in the VM heap.
+  }
+  RawCode* code = StackFrame::LookupCode(isolate, pc());
+  return (code != Code::null() && code->ptr()->function_ == Function::null());
 }
 
 

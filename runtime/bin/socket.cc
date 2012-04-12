@@ -6,6 +6,8 @@
 #include "bin/dartutils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+
+#include "platform/globals.h"
 #include "platform/thread.h"
 #include "platform/utils.h"
 
@@ -37,7 +39,11 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
   int64_t socket = DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                               DartUtils::kIdFieldName);
   intptr_t available = Socket::Available(socket);
-  Dart_SetReturnValue(args, Dart_NewInteger(available));
+  if (available >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(available));
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
   Dart_ExitScope();
 }
 
@@ -153,15 +159,19 @@ void FUNCTION_NAME(Socket_GetPort)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Socket_GetRemotePort)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t socket =
       DartUtils::GetIntegerField(Dart_GetNativeArgument(args, 0),
                                  DartUtils::kIdFieldName);
   OSError os_error;
-  intptr_t port = Socket::GetRemotePort(socket);
-  if (port > 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(port));
+  intptr_t port = 0;
+  char host[INET_ADDRSTRLEN];
+  if (Socket::GetRemotePeer(socket, host, &port)) {
+    Dart_Handle list = Dart_NewList(2);
+    Dart_ListSetAt(list, 0, Dart_NewString(host));
+    Dart_ListSetAt(list, 1, Dart_NewInteger(port));
+    Dart_SetReturnValue(args, list);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }

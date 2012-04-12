@@ -8,15 +8,12 @@ main() {
   int width = 100;
   int height = 100;
 
-  // FIXME: once main is run on content loaded, this hack won't be necessary.
-  window.setTimeout(() {
-    canvas = document.createElement('canvas');
-    canvas.setAttribute('width', '$width');
-    canvas.setAttribute('height', '$height');
-    document.body.appendChild(canvas);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '$width');
+  canvas.setAttribute('height', '$height');
+  document.body.appendChild(canvas);
 
-    context = canvas.getContext('2d');
-  }, 0);
+  context = canvas.getContext('2d');
 
   forLayoutTests();
   test('FillStyle', () {
@@ -29,6 +26,14 @@ main() {
     checkPixel(data, 10 + width * 10, [255, 0, 0, 255]);
     checkPixel(data, 29 + width * 10, [255, 0, 0, 255]);
     checkPixel(data, 30 + width * 10, [0, 0, 0, 0]);
+  });
+  test('FillStyleGradient', () {
+    var gradient = context.createLinearGradient(0,0,20,20);
+    gradient.addColorStop(0,'red');
+    gradient.addColorStop(1,'blue');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 20, 20);
+    expect(context.fillStyle is CanvasGradient).isTrue();
   });
   test('SetFillColor', () {
     // With floats.

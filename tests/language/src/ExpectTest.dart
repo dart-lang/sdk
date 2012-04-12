@@ -12,7 +12,7 @@ class ExpectTest {
       print(msg);
       return;
     }
-    Expect.equals("AB", a + "B");
+    Expect.equals("AB", "${a}B");
     throw "Expect.equals did not fail";
   }
 
@@ -39,7 +39,7 @@ class ExpectTest {
   }
 
   static testIdentical(a) {
-    var ab = a + "B";
+    var ab = "${a}B";
     try {
       Expect.identical("AB", ab);
     } catch (Exception msg) {

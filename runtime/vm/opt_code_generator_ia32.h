@@ -157,6 +157,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   ClassesForLocals* classes_for_locals_;
   const Class& smi_class_;
   const Class& double_class_;
+  const Class& growable_object_array_class_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(OptimizingCodeGenerator);
 };

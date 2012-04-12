@@ -17,8 +17,6 @@
           'inputs': [
             'sources.gypi',
             'test_sources.gypi',
-            'corelib_sources.gypi',
-            'compiler_corelib_sources.gypi',
             '<@(java_sources)',
             '<@(java_resources)',
             '<@(javatests_sources)',

@@ -81,13 +81,12 @@ const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
 
 
 void SetupErrorResult(Isolate* isolate, Dart_Handle* handle) {
-  const Error& error = Error::Handle(
+  *handle = Api::NewHandle(
       isolate, Isolate::Current()->object_store()->sticky_error());
-  *handle = Api::NewLocalHandle(isolate, error);
 }
 
 
-Dart_Handle Api::NewLocalHandle(Isolate* isolate, const Object& object) {
+Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
@@ -96,7 +95,7 @@ Dart_Handle Api::NewLocalHandle(Isolate* isolate, const Object& object) {
   LocalHandles* local_handles = scope->local_handles();
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
-  ref->set_raw(object);
+  ref->set_raw(raw);
   return reinterpret_cast<Dart_Handle>(ref);
 }
 
@@ -191,8 +190,7 @@ Dart_Handle Api::NewError(const char* format, ...) {
   va_end(args2);
 
   const String& message = String::Handle(isolate, String::New(buffer));
-  const Object& obj = Object::Handle(isolate, ApiError::New(message));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, ApiError::New(message));
 }
 
 
@@ -297,8 +295,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle) {
   if (obj.IsUnhandledException()) {
     UnhandledException& error = UnhandledException::Handle(isolate);
     error ^= obj.raw();
-    const Object& exception = Object::Handle(isolate, error.exception());
-    return Api::NewLocalHandle(isolate, exception);
+    return Api::NewHandle(isolate, error.exception());
   } else if (obj.IsError()) {
     return Api::NewError("This error is not an unhandled exception error.");
   } else {
@@ -314,8 +311,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle) {
   if (obj.IsUnhandledException()) {
     UnhandledException& error = UnhandledException::Handle(isolate);
     error ^= obj.raw();
-    const Object& stacktrace = Object::Handle(isolate, error.stacktrace());
-    return Api::NewLocalHandle(isolate, stacktrace);
+    return Api::NewHandle(isolate, error.stacktrace());
   } else if (obj.IsError()) {
     return Api::NewError("This error is not an unhandled exception error.");
   } else {
@@ -342,8 +338,7 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   va_end(args2);
 
   const String& message = String::Handle(isolate, String::New(buffer));
-  const Object& obj = Object::Handle(isolate, ApiError::New(message));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, ApiError::New(message));
 }
 
 
@@ -388,18 +383,16 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  Object& result = Object::Handle(isolate);
   if (obj.IsString()) {
-    result = obj.raw();
+    return Api::NewHandle(isolate, obj.raw());
   } else if (obj.IsInstance()) {
     Instance& receiver = Instance::Handle(isolate);
     receiver ^= obj.raw();
-    result = DartLibraryCalls::ToString(receiver);
+    return Api::NewHandle(isolate, DartLibraryCalls::ToString(receiver));
   } else {
     // This is a VM internal object. Call the C++ method of printing.
-    result = String::New(obj.ToCString());
+    return Api::NewHandle(isolate, String::New(obj.ToCString()));
   }
-  return Api::NewLocalHandle(isolate, result);
 }
 
 
@@ -780,7 +773,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, isolate->StandardRunLoop());
   if (obj.IsError()) {
-    return Api::NewLocalHandle(isolate, obj);
+    return Api::NewHandle(isolate, obj.raw());
   }
   ASSERT(obj.IsNull());
   return Api::Success(isolate);
@@ -824,7 +817,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
       delete message;
       if (result.IsError()) {
         // TODO(turnidge): Propagating the error is probably wrong here.
-        return Api::NewLocalHandle(isolate, result);
+        return Api::NewHandle(isolate, result.raw());
       }
       ASSERT(result.IsNull());
     } else {
@@ -834,7 +827,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
               message->dest_port(), message->reply_port(), msg));
       delete message;
       if (result.IsError()) {
-        return Api::NewLocalHandle(isolate, result);
+        return Api::NewHandle(isolate, result.raw());
       }
       ASSERT(result.IsNull());
     }
@@ -930,9 +923,7 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Object& result =
-      Object::Handle(isolate, DartLibraryCalls::NewSendPort(port_id));
-  return Api::NewLocalHandle(isolate, result);
+  return Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
 }
 
 
@@ -959,9 +950,8 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
                               Resolver::kIsQualified));
   GrowableArray<const Object*> arguments(kNumArguments);
   arguments.Add(&Integer::Handle(isolate, Integer::New(port_id)));
-  const Object& result = Object::Handle(
+  return Api::NewHandle(
       isolate, DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, result);
 }
 
 
@@ -1048,7 +1038,7 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
     *value = b.value();
     return Api::Success(isolate);
   } else if (result.IsError()) {
-    return Api::NewLocalHandle(isolate, result);
+    return Api::NewHandle(isolate, result.raw());
   } else {
     return Api::NewError("Expected boolean result from ==");
   }
@@ -1153,8 +1143,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
 DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Integer& obj = Integer::Handle(isolate, Integer::New(value));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, Integer::New(value));
 }
 
 
@@ -1162,8 +1151,7 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const String& str_obj = String::Handle(isolate, String::New(str));
-  const Integer& obj = Integer::Handle(isolate, Integer::New(str_obj));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, Integer::New(str_obj));
 }
 
 
@@ -1304,8 +1292,7 @@ DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Double& obj = Double::Handle(isolate, Double::New(value));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, Double::New(value));
 }
 
 
@@ -1367,8 +1354,7 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
 DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& obj = String::Handle(isolate, String::New(str));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, String::New(str));
 }
 
 
@@ -1376,8 +1362,7 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& obj = String::Handle(isolate, String::New(codepoints, length));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
 
@@ -1385,8 +1370,7 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& obj = String::Handle(isolate, String::New(codepoints, length));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
 
@@ -1394,8 +1378,7 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& obj = String::Handle(isolate, String::New(codepoints, length));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
 
@@ -1446,10 +1429,8 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
                          CURRENT_FUNC);
   }
-  const String& obj =
-      String::Handle(isolate,
-                     String::NewExternal(codepoints, length, peer, callback));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(
+      isolate, String::NewExternal(codepoints, length, peer, callback));
 }
 
 
@@ -1467,10 +1448,8 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
                          CURRENT_FUNC);
   }
-  const String& obj =
-      String::Handle(isolate,
-                     String::NewExternal(codepoints, length, peer, callback));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(
+      isolate, String::NewExternal(codepoints, length, peer, callback));
 }
 
 
@@ -1488,10 +1467,8 @@ DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
                          CURRENT_FUNC);
   }
-  const String& obj =
-      String::Handle(isolate,
-                     String::NewExternal(codepoints, length, peer, callback));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(
+      isolate, String::NewExternal(codepoints, length, peer, callback));
 }
 
 
@@ -1613,8 +1590,7 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
-  return (obj.IsArray() ||
+  return (obj.IsArray() || obj.IsGrowableObjectArray() ||
           (GetListInstance(isolate, obj) != Instance::null()));
 }
 
@@ -1622,9 +1598,15 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Array& obj = Array::Handle(isolate, Array::New(length));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, Array::New(length));
 }
+
+
+#define GET_LIST_LENGTH(isolate, type, obj, len)                               \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  *len = array.Length();                                                       \
+  return Api::Success(isolate);                                                \
 
 
 DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
@@ -1632,18 +1614,14 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsByteArray()) {
-    ByteArray& byte_array = ByteArray::Handle(isolate);
-    byte_array ^= obj.raw();
-    *len = byte_array.Length();
-    return Api::Success(isolate);
+    GET_LIST_LENGTH(isolate, ByteArray, obj, len);
   }
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    *len = array_obj.Length();
-    return Api::Success(isolate);
+    GET_LIST_LENGTH(isolate, Array, obj, len);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_LENGTH(isolate, GrowableObjectArray, obj, len);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1679,11 +1657,20 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
                            "maximum value that 'len' parameter can hold");
     }
   } else if (retval.IsError()) {
-    return Api::NewLocalHandle(isolate, retval);
+    return Api::NewHandle(isolate, retval.raw());
   } else {
     return Api::NewError("Length of List object is not an integer");
   }
 }
+
+
+#define GET_LIST_ELEMENT(isolate, type, obj, index)                            \
+  type& array_obj = type::Handle(isolate);                                     \
+  array_obj ^= obj.raw();                                                      \
+  if ((index >= 0) && (index < array_obj.Length())) {                          \
+    return Api::NewHandle(isolate, array_obj.At(index));                       \
+  }                                                                            \
+  return Api::NewError("Invalid index passed in to access list element");      \
 
 
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
@@ -1691,15 +1678,11 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    if ((index >= 0) && (index < array_obj.Length())) {
-      const Object& element = Object::Handle(isolate, array_obj.At(index));
-      return Api::NewLocalHandle(isolate, element);
-    }
-    return Api::NewError("Invalid index passed in to access array element");
+    GET_LIST_ELEMENT(isolate, Array, obj, index);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1714,14 +1697,24 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
       indexobj = Integer::New(index);
       args.Add(&indexobj);
       const Array& kNoArgumentNames = Array::Handle(isolate);
-      const Object& result = Object::Handle(
+      return Api::NewHandle(
           isolate,
           DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
-      return Api::NewLocalHandle(isolate, result);
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
 }
+
+
+#define SET_LIST_ELEMENT(isolate, type, obj, index, value)                     \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value)); \
+  if ((index >= 0) && (index < array.Length())) {                              \
+    array.SetAt(index, value_obj);                                             \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid index passed in to set list element");         \
 
 
 DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
@@ -1734,16 +1727,11 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");
     }
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    const Object& value_obj = Object::Handle(isolate, Api::UnwrapHandle(value));
-    if ((index >= 0) && (index < array_obj.Length())) {
-      array_obj.SetAt(index, value_obj);
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid index passed in to set array element");
+    SET_LIST_ELEMENT(isolate, Array, obj, index, value);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    SET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index, value);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1760,14 +1748,36 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
       args.Add(&index_obj);
       args.Add(&value_obj);
       const Array& kNoArgumentNames = Array::Handle(isolate);
-      const Object& result = Object::Handle(
+      return Api::NewHandle(
           isolate,
           DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
-      return Api::NewLocalHandle(isolate, result);
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
 }
+
+
+// TODO(hpayer): value should always be smaller then 0xff. Add error handling.
+#define GET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
+                                   length)                                     \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  if (Utils::RangeCheck(offset, length, array.Length())) {                     \
+    Object& element = Object::Handle(isolate);                                 \
+    Integer& integer  = Integer::Handle(isolate);                              \
+    for (int i = 0; i < length; i++) {                                         \
+      element = array.At(offset + i);                                          \
+      if (!element.IsInteger()) {                                              \
+        return Api::NewError("%s expects the argument 'list' to be "           \
+                             "a List of int", CURRENT_FUNC);                   \
+      }                                                                        \
+      integer ^= element.raw();                                                \
+      native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
+      ASSERT(integer.AsInt64Value() <= 0xff);                                  \
+    }                                                                          \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid length passed in to access array elements");   \
 
 
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
@@ -1787,28 +1797,20 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     return Api::NewError("Invalid length passed in to access list elements");
   }
   if (obj.IsArray()) {
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
-      Object& element = Object::Handle(isolate);
-      Integer& integer  = Integer::Handle(isolate);
-      for (int i = 0; i < length; i++) {
-        element = array_obj.At(offset + i);
-        if (!element.IsInteger()) {
-          return Api::NewError("%s expects the argument 'list' to be "
-                            "a List of int", CURRENT_FUNC);
-        }
-        integer ^= element.raw();
-        native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);
-        ASSERT(integer.AsInt64Value() <= 0xff);
-        // TODO(hpayer): value should always be smaller then 0xff. Add error
-        // handling.
-      }
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid length passed in to access array elements");
+    GET_LIST_ELEMENT_AS_BYTES(isolate,
+                              Array,
+                              obj,
+                              native_array,
+                              offset,
+                              length);  }
+  if (obj.IsGrowableObjectArray()) {
+    GET_LIST_ELEMENT_AS_BYTES(isolate,
+                              GrowableObjectArray,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1828,7 +1830,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
         result = DartEntry::InvokeDynamic(
             instance, function, args, kNoArgumentNames);
         if (result.IsError()) {
-          return Api::NewLocalHandle(isolate, result);
+          return Api::NewHandle(isolate, result.raw());
         }
         if (!result.IsInteger()) {
           return Api::NewError("%s expects the argument 'list' to be "
@@ -1845,6 +1847,21 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   }
   return Api::NewError("Object does not implement the 'List' interface");
 }
+
+
+#define SET_LIST_ELEMENT_AS_BYTES(isolate, type, obj, native_array, offset,    \
+                                  length)                                      \
+  type& array = type::Handle(isolate);                                         \
+  array ^= obj.raw();                                                          \
+  Integer& integer = Integer::Handle(isolate);                                 \
+  if (Utils::RangeCheck(offset, length, array.Length())) {                     \
+    for (int i = 0; i < length; i++) {                                         \
+      integer = Integer::New(native_array[i]);                                 \
+      array.SetAt(offset + i, integer);                                        \
+    }                                                                          \
+    return Api::Success(isolate);                                              \
+  }                                                                            \
+  return Api::NewError("Invalid length passed in to set array elements");      \
 
 
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
@@ -1867,19 +1884,21 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");
     }
-    Array& array_obj = Array::Handle(isolate);
-    array_obj ^= obj.raw();
-    Integer& integer = Integer::Handle(isolate);
-    if (Utils::RangeCheck(offset, length, array_obj.Length())) {
-      for (int i = 0; i < length; i++) {
-        integer = Integer::New(native_array[i]);
-        array_obj.SetAt(offset + i, integer);
-      }
-      return Api::Success(isolate);
-    }
-    return Api::NewError("Invalid length passed in to set array elements");
+    SET_LIST_ELEMENT_AS_BYTES(isolate,
+                              Array,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
   }
-  // TODO(5526318): Make access to GrowableObjectArray more efficient.
+  if (obj.IsGrowableObjectArray()) {
+    SET_LIST_ELEMENT_AS_BYTES(isolate,
+                              GrowableObjectArray,
+                              obj,
+                              native_array,
+                              offset,
+                              length);
+  }
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance =
       Instance::Handle(isolate, GetListInstance(isolate, obj));
@@ -1903,7 +1922,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
             DartEntry::InvokeDynamic(
                 instance, function, args, kNoArgumentNames));
         if (result.IsError()) {
-          return Api::NewLocalHandle(isolate, result);
+          return Api::NewHandle(isolate, result.raw());
         }
       }
       return Api::Success(isolate);
@@ -1927,9 +1946,7 @@ DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const InternalByteArray& obj =
-      InternalByteArray::Handle(isolate, InternalByteArray::New(length));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(isolate, InternalByteArray::New(length));
 }
 
 
@@ -1947,13 +1964,8 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
                          CURRENT_FUNC);
   }
-  const ExternalByteArray& obj =
-      ExternalByteArray::Handle(isolate,
-                                ExternalByteArray::New(data,
-                                                       length,
-                                                       peer,
-                                                       callback));
-  return Api::NewLocalHandle(isolate, obj);
+  return Api::NewHandle(
+      isolate, ExternalByteArray::New(data, length, peer, callback));
 }
 
 
@@ -2186,10 +2198,9 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
     dart_arguments.Add(&arg);
   }
   const Array& kNoArgumentNames = Array::Handle(isolate);
-  const Object& result = Object::Handle(
+  return Api::NewHandle(
       isolate,
       DartEntry::InvokeClosure(closure_obj, dart_arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, result);
 }
 
 
@@ -2240,7 +2251,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
         Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));
     if (!arg.IsNull() && !arg.IsInstance()) {
       if (arg.IsError()) {
-        return Api::NewLocalHandle(isolate, arg);
+        return Api::NewHandle(isolate, arg.raw());
       } else {
         return Api::NewError(
             "%s expects argument %d to be an instance of Object.",
@@ -2272,10 +2283,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            cls_name.ToCString(),
                            function_name.ToCString());
     }
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate,
         DartEntry::InvokeDynamic(instance, function, dart_args, kNoArgNames));
-    return Api::NewLocalHandle(isolate, result);
 
   } else if (obj.IsClass()) {
     // Finalize all classes.
@@ -2300,10 +2310,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            cls_name.ToCString(),
                            function_name.ToCString());
     }
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate,
         DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
-    return Api::NewLocalHandle(isolate, result);
 
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
@@ -2334,9 +2343,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            CURRENT_FUNC,
                            function_name.ToCString());
     }
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate, DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
-    return Api::NewLocalHandle(isolate, result);
 
   } else {
     return Api::NewError(
@@ -2416,10 +2424,9 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
     dart_arguments.Add(&arg);
   }
   const Array& kNoArgumentNames = Array::Handle(isolate);
-  const Object& result = Object::Handle(
+  return Api::NewHandle(
       isolate,
       DartEntry::InvokeStatic(function, dart_arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, result);
 }
 
 
@@ -2464,11 +2471,10 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
     dart_arguments.Add(&arg);
   }
   const Array& kNoArgumentNames = Array::Handle(isolate);
-  const Object& result = Object::Handle(
+  return Api::NewHandle(
       isolate,
       DartEntry::InvokeDynamic(
           receiver, function, dart_arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, result);
 }
 
 
@@ -2511,14 +2517,14 @@ static Dart_Handle LookupStaticField(Isolate* isolate,
     const Function& function =
         Function::Handle(isolate, cls.LookupStaticFunction(func_name));
     if (!function.IsNull()) {
-      return Api::NewLocalHandle(isolate, function);
+      return Api::NewHandle(isolate, function.raw());
     }
     return Api::NewError("Specified field is not found in the class");
   }
   if (fld.IsNull()) {
     return Api::NewError("Specified field is not found in the class");
   }
-  return Api::NewLocalHandle(isolate, fld);
+  return Api::NewHandle(isolate, fld.raw());
 }
 
 
@@ -2549,7 +2555,7 @@ static Dart_Handle LookupInstanceField(Isolate* isolate,
       if (function.IsNull()) {
         return Api::NewError("Unable to find accessor function in the class");
       }
-      return Api::NewLocalHandle(isolate, function);
+      return Api::NewHandle(isolate, function.raw());
     }
     cls = cls.SuperClass();
   }
@@ -2598,10 +2604,9 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // Invoke the getter and return the result.
     GrowableArray<const Object*> args;
     const Array& kNoArgNames = Array::Handle(isolate);
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate,
         DartEntry::InvokeDynamic(instance, getter, args, kNoArgNames));
-    return Api::NewLocalHandle(isolate, result);
 
   } else if (obj.IsClass()) {
     // To access a static field we may need to use the Field or the
@@ -2619,12 +2624,10 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       // Invoke the getter and return the result.
       GrowableArray<const Object*> args;
       const Array& kNoArgNames = Array::Handle(isolate);
-      const Object& result = Object::Handle(
+      return Api::NewHandle(
           isolate, DartEntry::InvokeStatic(getter, args, kNoArgNames));
-      return Api::NewLocalHandle(isolate, result);
     } else if (!field.IsNull()) {
-      const Object& result = Object::Handle(isolate, field.value());
-      return Api::NewLocalHandle(isolate, result);
+      return Api::NewHandle(isolate, field.value());
     } else {
       return Api::NewError("%s: did not find static field '%s'.",
                            CURRENT_FUNC, field_name.ToCString());
@@ -2654,12 +2657,10 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       // Invoke the getter and return the result.
       GrowableArray<const Object*> args;
       const Array& kNoArgNames = Array::Handle(isolate);
-      const Object& result = Object::Handle(
+      return Api::NewHandle(
           isolate, DartEntry::InvokeStatic(getter, args, kNoArgNames));
-      return Api::NewLocalHandle(isolate, result);
     } else if (!field.IsNull()) {
-      const Object& result = Object::Handle(isolate, field.value());
-      return Api::NewLocalHandle(isolate, result);
+      return Api::NewHandle(isolate, field.value());
     } else {
       return Api::NewError("%s: did not find top-level variable '%s'.",
                            CURRENT_FUNC, field_name.ToCString());
@@ -2729,10 +2730,9 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     GrowableArray<const Object*> args(1);
     args.Add(&value_instance);
     const Array& kNoArgNames = Array::Handle(isolate);
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate,
         DartEntry::InvokeDynamic(instance, setter, args, kNoArgNames));
-    return Api::NewLocalHandle(isolate, result);
 
   } else if (obj.IsClass()) {
     // To access a static field we may need to use the Field or the
@@ -2755,7 +2755,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
           isolate,
           DartEntry::InvokeStatic(setter, args, kNoArgNames));
       if (result.IsError()) {
-        return Api::NewLocalHandle(isolate, result);
+        return Api::NewHandle(isolate, result.raw());
       } else {
         return Api::Success(isolate);
       }
@@ -2793,7 +2793,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       const Object& result = Object::Handle(
           isolate, DartEntry::InvokeStatic(setter, args, kNoArgNames));
       if (result.IsError()) {
-        return Api::NewLocalHandle(isolate, result);
+        return Api::NewHandle(isolate, result.raw());
       } else {
         return Api::Success(isolate);
       }
@@ -2826,21 +2826,18 @@ DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
   if (::Dart_IsError(result)) {
     return result;
   }
-  Object& retval = Object::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(result));
   if (obj.IsField()) {
     Field& fld = Field::Handle(isolate);
     fld ^= obj.raw();
-    retval = fld.value();
-    return Api::NewLocalHandle(isolate, retval);
+    return Api::NewHandle(isolate, fld.value());
   } else {
     Function& func = Function::Handle(isolate);
     func ^= obj.raw();
     GrowableArray<const Object*> args;
     const Array& kNoArgumentNames = Array::Handle(isolate);
-    const Object& result = Object::Handle(
+    return Api::NewHandle(
         isolate, DartEntry::InvokeStatic(func, args, kNoArgumentNames));
-    return Api::NewLocalHandle(isolate, result);
   }
 }
 
@@ -2866,7 +2863,7 @@ DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
   Instance& instance = Instance::Handle(isolate);
   instance ^= val.raw();
   fld.set_value(instance);
-  return Api::NewLocalHandle(isolate, val);
+  return Api::NewHandle(isolate, val.raw());
 }
 
 
@@ -2888,10 +2885,9 @@ DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
   func ^= Api::UnwrapHandle(result);
   GrowableArray<const Object*> arguments;
   const Array& kNoArgumentNames = Array::Handle(isolate);
-  const Object& retval = Object::Handle(
+  return Api::NewHandle(
       isolate,
       DartEntry::InvokeDynamic(object, func, arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, retval);
 }
 
 
@@ -2916,10 +2912,9 @@ DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
   const Object& arg = Object::Handle(isolate, Api::UnwrapHandle(value));
   arguments.Add(&arg);
   const Array& kNoArgumentNames = Array::Handle(isolate);
-  const Object& retval = Object::Handle(
+  return Api::NewHandle(
       isolate,
       DartEntry::InvokeDynamic(object, func, arguments, kNoArgumentNames));
-  return Api::NewLocalHandle(isolate, retval);
 }
 
 
@@ -2948,7 +2943,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
     return Api::NewError(
         "Unable to create native wrapper class : already exists");
   }
-  return Api::NewLocalHandle(isolate, cls);
+  return Api::NewHandle(isolate, cls.raw());
 }
 
 
@@ -3053,15 +3048,13 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->Count() - 1, index);
   }
   Isolate* isolate = arguments->isolate();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, arguments->At(index));
-  return Api::NewLocalHandle(isolate, obj);
+  CHECK_ISOLATE(isolate);
+  return Api::NewHandle(isolate, arguments->At(index));
 }
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  CHECK_ISOLATE(arguments->isolate());
   return arguments->Count();
 }
 
@@ -3097,12 +3090,12 @@ static void CompileSource(Isolate* isolate,
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Compiler::Compile(lib, script));
   if (error.IsNull()) {
-    *result = Api::NewLocalHandle(isolate, lib);
+    *result = Api::NewHandle(isolate, lib.raw());
     if (update_lib_status) {
       lib.SetLoaded();
     }
   } else {
-    *result = Api::NewLocalHandle(isolate, error);
+    *result = Api::NewHandle(isolate, error.raw());
     if (update_lib_status) {
       lib.SetLoadError();
     }
@@ -3181,7 +3174,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   }
   library ^= tmp.raw();
   isolate->object_store()->set_root_library(library);
-  return Api::NewLocalHandle(isolate, library);
+  return Api::NewHandle(isolate, library.raw());
 }
 
 
@@ -3191,7 +3184,7 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   if (error.IsNull()) {
     *result = Api::Success(isolate);
   } else {
-    *result = Api::NewLocalHandle(isolate, error);
+    *result = Api::NewHandle(isolate, error.raw());
   }
 }
 
@@ -3237,7 +3230,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library, Dart_Handle name) {
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());
   }
-  return Api::NewLocalHandle(isolate, cls);
+  return Api::NewHandle(isolate, cls.raw());
 }
 
 
@@ -3250,7 +3243,7 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
   }
   const String& url = String::Handle(isolate, lib.url());
   ASSERT(!url.IsNull());
-  return Api::NewLocalHandle(isolate, url);
+  return Api::NewHandle(isolate, url.raw());
 }
 
 
@@ -3267,7 +3260,7 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
     return Api::NewError("%s: library '%s' not found.",
                          CURRENT_FUNC, url_str.ToCString());
   } else {
-    return Api::NewLocalHandle(isolate, library);
+    return Api::NewHandle(isolate, library.raw());
   }
 }
 

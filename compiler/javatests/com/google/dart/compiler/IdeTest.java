@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -54,9 +54,9 @@ public class IdeTest extends TestCase {
 
   private final DartCompilerListener listener = context;
 
-  private DartArtifactProvider provider = new TestDartArtifactProvider();
+  private final DartArtifactProvider provider = new TestDartArtifactProvider();
 
-  private CompilerConfiguration config = new TestCompilerConfiguration();
+  private final CompilerConfiguration config = new TestCompilerConfiguration();
 
   public void testAnalyseNoSemicolonPropertyAccess() {
     DartUnit unit =
@@ -160,10 +160,12 @@ public class IdeTest extends TestCase {
             "}");
     // Expected identifier and missing semicolon.
     assertEquals("errorCount", 2, context.getErrorCount());
-    assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // void cannot be resolved.
+    // You can't use 'void' as a member name.  It might be the beginning of a variable declaration
+    // so it isn't an error in and of itself.
+    assertEquals("typeErrorCount", 0, context.getTypeErrorCount());
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
     DartIdentifier expression = (DartIdentifier) statement.getExpression();
-    assertEquals("void", expression.getName());
+    assertEquals("", expression.getName());
   }
 
   public void testAnalyseVoidKeywordPropertyAccess() {
@@ -178,10 +180,10 @@ public class IdeTest extends TestCase {
             "}");
     // Expected identifier and missing semicolon.
     assertEquals("errorCount", 2, context.getErrorCount());
-    assertEquals("typeErrorCount", 1, context.getTypeErrorCount()); // No member "void".
+    assertEquals("typeErrorCount", 1, context.getTypeErrorCount());
     DartExprStmt statement = (DartExprStmt) firstStatementOfMethod(unit, "Foo", "foo");
     DartPropertyAccess expression = (DartPropertyAccess) statement.getExpression();
-    assertEquals("void", expression.getPropertyName());
+    assertEquals("", expression.getPropertyName());
   }
 
   public void testReturnIntTypeAnalysis() {

@@ -825,6 +825,16 @@ class ClassElement extends ContainerElement {
     forEachMember(fieldFilter, includeBackendMembers, includeSuperMembers);
   }
 
+  bool implementsInterface(ClassElement intrface) {
+    for (Type implementedInterfaceType in allSupertypes) {
+      ClassElement implementedInterface = implementedInterfaceType.element;
+      if (implementedInterface === intrface) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool isInterface() => false;
   bool isNative() => nativeName != null;
   SourceString nativeName;

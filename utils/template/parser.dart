@@ -108,14 +108,22 @@ class Parser {
   }
 
   /* Is the next token a legal identifier?  This includes pseudo-keywords. */
-  bool _peekIdentifier() {
-    return TokenKind.isIdentifier(_peekToken.kind);
+  bool _peekIdentifier([String name = null]) {
+    if (TokenKind.isIdentifier(_peekToken.kind)) {
+      return (name != null) ? _peekToken.text == name : true;
+    }
+
+    return false;
   }
 
   bool _maybeEat(int kind) {
     if (_peekToken.kind == kind) {
       _previousToken = _peekToken;
-      _peekToken = tokenizer.next();
+      if (kind == TokenKind.GREATER_THAN) {
+        _peekToken = tokenizer.next(false);
+      } else {
+        _peekToken = tokenizer.next();
+      }
       return true;
     } else {
       return false;
@@ -208,7 +216,7 @@ class Parser {
             break;
           }
         } else {
-          _error("Template paramter missing type and name", _makeSpan(start));
+          // No parameters we're done.
           break;
         }
       }
@@ -243,31 +251,133 @@ class Parser {
 
   css.Stylesheet processCSS() {
     // Is there a CSS block?
-    if (_peekIdentifier()) {
+    if (_peekIdentifier('css')) {
+      _next();
+
       int start = _peekToken.start;
-      if (identifier().name == 'css') {
-        _eat(TokenKind.LBRACE);
+      _eat(TokenKind.LBRACE);
 
-        css.Stylesheet cssCtx = processCSSContent(source, tokenizer.startIndex);
+      css.Stylesheet cssCtx = processCSSContent(source, tokenizer.startIndex);
 
-        // TODO(terry): Hack, restart template parser where CSS parser stopped.
-        tokenizer.index = lastCSSIndexParsed;
-       _next(false);
+      // TODO(terry): Hack, restart template parser where CSS parser stopped.
+      tokenizer.index = lastCSSIndexParsed;
+     _next(false);
 
-        _eat(TokenKind.RBRACE);       // close } of css block
+      _eat(TokenKind.RBRACE);       // close } of css block
 
-        return cssCtx;
-      }
+      return cssCtx;
     }
   }
+
+  // TODO(terry): get should be able to use all template control flow but return
+  //              a string instead of a node.  Maybe expose both html and get
+  //              e.g.,
+  //
+  //              A.)
+  //              html {
+  //                <div>...</div>
+  //              }
+  //
+  //              B.)
+  //              html foo() {
+  //                <div>..</div>
+  //              }
+  //
+  //              C.)
+  //              get {
+  //                <div>...</div>
+  //              }
+  //
+  //              D.)
+  //              get foo() {
+  //                <div>..</div>
+  //              }
+  //
+  //              Only one default allower either A or C the constructor will
+  //              generate a string or a node.
+  //              Examples B and D would generate getters that either return
+  //              a node for B or a String for D.
+  //
+  List<TemplateGetter> processGetters() {
+    List<TemplateGetter> getters = [];
+
+    while (true) {
+      if (_peekIdentifier('get')) {
+        _next();
+
+        int start = _peekToken.start;
+        if (_peekIdentifier()) {
+          String getterName = identifier().name;
+
+          List<Map<Identifier, Identifier>> params =
+            new List<Map<Identifier, Identifier>>();
+
+          _eat(TokenKind.LPAREN);
+
+          start = _peekToken.start;
+          while (true) {
+            // TODO(terry): Need robust Dart argument parser (e.g.,
+            //              List<String> arg1, etc).
+            var type = processAsIdentifier();
+            var paramName = processAsIdentifier();
+            if (paramName == null && type != null) {
+              paramName = type;
+              type = "";
+            }
+            if (type != null && paramName != null) {
+              params.add({'type': type, 'name' : paramName});
+
+              if (!_maybeEat(TokenKind.COMMA)) {
+                break;
+              }
+            } else {
+              // No parameters we're done.
+              break;
+            }
+          }
+
+          _eat(TokenKind.RPAREN);
+
+          _eat(TokenKind.LBRACE);
+
+          var elems = new TemplateElement.fragment(_makeSpan(_peekToken.start));
+          var templateDoc = processHTML(elems);
+
+          _eat(TokenKind.RBRACE);       // close } of get block
+
+          getters.add(new TemplateGetter(getterName, params, templateDoc,
+            _makeSpan(_peekToken.start)));
+        }
+      } else {
+        break;
+      }
+    }
+
+    return getters;
+
+/*
+    get newTotal(value) {
+      <div class="alignleft">${value}</div>
+    }
+
+    String get HTML_newTotal(value) {
+      return '<div class="alignleft">${value}</div>
+    }
+
+*/
+  }
+
   TemplateContent processTemplateContent() {
-    css.Stylesheet stylesheet;
+    css.Stylesheet ss;
 
     _eat(TokenKind.LBRACE);
 
     int start = _peekToken.start;
 
-    stylesheet = processCSS();
+    ss = processCSS();
+
+    // TODO(terry): getters should be allowed anywhere not just after CSS.
+    List<TemplateGetter> getters = processGetters();
 
     var elems = new TemplateElement.fragment(_makeSpan(_peekToken.start));
     var templateDoc = processHTML(elems);
@@ -282,9 +392,10 @@ class Parser {
     //
     //              uggggly!
 
+
     _eat(TokenKind.RBRACE);
 
-    return new TemplateContent(stylesheet, templateDoc, _makeSpan(start));
+    return new TemplateContent(ss, templateDoc, getters, _makeSpan(start));
   }
 
   int lastCSSIndexParsed;       // TODO(terry): Hack, last good CSS parsed.
@@ -335,7 +446,9 @@ class Parser {
 
           int scopeType;     // 1 implies scoped, 2 implies non-scoped element.
           if (_maybeEat(TokenKind.GREATER_THAN)) {
-            scopeType = 1;
+            // Scoped unless the tag is explicitly known as an unscoped tag
+            // e.g., <br>.
+            scopeType = TokenKind.unscopedTag(tagToken.kind) ? 2 : 1;
           } else if (_maybeEat(TokenKind.END_NO_SCOPE_TAG)) {
             scopeType = 2;
           }
@@ -504,7 +617,7 @@ class Parser {
     int start = _peekToken.start;
     String elemName;
     while (_peekIdentifier() ||
-           (elemName = TokenKind.elementsToName(_peek())) != null) {
+           (elemName = TokenKind.tagNameFromTokenId(_peek())) != null) {
       var attrName;
       if (elemName == null) {
         attrName = identifier();
@@ -566,6 +679,8 @@ class Parser {
 
     // Gobble up everything until we hit <
     while (_peek() != TokenKind.LESS_THAN &&
+           _peek() != TokenKind.START_COMMAND &&
+           _peek() != TokenKind.END_COMMAND &&
            (_peek() != TokenKind.RBRACE ||
             (_peek() == TokenKind.RBRACE && inExpression)) &&
            _peek() != TokenKind.END_OF_FILE) {

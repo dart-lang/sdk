@@ -173,17 +173,19 @@ void Scanner::ReadChar() {
       newline_seen_ = true;
       c0_pos_.line++;
       c0_pos_.column = 0;
+      if (source_.CharAt(lookahead_pos_) == '\r') {
+        // Replace a sequence of '\r' '\n' with a single '\n'.
+        if (LookaheadChar(1) == '\n') {
+          lookahead_pos_++;
+        }
+      }
     }
     lookahead_pos_++;
     c0_pos_.column++;
     c0_ = LookaheadChar(0);
-    // Replace '\r' with '\n' and a sequence of
-    // '\r' '\n' with a single '\n'.
+    // Replace '\r' with '\n'.
     if (c0_ == '\r') {
       c0_ = '\n';
-      if (LookaheadChar(1) == '\n') {
-        lookahead_pos_++;
-      }
     }
   }
 }

@@ -80,6 +80,8 @@ class Tokenizer extends TokenizerBase {
       case tmplTokens.tokens[TokenKind.SLASH]:
         if (_maybeEatChar(tmplTokens.tokens[TokenKind.GREATER_THAN])) {
           return _finishToken(TokenKind.END_NO_SCOPE_TAG);          // />
+        } else if (_maybeEatChar(tmplTokens.tokens[TokenKind.ASTERISK])) {
+          return finishMultiLineComment();
         } else {
           return _finishToken(TokenKind.SLASH);
         }

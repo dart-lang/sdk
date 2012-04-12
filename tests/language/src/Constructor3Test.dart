@@ -10,7 +10,7 @@
 String trace = "";
 
 int E(int i) {
-  trace += "$i-";
+  trace = trace.concat("$i-");
   return i;
 }
 

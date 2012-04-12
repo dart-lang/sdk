@@ -338,13 +338,13 @@ public class SyntaxTest extends AbstractParserTest {
             "class A { ",
             "  int get;",
             "  var set;",
-            "  final operator;",            
+            "  final operator;",
             "}",
             "class B {",
             "  var get = 1;",
             "  int set = 1;",
             "  final int operator = 1;",
-            "}",                              
+            "}",
             "class C {",
             "  var get = 1;",
             "  int set = 1;",
@@ -354,7 +354,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  int get = 1;",
             "  final int set = 1;",
             "  var operator = 1;",
-            "}",            
+            "}",
             "class E {",
             "  int get() { }",
             "  void set() { }",
@@ -365,7 +365,7 @@ public class SyntaxTest extends AbstractParserTest {
             "  operator + (arg) { }",
             "  operator [] (arg) { }",
             "  operator []= (arg, arg){ }",
-            "}"));   
+            "}"));
 
     DartClass A = (DartClass)unit.getTopLevelNodes().get(0);
     DartFieldDefinition A_get = (DartFieldDefinition)A.getMembers().get(0);
@@ -387,7 +387,7 @@ public class SyntaxTest extends AbstractParserTest {
     DartFieldDefinition C_set = (DartFieldDefinition)C.getMembers().get(1);
     assertEquals("set", C_set.getFields().get(0).getName().getName());
     DartFieldDefinition C_operator = (DartFieldDefinition)C.getMembers().get(2);
-    assertEquals("operator", C_operator.getFields().get(0).getName().getName());    
+    assertEquals("operator", C_operator.getFields().get(0).getName().getName());
     DartClass D = (DartClass)unit.getTopLevelNodes().get(3);
     DartFieldDefinition D_get = (DartFieldDefinition)D.getMembers().get(0);
     assertEquals("get", D_get.getFields().get(0).getName().getName());
@@ -406,16 +406,16 @@ public class SyntaxTest extends AbstractParserTest {
     DartMethodDefinition F_negate = (DartMethodDefinition)F.getMembers().get(0);
     assertEquals("negate", ((DartIdentifier)F_negate.getName()).getName());
     DartMethodDefinition F_plus = (DartMethodDefinition)F.getMembers().get(1);
-    assertEquals("+", ((DartIdentifier)F_plus.getName()).getName());    
+    assertEquals("+", ((DartIdentifier)F_plus.getName()).getName());
     DartMethodDefinition F_access = (DartMethodDefinition)F.getMembers().get(2);
-    assertEquals("[]", ((DartIdentifier)F_access.getName()).getName());        
+    assertEquals("[]", ((DartIdentifier)F_access.getName()).getName());
     DartMethodDefinition F_access_assign = (DartMethodDefinition)F.getMembers().get(3);
-    assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());            
+    assertEquals("[]=", ((DartIdentifier)F_access_assign.getName()).getName());
   }
-  
+
   /**
    * Typedef and interface are top level keywords that are also valid as identifiers.
-   * 
+   *
    * This test helps insure that the error recovery logic in the parser that detects
    * top level keywords out of place doesn't break this functionality.
    */
@@ -433,7 +433,7 @@ public class SyntaxTest extends AbstractParserTest {
             "final typedef;",
             "typedef() { }",
             "String typedef() { }",
-            "typedef();",            
+            "typedef();",
             "class A { ",
             "  var interface;",
             "  bool interface;",
@@ -462,5 +462,60 @@ public class SyntaxTest extends AbstractParserTest {
             "  String typedef() { }",
             "  typedef();",
             "}"));
+  }
+
+  /**
+   * The token 'super' is valid by itself (not as a qualifier or assignment selector) in only some
+   * cases.
+   */
+  public void testLoneSuperExpression1() {
+    parseUnit("phony_lone_super_expression1.dart",
+              Joiner.on("\n").join(
+            "class A {",
+            "  method() {",
+            "    super;",
+            "    super ? true : false;",
+            "    true ? true : super;",
+            "    true ? super : false;",
+            "    if (super && true) { }",
+            "    if (super || false) { }",
+            "  }",
+            "}"),
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 3, 5,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 4, 5,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 5, 19,
+            ParserErrorCode.SUPER_IS_NOT_VALID_ALONE_OR_AS_A_BOOLEAN_OPERAND, 6, 12,
+            ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND, 7, 9,
+            ParserErrorCode.SUPER_IS_NOT_VALID_AS_A_BOOLEAN_OPERAND, 8, 9);
+  }
+
+  public void testLoneSuperExpression2() throws Exception {
+    parseUnit("phony_lone_super_expression1.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  method() {",
+            "    if (1 + super) { }", // error
+            "    if (super + 1) { }",  // ok
+            "    if (1 == super) { }", // error
+            "    if (super == 1) { }",  // ok
+            "    if (1 | super) { }", // error
+            "    if (super | 1) { }",  // ok
+            "    if (1 < super) { }", // error
+            "    if (super < 1) { }",  // ok
+            "    if (1 << super) { }", // error
+            "    if (super << 1) { }",  // ok
+            "    if (1 * super) { }", // error
+            "    if (super * 1) { }",  // ok
+            "    var f = -super;", // ok
+            "  }",
+            "}"),
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 5, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 7, 14,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 9, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 11, 13,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 13, 14,
+            ParserErrorCode.SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND, 15, 13);
   }
 }

@@ -14,7 +14,7 @@ interface A default F {
 class AImpl implements A {
   String _secret;
 
-  AImpl(String one, String two) : _secret = one + two;
+  AImpl(String one, String two) : _secret = "${one}${two}";
 
   String GetSecret() { return _secret; }
 }
@@ -28,7 +28,7 @@ interface B default F {
 class BImpl implements B {
   String _secret;
 
-  BImpl(String one, String two) : _secret = two + one;
+  BImpl(String one, String two) : _secret = "${two}${one}";
 
   String GetSecret() { return _secret; }
 }
