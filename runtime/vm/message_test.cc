@@ -130,21 +130,30 @@ void MessageReceiver_start(uword unused) {
     ml.Wait(5);
   }
 
-  for (int i = 0; i < 3; i++) {
+  int i = 0;
+  while (i < 3) {
     Message* msg = queue->Dequeue(0);
-    EXPECT(msg != NULL);
-    EXPECT_EQ(i + 10, msg->dest_port());
-    EXPECT_EQ(i + 100, msg->reply_port());
-    EXPECT_EQ(i + 1000, *(reinterpret_cast<int*>(msg->data())));
-    delete msg;
+    // Dequeue(0) can return NULL due to spurious wakeup.
+    if (msg != NULL) {
+      EXPECT_EQ(i + 10, msg->dest_port());
+      EXPECT_EQ(i + 100, msg->reply_port());
+      EXPECT_EQ(i + 1000, *(reinterpret_cast<int*>(msg->data())));
+      delete msg;
+      i++;
+    }
   }
-  for (int i = 0; i < 3; i++) {
+
+  i = 0;
+  while (i < 3) {
     Message* msg = queue->Dequeue(0);
-    EXPECT(msg != NULL);
-    EXPECT_EQ(i + 20, msg->dest_port());
-    EXPECT_EQ(i + 200, msg->reply_port());
-    EXPECT_EQ(i + 2000, *(reinterpret_cast<int*>(msg->data())));
-    delete msg;
+    // Dequeue(0) can return NULL due to spurious wakeup.
+    if (msg != NULL) {
+      EXPECT_EQ(i + 20, msg->dest_port());
+      EXPECT_EQ(i + 200, msg->reply_port());
+      EXPECT_EQ(i + 2000, *(reinterpret_cast<int*>(msg->data())));
+      delete msg;
+      i++;
+    }
   }
   shared_queue = NULL;
   delete queue;
