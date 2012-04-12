@@ -217,12 +217,13 @@ class _FileUtils {
   static final kSetPositionRequest = 8;
   static final kTruncateRequest = 9;
   static final kLengthRequest = 10;
-  static final kFlushRequest = 11;
-  static final kReadByteRequest = 12;
-  static final kWriteByteRequest = 13;
-  static final kReadListRequest = 14;
-  static final kWriteListRequest = 15;
-  static final kWriteStringRequest = 16;
+  static final kLengthFromNameRequest = 11;
+  static final kFlushRequest = 12;
+  static final kReadByteRequest = 13;
+  static final kWriteByteRequest = 14;
+  static final kReadListRequest = 15;
+  static final kWriteListRequest = 16;
+  static final kWriteStringRequest = 17;
 
   static final kSuccessResponse = 0;
   static final kIllegalArgumentResponse = 1;
@@ -265,6 +266,7 @@ class _FileUtils {
   static delete(String name) native "File_Delete";
   static fullPath(String name) native "File_FullPath";
   static directory(String name) native "File_Directory";
+  static lengthFromName(String name) native "File_LengthFromName";
   static int close(int id) native "File_Close";
   static readByte(int id) native "File_ReadByte";
   static readList(int id, List<int> buffer, int offset, int bytes)
@@ -350,6 +352,17 @@ class _FileUtils {
     var result = directory(name);
     if (result is OSError) {
       throw new FileIOException("Cannot retrieve directory for file", result);
+    }
+    return result;
+  }
+
+  static int checkedLengthFromName(String name) {
+    if (name is !String) {
+      throw new IllegalArgumentException();
+    }
+    var result = lengthFromName(name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot retrieve length of file", result);
     }
     return result;
   }
@@ -505,6 +518,28 @@ class _File extends _FileBase implements File {
         callback(new _RandomAccessFile(response, _name));
       }
     });
+  }
+
+  void length(void callback(int length)) {
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _FileUtils.kLengthFromNameRequest;
+    request[1] = _name;
+    _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        _reportError(response, "Cannot retrieve length of file");
+      } else {
+        callback(response);
+      }
+    });
+  }
+
+  int lengthSync() {
+    var result = _FileUtils.checkedLengthFromName(_name);
+    if (result is OSError) {
+      throw new FileIOException("Cannot retrieve length of file", result);
+    }
+    return result;
   }
 
   RandomAccessFile openSync([FileMode mode = FileMode.READ]) {

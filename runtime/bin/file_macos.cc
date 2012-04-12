@@ -94,14 +94,11 @@ bool File::Flush() {
 
 off_t File::Length() {
   ASSERT(handle_->fd() >= 0);
-  off_t position = TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_CUR));
-  if (position < 0) {
-    // The file is not capable of seeking. Return an error.
-    return -1;
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(fstat(handle_->fd(), &st)) == 0) {
+    return st.st_size;
   }
-  off_t result = TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_END));
-  TEMP_FAILURE_RETRY(lseek(handle_->fd(), position, SEEK_SET));
-  return result;
+  return -1;
 }
 
 
@@ -166,6 +163,15 @@ bool File::Delete(const char* name) {
     return false;
   }
   return true;
+}
+
+
+off_t File::LengthFromName(const char* name) {
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
+    return st.st_size;
+  }
+  return -1;
 }
 
 

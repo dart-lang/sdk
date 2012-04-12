@@ -14,10 +14,10 @@ Directory tempDir() {
 }
 
 
-bool checkOpenNonExistentFileException(e) {
+bool checkNonExistentFileException(e, str) {
   Expect.isTrue(e is FileIOException);
   Expect.isTrue(e.osError != null);
-  Expect.isTrue(e.toString().indexOf("Cannot open file") != -1);
+  Expect.isTrue(e.toString().indexOf(str) != -1);
   Platform platform = new Platform();
   if (platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
@@ -33,6 +33,22 @@ bool checkOpenNonExistentFileException(e) {
 
   return true;
 }
+
+
+bool checkOpenNonExistentFileException(e) {
+  return checkNonExistentFileException(e, "Cannot open file");
+}
+
+
+bool checkDeleteNonExistentFileException(e) {
+  return checkNonExistentFileException(e, "Cannot delete file");
+}
+
+
+bool checkLengthNonExistentFileException(e) {
+  return checkNonExistentFileException(e, "Cannot retrieve length of file");
+}
+
 
 void testOpenNonExistent() {
   Directory temp = tempDir();
@@ -54,25 +70,6 @@ void testOpenNonExistent() {
   };
 }
 
-bool checkDeleteNonExistentFileException(e) {
-  Expect.isTrue(e is FileIOException);
-  Expect.isTrue(e.osError != null);
-  Expect.isTrue(e.toString().indexOf("Cannot delete file") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (platform.operatingSystem() == "macos") {
-    Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (platform.operatingSystem() == "windows") {
-    Expect.isTrue(
-        e.toString().indexOf(
-            "The system cannot find the file specified") != -1);
-  }
-  // File not not found has error code 2 on all supported platforms.
-  Expect.equals(2, e.osError.errorCode);
-
-  return true;
-}
 
 void testDeleteNonExistent() {
   Directory temp = tempDir();
@@ -93,6 +90,28 @@ void testDeleteNonExistent() {
     p.toSendPort().send(null);
   };
 }
+
+
+void testLengthNonExistent() {
+  Directory temp = tempDir();
+  ReceivePort p = new ReceivePort();
+  p.receive((x, y) {
+    p.close();
+    temp.deleteRecursivelySync();
+  });
+  var file = new File("${temp.path}/nonExistentFile");
+
+  // Non-existing file should throw exception.
+  Expect.throws(() => file.lengthSync(),
+                (e) => checkLengthNonExistentFileException(e));
+
+  file.length((len) => Expect.fail("Unreachable code"));
+  file.onError = (e) {
+    checkLengthNonExistentFileException(e);
+    p.toSendPort().send(null);
+  };
+}
+
 
 bool checkCreateInNonExistentDirectoryException(e) {
   Expect.isTrue(e is FileIOException);
@@ -432,6 +451,7 @@ testOperateOnClosedFile() {
 main() {
   testOpenNonExistent();
   testDeleteNonExistent();
+  testLengthNonExistent();
   testCreateInNonExistentDirectory();
   testFullPathOnNonExistentDirectory();
   testDirectoryInNonExistentDirectory();
