@@ -632,7 +632,7 @@ class _HttpConnection extends _HttpConnectionBase {
     // If the connection is closing then close the output stream to
     // fully close the socket.
     if (_closing) {
-      outputStream.close();
+      _socket.close();
     }
     _response = null;
   }
