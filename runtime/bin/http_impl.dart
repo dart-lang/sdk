@@ -493,6 +493,7 @@ class _HttpConnectionBase implements Hashable {
   }
 
   bool _close() {
+    _closing = true;
     _socket.close();
   }
 
@@ -508,7 +509,7 @@ class _HttpConnectionBase implements Hashable {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
       if (parsed != bytesRead) {
         // TODO(sgjesse): Error handling.
-        _socket.close();
+        _close();
       }
     }
   }
@@ -578,7 +579,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
     // If currently not processing any request just close the socket.
     if (_httpParser.isIdle) {
-      _socket.close();
+      _close();
       if (onClosed != null && e == null) {
         // Don't call onClosed if onError has been called.
         onClosed();
@@ -682,7 +683,7 @@ class _HttpServer implements HttpServer {
     }
     _server = null;
     for (_HttpConnection connection in _connections) {
-      connection._socket.close();
+      connection._close();
     }
     _connections.clear();
   }
