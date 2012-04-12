@@ -38,6 +38,7 @@ def build_database(idl_list_file_name):
       'ENABLE_3D_PLUGIN',
       'ENABLE_3D_RENDERING',
       'ENABLE_ACCELERATED_2D_CANVAS',
+      'ENABLE_BATTERY_STATUS',
       'ENABLE_BLOB',
       'ENABLE_BLOB_SLICE',
       'ENABLE_CHANNEL_MESSAGING',
