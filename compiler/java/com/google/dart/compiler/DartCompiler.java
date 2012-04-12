@@ -881,7 +881,9 @@ public class DartCompiler {
         return super.parse(dartSrc, prefixes, diet);
       }
       URI srcUri = dartSrc.getUri();
-      DartUnit parsedUnit = parsedUnits.get(srcUri);
+      // Remove the parsed unit from the map if present
+      // so that it will not be consumed a 2nd time if it is sourced by multiple libraries
+      DartUnit parsedUnit = parsedUnits.remove(srcUri);
       return parsedUnit == null ? super.parse(dartSrc, prefixes, diet) : parsedUnit;
     }
   }
@@ -1157,7 +1159,8 @@ public class DartCompiler {
    * instead of parsing and resolving the associated source from storage.
    * @param parsedUnits A collection of unresolved ASTs that should be used
    * instead of parsing the associated source from storage. Intended for
-   * IDE use when modified buffers must be analyzed. AST nodes in the map may be
+   * IDE use when modified buffers must be analyzed. 
+   * Units are removed from this map as they are used. AST nodes in the map may be
    * ignored if not referenced by {@code lib}. (May be null.)
    * @param config The compiler configuration (phases and backends
    * will not be used), but resolution and type-analysis will be
