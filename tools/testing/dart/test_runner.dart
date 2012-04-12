@@ -277,7 +277,8 @@ class TestOutputImpl implements TestOutput {
     // while the VM team solves Issue 2124. Remove when issue is fixed.
     if (new Platform().operatingSystem() == 'windows' && exitCode == 253) {
       for (String line in testCase.output.stdout) {
-        if (line.startsWith('VM exited with signal 1073741819')) {
+        if (line.startsWith('VM exited with signal 1073741819') ||
+            line.startsWith('Kind: ')) {
           if (!alreadyPrintedWarning) {
             print("WARNING: VM crashed on this test with signal 1073741819. " +
                 "This is a fake pass!!");
