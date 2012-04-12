@@ -1490,13 +1490,16 @@ bool Class::IsCanonicalSignatureClass() const {
 }
 
 
+// Checks if the type S is a subtype of type T.
+// Type S is specified by this class parameterized with 'type_arguments', and
+// type T by class 'other' parameterized with 'other_type_arguments'.
+// This class and class 'other' do not need to be finalized, however, they must
+// be resolved as well as their interfaces.
 bool Class::IsSubtypeOf(
     const AbstractTypeArguments& type_arguments,
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
-  ASSERT(is_finalized());
-  ASSERT(other.is_finalized());
   // Check for DynamicType.
   // The DynamicType on the lefthand side is replaced by the bottom type, which
   // is more specific than any type.
