@@ -5,5 +5,5 @@
 [ $compiler == dartc ]
 PegTest: Skip  # Undiagnosed error on "a ? b ? c : d : e ? f : g"
 
-[ $compiler == frog || $compiler == dart2js]
+[ $compiler == frog || $compiler == dart2js || $runtime == drt ]
 PegTest: Skip  # #-directives not supported by browser test architecture
