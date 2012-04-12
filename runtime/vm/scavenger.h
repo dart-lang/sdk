@@ -117,6 +117,10 @@ class Scavenger {
   uword top_;
   uword end_;
 
+  // A pointer to the first unscanned object.  Scanning completes when
+  // this value meets the allocation top.
+  uword resolved_top_;
+
   // Objects below this address have survived a scavenge.
   uword survivor_end_;
 
