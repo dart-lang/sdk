@@ -11,6 +11,22 @@ class Utils {
     return result;
   }
 
+  static List convertMapToList(Map map) {
+    List result = [];
+    map.forEach((k, v) => result.addAll([k, v]));
+    return result;
+  }
+
+  static void populateMap(Map result, List list) {
+    for (int i = 0; i < list.length; i += 2) {
+      result[list[i]] = list[i + 1];
+    }
+  }
+
+  static bool isMap(obj) => obj is Map;
+
+  static Map createMap() => {};
+
   static makeNotImplementedException(String fileName, int lineNo) {
     return new UnsupportedOperationException('[info: $fileName:$lineNo]');
   }
