@@ -156,7 +156,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatorTypeArguments(intptr_t token_index,
                                         intptr_t start_index);
 
-  void BuildInstanceOf(ComparisonNode* node);
+  virtual void BuildInstanceOf(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
@@ -240,6 +240,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
+
+  virtual void BuildInstanceOf(ComparisonNode* node);
 };
 
 

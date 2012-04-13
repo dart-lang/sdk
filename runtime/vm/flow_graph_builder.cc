@@ -429,11 +429,64 @@ void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
 
 void EffectGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
   ASSERT(Token::IsInstanceofOperator(node->kind()));
+  EffectGraphVisitor for_left_value(owner(), temp_index());
+  node->left()->Visit(&for_left_value);
+  Append(for_left_value);
+}
+
+
+void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
+  ASSERT(Token::IsInstanceofOperator(node->kind()));
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  const AbstractType& type = node->right()->AsTypeNode()->type();
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+  const bool negate_result = (node->kind() == Token::kISNOT);
+  // All objects are instances of type T if Object type is a subtype of type T.
+  const Type& object_type =
+      Type::Handle(Isolate::Current()->object_store()->object_type());
+  Error& malformed_error = Error::Handle();
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, &malformed_error)) {
+    // Must evaluate left side.
+    EffectGraphVisitor for_left_value(owner(), temp_index());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    ReturnValue(new ConstantVal(negate_result ? bool_false : bool_true));
+    return;
+  }
+
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((node->left() != NULL) &&
+      node->left()->IsLiteralNode() &&
+      type.IsInstantiated()) {
+    const Instance& literal_value = node->left()->AsLiteralNode()->literal();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    ConstantVal* result = NULL;
+    if (cls.IsNullClass()) {
+      // A null object is only an instance of Object and Dynamic, which has
+      // already been checked above (if the type is instantiated). So we can
+      // return false here if the instance is null (and if the type is
+      // instantiated).
+      result = new ConstantVal(negate_result ? bool_true : bool_false);
+    } else {
+      Error& malformed_error = Error::Handle();
+      if (literal_value.IsInstanceOf(type,
+                                     TypeArguments::Handle(),
+                                     &malformed_error)) {
+        result = new ConstantVal(negate_result ? bool_false : bool_true);
+      } else {
+        ASSERT(malformed_error.IsNull());
+        result = new ConstantVal(negate_result ? bool_true : bool_false);
+      }
+    }
+    ReturnValue(result);
+    return;
+  }
+
   ArgumentGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
-  const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized() && !type.IsMalformed());
   Value* type_arguments = NULL;
   if (!type.IsInstantiated()) {
     type_arguments = BuildInstantiatorTypeArguments(
