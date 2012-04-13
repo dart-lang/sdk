@@ -295,12 +295,17 @@ _on_attribute_to_event_name_mapping = {
 # to add the lower case to camel case conversion for that event name here.
 _html_event_names = {
   'DOMContentLoaded': 'contentLoaded',
-  'touchleave': 'touchLeave',
   'abort': 'abort',
+  'addstream': 'addStream',
+  'addtrack': 'addTrack',
+  'audioend': 'audioEnd',
+  'audioprocess': 'audioProcess',
+  'audiostart': 'audioStart',
   'beforecopy': 'beforeCopy',
   'beforecut': 'beforeCut',
   'beforepaste': 'beforePaste',
   'beforeunload': 'beforeUnload',
+  'blocked': 'blocked',
   'blur': 'blur',
   'cached': 'cached',
   'canplay': 'canPlay',
@@ -309,8 +314,12 @@ _html_event_names = {
   'checking': 'checking',
   'click': 'click',
   'close': 'close',
+  'complete': 'complete',
+  'connect': 'connect',
+  'connecting': 'connecting',
   'contextmenu': 'contextMenu',
   'copy': 'copy',
+  'cuechange': 'cueChange',
   'cut': 'cut',
   'dblclick': 'doubleClick',
   'devicemotion': 'deviceMotion',
@@ -326,8 +335,11 @@ _html_event_names = {
   'drop': 'drop',
   'durationchange': 'durationChange',
   'emptied': 'emptied',
+  'end': 'end',
   'ended': 'ended',
+  'enter': 'enter',
   'error': 'error',
+  'exit': 'exit',
   'focus': 'focus',
   'hashchange': 'hashChange',
   'input': 'input',
@@ -347,6 +359,7 @@ _html_event_names = {
   'mouseover': 'mouseOver',
   'mouseup': 'mouseUp',
   'mousewheel': 'mouseWheel',
+  'nomatch': 'noMatch',
   'noupdate': 'noUpdate',
   'obsolete': 'obsolete',
   'offline': 'offline',
@@ -362,8 +375,11 @@ _html_event_names = {
   'progress': 'progress',
   'ratechange': 'rateChange',
   'readystatechange': 'readyStateChange',
+  'removestream': 'removeStream',
   'reset': 'reset',
   'resize': 'resize',
+  'result': 'result',
+  'resultdeleted': 'resultDeleted',
   'scroll': 'scroll',
   'search': 'search',
   'seeked': 'seeked',
@@ -372,18 +388,27 @@ _html_event_names = {
   'selectionchange': 'selectionChange',
   'selectstart': 'selectStart',
   'show': 'show',
+  'soundend': 'soundEnd',
+  'soundstart': 'soundStart',
+  'speechend': 'speechEnd',
+  'speechstart': 'speechStart',
   'stalled': 'stalled',
+  'start': 'start',
+  'statechange': 'stateChange',
   'storage': 'storage',
   'submit': 'submit',
+  'success': 'success',
   'suspend': 'suspend',
   'timeupdate': 'timeUpdate',
   'touchcancel': 'touchCancel',
   'touchend': 'touchEnd',
   'touchenter': 'touchEnter',
+  'touchleave': 'touchLeave',
   'touchmove': 'touchMove',
   'touchstart': 'touchStart',
   'unload': 'unload',
   'updateready': 'updateReady',
+  'versionchange': 'versionChange',
   'volumechange': 'volumeChange',
   'waiting': 'waiting',
   'webkitAnimationEnd': 'animationEnd',
@@ -392,7 +417,10 @@ _html_event_names = {
   'webkitfullscreenchange': 'fullscreenChange',
   'webkitfullscreenerror': 'fullscreenError',
   'webkitSpeechChange': 'speechChange',
-  'webkitTransitionEnd': 'transitionEnd'
+  'webkitTransitionEnd': 'transitionEnd',
+  'write': 'write',
+  'writeend': 'writeEnd',
+  'writestart': 'writeStart'
 }
 
 # These classes require an explicit declaration for the "on" method even though
@@ -520,7 +548,7 @@ class HtmlSystemShared(object):
   # generate if it should.
   def GetEventAttributes(self, interface):
     events =  set([attr for attr in interface.attributes
-                   if self._generator._IsEventAttribute(interface, attr)])
+                   if attr.type.id == 'EventListener'])
 
     if events or interface.id in _html_explicit_event_classes:
       return True, events

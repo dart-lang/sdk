@@ -962,8 +962,13 @@ class _AudioChannelSplitterImpl extends _AudioNodeImpl implements AudioChannelSp
   _AudioChannelSplitterImpl._wrap(ptr) : super._wrap(ptr);
 }
 
-class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
+class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   _AudioContextImpl._wrap(ptr) : super._wrap(ptr);
+
+  _AudioContextEventsImpl get on() {
+    if (_on == null) _on = new _AudioContextEventsImpl(this);
+    return _on;
+  }
 
   int get activeSourceCount() => _wrap(_ptr.activeSourceCount);
 
@@ -972,10 +977,6 @@ class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
   AudioDestinationNode get destination() => _wrap(_ptr.destination);
 
   AudioListener get listener() => _wrap(_ptr.listener);
-
-  EventListener get oncomplete() => _wrap(_ptr.oncomplete);
-
-  void set oncomplete(EventListener value) { _ptr.oncomplete = _unwrap(value); }
 
   num get sampleRate() => _wrap(_ptr.sampleRate);
 
@@ -1074,6 +1075,12 @@ class _AudioContextImpl extends _DOMTypeBase implements AudioContext {
     _ptr.startRendering();
     return;
   }
+}
+
+class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
+  _AudioContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get complete() => _get('complete');
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode {
@@ -6490,9 +6497,10 @@ class _DatabaseSyncImpl extends _DOMTypeBase implements DatabaseSync {
 class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements DedicatedWorkerContext {
   _DedicatedWorkerContextImpl._wrap(ptr) : super._wrap(ptr);
 
-  EventListener get onmessage() => _wrap(_ptr.onmessage);
-
-  void set onmessage(EventListener value) { _ptr.onmessage = _unwrap(value); }
+  _DedicatedWorkerContextEventsImpl get on() {
+    if (_on == null) _on = new _DedicatedWorkerContextEventsImpl(this);
+    return _on;
+  }
 
   void postMessage(Object message, [List messagePorts = null]) {
     if (messagePorts === null) {
@@ -6515,46 +6523,33 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
   }
 }
 
+class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
+  _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get message() => _get('message');
+}
+
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
   _DelayNodeImpl._wrap(ptr) : super._wrap(ptr);
 
   AudioParam get delayTime() => _wrap(_ptr.delayTime);
 }
 
-class _DeprecatedPeerConnectionImpl extends _DOMTypeBase implements DeprecatedPeerConnection {
+class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements DeprecatedPeerConnection {
   _DeprecatedPeerConnectionImpl._wrap(ptr) : super._wrap(ptr);
 
+  _DeprecatedPeerConnectionEventsImpl get on() {
+    if (_on == null) _on = new _DeprecatedPeerConnectionEventsImpl(this);
+    return _on;
+  }
+
   MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
-
-  EventListener get onaddstream() => _wrap(_ptr.onaddstream);
-
-  void set onaddstream(EventListener value) { _ptr.onaddstream = _unwrap(value); }
-
-  EventListener get onconnecting() => _wrap(_ptr.onconnecting);
-
-  void set onconnecting(EventListener value) { _ptr.onconnecting = _unwrap(value); }
-
-  EventListener get onmessage() => _wrap(_ptr.onmessage);
-
-  void set onmessage(EventListener value) { _ptr.onmessage = _unwrap(value); }
-
-  EventListener get onopen() => _wrap(_ptr.onopen);
-
-  void set onopen(EventListener value) { _ptr.onopen = _unwrap(value); }
-
-  EventListener get onremovestream() => _wrap(_ptr.onremovestream);
-
-  void set onremovestream(EventListener value) { _ptr.onremovestream = _unwrap(value); }
-
-  EventListener get onstatechange() => _wrap(_ptr.onstatechange);
-
-  void set onstatechange(EventListener value) { _ptr.onstatechange = _unwrap(value); }
 
   int get readyState() => _wrap(_ptr.readyState);
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -6574,7 +6569,7 @@ class _DeprecatedPeerConnectionImpl extends _DOMTypeBase implements DeprecatedPe
     return;
   }
 
-  bool dispatchEvent(Event event) {
+  bool $dom_dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
@@ -6583,7 +6578,7 @@ class _DeprecatedPeerConnectionImpl extends _DOMTypeBase implements DeprecatedPe
     return;
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -6602,6 +6597,22 @@ class _DeprecatedPeerConnectionImpl extends _DOMTypeBase implements DeprecatedPe
     _ptr.send(_unwrap(text));
     return;
   }
+}
+
+class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
+  _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream() => _get('addstream');
+
+  EventListenerList get connecting() => _get('connecting');
+
+  EventListenerList get message() => _get('message');
+
+  EventListenerList get open() => _get('open');
+
+  EventListenerList get removeStream() => _get('removestream');
+
+  EventListenerList get stateChange() => _get('statechange');
 }
 
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement {
@@ -9189,34 +9200,15 @@ class _FileListImpl extends _DOMTypeBase implements FileList {
   }
 }
 
-class _FileReaderImpl extends _DOMTypeBase implements FileReader {
+class _FileReaderImpl extends _EventTargetImpl implements FileReader {
   _FileReaderImpl._wrap(ptr) : super._wrap(ptr);
 
+  _FileReaderEventsImpl get on() {
+    if (_on == null) _on = new _FileReaderEventsImpl(this);
+    return _on;
+  }
+
   FileError get error() => _wrap(_ptr.error);
-
-  EventListener get onabort() => _wrap(_ptr.onabort);
-
-  void set onabort(EventListener value) { _ptr.onabort = _unwrap(value); }
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
-
-  EventListener get onload() => _wrap(_ptr.onload);
-
-  void set onload(EventListener value) { _ptr.onload = _unwrap(value); }
-
-  EventListener get onloadend() => _wrap(_ptr.onloadend);
-
-  void set onloadend(EventListener value) { _ptr.onloadend = _unwrap(value); }
-
-  EventListener get onloadstart() => _wrap(_ptr.onloadstart);
-
-  void set onloadstart(EventListener value) { _ptr.onloadstart = _unwrap(value); }
-
-  EventListener get onprogress() => _wrap(_ptr.onprogress);
-
-  void set onprogress(EventListener value) { _ptr.onprogress = _unwrap(value); }
 
   int get readyState() => _wrap(_ptr.readyState);
 
@@ -9227,7 +9219,7 @@ class _FileReaderImpl extends _DOMTypeBase implements FileReader {
     return;
   }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -9237,7 +9229,7 @@ class _FileReaderImpl extends _DOMTypeBase implements FileReader {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -9266,7 +9258,7 @@ class _FileReaderImpl extends _DOMTypeBase implements FileReader {
     }
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -9275,6 +9267,22 @@ class _FileReaderImpl extends _DOMTypeBase implements FileReader {
       return;
     }
   }
+}
+
+class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
+  _FileReaderEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort() => _get('abort');
+
+  EventListenerList get error() => _get('error');
+
+  EventListenerList get load() => _get('load');
+
+  EventListenerList get loadEnd() => _get('loadend');
+
+  EventListenerList get loadStart() => _get('loadstart');
+
+  EventListenerList get progress() => _get('progress');
 }
 
 class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
@@ -9301,36 +9309,17 @@ class _FileReaderSyncImpl extends _DOMTypeBase implements FileReaderSync {
   }
 }
 
-class _FileWriterImpl extends _DOMTypeBase implements FileWriter {
+class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
   _FileWriterImpl._wrap(ptr) : super._wrap(ptr);
+
+  _FileWriterEventsImpl get on() {
+    if (_on == null) _on = new _FileWriterEventsImpl(this);
+    return _on;
+  }
 
   FileError get error() => _wrap(_ptr.error);
 
   int get length() => _wrap(_ptr.length);
-
-  EventListener get onabort() => _wrap(_ptr.onabort);
-
-  void set onabort(EventListener value) { _ptr.onabort = _unwrap(value); }
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
-
-  EventListener get onprogress() => _wrap(_ptr.onprogress);
-
-  void set onprogress(EventListener value) { _ptr.onprogress = _unwrap(value); }
-
-  EventListener get onwrite() => _wrap(_ptr.onwrite);
-
-  void set onwrite(EventListener value) { _ptr.onwrite = _unwrap(value); }
-
-  EventListener get onwriteend() => _wrap(_ptr.onwriteend);
-
-  void set onwriteend(EventListener value) { _ptr.onwriteend = _unwrap(value); }
-
-  EventListener get onwritestart() => _wrap(_ptr.onwritestart);
-
-  void set onwritestart(EventListener value) { _ptr.onwritestart = _unwrap(value); }
 
   int get position() => _wrap(_ptr.position);
 
@@ -9355,6 +9344,22 @@ class _FileWriterImpl extends _DOMTypeBase implements FileWriter {
     _ptr.write(_unwrap(data));
     return;
   }
+}
+
+class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
+  _FileWriterEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort() => _get('abort');
+
+  EventListenerList get error() => _get('error');
+
+  EventListenerList get progress() => _get('progress');
+
+  EventListenerList get write() => _get('write');
+
+  EventListenerList get writeEnd() => _get('writeend');
+
+  EventListenerList get writeStart() => _get('writestart');
 }
 
 class _FileWriterSyncImpl extends _DOMTypeBase implements FileWriterSync {
@@ -10065,28 +10070,21 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
   IDBAny get value() => _wrap(_ptr.value);
 }
 
-class _IDBDatabaseImpl extends _DOMTypeBase implements IDBDatabase {
+class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
   _IDBDatabaseImpl._wrap(ptr) : super._wrap(ptr);
+
+  _IDBDatabaseEventsImpl get on() {
+    if (_on == null) _on = new _IDBDatabaseEventsImpl(this);
+    return _on;
+  }
 
   String get name() => _wrap(_ptr.name);
 
   List<String> get objectStoreNames() => _wrap(_ptr.objectStoreNames);
 
-  EventListener get onabort() => _wrap(_ptr.onabort);
-
-  void set onabort(EventListener value) { _ptr.onabort = _unwrap(value); }
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
-
-  EventListener get onversionchange() => _wrap(_ptr.onversionchange);
-
-  void set onversionchange(EventListener value) { _ptr.onversionchange = _unwrap(value); }
-
   String get version() => _wrap(_ptr.version);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10110,11 +10108,11 @@ class _IDBDatabaseImpl extends _DOMTypeBase implements IDBDatabase {
     return;
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10146,6 +10144,16 @@ class _IDBDatabaseImpl extends _DOMTypeBase implements IDBDatabase {
     }
     throw "Incorrect number or type of arguments";
   }
+}
+
+class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
+  _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort() => _get('abort');
+
+  EventListenerList get error() => _get('error');
+
+  EventListenerList get versionChange() => _get('versionchange');
 }
 
 class _IDBDatabaseExceptionImpl extends _DOMTypeBase implements IDBDatabaseException {
@@ -10390,18 +10398,15 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
   }
 }
 
-class _IDBRequestImpl extends _DOMTypeBase implements IDBRequest {
+class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
   _IDBRequestImpl._wrap(ptr) : super._wrap(ptr);
 
+  _IDBRequestEventsImpl get on() {
+    if (_on == null) _on = new _IDBRequestEventsImpl(this);
+    return _on;
+  }
+
   int get errorCode() => _wrap(_ptr.errorCode);
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
-
-  EventListener get onsuccess() => _wrap(_ptr.onsuccess);
-
-  void set onsuccess(EventListener value) { _ptr.onsuccess = _unwrap(value); }
 
   int get readyState() => _wrap(_ptr.readyState);
 
@@ -10413,7 +10418,7 @@ class _IDBRequestImpl extends _DOMTypeBase implements IDBRequest {
 
   String get webkitErrorMessage() => _wrap(_ptr.webkitErrorMessage);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10423,11 +10428,11 @@ class _IDBRequestImpl extends _DOMTypeBase implements IDBRequest {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10438,31 +10443,32 @@ class _IDBRequestImpl extends _DOMTypeBase implements IDBRequest {
   }
 }
 
-class _IDBTransactionImpl extends _DOMTypeBase implements IDBTransaction {
+class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
+  _IDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error() => _get('error');
+
+  EventListenerList get success() => _get('success');
+}
+
+class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
   _IDBTransactionImpl._wrap(ptr) : super._wrap(ptr);
+
+  _IDBTransactionEventsImpl get on() {
+    if (_on == null) _on = new _IDBTransactionEventsImpl(this);
+    return _on;
+  }
 
   IDBDatabase get db() => _wrap(_ptr.db);
 
   int get mode() => _wrap(_ptr.mode);
-
-  EventListener get onabort() => _wrap(_ptr.onabort);
-
-  void set onabort(EventListener value) { _ptr.onabort = _unwrap(value); }
-
-  EventListener get oncomplete() => _wrap(_ptr.oncomplete);
-
-  void set oncomplete(EventListener value) { _ptr.oncomplete = _unwrap(value); }
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
 
   void abort() {
     _ptr.abort();
     return;
   }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10472,7 +10478,7 @@ class _IDBTransactionImpl extends _DOMTypeBase implements IDBTransaction {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -10480,7 +10486,7 @@ class _IDBTransactionImpl extends _DOMTypeBase implements IDBTransaction {
     return _wrap(_ptr.objectStore(_unwrap(name)));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -10489,6 +10495,16 @@ class _IDBTransactionImpl extends _DOMTypeBase implements IDBTransaction {
       return;
     }
   }
+}
+
+class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
+  _IDBTransactionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get abort() => _get('abort');
+
+  EventListenerList get complete() => _get('complete');
+
+  EventListenerList get error() => _get('error');
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent {
@@ -10500,9 +10516,42 @@ class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeE
 class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersionChangeRequest {
   _IDBVersionChangeRequestImpl._wrap(ptr) : super._wrap(ptr);
 
-  EventListener get onblocked() => _wrap(_ptr.onblocked);
+  _IDBVersionChangeRequestEventsImpl get on() {
+    if (_on == null) _on = new _IDBVersionChangeRequestEventsImpl(this);
+    return _on;
+  }
 
-  void set onblocked(EventListener value) { _ptr.onblocked = _unwrap(value); }
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  bool $dom_dispatchEvent(Event event) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  }
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+}
+
+class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
+  _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked() => _get('blocked');
 }
 
 class _IFrameElementImpl extends _ElementImpl implements IFrameElement {
@@ -11203,11 +11252,44 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode {
   _JavaScriptAudioNodeImpl._wrap(ptr) : super._wrap(ptr);
 
+  _JavaScriptAudioNodeEventsImpl get on() {
+    if (_on == null) _on = new _JavaScriptAudioNodeEventsImpl(this);
+    return _on;
+  }
+
   int get bufferSize() => _wrap(_ptr.bufferSize);
 
-  EventListener get onaudioprocess() => _wrap(_ptr.onaudioprocess);
+  // From EventTarget
 
-  void set onaudioprocess(EventListener value) { _ptr.onaudioprocess = _unwrap(value); }
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  bool $dom_dispatchEvent(Event event) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  }
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+}
+
+class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
+  _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioProcess() => _get('audioprocess');
 }
 
 class _JavaScriptCallFrameImpl extends _DOMTypeBase implements JavaScriptCallFrame {
@@ -11394,6 +11476,32 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
     _ptr.stop();
     return;
   }
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  bool $dom_dispatchEvent(Event event) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
+  }
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
 }
 
 class _LocationImpl extends _DOMTypeBase implements Location {
@@ -11521,7 +11629,7 @@ class _MarqueeElementImpl extends _ElementImpl implements MarqueeElement {
   }
 }
 
-class _MediaControllerImpl extends _DOMTypeBase implements MediaController {
+class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
   _MediaControllerImpl._wrap(ptr) : super._wrap(ptr);
 
   TimeRanges get buffered() => _wrap(_ptr.buffered);
@@ -11554,7 +11662,7 @@ class _MediaControllerImpl extends _DOMTypeBase implements MediaController {
 
   void set volume(num value) { _ptr.volume = _unwrap(value); }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11564,7 +11672,7 @@ class _MediaControllerImpl extends _DOMTypeBase implements MediaController {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -11578,7 +11686,7 @@ class _MediaControllerImpl extends _DOMTypeBase implements MediaController {
     return;
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11880,22 +11988,23 @@ class _MediaQueryListListenerImpl extends _DOMTypeBase implements MediaQueryList
   }
 }
 
-class _MediaStreamImpl extends _DOMTypeBase implements MediaStream {
+class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
   _MediaStreamImpl._wrap(ptr) : super._wrap(ptr);
+
+  _MediaStreamEventsImpl get on() {
+    if (_on == null) _on = new _MediaStreamEventsImpl(this);
+    return _on;
+  }
 
   MediaStreamTrackList get audioTracks() => _wrap(_ptr.audioTracks);
 
   String get label() => _wrap(_ptr.label);
 
-  EventListener get onended() => _wrap(_ptr.onended);
-
-  void set onended(EventListener value) { _ptr.onended = _unwrap(value); }
-
   int get readyState() => _wrap(_ptr.readyState);
 
   MediaStreamTrackList get videoTracks() => _wrap(_ptr.videoTracks);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11905,11 +12014,11 @@ class _MediaStreamImpl extends _DOMTypeBase implements MediaStream {
     }
   }
 
-  bool dispatchEvent(Event event) {
+  bool $dom_dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -11918,6 +12027,12 @@ class _MediaStreamImpl extends _DOMTypeBase implements MediaStream {
       return;
     }
   }
+}
+
+class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
+  _MediaStreamEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended() => _get('ended');
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
@@ -13201,8 +13316,13 @@ class _ParamElementImpl extends _ElementImpl implements ParamElement {
   void set valueType(String value) { _ptr.valueType = _unwrap(value); }
 }
 
-class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
+class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00 {
   _PeerConnection00Impl._wrap(ptr) : super._wrap(ptr);
+
+  _PeerConnection00EventsImpl get on() {
+    if (_on == null) _on = new _PeerConnection00EventsImpl(this);
+    return _on;
+  }
 
   int get iceState() => _wrap(_ptr.iceState);
 
@@ -13210,33 +13330,13 @@ class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
 
   MediaStreamList get localStreams() => _wrap(_ptr.localStreams);
 
-  EventListener get onaddstream() => _wrap(_ptr.onaddstream);
-
-  void set onaddstream(EventListener value) { _ptr.onaddstream = _unwrap(value); }
-
-  EventListener get onconnecting() => _wrap(_ptr.onconnecting);
-
-  void set onconnecting(EventListener value) { _ptr.onconnecting = _unwrap(value); }
-
-  EventListener get onopen() => _wrap(_ptr.onopen);
-
-  void set onopen(EventListener value) { _ptr.onopen = _unwrap(value); }
-
-  EventListener get onremovestream() => _wrap(_ptr.onremovestream);
-
-  void set onremovestream(EventListener value) { _ptr.onremovestream = _unwrap(value); }
-
-  EventListener get onstatechange() => _wrap(_ptr.onstatechange);
-
-  void set onstatechange(EventListener value) { _ptr.onstatechange = _unwrap(value); }
-
   int get readyState() => _wrap(_ptr.readyState);
 
   SessionDescription get remoteDescription() => _wrap(_ptr.remoteDescription);
 
   MediaStreamList get remoteStreams() => _wrap(_ptr.remoteStreams);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -13277,7 +13377,7 @@ class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
     }
   }
 
-  bool dispatchEvent(Event event) {
+  bool $dom_dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
@@ -13286,7 +13386,7 @@ class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
     return;
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -13320,6 +13420,20 @@ class _PeerConnection00Impl extends _DOMTypeBase implements PeerConnection00 {
       return;
     }
   }
+}
+
+class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
+  _PeerConnection00EventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addStream() => _get('addstream');
+
+  EventListenerList get connecting() => _get('connecting');
+
+  EventListenerList get open() => _get('open');
+
+  EventListenerList get removeStream() => _get('removestream');
+
+  EventListenerList get stateChange() => _get('statechange');
 }
 
 class _PerformanceImpl extends _DOMTypeBase implements Performance {
@@ -14395,7 +14509,7 @@ class _SVGElementImpl extends _ElementImpl implements SVGElement {
 
 }
 
-class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
+class _SVGElementInstanceImpl extends _DOMTypeBase implements SVGElementInstance {
   _SVGElementInstanceImpl._wrap(ptr) : super._wrap(ptr);
 
   _SVGElementInstanceEventsImpl get on() {
@@ -14419,7 +14533,7 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
 
   SVGElementInstance get previousSibling() => _wrap(_ptr.previousSibling);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -14429,11 +14543,11 @@ class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInst
     }
   }
 
-  bool $dom_dispatchEvent(Event event) {
+  bool dispatchEvent(Event event) {
     return _wrap(_ptr.dispatchEvent(_unwrap(event)));
   }
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -18118,11 +18232,18 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorkerContext {
   _SharedWorkerContextImpl._wrap(ptr) : super._wrap(ptr);
 
+  _SharedWorkerContextEventsImpl get on() {
+    if (_on == null) _on = new _SharedWorkerContextEventsImpl(this);
+    return _on;
+  }
+
   String get name() => _wrap(_ptr.name);
+}
 
-  EventListener get onconnect() => _wrap(_ptr.onconnect);
+class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
+  _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  void set onconnect(EventListener value) { _ptr.onconnect = _unwrap(value); }
+  EventListenerList get connect() => _get('connect');
 }
 
 class _SourceElementImpl extends _ElementImpl implements SourceElement {
@@ -18211,8 +18332,13 @@ class _SpeechInputResultListImpl extends _DOMTypeBase implements SpeechInputResu
   }
 }
 
-class _SpeechRecognitionImpl extends _DOMTypeBase implements SpeechRecognition {
+class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecognition {
   _SpeechRecognitionImpl._wrap(ptr) : super._wrap(ptr);
+
+  _SpeechRecognitionEventsImpl get on() {
+    if (_on == null) _on = new _SpeechRecognitionEventsImpl(this);
+    return _on;
+  }
 
   bool get continuous() => _wrap(_ptr.continuous);
 
@@ -18225,54 +18351,6 @@ class _SpeechRecognitionImpl extends _DOMTypeBase implements SpeechRecognition {
   String get lang() => _wrap(_ptr.lang);
 
   void set lang(String value) { _ptr.lang = _unwrap(value); }
-
-  EventListener get onaudioend() => _wrap(_ptr.onaudioend);
-
-  void set onaudioend(EventListener value) { _ptr.onaudioend = _unwrap(value); }
-
-  EventListener get onaudiostart() => _wrap(_ptr.onaudiostart);
-
-  void set onaudiostart(EventListener value) { _ptr.onaudiostart = _unwrap(value); }
-
-  EventListener get onend() => _wrap(_ptr.onend);
-
-  void set onend(EventListener value) { _ptr.onend = _unwrap(value); }
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
-
-  EventListener get onnomatch() => _wrap(_ptr.onnomatch);
-
-  void set onnomatch(EventListener value) { _ptr.onnomatch = _unwrap(value); }
-
-  EventListener get onresult() => _wrap(_ptr.onresult);
-
-  void set onresult(EventListener value) { _ptr.onresult = _unwrap(value); }
-
-  EventListener get onresultdeleted() => _wrap(_ptr.onresultdeleted);
-
-  void set onresultdeleted(EventListener value) { _ptr.onresultdeleted = _unwrap(value); }
-
-  EventListener get onsoundend() => _wrap(_ptr.onsoundend);
-
-  void set onsoundend(EventListener value) { _ptr.onsoundend = _unwrap(value); }
-
-  EventListener get onsoundstart() => _wrap(_ptr.onsoundstart);
-
-  void set onsoundstart(EventListener value) { _ptr.onsoundstart = _unwrap(value); }
-
-  EventListener get onspeechend() => _wrap(_ptr.onspeechend);
-
-  void set onspeechend(EventListener value) { _ptr.onspeechend = _unwrap(value); }
-
-  EventListener get onspeechstart() => _wrap(_ptr.onspeechstart);
-
-  void set onspeechstart(EventListener value) { _ptr.onspeechstart = _unwrap(value); }
-
-  EventListener get onstart() => _wrap(_ptr.onstart);
-
-  void set onstart(EventListener value) { _ptr.onstart = _unwrap(value); }
 
   void abort() {
     _ptr.abort();
@@ -18288,6 +18366,34 @@ class _SpeechRecognitionImpl extends _DOMTypeBase implements SpeechRecognition {
     _ptr.stop();
     return;
   }
+}
+
+class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
+  _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get audioEnd() => _get('audioend');
+
+  EventListenerList get audioStart() => _get('audiostart');
+
+  EventListenerList get end() => _get('end');
+
+  EventListenerList get error() => _get('error');
+
+  EventListenerList get noMatch() => _get('nomatch');
+
+  EventListenerList get result() => _get('result');
+
+  EventListenerList get resultDeleted() => _get('resultdeleted');
+
+  EventListenerList get soundEnd() => _get('soundend');
+
+  EventListenerList get soundStart() => _get('soundstart');
+
+  EventListenerList get speechEnd() => _get('speechend');
+
+  EventListenerList get speechStart() => _get('speechstart');
+
+  EventListenerList get start() => _get('start');
 }
 
 class _SpeechRecognitionAlternativeImpl extends _DOMTypeBase implements SpeechRecognitionAlternative {
@@ -19012,8 +19118,13 @@ class _TextMetricsImpl extends _DOMTypeBase implements TextMetrics {
   num get width() => _wrap(_ptr.width);
 }
 
-class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
+class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
   _TextTrackImpl._wrap(ptr) : super._wrap(ptr);
+
+  _TextTrackEventsImpl get on() {
+    if (_on == null) _on = new _TextTrackEventsImpl(this);
+    return _on;
+  }
 
   TextTrackCueList get activeCues() => _wrap(_ptr.activeCues);
 
@@ -19029,16 +19140,12 @@ class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
 
   void set mode(int value) { _ptr.mode = _unwrap(value); }
 
-  EventListener get oncuechange() => _wrap(_ptr.oncuechange);
-
-  void set oncuechange(EventListener value) { _ptr.oncuechange = _unwrap(value); }
-
   void addCue(TextTrackCue cue) {
     _ptr.addCue(_unwrap(cue));
     return;
   }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19048,7 +19155,7 @@ class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -19057,7 +19164,7 @@ class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
     return;
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19068,8 +19175,19 @@ class _TextTrackImpl extends _DOMTypeBase implements TextTrack {
   }
 }
 
-class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
+class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
+  _TextTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get cueChange() => _get('cuechange');
+}
+
+class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
   _TextTrackCueImpl._wrap(ptr) : super._wrap(ptr);
+
+  _TextTrackCueEventsImpl get on() {
+    if (_on == null) _on = new _TextTrackCueEventsImpl(this);
+    return _on;
+  }
 
   String get align() => _wrap(_ptr.align);
 
@@ -19086,14 +19204,6 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
   int get line() => _wrap(_ptr.line);
 
   void set line(int value) { _ptr.line = _unwrap(value); }
-
-  EventListener get onenter() => _wrap(_ptr.onenter);
-
-  void set onenter(EventListener value) { _ptr.onenter = _unwrap(value); }
-
-  EventListener get onexit() => _wrap(_ptr.onexit);
-
-  void set onexit(EventListener value) { _ptr.onexit = _unwrap(value); }
 
   bool get pauseOnExit() => _wrap(_ptr.pauseOnExit);
 
@@ -19125,7 +19235,7 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
 
   void set vertical(String value) { _ptr.vertical = _unwrap(value); }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19135,7 +19245,7 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -19143,7 +19253,7 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
     return _wrap(_ptr.getCueAsHTML());
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19152,6 +19262,14 @@ class _TextTrackCueImpl extends _DOMTypeBase implements TextTrackCue {
       return;
     }
   }
+}
+
+class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
+  _TextTrackCueEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get enter() => _get('enter');
+
+  EventListenerList get exit() => _get('exit');
 }
 
 class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
@@ -19168,16 +19286,17 @@ class _TextTrackCueListImpl extends _DOMTypeBase implements TextTrackCueList {
   }
 }
 
-class _TextTrackListImpl extends _DOMTypeBase implements TextTrackList {
+class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
   _TextTrackListImpl._wrap(ptr) : super._wrap(ptr);
+
+  _TextTrackListEventsImpl get on() {
+    if (_on == null) _on = new _TextTrackListEventsImpl(this);
+    return _on;
+  }
 
   int get length() => _wrap(_ptr.length);
 
-  EventListener get onaddtrack() => _wrap(_ptr.onaddtrack);
-
-  void set onaddtrack(EventListener value) { _ptr.onaddtrack = _unwrap(value); }
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19187,7 +19306,7 @@ class _TextTrackListImpl extends _DOMTypeBase implements TextTrackList {
     }
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -19195,7 +19314,7 @@ class _TextTrackListImpl extends _DOMTypeBase implements TextTrackList {
     return _wrap(_ptr.item(_unwrap(index)));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -19204,6 +19323,12 @@ class _TextTrackListImpl extends _DOMTypeBase implements TextTrackList {
       return;
     }
   }
+}
+
+class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
+  _TextTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack() => _get('addtrack');
 }
 
 class _TimeRangesImpl extends _DOMTypeBase implements TimeRanges {
@@ -21521,16 +21646,17 @@ class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvent
   EventListenerList get message() => _get('message');
 }
 
-class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
+class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
   _WorkerContextImpl._wrap(ptr) : super._wrap(ptr);
+
+  _WorkerContextEventsImpl get on() {
+    if (_on == null) _on = new _WorkerContextEventsImpl(this);
+    return _on;
+  }
 
   WorkerLocation get location() => _wrap(_ptr.location);
 
   WorkerNavigator get navigator() => _wrap(_ptr.navigator);
-
-  EventListener get onerror() => _wrap(_ptr.onerror);
-
-  void set onerror(EventListener value) { _ptr.onerror = _unwrap(value); }
 
   WorkerContext get self() => _wrap(_ptr.self);
 
@@ -21538,7 +21664,7 @@ class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
 
   NotificationCenter get webkitNotifications() => _wrap(_ptr.webkitNotifications);
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.addEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21563,7 +21689,7 @@ class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
     return;
   }
 
-  bool dispatchEvent(Event evt) {
+  bool $dom_dispatchEvent(Event evt) {
     return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
   }
 
@@ -21588,7 +21714,7 @@ class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
     }
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
       return;
@@ -21649,6 +21775,12 @@ class _WorkerContextImpl extends _DOMTypeBase implements WorkerContext {
     }
     throw "Incorrect number or type of arguments";
   }
+}
+
+class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
+  _WorkerContextEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get error() => _get('error');
 }
 
 class _WorkerLocationImpl extends _DOMTypeBase implements WorkerLocation {
@@ -22698,7 +22830,12 @@ interface AudioChannelSplitter extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioContext
-interface AudioContext {
+interface AudioContext extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  AudioContextEvents get on();
 
   /** @domName AudioContext.activeSourceCount */
   final int activeSourceCount;
@@ -22711,9 +22848,6 @@ interface AudioContext {
 
   /** @domName AudioContext.listener */
   final AudioListener listener;
-
-  /** @domName AudioContext.oncomplete */
-  EventListener oncomplete;
 
   /** @domName AudioContext.sampleRate */
   final num sampleRate;
@@ -22771,6 +22905,11 @@ interface AudioContext {
 
   /** @domName AudioContext.startRendering */
   void startRendering();
+}
+
+interface AudioContextEvents extends Events {
+
+  EventListenerList get complete();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26876,14 +27015,21 @@ interface DatabaseSync {
 /// @domName DedicatedWorkerContext
 interface DedicatedWorkerContext extends WorkerContext {
 
-  /** @domName DedicatedWorkerContext.onmessage */
-  EventListener onmessage;
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  DedicatedWorkerContextEvents get on();
 
   /** @domName DedicatedWorkerContext.postMessage */
   void postMessage(Object message, [List messagePorts]);
 
   /** @domName DedicatedWorkerContext.webkitPostMessage */
   void webkitPostMessage(Object message, [List transferList]);
+}
+
+interface DedicatedWorkerContextEvents extends WorkerContextEvents {
+
+  EventListenerList get message();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26904,9 +27050,14 @@ interface DelayNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName DeprecatedPeerConnection
-interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
 
   DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  DeprecatedPeerConnectionEvents get on();
 
   static final int ACTIVE = 2;
 
@@ -26919,24 +27070,6 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
   /** @domName DeprecatedPeerConnection.localStreams */
   final MediaStreamList localStreams;
 
-  /** @domName DeprecatedPeerConnection.onaddstream */
-  EventListener onaddstream;
-
-  /** @domName DeprecatedPeerConnection.onconnecting */
-  EventListener onconnecting;
-
-  /** @domName DeprecatedPeerConnection.onmessage */
-  EventListener onmessage;
-
-  /** @domName DeprecatedPeerConnection.onopen */
-  EventListener onopen;
-
-  /** @domName DeprecatedPeerConnection.onremovestream */
-  EventListener onremovestream;
-
-  /** @domName DeprecatedPeerConnection.onstatechange */
-  EventListener onstatechange;
-
   /** @domName DeprecatedPeerConnection.readyState */
   final int readyState;
 
@@ -26944,7 +27077,7 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
   final MediaStreamList remoteStreams;
 
   /** @domName DeprecatedPeerConnection.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName DeprecatedPeerConnection.addStream */
   void addStream(MediaStream stream);
@@ -26953,19 +27086,34 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
   void close();
 
   /** @domName DeprecatedPeerConnection.dispatchEvent */
-  bool dispatchEvent(Event event);
+  bool $dom_dispatchEvent(Event event);
 
   /** @domName DeprecatedPeerConnection.processSignalingMessage */
   void processSignalingMessage(String message);
 
   /** @domName DeprecatedPeerConnection.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName DeprecatedPeerConnection.removeStream */
   void removeStream(MediaStream stream);
 
   /** @domName DeprecatedPeerConnection.send */
   void send(String text);
+}
+
+interface DeprecatedPeerConnectionEvents extends Events {
+
+  EventListenerList get addStream();
+
+  EventListenerList get connecting();
+
+  EventListenerList get message();
+
+  EventListenerList get open();
+
+  EventListenerList get removeStream();
+
+  EventListenerList get stateChange();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28492,9 +28640,14 @@ interface FileList {
 // WARNING: Do not edit - generated code.
 
 /// @domName FileReader
-interface FileReader default _FileReaderFactoryProvider {
+interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
   FileReader();
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  FileReaderEvents get on();
 
   static final int DONE = 2;
 
@@ -28504,24 +28657,6 @@ interface FileReader default _FileReaderFactoryProvider {
 
   /** @domName FileReader.error */
   final FileError error;
-
-  /** @domName FileReader.onabort */
-  EventListener onabort;
-
-  /** @domName FileReader.onerror */
-  EventListener onerror;
-
-  /** @domName FileReader.onload */
-  EventListener onload;
-
-  /** @domName FileReader.onloadend */
-  EventListener onloadend;
-
-  /** @domName FileReader.onloadstart */
-  EventListener onloadstart;
-
-  /** @domName FileReader.onprogress */
-  EventListener onprogress;
 
   /** @domName FileReader.readyState */
   final int readyState;
@@ -28533,10 +28668,10 @@ interface FileReader default _FileReaderFactoryProvider {
   void abort();
 
   /** @domName FileReader.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName FileReader.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName FileReader.readAsArrayBuffer */
   void readAsArrayBuffer(Blob blob);
@@ -28551,7 +28686,22 @@ interface FileReader default _FileReaderFactoryProvider {
   void readAsText(Blob blob, [String encoding]);
 
   /** @domName FileReader.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface FileReaderEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get load();
+
+  EventListenerList get loadEnd();
+
+  EventListenerList get loadStart();
+
+  EventListenerList get progress();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28590,7 +28740,12 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 // WARNING: Do not edit - generated code.
 
 /// @domName FileWriter
-interface FileWriter {
+interface FileWriter extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  FileWriterEvents get on();
 
   static final int DONE = 2;
 
@@ -28603,24 +28758,6 @@ interface FileWriter {
 
   /** @domName FileWriter.length */
   final int length;
-
-  /** @domName FileWriter.onabort */
-  EventListener onabort;
-
-  /** @domName FileWriter.onerror */
-  EventListener onerror;
-
-  /** @domName FileWriter.onprogress */
-  EventListener onprogress;
-
-  /** @domName FileWriter.onwrite */
-  EventListener onwrite;
-
-  /** @domName FileWriter.onwriteend */
-  EventListener onwriteend;
-
-  /** @domName FileWriter.onwritestart */
-  EventListener onwritestart;
 
   /** @domName FileWriter.position */
   final int position;
@@ -28639,6 +28776,21 @@ interface FileWriter {
 
   /** @domName FileWriter.write */
   void write(Blob data);
+}
+
+interface FileWriterEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get progress();
+
+  EventListenerList get write();
+
+  EventListenerList get writeEnd();
+
+  EventListenerList get writeStart();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29147,7 +29299,12 @@ interface IDBCursorWithValue extends IDBCursor {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBDatabase
-interface IDBDatabase {
+interface IDBDatabase extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBDatabaseEvents get on();
 
   /** @domName IDBDatabase.name */
   final String name;
@@ -29155,20 +29312,11 @@ interface IDBDatabase {
   /** @domName IDBDatabase.objectStoreNames */
   final List<String> objectStoreNames;
 
-  /** @domName IDBDatabase.onabort */
-  EventListener onabort;
-
-  /** @domName IDBDatabase.onerror */
-  EventListener onerror;
-
-  /** @domName IDBDatabase.onversionchange */
-  EventListener onversionchange;
-
   /** @domName IDBDatabase.version */
   final String version;
 
   /** @domName IDBDatabase.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName IDBDatabase.close */
   void close();
@@ -29180,16 +29328,25 @@ interface IDBDatabase {
   void deleteObjectStore(String name);
 
   /** @domName IDBDatabase.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName IDBDatabase.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName IDBDatabase.setVersion */
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
   IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
+}
+
+interface IDBDatabaseEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get error();
+
+  EventListenerList get versionChange();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29398,7 +29555,12 @@ interface IDBObjectStore {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBRequest
-interface IDBRequest {
+interface IDBRequest extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBRequestEvents get on();
 
   static final int DONE = 2;
 
@@ -29406,12 +29568,6 @@ interface IDBRequest {
 
   /** @domName IDBRequest.errorCode */
   final int errorCode;
-
-  /** @domName IDBRequest.onerror */
-  EventListener onerror;
-
-  /** @domName IDBRequest.onsuccess */
-  EventListener onsuccess;
 
   /** @domName IDBRequest.readyState */
   final int readyState;
@@ -29429,13 +29585,20 @@ interface IDBRequest {
   final String webkitErrorMessage;
 
   /** @domName IDBRequest.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName IDBRequest.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName IDBRequest.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface IDBRequestEvents extends Events {
+
+  EventListenerList get error();
+
+  EventListenerList get success();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29444,7 +29607,12 @@ interface IDBRequest {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBTransaction
-interface IDBTransaction {
+interface IDBTransaction extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBTransactionEvents get on();
 
   static final int READ_ONLY = 0;
 
@@ -29458,29 +29626,29 @@ interface IDBTransaction {
   /** @domName IDBTransaction.mode */
   final int mode;
 
-  /** @domName IDBTransaction.onabort */
-  EventListener onabort;
-
-  /** @domName IDBTransaction.oncomplete */
-  EventListener oncomplete;
-
-  /** @domName IDBTransaction.onerror */
-  EventListener onerror;
-
   /** @domName IDBTransaction.abort */
   void abort();
 
   /** @domName IDBTransaction.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName IDBTransaction.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName IDBTransaction.objectStore */
   IDBObjectStore objectStore(String name);
 
   /** @domName IDBTransaction.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface IDBTransactionEvents extends Events {
+
+  EventListenerList get abort();
+
+  EventListenerList get complete();
+
+  EventListenerList get error();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29501,10 +29669,17 @@ interface IDBVersionChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName IDBVersionChangeRequest
-interface IDBVersionChangeRequest extends IDBRequest {
+interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
 
-  /** @domName IDBVersionChangeRequest.onblocked */
-  EventListener onblocked;
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBVersionChangeRequestEvents get on();
+}
+
+interface IDBVersionChangeRequestEvents extends IDBRequestEvents {
+
+  EventListenerList get blocked();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29925,13 +30100,20 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 // WARNING: Do not edit - generated code.
 
 /// @domName JavaScriptAudioNode
-interface JavaScriptAudioNode extends AudioNode {
+interface JavaScriptAudioNode extends AudioNode, EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  JavaScriptAudioNodeEvents get on();
 
   /** @domName JavaScriptAudioNode.bufferSize */
   final int bufferSize;
+}
 
-  /** @domName JavaScriptAudioNode.onaudioprocess */
-  EventListener onaudioprocess;
+interface JavaScriptAudioNodeEvents extends Events {
+
+  EventListenerList get audioProcess();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30160,7 +30342,7 @@ interface LinkElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream {
+interface LocalMediaStream extends MediaStream, EventTarget {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -30283,7 +30465,7 @@ interface MarqueeElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaController
-interface MediaController default _MediaControllerFactoryProvider {
+interface MediaController extends EventTarget default _MediaControllerFactoryProvider {
 
   MediaController();
 
@@ -30318,10 +30500,10 @@ interface MediaController default _MediaControllerFactoryProvider {
   num volume;
 
   /** @domName MediaController.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName MediaController.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName MediaController.pause */
   void pause();
@@ -30330,7 +30512,7 @@ interface MediaController default _MediaControllerFactoryProvider {
   void play();
 
   /** @domName MediaController.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30590,9 +30772,14 @@ interface MediaQueryListListener {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStream
-interface MediaStream default _MediaStreamFactoryProvider {
+interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamEvents get on();
 
   static final int ENDED = 2;
 
@@ -30604,9 +30791,6 @@ interface MediaStream default _MediaStreamFactoryProvider {
   /** @domName MediaStream.label */
   final String label;
 
-  /** @domName MediaStream.onended */
-  EventListener onended;
-
   /** @domName MediaStream.readyState */
   final int readyState;
 
@@ -30614,13 +30798,18 @@ interface MediaStream default _MediaStreamFactoryProvider {
   final MediaStreamTrackList videoTracks;
 
   /** @domName MediaStream.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName MediaStream.dispatchEvent */
-  bool dispatchEvent(Event event);
+  bool $dom_dispatchEvent(Event event);
 
   /** @domName MediaStream.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamEvents extends Events {
+
+  EventListenerList get ended();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31843,9 +32032,14 @@ interface ParamElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName PeerConnection00
-interface PeerConnection00 default _PeerConnection00FactoryProvider {
+interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryProvider {
 
   PeerConnection00(String serverConfiguration, IceCallback iceCallback);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  PeerConnection00Events get on();
 
   static final int ACTIVE = 2;
 
@@ -31884,21 +32078,6 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
   /** @domName PeerConnection00.localStreams */
   final MediaStreamList localStreams;
 
-  /** @domName PeerConnection00.onaddstream */
-  EventListener onaddstream;
-
-  /** @domName PeerConnection00.onconnecting */
-  EventListener onconnecting;
-
-  /** @domName PeerConnection00.onopen */
-  EventListener onopen;
-
-  /** @domName PeerConnection00.onremovestream */
-  EventListener onremovestream;
-
-  /** @domName PeerConnection00.onstatechange */
-  EventListener onstatechange;
-
   /** @domName PeerConnection00.readyState */
   final int readyState;
 
@@ -31909,7 +32088,7 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
   final MediaStreamList remoteStreams;
 
   /** @domName PeerConnection00.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName PeerConnection00.addStream */
   void addStream(MediaStream stream, [String mediaStreamHints]);
@@ -31924,13 +32103,13 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
   SessionDescription createOffer([String mediaHints]);
 
   /** @domName PeerConnection00.dispatchEvent */
-  bool dispatchEvent(Event event);
+  bool $dom_dispatchEvent(Event event);
 
   /** @domName PeerConnection00.processIceMessage */
   void processIceMessage(IceCandidate candidate);
 
   /** @domName PeerConnection00.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName PeerConnection00.removeStream */
   void removeStream(MediaStream stream);
@@ -31943,6 +32122,19 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
 
   /** @domName PeerConnection00.startIce */
   void startIce([String iceOptions]);
+}
+
+interface PeerConnection00Events extends Events {
+
+  EventListenerList get addStream();
+
+  EventListenerList get connecting();
+
+  EventListenerList get open();
+
+  EventListenerList get removeStream();
+
+  EventListenerList get stateChange();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33079,7 +33271,7 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstance
-interface SVGElementInstance extends EventTarget {
+interface SVGElementInstance {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -33111,13 +33303,13 @@ interface SVGElementInstance extends EventTarget {
   final SVGElementInstance previousSibling;
 
   /** @domName SVGElementInstance.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName SVGElementInstance.dispatchEvent */
-  bool $dom_dispatchEvent(Event event);
+  bool dispatchEvent(Event event);
 
   /** @domName SVGElementInstance.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -36177,11 +36369,18 @@ interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvid
 /// @domName SharedWorkerContext
 interface SharedWorkerContext extends WorkerContext {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  SharedWorkerContextEvents get on();
+
   /** @domName SharedWorkerContext.name */
   final String name;
+}
 
-  /** @domName SharedWorkerContext.onconnect */
-  EventListener onconnect;
+interface SharedWorkerContextEvents extends WorkerContextEvents {
+
+  EventListenerList get connect();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36306,9 +36505,14 @@ interface SpeechInputResultList {
 // WARNING: Do not edit - generated code.
 
 /// @domName SpeechRecognition
-interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactoryProvider {
 
   SpeechRecognition();
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  SpeechRecognitionEvents get on();
 
   /** @domName SpeechRecognition.continuous */
   bool continuous;
@@ -36319,42 +36523,6 @@ interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
   /** @domName SpeechRecognition.lang */
   String lang;
 
-  /** @domName SpeechRecognition.onaudioend */
-  EventListener onaudioend;
-
-  /** @domName SpeechRecognition.onaudiostart */
-  EventListener onaudiostart;
-
-  /** @domName SpeechRecognition.onend */
-  EventListener onend;
-
-  /** @domName SpeechRecognition.onerror */
-  EventListener onerror;
-
-  /** @domName SpeechRecognition.onnomatch */
-  EventListener onnomatch;
-
-  /** @domName SpeechRecognition.onresult */
-  EventListener onresult;
-
-  /** @domName SpeechRecognition.onresultdeleted */
-  EventListener onresultdeleted;
-
-  /** @domName SpeechRecognition.onsoundend */
-  EventListener onsoundend;
-
-  /** @domName SpeechRecognition.onsoundstart */
-  EventListener onsoundstart;
-
-  /** @domName SpeechRecognition.onspeechend */
-  EventListener onspeechend;
-
-  /** @domName SpeechRecognition.onspeechstart */
-  EventListener onspeechstart;
-
-  /** @domName SpeechRecognition.onstart */
-  EventListener onstart;
-
   /** @domName SpeechRecognition.abort */
   void abort();
 
@@ -36363,6 +36531,33 @@ interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
 
   /** @domName SpeechRecognition.stop */
   void stop();
+}
+
+interface SpeechRecognitionEvents extends Events {
+
+  EventListenerList get audioEnd();
+
+  EventListenerList get audioStart();
+
+  EventListenerList get end();
+
+  EventListenerList get error();
+
+  EventListenerList get noMatch();
+
+  EventListenerList get result();
+
+  EventListenerList get resultDeleted();
+
+  EventListenerList get soundEnd();
+
+  EventListenerList get soundStart();
+
+  EventListenerList get speechEnd();
+
+  EventListenerList get speechStart();
+
+  EventListenerList get start();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37025,7 +37220,12 @@ interface TextMetrics {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrack
-interface TextTrack {
+interface TextTrack extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  TextTrackEvents get on();
 
   static final int DISABLED = 0;
 
@@ -37051,23 +37251,25 @@ interface TextTrack {
   /** @domName TextTrack.mode */
   int mode;
 
-  /** @domName TextTrack.oncuechange */
-  EventListener oncuechange;
-
   /** @domName TextTrack.addCue */
   void addCue(TextTrackCue cue);
 
   /** @domName TextTrack.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName TextTrack.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName TextTrack.removeCue */
   void removeCue(TextTrackCue cue);
 
   /** @domName TextTrack.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface TextTrackEvents extends Events {
+
+  EventListenerList get cueChange();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37076,9 +37278,14 @@ interface TextTrack {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackCue
-interface TextTrackCue default _TextTrackCueFactoryProvider {
+interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  TextTrackCueEvents get on();
 
   /** @domName TextTrackCue.align */
   String align;
@@ -37091,12 +37298,6 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   /** @domName TextTrackCue.line */
   int line;
-
-  /** @domName TextTrackCue.onenter */
-  EventListener onenter;
-
-  /** @domName TextTrackCue.onexit */
-  EventListener onexit;
 
   /** @domName TextTrackCue.pauseOnExit */
   bool pauseOnExit;
@@ -37123,16 +37324,23 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
   String vertical;
 
   /** @domName TextTrackCue.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName TextTrackCue.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName TextTrackCue.getCueAsHTML */
   DocumentFragment getCueAsHTML();
 
   /** @domName TextTrackCue.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface TextTrackCueEvents extends Events {
+
+  EventListenerList get enter();
+
+  EventListenerList get exit();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37159,25 +37367,32 @@ interface TextTrackCueList {
 // WARNING: Do not edit - generated code.
 
 /// @domName TextTrackList
-interface TextTrackList {
+interface TextTrackList extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  TextTrackListEvents get on();
 
   /** @domName TextTrackList.length */
   final int length;
 
-  /** @domName TextTrackList.onaddtrack */
-  EventListener onaddtrack;
-
   /** @domName TextTrackList.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName TextTrackList.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName TextTrackList.item */
   TextTrack item(int index);
 
   /** @domName TextTrackList.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface TextTrackListEvents extends Events {
+
+  EventListenerList get addTrack();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39576,7 +39791,12 @@ interface WorkerEvents extends AbstractWorkerEvents {
 // WARNING: Do not edit - generated code.
 
 /// @domName WorkerContext
-interface WorkerContext {
+interface WorkerContext extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  WorkerContextEvents get on();
 
   static final int PERSISTENT = 1;
 
@@ -39588,9 +39808,6 @@ interface WorkerContext {
   /** @domName WorkerContext.navigator */
   final WorkerNavigator navigator;
 
-  /** @domName WorkerContext.onerror */
-  EventListener onerror;
-
   /** @domName WorkerContext.self */
   final WorkerContext self;
 
@@ -39601,7 +39818,7 @@ interface WorkerContext {
   final NotificationCenter webkitNotifications;
 
   /** @domName WorkerContext.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WorkerContext.clearInterval */
   void clearInterval(int handle);
@@ -39613,7 +39830,7 @@ interface WorkerContext {
   void close();
 
   /** @domName WorkerContext.dispatchEvent */
-  bool dispatchEvent(Event evt);
+  bool $dom_dispatchEvent(Event evt);
 
   /** @domName WorkerContext.importScripts */
   void importScripts();
@@ -39625,7 +39842,7 @@ interface WorkerContext {
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   /** @domName WorkerContext.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName WorkerContext.setInterval */
   int setInterval(TimeoutHandler handler, int timeout);
@@ -39644,6 +39861,11 @@ interface WorkerContext {
 
   /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
+}
+
+interface WorkerContextEvents extends Events {
+
+  EventListenerList get error();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -104,7 +104,7 @@ class _AudioChannelMergerJs extends _AudioNodeJs implements AudioChannelMerger n
 class _AudioChannelSplitterJs extends _AudioNodeJs implements AudioChannelSplitter native "*AudioChannelSplitter" {
 }
 
-class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioContext" {
+class _AudioContextJs extends _EventTargetJs implements AudioContext native "*AudioContext" {
 
   final int activeSourceCount;
 
@@ -113,8 +113,6 @@ class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioC
   final _AudioDestinationNodeJs destination;
 
   final _AudioListenerJs listener;
-
-  EventListener oncomplete;
 
   final num sampleRate;
 
@@ -1494,8 +1492,6 @@ class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*Databa
 
 class _DedicatedWorkerContextJs extends _WorkerContextJs implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
 
-  EventListener onmessage;
-
   void postMessage(Object message, [List messagePorts = null]) native;
 
   void webkitPostMessage(Object message, [List transferList = null]) native;
@@ -1506,7 +1502,7 @@ class _DelayNodeJs extends _AudioNodeJs implements DelayNode native "*DelayNode"
   final _AudioParamJs delayTime;
 }
 
-class _DeprecatedPeerConnectionJs extends _DOMTypeJs implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
+class _DeprecatedPeerConnectionJs extends _EventTargetJs implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
 
   static final int ACTIVE = 2;
 
@@ -1517,18 +1513,6 @@ class _DeprecatedPeerConnectionJs extends _DOMTypeJs implements DeprecatedPeerCo
   static final int NEW = 0;
 
   final _MediaStreamListJs localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -2234,7 +2218,7 @@ class _FileListJs extends _DOMTypeJs implements FileList native "*FileList" {
   _FileJs item(int index) native;
 }
 
-class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader" {
+class _FileReaderJs extends _EventTargetJs implements FileReader native "*FileReader" {
 
   static final int DONE = 2;
 
@@ -2243,18 +2227,6 @@ class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader
   static final int LOADING = 1;
 
   final _FileErrorJs error;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadend;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
 
   final int readyState;
 
@@ -2288,7 +2260,7 @@ class _FileReaderSyncJs extends _DOMTypeJs implements FileReaderSync native "*Fi
   String readAsText(_BlobJs blob, [String encoding = null]) native;
 }
 
-class _FileWriterJs extends _DOMTypeJs implements FileWriter native "*FileWriter" {
+class _FileWriterJs extends _EventTargetJs implements FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
 
@@ -2299,18 +2271,6 @@ class _FileWriterJs extends _DOMTypeJs implements FileWriter native "*FileWriter
   final _FileErrorJs error;
 
   final int length;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onprogress;
-
-  EventListener onwrite;
-
-  EventListener onwriteend;
-
-  EventListener onwritestart;
 
   final int position;
 
@@ -4144,17 +4104,11 @@ class _IDBCursorWithValueJs extends _IDBCursorJs implements IDBCursorWithValue n
   final _IDBAnyJs value;
 }
 
-class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatabase" {
+class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBDatabase" {
 
   final String name;
 
   final List<String> objectStoreNames;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onversionchange;
 
   final String version;
 
@@ -4299,17 +4253,13 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
   _IDBRequestJs put(Dynamic value, [_IDBKeyJs key = null]) native;
 }
 
-class _IDBRequestJs extends _DOMTypeJs implements IDBRequest native "*IDBRequest" {
+class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBRequest" {
 
   static final int DONE = 2;
 
   static final int LOADING = 1;
 
   final int errorCode;
-
-  EventListener onerror;
-
-  EventListener onsuccess;
 
   final int readyState;
 
@@ -4328,7 +4278,7 @@ class _IDBRequestJs extends _DOMTypeJs implements IDBRequest native "*IDBRequest
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _IDBTransactionJs extends _DOMTypeJs implements IDBTransaction native "*IDBTransaction" {
+class _IDBTransactionJs extends _EventTargetJs implements IDBTransaction native "*IDBTransaction" {
 
   static final int READ_ONLY = 0;
 
@@ -4339,12 +4289,6 @@ class _IDBTransactionJs extends _DOMTypeJs implements IDBTransaction native "*ID
   final _IDBDatabaseJs db;
 
   final int mode;
-
-  EventListener onabort;
-
-  EventListener oncomplete;
-
-  EventListener onerror;
 
   void abort() native;
 
@@ -4364,7 +4308,13 @@ class _IDBVersionChangeEventJs extends _EventJs implements IDBVersionChangeEvent
 
 class _IDBVersionChangeRequestJs extends _IDBRequestJs implements IDBVersionChangeRequest native "*IDBVersionChangeRequest" {
 
-  EventListener onblocked;
+  // From EventTarget
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
 class _IceCandidateJs extends _DOMTypeJs implements IceCandidate native "*IceCandidate" {
@@ -4660,7 +4610,13 @@ class _JavaScriptAudioNodeJs extends _AudioNodeJs implements JavaScriptAudioNode
 
   final int bufferSize;
 
-  EventListener onaudioprocess;
+  // From EventTarget
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
 class _JavaScriptCallFrameJs extends _DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -4718,6 +4674,14 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
 class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
+
+  // From EventTarget
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
@@ -4749,7 +4713,7 @@ class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
   String toString() native;
 }
 
-class _MediaControllerJs extends _DOMTypeJs implements MediaController native "*MediaController" {
+class _MediaControllerJs extends _EventTargetJs implements MediaController native "*MediaController" {
 
   final _TimeRangesJs buffered;
 
@@ -4911,7 +4875,7 @@ class _MediaQueryListListenerJs extends _DOMTypeJs implements MediaQueryListList
   void queryChanged(_MediaQueryListJs list) native;
 }
 
-class _MediaStreamJs extends _DOMTypeJs implements MediaStream native "*MediaStream" {
+class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*MediaStream" {
 
   static final int ENDED = 2;
 
@@ -4920,8 +4884,6 @@ class _MediaStreamJs extends _DOMTypeJs implements MediaStream native "*MediaStr
   final _MediaStreamTrackListJs audioTracks;
 
   final String label;
-
-  EventListener onended;
 
   final int readyState;
 
@@ -5632,7 +5594,7 @@ class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent nat
   final bool persisted;
 }
 
-class _PeerConnection00Js extends _DOMTypeJs implements PeerConnection00 native "*PeerConnection00" {
+class _PeerConnection00Js extends _EventTargetJs implements PeerConnection00 native "*PeerConnection00" {
 
   static final int ACTIVE = 2;
 
@@ -5667,16 +5629,6 @@ class _PeerConnection00Js extends _DOMTypeJs implements PeerConnection00 native 
   final _SessionDescriptionJs localDescription;
 
   final _MediaStreamListJs localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -6515,7 +6467,7 @@ class _SVGElementJs extends _ElementJs implements SVGElement native "*SVGElement
   String xmlbase;
 }
 
-class _SVGElementInstanceJs extends _EventTargetJs implements SVGElementInstance native "*SVGElementInstance" {
+class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
 
   final _SVGElementInstanceListJs childNodes;
 
@@ -9388,8 +9340,6 @@ class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "
 class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerContext native "*SharedWorkerContext" {
 
   final String name;
-
-  EventListener onconnect;
 }
 
 class _SpeechGrammarJs extends _DOMTypeJs implements SpeechGrammar native "*SpeechGrammar" {
@@ -9429,37 +9379,13 @@ class _SpeechInputResultListJs extends _DOMTypeJs implements SpeechInputResultLi
   _SpeechInputResultJs item(int index) native;
 }
 
-class _SpeechRecognitionJs extends _DOMTypeJs implements SpeechRecognition native "*SpeechRecognition" {
+class _SpeechRecognitionJs extends _EventTargetJs implements SpeechRecognition native "*SpeechRecognition" {
 
   bool continuous;
 
   _SpeechGrammarListJs grammars;
 
   String lang;
-
-  EventListener onaudioend;
-
-  EventListener onaudiostart;
-
-  EventListener onend;
-
-  EventListener onerror;
-
-  EventListener onnomatch;
-
-  EventListener onresult;
-
-  EventListener onresultdeleted;
-
-  EventListener onsoundend;
-
-  EventListener onsoundstart;
-
-  EventListener onspeechend;
-
-  EventListener onspeechstart;
-
-  EventListener onstart;
 
   void abort() native;
 
@@ -9728,7 +9654,7 @@ class _TextMetricsJs extends _DOMTypeJs implements TextMetrics native "*TextMetr
   final num width;
 }
 
-class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
+class _TextTrackJs extends _EventTargetJs implements TextTrack native "*TextTrack" {
 
   static final int DISABLED = 0;
 
@@ -9748,8 +9674,6 @@ class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
 
   int mode;
 
-  EventListener oncuechange;
-
   void addCue(_TextTrackCueJs cue) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -9761,7 +9685,7 @@ class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
-class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTrackCue" {
+class _TextTrackCueJs extends _EventTargetJs implements TextTrackCue native "*TextTrackCue" {
 
   String align;
 
@@ -9770,10 +9694,6 @@ class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTr
   String id;
 
   int line;
-
-  EventListener onenter;
-
-  EventListener onexit;
 
   bool pauseOnExit;
 
@@ -9809,11 +9729,9 @@ class _TextTrackCueListJs extends _DOMTypeJs implements TextTrackCueList native 
   _TextTrackCueJs item(int index) native;
 }
 
-class _TextTrackListJs extends _DOMTypeJs implements TextTrackList native "*TextTrackList" {
+class _TextTrackListJs extends _EventTargetJs implements TextTrackList native "*TextTrackList" {
 
   final int length;
-
-  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11604,7 +11522,7 @@ class _WorkerJs extends _AbstractWorkerJs implements Worker native "*Worker" {
   void webkitPostMessage(Dynamic message, [List messagePorts = null]) native;
 }
 
-class _WorkerContextJs extends _DOMTypeJs implements WorkerContext native "*WorkerContext" {
+class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*WorkerContext" {
 
   static final int PERSISTENT = 1;
 
@@ -11613,8 +11531,6 @@ class _WorkerContextJs extends _DOMTypeJs implements WorkerContext native "*Work
   final _WorkerLocationJs location;
 
   final _WorkerNavigatorJs navigator;
-
-  EventListener onerror;
 
   final _WorkerContextJs self;
 
@@ -12252,7 +12168,7 @@ interface AudioChannelSplitter extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface AudioContext default _AudioContextFactoryProvider {
+interface AudioContext extends EventTarget default _AudioContextFactoryProvider {
 
   AudioContext();
 
@@ -12263,8 +12179,6 @@ interface AudioContext default _AudioContextFactoryProvider {
   final AudioDestinationNode destination;
 
   final AudioListener listener;
-
-  EventListener oncomplete;
 
   final num sampleRate;
 
@@ -13912,8 +13826,6 @@ interface DatabaseSync {
 
 interface DedicatedWorkerGlobalScope extends WorkerContext {
 
-  EventListener onmessage;
-
   void postMessage(Object message, [List messagePorts]);
 
   void webkitPostMessage(Object message, [List transferList]);
@@ -13937,7 +13849,7 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
 
   DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
 
@@ -13950,18 +13862,6 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
   static final int NEW = 0;
 
   final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -14857,7 +14757,7 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader default _FileReaderFactoryProvider {
+interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
   FileReader();
 
@@ -14868,18 +14768,6 @@ interface FileReader default _FileReaderFactoryProvider {
   static final int LOADING = 1;
 
   final FileError error;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadend;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
 
   final int readyState;
 
@@ -14932,7 +14820,7 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 
 // WARNING: Do not edit - generated code.
 
-interface FileWriter {
+interface FileWriter extends EventTarget {
 
   static final int DONE = 2;
 
@@ -14943,18 +14831,6 @@ interface FileWriter {
   final FileError error;
 
   final int length;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onprogress;
-
-  EventListener onwrite;
-
-  EventListener onwriteend;
-
-  EventListener onwritestart;
 
   final int position;
 
@@ -16975,17 +16851,11 @@ interface IDBCursorWithValue extends IDBCursor {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBDatabase {
+interface IDBDatabase extends EventTarget {
 
   final String name;
 
   final List<String> objectStoreNames;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onversionchange;
 
   final String version;
 
@@ -17165,17 +17035,13 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBRequest {
+interface IDBRequest extends EventTarget {
 
   static final int DONE = 2;
 
   static final int LOADING = 1;
 
   final int errorCode;
-
-  EventListener onerror;
-
-  EventListener onsuccess;
 
   final int readyState;
 
@@ -17199,7 +17065,7 @@ interface IDBRequest {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBTransaction {
+interface IDBTransaction extends EventTarget {
 
   static final int READ_ONLY = 0;
 
@@ -17210,12 +17076,6 @@ interface IDBTransaction {
   final IDBDatabase db;
 
   final int mode;
-
-  EventListener onabort;
-
-  EventListener oncomplete;
-
-  EventListener onerror;
 
   void abort();
 
@@ -17243,9 +17103,7 @@ interface IDBVersionChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBVersionChangeRequest extends IDBRequest {
-
-  EventListener onblocked;
+interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17354,11 +17212,9 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
 // WARNING: Do not edit - generated code.
 
-interface JavaScriptAudioNode extends AudioNode {
+interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
   final int bufferSize;
-
-  EventListener onaudioprocess;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17428,7 +17284,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream {
+interface LocalMediaStream extends MediaStream, EventTarget {
 
   void stop();
 }
@@ -17472,7 +17328,7 @@ interface Location {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaController default _MediaControllerFactoryProvider {
+interface MediaController extends EventTarget default _MediaControllerFactoryProvider {
 
   MediaController();
 
@@ -17584,7 +17440,7 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStream default _MediaStreamFactoryProvider {
+interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
@@ -17595,8 +17451,6 @@ interface MediaStream default _MediaStreamFactoryProvider {
   final MediaStreamTrackList audioTracks;
 
   final String label;
-
-  EventListener onended;
 
   final int readyState;
 
@@ -18331,7 +18185,7 @@ interface PageTransitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection00 default _PeerConnection00FactoryProvider {
+interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryProvider {
 
   PeerConnection00(String serverConfiguration, IceCallback iceCallback);
 
@@ -18368,16 +18222,6 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
   final SessionDescription localDescription;
 
   final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -19269,7 +19113,7 @@ interface SVGElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface SVGElementInstance extends EventTarget {
+interface SVGElementInstance {
 
   final SVGElementInstanceList childNodes;
 
@@ -21542,8 +21386,6 @@ interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvid
 interface SharedWorkerGlobalScope extends WorkerContext {
 
   final String name;
-
-  EventListener onconnect;
 }
 
 interface SharedWorkerContext extends SharedWorkerGlobalScope {
@@ -21627,7 +21469,7 @@ interface SpeechInputResultList {
 
 // WARNING: Do not edit - generated code.
 
-interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactoryProvider {
 
   SpeechRecognition();
 
@@ -21636,30 +21478,6 @@ interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
   SpeechGrammarList grammars;
 
   String lang;
-
-  EventListener onaudioend;
-
-  EventListener onaudiostart;
-
-  EventListener onend;
-
-  EventListener onerror;
-
-  EventListener onnomatch;
-
-  EventListener onresult;
-
-  EventListener onresultdeleted;
-
-  EventListener onsoundend;
-
-  EventListener onsoundstart;
-
-  EventListener onspeechend;
-
-  EventListener onspeechstart;
-
-  EventListener onstart;
 
   void abort();
 
@@ -21923,7 +21741,7 @@ interface TextMetrics {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrack {
+interface TextTrack extends EventTarget {
 
   static final int DISABLED = 0;
 
@@ -21943,8 +21761,6 @@ interface TextTrack {
 
   int mode;
 
-  EventListener oncuechange;
-
   void addCue(TextTrackCue cue);
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -21961,7 +21777,7 @@ interface TextTrack {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackCue default _TextTrackCueFactoryProvider {
+interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
@@ -21972,10 +21788,6 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
   String id;
 
   int line;
-
-  EventListener onenter;
-
-  EventListener onexit;
 
   bool pauseOnExit;
 
@@ -22021,11 +21833,9 @@ interface TextTrackCueList {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackList {
+interface TextTrackList extends EventTarget {
 
   final int length;
-
-  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -23781,13 +23591,11 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-interface WorkerGlobalScope {
+interface WorkerGlobalScope extends EventTarget {
 
   final WorkerLocation location;
 
   final WorkerNavigator navigator;
-
-  EventListener onerror;
 
   final WorkerContext self;
 

@@ -439,13 +439,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     return False
 
   def AddAttribute(self, getter, setter):
-    # FIXME: Dartium does not support attribute event listeners. However, JS
-    # implementation falls back to them when addEventListener is not available.
-    # Make sure addEventListener is available in all EventTargets and remove
-    # this check.
-    if (getter or setter).type.id == 'EventListener':
-      return
-
     if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
       # FIXME: exclude from interface as well.
       return
