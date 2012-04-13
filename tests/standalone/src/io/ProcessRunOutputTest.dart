@@ -24,7 +24,7 @@ test(scriptFile, encoding, stream) {
     enc = Encoding.ASCII;
   } else if (encoding == 'latin1') {
     enc = Encoding.ISO_8859_1;
-  } else if (encoding = 'utf8') {
+  } else if (encoding == 'utf8') {
     enc = Encoding.UTF_8;
   }
 

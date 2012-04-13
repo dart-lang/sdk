@@ -10,22 +10,20 @@ class _ProcessStartStatus {
 
 // Abstract factory class capable of producing interactive and
 // non-interactive processes.
-class _Process implements Process {
+class _Process {
 
-  _Process();
-
-  factory _Process.start(String path,
-                         List<String> arguments,
-                         [ProcessOptions options]) {
+  factory Process.start(String path,
+                        List<String> arguments,
+                        [ProcessOptions options]) {
     return new _InteractiveProcess.start(path, arguments, options);
   }
 
-  factory _Process.run(String path,
-                       List<String> arguments,
-                       ProcessOptions options,
-                       void callback(int exitCode,
-                                     String stdout,
-                                     String stderr)) {
+  factory Process.run(String path,
+                      List<String> arguments,
+                      ProcessOptions options,
+                      void callback(int exitCode,
+                                    String stdout,
+                                    String stderr)) {
     return new _NonInteractiveProcess.start(path,
                                             arguments,
                                             options,
@@ -36,7 +34,7 @@ class _Process implements Process {
 
 // _InteractiveProcess is the actual implementation of all processes
 // started from Dart code.
-class _InteractiveProcess extends _Process {
+class _InteractiveProcess implements Process {
 
   _InteractiveProcess.start(String path,
                             List<String> arguments,
@@ -295,7 +293,7 @@ class _InteractiveProcess extends _Process {
 // that restricts the interface to disallow access to the streams and
 // buffers output so it can be delivered to the callback when the
 // process exits.
-class _NonInteractiveProcess extends _Process {
+class _NonInteractiveProcess implements Process {
 
   _NonInteractiveProcess.start(String path,
                                List<String> arguments,
