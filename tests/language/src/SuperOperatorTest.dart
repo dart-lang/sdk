@@ -11,7 +11,7 @@ class A {
   A() : things = ['D', 'a', 'r', 't', 42];
 
   operator + (String s) {
-    val = val + s;
+    val = "${val}${s}";
     return this;
   }
 
@@ -27,12 +27,15 @@ class A {
 
 class B extends A {
   operator + (String s) {
-    super + (s + s);  // Call A.operator+(this, s + s).
+    super + ("${s}${s}");  // Call A.operator+(this, "${s}${s}").
     return this;
   }
 
   operator [] (i) {
     var temp = super[i];
+    if (temp is String) {
+      return "$temp$temp";
+    }
     return temp + temp;
   }
 

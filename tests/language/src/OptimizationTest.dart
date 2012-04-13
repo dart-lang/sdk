@@ -35,14 +35,22 @@ doStore2(a, v) {
   a[2] = v;
 }
 
+class StringPlus {
+  const StringPlus(String this._val);
+  operator + (right) => new StringPlus("${_val}${right}");
+  toString() => _val;
+
+  final String _val;
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
-    Expect.stringEquals("HI 5", addThem("HI ", 5));
+    Expect.stringEquals("HI 5", addThem(const StringPlus("HI "), 5).toString());
     Expect.equals(true, isItInt(5));
   }
   Expect.equals(8, addThem(3, 5));
   for (int i = 0; i < 2000; i++) {
-    Expect.stringEquals("HI 5", addThem("HI ", 5));
+    Expect.stringEquals("HI 5", addThem(const StringPlus("HI "), 5).toString());
     Expect.equals(8, addThem(3, 5));
   }
   for (int i = -500; i < 500; i++) {
