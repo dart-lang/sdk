@@ -98,6 +98,7 @@ CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
 ClosureCallWrongArgumentCountNegativeTest: Fail
 CompileTimeConstant3Test: Fail # Issue 1780
+CompileTimeConstantOTest: Fail # Issue 2126
 ConstConstructorSyntaxTest/05: Fail
 ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
@@ -213,6 +214,7 @@ CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of 
 CompileTimeConstantETest: Fail
 CompileTimeConstantGTest: Fail # compile time constants with super calls to optional arguments.
 CompileTimeConstantKTest: Fail # Constant maps are not canonicalized correctly if the same key appears multiple times.
+CompileTimeConstantOTest: Fail # String constants with string-interpolation.
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to

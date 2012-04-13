@@ -739,7 +739,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluate(entry.key);
-      if (!key.isString() || entry.key.asLiteralString() === null) {
+      if (!key.isString() || entry.key.asStringNode() === null) {
         MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
         compiler.reportError(entry.key, new ResolutionError(kind, const []));
       }

@@ -38,7 +38,6 @@ LabelTest: Fail # switch cases are not implemented
 LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 ManyGenericInstanceofTest: Fail # cannot resolve type T
-MapLiteral2Test: Fail # expected a constant string
 MethodBindingTest: Fail # internal error: super property read not implemented.
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType

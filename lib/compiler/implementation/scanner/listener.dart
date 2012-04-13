@@ -1213,8 +1213,8 @@ class NodeListener extends ElementListener {
   void endLiteralMapEntry(Token colon, Token endToken) {
     Expression value = popNode();
     Expression key = popNode();
-    if (key.asLiteralString() === null) {
-      recoverableError('expected a constant string', node: key);
+    if (key.asStringNode() === null) {
+      recoverableError('expected a string', node: key);
     }
     pushNode(new LiteralMapEntry(key, colon, value));
   }

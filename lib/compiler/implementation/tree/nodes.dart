@@ -141,6 +141,7 @@ class Node implements Hashable {
   Send asSend() => null;
   SendSet asSendSet() => null;
   Statement asStatement() => null;
+  StringNode asStringNode() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
   StringJuxtaposition asStringJuxtaposition() => null;
@@ -744,6 +745,8 @@ class StringQuoting {
 class StringNode extends Expression {
   abstract DartString get dartString();
   abstract bool get isInterpolation();
+
+  StringNode asStringNode() => this;
 }
 
 class LiteralString extends StringNode {
