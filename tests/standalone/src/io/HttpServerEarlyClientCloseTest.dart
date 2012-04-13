@@ -23,15 +23,19 @@ class EarlyCloseTest {
     Completer c = new Completer();
 
     bool calledOnRequest = false;
+    bool calledOnError = false;
     server.onRequest = (HttpRequest request, HttpResponse response) {
       Expect.isTrue(expectRequest);
+      Expect.isFalse(calledOnError);
       Expect.isFalse(calledOnRequest, "onRequest called multiple times");
       calledOnRequest = true;
     };
     ReceivePort port = new ReceivePort();
     server.onError = (Exception error) {
+      Expect.isFalse(calledOnError);
       Expect.equals(exception, error.message);
-      calledOnRequest = true;  // onRequest is not allowed after onError.
+      Expect.equals(expectRequest, calledOnRequest);
+      calledOnError = true;
       port.close();
       c.complete(null);
     };
