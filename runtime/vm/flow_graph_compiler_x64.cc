@@ -7,6 +7,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
@@ -18,6 +19,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
@@ -67,14 +69,328 @@ void FlowGraphCompiler::Bailout(const char* reason) {
   Isolate::Current()->long_jump_base()->Jump(1, error);
 }
 
+
+static const Class* CoreClass(const char* c_name) {
+  const String& class_name = String::Handle(String::NewSymbol(c_name));
+  const Class& cls = Class::ZoneHandle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
+  ASSERT(!cls.IsNull());
+  return &cls;
+}
+
+
 #define __ assembler_->
 
 
+// Inputs:
+// - RAX: object (preserved).
+// - RDX: optional instantiator type arguments (preserved).
+// Destroys RCX.
+// Returns:
+// - unchanged object in RAX and optional instantiator type arguments in RDX.
+// Note that this inlined code must be followed by the runtime_call code, as it
+// may fall through to it. Otherwise, this inline code will jump to the label
+// is_instance or to the label is_not_instance.
+void FlowGraphCompiler::GenerateInlineInstanceof(const AbstractType& type,
+                                                 Label* is_instance,
+                                                 Label* is_not_instance) {
+  Label runtime_call;
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    const bool requires_type_arguments = type_class.HasTypeArguments();
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (requires_type_arguments) {
+      const AbstractTypeArguments& type_arguments =
+          AbstractTypeArguments::Handle(type.arguments());
+      const bool is_raw_type = type_arguments.IsNull() ||
+          type_arguments.IsRaw(type_arguments.Length());
+      __ testq(RAX, Immediate(kSmiTagMask));
+      __ j(ZERO, &runtime_call);
+      // Object not Smi.
+      if (is_raw_type) {
+        // Dynamic type argument, check only classes.
+        if (type.IsListInterface()) {
+          // TODO(srdjan) also accept List<Object>.
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          __ CompareObject(RCX, *CoreClass("ObjectArray"));
+          __ j(EQUAL, is_instance);
+          __ CompareObject(RCX, *CoreClass("GrowableObjectArray"));
+          __ j(EQUAL, is_instance);
+        } else if (!type_class.is_interface()) {
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          __ CompareObject(RCX, type_class);
+          __ j(EQUAL, is_instance);
+        }
+        // Fall through to runtime class.
+      }
+    } else {  // type has NO type arguments.
+      Label compare_classes;
+      __ testq(RAX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, &compare_classes);
+      // Object is Smi.
+      const Class& smi_class = Class::Handle(Smi::Class());
+      // TODO(regis): We should introduce a SmiType.
+      Error& malformed_error = Error::Handle();
+      if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                                type_class,
+                                TypeArguments::Handle(),
+                                &malformed_error)) {
+        // Successful assignable type check: return object in RAX.
+        __ jmp(is_instance);
+      } else {
+        // Failed assignable type check: call runtime to throw TypeError.
+        __ jmp(&runtime_call);
+      }
+      // Compare if the classes are equal.
+      __ Bind(&compare_classes);
+      // If type is an interface, we can skip the class equality check,
+      // because instances cannot be of an interface type.
+      if (!type_class.is_interface()) {
+        __ LoadObject(RCX, type_class);
+        __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+        __ cmpq(R10, RCX);
+        __ j(EQUAL, is_instance);
+        // RAX, RCX, and RDX are preserved in stub, result is in RBX.
+        __ call(&StubCode::IsRawSubTypeLabel());
+        // Result in RBX: 1 is raw subtype.
+        __ cmpq(RBX, Immediate(1));
+        __ j(EQUAL, is_instance);
+          // Otherwise fall through to runtime call.
+      } else {
+        // However, for specific core library interfaces, we can check for
+        // specific core library classes.
+        Error& malformed_error = Error::Handle();
+        if (type.IsBoolInterface()) {
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          const Class& bool_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->bool_class());
+          __ CompareObject(RCX, bool_class);
+          __ j(EQUAL, is_instance);
+        } else if (type.IsSubtypeOf(
+              Type::Handle(Type::NumberInterface()), &malformed_error)) {
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          if (type.IsIntInterface() || type.IsNumberInterface()) {
+            // We already checked for Smi above.
+            const Class& mint_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->mint_class());
+            __ CompareObject(RCX, mint_class);
+            __ j(EQUAL, is_instance);
+            const Class& bigint_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->bigint_class());
+            __ CompareObject(RCX, bigint_class);
+            __ j(EQUAL, is_instance);
+          }
+          if (type.IsDoubleInterface() || type.IsNumberInterface()) {
+            const Class& double_class = Class::ZoneHandle(
+                Isolate::Current()->object_store()->double_class());
+            __ CompareObject(RCX, double_class);
+            __ j(EQUAL, is_instance);
+          }
+        } else if (type.IsStringInterface()) {
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          const Class& one_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->one_byte_string_class());
+          __ CompareObject(RCX, one_byte_string_class);
+          __ j(EQUAL, is_instance);
+          const Class& two_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->two_byte_string_class());
+          __ CompareObject(RCX, two_byte_string_class);
+          __ j(EQUAL, is_instance);
+          const Class& four_byte_string_class = Class::ZoneHandle(
+              Isolate::Current()->object_store()->four_byte_string_class());
+          __ CompareObject(RCX, four_byte_string_class);
+          __ j(EQUAL, is_instance);
+        } else if (type.IsFunctionInterface()) {
+          const Immediate raw_null =
+              Immediate(reinterpret_cast<intptr_t>(Object::null()));
+          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
+          __ movq(RCX, FieldAddress(RCX, Class::signature_function_offset()));
+          __ cmpq(RCX, raw_null);
+          __ j(NOT_EQUAL, is_instance);
+        } else {
+          __ LoadObject(RCX, type_class);
+          // RAX: Instance (preserved).
+          // RCX: test class (preserved).
+          // RDX: instantiator type arguments (preserved).
+          __ call(&StubCode::IsRawSubTypeLabel());
+          // Result in RBX: 1 is raw subtype.
+          __ cmpq(RBX, Immediate(1));
+          __ j(EQUAL, is_instance);
+          // Otherwise fallthrough to runtime call.
+        }
+      }
+    }
+  } else {
+    ASSERT(!type.IsInstantiated());
+    // Skip check if destination is a dynamic type.
+    if (type.IsTypeParameter()) {
+      // Check if dynamic.
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      // Instantiator type arguments are in RDX.
+      __ cmpq(RDX, raw_null);
+      __ j(EQUAL, is_instance);
+
+      // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+      __ movq(RCX, FieldAddress(RDX, Object::class_offset()));
+      __ CompareObject(RCX, Object::ZoneHandle(Object::type_arguments_class()));
+      __ j(NOT_EQUAL, &runtime_call);
+      __ movq(RCX,
+              FieldAddress(RDX, TypeArguments::type_at_offset(type.Index())));
+      // RCX: instantiated type parameter.
+      __ CompareObject(RCX, Type::ZoneHandle(Type::DynamicType()));
+      __ j(EQUAL, is_instance);
+      // Check if the type has type parameters, if not, do the class comparison.
+      Label not_smi;
+      __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
+      __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+      __ CompareObject(RCX, Type::ZoneHandle(Type::IntInterface()));
+      __ j(EQUAL, is_instance);
+      __ CompareObject(RCX, Type::ZoneHandle(Type::NumberInterface()));
+      __ j(EQUAL, is_instance);
+      __ Bind(&not_smi);
+      // The instantiated type parameter RCX may not be a Type, but could be an
+      // InstantiatedType. It is therefore necessary to check its class.
+      __ movq(R10, FieldAddress(RCX, Object::class_offset()));
+      __ CompareObject(R10, Object::ZoneHandle(Object::type_class()));
+      __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+      __ movq(RCX, FieldAddress(RCX, Type::type_class_offset()));
+      __ movq(R10, FieldAddress(RCX, Class::type_parameters_offset()));
+      // Check that class of type has no type parameters.
+      __ cmpq(R10, raw_null);
+      __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+      // We have a non-parameterized class in RCX, compare with class of
+      // value in RAX. RAX, RCX, and RDX are preserved in stub.
+      __ call(&StubCode::IsRawSubTypeLabel());
+      // Result in EBX: 1 is raw subtype.
+      __ cmpq(RBX, Immediate(1));
+      __ j(EQUAL, is_instance);
+      // Fall through to runtime call.
+    }
+  }
+  __ Bind(&runtime_call);
+}
+
+
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - RAX: object.
+// - RDX: optional instantiator type arguments.
+// Destroys RCX and RDX.
+// Returns:
+// - object in RAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
                                                  intptr_t token_index,
+                                                 intptr_t try_index,
+                                                 Value* value,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name) {
-  Bailout("GenerateAssertAssignable");
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(token_index >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+
+  // Any expression is assignable to the Dynamic type and to the Object type.
+  // Skip the test.
+  if (!dst_type.IsMalformed() &&
+      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
+    return;
+  }
+
+  // It is a compile-time error to explicitly return a value (including null)
+  // from a void function. However, functions that do not explicitly return a
+  // value, implicitly return null. This includes void functions. Therefore, we
+  // skip the type test here and trust the parser to only return null in void
+  // function.
+  if (dst_type.IsVoidType()) {
+    return;
+  }
+
+  // TODO(regis): Move this compile time check to the graph builder.
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((value != NULL) && value->IsConstant()) {
+    Instance& literal_value = Instance::Handle();
+    literal_value ^= value->AsConstant()->value().raw();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    if (cls.IsNullClass()) {
+      ASSERT(literal_value.IsNull() ||
+             (literal_value.raw() == Object::sentinel()) ||
+             (literal_value.raw() == Object::transition_sentinel()));
+      return;
+    }
+    Error& malformed_error = Error::Handle();
+    if (!dst_type.IsMalformed() &&
+        dst_type.IsInstantiated() &&
+        literal_value.IsInstanceOf(dst_type,
+                                   TypeArguments::Handle(),
+                                   &malformed_error)) {
+      return;
+    }
+  }
+
+  // A null object is always assignable and is returned as result.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_assignable, runtime_call;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &is_assignable);
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    const Immediate location =
+        Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+    __ pushq(location);  // Push the source location.
+    __ pushq(RAX);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(node_id,
+                        token_index,
+                        try_index,
+                        kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+
+    __ Bind(&is_assignable);  // For a null object.
+    return;
+  }
+
+  // Generate inline type check, linking to runtime call if not assignable.
+  GenerateInlineInstanceof(dst_type, &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  const Immediate location =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+  __ pushq(location);  // Push the source location.
+  __ pushq(RAX);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  if (!dst_type.IsInstantiated()) {
+    __ pushq(RDX);  // Instantiator type arguments.
+  } else {
+    __ pushq(raw_null);  // Null instantiator.
+  }
+  __ PushObject(dst_name);  // Push the name of the destination.
+  GenerateCallRuntime(node_id,
+                      token_index,
+                      try_index,
+                      kTypeCheckRuntimeEntry);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ addq(RSP, Immediate(5 * kWordSize));
+  __ popq(RAX);
+
+  __ Bind(&is_assignable);
 }
 
 
@@ -105,7 +421,42 @@ void FlowGraphCompiler::VisitConstant(ConstantVal* val) {
 
 
 void FlowGraphCompiler::VisitAssertAssignable(AssertAssignableComp* comp) {
-  Bailout("AssertAssignableComp");
+  if (comp->type_arguments() != NULL) {
+    __ popq(RDX);
+  }
+  LoadValue(RAX, comp->value());
+  GenerateAssertAssignable(comp->node_id(),
+                           comp->token_index(),
+                           comp->try_index(),
+                           comp->value(),
+                           comp->dst_type(),
+                           comp->dst_name());
+}
+
+
+void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
+  LoadValue(RAX, comp->value());
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  Label done;
+  __ popq(RAX);
+  __ CompareObject(RAX, Bool::ZoneHandle(Bool::True()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ CompareObject(RAX, Bool::ZoneHandle(Bool::False()));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  const Immediate location =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(comp->token_index())));
+  __ pushq(location);  // Push the source location.
+  __ pushq(RAX);  // Push the source object.
+  GenerateCallRuntime(comp->node_id(),
+                      comp->token_index(),
+                      comp->try_index(),
+                      kConditionTypeErrorRuntimeEntry);
+  // We should never return here.
+  __ int3();
+
+  __ Bind(&done);
 }
 
 
@@ -433,25 +784,14 @@ void FlowGraphCompiler::VisitBooleanNegate(BooleanNegateComp* comp) {
 }
 
 
-static const Class* CoreClass(const char* c_name) {
-  const String& class_name = String::Handle(String::NewSymbol(c_name));
-  const Class& cls = Class::ZoneHandle(Library::Handle(
-      Library::CoreImplLibrary()).LookupClass(class_name));
-  ASSERT(!cls.IsNull());
-  return &cls;
-}
-
-
-// Copied from CodeGenerator.
-// If instanceof type test cannot be performed successfully at compile time and
-// therefore eliminated, optimize it by adding inlined tests for:
+// Optimize instanceof type test by adding inlined tests for:
 // - NULL -> return false.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
 // Inputs:
 // - RAX: object.
-// - RDX: optional type-arguments.
-// Destroys RCX.
+// - RDX: optional instantiator type arguments.
+// Destroys RCX and RDX.
 // Returns:
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
@@ -466,7 +806,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
 
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done;
+  Label is_instance, is_not_instance;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -477,93 +817,14 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // Dynamic at run time.
-    Label non_null;
     __ cmpq(RAX, raw_null);
-    __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
-    __ PushObject(negate_result ? bool_true : bool_false);
-    __ jmp(&done);
-
-    __ Bind(&non_null);
-
-    const Class& type_class = Class::ZoneHandle(type.type_class());
-    const bool requires_type_arguments = type_class.HasTypeArguments();
-    // A Smi object cannot be the instance of a parameterized class.
-    // A class equality check is only applicable with a dst type of a
-    // non-parameterized class or with a raw dst type of a parameterized class.
-    if (requires_type_arguments) {
-      const AbstractTypeArguments& type_arguments =
-          AbstractTypeArguments::Handle(type.arguments());
-      const bool is_raw_type = type_arguments.IsNull() ||
-          type_arguments.IsRaw(type_arguments.Length());
-      Label runtime_call;
-      __ testq(RAX, Immediate(kSmiTagMask));
-      __ j(ZERO, &runtime_call, Assembler::kNearJump);
-      // Object not Smi.
-      if (is_raw_type) {
-        if (type.IsListInterface()) {
-          Label push_result;
-          // TODO(srdjan) also accept List<Object>.
-          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
-          __ CompareObject(RCX, *CoreClass("ObjectArray"));
-          __ j(EQUAL, &push_result, Assembler::kNearJump);
-          __ CompareObject(RCX, *CoreClass("GrowableObjectArray"));
-          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-          __ Bind(&push_result);
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done);
-        } else if (!type_class.is_interface()) {
-          __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
-          __ CompareObject(RCX, type_class);
-          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done);
-        }
-      }
-      __ Bind(&runtime_call);
-      // Fall through to runtime call.
-    } else {
-      ASSERT(!requires_type_arguments);
-      // Test if object is Smi and for a couple known test-classes.
-      Label compare_classes;
-      __ testq(RAX, Immediate(kSmiTagMask));
-      __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
-      // Object is Smi.
-      const Class& smi_class = Class::Handle(Smi::Class());
-      // TODO(regis): We should introduce a SmiType.
-      Error& malformed_error = Error::Handle();
-      if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
-                                type_class,
-                                TypeArguments::Handle(),
-                                &malformed_error)) {
-        __ PushObject(negate_result ? bool_false : bool_true);
-      } else {
-        __ PushObject(negate_result ? bool_true : bool_false);
-      }
-      __ jmp(&done);
-
-      // Compare if the classes are equal.
-      __ Bind(&compare_classes);
-      const Class* compare_class = NULL;
-      if (type.IsStringInterface()) {
-        compare_class = &Class::ZoneHandle(
-            Isolate::Current()->object_store()->one_byte_string_class());
-      } else if (type.IsBoolInterface()) {
-        compare_class = &Class::ZoneHandle(
-            Isolate::Current()->object_store()->bool_class());
-      } else if (!type_class.is_interface()) {
-        compare_class = &type_class;
-      }
-      if (compare_class != NULL) {
-        Label runtime_call;
-        __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
-        __ CompareObject(RCX, *compare_class);
-        __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-        __ PushObject(negate_result ? bool_false : bool_true);
-        __ jmp(&done, Assembler::kNearJump);
-        __ Bind(&runtime_call);
-      }
-    }
+    __ j(EQUAL, &is_not_instance);
   }
+
+  // Generate inline instanceof test.
+  GenerateInlineInstanceof(type, &is_instance, &is_not_instance);
+
+  // Generate runtime call.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
@@ -574,7 +835,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
   if (!type.IsInstantiated()) {
-    __ pushq(RDX);  // Type arguments.
+    __ pushq(RDX);  // Instantiator type arguments.
   } else {
     __ pushq(raw_null);  // Null instantiator.
   }
@@ -582,18 +843,25 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t node_id,
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
   __ addq(RSP, Immediate(5 * kWordSize));
+  Label done;
   if (negate_result) {
-    Label negate_done;
     __ popq(RDX);
     __ LoadObject(RAX, bool_true);
     __ cmpq(RDX, RAX);
-    __ j(NOT_EQUAL, &negate_done, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     __ LoadObject(RAX, bool_false);
-    __ Bind(&negate_done);
-    __ pushq(RAX);
+  } else {
+    __ popq(RAX);
   }
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_not_instance);
+  __ LoadObject(RAX, negate_result ? bool_true : bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+
+  __ Bind(&is_instance);
+  __ LoadObject(RAX, negate_result ? bool_false : bool_true);
   __ Bind(&done);
-  __ popq(RAX);
 }
 
 
@@ -601,7 +869,7 @@ void FlowGraphCompiler::VisitInstanceOf(InstanceOfComp* comp) {
   if (comp->type_arguments() != NULL) {
     __ popq(RDX);
   }
-  __ popq(RAX);
+  LoadValue(RAX, comp->value());
   GenerateInstanceOf(comp->node_id(),
                      comp->token_index(),
                      comp->try_index(),

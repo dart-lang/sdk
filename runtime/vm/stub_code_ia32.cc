@@ -1762,7 +1762,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // EDX: class/interface to test against (is class of instance a subtype of it).
 //      (preserved).
 // Result in EBX: 1 is subtype, 0 maybe not.
-// Destroys EBX, ECX.
+// Destroys EBX, EDI, ECX.
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
@@ -1832,7 +1832,6 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ j(NOT_EQUAL, &super_loop, Assembler::kNearJump);
   __ jmp(&found, Assembler::kNearJump);
 }
-
 
 }  // namespace dart
 

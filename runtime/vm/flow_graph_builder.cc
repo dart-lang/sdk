@@ -206,11 +206,24 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     // Implicit getters do not need a type check at return, unless they compute
     // the initial value of a static field.
     if (is_static || !is_implicit_getter) {
-      const AbstractType& type =
+      const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
+      const String& dst_name =
+          String::ZoneHandle(String::NewSymbol("function result"));
+      Value* type_arguments = NULL;
+      if (!dst_type.IsInstantiated()) {
+        type_arguments = BuildInstantiatorTypeArguments(
+            node->token_index(), for_value.temp_index());
+      }
       AssertAssignableComp* assert =
-          new AssertAssignableComp(return_value, type);
+          new AssertAssignableComp(node->id(),
+                                   node->value()->token_index(),
+                                   owner()->try_index(),
+                                   return_value,
+                                   type_arguments,
+                                   dst_type,
+                                   dst_name);
       AddInstruction(new BindInstr(temp_index(), assert));
       return_value = new TempVal(temp_index());
     }
@@ -260,9 +273,20 @@ void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->expr()->Visit(&for_value);
   Append(for_value);
-  AssertAssignableComp* assert =
-      new AssertAssignableComp(for_value.value(), node->type());
-  ReturnComputation(assert);
+  Value* type_arguments = NULL;
+  if (!node->type().IsInstantiated()) {
+    type_arguments = BuildInstantiatorTypeArguments(
+        node->token_index(), for_value.temp_index());
+  }
+  AssertAssignableComp* assert_assignable =
+      new AssertAssignableComp(node->id(),
+                               node->token_index(),
+                               owner()->try_index(),
+                               for_value.value(),
+                               type_arguments,
+                               node->type(),
+                               node->dst_name());
+  ReturnComputation(assert_assignable);
 }
 
 
@@ -316,17 +340,20 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     // of left is sufficient.
     // AND:  left ? right === true : false;
     // OR:   left ? true : right === true;
-    if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in kAND/kOR");
-    }
     const Bool& bool_true = Bool::ZoneHandle(Bool::True());
     const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
     TestGraphVisitor for_test(owner(), temp_index());
     node->left()->Visit(&for_test);
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kAND/kOR");
+    }
 
     ValueGraphVisitor for_right(owner(), temp_index());
     node->right()->Visit(&for_right);
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in kAND/kOR");
+    }
     StrictCompareComp* comp = new StrictCompareComp(Token::kEQ_STRICT,
         for_right.value(), new ConstantVal(bool_true));
     for_right.AddInstruction(new BindInstr(temp_index(), comp));
@@ -492,14 +519,14 @@ void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
     type_arguments = BuildInstantiatorTypeArguments(
         node->token_index(), for_left_value.temp_index());
   }
-  InstanceOfComp* instance_of = new InstanceOfComp(
-      node->id(),
-      node->token_index(),
-      owner()->try_index(),
-      for_left_value.value(),
-      type_arguments,
-      node->right()->AsTypeNode()->type(),
-      (node->kind() == Token::kISNOT));
+  InstanceOfComp* instance_of =
+      new InstanceOfComp(node->id(),
+                         node->token_index(),
+                         owner()->try_index(),
+                         for_left_value.value(),
+                         type_arguments,
+                         node->right()->AsTypeNode()->type(),
+                         (node->kind() == Token::kISNOT));
   ReturnComputation(instance_of);
 }
 
@@ -834,6 +861,9 @@ void ValueGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
 void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
+  if (FLAG_enable_type_checks) {
+    Bailout("GenerateConditionTypeCheck in conditional expr");
+  }
 
   // Translate the subexpressions for their effects.
   EffectGraphVisitor for_true(owner(), temp_index());
@@ -848,6 +878,9 @@ void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
+  if (FLAG_enable_type_checks) {
+    Bailout("GenerateConditionTypeCheck in conditional expr");
+  }
 
   // Ensure that the value of the true/false subexpressions are named with
   // the same temporary name.
@@ -880,6 +913,9 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 void EffectGraphVisitor::VisitIfNode(IfNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
+  if (FLAG_enable_type_checks) {
+    Bailout("GenerateConditionTypeCheck in if");
+  }
 
   EffectGraphVisitor for_true(owner(), temp_index());
   EffectGraphVisitor for_false(owner(), temp_index());
@@ -1050,6 +1086,10 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   node->condition()->Visit(&for_test);
   ASSERT(!for_test.is_empty());  // Language spec.
 
+  if (FLAG_enable_type_checks) {
+    Bailout("GenerateConditionTypeCheck in while");
+  }
+
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
 
@@ -1082,6 +1122,10 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
   ASSERT(is_open());
+
+  if (FLAG_enable_type_checks) {
+    Bailout("GenerateConditionTypeCheck in do while");
+  }
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join = new JoinEntryInstr();
@@ -1188,6 +1232,9 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     TestGraphVisitor for_test(owner(), temp_index());
     node->condition()->Visit(&for_test);
     Append(for_test);
+    if (FLAG_enable_type_checks) {
+      Bailout("GenerateConditionTypeCheck in for");
+    }
     *for_test.true_successor_address() = body_entry;
     *for_test.false_successor_address() = loop_exit;
     if (node->label()->join_for_break() == NULL) {
@@ -1711,9 +1758,20 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
 
   Value* value = for_value.value();
   if (FLAG_enable_type_checks) {
-    AssertAssignableComp* assert =
-        new AssertAssignableComp(value, node->local().type());
-    AddInstruction(new BindInstr(temp_index(), assert));
+    Value* type_arguments = NULL;
+    if (!node->local().type().IsInstantiated()) {
+      type_arguments = BuildInstantiatorTypeArguments(
+          node->token_index(), for_value.temp_index());
+    }
+    AssertAssignableComp* assert_assignable =
+        new AssertAssignableComp(node->id(),
+                                 node->local().token_index(),
+                                 owner()->try_index(),
+                                 value,
+                                 type_arguments,
+                                 node->local().type(),
+                                 node->local().name());
+    AddInstruction(new BindInstr(temp_index(), assert_assignable));
     value = new TempVal(temp_index());
   }
 
@@ -1745,9 +1803,21 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   Value* store_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
-    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
-    AddInstruction(new BindInstr(temp_index(), assert));
-    store_value = new TempVal(temp_index());
+    Value* type_arguments = NULL;
+    if (!type.IsInstantiated()) {
+      type_arguments = BuildInstantiatorTypeArguments(
+          node->token_index(), for_value.temp_index());
+    }
+    AssertAssignableComp* assert_assignable =
+        new AssertAssignableComp(node->id(),
+                                 node->value()->token_index(),
+                                 owner()->try_index(),
+                                 store_value,
+                                 type_arguments,
+                                 type,
+                                 String::ZoneHandle(node->field().name()));
+    AddInstruction(new BindInstr(temp_index() + 1, assert_assignable));
+    store_value = new TempVal(temp_index() + 1);
   }
   StoreInstanceFieldComp* store =
       new StoreInstanceFieldComp(node, for_instance.value(), store_value);
@@ -1768,8 +1838,20 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   Value* store_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
-    AssertAssignableComp* assert = new AssertAssignableComp(store_value, type);
-    AddInstruction(new BindInstr(temp_index(), assert));
+    Value* type_arguments = NULL;
+    if (!type.IsInstantiated()) {
+      type_arguments = BuildInstantiatorTypeArguments(
+          node->token_index(), for_value.temp_index());
+    }
+    AssertAssignableComp* assert_assignable =
+        new AssertAssignableComp(node->id(),
+                                 node->field().token_index(),
+                                 owner()->try_index(),
+                                 store_value,
+                                 type_arguments,
+                                 type,
+                                 String::ZoneHandle(node->field().name()));
+    AddInstruction(new BindInstr(temp_index(), assert_assignable));
     store_value = new TempVal(temp_index());
   }
   StoreStaticFieldComp* store =
@@ -1921,7 +2003,30 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   if (FLAG_enable_type_checks &&
       (node == owner()->parsed_function().node_sequence())) {
-    Bailout("VisitSequenceNode GenerateArgumentTypeChecks()");
+    const int num_params =
+        owner()->parsed_function().function().NumberOfParameters();
+    for (int pos = 0; pos < num_params; pos++) {
+      const LocalVariable& parameter = *scope->VariableAt(pos);
+      ASSERT(parameter.owner() == scope);
+      LoadLocalComp* load = new LoadLocalComp(parameter,
+                                              owner()->context_level());
+      AddInstruction(new BindInstr(temp_index(), load));
+      TempVal* argument_value = new TempVal(temp_index());
+      Value* type_arguments = NULL;
+      if (!parameter.type().IsInstantiated()) {
+        type_arguments = BuildInstantiatorTypeArguments(
+            node->token_index(), temp_index() + 1);
+      }
+      AssertAssignableComp* assert_assignable =
+          new AssertAssignableComp(node->id(),
+                                   parameter.token_index(),
+                                   owner()->try_index(),
+                                   argument_value,
+                                   type_arguments,
+                                   parameter.type(),
+                                   parameter.name());
+      AddInstruction(new DoInstr(assert_assignable));
+    }
   }
 
   intptr_t i = 0;
@@ -2156,7 +2261,21 @@ void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
 void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
   OS::Print("AssertAssignable(");
   comp->value()->Accept(this);
-  OS::Print(", %s)", comp->type().ToCString());
+  OS::Print(", %s, '%s'",
+            comp->dst_type().ToCString(),
+            comp->dst_name().ToCString());
+  if (comp->type_arguments() != NULL) {
+    OS::Print(" (type-arg:");
+    comp->type_arguments()->Accept(this);
+  }
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitAssertBoolean(AssertBooleanComp* comp) {
+  OS::Print("AssertBoolean(");
+  comp->value()->Accept(this);
+  OS::Print(")");
 }
 
 
@@ -2193,7 +2312,6 @@ void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
   comp->right()->Accept(this);
   OS::Print(")");
 }
-
 
 
 void FlowGraphPrinter::VisitStaticCall(StaticCallComp* comp) {
@@ -2235,7 +2353,7 @@ void FlowGraphPrinter::VisitLoadInstanceField(LoadInstanceFieldComp* comp) {
 
 void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
   OS::Print("StoreInstanceField(%s, ",
-      String::Handle(comp->field().name()).ToCString());
+            String::Handle(comp->field().name()).ToCString());
   comp->instance()->Accept(this);
   OS::Print(", ");
   comp->value()->Accept(this);
@@ -2245,13 +2363,13 @@ void FlowGraphPrinter::VisitStoreInstanceField(StoreInstanceFieldComp* comp) {
 
 void FlowGraphPrinter::VisitLoadStaticField(LoadStaticFieldComp* comp) {
   OS::Print("LoadStaticField(%s)",
-      String::Handle(comp->field().name()).ToCString());
+            String::Handle(comp->field().name()).ToCString());
 }
 
 
 void FlowGraphPrinter::VisitStoreStaticField(StoreStaticFieldComp* comp) {
   OS::Print("StoreStaticField(%s, ",
-      String::Handle(comp->field().name()).ToCString());
+            String::Handle(comp->field().name()).ToCString());
   comp->value()->Accept(this);
   OS::Print(")");
 }
@@ -2293,19 +2411,19 @@ void FlowGraphPrinter::VisitBooleanNegate(BooleanNegateComp* comp) {
 void FlowGraphPrinter::VisitInstanceOf(InstanceOfComp* comp) {
   comp->value()->Accept(this);
   OS::Print(" %s %s",
-      comp->negate_result() ? "ISNOT" : "IS",
-      String::Handle(comp->type().Name()).ToCString());
+            comp->negate_result() ? "ISNOT" : "IS",
+            String::Handle(comp->type().Name()).ToCString());
   if (comp->type_arguments() != NULL) {
     OS::Print(" (type-arg:");
     comp->type_arguments()->Accept(this);
-    OS::Print(")");
   }
+  OS::Print(")");
 }
 
 
 void FlowGraphPrinter::VisitAllocateObject(AllocateObjectComp* comp) {
   OS::Print("AllocateObject(%s",
-      Class::Handle(comp->constructor().owner()).ToCString());
+            Class::Handle(comp->constructor().owner()).ToCString());
   for (intptr_t i = 0; i < comp->arguments().length(); i++) {
     OS::Print(", ");
     comp->arguments()[i]->Accept(this);
@@ -2387,8 +2505,9 @@ void FlowGraphPrinter::VisitCloneContext(CloneContextComp* comp) {
 
 
 void FlowGraphPrinter::VisitCatchEntry(CatchEntryComp* comp) {
-  OS::Print("CatchEntry(%s, %s)", comp->exception_var().name().ToCString(),
-                                  comp->stacktrace_var().name().ToCString());
+  OS::Print("CatchEntry(%s, %s)",
+            comp->exception_var().name().ToCString(),
+            comp->stacktrace_var().name().ToCString());
 }
 
 

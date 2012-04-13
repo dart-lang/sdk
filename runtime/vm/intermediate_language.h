@@ -28,6 +28,7 @@ class LocalVariable;
 #define FOR_EACH_COMPUTATION(M)                                                \
   FOR_EACH_VALUE(M)                                                            \
   M(AssertAssignable, AssertAssignableComp)                                    \
+  M(AssertBoolean, AssertBooleanComp)                                          \
   M(CurrentContext, CurrentContextComp)                                        \
   M(StoreContext, StoreContextComp)                                            \
   M(ClosureCall, ClosureCallComp)                                              \
@@ -137,19 +138,75 @@ class ConstantVal: public Value {
 
 class AssertAssignableComp : public Computation {
  public:
-  AssertAssignableComp(Value* value, const AbstractType& type)
-      : value_(value), type_(type) { }
+  AssertAssignableComp(intptr_t node_id,
+                       intptr_t token_index,
+                       intptr_t try_index,
+                       Value* value,
+                       Value* type_arguments,  // Can be NULL.
+                       const AbstractType& dst_type,
+                       const String& dst_name)
+      : node_id_(node_id),
+        token_index_(token_index),
+        try_index_(try_index),
+        value_(value),
+        type_arguments_(type_arguments),
+        dst_type_(dst_type),
+        dst_name_(dst_name) {
+    ASSERT(value_ != NULL);
+    ASSERT(!dst_type.IsNull());
+    ASSERT(!dst_name.IsNull());
+  }
 
   DECLARE_COMPUTATION(AssertAssignable)
 
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
   Value* value() const { return value_; }
-  const AbstractType& type() const { return type_; }
+  Value* type_arguments() const { return type_arguments_; }
+  const AbstractType& dst_type() const { return dst_type_; }
+  const String& dst_name() const { return dst_name_; }
 
  private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
   Value* value_;
-  const AbstractType& type_;
+  Value* type_arguments_;
+  const AbstractType& dst_type_;
+  const String& dst_name_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableComp);
+};
+
+
+class AssertBooleanComp : public Computation {
+ public:
+  AssertBooleanComp(intptr_t node_id,
+                    intptr_t token_index,
+                    intptr_t try_index,
+                    Value* value)
+      : node_id_(node_id),
+        token_index_(token_index),
+        try_index_(try_index),
+        value_(value) {
+    ASSERT(value_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(AssertBoolean)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+  Value* value() const { return value_; }
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
 };
 
 
