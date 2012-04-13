@@ -382,7 +382,6 @@ class Parser : ValueObject {
   bool IsFunctionLiteral();
   bool IsForInStatement();
   bool IsTopLevelAccessor();
-  bool IsTopLevelFunction();
 
   AstNode* ParseBinaryExpr(int min_preced);
   LiteralNode* ParseConstExpr();

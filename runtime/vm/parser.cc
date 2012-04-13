@@ -3647,7 +3647,7 @@ void Parser::ParseTopLevel() {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
         ParseTopLevelVariable(&top_level);
-      } else if (IsTopLevelFunction()) {
+      } else if (IsFunctionDeclaration()) {
         ParseTopLevelFunction(&top_level);
       } else if (IsTopLevelAccessor()) {
         ParseTopLevelAccessor(&top_level);
@@ -4273,18 +4273,35 @@ bool Parser::IsVariableDeclaration() {
 }
 
 
+// Look ahead to detect whether the next tokens should be parsed as
+// a function declaration. Token position remains unchanged.
 bool Parser::IsFunctionDeclaration() {
-  // A function declaration is like a function literal but it must have
-  // a name.
-  return (CurrentToken() != Token::kLPAREN) && IsFunctionLiteral();
-}
-
-
-bool Parser::IsTopLevelFunction() {
-  // Top-level function declarations can omit the return type. Check for
-  // that case separately.
-  return (IsIdentifier() &&
-      (LookaheadToken(1) == Token::kLPAREN)) || IsFunctionDeclaration();
+  const intptr_t saved_pos = token_index_;
+  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
+    // Possibly a function without explicit return type.
+    ConsumeToken();  // Consume function identifier.
+  } else if (TryParseReturnType()) {
+    if (!IsIdentifier()) {
+      SetPosition(saved_pos);
+      return false;
+    }
+    ConsumeToken();  // Consume function identifier.
+  } else {
+    SetPosition(saved_pos);
+    return false;
+  }
+  // Check parameter list and the following token.
+  if (CurrentToken() == Token::kLPAREN) {
+    SkipToMatchingParenthesis();
+    if ((CurrentToken() == Token::kLBRACE) ||
+        (CurrentToken() == Token::kARROW) ||
+        (is_top_level_ && IsLiteral("native"))) {
+      SetPosition(saved_pos);
+      return true;
+    }
+  }
+  SetPosition(saved_pos);
+  return false;
 }
 
 
