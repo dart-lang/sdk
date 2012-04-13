@@ -77,8 +77,16 @@ class _Directory {
 class _Process {
   factory Process.start(String executable,
                         List<String> arguments,
-                        [String workingDirectory]) {
-    var msg = 'new Process.start($executable, $arguments, $workingDirectory';
+                        [ProcessOptions options]) {
+    var msg = 'new Process.start($executable, $arguments, $options)';
+    throw new UnsupportedOperationException(msg);
+  }
+
+  factory Process.run(String executable,
+                      List<String> arguments,
+                      ProcessOptions options,
+                      void callback(int exit, String out, String err)) {
+    var msg = 'new Process.run($executable, $arguments, $options, $callback)';
     throw new UnsupportedOperationException(msg);
   }
 }
