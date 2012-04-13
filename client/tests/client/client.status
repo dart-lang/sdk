@@ -5,8 +5,6 @@
 dom/WebGL1Test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-# TODO(vsm): Triage DOM tests.
-dom/IndexedDB2Test: Fail  # Crazy results.
 html/html_tests: Pass, Fail   # Issue 1946.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
