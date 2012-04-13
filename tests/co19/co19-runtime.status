@@ -5,6 +5,7 @@
 
 [ $runtime == vm ]
 Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in compile-time constant expression)
+Language/10_Expressions/01_Constants_A16_t02: Crash # Should result in OOM
 
 
 Language/07_Classes/07_Classes_A01_t01: Fail # issue 1603 (abstract not supported for classes
