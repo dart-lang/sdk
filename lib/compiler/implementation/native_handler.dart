@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('native');
-#import('../../uri/uri.dart');
+#import('dart:uri');
 #import('leg.dart');
 #import('elements/elements.dart');
 #import('scanner/scannerlib.dart');

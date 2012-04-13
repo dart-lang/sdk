@@ -4,8 +4,9 @@
 
 #library('scanner');
 
+#import('dart:uri');
+
 #import('scanner_implementation.dart');
-#import('../../../uri/uri.dart');
 #import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../native_handler.dart', prefix: 'native');

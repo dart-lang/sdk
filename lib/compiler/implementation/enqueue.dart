@@ -111,17 +111,19 @@ class EnqueueTask extends CompilerTask {
     }
   }
 
-  void onRegisterInstantiatedClass(ClassElement cls) => measure(() {
-    while (cls !== null) {
-      if (seenClasses.contains(cls)) return;
-      seenClasses.add(cls);
-      // TODO(ahe): Don't call resolveType, instead, call this method
-      // when resolveType is called.
-      compiler.resolveType(cls);
-      cls.members.forEach(processInstantiatedClassMember);
-      cls = cls.superclass;
-    }
-  });
+  void onRegisterInstantiatedClass(ClassElement cls) {
+    measure(() {
+      while (cls !== null) {
+        if (seenClasses.contains(cls)) return;
+        seenClasses.add(cls);
+        // TODO(ahe): Don't call resolveType, instead, call this method
+        // when resolveType is called.
+        compiler.resolveType(cls);
+        cls.members.forEach(processInstantiatedClassMember);
+        cls = cls.superclass;
+      }
+    });
+  }
 
   void registerInvocation(SourceString methodName, Selector selector) {
     measure(() {

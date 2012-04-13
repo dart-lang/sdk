@@ -5,9 +5,9 @@
 #library('dart2js');
 
 #import('dart:io');
+#import('dart:uri');
 #import('dart:utf');
 
-#import('../../uri/uri.dart');
 #import('../compiler.dart', prefix: 'api');
 #import('colors.dart');
 #import('source_file.dart');

@@ -4,20 +4,19 @@
 
 #library('leg_apiimpl');
 
-#import('leg.dart', prefix: 'leg');
-#import('elements/elements.dart', prefix: 'leg');
-#import('tree/tree.dart', prefix: 'leg');
-#import('ssa/tracer.dart', prefix: 'ssa');
-// TODO(ahe): Remove dependency on frog.
-#import('../../../frog/lang.dart', prefix: 'frog');
-#import('../compiler.dart');
-#import('../../uri/uri.dart');
-#import('library_map.dart');
+#import('dart:uri');
 
+#import('../compiler.dart', prefix: 'api');
+#import('leg.dart', prefix: 'leg');
+#import('tree/tree.dart', prefix: 'tree');
+#import('elements/elements.dart', prefix: 'elements');
+#import('ssa/tracer.dart', prefix: 'ssa');
+#import('library_map.dart');
+#import('source_file.dart');
 
 class Compiler extends leg.Compiler {
-  ReadUriFromString provider;
-  DiagnosticHandler handler;
+  api.ReadUriFromString provider;
+  api.DiagnosticHandler handler;
   Uri libraryRoot;
   Uri packageRoot;
   List<String> options;
@@ -26,9 +25,9 @@ class Compiler extends leg.Compiler {
   Compiler(this.provider, this.handler, this.libraryRoot, this.options)
     : super(tracer: new ssa.HTracer());
 
-  leg.LibraryElement scanBuiltinLibrary(String path) {
+  elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
-    leg.LibraryElement library = scanner.loadLibrary(uri, null);
+    elements.LibraryElement library = scanner.loadLibrary(uri, null);
     return library;
   }
 
@@ -36,7 +35,7 @@ class Compiler extends leg.Compiler {
     handler(null, null, null, message, false);
   }
 
-  leg.Script readScript(Uri uri, [leg.ScriptTag node]) {
+  leg.Script readScript(Uri uri, [tree.ScriptTag node]) {
     if (uri.scheme == 'dart') {
       uri = translateDartUri(uri, node);
     } else if (uri.scheme == 'package') {
@@ -50,11 +49,11 @@ class Compiler extends leg.Compiler {
     } catch (var exception) {
       cancel("${uri}: $exception", node: node);
     }
-    frog.SourceFile sourceFile = new frog.SourceFile(uri.toString(), text);
+    SourceFile sourceFile = new SourceFile(uri.toString(), text);
     return new leg.Script(uri, sourceFile);
   }
 
-  translateDartUri(Uri uri, leg.ScriptTag node) {
+  translateDartUri(Uri uri, tree.ScriptTag node) {
     String path = DART2JS_LIBRARY_MAP[uri.path];
     if (path === null || uri.path.startsWith('_')) {
       reportError(node, 'library not found ${uri}');
@@ -68,7 +67,7 @@ class Compiler extends leg.Compiler {
     return libraryRoot.resolve(path);
   }
 
-  translatePackageUri(Uri uri, leg.ScriptTag node) =>
+  translatePackageUri(Uri uri, tree.ScriptTag node) =>
     packageRoot.resolve(uri.path);
 
   bool run(Uri uri) {
