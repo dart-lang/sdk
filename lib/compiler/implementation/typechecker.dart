@@ -33,8 +33,6 @@ class TypeVariableType implements Type {
   final SourceString name;
   Element element;
   TypeVariableType(this.name, [this.element]);
-
-  toString() => name.toString();
 }
 
 /**
@@ -60,29 +58,12 @@ class StatementType implements Type {
   String toString() => stringName;
 }
 
-class InterfaceType implements Type {
+class SimpleType implements Type {
   final SourceString name;
-  final ClassElement element;
-  final Link<Type> arguments;
+  final Element element;
 
-  const InterfaceType(this.name, this.element, this.arguments);
+  const SimpleType(SourceString this.name, Element this.element);
 
-  toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.add(name.slowToString());
-    if (!arguments.isEmpty()) {
-      sb.add('<');
-      arguments.printOn(sb, ', ');
-      sb.add('>');
-    }
-    return sb.toString();
-  }
-}
-
-// TODO(karlklose): merge into InterfaceType as a named constructor.
-class SimpleType extends InterfaceType {
-  const SimpleType(SourceString name, Element element)
-    : super(name, element, const EmptyLink<Type>());
   String toString() => name.slowToString();
 }
 
@@ -120,10 +101,9 @@ class Types {
   final SimpleType dynamicType;
 
   Types() : this.with(new LibraryElement(new Script(null, null)));
-
   Types.with(LibraryElement library)
     : voidType = new SimpleType(VOID, new ClassElement(VOID, library)),
-     dynamicType = new SimpleType(DYNAMIC, new ClassElement(DYNAMIC, library));
+      dynamicType = new SimpleType(DYNAMIC, new ClassElement(DYNAMIC, library));
 
   Type lookup(SourceString s) {
     if (VOID == s) {
@@ -192,9 +172,9 @@ Type lookupType(SourceString name, Compiler compiler, types) {
 class TypeCheckerVisitor implements Visitor<Type> {
   final Compiler compiler;
   final TreeElements elements;
+  Node lastSeenNode;
   final Types types;
 
-  Node lastSeenNode;
   Type expectedReturnType;
   ClassElement currentClass;
 
@@ -205,7 +185,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type objectType;
   Type listType;
 
-  TypeCheckerVisitor(this.compiler, this.elements, this.types) {
+  TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
+                     Types this.types) {
     intType = lookupType(Types.INT, compiler, types);
     doubleType = lookupType(Types.DOUBLE, compiler, types);
     boolType = lookupType(Types.BOOL, compiler, types);
@@ -449,22 +430,22 @@ class TypeCheckerVisitor implements Visitor<Type> {
       fail(node.receiver, 'function object invocation unimplemented');
 
     } else {
-      Type computeFunType() {
+      FunctionType computeFunType() {
         if (node.receiver !== null) {
           Type receiverType = analyze(node.receiver);
-          if (receiverType === null) {
-            fail(node.receiver, 'receivertype is null');
-          }
-          if (receiverType.element.kind !== ElementKind.CLASS) {
-            fail(node.receiver, 'receivertype is not a class');
-          }
-          ClassElement classElement = receiverType.element;
-          // TODO(karlklose): substitute type arguments.
-          if (classElement === compiler.dynamicClass) return null;
-          Type memberType =
-            lookupMethodType(selector, classElement, selector.source);
-          if (memberType.element === compiler.dynamicClass) return null;
-          return memberType;
+          if (receiverType === types.dynamicType) return null;
+            if (receiverType === null) {
+              fail(node.receiver, 'receivertype is null');
+            }
+            if (receiverType.element.kind !== ElementKind.CLASS) {
+              fail(node.receiver, 'receivertype is not a class');
+            }
+            ClassElement classElement = receiverType.element;
+            // TODO(karlklose): substitute type arguments.
+            Type memberType =
+              lookupMethodType(selector, classElement, selector.source);
+            if (memberType === types.dynamicType) return null;
+            return memberType;
         } else {
           Element element = elements[node];
           if (element === null) {

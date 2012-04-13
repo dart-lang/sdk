@@ -35,7 +35,7 @@ class Compiler implements DiagnosticListener {
   Universe universe;
   String assembledCode;
   Namer namer;
-  final Types types;
+  Types types;
 
   final Tracer tracer;
 
@@ -222,7 +222,7 @@ class Compiler implements DiagnosticListener {
     functionClass = coreLibrary.find(const SourceString('Function'));
     listClass = coreLibrary.find(const SourceString('List'));
     closureClass = jsHelperLibrary.find(const SourceString('Closure'));
-    dynamicClass = types.dynamicType.element;
+    dynamicClass = jsHelperLibrary.find(const SourceString('Dynamic'));
     nullClass = jsHelperLibrary.find(const SourceString('Null'));
   }
 
@@ -266,15 +266,14 @@ class Compiler implements DiagnosticListener {
   void runCompiler(Uri uri) {
     scanBuiltinLibraries();
     mainApp = scanner.loadLibrary(uri, null);
-    final Element mainElement = mainApp.find(MAIN);
-    if (mainElement === null) {
+    final Element mainMethod = mainApp.find(MAIN);
+    if (mainMethod === null) {
       withCurrentElement(mainApp, () => cancel('Could not find $MAIN'));
     } else {
-      withCurrentElement(mainElement, () {
-        if (!mainElement.isFunction()) {
-          cancel('main is not a function', element: mainElement);
+      withCurrentElement(mainMethod, () {
+        if (!mainMethod.isFunction()) {
+          cancel('main is not a function', element: mainMethod);
         }
-        FunctionElement mainMethod = mainElement;
         FunctionParameters parameters = mainMethod.computeParameters(this);
         if (parameters.parameterCount > 0) {
           cancel('main cannot have parameters', element: mainMethod);
@@ -282,7 +281,7 @@ class Compiler implements DiagnosticListener {
       });
     }
     native.processNativeClasses(this, universe.libraries.getValues());
-    enqueue(new WorkItem.toCompile(mainElement));
+    enqueue(new WorkItem.toCompile(mainMethod));
     codegenProgress.reset();
     while (!worklist.isEmpty()) {
       WorkItem work = worklist.removeLast();
@@ -407,7 +406,10 @@ class Compiler implements DiagnosticListener {
   }
 
   reportWarning(Node node, var message) {
-    if (message is TypeWarning) {
+    if (message is ResolutionWarning) {
+      // TODO(ahe): Don't supress this warning when we support type variables.
+      if (message.message.kind === MessageKind.CANNOT_RESOLVE_TYPE) return;
+    } else if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
       if (message.message.kind === MessageKind.NOT_ASSIGNABLE) return;

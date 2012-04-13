@@ -2079,10 +2079,11 @@ class HIndexAssign extends HInvokeStatic {
 }
 
 class HIs extends HInstruction {
-  final Type typeName;
+  // TODO(ahe): This should be a Type, not Element.
+  final Element typeExpression;
   final bool nullOk;
 
-  HIs(this.typeName, HInstruction expression, [nullOk = false])
+  HIs(this.typeExpression, HInstruction expression, [nullOk = false])
     : this.nullOk = nullOk, super(<HInstruction>[expression]);
 
   HInstruction get expression() => inputs[0];
@@ -2092,7 +2093,7 @@ class HIs extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
-  toString() => "$expression is $typeName";
+  toString() => "$expression is $typeExpression";
 }
 
 class HIfBlockInformation {
