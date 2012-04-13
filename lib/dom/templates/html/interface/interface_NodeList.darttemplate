@@ -4,6 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS {
 
   NodeList filter(bool f(Node element));

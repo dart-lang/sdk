@@ -4,13 +4,22 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS {
   NodeList get nodes();
 
   void set nodes(Collection<Node> value);
 
+  /**
+   * Replaces this node with another node.
+   * @domName Node.replaceChild
+   */
   Node replaceWith(Node otherNode);
 
+  /**
+   * Removes this node from the DOM.
+   * @domName Node.removeChild
+   */
   Node remove();
 
 $!MEMBERS

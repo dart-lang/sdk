@@ -4,9 +4,8 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS {
-
-  final Document document;
 
   /**
    * Executes a [callback] after the next batch of browser layout measurements

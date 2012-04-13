@@ -37,6 +37,7 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
+$!COMMENT
 interface Element extends Node, NodeSelector default _$(ID)FactoryProvider {
 // TODO(jacobr): switch back to:
 // interface $ID$EXTENDS default _ElementImpl {

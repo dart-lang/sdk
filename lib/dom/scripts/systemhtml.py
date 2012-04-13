@@ -101,7 +101,7 @@ _html_library_renames = {
 #TODO(jacobr): inject annotations into the interfaces based on this table and
 # on _html_library_renames.
 _injected_doc_fragments = {
-    'Element.query': '  /** @domName querySelector, Document.getElementById */',
+    'Element.query': '  /** @domName Element.querySelector, Document.getElementById */',
 }
 # Members and classes from the dom that should be removed completelly from
 # dart:html.  These could be expressed in the IDL instead but expressing this
@@ -637,11 +637,15 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       extends_str += ' default ' + factory_provider
 
     # TODO(vsm): Add appropriate package / namespace syntax.
-    (self._members_emitter,
+    (self._type_comment_emitter,
+     self._members_emitter,
      self._top_level_emitter) = self._emitter.Emit(
          self._template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=extends_str)
+
+    self._type_comment_emitter.Emit("/// @domName $DOMNAME",
+        DOMNAME=self._interface.doc_js_name)
 
     if constructor_info:
       self._members_emitter.Emit(
@@ -688,9 +692,10 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     # We don't yet handle inconsistent renames of the getter and setter yet.
     if html_getter_name and html_setter_name:
       assert html_getter_name == html_setter_name
-    if html_getter_name != dom_name:
-      self._members_emitter.Emit('\n  /** @domName $DOMNAME */',
-          DOMNAME = dom_name)
+
+    self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
+        DOMINTERFACE=getter.doc_js_interface_name,
+        DOMNAME=dom_name)
     if (getter and setter and
         DartType(getter.type.id) == DartType(setter.type.id)):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
@@ -714,9 +719,9 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     html_name = self._shared.RenameInHtmlLibrary(
         self._interface, info.name)
     if html_name and not self._shared.IsPrivate(html_name):
-      if html_name != info.name:
-        self._members_emitter.Emit('\n  /** @domName $DOMNAME */',
-            DOMNAME = info.name)
+      self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
+          DOMINTERFACE=info.overloads[0].doc_js_interface_name,
+          DOMNAME=info.name)
 
       self._members_emitter.Emit('\n'
                                  '  $TYPE $NAME($PARAMS);\n',
@@ -750,8 +755,13 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         raise Exception('No known html even name for event: ' + event_name)
 
   def _EmitEventGetter(self, events_interface):
-    self._members_emitter.Emit('\n  $TYPE get on();\n',
-                               TYPE=events_interface)
+    self._members_emitter.Emit(
+        '\n  /**'
+        '\n   * @domName EventTarget.addEventListener, '
+        'EventTarget.removeEventListener, EventTarget.dispatchEvent'
+        '\n   */'
+        '\n  $TYPE get on();\n',
+        TYPE=events_interface)
 
 # ------------------------------------------------------------------------------
 

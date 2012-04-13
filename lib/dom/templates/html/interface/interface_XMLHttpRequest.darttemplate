@@ -4,6 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS {
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)

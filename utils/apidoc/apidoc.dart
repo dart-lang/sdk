@@ -12,11 +12,13 @@
  *
  *     $ dart apidoc.dart [--out=<output directory>]
  */
+
 #library('apidoc');
 
 #import('dart:io');
 #import('dart:json');
 #import('html_diff.dart');
+
 #import('../../frog/lang.dart');
 #import('../../frog/file_system_vm.dart');
 #import('../../frog/file_system.dart');
@@ -226,6 +228,12 @@ class Apidoc extends doc.Dartdoc {
     // want it in the docs.
     if (library.name == 'dart:nativewrappers') return;
     super.docLibrary(library);
+  }
+
+  /** Override definition from parent class to strip out annotation tags. */
+  String commentToHtml(String comment) {
+    return super.commentToHtml(
+        comment.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"), ''));
   }
 
   String getTypeComment(Type type) {

@@ -981,22 +981,24 @@ class Dartdoc {
   String getTypeComment(Type type) {
     String comment = _comments.find(type.span);
     if (comment == null) return null;
-    return md.markdownToHtml(comment);
+    return commentToHtml(comment);
   }
 
   /** Get the doc comment associated with the given method. */
   String getMethodComment(MethodMember method) {
     String comment = _comments.find(method.span);
     if (comment == null) return null;
-    return md.markdownToHtml(comment);
+    return commentToHtml(comment);
   }
 
   /** Get the doc comment associated with the given field. */
   String getFieldComment(FieldMember field) {
     String comment = _comments.find(field.span);
     if (comment == null) return null;
-    return md.markdownToHtml(comment);
+    return commentToHtml(comment);
   }
+
+  String commentToHtml(String comment) => md.markdownToHtml(comment);
 
   /**
    * Converts [fullPath] which is understood to be a full path from the root of

@@ -108,8 +108,13 @@ class DartGenerator(object):
           new_interface = database.GetInterface(new_name)
           MergeNodes(new_interface, interface)
         
-        interface.javascript_binding_name = (old_name if rename_javascript_binding_names
-            else new_name)
+        if rename_javascript_binding_names:
+          interface.javascript_binding_name = new_name
+          interface.doc_js_name = new_name
+          for member in (interface.operations + interface.constants
+              + interface.attributes):
+            member.doc_js_interface_name = new_name
+
  
     # Fix references:
     for interface in database.GetInterfaces():
