@@ -38,6 +38,13 @@ class Expectation {
     Expect.approxEquals(expected, _value, tolerance: tolerance, reason: reason);
   }
 
+  /**
+   * Asserts that two objects are same (using [:===:]).
+   */
+  void same(expected) {
+    Expect.identical(_value, expected);
+  }
+
   /** Asserts that the value is [null]. */
   void isNull() {
     Expect.equals(null, _value);

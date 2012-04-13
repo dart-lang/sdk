@@ -15,8 +15,7 @@ main() {
       expect(event.data).equals('data');
       expect(event.origin).equals('origin');
       expect(event.lastEventId).equals('lastEventId');
-      // TODO(antonm): add identical to Expectation.
-      Expect.identical(window, event.source);
+      expect(event.source).same(window);
       // TODO(antonm): accessing ports is not supported yet.
   });
 }
