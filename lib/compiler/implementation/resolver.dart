@@ -5,18 +5,28 @@
 interface TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
+  Type getType(TypeAnnotation annotation);
 }
 
 class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
   Map<Send, Selector> selectors;
+  Map<TypeAnnotation, Type> types;
+
   TreeElementMapping()
     : map = new LinkedHashMap<Node, Element>(),
-      selectors = new LinkedHashMap<Send, Selector>();
+      selectors = new LinkedHashMap<Send, Selector>(),
+      types = new LinkedHashMap<TypeAnnotation, Type>();
 
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
   void remove(Node node) { map.remove(node); }
+
+  void setType(TypeAnnotation annotation, Type type) {
+    types[annotation] = type;
+  }
+
+  Type getType(TypeAnnotation annotation) => types[annotation];
 
   void setSelector(Send send, Selector selector) {
     selectors[send] = selector;
@@ -592,43 +602,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
-    Send send = node.typeName.asSend();
-    Element element;
-    if (send !== null) {
-      if (typeRequired) {
-        element = resolveSend(send);
-      } else {
-        // Not calling resolveSend as it will emit an error instead of
-        // a warning if the type is bogus.
-        // TODO(ahe): Change resolveSend so it can emit a warning when needed.
-        return null;
-      }
-    } else {
-      element = context.lookup(node.typeName.asIdentifier().source);
-    }
-    if (element === null) {
-      if (typeRequired) {
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      }
-    } else if (!element.impliesType()) {
-      if (typeRequired) {
-        error(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      }
-    } else {
-      if (element.isClass()) {
-        // TODO(ngeoffray): Should we also resolve typedef?
-        ClassElement cls = element;
-        compiler.resolver.toResolve.add(element);
-      }
-      // TODO(ahe): This should be a Type.
-      useElement(node, element);
-    }
-    return element;
+  ClassElement visitTypeAnnotation(TypeAnnotation node) {
+    Type type = resolveTypeAnnotation(node);
+    if (type !== null) return type.element;
+    return null;
   }
 
   Element defineElement(Node node, Element element,
@@ -647,6 +624,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   Element useElement(Node node, Element element) {
     if (element === null) return null;
     return mapping[node] = element;
+  }
+
+  Type useType(TypeAnnotation annotation, Type type) {
+    if (type !== null) {
+      mapping.setType(annotation, type);
+      useElement(annotation, type.element);
+    }
+    return type;
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
@@ -820,12 +805,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return target;
   }
 
-  resolveTypeTest(Node argument) {
+  Type resolveTypeTest(Node argument) {
     TypeAnnotation node = argument.asTypeAnnotation();
     if (node == null) {
-      node = argument.asSend().receiver;
+      // node is of the form !Type.
+      node = argument.asSend().receiver.asTypeAnnotation();
+      if (node === null) compiler.cancel("malformed send");
     }
-    resolveTypeRequired(node);
+    return resolveTypeRequired(node);
   }
 
   void handleArguments(Send node) {
@@ -988,27 +975,115 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return null;
   }
 
+  TypeAnnotation getTypeAnnotationFromSend(Send send) {
+    if (send.selector.asTypeAnnotation() !== null) {
+      return send.selector;
+    } else if (send.selector.asSend() !== null) {
+      Send selector = send.selector;
+      if (selector.receiver.asTypeAnnotation() !== null) {
+        return selector.receiver;
+      }
+    } else {
+      compiler.internalError("malformed send in new expression");
+    }
+  }
+
   FunctionElement resolveConstructor(NewExpression node) {
     FunctionElement constructor =
         node.accept(new ConstructorResolver(compiler, this));
+    TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
+    Type type = resolveTypeRequired(annotation);
     if (constructor === null) {
-      Element resolved = resolveTypeRequired(node.send.selector);
+      Element resolved = (type != null) ? type.element : null;
       if (resolved !== null && resolved.kind === ElementKind.TYPE_VARIABLE) {
-        error(node, WarningKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
+        error(node, MessageKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
         return null;
       } else {
         error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+        return null;
       }
     }
     return constructor;
   }
 
-  Element resolveTypeRequired(Node node) {
+  Type resolveTypeRequired(TypeAnnotation node) {
     bool old = typeRequired;
     typeRequired = true;
-    Element element = visit(node);
+    Type result = resolveTypeAnnotation(node);
     typeRequired = old;
-    return element;
+    return result;
+  }
+
+  Element resolveTypeName(node) {
+    Identifier typeName = node.typeName.asIdentifier();
+    Send send = node.typeName.asSend();
+    if (send !== null) {
+      typeName = send.selector;
+    }
+    if (typeName.source == Types.VOID) return compiler.types.voidType.element;
+    if (typeName.source == Types.DYNAMIC ||
+        typeName.source.stringValue == "var") {
+      return compiler.types.dynamicType.element;
+    }
+    if (send !== null) {
+      Element e = context.lookup(send.receiver.asIdentifier().source);
+      if (e !== null && e.kind === ElementKind.PREFIX) {
+        // The receiver is a prefix. Lookup in the imported members.
+        PrefixElement prefix = e;
+        return prefix.lookupLocalMember(typeName.source);
+      } else if (e !== null && e.kind === ElementKind.CLASS) {
+        // The receiver is the class part of a named constructor.
+        return e;
+      } else {
+        error(send.receiver, MessageKind.CANNOT_RESOLVE);
+      }
+    } else {
+      return context.lookup(typeName.source);
+    }
+  }
+
+  Type resolveTypeAnnotation(TypeAnnotation node) {
+    Element element = resolveTypeName(node);
+    Type type;
+    if (element === null) {
+      if (typeRequired) {
+        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+      } else {
+        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+      }
+    } else if (!element.impliesType()) {
+      if (typeRequired) {
+        error(node, MessageKind.NOT_A_TYPE, [node.typeName]);
+      } else {
+        warning(node, MessageKind.NOT_A_TYPE, [node.typeName]);
+      }
+    } else {
+      if (element == compiler.types.voidType.element) {
+        type = compiler.types.voidType;
+      } else if (element == compiler.types.dynamicType.element) {
+        type = compiler.types.dynamicType;
+      } else if (element.isClass()) {
+        // TODO(ngeoffray): Should we also resolve typedef?
+        ClassElement cls = element;
+        compiler.resolver.toResolve.add(cls);
+        LinkBuilder<Type> arguments = new LinkBuilder<Type>();
+        if (node.typeArguments !== null) {
+          for (Link<Node> typeArguments = node.typeArguments.nodes;
+               !typeArguments.isEmpty();
+               typeArguments = typeArguments.tail) {
+            arguments.addLast(resolveTypeAnnotation(typeArguments.head));
+          }
+        }
+        type = new InterfaceType(element.name, element, arguments.toLink());
+      } else if (element.isTypedef()) {
+        // TODO(karlklose): implement typedefs. We return a fake type that the
+        // code generator can use to detect typedefs in is-checks.
+        type = new SimpleType(element.name, element);
+      } else {
+        type = element.computeType(compiler);
+      }
+    }
+    return useType(node, type);
   }
 
   visitModifiers(Modifiers node) {
@@ -1634,7 +1709,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   void resolveType(Node node) {
     if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement));
+    // Find the correct member context to perform the lookup in.
+    Element outer = enclosingElement;
+    Element context = outer;
+    while (outer !== null) {
+      if (outer.isMember()) {
+        context = outer;
+        break;
+      }
+      outer = outer.enclosingElement;
+    }
+    node.accept(new ResolverVisitor(compiler, context));
   }
 
   // TODO(ahe): This is temporary.

@@ -195,7 +195,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitIs(HIs node) {
-    Element element = node.typeExpression;
+    Type type = node.typeName;
+    Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
     }

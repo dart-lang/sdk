@@ -150,7 +150,6 @@ Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
-Prefix9NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
 PseudoKWIllegalTest/05: Fail, OK # Negative language test.
@@ -181,7 +180,6 @@ SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
-TypeVariableBoundsTest/07: Fail, OK # Negative language test.
 TypeVariableBoundsTest/08: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.

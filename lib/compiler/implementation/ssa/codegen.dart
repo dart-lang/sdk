@@ -1465,13 +1465,16 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitIs(HIs node) {
-    Element element = node.typeExpression;
+    Type type = node.typeName;
+    Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
+    } else if (element.kind === ElementKind.TYPEDEF) {
+      compiler.unimplemented("visitIs for typedefs");
     }
     compiler.registerIsCheck(element);
     LibraryElement coreLibrary = compiler.coreLibrary;
-    ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
+    ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
     if (node.nullOk) {
       beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);

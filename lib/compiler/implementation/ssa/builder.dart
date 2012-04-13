@@ -1716,15 +1716,16 @@ class SsaBuilder implements Visitor {
       visit(node.receiver);
       HInstruction expression = pop();
       Node argument = node.arguments.head;
-      TypeAnnotation type = argument.asTypeAnnotation();
+      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       bool isNot = false;
       // TODO(ngeoffray): Duplicating pattern in resolver. We should
       // add a new kind of node.
-      if (type == null) {
-        type = argument.asSend().receiver;
+      if (typeAnnotation == null) {
+        typeAnnotation = argument.asSend().receiver;
         isNot = true;
       }
-      HInstruction instruction = new HIs(elements[type], expression);
+      Type type = elements.getType(typeAnnotation);
+      HInstruction instruction = new HIs(type, expression);
       if (isNot) {
         add(instruction);
         instruction = new HNot(instruction);
@@ -2769,11 +2770,11 @@ class SsaBuilder implements Visitor {
           condition = graph.addConstantBool(true);
           stack.add(condition);
         } else {
-          Element typeElement = elements[declaration.type];
-          if (typeElement == null) {
+          Type type = elements.getType(declaration.type);
+          if (type == null) {
             compiler.cancel('Catch with unresolved type', node: catchBlock);
           }
-          condition = new HIs(typeElement, unwrappedException, nullOk: true);
+          condition = new HIs(type, unwrappedException, nullOk: true);
           push(condition);
         }
       }
