@@ -128,6 +128,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
 
+    TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
+
     bool is_compiled = false;
     if (FLAG_use_new_compiler) {
       ASSERT(!optimized);

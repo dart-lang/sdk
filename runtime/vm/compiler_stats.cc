@@ -24,6 +24,9 @@ Timer CompilerStats::parser_timer(true, "parser timer");
 // Cumulative runtime of scanner.
 Timer CompilerStats::scanner_timer(true, "scanner timer");
 
+// Cumulative runtime of code generator.
+Timer CompilerStats::codegen_timer(true, "codegen timer");
+
 intptr_t CompilerStats::num_tokens_total = 0;
 intptr_t CompilerStats::num_literal_tokens_total = 0;
 intptr_t CompilerStats::num_ident_tokens_total = 0;
@@ -55,10 +58,13 @@ void CompilerStats::Print() {
   OS::Print("Scanner time:       %ld msecs\n",
             scan_usecs / 1000);
   intptr_t parse_usecs = parser_timer.TotalElapsedTime();
-  OS::Print("Compilation time:   %ld msecs\n",
+  OS::Print("Parser time:        %ld msecs\n",
             parse_usecs / 1000);
+  intptr_t codegen_usecs = codegen_timer.TotalElapsedTime();
+  OS::Print("Code gen. time:     %ld msecs\n",
+            codegen_usecs / 1000);
   OS::Print("Compilation speed:  %ld tokens per msec\n",
-            1000 * num_tokens_total / parse_usecs);
+            1000 * num_tokens_total / (parse_usecs + codegen_usecs));
   OS::Print("Code size:          %ld KB\n",
             code_allocated / 1024);
   OS::Print("Code density:       %ld tokens per KB\n",
