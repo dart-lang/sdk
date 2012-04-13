@@ -157,6 +157,7 @@ class FirefoxInstaller(object):
     return 'http://releases.mozilla.org/pub/mozilla.org/firefox/releases/' + \
         'latest/%s/en-US/' % os_name
 
+  @property
   def get_os_str(self):
     """Returns the string that Mozilla uses to denote which operating system a
     Firefox binary is for."""
