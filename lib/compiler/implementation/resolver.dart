@@ -592,7 +592,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
+  Element visitTypeAnnotation(TypeAnnotation node) {
     Send send = node.typeName.asSend();
     Element element;
     if (send !== null) {
