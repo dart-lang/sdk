@@ -37,6 +37,7 @@ class LocalVariable;
   M(LoadLocal, LoadLocalComp)                                                  \
   M(StoreLocal, StoreLocalComp)                                                \
   M(StrictCompare, StrictCompareComp)                                          \
+  M(EqualityCompare, EqualityCompareComp)                                      \
   M(NativeCall, NativeCallComp)                                                \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
@@ -337,6 +338,41 @@ class StrictCompareComp : public Computation {
   Value* right_;
 
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
+};
+
+
+class EqualityCompareComp : public Computation {
+ public:
+  EqualityCompareComp(intptr_t node_id,
+                      intptr_t token_index,
+                      intptr_t try_index,
+                      Value* left,
+                      Value* right)
+    : node_id_(node_id),
+      token_index_(token_index),
+      try_index_(try_index),
+      left_(left),
+      right_(right) {
+    ASSERT(left_ != NULL);
+    ASSERT(right_ != NULL);
+  }
+
+  DECLARE_COMPUTATION(EqualityCompareComp)
+
+  intptr_t node_id() const { return node_id_; }
+  intptr_t token_index() const { return token_index_; }
+  intptr_t try_index() const { return try_index_; }
+  Value* left() const { return left_; }
+  Value* right() const { return right_; }
+
+ private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
+  const intptr_t try_index_;
+  Value* left_;
+  Value* right_;
+
+  DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
 
 

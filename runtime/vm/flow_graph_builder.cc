@@ -534,6 +534,7 @@ void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
+// TODO(srdjan): Implement new equality.
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   if (Token::IsInstanceofOperator(node->kind())) {
     BuildInstanceOf(node);
@@ -553,6 +554,27 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
+  if ((node->kind() == Token::kEQ) || (node->kind() == Token::kNE)) {
+    ValueGraphVisitor for_left_value(owner(), temp_index());
+    node->left()->Visit(&for_left_value);
+    Append(for_left_value);
+    ValueGraphVisitor for_right_value(owner(), for_left_value.temp_index());
+    node->right()->Visit(&for_right_value);
+    Append(for_right_value);
+    EqualityCompareComp* comp = new EqualityCompareComp(
+        node->id(), node->token_index(), owner()->try_index(),
+        for_left_value.value(), for_right_value.value());
+    if (node->kind() == Token::kEQ) {
+      ReturnComputation(comp);
+    } else {
+      AddInstruction(new BindInstr(temp_index(), comp));
+      Value* eq_result = new TempVal(temp_index());
+      BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
+      ReturnComputation(negate);
+    }
+    return;
+  }
+
   ArgumentGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -562,27 +584,11 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  // 'kNE' is not overloadable, must implement as kEQ and negation.
-  // Boolean negation '!' cannot be overloaded neither.
-  if (node->kind() == Token::kNE) {
-    const String& name = String::ZoneHandle(String::NewSymbol("=="));
-    InstanceCallComp* call_equal = new InstanceCallComp(
-        node->id(), node->token_index(), owner()->try_index(), name,
-        arguments, Array::ZoneHandle(), 2);
-    AddInstruction(new BindInstr(temp_index(), call_equal));
-    Value* eq_result = new TempVal(temp_index());
-    if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in kNE");
-    }
-    BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
-    ReturnComputation(negate);
-  } else {
-    const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
-    InstanceCallComp* call = new InstanceCallComp(
-        node->id(), node->token_index(), owner()->try_index(), name,
-        arguments, Array::ZoneHandle(), 2);
-    ReturnComputation(call);
-  }
+  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
+  InstanceCallComp* call = new InstanceCallComp(
+      node->id(), node->token_index(), owner()->try_index(), name,
+      arguments, Array::ZoneHandle(), 2);
+  ReturnComputation(call);
 }
 
 
@@ -2311,6 +2317,13 @@ void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
   OS::Print(", ");
   comp->right()->Accept(this);
   OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitEqualityCompare(EqualityCompareComp* comp) {
+  comp->left()->Accept(this);
+  OS::Print(" == ");
+  comp->right()->Accept(this);
 }
 
 

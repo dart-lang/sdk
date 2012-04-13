@@ -588,8 +588,8 @@ void FlowGraphCompiler::VisitInstanceCall(InstanceCallComp* comp) {
 void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
-  LoadValue(RAX, comp->left());
   LoadValue(RDX, comp->right());
+  LoadValue(RAX, comp->left());
   __ cmpq(RAX, RDX);
   Label load_true, done;
   if (comp->kind() == Token::kEQ_STRICT) {
@@ -601,6 +601,44 @@ void FlowGraphCompiler::VisitStrictCompare(StrictCompareComp* comp) {
   __ jmp(&done, Assembler::kNearJump);
   __ Bind(&load_true);
   __ LoadObject(RAX, bool_true);
+  __ Bind(&done);
+}
+
+
+void FlowGraphCompiler::VisitEqualityCompare(EqualityCompareComp* comp) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label done, load_true, non_null_compare;
+  LoadValue(RDX, comp->right());
+  LoadValue(RAX, comp->left());
+  __ cmpq(RAX, raw_null);
+  __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
+  // Comparison with NULL is "===".
+  __ cmpq(RAX, RDX);
+  __ j(EQUAL, &load_true, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(RAX, bool_true);
+  __ jmp(&done);
+
+  __ Bind(&non_null_compare);
+  __ pushq(RAX);
+  __ pushq(RDX);
+  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
+  const int kNumberOfArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
+
+  EmitInstanceCall(comp->node_id(),
+                   comp->token_index(),
+                   comp->try_index(),
+                   operator_name,
+                   kNumberOfArguments,
+                   kNoArgumentNames,
+                   kNumArgumentsChecked);
   __ Bind(&done);
 }
 
