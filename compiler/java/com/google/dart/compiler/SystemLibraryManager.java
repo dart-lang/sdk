@@ -125,8 +125,11 @@ public class SystemLibraryManager {
     return result;
   }
 
+  /**
+   * The import config files have the path: dart-sdk/_internal/config/import_<platform>.config
+   */
   protected InputStream getImportConfigStream() {
-    File file = new File(new File(sdkLibPath, "config"),
+    File file = new File(new File(new File(sdkLibPath, "_internal"), "config"),
                          String.format(IMPORT_CONFIG, platformName));
     if (!file.exists()) {
       throw new InternalCompilerException("Failed to find " + file.toString()
