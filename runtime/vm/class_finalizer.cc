@@ -511,6 +511,9 @@ void ClassFinalizer::FinalizeTypeArguments(
     FinalizationKind finalization) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_finalized()) {
+    const GrowableObjectArray& visited =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+    ResolveInterfaces(cls, visited);
     FinalizeTypeParameters(cls);
   }
   Type& super_type = Type::Handle(cls.super_type());
@@ -604,10 +607,14 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 
   // The type class does not need to be finalized in order to finalize the type,
   // however, it must at least be resolved (this was done as part of resolving
-  // the type itself, a precondition to calling FinalizeType) and the upper
-  // bounds of its type parameters must be finalized (done here).
+  // the type itself, a precondition to calling FinalizeType).
+  // Also, the interfaces of the type class must be resolved and the type
+  // parameters of the type class must be finalized.
   Class& type_class = Class::Handle(parameterized_type.type_class());
   if (!type_class.is_finalized()) {
+    const GrowableObjectArray& visited =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+    ResolveInterfaces(type_class, visited);
     FinalizeTypeParameters(type_class);
   }
 

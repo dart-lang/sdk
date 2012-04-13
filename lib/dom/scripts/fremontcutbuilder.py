@@ -11,13 +11,13 @@ import os.path
 import tempfile
 import sys
 
-def build_database(idl_list_file_name):
+def build_database(idl_list_file_name, database_dir):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
   logging.config.fileConfig(os.path.join(current_dir, "logging.conf"))
 
-  db = database.Database(os.path.join(current_dir, '..', 'database'))
+  db = database.Database(database_dir)
 
   # Delete all existing IDLs in the DB.
   db.Delete()
@@ -38,6 +38,7 @@ def build_database(idl_list_file_name):
       'ENABLE_3D_PLUGIN',
       'ENABLE_3D_RENDERING',
       'ENABLE_ACCELERATED_2D_CANVAS',
+      'ENABLE_BATTERY_STATUS',
       'ENABLE_BLOB',
       'ENABLE_BLOB_SLICE',
       'ENABLE_CHANNEL_MESSAGING',
@@ -159,6 +160,8 @@ def build_database(idl_list_file_name):
   db.Save()
 
 def main():
+  current_dir = os.path.dirname(__file__)
+
   webkit_dirs = [
     'Modules/speech',
     'Modules/indexeddb',
@@ -187,8 +190,8 @@ def main():
 
   (idl_list_file, idl_list_file_name) = tempfile.mkstemp()
 
-  webcore_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..',
-                              'third_party', 'WebCore')
+  webcore_dir = os.path.join(current_dir, '..', '..', '..',
+                             'third_party', 'WebCore')
   if not os.path.exists(webcore_dir):
     raise RuntimeError('directory not found: %s' % webcore_dir)
 
@@ -206,7 +209,8 @@ def main():
 
   os.close(idl_list_file)
 
-  return build_database(idl_list_file_name)
+  database_dir = os.path.join(current_dir, '..', 'database')
+  return build_database(idl_list_file_name, database_dir)
 
 if __name__ == '__main__':
   sys.exit(main())

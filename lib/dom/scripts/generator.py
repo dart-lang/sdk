@@ -30,12 +30,6 @@ def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
 #
-# Identifiers that are used in the IDL than need to be treated specially because
-# *some* JavaScript processors forbid them as properties.
-#
-_javascript_keywords = ['delete', 'continue']
-
-#
 # Renames for attributes that have names that are not legal Dart names.
 #
 _dart_attribute_renames = {
@@ -60,26 +54,6 @@ interface_factories = {
 }
 
 #
-# Custom methods that must be implemented by hand.
-#
-_custom_methods = set([
-    ('DOMWindow', 'setInterval'),
-    ('DOMWindow', 'setTimeout'),
-    ('WorkerContext', 'setInterval'),
-    ('WorkerContext', 'setTimeout'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
-    ('CanvasRenderingContext2D', 'setStrokeStyle'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
-    ])
-
-#
-# Custom getters that must be implemented by hand.
-#
-_custom_getters = set([
-    ('DOMWindow', 'localStorage'),
-    ])
-
-#
 # Custom native specs for the Frog dom.
 #
 _frog_dom_custom_native_specs = {
@@ -89,18 +63,6 @@ _frog_dom_custom_native_specs = {
 
     # DOMWindow aliased with global scope.
     'DOMWindow': '@*DOMWindow',
-}
-
-#
-# Simple method substitution when one method had different names on different
-# browsers, but are otherwise identical.  The alternates are tried in order and
-# the first one defined is used.
-#
-# This can be probably be removed when Chrome renames initWebKitWheelEvent to
-# initWheelEvent.
-#
-_alternate_methods = {
-    ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
 }
 
 #

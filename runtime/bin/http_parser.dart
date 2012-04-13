@@ -61,7 +61,8 @@ class _State {
   static final int CHUNKED_BODY_DONE_LF = 22;
   static final int BODY = 23;
   static final int CLOSED = 24;
-  static final int FAILURE = 25;
+  static final int UPGRADED = 25;
+  static final int FAILURE = 26;
 
   static final int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
 }
@@ -92,8 +93,18 @@ class _MessageType {
  * thrown from the [:writeList:] and [:connectionClosed:] methods if
  * the error callback is not set.
  *
- * For keep-alive connections where the underlying connection stays
- * open the [:connectionClosed:] method would not be called.
+ * The connection upgrades (e.g. switching from HTTP/1.1 to the
+ * WebSocket protocol) is handled in a special way. If connection
+ * upgrade is specified in the headers, then on the callback to
+ * [:headersComplete:] the [:upgrade:] property on the [:HttpParser:]
+ * object will be [:true:] indicating that from now on the protocol is
+ * not HTTP anymore and no more callbacks will happen, that is
+ * [:dataReceived:] and [:dataEnd:] are not called in this case as
+ * there is no more HTTP data. After the upgrade the call to
+ * [:writeList:] causing the upgrade will return with the number of
+ * bytes parsed as HTTP. Any unparsed bytes is part of the protocol
+ * the connection is upgrading to and should be handled according to
+ * that protocol.
  */
 class _HttpParser {
   _HttpParser() {
@@ -116,7 +127,10 @@ class _HttpParser {
       if (_state == _State.CLOSED) {
         throw new HttpParserException("Data on closed connection");
       }
-      while ((index < lastIndex) && _state != _State.FAILURE) {
+      if (_state == _State.UPGRADED) {
+        throw new HttpParserException("Data on upgraded connection");
+      }
+      while ((index < lastIndex) && _state != _State.FAILURE && _state != _State.UPGRADED) {
         int byte = buffer[index];
         switch (_state) {
           case _State.START:
@@ -300,10 +314,16 @@ class _HttpParser {
               if (headerField == "content-length" && !_chunked) {
                 _contentLength = Math.parseInt(headerValue);
               } else if (headerField == "connection") {
-                if (headerValue == "keep-alive") {
-                  _keepAlive = true;
-                } else if (headerValue == "close") {
-                  _connectionClose = true;
+                List<String> tokens = _tokenizeFieldValue(headerValue);
+                for (int i = 0; i < tokens.length; i++) {
+                  String token = tokens[i].toLowerCase();
+                  if (token == "keep-alive") {
+                    _keepAlive = true;
+                  } else if (token == "close") {
+                    _connectionClose = true;
+                  } else if (token == "upgrade") {
+                    _connectionUpgrade = true;
+                  }
                 }
               } else if (headerField == "transfer-encoding" &&
                          headerValue == "chunked") {
@@ -328,26 +348,31 @@ class _HttpParser {
 
           case _State.HEADER_ENDING:
             _expect(byte, _CharCode.LF);
-            if (headersComplete != null) headersComplete();
-            if (_chunked) {
-              _state = _State.CHUNK_SIZE;
-              _remainingContent = 0;
-            } else if (_contentLength == 0 ||
-                       (_messageType == _MessageType.REQUEST &&
-                        _contentLength == -1) ||
-                       (_messageType == _MessageType.RESPONSE &&
-                        (_noMessageBody || _responseToMethod == "HEAD"))) {
-              // If there is no message body get ready to process the
-              // next request.
-              _bodyEnd();
-              _reset();
-            } else if (_contentLength > 0) {
-              _remainingContent = _contentLength;
-              _state = _State.BODY;
+            if (_connectionUpgrade) {
+              _state = _State.UPGRADED;
+              if (headersComplete != null) headersComplete();
             } else {
-              // Neither chunked nor content length. End of body
-              // indicated by close.
-              _state = _State.BODY;
+              if (headersComplete != null) headersComplete();
+              if (_chunked) {
+                _state = _State.CHUNK_SIZE;
+                _remainingContent = 0;
+              } else if (_contentLength == 0 ||
+                         (_messageType == _MessageType.REQUEST &&
+                          _contentLength == -1) ||
+                         (_messageType == _MessageType.RESPONSE &&
+                          (_noMessageBody || _responseToMethod == "HEAD"))) {
+                // If there is no message body get ready to process the
+                // next request.
+                _bodyEnd();
+                _reset();
+              } else if (_contentLength > 0) {
+                _remainingContent = _contentLength;
+                _state = _State.BODY;
+              } else {
+                // Neither chunked nor content length. End of body
+                // indicated by close.
+                _state = _State.BODY;
+              }
             }
             break;
 
@@ -494,6 +519,7 @@ class _HttpParser {
   int get messageType() => _messageType;
   int get contentLength() => _contentLength;
   bool get keepAlive() => _keepAlive;
+  bool get upgrade() => _connectionUpgrade && _state == _State.UPGRADED;
 
   void set responseToMethod(String method) => _responseToMethod = method;
 
@@ -516,6 +542,7 @@ class _HttpParser {
     _contentLength = -1;
     _keepAlive = false;
     _connectionClose = false;
+    _connectionUpgrade = false;
     _chunked = false;
 
     _noMessageBody = false;
@@ -525,6 +552,23 @@ class _HttpParser {
 
   bool _isTokenChar(int byte) {
     return byte > 31 && byte < 128 && _Const.SEPARATORS.indexOf(byte) == -1;
+  }
+
+  List<String> _tokenizeFieldValue(String headerValue) {
+    List<String> tokens = new List<String>();
+    int start = 0;
+    int index = 0;
+    while (index < headerValue.length) {
+      if (headerValue[index] == ",") {
+        tokens.add(headerValue.substring(start, index));
+        start = index + 1;
+      } else if (headerValue[index] == " " || headerValue[index] == "\t") {
+        start++;
+      }
+      index++;
+    }
+    tokens.add(headerValue.substring(start, index));
+    return tokens;
   }
 
   int _toLowerCase(int byte) {
@@ -563,6 +607,7 @@ class _HttpParser {
   int _contentLength;
   bool _keepAlive;
   bool _connectionClose;
+  bool _connectionUpgrade;
   bool _chunked;
 
   bool _noMessageBody;

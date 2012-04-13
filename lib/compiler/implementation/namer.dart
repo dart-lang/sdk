@@ -196,10 +196,6 @@ class Namer {
     return "$ISOLATE.prototype.${getName(element)}";
   }
 
-  String isolateBailoutPropertyAccess(Element element) {
-    return '${isolatePropertyAccess(element)}\$bailout';
-  }
-
   String isolateBailoutAccess(Element element) {
     return '${isolateAccess(element)}\$bailout';
   }

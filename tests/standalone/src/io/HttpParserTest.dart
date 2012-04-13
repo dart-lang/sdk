@@ -18,7 +18,9 @@ class HttpParserTest {
                                 [int expectedContentLength = -1,
                                  int expectedBytesReceived = 0,
                                  Map expectedHeaders = null,
-                                 bool chunked = false]) {
+                                 bool chunked = false,
+                                 bool upgrade = false,
+                                 int unparsedLength = 0]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
@@ -48,6 +50,7 @@ class HttpParserTest {
               (String name, String value) =>
                   Expect.equals(value, headers[name]));
         }
+        Expect.equals(upgrade, httpParser.upgrade);
         headersCompleteCalled = true;
       };
       httpParser.dataReceived = (List<int> data) {
@@ -70,16 +73,31 @@ class HttpParserTest {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
+      int written = 0;
+      int unparsed;
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = Math.min(chunkSize, remaining);
-        httpParser.writeList(requestData, pos, writeLength);
+        written += writeLength;
+        int parsed = httpParser.writeList(requestData, pos, writeLength);
+        unparsed = writeLength - parsed;
+        if (httpParser.upgrade) {
+          unparsed += requestData.length - written;
+          break;
+        } else {
+          Expect.equals(0, unparsed);
+        }
       }
       Expect.equals(expectedMethod, method);
       Expect.equals(expectedUri, uri);
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
-      Expect.isTrue(dataEndCalled);
+      if (!upgrade) Expect.isTrue(dataEndCalled);
+      if (unparsedLength == 0) {
+        Expect.equals(0, unparsed);
+      } else {
+        Expect.equals(unparsedLength, unparsed);
+      }
     }
 
     // Test parsing the request three times delivering the data in
@@ -132,7 +150,9 @@ class HttpParserTest {
                                   bool chunked = false,
                                   bool close = false,
                                   String responseToMethod = null,
-                                  bool connectionClose = false]) {
+                                  bool connectionClose = false,
+                                  bool upgrade = false,
+                                  int unparsedLength = 0]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
@@ -169,6 +189,7 @@ class HttpParserTest {
             Expect.equals(value, headers[name]);
           });
         }
+        Expect.equals(upgrade, httpParser.upgrade);
         headersCompleteCalled = true;
       };
       httpParser.dataReceived = (List<int> data) {
@@ -192,19 +213,36 @@ class HttpParserTest {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       if (chunkSize == -1) chunkSize = requestData.length;
       reset();
+      int written = 0;
+      int unparsed;
       for (int pos = 0; pos < requestData.length; pos += chunkSize) {
         int remaining = requestData.length - pos;
         int writeLength = Math.min(chunkSize, remaining);
-        httpParser.writeList(requestData, pos, writeLength);
+        written += writeLength;
+        int parsed = httpParser.writeList(requestData, pos, writeLength);
+        unparsed = writeLength - parsed;
+        if (httpParser.upgrade) {
+          unparsed += requestData.length - written;
+          break;
+        } else {
+          Expect.equals(0, unparsed);
+        }
       }
       if (close) httpParser.connectionClosed();
       Expect.equals(expectedStatusCode, statusCode);
       Expect.equals(expectedReasonPhrase, reasonPhrase);
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
-      Expect.isTrue(dataEndCalled);
-      if (close) Expect.isTrue(dataEndClose);
-      Expect.equals(dataEndClose, connectionClose);
+      if (!upgrade) {
+        Expect.isTrue(dataEndCalled);
+        if (close) Expect.isTrue(dataEndClose);
+        Expect.equals(dataEndClose, connectionClose);
+      }
+      if (unparsedLength == 0) {
+        Expect.equals(0, unparsed);
+      } else {
+        Expect.equals(unparsedLength, unparsed);
+      }
     }
 
     // Test parsing the request three times delivering the data in
@@ -350,8 +388,7 @@ Content-Length: 10\r
     request = """
 GET /test HTTP/1.1\r
 Connection: close\r
-\r
-""";
+\r\n""";
     _testParseRequest(request, "GET", "/test");
 
     // Test chunked encoding.
@@ -442,6 +479,85 @@ Transfer-Encoding: chunked\r
                       expectedContentLength: -1,
                       expectedBytesReceived: 60,
                       chunked: true);
+
+    // Test HTTP upgrade.
+    request = """
+GET /irc HTTP/1.1\r
+Upgrade: irc/1.2\r
+Connection: Upgrade\r
+\r\n\x01\x01\x01\x01\x01\x02\x02\x02\x02\xFF""";
+    headers = new Map();
+    headers["upgrade"] = "irc/1.2";
+    _testParseRequest(request,
+                      "GET",
+                      "/irc",
+                      expectedHeaders: headers,
+                      upgrade: true,
+                      unparsedLength: 10);
+
+    // Test HTTP upgrade with protocol data.
+    request = """
+GET /irc HTTP/1.1\r
+Upgrade: irc/1.2\r
+Connection: Upgrade\r
+\r\n""";
+    headers = new Map();
+    headers["upgrade"] = "irc/1.2";
+    _testParseRequest(request,
+                      "GET",
+                      "/irc",
+                      expectedHeaders: headers,
+                      upgrade: true);
+
+    // Test websocket upgrade.
+    request = """
+GET /chat HTTP/1.1\r
+Host: server.example.com\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r
+Origin: http://example.com\r
+Sec-WebSocket-Version: 13\r
+\r\n""";
+    headers = new Map();
+    headers["host"] = "server.example.com";
+    headers["upgrade"] = "websocket";
+    headers["sec-websocket-key"] = "dGhlIHNhbXBsZSBub25jZQ==";
+    headers["origin"] = "http://example.com";
+    headers["sec-websocket-version"] = "13";
+    _testParseRequest(request,
+                      "GET",
+                      "/chat",
+                      expectedHeaders: headers,
+                      upgrade: true);
+
+
+    // Test websocket upgrade with protocol data. NOTE: When using the
+    // WebSocket protocol this should never happen as the client
+    // should not send protocol data before processing the request
+    // part of the opening handshake. However the HTTP parser should
+    // still handle this.
+    request = """
+GET /chat HTTP/1.1\r
+Host: server.example.com\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r
+Origin: http://example.com\r
+Sec-WebSocket-Version: 13\r
+\r\n0123456""";
+    headers = new Map();
+    headers["host"] = "server.example.com";
+    headers["upgrade"] = "websocket";
+    headers["sec-websocket-key"] = "dGhlIHNhbXBsZSBub25jZQ==";
+    headers["origin"] = "http://example.com";
+    headers["sec-websocket-version"] = "13";
+    _testParseRequest(request,
+                      "GET",
+                      "/chat",
+                      expectedHeaders: headers,
+                      upgrade: true,
+                      unparsedLength: 7);
   }
 
   static void testParseResponse() {
@@ -531,8 +647,7 @@ Transfer-Encoding: chunked\r
 HTTP/1.1 200 OK\r
 Content-Length: 0\r
 Connection: close\r
-\r
-""";
+\r\n""";
     _testParseResponse(response,
                        200,
                        "OK",
@@ -547,13 +662,75 @@ HTTP/1.1 200 OK\r
 01234567890123456789012345
 0123456789012345678901234567890
 """;
-  _testParseResponse(response,
-                     200,
-                     "OK",
-                     expectedContentLength: -1,
-                     expectedBytesReceived: 59,
-                     close: true,
-                     connectionClose: true);
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: -1,
+                       expectedBytesReceived: 59,
+                       close: true,
+                       connectionClose: true);
+
+    // Test HTTP upgrade.
+    response = """
+HTTP/1.1 101 Switching Protocols\r
+Upgrade: irc/1.2\r
+Connection: Upgrade\r
+\r\n""";
+    headers = new Map();
+    headers["upgrade"] = "irc/1.2";
+    _testParseResponse(response,
+                       101,
+                       "Switching Protocols",
+                       expectedHeaders: headers,
+                       upgrade: true);
+
+    // Test HTTP upgrade with protocol data.
+    response = """
+HTTP/1.1 101 Switching Protocols\r
+Upgrade: irc/1.2\r
+Connection: Upgrade\r
+\r\n\x00\x10\x20\x30\x40\x50\x60\x70\x80\x90\xA0\xB0\xC0\xD0\xE0\xF0""";
+    headers = new Map();
+    headers["upgrade"] = "irc/1.2";
+    _testParseResponse(response,
+                       101,
+                       "Switching Protocols",
+                       expectedHeaders: headers,
+                       upgrade: true,
+                       unparsedLength: 16);
+
+    // Test websocket upgrade.
+    response = """
+HTTP/1.1 101 Switching Protocols\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
+\r\n""";
+    headers = new Map();
+    headers["upgrade"] = "websocket";
+    headers["sec-websocket-accept"] = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
+    _testParseResponse(response,
+                       101,
+                       "Switching Protocols",
+                       expectedHeaders: headers,
+                       upgrade: true);
+
+    // Test websocket upgrade with protocol data.
+    response = """
+HTTP/1.1 101 Switching Protocols\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
+\r\nABCD""";
+    headers = new Map();
+    headers["upgrade"] = "websocket";
+    headers["sec-websocket-accept"] = "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=";
+    _testParseResponse(response,
+                       101,
+                       "Switching Protocols",
+                       expectedHeaders: headers,
+                       upgrade: true,
+                       unparsedLength: 4);
   }
 
   static void testParseInvalidRequest() {

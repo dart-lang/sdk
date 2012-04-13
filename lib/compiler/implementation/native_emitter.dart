@@ -302,7 +302,7 @@ class NativeEmitter {
 
   bool isSupertypeOfNativeClass(Element element) {
     if (element.isTypeVariable()) {
-      compiler.cancel("Is check for type variable", element: work.element);
+      compiler.cancel("Is check for type variable", element: element);
       return false;
     }
     if (element.computeType(compiler) is FunctionType) return false;
@@ -322,12 +322,12 @@ class NativeEmitter {
     return isSupertypeOfNativeClass(element);
   }
 
-  void emitIsChecks(StringBuffer buffer) {
+  void emitIsChecks(StringBuffer checkBuffer) {
     for (Element type in compiler.universe.isChecks) {
       if (!requiresNativeIsCheck(type)) continue;
       String name = compiler.namer.operatorIs(type);
-      buffer.add("$defPropName(Object.prototype, '$name', ");
-      buffer.add('function() { return false; });\n');
+      checkBuffer.add("$defPropName(Object.prototype, '$name', ");
+      checkBuffer.add('function() { return false; });\n');
     }
   }
 

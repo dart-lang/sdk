@@ -911,6 +911,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @param allowStatic true if the static modifier is allowed
    * @return a {@link DartNode} representing the grammar fragment above
    */
+  @Terminals(tokens={Token.SEMICOLON})
   private DartNode parseFieldOrMethod(boolean allowStatic) {
     beginClassMember();
     Modifiers modifiers = Modifiers.NONE;
@@ -1050,6 +1051,7 @@ public class DartParser extends CompletionHooksParserBase {
         break;
       }
 
+      case SEMICOLON:
       default: {
         done(null);
         reportUnexpectedToken(position(), null, next());
@@ -1593,7 +1595,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
-  @Terminals(tokens = {Token.RBRACK, Token.COMMA, Token.RPAREN})
+  @Terminals(tokens = {Token.COMMA, Token.RPAREN})
   private List<DartParameter> parseFormalParameterList() {
     beginFormalParameterList();
     List<DartParameter> params = new ArrayList<DartParameter>();
@@ -1608,19 +1610,17 @@ public class DartParser extends CompletionHooksParserBase {
       DartParameter param = parseFormalParameter(isNamed);
       params.add(param);
 
-      // Must keep in sync with @Terminals above
-      done = optional(Token.RBRACK);
-      if (done) {
+      if (isNamed && optional(Token.RBRACK)) {
         expectCloseParen();
-      } else {
-        // Must keep in sync with @Terminals above
-        done = optional(Token.RPAREN);
+        break;
       }
 
-      if (!done) {
-        // Ensure termination if token is anything other than COMMA.
-        // Must keep in sync with @Terminals above
-        done = !expect(Token.COMMA);
+      // Ensure termination if token is anything other than COMMA.
+      // Must keep Token.COMMA in sync with @Terminals above
+      if (!optional(Token.COMMA)) {
+        // Must keep Token.RPAREN in sync with @Terminals above
+        expectCloseParen();
+        done = true;
       }
     }
 
@@ -1787,7 +1787,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (looksLikeTopLevelKeyword() || peek(0).equals(Token.RBRACE)) {
       // Allow recovery back to the top level.
       reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
-      return done(DartNullLiteral.get());
+      return done(null);
     }
     DartExpression result = parseConditionalExpression();
     Token token = peek(0);
@@ -1958,7 +1958,9 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
         }
       }
-      arguments.add(done(expression));
+      if (expression != null) {
+        arguments.add(done(expression));
+      }
       switch(peek(0)) {
         // Must keep in sync with @Terminals above
         case COMMA:
@@ -2246,7 +2248,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (expect(Token.COLON)) {
       value = parseExpression();
     } else {
-      value = doneWithoutConsuming(DartNullLiteral.get());
+      value = doneWithoutConsuming(new DartSyntheticErrorExpression());
     }
     return done(new DartMapLiteralEntry(keyExpr, value));
   }
@@ -3013,14 +3015,25 @@ public class DartParser extends CompletionHooksParserBase {
       beginBlock();
       List<DartStatement> statements = new ArrayList<DartStatement>();
       boolean foundOpenBrace = expect(Token.LBRACE);
+
       while (!match(Token.RBRACE) && !EOS()) {
         if (looksLikeTopLevelKeyword()) {
           reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
           break;
         }
+        int startPosition = position().getPos();
         DartStatement newStatement = parseStatement();
         if (newStatement == null) {
           break;
+        }
+        if (startPosition == position().getPos()) {
+          // The parser is not making progress.
+          Set<Token> terminals = this.collectTerminalAnnotations();
+          if (terminals.contains(peek(0))) {
+            // bail out of the block
+            break;
+          }
+          reportUnexpectedToken(position(), null, next());
         }
         statements.add(newStatement);
       }
@@ -3079,6 +3092,9 @@ public class DartParser extends CompletionHooksParserBase {
       beginFunctionStatementBody();
       if (optional(Token.ARROW)) {
         DartExpression expr = parseExpression();
+        if (expr == null) {
+          expr = new DartSyntheticErrorExpression();
+        }
         if (requireSemicolonForArrow) {
           expect(Token.SEMICOLON);
         }
@@ -3233,6 +3249,11 @@ public class DartParser extends CompletionHooksParserBase {
    *     ;
    * </pre>
    */
+  // TODO(zundel):  Possibly  we could use Token.IDENTIFIER too, but it is used
+  // in so many places, it might make recovery worse rather than better.
+  @Terminals(tokens={Token.IF, Token.SWITCH, Token.WHILE, Token.DO, Token.FOR,
+      Token.VAR, Token.FINAL, Token.CONTINUE, Token.BREAK, Token.RETURN, Token.THROW,
+      Token.TRY, Token.SEMICOLON })
   private DartStatement parseNonLabelledStatement() {
     // Try to parse as function declaration.
     if (looksLikeFunctionDeclarationOrExpression()) {
@@ -3303,14 +3324,6 @@ public class DartParser extends CompletionHooksParserBase {
         beginEmptyStatement();
         consume(Token.SEMICOLON);
         return done(new DartEmptyStatement());
-
-      // Things that we know can't be valid statements get a synthetic error statement
-      case RBRACE:
-      case CLASS:
-        // no need to create a separate parser event as the AST node is enough
-        beginEmptyStatement();
-        // TODO(jat): other tokens that should be caught here?
-        return done(parseErrorStatement());
 
       case IDENTIFIER:
         // We have already eliminated function declarations earlier, so check for:
@@ -3430,6 +3443,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
     DartExpression expression = parseExpression();
     expectStatmentTerminator();
+
     return done(new DartExprStmt(expression));
   }
 
@@ -3577,60 +3591,32 @@ public class DartParser extends CompletionHooksParserBase {
    * for error recovery.
    */
   protected void expectStatmentTerminator() {
-    if (looksLikeTopLevelKeyword()) {
-      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
-      return;
-    }
     Token token = peek(0);
     int braceCount = 1;
+    if (expect(Token.SEMICOLON)) {
+      return;
+    }
+    Set<Token> terminals = collectTerminalAnnotations();
+    assert(terminals.contains(Token.SEMICOLON));
+
     switch (token) {
-      case SEMICOLON:
-        expect(Token.SEMICOLON);
-        return;
-
-      case EOS:
-      case RBRACE:
-        reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
-        return;
-
       case LBRACE:
-        ++braceCount;
-        //$FALL-THROUGH$
-      default:
-        // give error message
-        expect(Token.SEMICOLON);
-        break;
+        braceCount++;
+      break;
+    }
+    if (peek(0) == token) {
+      reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_SEMICOLON);
+    } else {
+      reportError(position(), ParserErrorCode.EXPECTED_SEMICOLON);
+      token = peek(0);
     }
 
-    while (true) {
-      if (looksLikeTopLevelKeyword()) {
+    // Consume tokens until we see something that could terminate or start a new statement
+    while (token != Token.SEMICOLON) {
+      if (looksLikeTopLevelKeyword() || terminals.contains(token)) {
         return;
       }
-      switch (peek(0)) {
-        case EOS:
-          return;
-
-        case SEMICOLON:
-          if (braceCount < 2) {
-            // if we have seen open braces while skipping, keep looking
-            return;
-          }
-          next();
-          break;
-
-        case RBRACE:
-          if (--braceCount == 0) {
-            return;
-          }
-          break;
-
-        case LBRACE:
-          ++braceCount;
-          //$FALL-THROUGH$
-        default:
-          next();
-          break;
-      }
+      token = next();
     }
   }
 
@@ -3971,10 +3957,12 @@ public class DartParser extends CompletionHooksParserBase {
     beginTryStatement();
     // Try.
     expect(Token.TRY);
+    // TODO(zundel): It would be nice here to setup 'CATCH' and 'FINALLY' as tokens for recovery
     DartBlock tryBlock = parseBlock();
 
     List<DartCatchBlock> catches = new ArrayList<DartCatchBlock>();
     while (optional(Token.CATCH)) {
+      // TODO(zundel): It would be nice here to setup 'FINALLY' as token for recovery
       beginCatchClause();
       expect(Token.LPAREN);
       DartParameter exception = parseCatchParameter();
@@ -4169,7 +4157,7 @@ public class DartParser extends CompletionHooksParserBase {
       return done(new DartSyntheticErrorIdentifier());
     }
     DartIdentifier identifier;
-    if (expect(Token.IDENTIFIER)) {
+    if (expect(Token.IDENTIFIER) && ctx.getTokenString() != null) {
       identifier = new DartIdentifier(ctx.getTokenString());
     } else {
       identifier = new DartSyntheticErrorIdentifier();

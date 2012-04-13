@@ -531,19 +531,26 @@ class FileTest {
   // Test for file length functionality.
   static void testLength() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    RandomAccessFile input = (new File(filename)).openSync();
-    input.onError = (e) => Expect.fail("No errors expected");
-    input.length((length) {
+    File file = new File(filename);
+    RandomAccessFile openedFile = file.openSync();
+    openedFile.onError = (e) => Expect.fail("No errors expected");
+    file.onError = (e) => Expect.fail("No errors expected");
+    openedFile.length((length) {
       Expect.equals(42, length);
-      input.close(() => null);
+      openedFile.close(() => null);
+    });
+    file.length((length) {
+      Expect.equals(42, length);
     });
   }
 
   static void testLengthSync() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    RandomAccessFile input = (new File(filename)).openSync();
-    Expect.equals(42, input.lengthSync());
-    input.closeSync();
+    File file = new File(filename);
+    RandomAccessFile openedFile = file.openSync();
+    Expect.equals(42, file.lengthSync());
+    Expect.equals(42, openedFile.lengthSync());
+    openedFile.closeSync();
   }
 
   // Test for file position functionality.

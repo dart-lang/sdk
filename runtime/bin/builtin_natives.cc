@@ -36,6 +36,7 @@
   V(File_SetPosition, 2)                                                       \
   V(File_Truncate, 2)                                                          \
   V(File_Length, 1)                                                            \
+  V(File_LengthFromName, 1)                                                    \
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
   V(File_Delete, 1)                                                            \

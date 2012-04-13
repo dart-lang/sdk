@@ -99,6 +99,14 @@ abstract class AbstractParser {
     return TerminalAnnotationsCache.terminalsForStack(stackTrace);
   }
 
+  /**
+   * If the expectedToken is encountered it is consumed and <code>true</code> is returned.
+   * If the expectedToken is not found, an error is reported.
+   * The token will only be consumed if it is not among the set of tokens that can be handled
+   * by a method currently on the stack.  See the {@link Terminals annotation}
+   *
+   * @param expectedToken The token to expect next in the stream.
+   */
   protected boolean expect(Token expectedToken) {
     if (!optional(expectedToken)) {
 

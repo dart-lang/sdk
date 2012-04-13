@@ -351,6 +351,24 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_LengthFromName)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* name =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  intptr_t return_value = File::LengthFromName(name);
+  if (return_value >= 0) {
+    Dart_SetReturnValue(args, Dart_NewInteger(return_value));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_EnterScope();
   intptr_t value =
@@ -667,6 +685,20 @@ static CObject* FileLengthRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileLengthFromNameRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString filename(request[1]);
+    intptr_t return_value = File::LengthFromName(filename.CString());
+    if (return_value >= 0) {
+      return new CObjectIntptr(CObject::NewIntptr(return_value));
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static CObject* FileFlushRequest(const CObjectArray& request) {
   intptr_t return_value = -1;
   if (request.Length() == 2 && request[1]->IsIntptr()) {
@@ -863,6 +895,9 @@ void FileService(Dart_Port dest_port_id,
           break;
         case File::kLengthRequest:
           response = FileLengthRequest(request);
+          break;
+        case File::kLengthFromNameRequest:
+          response = FileLengthFromNameRequest(request);
           break;
         case File::kFlushRequest:
           response = FileFlushRequest(request);

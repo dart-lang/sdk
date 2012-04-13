@@ -1445,7 +1445,12 @@ void OptimizingCodeGenerator::VisitIncrOpInstanceFieldNode(
   VisitLoadOne(node->receiver(), EBX);
   __ pushl(EBX);  // Duplicate receiver (preserve for setter).
   const ICData& ic_data = node->ICDataAtId(node->id());
-  if (ic_data.NumberOfChecks() == 0) {
+  // Deoptimize if either this node has never been visited before or
+  // if the classes collected at getter and setter do not match (can happen
+  // if the increment is 'interrupted' by an exception).
+  if ((ic_data.NumberOfChecks() == 0) ||
+       !HaveSameClassesInICData(node->ICDataAtId(node->getter_id()),
+                                node->ICDataAtId(node->setter_id()))) {
     // Deoptimization point for this node is after receiver has been
     // pushed twice on stack and before the getter (above) was executed.
     DeoptimizationBlob* deopt_blob =

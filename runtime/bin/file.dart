@@ -83,6 +83,17 @@ interface File default _File {
   Directory directorySync();
 
   /**
+   * Get the length of the file. When the operation completes the
+   * callback is called with the length.
+   */
+  void length(void callback(int length));
+
+  /**
+   * Synchronously get the length of the file.
+   */
+  int lengthSync();
+
+  /**
    * Open the file for random access operations. When the file is
    * opened the callback is called with the resulting
    * RandomAccessFile. RandomAccessFiles must be closed using the

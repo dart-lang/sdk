@@ -1420,63 +1420,59 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 
       // Compare if the classes are equal.
       __ Bind(&compare_classes);
-      const Class* compare_class = NULL;
-      if (type.IsStringInterface()) {
-        compare_class = &Class::ZoneHandle(
-            Isolate::Current()->object_store()->one_byte_string_class());
-      } else if (type.IsBoolInterface()) {
-        compare_class = &Class::ZoneHandle(
+      // Note that in instanceof both positive and negative tests must be fast.
+      if (type.IsBoolInterface()) {
+        // Bool interface has only bool class.
+        Label is_bool;
+        const Class & bool_class = Class::ZoneHandle(
             Isolate::Current()->object_store()->bool_class());
-      } else if (!type_class.is_interface()) {
-        // Use equality test in prolog of cache test.
-        compare_class = NULL;
+        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+        __ CompareObject(ECX, bool_class);
+        __ j(EQUAL, &is_bool, Assembler::kNearJump);
+        __ PushObject(negate_result ? bool_true : bool_false);
+        __ jmp(&done);
+        __ Bind(&is_bool);
+        __ PushObject(negate_result ? bool_false : bool_true);
+        __ Bind(&done);
+        return;
       }
+
       // EAX: instance being tested.
-      if (compare_class == NULL) {
-        // Optional quick equality check and then the type test cache test.
-        Label loop, runtime_call, found_in_cache, cache_test;
-        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        if (!type_class.is_interface()) {
-          // Class equality test first.
-          __ CompareObject(ECX, type_class);
-          __ j(NOT_EQUAL, &cache_test, Assembler::kNearJump);
-          // Equal!
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
-        }
-        __ Bind(&cache_test);
-        // TODO(srdjan): Convert other tests to this simple form.
-        // Class we are testing against has no type arguments.
-        // TODO(srdjan): Canonicalize initial array?
-        // TODO(srdjan): Account for 'negate_result' in cache.
-        // The type test array is null-terminated. Two consecutive
-        // array elements correspond to one test:
-        //   array[i + 0] : class.
-        //   array[i + 1] : result for the class.
-        AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-        __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
-        __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
-        __ Bind(&loop);
-        __ movl(EBX, Address(EDX, 0));
-        __ cmpl(ECX, EBX);
-        __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
-        __ addl(EDX, Immediate(kWordSize * 2));
-        __ cmpl(EBX, raw_null);
-        __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-        __ jmp(&runtime_call, Assembler::kNearJump);
-        __ Bind(&found_in_cache);
-        __ pushl(Address(EDX, kWordSize));
-        __ jmp(&check_negate_done);
-        __ Bind(&runtime_call);
-      } else {
-        Label runtime_call;
-        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        __ CompareObject(ECX, *compare_class);
-        __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
+      // Optional quick equality check and then the type test cache test.
+      Label loop, runtime_call, found_in_cache, cache_test;
+      __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+      if (!type_class.is_interface()) {
+        // Class equality test first.
+        __ CompareObject(ECX, type_class);
+        __ j(NOT_EQUAL, &cache_test, Assembler::kNearJump);
+        // Equal!
         __ PushObject(negate_result ? bool_false : bool_true);
         __ jmp(&done, Assembler::kNearJump);
-        __ Bind(&runtime_call);
       }
+      __ Bind(&cache_test);
+      // TODO(srdjan): Convert other tests to this simple form.
+      // Class we are testing against has no type arguments.
+      // TODO(srdjan): Canonicalize initial array?
+      // TODO(srdjan): Account for 'negate_result' in cache.
+      // The type test array is null-terminated. Two consecutive
+      // array elements correspond to one test:
+      //   array[i + 0] : class.
+      //   array[i + 1] : result for the class.
+      AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
+      __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
+      __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+      __ Bind(&loop);
+      __ movl(EBX, Address(EDX, 0));
+      __ cmpl(ECX, EBX);
+      __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
+      __ addl(EDX, Immediate(kWordSize * 2));
+      __ cmpl(EBX, raw_null);
+      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+      __ jmp(&runtime_call, Assembler::kNearJump);
+      __ Bind(&found_in_cache);
+      __ pushl(Address(EDX, kWordSize));
+      __ jmp(&check_negate_done);
+      __ Bind(&runtime_call);
     }
   }
   __ PushObject(Object::ZoneHandle());  // Make room for the result.

@@ -70,7 +70,8 @@ def _MakeHtmlRenames(common_database):
 
   return html_renames
 
-def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
+def GenerateDOM(systems, generate_html_systems, output_dir,
+                database_dir, use_database_cache):
   current_dir = os.path.dirname(__file__)
 
   generator = dartgenerator.DartGenerator(
@@ -79,8 +80,7 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
       base_package='')
   generator.LoadAuxiliary()
 
-  common_database = database.Database(
-      os.path.join(current_dir, '..', 'database'))
+  common_database = database.Database(database_dir)
   if use_database_cache:
     common_database.LoadFromCache()
   else:
@@ -178,18 +178,21 @@ def main():
   html_systems = [s for s in systems if s in html_system_names]
   dom_systems = [s for s in systems if s not in html_system_names]
 
+  database_dir = os.path.join(current_dir, '..', 'database')
   use_database_cache = options.use_database_cache
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
 
   if dom_systems:
     output_dir = options.output_dir or os.path.join(current_dir,
         '../generated')
-    GenerateDOM(dom_systems, False, output_dir, use_database_cache)
+    GenerateDOM(dom_systems, False, output_dir,
+                database_dir, use_database_cache)
 
   if html_systems:
     output_dir = options.output_dir or os.path.join(current_dir,
         '../../html/generated')
-    GenerateDOM(html_systems, True, output_dir, use_database_cache or dom_systems)
+    GenerateDOM(html_systems, True, output_dir,
+                database_dir, use_database_cache or dom_systems)
 
 if __name__ == '__main__':
   sys.exit(main())

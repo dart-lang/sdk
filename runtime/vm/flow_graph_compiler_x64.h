@@ -110,8 +110,6 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                           const AbstractType& type,
                           bool negate_result);
 
-  void GenerateInstantiatorTypeArguments(intptr_t token_index);
-
   void CopyParameters();
 
   intptr_t StackSize() const;

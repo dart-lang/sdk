@@ -177,6 +177,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
 
   // Setup local fields.
   top_ = FirstObjectStart();
+  resolved_top_ = top_;
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
@@ -205,6 +206,7 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   from_ = to_;
   to_ = temp;
   top_ = FirstObjectStart();
+  resolved_top_ = top_;
   end_ = to_->end();
 }
 
@@ -289,7 +291,7 @@ void Scavenger::IterateWeakReferences(Isolate* isolate,
         state->DelayWeakReference(reference);
       }
     }
-    if ((FirstObjectStart() < top_) || PromotedStackHasMore()) {
+    if ((resolved_top_ < top_) || PromotedStackHasMore()) {
       ProcessToSpace(visitor);
     } else {
       // Break out of the loop if there has been no forward process.
@@ -316,12 +318,11 @@ void Scavenger::IterateWeakRoots(Isolate* isolate,
 
 
 void Scavenger::ProcessToSpace(ObjectPointerVisitor* visitor) {
-  uword resolved_top = FirstObjectStart();
   // Iterate until all work has been drained.
-  while ((resolved_top < top_) || PromotedStackHasMore()) {
-    while (resolved_top < top_) {
-      RawObject* raw_obj = RawObject::FromAddr(resolved_top);
-      resolved_top += raw_obj->VisitPointers(visitor);
+  while ((resolved_top_ < top_) || PromotedStackHasMore()) {
+    while (resolved_top_ < top_) {
+      RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
+      resolved_top_ += raw_obj->VisitPointers(visitor);
     }
     while (PromotedStackHasMore()) {
       RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
