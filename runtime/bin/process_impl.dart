@@ -8,25 +8,53 @@ class _ProcessStartStatus {
 }
 
 
+// Abstract factory class capable of producing interactive and
+// non-interactive processes.
 class _Process implements Process {
 
-  _Process.start(String path,
-                 List<String> arguments,
-                 [String workingDirectory]) {
+  _Process();
+
+  factory _Process.start(String path,
+                         List<String> arguments,
+                         [ProcessOptions options]) {
+    return new _InteractiveProcess.start(path, arguments, options);
+  }
+
+  factory _Process.run(String path,
+                       List<String> arguments,
+                       ProcessOptions options,
+                       void callback(int exitCode,
+                                     String stdout,
+                                     String stderr)) {
+    return new _NonInteractiveProcess.start(path,
+                                            arguments,
+                                            options,
+                                            callback);
+  }
+}
+
+
+// _InteractiveProcess is the actual implementation of all processes
+// started from Dart code.
+class _InteractiveProcess extends _Process {
+
+  _InteractiveProcess.start(String path,
+                            List<String> arguments,
+                            ProcessOptions options) {
     if (path is !String) {
-      throw new ProcessException("Path is not a String: $path");
+      throw new IllegalArgumentException("Path is not a String: $path");
     }
     _path = path;
 
     if (arguments is !List) {
-      throw new ProcessException("Arguments is not a List: $arguments");
+      throw new IllegalArgumentException("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
     _arguments = new ObjectArray<String>(len);
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is !String) {
-        throw new ProcessException("Non-string argument: $arg");
+        throw new IllegalArgumentException("Non-string argument: $arg");
       }
       _arguments[i] = arguments[i];
       if (new Platform().operatingSystem() == 'windows') {
@@ -34,11 +62,13 @@ class _Process implements Process {
       }
     }
 
-    if (workingDirectory is !String && workingDirectory !== null) {
-      throw new ProcessException(
-          "WorkingDirectory is not a String: $workingDirectory");
+    if (options !== null && options.workingDirectory !== null) {
+      _workingDirectory = options.workingDirectory;
+      if (_workingDirectory is !String) {
+        throw new IllegalArgumentException(
+            "WorkingDirectory is not a String: $_workingDirectory");
+      }
     }
-    _workingDirectory = workingDirectory;
 
     _in = new _Socket._internalReadOnly();  // stdout coming from process.
     _out = new _Socket._internalWriteOnly();  // stdin going to process.
@@ -258,4 +288,120 @@ class _Process implements Process {
   Function _onExit;
   Function _onError;
   Function _onStart;
+}
+
+
+// _NonInteractiveProcess is a wrapper around an interactive process
+// that restricts the interface to disallow access to the streams and
+// buffers output so it can be delivered to the callback when the
+// process exits.
+class _NonInteractiveProcess extends _Process {
+
+  _NonInteractiveProcess.start(String path,
+                               List<String> arguments,
+                               ProcessOptions options,
+                               Function this._callback) {
+    _process = new _InteractiveProcess.start(path, arguments, options);
+
+    // Setup process exit handling.
+    _process.onExit = (exitCode) {
+      _exitCode = exitCode;
+      _checkDone();
+    };
+
+    // Extract output encoding options.
+    var stdoutEncoding = Encoding.UTF_8;
+    var stderrEncoding = Encoding.UTF_8;
+    if (options !== null) {
+      if (options.stdoutEncoding !== null) {
+        stdoutEncoding = options.stdoutEncoding;
+        if (stdoutEncoding is !Encoding) {
+          throw new IllegalArgumentException(
+              'stdoutEncoding option is not an encoding: $stdoutEncoding');
+        }
+      }
+      if (options.stderrEncoding !== null) {
+        stderrEncoding = options.stderrEncoding;
+        if (stderrEncoding is !Encoding) {
+          throw new IllegalArgumentException(
+              'stderrEncoding option is not an encoding: $stderrEncoding');
+        }
+      }
+    }
+
+    // Setup stdout handling.
+    _stdoutBuffer = new StringBuffer();
+    var stdoutStream = new StringInputStream(_process.stdout, stdoutEncoding);
+    stdoutStream.onData = () {
+      var data = stdoutStream.read();
+      if (data != null) _stdoutBuffer.add(data);
+    };
+    stdoutStream.onClosed = () {
+      _stdoutClosed = true;
+      _checkDone();
+    };
+
+    // Setup stderr handling.
+    _stderrBuffer = new StringBuffer();
+    var stderrStream = new StringInputStream(_process.stderr, stderrEncoding);
+    stderrStream.onData = () {
+      var data = stderrStream.read();
+      if (data != null) _stderrBuffer.add(data);
+    };
+    stderrStream.onClosed = () {
+      _stderrClosed = true;
+      _checkDone();
+    };
+  }
+
+  void _checkDone() {
+    if (_exitCode != null && _stderrClosed && _stdoutClosed) {
+      _callback(_exitCode, _stdoutBuffer.toString(), _stderrBuffer.toString());
+    }
+  }
+
+  InputStream get stdout() {
+    throw new UnsupportedOperationException(
+        'Cannot get stdout stream for process started with '
+        'the run constructor. The entire stdout '
+        'will be supplied in the callback on completion.');
+  }
+
+  InputStream get stderr() {
+    throw new UnsupportedOperationException(
+        'Cannot get stderr stream for process started with '
+        'the run constructor. The entire stderr '
+        'will be supplied in the callback on completion.');
+  }
+
+  OutputStream get stdin() {
+    throw new UnsupportedOperationException(
+        'Cannot communicate via stdin with process started with '
+        'the run constructor');
+  }
+
+  void set onStart(void callback()) => _process.onStart = callback;
+
+  void set onExit(void callback(int exitCode)) {
+    throw new UnsupportedOperationException(
+        'Cannot set exit handler on process started with '
+        'the run constructor. The exit code will '
+        'be supplied in the callback on completion.');
+  }
+
+  void set onError(void callback(ProcessException error)) {
+    _process.onError = callback;
+  }
+
+  void kill() => _process.kill();
+
+  void close() => _process.close();
+
+  Process _process;
+  Function _callback;
+  StringBuffer _stdoutBuffer;
+  StringBuffer _stderrBuffer;
+  int _exitCode;
+  bool _stdoutClosed = false;
+  bool _stderrClosed = false;
 }

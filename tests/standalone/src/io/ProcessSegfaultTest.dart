@@ -8,17 +8,30 @@
 #import("dart:io");
 #source("ProcessTestUtil.dart");
 
-class ProcessSegfaultTest {
-  static void testExit() {
-    Process process = new Process.start(getProcessTestFileName(),
-                                        const ["0", "0", "1", "1"]);
+testExit() {
+  Process process = new Process.start(getProcessTestFileName(),
+                                      const ["0", "0", "1", "1"]);
 
-    process.onExit = (int exitCode) {
-      process.close();
-    };
-  }
+  process.onExit = (int exitCode) {
+    Expect.isTrue(exitCode != 0);
+    process.close();
+  };
 }
 
+
+testExitRun() {
+  Process process = new Process.run(getProcessTestFileName(),
+                                    const ["0", "0", "1", "1"],
+                                    null,
+                                    (exit, out, err) {
+    Expect.isTrue(exit != 0);
+    Expect.equals(out, '');
+    Expect.equals(err, '');
+  });
+}
+
+
 main() {
-  ProcessSegfaultTest.testExit();
+  testExit();
+  testExitRun();
 }

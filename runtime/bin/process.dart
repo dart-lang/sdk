@@ -13,30 +13,58 @@ interface Process default _Process {
    * been successfully started [onStart] is called. If the process
    * fails to start [onError] is called.
    *
-   * An optional [workingDirectory] can be passed to specify where the process
-   * is run from. Note that the change of directory occurs before executing
-   * the process on some platforms, which may have impact when using relative
-   * paths for [executable] and [arguments].
+   * An optional [ProcessOptions] object can be passed to specify
+   * options other than the executable and the arguments.
    *
    * No data can be written to the process stdin and the process
    * cannot be closed nor killed before [onStart] has been invoked.
    */
   Process.start(String executable,
                 List<String> arguments,
-                [String workingDirectory]);
+                [ProcessOptions options]);
+
+  /**
+   * Creates a new process object, starts a process and runs it
+   * non-interactively to completion. The process run is [executable]
+   * with the specified [arguments]. When the process has been
+   * successfully started [onStart] is called. If the process fails to
+   * start [onError] is called.
+   *
+   * Options other than the executable and the arguments are specified
+   * using a [ProcessOptions] object. If no options are required,
+   * [null] can be passed as the options.
+   *
+   * No communication via [stdin], [stdout] or [stderr] can take place
+   * with a non-interactive process. Instead, the process is run to
+   * completion at which point the exit code and stdout and stderr are
+   * supplied to the [callback] parameter.
+   */
+  Process.run(String executable,
+              List<String> arguments,
+              ProcessOptions options,
+              void callback(int exitCode, String stdout, String stderr));
 
   /**
    * Returns an input stream of the process stdout.
+   *
+   * Throws an [UnsupportedOperationException] if the process is
+   * non-interactive.
    */
   InputStream get stdout();
 
   /**
    * Returns an input stream of the process stderr.
+   *
+   * Throws an [UnsupportedOperationException] if the process is
+   * non-interactive.
    */
   InputStream get stderr();
 
   /**
    * Returns an output stream to the process stdin.
+   *
+   * Throws an [UnsupportedOperationException] if the process is
+   * non-interactive.
    */
   OutputStream get stdin();
 
@@ -47,7 +75,11 @@ interface Process default _Process {
   void set onStart(void callback());
 
   /**
-   * Sets an exit handler which gets invoked when the process terminates.
+   * Sets an exit handler which gets invoked when the process
+   * terminates.
+   *
+   * Throws an [UnsupportedOperationException] if the process is
+   * non-interactive.
    */
   void set onExit(void callback(int exitCode));
 
@@ -72,6 +104,43 @@ interface Process default _Process {
    * application is not notified of process termination.
    */
   void close();
+}
+
+
+/**
+ * [ProcessOptions] represents the options that can be supplied when
+ * starting a process.
+ */
+class ProcessOptions {
+  /**
+   * The working directory from which the process is started.  Note
+   * that the change of directory occurs before executing the process
+   * on some platforms, which may have impact when using relative
+   * paths for the executable and the arguments.
+   */
+  String workingDirectory;
+
+  /**
+   * The encoding used for text on stdout when starting a
+   * non-interactive process with [:Process.run:].
+   *
+   * This option is ignored for interactive processes started with
+   * [:Process.start:].
+   *
+   * The default stdoutEncoding is UTF_8.
+   */
+  Encoding stdoutEncoding;
+
+  /**
+   * The encoding used for text on stderr when starting a
+   * non-interactive process with [:Process.run:].
+   *
+   * This option is ignored for interactive processes started with
+   * [:Process.start:].
+   *
+   * The default stderrEncoding is UTF_8.
+   */
+  Encoding stderrEncoding;
 }
 
 
