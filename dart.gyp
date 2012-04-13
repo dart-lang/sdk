@@ -42,11 +42,6 @@
           'action_name': 'create_sdk_py',
           'inputs': [
             '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
-            'lib/_internal/config/import_any.config',
-            'lib/_internal/config/import_dart2js.config',
-            'lib/_internal/config/import_dartium.config',
-            'lib/_internal/config/import_frog.config',
-            'lib/_internal/config/import_vm.config',
             # TODO(dgrove) - change these to dependencies and add dom
             # dependences once issues 754 and 755 are fixed
             'lib/html/html_frog.dart',

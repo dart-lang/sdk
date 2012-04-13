@@ -17,9 +17,6 @@
 # ......frogc.dart
 # ......frogsh (coming later)
 # ....lib/
-# ......_internal/
-# ........config/
-# ..........{import_any, import_vm, import_dart2js, ...}.config
 # ......builtin/
 # ........builtin_runtime.dart
 # ......io/
@@ -422,12 +419,10 @@ def Main(argv):
 
   # Copy import maps
   PLATFORMS = ['any', 'vm', 'dartium', 'dart2js', 'frog' ]
-  os.makedirs(join(LIB, '_internal', 'config'))
+  os.makedirs(join(LIB, 'config'))
   for platform in PLATFORMS:
-    import_src = join(HOME, 'lib', '_internal', 'config',
-                      'import_' + platform + '.config')
-    import_dst = join(LIB, '_internal', 'config',
-                      'import_' + platform + '.config')
+    import_src = join(HOME, 'lib', 'config', 'import_' + platform + '.config')
+    import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
 
   move(SDK_tmp, SDK)
