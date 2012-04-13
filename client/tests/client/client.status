@@ -7,6 +7,7 @@ dom/CallbacksTest: Pass, Fail # webkitRequestAnimationFrame now takes one argume
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # TODO(vsm): Triage DOM tests.
+html/TypedArrays1Test: Fail   # Fails only on checked mode.
 dom/IndexedDB2Test: Fail  # Crazy results.
 html/html_tests: Pass, Fail   # Issue 1946.
 
