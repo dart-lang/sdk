@@ -24,7 +24,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   bool usedOnlyByPhis(instruction) {
     for (HInstruction user in instruction.usedBy) {
-      if (user is !HPhi) return false;
+      if (user is! HPhi) return false;
     }
     return true;
   }
@@ -35,7 +35,8 @@ class SsaInstructionMerger extends HBaseVisitor {
     for (HInstruction input in instruction.inputs) {
       if (!generateAtUseSite.contains(input)
           && !input.isCodeMotionInvariant()
-          && input.usedBy.length == 1) {
+          && input.usedBy.length == 1
+          && input is! HPhi) {
         expectedInputs.add(input);
       }
     }
@@ -96,11 +97,30 @@ class SsaInstructionMerger extends HBaseVisitor {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
-        if (nextInput == instruction) {
+        if (nextInput === instruction) {
           return true;
         }
       }
       return false;
+    }
+
+    for (HBasicBlock successor in block.successors) {
+      // Only add the input of the first phi. Making inputs of
+      // later phis generate-at-use-site would make them move
+      // accross the assignment of the first phi, and we need
+      // more analysis before we can do that.
+      HPhi phi = successor.phis.first;
+      if (phi != null) {
+        int index = successor.predecessors.indexOf(block);
+        HInstruction input = phi.inputs[index];
+        if (!generateAtUseSite.contains(input)
+            && !input.isCodeMotionInvariant()
+            && input.usedBy.length == 1
+            && input is! HPhi) {
+          expectedInputs.add(input);
+        }
+        break;
+      }
     }
 
     block.last.accept(this);
@@ -132,6 +152,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     if (block.predecessors.length === 1
         && isBlockSinglePredecessor(block.predecessors[0])) {
+      assert(block.phis.isEmpty());
       tryMergingExpressions(block.predecessors[0]);
     } else {
       expectedInputs = null;
