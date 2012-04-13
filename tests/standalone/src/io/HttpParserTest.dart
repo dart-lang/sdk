@@ -20,20 +20,23 @@ class HttpParserTest {
                                  Map expectedHeaders = null,
                                  bool chunked = false,
                                  bool upgrade = false,
-                                 int unparsedLength = 0]) {
+                                 int unparsedLength = 0,
+                                 bool connectionClose = false,
+                                 String expectedVersion = "1.1"]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     String method;
     String uri;
+    String version;
     Map headers;
     int contentLength;
     int bytesReceived;
 
     void reset() {
       httpParser = new _HttpParser();
-      httpParser.requestStart = (m, u) { method = m; uri = u; };
-      httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
+      httpParser.requestStart = (m, u, v) { method = m; uri = u; version = v; };
+      httpParser.responseStart = (s, r, v) { Expect.fail("Expected request"); };
       httpParser.headerReceived = (f, v) {
         Expect.isFalse(headersCompleteCalled);
         headers[f] = v;
@@ -51,6 +54,7 @@ class HttpParserTest {
                   Expect.equals(value, headers[name]));
         }
         Expect.equals(upgrade, httpParser.upgrade);
+        Expect.equals(connectionClose, !httpParser.persistentConnection);
         headersCompleteCalled = true;
       };
       httpParser.dataReceived = (List<int> data) {
@@ -90,6 +94,7 @@ class HttpParserTest {
       }
       Expect.equals(expectedMethod, method);
       Expect.equals(expectedUri, uri);
+      Expect.equals(expectedVersion, version);
       Expect.isTrue(headersCompleteCalled);
       Expect.equals(expectedBytesReceived, bytesReceived);
       if (!upgrade) Expect.isTrue(dataEndCalled);
@@ -152,13 +157,15 @@ class HttpParserTest {
                                   String responseToMethod = null,
                                   bool connectionClose = false,
                                   bool upgrade = false,
-                                  int unparsedLength = 0]) {
+                                  int unparsedLength = 0,
+                                  String expectedVersion = "1.1"]) {
     _HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     bool dataEndClose;
     int statusCode;
     String reasonPhrase;
+    String version;
     Map headers;
     int contentLength;
     int bytesReceived;
@@ -168,10 +175,11 @@ class HttpParserTest {
       if (responseToMethod != null) {
         httpParser.responseToMethod = responseToMethod;
       }
-      httpParser.requestStart = (m, u) => Expect.fail("Expected response");
-      httpParser.responseStart = (s, r) {
+      httpParser.requestStart = (m, u, v) => Expect.fail("Expected response");
+      httpParser.responseStart = (s, r, v) {
         statusCode = s;
         reasonPhrase = r;
+        version = v;
       };
       httpParser.headerReceived = (f, v) {
         Expect.isFalse(headersCompleteCalled);
@@ -229,6 +237,7 @@ class HttpParserTest {
         }
       }
       if (close) httpParser.connectionClosed();
+      Expect.equals(expectedVersion, version);
       Expect.equals(expectedStatusCode, statusCode);
       Expect.equals(expectedReasonPhrase, reasonPhrase);
       Expect.isTrue(headersCompleteCalled);
@@ -312,6 +321,12 @@ class HttpParserTest {
     request = "HTTP /index.html HTTP/1.1\r\n\r\n";
     _testParseRequest(request, "HTTP", "/index.html");
 
+    request = "GET / HTTP/1.0\r\n\r\n";
+    _testParseRequest(request, "GET", "/", expectedVersion: "1.0", connectionClose: true);
+
+    request = "GET / HTTP/1.0\r\nConnection: keep-alive\r\n\r\n";
+    _testParseRequest(request, "GET", "/", expectedVersion: "1.0");
+
     request = """
 POST /test HTTP/1.1\r
 AAA: AAA\r
@@ -385,11 +400,8 @@ Content-Length: 10\r
                       expectedBytesReceived: 10);
 
     // Test connection close header.
-    request = """
-GET /test HTTP/1.1\r
-Connection: close\r
-\r\n""";
-    _testParseRequest(request, "GET", "/test");
+    request = "GET /test HTTP/1.1\r\nConnection: close\r\n\r\n";
+    _testParseRequest(request, "GET", "/test", connectionClose: true);
 
     // Test chunked encoding.
     request = """
@@ -572,6 +584,24 @@ Sec-WebSocket-Version: 13\r
                        "Continue",
                        expectedContentLength: 10,
                        expectedBytesReceived: 0);
+
+    response = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: Close\r\n\r\n";
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: 0,
+                       connectionClose: true);
+
+    response = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseResponse(response,
+                       200,
+                       "OK",
+                       expectedContentLength: 0,
+                       expectedVersion: "1.0",
+                       connectionClose: true);
+
+    response = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n";
+    _testParseResponse(response, 200, "OK", expectedContentLength: 0, expectedVersion: "1.0");
 
     response = "HTTP/1.1 204 No Content\r\nContent-Length: 11\r\n\r\n";
     _testParseResponse(response,
@@ -760,10 +790,6 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidRequest(request);
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
-    _testParseInvalidRequest(request);
-
-    // Currently no HTTP 1.0 support.
-    request = "GET / HTTP/1.0\r\n\r\n";
     _testParseInvalidRequest(request);
   }
 
