@@ -4,6 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS default _$(ID)FactoryProvider {
   $ID();
   $ID.css(String css);

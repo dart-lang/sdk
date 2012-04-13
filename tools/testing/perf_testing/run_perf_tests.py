@@ -283,7 +283,7 @@ class TestRunner(object):
       test.run(self.graph_only)
 
     if self.upload:
-      self.upload_to_app_engine(TestBuilder.available_site_names())
+      self.upload_to_app_engine(TestBuilder.available_suite_names())
 
 
 class Test(object):
@@ -568,6 +568,7 @@ class RuntimePerformanceTest(Test):
             self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
                                           filename, [platform], [version],
                                           [metric], clear_axis)
+            clear_axis = False
 
     def plot_results(self, png_filename):
       self.plot_all_perf(png_filename)

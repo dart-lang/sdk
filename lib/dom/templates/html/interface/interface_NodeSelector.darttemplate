@@ -4,6 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
+$!COMMENT
 interface $ID$EXTENDS {
 
   // TODO(nweiz): add this back once DocumentFragment is ported.

@@ -16,8 +16,10 @@ interface Events {
   EventListenerList operator [](String type);
 }
 
+$!COMMENT
 interface $ID$EXTENDS {
 
+  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
   final Events on;
 $!MEMBERS
 }

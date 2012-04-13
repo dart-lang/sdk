@@ -11,7 +11,6 @@ void testGoogle() {
   var conn = client.get('www.google.com', 80, '/');
 
   conn.onRequest = (HttpClientRequest request) {
-    request.keepAlive = false;
     request.outputStream.close();
   };
   conn.onResponse = (HttpClientResponse response) {
@@ -33,7 +32,6 @@ void testGoogleUrl() {
     var conn = client.getUrl(new Uri.fromString(url));
 
     conn.onRequest = (HttpClientRequest request) {
-      request.keepAlive = false;
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse response) {

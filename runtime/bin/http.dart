@@ -110,11 +110,6 @@ interface HttpRequest default _HttpRequest {
   int get contentLength();
 
   /**
-   * Returns the keep alive state of the connection.
-   */
-  bool get keepAlive();
-
-  /**
    * Returns the method for the request.
    */
   String get method();
@@ -162,13 +157,6 @@ interface HttpResponse default _HttpResponse {
    * -1 - which is also the default if not set.
    */
   int contentLength;
-
-  /**
-   * Gets and sets the keep alive state of the connection. If the
-   * associated request have a keep alive state of false setting keep
-   * alive to true will have no effect.
-   */
-  bool keepAlive;
 
   /**
    * Gets and sets the status code. Any integer value is accepted, but
@@ -315,11 +303,6 @@ interface HttpClientRequest default _HttpClientRequest {
   int contentLength;
 
   /**
-   * Gets and sets the keep alive state of the connection.
-   */
-  bool keepAlive;
-
-  /**
    * Gets and sets the " host part of the "Host" header for the
    * connection. By default this will be set to the value of the host
    * used when initiating the connection.
@@ -377,11 +360,6 @@ interface HttpClientResponse default _HttpClientResponse {
    * the request body is not known in advance this -1.
    */
   int get contentLength();
-
-  /**
-   * Returns the keep alive state of the connection.
-   */
-  bool get keepAlive();
 
   /**
    * Returns the date value for the "Expires" header. Returns null if

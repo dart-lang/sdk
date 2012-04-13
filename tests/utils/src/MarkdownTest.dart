@@ -8,7 +8,7 @@
 #import('../../../lib/dartdoc/markdown.dart');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../lib/unittest/unittest_vm.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ($compiler == dart2js || $compiler == frog) && ($runtime == ie || $runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
+[ ($compiler == dart2js || $compiler == frog || $compiler == none) && ($runtime == ie || $runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 # #-directives not supported by test architecture
 DeclarationTest: Fail
 ExpressionTest: Fail

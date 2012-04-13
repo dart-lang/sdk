@@ -8,12 +8,9 @@
 #library('unittest');
 
 #import('dart:io');
-#import('dart:isolate');
+#import('unittest.dart');
 
-#source('config.dart');
-#source('shared.dart');
-
-class PlatformConfiguration extends Configuration {
+class VmConfiguration extends Configuration {
   void onDone(int passed, int failed, int errors, List<TestCase> results) {
     try {
       super.onDone(passed, failed, errors, results);
@@ -23,4 +20,8 @@ class PlatformConfiguration extends Configuration {
       exit(1);
     }
   }
+}
+
+void useVmConfiguration() {
+  configure(new VmConfiguration());
 }

@@ -1,5 +1,6 @@
 #library('CanvasTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
@@ -15,7 +16,7 @@ main() {
 
   context = canvas.getContext('2d');
 
-  forLayoutTests();
+  useDomConfiguration();
   test('FillStyle', () {
     context.fillStyle = "red";
     context.fillRect(10, 10, 20, 20);

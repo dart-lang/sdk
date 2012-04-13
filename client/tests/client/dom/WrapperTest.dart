@@ -1,5 +1,6 @@
 #library('WrapperTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
@@ -13,7 +14,7 @@ main() {
   document.body.appendChild(canvas);
   context = canvas.getContext('2d');
 
-  forLayoutTests();
+  useDomConfiguration();
   test('DomType', () {
     Expect.isTrue(canvas is DOMType);
     Expect.isTrue(context is DOMType);

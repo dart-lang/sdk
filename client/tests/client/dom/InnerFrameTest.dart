@@ -1,5 +1,6 @@
 #library('InnerFrameTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
@@ -36,7 +37,7 @@ main() {
   }
 
   // Parent / test frame
-  forLayoutTests();
+  useDomConfiguration();
 
   final iframe = document.createElement('iframe');
   iframe.src = window.location.href;

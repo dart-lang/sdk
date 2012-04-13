@@ -1,5 +1,6 @@
 #library('IndexedDB1Test');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 #import('dart:coreimpl');
 
@@ -145,7 +146,7 @@ tests_dynamic() {
 }
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
 
   tests_dynamic();
 }

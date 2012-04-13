@@ -5,7 +5,8 @@
 #library('html_tests');
 
 #import('dart:html');
-#import('../../../../lib/unittest/unittest_html.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
 
 #source('util.dart');
 #source('CSSStyleDeclarationTests.dart');
@@ -23,6 +24,7 @@
 // #source('XMLElementTests.dart');
 
 main() {
+  useHtmlConfiguration();
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
   group('DocumentFragment', testDocumentFragment);
   group('Element', testElement);

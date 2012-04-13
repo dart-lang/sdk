@@ -22267,17 +22267,21 @@ class _XSLTProcessorFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AbstractWorker
 interface AbstractWorker extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   AbstractWorkerEvents get on();
 
-  /** @domName addEventListener */
+  /** @domName AbstractWorker.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName AbstractWorker.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName removeEventListener */
+  /** @domName AbstractWorker.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -22291,48 +22295,70 @@ interface AbstractWorkerEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLAnchorElement
 interface AnchorElement extends Element {
 
+  /** @domName HTMLAnchorElement.charset */
   String charset;
 
+  /** @domName HTMLAnchorElement.coords */
   String coords;
 
+  /** @domName HTMLAnchorElement.download */
   String download;
 
+  /** @domName HTMLAnchorElement.hash */
   String hash;
 
+  /** @domName HTMLAnchorElement.host */
   String host;
 
+  /** @domName HTMLAnchorElement.hostname */
   String hostname;
 
+  /** @domName HTMLAnchorElement.href */
   String href;
 
+  /** @domName HTMLAnchorElement.hreflang */
   String hreflang;
 
+  /** @domName HTMLAnchorElement.name */
   String name;
 
+  /** @domName HTMLAnchorElement.origin */
   final String origin;
 
+  /** @domName HTMLAnchorElement.pathname */
   String pathname;
 
+  /** @domName HTMLAnchorElement.ping */
   String ping;
 
+  /** @domName HTMLAnchorElement.port */
   String port;
 
+  /** @domName HTMLAnchorElement.protocol */
   String protocol;
 
+  /** @domName HTMLAnchorElement.rel */
   String rel;
 
+  /** @domName HTMLAnchorElement.rev */
   String rev;
 
+  /** @domName HTMLAnchorElement.search */
   String search;
 
+  /** @domName HTMLAnchorElement.shape */
   String shape;
 
+  /** @domName HTMLAnchorElement.target */
   String target;
 
+  /** @domName HTMLAnchorElement.type */
   String type;
 
+  /** @domName HTMLAnchorElement.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22341,6 +22367,7 @@ interface AnchorElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitAnimation
 interface Animation {
 
   static final int DIRECTION_ALTERNATE = 1;
@@ -22355,26 +22382,37 @@ interface Animation {
 
   static final int FILL_NONE = 0;
 
+  /** @domName WebKitAnimation.delay */
   final num delay;
 
+  /** @domName WebKitAnimation.direction */
   final int direction;
 
+  /** @domName WebKitAnimation.duration */
   final num duration;
 
+  /** @domName WebKitAnimation.elapsedTime */
   num elapsedTime;
 
+  /** @domName WebKitAnimation.ended */
   final bool ended;
 
+  /** @domName WebKitAnimation.fillMode */
   final int fillMode;
 
+  /** @domName WebKitAnimation.iterationCount */
   final int iterationCount;
 
+  /** @domName WebKitAnimation.name */
   final String name;
 
+  /** @domName WebKitAnimation.paused */
   final bool paused;
 
+  /** @domName WebKitAnimation.pause */
   void pause();
 
+  /** @domName WebKitAnimation.play */
   void play();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22383,10 +22421,13 @@ interface Animation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitAnimationEvent
 interface AnimationEvent extends Event {
 
+  /** @domName WebKitAnimationEvent.animationName */
   final String animationName;
 
+  /** @domName WebKitAnimationEvent.elapsedTime */
   final num elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22395,10 +22436,13 @@ interface AnimationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitAnimationList
 interface AnimationList {
 
+  /** @domName WebKitAnimationList.length */
   final int length;
 
+  /** @domName WebKitAnimationList.item */
   Animation item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22407,28 +22451,40 @@ interface AnimationList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLAppletElement
 interface AppletElement extends Element {
 
+  /** @domName HTMLAppletElement.align */
   String align;
 
+  /** @domName HTMLAppletElement.alt */
   String alt;
 
+  /** @domName HTMLAppletElement.archive */
   String archive;
 
+  /** @domName HTMLAppletElement.code */
   String code;
 
+  /** @domName HTMLAppletElement.codeBase */
   String codeBase;
 
+  /** @domName HTMLAppletElement.height */
   String height;
 
+  /** @domName HTMLAppletElement.hspace */
   String hspace;
 
+  /** @domName HTMLAppletElement.name */
   String name;
 
+  /** @domName HTMLAppletElement.object */
   String object;
 
+  /** @domName HTMLAppletElement.vspace */
   String vspace;
 
+  /** @domName HTMLAppletElement.width */
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22437,34 +22493,49 @@ interface AppletElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLAreaElement
 interface AreaElement extends Element {
 
+  /** @domName HTMLAreaElement.alt */
   String alt;
 
+  /** @domName HTMLAreaElement.coords */
   String coords;
 
+  /** @domName HTMLAreaElement.hash */
   final String hash;
 
+  /** @domName HTMLAreaElement.host */
   final String host;
 
+  /** @domName HTMLAreaElement.hostname */
   final String hostname;
 
+  /** @domName HTMLAreaElement.href */
   String href;
 
+  /** @domName HTMLAreaElement.noHref */
   bool noHref;
 
+  /** @domName HTMLAreaElement.pathname */
   final String pathname;
 
+  /** @domName HTMLAreaElement.ping */
   String ping;
 
+  /** @domName HTMLAreaElement.port */
   final String port;
 
+  /** @domName HTMLAreaElement.protocol */
   final String protocol;
 
+  /** @domName HTMLAreaElement.search */
   final String search;
 
+  /** @domName HTMLAreaElement.shape */
   String shape;
 
+  /** @domName HTMLAreaElement.target */
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22473,10 +22544,13 @@ interface AreaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ArrayBuffer
 interface ArrayBuffer {
 
+  /** @domName ArrayBuffer.byteLength */
   final int byteLength;
 
+  /** @domName ArrayBuffer.slice */
   ArrayBuffer slice(int begin, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22485,12 +22559,16 @@ interface ArrayBuffer {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ArrayBufferView
 interface ArrayBufferView {
 
+  /** @domName ArrayBufferView.buffer */
   final ArrayBuffer buffer;
 
+  /** @domName ArrayBufferView.byteLength */
   final int byteLength;
 
+  /** @domName ArrayBufferView.byteOffset */
   final int byteOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22499,16 +22577,22 @@ interface ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Attr
 interface Attr extends Node {
 
+  /** @domName Attr.isId */
   final bool isId;
 
+  /** @domName Attr.name */
   final String name;
 
+  /** @domName Attr.ownerElement */
   final Element ownerElement;
 
+  /** @domName Attr.specified */
   final bool specified;
 
+  /** @domName Attr.value */
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22517,18 +22601,25 @@ interface Attr extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioBuffer
 interface AudioBuffer {
 
+  /** @domName AudioBuffer.duration */
   final num duration;
 
+  /** @domName AudioBuffer.gain */
   num gain;
 
+  /** @domName AudioBuffer.length */
   final int length;
 
+  /** @domName AudioBuffer.numberOfChannels */
   final int numberOfChannels;
 
+  /** @domName AudioBuffer.sampleRate */
   final num sampleRate;
 
+  /** @domName AudioBuffer.getChannelData */
   Float32Array getChannelData(int channelIndex);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -22544,6 +22635,7 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioBufferSourceNode
 interface AudioBufferSourceNode extends AudioSourceNode {
 
   static final int FINISHED_STATE = 3;
@@ -22554,22 +22646,31 @@ interface AudioBufferSourceNode extends AudioSourceNode {
 
   static final int UNSCHEDULED_STATE = 0;
 
+  /** @domName AudioBufferSourceNode.buffer */
   AudioBuffer buffer;
 
+  /** @domName AudioBufferSourceNode.gain */
   final AudioGain gain;
 
+  /** @domName AudioBufferSourceNode.loop */
   bool loop;
 
+  /** @domName AudioBufferSourceNode.looping */
   bool looping;
 
+  /** @domName AudioBufferSourceNode.playbackRate */
   final AudioParam playbackRate;
 
+  /** @domName AudioBufferSourceNode.playbackState */
   final int playbackState;
 
+  /** @domName AudioBufferSourceNode.noteGrainOn */
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 
+  /** @domName AudioBufferSourceNode.noteOff */
   void noteOff(num when);
 
+  /** @domName AudioBufferSourceNode.noteOn */
   void noteOn(num when);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22578,6 +22679,7 @@ interface AudioBufferSourceNode extends AudioSourceNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioChannelMerger
 interface AudioChannelMerger extends AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22586,6 +22688,7 @@ interface AudioChannelMerger extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioChannelSplitter
 interface AudioChannelSplitter extends AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22594,54 +22697,79 @@ interface AudioChannelSplitter extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioContext
 interface AudioContext {
 
+  /** @domName AudioContext.activeSourceCount */
   final int activeSourceCount;
 
+  /** @domName AudioContext.currentTime */
   final num currentTime;
 
+  /** @domName AudioContext.destination */
   final AudioDestinationNode destination;
 
+  /** @domName AudioContext.listener */
   final AudioListener listener;
 
+  /** @domName AudioContext.oncomplete */
   EventListener oncomplete;
 
+  /** @domName AudioContext.sampleRate */
   final num sampleRate;
 
+  /** @domName AudioContext.createAnalyser */
   RealtimeAnalyserNode createAnalyser();
 
+  /** @domName AudioContext.createBiquadFilter */
   BiquadFilterNode createBiquadFilter();
 
+  /** @domName AudioContext.createBuffer */
   AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate]);
 
+  /** @domName AudioContext.createBufferSource */
   AudioBufferSourceNode createBufferSource();
 
+  /** @domName AudioContext.createChannelMerger */
   AudioChannelMerger createChannelMerger();
 
+  /** @domName AudioContext.createChannelSplitter */
   AudioChannelSplitter createChannelSplitter();
 
+  /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
 
+  /** @domName AudioContext.createDelayNode */
   DelayNode createDelayNode([num maxDelayTime]);
 
+  /** @domName AudioContext.createDynamicsCompressor */
   DynamicsCompressorNode createDynamicsCompressor();
 
+  /** @domName AudioContext.createGainNode */
   AudioGainNode createGainNode();
 
+  /** @domName AudioContext.createJavaScriptNode */
   JavaScriptAudioNode createJavaScriptNode(int bufferSize);
 
+  /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
 
+  /** @domName AudioContext.createOscillator */
   Oscillator createOscillator();
 
+  /** @domName AudioContext.createPanner */
   AudioPannerNode createPanner();
 
+  /** @domName AudioContext.createWaveShaper */
   WaveShaperNode createWaveShaper();
 
+  /** @domName AudioContext.createWaveTable */
   WaveTable createWaveTable(Float32Array real, Float32Array imag);
 
+  /** @domName AudioContext.decodeAudioData */
   void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
 
+  /** @domName AudioContext.startRendering */
   void startRendering();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22650,8 +22778,10 @@ interface AudioContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioDestinationNode
 interface AudioDestinationNode extends AudioNode {
 
+  /** @domName AudioDestinationNode.numberOfChannels */
   final int numberOfChannels;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22660,6 +22790,7 @@ interface AudioDestinationNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLAudioElement
 interface AudioElement extends MediaElement default _AudioElementFactoryProvider {
 
   AudioElement([String src]);
@@ -22670,6 +22801,7 @@ interface AudioElement extends MediaElement default _AudioElementFactoryProvider
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioGain
 interface AudioGain extends AudioParam {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22678,8 +22810,10 @@ interface AudioGain extends AudioParam {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioGainNode
 interface AudioGainNode extends AudioNode {
 
+  /** @domName AudioGainNode.gain */
   final AudioGain gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22688,16 +22822,22 @@ interface AudioGainNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioListener
 interface AudioListener {
 
+  /** @domName AudioListener.dopplerFactor */
   num dopplerFactor;
 
+  /** @domName AudioListener.speedOfSound */
   num speedOfSound;
 
+  /** @domName AudioListener.setOrientation */
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp);
 
+  /** @domName AudioListener.setPosition */
   void setPosition(num x, num y, num z);
 
+  /** @domName AudioListener.setVelocity */
   void setVelocity(num x, num y, num z);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22706,16 +22846,22 @@ interface AudioListener {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioNode
 interface AudioNode {
 
+  /** @domName AudioNode.context */
   final AudioContext context;
 
+  /** @domName AudioNode.numberOfInputs */
   final int numberOfInputs;
 
+  /** @domName AudioNode.numberOfOutputs */
   final int numberOfOutputs;
 
+  /** @domName AudioNode.connect */
   void connect(AudioNode destination, int output, int input);
 
+  /** @domName AudioNode.disconnect */
   void disconnect(int output);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22724,6 +22870,7 @@ interface AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioPannerNode
 interface AudioPannerNode extends AudioNode {
 
   static final int EQUALPOWER = 0;
@@ -22738,30 +22885,43 @@ interface AudioPannerNode extends AudioNode {
 
   static final int SOUNDFIELD = 2;
 
+  /** @domName AudioPannerNode.coneGain */
   final AudioGain coneGain;
 
+  /** @domName AudioPannerNode.coneInnerAngle */
   num coneInnerAngle;
 
+  /** @domName AudioPannerNode.coneOuterAngle */
   num coneOuterAngle;
 
+  /** @domName AudioPannerNode.coneOuterGain */
   num coneOuterGain;
 
+  /** @domName AudioPannerNode.distanceGain */
   final AudioGain distanceGain;
 
+  /** @domName AudioPannerNode.distanceModel */
   int distanceModel;
 
+  /** @domName AudioPannerNode.maxDistance */
   num maxDistance;
 
+  /** @domName AudioPannerNode.panningModel */
   int panningModel;
 
+  /** @domName AudioPannerNode.refDistance */
   num refDistance;
 
+  /** @domName AudioPannerNode.rolloffFactor */
   num rolloffFactor;
 
+  /** @domName AudioPannerNode.setOrientation */
   void setOrientation(num x, num y, num z);
 
+  /** @domName AudioPannerNode.setPosition */
   void setPosition(num x, num y, num z);
 
+  /** @domName AudioPannerNode.setVelocity */
   void setVelocity(num x, num y, num z);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22770,30 +22930,43 @@ interface AudioPannerNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioParam
 interface AudioParam {
 
+  /** @domName AudioParam.defaultValue */
   final num defaultValue;
 
+  /** @domName AudioParam.maxValue */
   final num maxValue;
 
+  /** @domName AudioParam.minValue */
   final num minValue;
 
+  /** @domName AudioParam.name */
   final String name;
 
+  /** @domName AudioParam.units */
   final int units;
 
+  /** @domName AudioParam.value */
   num value;
 
+  /** @domName AudioParam.cancelScheduledValues */
   void cancelScheduledValues(num startTime);
 
+  /** @domName AudioParam.exponentialRampToValueAtTime */
   void exponentialRampToValueAtTime(num value, num time);
 
+  /** @domName AudioParam.linearRampToValueAtTime */
   void linearRampToValueAtTime(num value, num time);
 
+  /** @domName AudioParam.setTargetValueAtTime */
   void setTargetValueAtTime(num targetValue, num time, num timeConstant);
 
+  /** @domName AudioParam.setValueAtTime */
   void setValueAtTime(num value, num time);
 
+  /** @domName AudioParam.setValueCurveAtTime */
   void setValueCurveAtTime(Float32Array values, num time, num duration);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22802,10 +22975,13 @@ interface AudioParam {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioProcessingEvent
 interface AudioProcessingEvent extends Event {
 
+  /** @domName AudioProcessingEvent.inputBuffer */
   final AudioBuffer inputBuffer;
 
+  /** @domName AudioProcessingEvent.outputBuffer */
   final AudioBuffer outputBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22814,6 +22990,7 @@ interface AudioProcessingEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName AudioSourceNode
 interface AudioSourceNode extends AudioNode {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22822,8 +22999,10 @@ interface AudioSourceNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLBRElement
 interface BRElement extends Element {
 
+  /** @domName HTMLBRElement.clear */
   String clear;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22832,8 +23011,10 @@ interface BRElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName BarInfo
 interface BarInfo {
 
+  /** @domName BarInfo.visible */
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22842,10 +23023,13 @@ interface BarInfo {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLBaseElement
 interface BaseElement extends Element {
 
+  /** @domName HTMLBaseElement.href */
   String href;
 
+  /** @domName HTMLBaseElement.target */
   String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22854,12 +23038,16 @@ interface BaseElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLBaseFontElement
 interface BaseFontElement extends Element {
 
+  /** @domName HTMLBaseFontElement.color */
   String color;
 
+  /** @domName HTMLBaseFontElement.face */
   String face;
 
+  /** @domName HTMLBaseFontElement.size */
   int size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22868,8 +23056,10 @@ interface BaseFontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName BeforeLoadEvent
 interface BeforeLoadEvent extends Event {
 
+  /** @domName BeforeLoadEvent.url */
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22878,6 +23068,7 @@ interface BeforeLoadEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName BiquadFilterNode
 interface BiquadFilterNode extends AudioNode {
 
   static final int ALLPASS = 7;
@@ -22896,14 +23087,19 @@ interface BiquadFilterNode extends AudioNode {
 
   static final int PEAKING = 5;
 
+  /** @domName BiquadFilterNode.Q */
   final AudioParam Q;
 
+  /** @domName BiquadFilterNode.frequency */
   final AudioParam frequency;
 
+  /** @domName BiquadFilterNode.gain */
   final AudioParam gain;
 
+  /** @domName BiquadFilterNode.type */
   int type;
 
+  /** @domName BiquadFilterNode.getFrequencyResponse */
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22912,12 +23108,16 @@ interface BiquadFilterNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Blob
 interface Blob {
 
+  /** @domName Blob.size */
   final int size;
 
+  /** @domName Blob.type */
   final String type;
 
+  /** @domName Blob.webkitSlice */
   Blob webkitSlice([int start, int end, String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22926,12 +23126,15 @@ interface Blob {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitBlobBuilder
 interface BlobBuilder default _BlobBuilderFactoryProvider {
 
   BlobBuilder();
 
+  /** @domName WebKitBlobBuilder.append */
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 
+  /** @domName WebKitBlobBuilder.getBlob */
   Blob getBlob([String contentType]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22940,18 +23143,27 @@ interface BlobBuilder default _BlobBuilderFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLBodyElement
 interface BodyElement extends Element {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   BodyElementEvents get on();
 
+  /** @domName HTMLBodyElement.aLink */
   String aLink;
 
+  /** @domName HTMLBodyElement.background */
   String background;
 
+  /** @domName HTMLBodyElement.bgColor */
   String bgColor;
 
+  /** @domName HTMLBodyElement.link */
   String link;
 
+  /** @domName HTMLBodyElement.vLink */
   String vLink;
 }
 
@@ -22989,40 +23201,58 @@ interface BodyElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLButtonElement
 interface ButtonElement extends Element {
 
+  /** @domName HTMLButtonElement.autofocus */
   bool autofocus;
 
+  /** @domName HTMLButtonElement.disabled */
   bool disabled;
 
+  /** @domName HTMLButtonElement.form */
   final FormElement form;
 
+  /** @domName HTMLButtonElement.formAction */
   String formAction;
 
+  /** @domName HTMLButtonElement.formEnctype */
   String formEnctype;
 
+  /** @domName HTMLButtonElement.formMethod */
   String formMethod;
 
+  /** @domName HTMLButtonElement.formNoValidate */
   bool formNoValidate;
 
+  /** @domName HTMLButtonElement.formTarget */
   String formTarget;
 
+  /** @domName HTMLButtonElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLButtonElement.name */
   String name;
 
+  /** @domName HTMLButtonElement.type */
   final String type;
 
+  /** @domName HTMLButtonElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLButtonElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLButtonElement.value */
   String value;
 
+  /** @domName HTMLButtonElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLButtonElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLButtonElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23031,6 +23261,7 @@ interface ButtonElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CDATASection
 interface CDATASection extends Text {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23039,8 +23270,10 @@ interface CDATASection extends Text {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSCharsetRule
 interface CSSCharsetRule extends CSSRule {
 
+  /** @domName CSSCharsetRule.encoding */
   String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23049,8 +23282,10 @@ interface CSSCharsetRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSFontFaceRule
 interface CSSFontFaceRule extends CSSRule {
 
+  /** @domName CSSFontFaceRule.style */
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23059,12 +23294,16 @@ interface CSSFontFaceRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSImportRule
 interface CSSImportRule extends CSSRule {
 
+  /** @domName CSSImportRule.href */
   final String href;
 
+  /** @domName CSSImportRule.media */
   final MediaList media;
 
+  /** @domName CSSImportRule.styleSheet */
   final CSSStyleSheet styleSheet;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23073,10 +23312,13 @@ interface CSSImportRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitCSSKeyframeRule
 interface CSSKeyframeRule extends CSSRule {
 
+  /** @domName WebKitCSSKeyframeRule.keyText */
   String keyText;
 
+  /** @domName WebKitCSSKeyframeRule.style */
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23085,16 +23327,22 @@ interface CSSKeyframeRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitCSSKeyframesRule
 interface CSSKeyframesRule extends CSSRule {
 
+  /** @domName WebKitCSSKeyframesRule.cssRules */
   final CSSRuleList cssRules;
 
+  /** @domName WebKitCSSKeyframesRule.name */
   String name;
 
+  /** @domName WebKitCSSKeyframesRule.deleteRule */
   void deleteRule(String key);
 
+  /** @domName WebKitCSSKeyframesRule.findRule */
   CSSKeyframeRule findRule(String key);
 
+  /** @domName WebKitCSSKeyframesRule.insertRule */
   void insertRule(String rule);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23103,72 +23351,105 @@ interface CSSKeyframesRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitCSSMatrix
 interface CSSMatrix default _CSSMatrixFactoryProvider {
 
   CSSMatrix([String cssValue]);
 
+  /** @domName WebKitCSSMatrix.a */
   num a;
 
+  /** @domName WebKitCSSMatrix.b */
   num b;
 
+  /** @domName WebKitCSSMatrix.c */
   num c;
 
+  /** @domName WebKitCSSMatrix.d */
   num d;
 
+  /** @domName WebKitCSSMatrix.e */
   num e;
 
+  /** @domName WebKitCSSMatrix.f */
   num f;
 
+  /** @domName WebKitCSSMatrix.m11 */
   num m11;
 
+  /** @domName WebKitCSSMatrix.m12 */
   num m12;
 
+  /** @domName WebKitCSSMatrix.m13 */
   num m13;
 
+  /** @domName WebKitCSSMatrix.m14 */
   num m14;
 
+  /** @domName WebKitCSSMatrix.m21 */
   num m21;
 
+  /** @domName WebKitCSSMatrix.m22 */
   num m22;
 
+  /** @domName WebKitCSSMatrix.m23 */
   num m23;
 
+  /** @domName WebKitCSSMatrix.m24 */
   num m24;
 
+  /** @domName WebKitCSSMatrix.m31 */
   num m31;
 
+  /** @domName WebKitCSSMatrix.m32 */
   num m32;
 
+  /** @domName WebKitCSSMatrix.m33 */
   num m33;
 
+  /** @domName WebKitCSSMatrix.m34 */
   num m34;
 
+  /** @domName WebKitCSSMatrix.m41 */
   num m41;
 
+  /** @domName WebKitCSSMatrix.m42 */
   num m42;
 
+  /** @domName WebKitCSSMatrix.m43 */
   num m43;
 
+  /** @domName WebKitCSSMatrix.m44 */
   num m44;
 
+  /** @domName WebKitCSSMatrix.inverse */
   CSSMatrix inverse();
 
+  /** @domName WebKitCSSMatrix.multiply */
   CSSMatrix multiply(CSSMatrix secondMatrix);
 
+  /** @domName WebKitCSSMatrix.rotate */
   CSSMatrix rotate(num rotX, num rotY, num rotZ);
 
+  /** @domName WebKitCSSMatrix.rotateAxisAngle */
   CSSMatrix rotateAxisAngle(num x, num y, num z, num angle);
 
+  /** @domName WebKitCSSMatrix.scale */
   CSSMatrix scale(num scaleX, num scaleY, num scaleZ);
 
+  /** @domName WebKitCSSMatrix.setMatrixValue */
   void setMatrixValue(String string);
 
+  /** @domName WebKitCSSMatrix.skewX */
   CSSMatrix skewX(num angle);
 
+  /** @domName WebKitCSSMatrix.skewY */
   CSSMatrix skewY(num angle);
 
+  /** @domName WebKitCSSMatrix.toString */
   String toString();
 
+  /** @domName WebKitCSSMatrix.translate */
   CSSMatrix translate(num x, num y, num z);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23177,14 +23458,19 @@ interface CSSMatrix default _CSSMatrixFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSMediaRule
 interface CSSMediaRule extends CSSRule {
 
+  /** @domName CSSMediaRule.cssRules */
   final CSSRuleList cssRules;
 
+  /** @domName CSSMediaRule.media */
   final MediaList media;
 
+  /** @domName CSSMediaRule.deleteRule */
   void deleteRule(int index);
 
+  /** @domName CSSMediaRule.insertRule */
   int insertRule(String rule, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23193,10 +23479,13 @@ interface CSSMediaRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSPageRule
 interface CSSPageRule extends CSSRule {
 
+  /** @domName CSSPageRule.selectorText */
   String selectorText;
 
+  /** @domName CSSPageRule.style */
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23205,6 +23494,7 @@ interface CSSPageRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSPrimitiveValue
 interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_ATTR = 22;
@@ -23265,20 +23555,28 @@ interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_VW = 26;
 
+  /** @domName CSSPrimitiveValue.primitiveType */
   final int primitiveType;
 
+  /** @domName CSSPrimitiveValue.getCounterValue */
   Counter getCounterValue();
 
+  /** @domName CSSPrimitiveValue.getFloatValue */
   num getFloatValue(int unitType);
 
+  /** @domName CSSPrimitiveValue.getRGBColorValue */
   RGBColor getRGBColorValue();
 
+  /** @domName CSSPrimitiveValue.getRectValue */
   Rect getRectValue();
 
+  /** @domName CSSPrimitiveValue.getStringValue */
   String getStringValue();
 
+  /** @domName CSSPrimitiveValue.setFloatValue */
   void setFloatValue(int unitType, num floatValue);
 
+  /** @domName CSSPrimitiveValue.setStringValue */
   void setStringValue(int stringType, String stringValue);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23287,6 +23585,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSRule
 interface CSSRule {
 
   static final int CHARSET_RULE = 2;
@@ -23309,12 +23608,16 @@ interface CSSRule {
 
   static final int WEBKIT_REGION_RULE = 10;
 
+  /** @domName CSSRule.cssText */
   String cssText;
 
+  /** @domName CSSRule.parentRule */
   final CSSRule parentRule;
 
+  /** @domName CSSRule.parentStyleSheet */
   final CSSStyleSheet parentStyleSheet;
 
+  /** @domName CSSRule.type */
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23323,10 +23626,13 @@ interface CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSRuleList
 interface CSSRuleList {
 
+  /** @domName CSSRuleList.length */
   final int length;
 
+  /** @domName CSSRuleList.item */
   CSSRule item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23335,31 +23641,43 @@ interface CSSRuleList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSStyleDeclaration
 interface CSSStyleDeclaration default _CSSStyleDeclarationFactoryProvider {
   CSSStyleDeclaration();
   CSSStyleDeclaration.css(String css);
 
 
+  /** @domName CSSStyleDeclaration.cssText */
   String cssText;
 
+  /** @domName CSSStyleDeclaration.length */
   final int length;
 
+  /** @domName CSSStyleDeclaration.parentRule */
   final CSSRule parentRule;
 
+  /** @domName CSSStyleDeclaration.getPropertyCSSValue */
   CSSValue getPropertyCSSValue(String propertyName);
 
+  /** @domName CSSStyleDeclaration.getPropertyPriority */
   String getPropertyPriority(String propertyName);
 
+  /** @domName CSSStyleDeclaration.getPropertyShorthand */
   String getPropertyShorthand(String propertyName);
 
+  /** @domName CSSStyleDeclaration.getPropertyValue */
   String getPropertyValue(String propertyName);
 
+  /** @domName CSSStyleDeclaration.isPropertyImplicit */
   bool isPropertyImplicit(String propertyName);
 
+  /** @domName CSSStyleDeclaration.item */
   String item(int index);
 
+  /** @domName CSSStyleDeclaration.removeProperty */
   String removeProperty(String propertyName);
 
+  /** @domName CSSStyleDeclaration.setProperty */
   void setProperty(String propertyName, String value, [String priority]);
 
 
@@ -25211,10 +25529,13 @@ interface CSSStyleDeclaration default _CSSStyleDeclarationFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSStyleRule
 interface CSSStyleRule extends CSSRule {
 
+  /** @domName CSSStyleRule.selectorText */
   String selectorText;
 
+  /** @domName CSSStyleRule.style */
   final CSSStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25223,20 +25544,28 @@ interface CSSStyleRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSStyleSheet
 interface CSSStyleSheet extends StyleSheet {
 
+  /** @domName CSSStyleSheet.cssRules */
   final CSSRuleList cssRules;
 
+  /** @domName CSSStyleSheet.ownerRule */
   final CSSRule ownerRule;
 
+  /** @domName CSSStyleSheet.rules */
   final CSSRuleList rules;
 
+  /** @domName CSSStyleSheet.addRule */
   int addRule(String selector, String style, [int index]);
 
+  /** @domName CSSStyleSheet.deleteRule */
   void deleteRule(int index);
 
+  /** @domName CSSStyleSheet.insertRule */
   int insertRule(String rule, int index);
 
+  /** @domName CSSStyleSheet.removeRule */
   void removeRule(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25245,6 +25574,7 @@ interface CSSStyleSheet extends StyleSheet {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitCSSTransformValue
 interface CSSTransformValue extends CSSValueList {
 
   static final int CSS_MATRIX = 11;
@@ -25289,6 +25619,7 @@ interface CSSTransformValue extends CSSValueList {
 
   static final int CSS_TRANSLATEZ = 12;
 
+  /** @domName WebKitCSSTransformValue.operationType */
   final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25297,6 +25628,7 @@ interface CSSTransformValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSUnknownRule
 interface CSSUnknownRule extends CSSRule {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25305,6 +25637,7 @@ interface CSSUnknownRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSValue
 interface CSSValue {
 
   static final int CSS_CUSTOM = 3;
@@ -25315,8 +25648,10 @@ interface CSSValue {
 
   static final int CSS_VALUE_LIST = 2;
 
+  /** @domName CSSValue.cssText */
   String cssText;
 
+  /** @domName CSSValue.cssValueType */
   final int cssValueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25325,10 +25660,13 @@ interface CSSValue {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CSSValueList
 interface CSSValueList extends CSSValue {
 
+  /** @domName CSSValueList.length */
   final int length;
 
+  /** @domName CSSValueList.item */
   CSSValue item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25337,14 +25675,19 @@ interface CSSValueList extends CSSValue {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLCanvasElement
 interface CanvasElement extends Element {
 
+  /** @domName HTMLCanvasElement.height */
   int height;
 
+  /** @domName HTMLCanvasElement.width */
   int width;
 
+  /** @domName HTMLCanvasElement.getContext */
   Object getContext(String contextId);
 
+  /** @domName HTMLCanvasElement.toDataURL */
   String toDataURL(String type);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25353,8 +25696,10 @@ interface CanvasElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CanvasGradient
 interface CanvasGradient {
 
+  /** @domName CanvasGradient.addColorStop */
   void addColorStop(num offset, String color);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25363,6 +25708,7 @@ interface CanvasGradient {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CanvasPattern
 interface CanvasPattern {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25371,8 +25717,10 @@ interface CanvasPattern {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CanvasPixelArray
 interface CanvasPixelArray extends List<int> {
 
+  /** @domName CanvasPixelArray.length */
   final int length;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25381,8 +25729,10 @@ interface CanvasPixelArray extends List<int> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CanvasRenderingContext
 interface CanvasRenderingContext {
 
+  /** @domName CanvasRenderingContext.canvas */
   final CanvasElement canvas;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25391,128 +25741,190 @@ interface CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CanvasRenderingContext2D
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
+  /** @domName CanvasRenderingContext2D.fillStyle */
   Dynamic fillStyle;
 
+  /** @domName CanvasRenderingContext2D.font */
   String font;
 
+  /** @domName CanvasRenderingContext2D.globalAlpha */
   num globalAlpha;
 
+  /** @domName CanvasRenderingContext2D.globalCompositeOperation */
   String globalCompositeOperation;
 
+  /** @domName CanvasRenderingContext2D.lineCap */
   String lineCap;
 
+  /** @domName CanvasRenderingContext2D.lineJoin */
   String lineJoin;
 
+  /** @domName CanvasRenderingContext2D.lineWidth */
   num lineWidth;
 
+  /** @domName CanvasRenderingContext2D.miterLimit */
   num miterLimit;
 
+  /** @domName CanvasRenderingContext2D.shadowBlur */
   num shadowBlur;
 
+  /** @domName CanvasRenderingContext2D.shadowColor */
   String shadowColor;
 
+  /** @domName CanvasRenderingContext2D.shadowOffsetX */
   num shadowOffsetX;
 
+  /** @domName CanvasRenderingContext2D.shadowOffsetY */
   num shadowOffsetY;
 
+  /** @domName CanvasRenderingContext2D.strokeStyle */
   Dynamic strokeStyle;
 
+  /** @domName CanvasRenderingContext2D.textAlign */
   String textAlign;
 
+  /** @domName CanvasRenderingContext2D.textBaseline */
   String textBaseline;
 
+  /** @domName CanvasRenderingContext2D.webkitLineDash */
   List webkitLineDash;
 
+  /** @domName CanvasRenderingContext2D.webkitLineDashOffset */
   num webkitLineDashOffset;
 
+  /** @domName CanvasRenderingContext2D.arc */
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
 
+  /** @domName CanvasRenderingContext2D.arcTo */
   void arcTo(num x1, num y1, num x2, num y2, num radius);
 
+  /** @domName CanvasRenderingContext2D.beginPath */
   void beginPath();
 
+  /** @domName CanvasRenderingContext2D.bezierCurveTo */
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y);
 
+  /** @domName CanvasRenderingContext2D.clearRect */
   void clearRect(num x, num y, num width, num height);
 
+  /** @domName CanvasRenderingContext2D.clearShadow */
   void clearShadow();
 
+  /** @domName CanvasRenderingContext2D.clip */
   void clip();
 
+  /** @domName CanvasRenderingContext2D.closePath */
   void closePath();
 
+  /** @domName CanvasRenderingContext2D.createImageData */
   ImageData createImageData(var imagedata_OR_sw, [num sh]);
 
+  /** @domName CanvasRenderingContext2D.createLinearGradient */
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
 
+  /** @domName CanvasRenderingContext2D.createPattern */
   CanvasPattern createPattern(var canvas_OR_image, String repetitionType);
 
+  /** @domName CanvasRenderingContext2D.createRadialGradient */
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
+  /** @domName CanvasRenderingContext2D.drawImage */
   void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
+  /** @domName CanvasRenderingContext2D.drawImageFromRect */
   void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
 
+  /** @domName CanvasRenderingContext2D.fill */
   void fill();
 
+  /** @domName CanvasRenderingContext2D.fillRect */
   void fillRect(num x, num y, num width, num height);
 
+  /** @domName CanvasRenderingContext2D.fillText */
   void fillText(String text, num x, num y, [num maxWidth]);
 
+  /** @domName CanvasRenderingContext2D.getImageData */
   ImageData getImageData(num sx, num sy, num sw, num sh);
 
+  /** @domName CanvasRenderingContext2D.isPointInPath */
   bool isPointInPath(num x, num y);
 
+  /** @domName CanvasRenderingContext2D.lineTo */
   void lineTo(num x, num y);
 
+  /** @domName CanvasRenderingContext2D.measureText */
   TextMetrics measureText(String text);
 
+  /** @domName CanvasRenderingContext2D.moveTo */
   void moveTo(num x, num y);
 
+  /** @domName CanvasRenderingContext2D.putImageData */
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 
+  /** @domName CanvasRenderingContext2D.quadraticCurveTo */
   void quadraticCurveTo(num cpx, num cpy, num x, num y);
 
+  /** @domName CanvasRenderingContext2D.rect */
   void rect(num x, num y, num width, num height);
 
+  /** @domName CanvasRenderingContext2D.restore */
   void restore();
 
+  /** @domName CanvasRenderingContext2D.rotate */
   void rotate(num angle);
 
+  /** @domName CanvasRenderingContext2D.save */
   void save();
 
+  /** @domName CanvasRenderingContext2D.scale */
   void scale(num sx, num sy);
 
+  /** @domName CanvasRenderingContext2D.setAlpha */
   void setAlpha(num alpha);
 
+  /** @domName CanvasRenderingContext2D.setCompositeOperation */
   void setCompositeOperation(String compositeOperation);
 
+  /** @domName CanvasRenderingContext2D.setFillColor */
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
+  /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
 
+  /** @domName CanvasRenderingContext2D.setLineJoin */
   void setLineJoin(String join);
 
+  /** @domName CanvasRenderingContext2D.setLineWidth */
   void setLineWidth(num width);
 
+  /** @domName CanvasRenderingContext2D.setMiterLimit */
   void setMiterLimit(num limit);
 
+  /** @domName CanvasRenderingContext2D.setShadow */
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
+  /** @domName CanvasRenderingContext2D.setStrokeColor */
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
+  /** @domName CanvasRenderingContext2D.setTransform */
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
 
+  /** @domName CanvasRenderingContext2D.stroke */
   void stroke();
 
+  /** @domName CanvasRenderingContext2D.strokeRect */
   void strokeRect(num x, num y, num width, num height, [num lineWidth]);
 
+  /** @domName CanvasRenderingContext2D.strokeText */
   void strokeText(String text, num x, num y, [num maxWidth]);
 
+  /** @domName CanvasRenderingContext2D.transform */
   void transform(num m11, num m12, num m21, num m22, num dx, num dy);
 
+  /** @domName CanvasRenderingContext2D.translate */
   void translate(num tx, num ty);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25521,20 +25933,28 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CharacterData
 interface CharacterData extends Node {
 
+  /** @domName CharacterData.data */
   String data;
 
+  /** @domName CharacterData.length */
   final int length;
 
+  /** @domName CharacterData.appendData */
   void appendData(String data);
 
+  /** @domName CharacterData.deleteData */
   void deleteData(int offset, int length);
 
+  /** @domName CharacterData.insertData */
   void insertData(int offset, String data);
 
+  /** @domName CharacterData.replaceData */
   void replaceData(int offset, int length, String data);
 
+  /** @domName CharacterData.substringData */
   String substringData(int offset, int length);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25543,18 +25963,25 @@ interface CharacterData extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ClientRect
 interface ClientRect {
 
+  /** @domName ClientRect.bottom */
   final num bottom;
 
+  /** @domName ClientRect.height */
   final num height;
 
+  /** @domName ClientRect.left */
   final num left;
 
+  /** @domName ClientRect.right */
   final num right;
 
+  /** @domName ClientRect.top */
   final num top;
 
+  /** @domName ClientRect.width */
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25563,10 +25990,13 @@ interface ClientRect {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ClientRectList
 interface ClientRectList {
 
+  /** @domName ClientRectList.length */
   final int length;
 
+  /** @domName ClientRectList.item */
   ClientRect item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25575,24 +26005,34 @@ interface ClientRectList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Clipboard
 interface Clipboard {
 
+  /** @domName Clipboard.dropEffect */
   String dropEffect;
 
+  /** @domName Clipboard.effectAllowed */
   String effectAllowed;
 
+  /** @domName Clipboard.files */
   final FileList files;
 
+  /** @domName Clipboard.items */
   final DataTransferItemList items;
 
+  /** @domName Clipboard.types */
   final List types;
 
+  /** @domName Clipboard.clearData */
   void clearData([String type]);
 
+  /** @domName Clipboard.getData */
   String getData(String type);
 
+  /** @domName Clipboard.setData */
   bool setData(String type, String data);
 
+  /** @domName Clipboard.setDragImage */
   void setDragImage(ImageElement image, int x, int y);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25601,12 +26041,16 @@ interface Clipboard {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CloseEvent
 interface CloseEvent extends Event {
 
+  /** @domName CloseEvent.code */
   final int code;
 
+  /** @domName CloseEvent.reason */
   final String reason;
 
+  /** @domName CloseEvent.wasClean */
   final bool wasClean;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25615,6 +26059,7 @@ interface CloseEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Comment
 interface Comment extends CharacterData {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25623,10 +26068,13 @@ interface Comment extends CharacterData {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CompositionEvent
 interface CompositionEvent extends UIEvent {
 
+  /** @domName CompositionEvent.data */
   final String data;
 
+  /** @domName CompositionEvent.initCompositionEvent */
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25635,48 +26083,70 @@ interface CompositionEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Console
 interface Console {
 
+  /** @domName Console.memory */
   final MemoryInfo memory;
 
+  /** @domName Console.profiles */
   final List<ScriptProfile> profiles;
 
+  /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
+  /** @domName Console.count */
   void count();
 
+  /** @domName Console.debug */
   void debug(Object arg);
 
+  /** @domName Console.dir */
   void dir();
 
+  /** @domName Console.dirxml */
   void dirxml();
 
+  /** @domName Console.error */
   void error(Object arg);
 
+  /** @domName Console.group */
   void group(Object arg);
 
+  /** @domName Console.groupCollapsed */
   void groupCollapsed(Object arg);
 
+  /** @domName Console.groupEnd */
   void groupEnd();
 
+  /** @domName Console.info */
   void info(Object arg);
 
+  /** @domName Console.log */
   void log(Object arg);
 
+  /** @domName Console.markTimeline */
   void markTimeline();
 
+  /** @domName Console.profile */
   void profile(String title);
 
+  /** @domName Console.profileEnd */
   void profileEnd(String title);
 
+  /** @domName Console.time */
   void time(String title);
 
+  /** @domName Console.timeEnd */
   void timeEnd(String title, Object arg);
 
+  /** @domName Console.timeStamp */
   void timeStamp(Object arg);
 
+  /** @domName Console.trace */
   void trace(Object arg);
 
+  /** @domName Console.warn */
   void warn(Object arg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25685,8 +26155,10 @@ interface Console {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLContentElement
 interface ContentElement extends Element {
 
+  /** @domName HTMLContentElement.select */
   String select;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25695,10 +26167,13 @@ interface ContentElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ConvolverNode
 interface ConvolverNode extends AudioNode {
 
+  /** @domName ConvolverNode.buffer */
   AudioBuffer buffer;
 
+  /** @domName ConvolverNode.normalize */
   bool normalize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25707,20 +26182,28 @@ interface ConvolverNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Coordinates
 interface Coordinates {
 
+  /** @domName Coordinates.accuracy */
   final num accuracy;
 
+  /** @domName Coordinates.altitude */
   final num altitude;
 
+  /** @domName Coordinates.altitudeAccuracy */
   final num altitudeAccuracy;
 
+  /** @domName Coordinates.heading */
   final num heading;
 
+  /** @domName Coordinates.latitude */
   final num latitude;
 
+  /** @domName Coordinates.longitude */
   final num longitude;
 
+  /** @domName Coordinates.speed */
   final num speed;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25729,12 +26212,16 @@ interface Coordinates {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Counter
 interface Counter {
 
+  /** @domName Counter.identifier */
   final String identifier;
 
+  /** @domName Counter.listStyle */
   final String listStyle;
 
+  /** @domName Counter.separator */
   final String separator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25743,8 +26230,10 @@ interface Counter {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Crypto
 interface Crypto {
 
+  /** @domName Crypto.getRandomValues */
   void getRandomValues(ArrayBufferView array);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25753,10 +26242,13 @@ interface Crypto {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName CustomEvent
 interface CustomEvent extends Event {
 
+  /** @domName CustomEvent.detail */
   final Object detail;
 
+  /** @domName CustomEvent.initCustomEvent */
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25765,8 +26257,10 @@ interface CustomEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDListElement
 interface DListElement extends Element {
 
+  /** @domName HTMLDListElement.compact */
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25775,8 +26269,12 @@ interface DListElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMApplicationCache
 interface DOMApplicationCache extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   DOMApplicationCacheEvents get on();
 
   static final int CHECKING = 2;
@@ -25791,21 +26289,25 @@ interface DOMApplicationCache extends EventTarget {
 
   static final int UPDATEREADY = 4;
 
+  /** @domName DOMApplicationCache.status */
   final int status;
 
+  /** @domName DOMApplicationCache.abort */
   void abort();
 
-  /** @domName addEventListener */
+  /** @domName DOMApplicationCache.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName DOMApplicationCache.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName removeEventListener */
+  /** @domName DOMApplicationCache.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName DOMApplicationCache.swapCache */
   void swapCache();
 
+  /** @domName DOMApplicationCache.update */
   void update();
 }
 
@@ -25833,6 +26335,7 @@ interface DOMApplicationCacheEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMException
 interface DOMException {
 
   static final int ABORT_ERR = 20;
@@ -25885,12 +26388,16 @@ interface DOMException {
 
   static final int WRONG_DOCUMENT_ERR = 4;
 
+  /** @domName DOMException.code */
   final int code;
 
+  /** @domName DOMException.message */
   final String message;
 
+  /** @domName DOMException.name */
   final String name;
 
+  /** @domName DOMException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25899,10 +26406,13 @@ interface DOMException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMFileSystem
 interface DOMFileSystem {
 
+  /** @domName DOMFileSystem.name */
   final String name;
 
+  /** @domName DOMFileSystem.root */
   final DirectoryEntry root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25911,10 +26421,13 @@ interface DOMFileSystem {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMFileSystemSync
 interface DOMFileSystemSync {
 
+  /** @domName DOMFileSystemSync.name */
   final String name;
 
+  /** @domName DOMFileSystemSync.root */
   final DirectoryEntrySync root;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25923,8 +26436,10 @@ interface DOMFileSystemSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMFormData
 interface DOMFormData {
 
+  /** @domName DOMFormData.append */
   void append(String name, String value, String filename);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25933,16 +26448,22 @@ interface DOMFormData {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMImplementation
 interface DOMImplementation {
 
+  /** @domName DOMImplementation.createCSSStyleSheet */
   CSSStyleSheet createCSSStyleSheet(String title, String media);
 
+  /** @domName DOMImplementation.createDocument */
   Document createDocument(String namespaceURI, String qualifiedName, DocumentType doctype);
 
+  /** @domName DOMImplementation.createDocumentType */
   DocumentType createDocumentType(String qualifiedName, String publicId, String systemId);
 
+  /** @domName DOMImplementation.createHTMLDocument */
   Document createHTMLDocument(String title);
 
+  /** @domName DOMImplementation.hasFeature */
   bool hasFeature(String feature, String version);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25951,14 +26472,19 @@ interface DOMImplementation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMMimeType
 interface DOMMimeType {
 
+  /** @domName DOMMimeType.description */
   final String description;
 
+  /** @domName DOMMimeType.enabledPlugin */
   final DOMPlugin enabledPlugin;
 
+  /** @domName DOMMimeType.suffixes */
   final String suffixes;
 
+  /** @domName DOMMimeType.type */
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25967,12 +26493,16 @@ interface DOMMimeType {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMMimeTypeArray
 interface DOMMimeTypeArray {
 
+  /** @domName DOMMimeTypeArray.length */
   final int length;
 
+  /** @domName DOMMimeTypeArray.item */
   DOMMimeType item(int index);
 
+  /** @domName DOMMimeTypeArray.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25981,10 +26511,12 @@ interface DOMMimeTypeArray {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMParser
 interface DOMParser default _DOMParserFactoryProvider {
 
   DOMParser();
 
+  /** @domName DOMParser.parseFromString */
   Document parseFromString(String str, String contentType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25993,18 +26525,25 @@ interface DOMParser default _DOMParserFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMPlugin
 interface DOMPlugin {
 
+  /** @domName DOMPlugin.description */
   final String description;
 
+  /** @domName DOMPlugin.filename */
   final String filename;
 
+  /** @domName DOMPlugin.length */
   final int length;
 
+  /** @domName DOMPlugin.name */
   final String name;
 
+  /** @domName DOMPlugin.item */
   DOMMimeType item(int index);
 
+  /** @domName DOMPlugin.namedItem */
   DOMMimeType namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26013,14 +26552,19 @@ interface DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMPluginArray
 interface DOMPluginArray {
 
+  /** @domName DOMPluginArray.length */
   final int length;
 
+  /** @domName DOMPluginArray.item */
   DOMPlugin item(int index);
 
+  /** @domName DOMPluginArray.namedItem */
   DOMPlugin namedItem(String name);
 
+  /** @domName DOMPluginArray.refresh */
   void refresh(bool reload);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26029,58 +26573,85 @@ interface DOMPluginArray {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMSelection
 interface DOMSelection {
 
+  /** @domName DOMSelection.anchorNode */
   final Node anchorNode;
 
+  /** @domName DOMSelection.anchorOffset */
   final int anchorOffset;
 
+  /** @domName DOMSelection.baseNode */
   final Node baseNode;
 
+  /** @domName DOMSelection.baseOffset */
   final int baseOffset;
 
+  /** @domName DOMSelection.extentNode */
   final Node extentNode;
 
+  /** @domName DOMSelection.extentOffset */
   final int extentOffset;
 
+  /** @domName DOMSelection.focusNode */
   final Node focusNode;
 
+  /** @domName DOMSelection.focusOffset */
   final int focusOffset;
 
+  /** @domName DOMSelection.isCollapsed */
   final bool isCollapsed;
 
+  /** @domName DOMSelection.rangeCount */
   final int rangeCount;
 
+  /** @domName DOMSelection.type */
   final String type;
 
+  /** @domName DOMSelection.addRange */
   void addRange(Range range);
 
+  /** @domName DOMSelection.collapse */
   void collapse(Node node, int index);
 
+  /** @domName DOMSelection.collapseToEnd */
   void collapseToEnd();
 
+  /** @domName DOMSelection.collapseToStart */
   void collapseToStart();
 
+  /** @domName DOMSelection.containsNode */
   bool containsNode(Node node, bool allowPartial);
 
+  /** @domName DOMSelection.deleteFromDocument */
   void deleteFromDocument();
 
+  /** @domName DOMSelection.empty */
   void empty();
 
+  /** @domName DOMSelection.extend */
   void extend(Node node, int offset);
 
+  /** @domName DOMSelection.getRangeAt */
   Range getRangeAt(int index);
 
+  /** @domName DOMSelection.modify */
   void modify(String alter, String direction, String granularity);
 
+  /** @domName DOMSelection.removeAllRanges */
   void removeAllRanges();
 
+  /** @domName DOMSelection.selectAllChildren */
   void selectAllChildren(Node node);
 
+  /** @domName DOMSelection.setBaseAndExtent */
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
 
+  /** @domName DOMSelection.setPosition */
   void setPosition(Node node, int offset);
 
+  /** @domName DOMSelection.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26089,8 +26660,10 @@ interface DOMSelection {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMSettableTokenList
 interface DOMSettableTokenList extends DOMTokenList {
 
+  /** @domName DOMSettableTokenList.value */
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26099,20 +26672,28 @@ interface DOMSettableTokenList extends DOMTokenList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMTokenList
 interface DOMTokenList {
 
+  /** @domName DOMTokenList.length */
   final int length;
 
+  /** @domName DOMTokenList.add */
   void add(String token);
 
+  /** @domName DOMTokenList.contains */
   bool contains(String token);
 
+  /** @domName DOMTokenList.item */
   String item(int index);
 
+  /** @domName DOMTokenList.remove */
   void remove(String token);
 
+  /** @domName DOMTokenList.toString */
   String toString();
 
+  /** @domName DOMTokenList.toggle */
   bool toggle(String token);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26121,12 +26702,15 @@ interface DOMTokenList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMURL
 interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
 
+  /** @domName DOMURL.createObjectURL */
   String createObjectURL(var blob_OR_stream);
 
+  /** @domName DOMURL.revokeObjectURL */
   void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26135,16 +26719,22 @@ interface DOMURL default _DOMURLFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DataTransferItem
 interface DataTransferItem {
 
+  /** @domName DataTransferItem.kind */
   final String kind;
 
+  /** @domName DataTransferItem.type */
   final String type;
 
+  /** @domName DataTransferItem.getAsFile */
   Blob getAsFile();
 
+  /** @domName DataTransferItem.getAsString */
   void getAsString([StringCallback callback]);
 
+  /** @domName DataTransferItem.webkitGetAsEntry */
   void webkitGetAsEntry([EntryCallback callback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26153,14 +26743,19 @@ interface DataTransferItem {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DataTransferItemList
 interface DataTransferItemList {
 
+  /** @domName DataTransferItemList.length */
   final int length;
 
+  /** @domName DataTransferItemList.add */
   void add(var data_OR_file, [String type]);
 
+  /** @domName DataTransferItemList.clear */
   void clear();
 
+  /** @domName DataTransferItemList.item */
   DataTransferItem item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26169,38 +26764,55 @@ interface DataTransferItemList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DataView
 interface DataView extends ArrayBufferView {
 
+  /** @domName DataView.getFloat32 */
   num getFloat32(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getFloat64 */
   num getFloat64(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getInt16 */
   int getInt16(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getInt32 */
   int getInt32(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getInt8 */
   Object getInt8();
 
+  /** @domName DataView.getUint16 */
   int getUint16(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getUint32 */
   int getUint32(int byteOffset, [bool littleEndian]);
 
+  /** @domName DataView.getUint8 */
   Object getUint8();
 
+  /** @domName DataView.setFloat32 */
   void setFloat32(int byteOffset, num value, [bool littleEndian]);
 
+  /** @domName DataView.setFloat64 */
   void setFloat64(int byteOffset, num value, [bool littleEndian]);
 
+  /** @domName DataView.setInt16 */
   void setInt16(int byteOffset, int value, [bool littleEndian]);
 
+  /** @domName DataView.setInt32 */
   void setInt32(int byteOffset, int value, [bool littleEndian]);
 
+  /** @domName DataView.setInt8 */
   void setInt8();
 
+  /** @domName DataView.setUint16 */
   void setUint16(int byteOffset, int value, [bool littleEndian]);
 
+  /** @domName DataView.setUint32 */
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
+  /** @domName DataView.setUint8 */
   void setUint8();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26209,14 +26821,19 @@ interface DataView extends ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Database
 interface Database {
 
+  /** @domName Database.version */
   final String version;
 
+  /** @domName Database.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 
+  /** @domName Database.readTransaction */
   void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 
+  /** @domName Database.transaction */
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -26232,16 +26849,22 @@ typedef bool DatabaseCallback(var database);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DatabaseSync
 interface DatabaseSync {
 
+  /** @domName DatabaseSync.lastErrorMessage */
   final String lastErrorMessage;
 
+  /** @domName DatabaseSync.version */
   final String version;
 
+  /** @domName DatabaseSync.changeVersion */
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
 
+  /** @domName DatabaseSync.readTransaction */
   void readTransaction(SQLTransactionSyncCallback callback);
 
+  /** @domName DatabaseSync.transaction */
   void transaction(SQLTransactionSyncCallback callback);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26250,12 +26873,16 @@ interface DatabaseSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DedicatedWorkerContext
 interface DedicatedWorkerContext extends WorkerContext {
 
+  /** @domName DedicatedWorkerContext.onmessage */
   EventListener onmessage;
 
+  /** @domName DedicatedWorkerContext.postMessage */
   void postMessage(Object message, [List messagePorts]);
 
+  /** @domName DedicatedWorkerContext.webkitPostMessage */
   void webkitPostMessage(Object message, [List transferList]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26264,8 +26891,10 @@ interface DedicatedWorkerContext extends WorkerContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DelayNode
 interface DelayNode extends AudioNode {
 
+  /** @domName DelayNode.delayTime */
   final AudioParam delayTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26274,6 +26903,7 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DeprecatedPeerConnection
 interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
 
   DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
@@ -26286,38 +26916,55 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
 
   static final int NEW = 0;
 
+  /** @domName DeprecatedPeerConnection.localStreams */
   final MediaStreamList localStreams;
 
+  /** @domName DeprecatedPeerConnection.onaddstream */
   EventListener onaddstream;
 
+  /** @domName DeprecatedPeerConnection.onconnecting */
   EventListener onconnecting;
 
+  /** @domName DeprecatedPeerConnection.onmessage */
   EventListener onmessage;
 
+  /** @domName DeprecatedPeerConnection.onopen */
   EventListener onopen;
 
+  /** @domName DeprecatedPeerConnection.onremovestream */
   EventListener onremovestream;
 
+  /** @domName DeprecatedPeerConnection.onstatechange */
   EventListener onstatechange;
 
+  /** @domName DeprecatedPeerConnection.readyState */
   final int readyState;
 
+  /** @domName DeprecatedPeerConnection.remoteStreams */
   final MediaStreamList remoteStreams;
 
+  /** @domName DeprecatedPeerConnection.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName DeprecatedPeerConnection.addStream */
   void addStream(MediaStream stream);
 
+  /** @domName DeprecatedPeerConnection.close */
   void close();
 
+  /** @domName DeprecatedPeerConnection.dispatchEvent */
   bool dispatchEvent(Event event);
 
+  /** @domName DeprecatedPeerConnection.processSignalingMessage */
   void processSignalingMessage(String message);
 
+  /** @domName DeprecatedPeerConnection.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName DeprecatedPeerConnection.removeStream */
   void removeStream(MediaStream stream);
 
+  /** @domName DeprecatedPeerConnection.send */
   void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26326,8 +26973,10 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDetailsElement
 interface DetailsElement extends Element {
 
+  /** @domName HTMLDetailsElement.open */
   bool open;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26336,8 +26985,10 @@ interface DetailsElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DeviceMotionEvent
 interface DeviceMotionEvent extends Event {
 
+  /** @domName DeviceMotionEvent.interval */
   final num interval;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26346,16 +26997,22 @@ interface DeviceMotionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DeviceOrientationEvent
 interface DeviceOrientationEvent extends Event {
 
+  /** @domName DeviceOrientationEvent.absolute */
   final bool absolute;
 
+  /** @domName DeviceOrientationEvent.alpha */
   final num alpha;
 
+  /** @domName DeviceOrientationEvent.beta */
   final num beta;
 
+  /** @domName DeviceOrientationEvent.gamma */
   final num gamma;
 
+  /** @domName DeviceOrientationEvent.initDeviceOrientationEvent */
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26364,8 +27021,10 @@ interface DeviceOrientationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDirectoryElement
 interface DirectoryElement extends Element {
 
+  /** @domName HTMLDirectoryElement.compact */
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26374,14 +27033,19 @@ interface DirectoryElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DirectoryEntry
 interface DirectoryEntry extends Entry {
 
+  /** @domName DirectoryEntry.createReader */
   DirectoryReader createReader();
 
+  /** @domName DirectoryEntry.getDirectory */
   void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName DirectoryEntry.getFile */
   void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26390,14 +27054,19 @@ interface DirectoryEntry extends Entry {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DirectoryEntrySync
 interface DirectoryEntrySync extends EntrySync {
 
+  /** @domName DirectoryEntrySync.createReader */
   DirectoryReaderSync createReader();
 
+  /** @domName DirectoryEntrySync.getDirectory */
   DirectoryEntrySync getDirectory(String path, Object flags);
 
+  /** @domName DirectoryEntrySync.getFile */
   FileEntrySync getFile(String path, Object flags);
 
+  /** @domName DirectoryEntrySync.removeRecursively */
   void removeRecursively();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26406,8 +27075,10 @@ interface DirectoryEntrySync extends EntrySync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DirectoryReader
 interface DirectoryReader {
 
+  /** @domName DirectoryReader.readEntries */
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26416,8 +27087,10 @@ interface DirectoryReader {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DirectoryReaderSync
 interface DirectoryReaderSync {
 
+  /** @domName DirectoryReaderSync.readEntries */
   EntryArraySync readEntries();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26426,127 +27099,170 @@ interface DirectoryReaderSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDivElement
 interface DivElement extends Element {
 
+  /** @domName HTMLDivElement.align */
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @domName Document
 interface Document extends HtmlElement {
 
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   DocumentEvents get on();
 
+  /** @domName HTMLDocument.activeElement */
   final Element activeElement;
 
+  /** @domName Document.body */
   Element body;
 
+  /** @domName Document.charset */
   String charset;
 
+  /** @domName Document.cookie */
   String cookie;
 
-  /** @domName defaultView */
+  /** @domName Document.defaultView */
   final Window window;
 
+  /** @domName Document.documentElement */
   final Element documentElement;
 
+  /** @domName Document.domain */
   final String domain;
 
+  /** @domName Document.head */
   final HeadElement head;
 
+  /** @domName Document.lastModified */
   final String lastModified;
 
+  /** @domName Document.preferredStylesheetSet */
   final String preferredStylesheetSet;
 
+  /** @domName Document.readyState */
   final String readyState;
 
+  /** @domName Document.referrer */
   final String referrer;
 
+  /** @domName Document.selectedStylesheetSet */
   String selectedStylesheetSet;
 
+  /** @domName Document.styleSheets */
   final StyleSheetList styleSheets;
 
+  /** @domName Document.title */
   String title;
 
+  /** @domName Document.webkitCurrentFullScreenElement */
   final Element webkitCurrentFullScreenElement;
 
+  /** @domName Document.webkitFullScreenKeyboardInputAllowed */
   final bool webkitFullScreenKeyboardInputAllowed;
 
+  /** @domName Document.webkitFullscreenElement */
   final Element webkitFullscreenElement;
 
+  /** @domName Document.webkitFullscreenEnabled */
   final bool webkitFullscreenEnabled;
 
+  /** @domName Document.webkitHidden */
   final bool webkitHidden;
 
+  /** @domName Document.webkitIsFullScreen */
   final bool webkitIsFullScreen;
 
+  /** @domName Document.webkitVisibilityState */
   final String webkitVisibilityState;
 
+  /** @domName Document.caretRangeFromPoint */
   Range caretRangeFromPoint(int x, int y);
 
+  /** @domName Document.createCDATASection */
   CDATASection createCDATASection(String data);
 
+  /** @domName Document.createDocumentFragment */
   DocumentFragment createDocumentFragment();
 
-  /** @domName createElement */
+  /** @domName Document.createElement */
   Element $dom_createElement(String tagName);
 
-  /** @domName createElementNS */
+  /** @domName Document.createElementNS */
   Element $dom_createElementNS(String namespaceURI, String qualifiedName);
 
-  /** @domName createEvent */
+  /** @domName Document.createEvent */
   Event $dom_createEvent(String eventType);
 
+  /** @domName Document.createRange */
   Range createRange();
 
-  /** @domName createTextNode */
+  /** @domName Document.createTextNode */
   Text $dom_createTextNode(String data);
 
+  /** @domName Document.createTouch */
   Touch createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
 
-  /** @domName createTouchList */
+  /** @domName Document.createTouchList */
   TouchList $dom_createTouchList();
 
+  /** @domName Document.elementFromPoint */
   Element elementFromPoint(int x, int y);
 
+  /** @domName Document.execCommand */
   bool execCommand(String command, bool userInterface, String value);
 
+  /** @domName Document.getCSSCanvasContext */
   CanvasRenderingContext getCSSCanvasContext(String contextId, String name, int width, int height);
 
-  /** @domName getElementById */
+  /** @domName Document.getElementById */
   Element $dom_getElementById(String elementId);
 
-  /** @domName getElementsByClassName */
+  /** @domName Document.getElementsByClassName */
   NodeList $dom_getElementsByClassName(String tagname);
 
-  /** @domName getElementsByName */
+  /** @domName Document.getElementsByName */
   NodeList $dom_getElementsByName(String elementName);
 
-  /** @domName getElementsByTagName */
+  /** @domName Document.getElementsByTagName */
   NodeList $dom_getElementsByTagName(String tagname);
 
+  /** @domName Document.queryCommandEnabled */
   bool queryCommandEnabled(String command);
 
+  /** @domName Document.queryCommandIndeterm */
   bool queryCommandIndeterm(String command);
 
+  /** @domName Document.queryCommandState */
   bool queryCommandState(String command);
 
+  /** @domName Document.queryCommandSupported */
   bool queryCommandSupported(String command);
 
+  /** @domName Document.queryCommandValue */
   String queryCommandValue(String command);
 
-  /** @domName querySelector */
+  /** @domName Document.querySelector */
   Element query(String selectors);
 
-  /** @domName querySelectorAll */
+  /** @domName Document.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
+  /** @domName Document.webkitCancelFullScreen */
   void webkitCancelFullScreen();
 
+  /** @domName Document.webkitExitFullscreen */
   void webkitExitFullscreen();
 
+  /** @domName Document.webkitGetFlowByName */
   WebKitNamedFlow webkitGetFlowByName(String name);
 
 }
@@ -26651,6 +27367,7 @@ interface DocumentEvents extends ElementEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @domName DocumentFragment
 interface DocumentFragment extends Element default _DocumentFragmentFactoryProvider {
 
   DocumentFragment();
@@ -26666,12 +27383,15 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
   DocumentFragment clone(bool deep);
 
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   ElementEvents get on();
 
-  /** @domName querySelector */
+  /** @domName DocumentFragment.querySelector */
   Element query(String selectors);
 
-  /** @domName querySelectorAll */
+  /** @domName DocumentFragment.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
 }
@@ -26681,18 +27401,25 @@ interface DocumentFragment extends Element default _DocumentFragmentFactoryProvi
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DocumentType
 interface DocumentType extends Node {
 
+  /** @domName DocumentType.entities */
   final NamedNodeMap entities;
 
+  /** @domName DocumentType.internalSubset */
   final String internalSubset;
 
+  /** @domName DocumentType.name */
   final String name;
 
+  /** @domName DocumentType.notations */
   final NamedNodeMap notations;
 
+  /** @domName DocumentType.publicId */
   final String publicId;
 
+  /** @domName DocumentType.systemId */
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26701,14 +27428,19 @@ interface DocumentType extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DynamicsCompressorNode
 interface DynamicsCompressorNode extends AudioNode {
 
+  /** @domName DynamicsCompressorNode.knee */
   final AudioParam knee;
 
+  /** @domName DynamicsCompressorNode.ratio */
   final AudioParam ratio;
 
+  /** @domName DynamicsCompressorNode.reduction */
   final AudioParam reduction;
 
+  /** @domName DynamicsCompressorNode.threshold */
   final AudioParam threshold;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26717,6 +27449,7 @@ interface DynamicsCompressorNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EXTTextureFilterAnisotropic
 interface EXTTextureFilterAnisotropic {
 
   static final int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
@@ -26762,6 +27495,7 @@ interface ElementRect {
   List<ClientRect> get clientRects();
 }
 
+/// @domName Element
 interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 // TODO(jacobr): switch back to:
 // interface Element extends Node, NodeSelector, ElementTraversal default _ElementImpl {
@@ -26811,157 +27545,191 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   Element get parent();
 
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   ElementEvents get on();
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  /** @domName childElementCount */
+  /** @domName Element.childElementCount */
   final int $dom_childElementCount;
 
-  /** @domName children */
+  /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
-  /** @domName className */
+  /** @domName HTMLElement.className */
   String $dom_className;
 
-  /** @domName clientHeight */
+  /** @domName Element.clientHeight */
   final int $dom_clientHeight;
 
-  /** @domName clientLeft */
+  /** @domName Element.clientLeft */
   final int $dom_clientLeft;
 
-  /** @domName clientTop */
+  /** @domName Element.clientTop */
   final int $dom_clientTop;
 
-  /** @domName clientWidth */
+  /** @domName Element.clientWidth */
   final int $dom_clientWidth;
 
+  /** @domName HTMLElement.contentEditable */
   String contentEditable;
 
+  /** @domName Element.dataset */
   final Map<String, String> dataset;
 
+  /** @domName HTMLElement.dir */
   String dir;
 
+  /** @domName HTMLElement.draggable */
   bool draggable;
 
-  /** @domName firstElementChild */
+  /** @domName Element.firstElementChild */
   final Element $dom_firstElementChild;
 
+  /** @domName HTMLElement.hidden */
   bool hidden;
 
+  /** @domName HTMLElement.id */
   String id;
 
+  /** @domName HTMLElement.innerHTML */
   String innerHTML;
 
+  /** @domName HTMLElement.isContentEditable */
   final bool isContentEditable;
 
+  /** @domName HTMLElement.lang */
   String lang;
 
-  /** @domName lastElementChild */
+  /** @domName Element.lastElementChild */
   final Element $dom_lastElementChild;
 
+  /** @domName Element.nextElementSibling */
   final Element nextElementSibling;
 
-  /** @domName offsetHeight */
+  /** @domName Element.offsetHeight */
   final int $dom_offsetHeight;
 
-  /** @domName offsetLeft */
+  /** @domName Element.offsetLeft */
   final int $dom_offsetLeft;
 
+  /** @domName Element.offsetParent */
   final Element offsetParent;
 
-  /** @domName offsetTop */
+  /** @domName Element.offsetTop */
   final int $dom_offsetTop;
 
-  /** @domName offsetWidth */
+  /** @domName Element.offsetWidth */
   final int $dom_offsetWidth;
 
+  /** @domName HTMLElement.outerHTML */
   final String outerHTML;
 
+  /** @domName Element.previousElementSibling */
   final Element previousElementSibling;
 
-  /** @domName scrollHeight */
+  /** @domName Element.scrollHeight */
   final int $dom_scrollHeight;
 
-  /** @domName scrollLeft */
+  /** @domName Element.scrollLeft */
   int $dom_scrollLeft;
 
-  /** @domName scrollTop */
+  /** @domName Element.scrollTop */
   int $dom_scrollTop;
 
-  /** @domName scrollWidth */
+  /** @domName Element.scrollWidth */
   final int $dom_scrollWidth;
 
+  /** @domName HTMLElement.spellcheck */
   bool spellcheck;
 
+  /** @domName Element.style */
   final CSSStyleDeclaration style;
 
+  /** @domName HTMLElement.tabIndex */
   int tabIndex;
 
+  /** @domName Element.tagName */
   final String tagName;
 
+  /** @domName HTMLElement.title */
   String title;
 
+  /** @domName HTMLElement.translate */
   bool translate;
 
+  /** @domName Element.webkitRegionOverflow */
   final String webkitRegionOverflow;
 
+  /** @domName HTMLElement.webkitdropzone */
   String webkitdropzone;
 
+  /** @domName Element.blur */
   void blur();
 
+  /** @domName HTMLElement.click */
   void click();
 
+  /** @domName Element.focus */
   void focus();
 
-  /** @domName getAttribute */
+  /** @domName Element.getAttribute */
   String $dom_getAttribute(String name);
 
-  /** @domName getBoundingClientRect */
+  /** @domName Element.getBoundingClientRect */
   ClientRect $dom_getBoundingClientRect();
 
-  /** @domName getClientRects */
+  /** @domName Element.getClientRects */
   ClientRectList $dom_getClientRects();
 
-  /** @domName getElementsByClassName */
+  /** @domName Element.getElementsByClassName */
   NodeList $dom_getElementsByClassName(String name);
 
-  /** @domName getElementsByTagName */
+  /** @domName Element.getElementsByTagName */
   NodeList $dom_getElementsByTagName(String name);
 
-  /** @domName hasAttribute */
+  /** @domName Element.hasAttribute */
   bool $dom_hasAttribute(String name);
 
+  /** @domName HTMLElement.insertAdjacentElement */
   Element insertAdjacentElement(String where, Element element);
 
+  /** @domName HTMLElement.insertAdjacentHTML */
   void insertAdjacentHTML(String where, String html);
 
+  /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText(String where, String text);
 
-  /** @domName querySelector */
+  /** @domName Element.querySelector */
   Element query(String selectors);
 
-  /** @domName querySelectorAll */
+  /** @domName Element.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
-  /** @domName removeAttribute */
+  /** @domName Element.removeAttribute */
   void $dom_removeAttribute(String name);
 
+  /** @domName Element.scrollByLines */
   void scrollByLines(int lines);
 
+  /** @domName Element.scrollByPages */
   void scrollByPages(int pages);
 
-  /** @domName scrollIntoViewIfNeeded */
+  /** @domName Element.scrollIntoViewIfNeeded */
   void scrollIntoView([bool centerIfNeeded]);
 
-  /** @domName setAttribute */
+  /** @domName Element.setAttribute */
   void $dom_setAttribute(String name, String value);
 
-  /** @domName webkitMatchesSelector */
+  /** @domName Element.webkitMatchesSelector */
   bool matchesSelector(String selectors);
 
+  /** @domName Element.webkitRequestFullScreen */
   void webkitRequestFullScreen(int flags);
 
+  /** @domName Element.webkitRequestFullscreen */
   void webkitRequestFullscreen();
 
 }
@@ -27070,14 +27838,19 @@ interface ElementEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ElementTimeControl
 interface ElementTimeControl {
 
+  /** @domName ElementTimeControl.beginElement */
   void beginElement();
 
+  /** @domName ElementTimeControl.beginElementAt */
   void beginElementAt(num offset);
 
+  /** @domName ElementTimeControl.endElement */
   void endElement();
 
+  /** @domName ElementTimeControl.endElementAt */
   void endElementAt(num offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27086,16 +27859,22 @@ interface ElementTimeControl {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ElementTraversal
 interface ElementTraversal {
 
+  /** @domName ElementTraversal.childElementCount */
   final int childElementCount;
 
+  /** @domName ElementTraversal.firstElementChild */
   final Element firstElementChild;
 
+  /** @domName ElementTraversal.lastElementChild */
   final Element lastElementChild;
 
+  /** @domName ElementTraversal.nextElementSibling */
   final Element nextElementSibling;
 
+  /** @domName ElementTraversal.previousElementSibling */
   final Element previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27104,18 +27883,25 @@ interface ElementTraversal {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLEmbedElement
 interface EmbedElement extends Element {
 
+  /** @domName HTMLEmbedElement.align */
   String align;
 
+  /** @domName HTMLEmbedElement.height */
   String height;
 
+  /** @domName HTMLEmbedElement.name */
   String name;
 
+  /** @domName HTMLEmbedElement.src */
   String src;
 
+  /** @domName HTMLEmbedElement.type */
   String type;
 
+  /** @domName HTMLEmbedElement.width */
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27124,12 +27910,16 @@ interface EmbedElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Entity
 interface Entity extends Node {
 
+  /** @domName Entity.notationName */
   final String notationName;
 
+  /** @domName Entity.publicId */
   final String publicId;
 
+  /** @domName Entity.systemId */
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27138,6 +27928,7 @@ interface Entity extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EntityReference
 interface EntityReference extends Node {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27153,28 +27944,40 @@ typedef bool EntriesCallback(EntryArray entries);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Entry
 interface Entry {
 
+  /** @domName Entry.filesystem */
   final DOMFileSystem filesystem;
 
+  /** @domName Entry.fullPath */
   final String fullPath;
 
+  /** @domName Entry.isDirectory */
   final bool isDirectory;
 
+  /** @domName Entry.isFile */
   final bool isFile;
 
+  /** @domName Entry.name */
   final String name;
 
+  /** @domName Entry.copyTo */
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName Entry.getMetadata */
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]);
 
+  /** @domName Entry.getParent */
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName Entry.moveTo */
   void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName Entry.remove */
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]);
 
+  /** @domName Entry.toURL */
   String toURL();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27183,10 +27986,13 @@ interface Entry {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EntryArray
 interface EntryArray {
 
+  /** @domName EntryArray.length */
   final int length;
 
+  /** @domName EntryArray.item */
   Entry item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27195,10 +28001,13 @@ interface EntryArray {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EntryArraySync
 interface EntryArraySync {
 
+  /** @domName EntryArraySync.length */
   final int length;
 
+  /** @domName EntryArraySync.item */
   EntrySync item(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27214,28 +28023,40 @@ typedef bool EntryCallback(Entry entry);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EntrySync
 interface EntrySync {
 
+  /** @domName EntrySync.filesystem */
   final DOMFileSystemSync filesystem;
 
+  /** @domName EntrySync.fullPath */
   final String fullPath;
 
+  /** @domName EntrySync.isDirectory */
   final bool isDirectory;
 
+  /** @domName EntrySync.isFile */
   final bool isFile;
 
+  /** @domName EntrySync.name */
   final String name;
 
+  /** @domName EntrySync.copyTo */
   EntrySync copyTo(DirectoryEntrySync parent, String name);
 
+  /** @domName EntrySync.getMetadata */
   Metadata getMetadata();
 
+  /** @domName EntrySync.getParent */
   DirectoryEntrySync getParent();
 
+  /** @domName EntrySync.moveTo */
   EntrySync moveTo(DirectoryEntrySync parent, String name);
 
+  /** @domName EntrySync.remove */
   void remove();
 
+  /** @domName EntrySync.toURL */
   String toURL();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27251,12 +28072,16 @@ typedef bool ErrorCallback(FileError error);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ErrorEvent
 interface ErrorEvent extends Event {
 
+  /** @domName ErrorEvent.filename */
   final String filename;
 
+  /** @domName ErrorEvent.lineno */
   final int lineno;
 
+  /** @domName ErrorEvent.message */
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27265,6 +28090,7 @@ interface ErrorEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Event
 interface Event default _EventFactoryProvider {
 
   // In JS, canBubble and cancelable are technically required parameters to
@@ -27313,37 +28139,52 @@ interface Event default _EventFactoryProvider {
 
   static final int SELECT = 16384;
 
+  /** @domName Event.bubbles */
   final bool bubbles;
 
+  /** @domName Event.cancelBubble */
   bool cancelBubble;
 
+  /** @domName Event.cancelable */
   final bool cancelable;
 
+  /** @domName Event.clipboardData */
   final Clipboard clipboardData;
 
+  /** @domName Event.currentTarget */
   final EventTarget currentTarget;
 
+  /** @domName Event.defaultPrevented */
   final bool defaultPrevented;
 
+  /** @domName Event.eventPhase */
   final int eventPhase;
 
+  /** @domName Event.returnValue */
   bool returnValue;
 
+  /** @domName Event.srcElement */
   final EventTarget srcElement;
 
+  /** @domName Event.target */
   final EventTarget target;
 
+  /** @domName Event.timeStamp */
   final int timeStamp;
 
+  /** @domName Event.type */
   final String type;
 
-  /** @domName initEvent */
+  /** @domName Event.initEvent */
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
 
+  /** @domName Event.preventDefault */
   void preventDefault();
 
+  /** @domName Event.stopImmediatePropagation */
   void stopImmediatePropagation();
 
+  /** @domName Event.stopPropagation */
   void stopPropagation();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27352,18 +28193,23 @@ interface Event default _EventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EventException
 interface EventException {
 
   static final int DISPATCH_REQUEST_ERR = 1;
 
   static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
+  /** @domName EventException.code */
   final int code;
 
+  /** @domName EventException.message */
   final String message;
 
+  /** @domName EventException.name */
   final String name;
 
+  /** @domName EventException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27372,10 +28218,14 @@ interface EventException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName EventSource
 interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   EventSource(String scriptUrl);
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   EventSourceEvents get on();
 
   static final int CLOSED = 2;
@@ -27384,21 +28234,25 @@ interface EventSource extends EventTarget default _EventSourceFactoryProvider {
 
   static final int OPEN = 1;
 
+  /** @domName EventSource.URL */
   final String URL;
 
+  /** @domName EventSource.readyState */
   final int readyState;
 
+  /** @domName EventSource.url */
   final String url;
 
-  /** @domName addEventListener */
+  /** @domName EventSource.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName EventSource.close */
   void close();
 
-  /** @domName dispatchEvent */
+  /** @domName EventSource.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName removeEventListener */
+  /** @domName EventSource.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -27428,17 +28282,19 @@ interface Events {
   EventListenerList operator [](String type);
 }
 
+/// @domName EventTarget
 interface EventTarget {
 
+  /** @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent */
   final Events on;
 
-  /** @domName addEventListener */
+  /** @domName EventTarget.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName EventTarget.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
-  /** @domName removeEventListener */
+  /** @domName EventTarget.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
 }
@@ -27448,24 +28304,34 @@ interface EventTarget {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLFieldSetElement
 interface FieldSetElement extends Element {
 
+  /** @domName HTMLFieldSetElement.disabled */
   bool disabled;
 
+  /** @domName HTMLFieldSetElement.form */
   final FormElement form;
 
+  /** @domName HTMLFieldSetElement.name */
   String name;
 
+  /** @domName HTMLFieldSetElement.type */
   final String type;
 
+  /** @domName HTMLFieldSetElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLFieldSetElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLFieldSetElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLFieldSetElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLFieldSetElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27474,12 +28340,16 @@ interface FieldSetElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName File
 interface File extends Blob {
 
+  /** @domName File.lastModifiedDate */
   final Date lastModifiedDate;
 
+  /** @domName File.name */
   final String name;
 
+  /** @domName File.webkitRelativePath */
   final String webkitRelativePath;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27495,10 +28365,13 @@ typedef bool FileCallback(File file);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileEntry
 interface FileEntry extends Entry {
 
+  /** @domName FileEntry.createWriter */
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]);
 
+  /** @domName FileEntry.file */
   void file(FileCallback successCallback, [ErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27507,10 +28380,13 @@ interface FileEntry extends Entry {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileEntrySync
 interface FileEntrySync extends EntrySync {
 
+  /** @domName FileEntrySync.createWriter */
   FileWriterSync createWriter();
 
+  /** @domName FileEntrySync.file */
   File file();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27519,6 +28395,7 @@ interface FileEntrySync extends EntrySync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileError
 interface FileError {
 
   static final int ABORT_ERR = 3;
@@ -27545,6 +28422,7 @@ interface FileError {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
+  /** @domName FileError.code */
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27553,6 +28431,7 @@ interface FileError {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileException
 interface FileException {
 
   static final int ABORT_ERR = 3;
@@ -27579,12 +28458,16 @@ interface FileException {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
+  /** @domName FileException.code */
   final int code;
 
+  /** @domName FileException.message */
   final String message;
 
+  /** @domName FileException.name */
   final String name;
 
+  /** @domName FileException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27593,10 +28476,13 @@ interface FileException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileList
 interface FileList {
 
+  /** @domName FileList.length */
   final int length;
 
+  /** @domName FileList.item */
   File item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27605,6 +28491,7 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileReader
 interface FileReader default _FileReaderFactoryProvider {
 
   FileReader();
@@ -27615,38 +28502,55 @@ interface FileReader default _FileReaderFactoryProvider {
 
   static final int LOADING = 1;
 
+  /** @domName FileReader.error */
   final FileError error;
 
+  /** @domName FileReader.onabort */
   EventListener onabort;
 
+  /** @domName FileReader.onerror */
   EventListener onerror;
 
+  /** @domName FileReader.onload */
   EventListener onload;
 
+  /** @domName FileReader.onloadend */
   EventListener onloadend;
 
+  /** @domName FileReader.onloadstart */
   EventListener onloadstart;
 
+  /** @domName FileReader.onprogress */
   EventListener onprogress;
 
+  /** @domName FileReader.readyState */
   final int readyState;
 
+  /** @domName FileReader.result */
   final Object result;
 
+  /** @domName FileReader.abort */
   void abort();
 
+  /** @domName FileReader.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName FileReader.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName FileReader.readAsArrayBuffer */
   void readAsArrayBuffer(Blob blob);
 
+  /** @domName FileReader.readAsBinaryString */
   void readAsBinaryString(Blob blob);
 
+  /** @domName FileReader.readAsDataURL */
   void readAsDataURL(Blob blob);
 
+  /** @domName FileReader.readAsText */
   void readAsText(Blob blob, [String encoding]);
 
+  /** @domName FileReader.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27655,16 +28559,21 @@ interface FileReader default _FileReaderFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileReaderSync
 interface FileReaderSync default _FileReaderSyncFactoryProvider {
 
   FileReaderSync();
 
+  /** @domName FileReaderSync.readAsArrayBuffer */
   ArrayBuffer readAsArrayBuffer(Blob blob);
 
+  /** @domName FileReaderSync.readAsBinaryString */
   String readAsBinaryString(Blob blob);
 
+  /** @domName FileReaderSync.readAsDataURL */
   String readAsDataURL(Blob blob);
 
+  /** @domName FileReaderSync.readAsText */
   String readAsText(Blob blob, [String encoding]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27680,6 +28589,7 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileWriter
 interface FileWriter {
 
   static final int DONE = 2;
@@ -27688,32 +28598,46 @@ interface FileWriter {
 
   static final int WRITING = 1;
 
+  /** @domName FileWriter.error */
   final FileError error;
 
+  /** @domName FileWriter.length */
   final int length;
 
+  /** @domName FileWriter.onabort */
   EventListener onabort;
 
+  /** @domName FileWriter.onerror */
   EventListener onerror;
 
+  /** @domName FileWriter.onprogress */
   EventListener onprogress;
 
+  /** @domName FileWriter.onwrite */
   EventListener onwrite;
 
+  /** @domName FileWriter.onwriteend */
   EventListener onwriteend;
 
+  /** @domName FileWriter.onwritestart */
   EventListener onwritestart;
 
+  /** @domName FileWriter.position */
   final int position;
 
+  /** @domName FileWriter.readyState */
   final int readyState;
 
+  /** @domName FileWriter.abort */
   void abort();
 
+  /** @domName FileWriter.seek */
   void seek(int position);
 
+  /** @domName FileWriter.truncate */
   void truncate(int size);
 
+  /** @domName FileWriter.write */
   void write(Blob data);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -27729,16 +28653,22 @@ typedef bool FileWriterCallback(FileWriter fileWriter);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName FileWriterSync
 interface FileWriterSync {
 
+  /** @domName FileWriterSync.length */
   final int length;
 
+  /** @domName FileWriterSync.position */
   final int position;
 
+  /** @domName FileWriterSync.seek */
   void seek(int position);
 
+  /** @domName FileWriterSync.truncate */
   void truncate(int size);
 
+  /** @domName FileWriterSync.write */
   void write(Blob data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27747,6 +28677,7 @@ interface FileWriterSync {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Float32Array
 interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFactoryProvider {
 
   Float32Array(int length);
@@ -27757,10 +28688,13 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   static final int BYTES_PER_ELEMENT = 4;
 
+  /** @domName Float32Array.length */
   final int length;
 
+  /** @domName Float32Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Float32Array.subarray */
   Float32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27769,6 +28703,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Float64Array
 interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFactoryProvider {
 
   Float64Array(int length);
@@ -27779,10 +28714,13 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   static final int BYTES_PER_ELEMENT = 8;
 
+  /** @domName Float64Array.length */
   final int length;
 
+  /** @domName Float64Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Float64Array.subarray */
   Float64Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27791,12 +28729,16 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLFontElement
 interface FontElement extends Element {
 
+  /** @domName HTMLFontElement.color */
   String color;
 
+  /** @domName HTMLFontElement.face */
   String face;
 
+  /** @domName HTMLFontElement.size */
   String size;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27805,32 +28747,46 @@ interface FontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLFormElement
 interface FormElement extends Element {
 
+  /** @domName HTMLFormElement.acceptCharset */
   String acceptCharset;
 
+  /** @domName HTMLFormElement.action */
   String action;
 
+  /** @domName HTMLFormElement.autocomplete */
   String autocomplete;
 
+  /** @domName HTMLFormElement.encoding */
   String encoding;
 
+  /** @domName HTMLFormElement.enctype */
   String enctype;
 
+  /** @domName HTMLFormElement.length */
   final int length;
 
+  /** @domName HTMLFormElement.method */
   String method;
 
+  /** @domName HTMLFormElement.name */
   String name;
 
+  /** @domName HTMLFormElement.noValidate */
   bool noValidate;
 
+  /** @domName HTMLFormElement.target */
   String target;
 
+  /** @domName HTMLFormElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLFormElement.reset */
   void reset();
 
+  /** @domName HTMLFormElement.submit */
   void submit();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27839,34 +28795,49 @@ interface FormElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLFrameElement
 interface FrameElement extends Element {
 
+  /** @domName HTMLFrameElement.contentDocument */
   final Document contentDocument;
 
+  /** @domName HTMLFrameElement.contentWindow */
   final Window contentWindow;
 
+  /** @domName HTMLFrameElement.frameBorder */
   String frameBorder;
 
+  /** @domName HTMLFrameElement.height */
   final int height;
 
+  /** @domName HTMLFrameElement.location */
   String location;
 
+  /** @domName HTMLFrameElement.longDesc */
   String longDesc;
 
+  /** @domName HTMLFrameElement.marginHeight */
   String marginHeight;
 
+  /** @domName HTMLFrameElement.marginWidth */
   String marginWidth;
 
+  /** @domName HTMLFrameElement.name */
   String name;
 
+  /** @domName HTMLFrameElement.noResize */
   bool noResize;
 
+  /** @domName HTMLFrameElement.scrolling */
   String scrolling;
 
+  /** @domName HTMLFrameElement.src */
   String src;
 
+  /** @domName HTMLFrameElement.width */
   final int width;
 
+  /** @domName HTMLFrameElement.getSVGDocument */
   SVGDocument getSVGDocument();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27875,12 +28846,18 @@ interface FrameElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLFrameSetElement
 interface FrameSetElement extends Element {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   FrameSetElementEvents get on();
 
+  /** @domName HTMLFrameSetElement.cols */
   String cols;
 
+  /** @domName HTMLFrameSetElement.rows */
   String rows;
 }
 
@@ -27918,12 +28895,16 @@ interface FrameSetElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Geolocation
 interface Geolocation {
 
+  /** @domName Geolocation.clearWatch */
   void clearWatch(int watchId);
 
+  /** @domName Geolocation.getCurrentPosition */
   void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 
+  /** @domName Geolocation.watchPosition */
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27932,10 +28913,13 @@ interface Geolocation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Geoposition
 interface Geoposition {
 
+  /** @domName Geoposition.coords */
   final Coordinates coords;
 
+  /** @domName Geoposition.timestamp */
   final int timestamp;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27944,14 +28928,19 @@ interface Geoposition {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLHRElement
 interface HRElement extends Element {
 
+  /** @domName HTMLHRElement.align */
   String align;
 
+  /** @domName HTMLHRElement.noShade */
   bool noShade;
 
+  /** @domName HTMLHRElement.size */
   String size;
 
+  /** @domName HTMLHRElement.width */
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27960,14 +28949,19 @@ interface HRElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLAllCollection
 interface HTMLAllCollection {
 
+  /** @domName HTMLAllCollection.length */
   final int length;
 
+  /** @domName HTMLAllCollection.item */
   Node item(int index);
 
+  /** @domName HTMLAllCollection.namedItem */
   Node namedItem(String name);
 
+  /** @domName HTMLAllCollection.tags */
   NodeList tags(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27976,12 +28970,16 @@ interface HTMLAllCollection {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLCollection
 interface HTMLCollection extends List<Node> {
 
+  /** @domName HTMLCollection.length */
   final int length;
 
+  /** @domName HTMLCollection.item */
   Node item(int index);
 
+  /** @domName HTMLCollection.namedItem */
   Node namedItem(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27990,12 +28988,16 @@ interface HTMLCollection extends List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLOptionsCollection
 interface HTMLOptionsCollection extends HTMLCollection {
 
+  /** @domName HTMLOptionsCollection.length */
   int length;
 
+  /** @domName HTMLOptionsCollection.selectedIndex */
   int selectedIndex;
 
+  /** @domName HTMLOptionsCollection.remove */
   void remove(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28004,12 +29006,16 @@ interface HTMLOptionsCollection extends HTMLCollection {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HashChangeEvent
 interface HashChangeEvent extends Event {
 
+  /** @domName HashChangeEvent.newURL */
   final String newURL;
 
+  /** @domName HashChangeEvent.oldURL */
   final String oldURL;
 
+  /** @domName HashChangeEvent.initHashChangeEvent */
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28018,8 +29024,10 @@ interface HashChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLHeadElement
 interface HeadElement extends Element {
 
+  /** @domName HTMLHeadElement.profile */
   String profile;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28028,8 +29036,10 @@ interface HeadElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLHeadingElement
 interface HeadingElement extends Element {
 
+  /** @domName HTMLHeadingElement.align */
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28038,20 +29048,28 @@ interface HeadingElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName History
 interface History {
 
+  /** @domName History.length */
   final int length;
 
+  /** @domName History.state */
   final Dynamic state;
 
+  /** @domName History.back */
   void back();
 
+  /** @domName History.forward */
   void forward();
 
+  /** @domName History.go */
   void go(int distance);
 
+  /** @domName History.pushState */
   void pushState(Object data, String title, [String url]);
 
+  /** @domName History.replaceState */
   void replaceState(Object data, String title, [String url]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28060,6 +29078,7 @@ interface History {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLHtmlElement
 interface HtmlElement extends Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28068,6 +29087,7 @@ interface HtmlElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBAny
 interface IDBAny {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28076,6 +29096,7 @@ interface IDBAny {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBCursor
 interface IDBCursor {
 
   static final int NEXT = 0;
@@ -28086,18 +29107,25 @@ interface IDBCursor {
 
   static final int PREV_NO_DUPLICATE = 3;
 
+  /** @domName IDBCursor.direction */
   final int direction;
 
+  /** @domName IDBCursor.key */
   final IDBKey key;
 
+  /** @domName IDBCursor.primaryKey */
   final IDBKey primaryKey;
 
+  /** @domName IDBCursor.source */
   final IDBAny source;
 
+  /** @domName IDBCursor.continueFunction */
   void continueFunction([IDBKey key]);
 
+  /** @domName IDBCursor.delete */
   IDBRequest delete();
 
+  /** @domName IDBCursor.update */
   IDBRequest update(Dynamic value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28106,8 +29134,10 @@ interface IDBCursor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBCursorWithValue
 interface IDBCursorWithValue extends IDBCursor {
 
+  /** @domName IDBCursorWithValue.value */
   final IDBAny value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28116,34 +29146,49 @@ interface IDBCursorWithValue extends IDBCursor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBDatabase
 interface IDBDatabase {
 
+  /** @domName IDBDatabase.name */
   final String name;
 
+  /** @domName IDBDatabase.objectStoreNames */
   final List<String> objectStoreNames;
 
+  /** @domName IDBDatabase.onabort */
   EventListener onabort;
 
+  /** @domName IDBDatabase.onerror */
   EventListener onerror;
 
+  /** @domName IDBDatabase.onversionchange */
   EventListener onversionchange;
 
+  /** @domName IDBDatabase.version */
   final String version;
 
+  /** @domName IDBDatabase.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName IDBDatabase.close */
   void close();
 
+  /** @domName IDBDatabase.createObjectStore */
   IDBObjectStore createObjectStore(String name);
 
+  /** @domName IDBDatabase.deleteObjectStore */
   void deleteObjectStore(String name);
 
+  /** @domName IDBDatabase.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName IDBDatabase.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName IDBDatabase.setVersion */
   IDBVersionChangeRequest setVersion(String version);
 
+  /** @domName IDBDatabase.transaction */
   IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28152,6 +29197,7 @@ interface IDBDatabase {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBDatabaseException
 interface IDBDatabaseException {
 
   static final int ABORT_ERR = 8;
@@ -28180,12 +29226,16 @@ interface IDBDatabaseException {
 
   static final int VER_ERR = 12;
 
+  /** @domName IDBDatabaseException.code */
   final int code;
 
+  /** @domName IDBDatabaseException.message */
   final String message;
 
+  /** @domName IDBDatabaseException.name */
   final String name;
 
+  /** @domName IDBDatabaseException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28194,14 +29244,19 @@ interface IDBDatabaseException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBFactory
 interface IDBFactory {
 
+  /** @domName IDBFactory.cmp */
   int cmp(IDBKey first, IDBKey second);
 
+  /** @domName IDBFactory.deleteDatabase */
   IDBVersionChangeRequest deleteDatabase(String name);
 
+  /** @domName IDBFactory.getDatabaseNames */
   IDBRequest getDatabaseNames();
 
+  /** @domName IDBFactory.open */
   IDBRequest open(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28210,26 +29265,37 @@ interface IDBFactory {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBIndex
 interface IDBIndex {
 
+  /** @domName IDBIndex.keyPath */
   final String keyPath;
 
+  /** @domName IDBIndex.multiEntry */
   final bool multiEntry;
 
+  /** @domName IDBIndex.name */
   final String name;
 
+  /** @domName IDBIndex.objectStore */
   final IDBObjectStore objectStore;
 
+  /** @domName IDBIndex.unique */
   final bool unique;
 
+  /** @domName IDBIndex.count */
   IDBRequest count([var key_OR_range]);
 
+  /** @domName IDBIndex.getObject */
   IDBRequest getObject(IDBKey key);
 
+  /** @domName IDBIndex.getKey */
   IDBRequest getKey(IDBKey key);
 
+  /** @domName IDBIndex.openCursor */
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
+  /** @domName IDBIndex.openKeyCursor */
   IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28238,6 +29304,7 @@ interface IDBIndex {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBKey
 interface IDBKey {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28246,22 +29313,31 @@ interface IDBKey {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBKeyRange
 interface IDBKeyRange {
 
+  /** @domName IDBKeyRange.lower */
   final IDBKey lower;
 
+  /** @domName IDBKeyRange.lowerOpen */
   final bool lowerOpen;
 
+  /** @domName IDBKeyRange.upper */
   final IDBKey upper;
 
+  /** @domName IDBKeyRange.upperOpen */
   final bool upperOpen;
 
+  /** @domName IDBKeyRange.bound */
   IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
 
+  /** @domName IDBKeyRange.lowerBound */
   IDBKeyRange lowerBound(IDBKey bound, [bool open]);
 
+  /** @domName IDBKeyRange.only */
   IDBKeyRange only(IDBKey value);
 
+  /** @domName IDBKeyRange.upperBound */
   IDBKeyRange upperBound(IDBKey bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28270,34 +29346,49 @@ interface IDBKeyRange {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBObjectStore
 interface IDBObjectStore {
 
+  /** @domName IDBObjectStore.indexNames */
   final List<String> indexNames;
 
+  /** @domName IDBObjectStore.keyPath */
   final String keyPath;
 
+  /** @domName IDBObjectStore.name */
   final String name;
 
+  /** @domName IDBObjectStore.transaction */
   final IDBTransaction transaction;
 
+  /** @domName IDBObjectStore.add */
   IDBRequest add(Dynamic value, [IDBKey key]);
 
+  /** @domName IDBObjectStore.clear */
   IDBRequest clear();
 
+  /** @domName IDBObjectStore.count */
   IDBRequest count([var key_OR_range]);
 
+  /** @domName IDBObjectStore.createIndex */
   IDBIndex createIndex(String name, String keyPath);
 
+  /** @domName IDBObjectStore.delete */
   IDBRequest delete(var key_OR_keyRange);
 
+  /** @domName IDBObjectStore.deleteIndex */
   void deleteIndex(String name);
 
+  /** @domName IDBObjectStore.getObject */
   IDBRequest getObject(IDBKey key);
 
+  /** @domName IDBObjectStore.index */
   IDBIndex index(String name);
 
+  /** @domName IDBObjectStore.openCursor */
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
+  /** @domName IDBObjectStore.put */
   IDBRequest put(Dynamic value, [IDBKey key]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28306,32 +29397,44 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBRequest
 interface IDBRequest {
 
   static final int DONE = 2;
 
   static final int LOADING = 1;
 
+  /** @domName IDBRequest.errorCode */
   final int errorCode;
 
+  /** @domName IDBRequest.onerror */
   EventListener onerror;
 
+  /** @domName IDBRequest.onsuccess */
   EventListener onsuccess;
 
+  /** @domName IDBRequest.readyState */
   final int readyState;
 
+  /** @domName IDBRequest.result */
   final IDBAny result;
 
+  /** @domName IDBRequest.source */
   final IDBAny source;
 
+  /** @domName IDBRequest.transaction */
   final IDBTransaction transaction;
 
+  /** @domName IDBRequest.webkitErrorMessage */
   final String webkitErrorMessage;
 
+  /** @domName IDBRequest.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName IDBRequest.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName IDBRequest.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28340,6 +29443,7 @@ interface IDBRequest {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBTransaction
 interface IDBTransaction {
 
   static final int READ_ONLY = 0;
@@ -28348,24 +29452,34 @@ interface IDBTransaction {
 
   static final int VERSION_CHANGE = 2;
 
+  /** @domName IDBTransaction.db */
   final IDBDatabase db;
 
+  /** @domName IDBTransaction.mode */
   final int mode;
 
+  /** @domName IDBTransaction.onabort */
   EventListener onabort;
 
+  /** @domName IDBTransaction.oncomplete */
   EventListener oncomplete;
 
+  /** @domName IDBTransaction.onerror */
   EventListener onerror;
 
+  /** @domName IDBTransaction.abort */
   void abort();
 
+  /** @domName IDBTransaction.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName IDBTransaction.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName IDBTransaction.objectStore */
   IDBObjectStore objectStore(String name);
 
+  /** @domName IDBTransaction.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28374,8 +29488,10 @@ interface IDBTransaction {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBVersionChangeEvent
 interface IDBVersionChangeEvent extends Event {
 
+  /** @domName IDBVersionChangeEvent.version */
   final String version;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28384,8 +29500,10 @@ interface IDBVersionChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBVersionChangeRequest
 interface IDBVersionChangeRequest extends IDBRequest {
 
+  /** @domName IDBVersionChangeRequest.onblocked */
   EventListener onblocked;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28394,36 +29512,52 @@ interface IDBVersionChangeRequest extends IDBRequest {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLIFrameElement
 interface IFrameElement extends Element {
 
+  /** @domName HTMLIFrameElement.align */
   String align;
 
+  /** @domName HTMLIFrameElement.contentDocument */
   final Document contentDocument;
 
+  /** @domName HTMLIFrameElement.contentWindow */
   final Window contentWindow;
 
+  /** @domName HTMLIFrameElement.frameBorder */
   String frameBorder;
 
+  /** @domName HTMLIFrameElement.height */
   String height;
 
+  /** @domName HTMLIFrameElement.longDesc */
   String longDesc;
 
+  /** @domName HTMLIFrameElement.marginHeight */
   String marginHeight;
 
+  /** @domName HTMLIFrameElement.marginWidth */
   String marginWidth;
 
+  /** @domName HTMLIFrameElement.name */
   String name;
 
+  /** @domName HTMLIFrameElement.sandbox */
   String sandbox;
 
+  /** @domName HTMLIFrameElement.scrolling */
   String scrolling;
 
+  /** @domName HTMLIFrameElement.src */
   String src;
 
+  /** @domName HTMLIFrameElement.srcdoc */
   String srcdoc;
 
+  /** @domName HTMLIFrameElement.width */
   String width;
 
+  /** @domName HTMLIFrameElement.getSVGDocument */
   SVGDocument getSVGDocument();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -28439,12 +29573,15 @@ typedef bool IceCallback(IceCandidate candidate, bool moreToFollow, PeerConnecti
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IceCandidate
 interface IceCandidate default _IceCandidateFactoryProvider {
 
   IceCandidate(String label, String candidateLine);
 
+  /** @domName IceCandidate.label */
   final String label;
 
+  /** @domName IceCandidate.toSdp */
   String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28453,12 +29590,16 @@ interface IceCandidate default _IceCandidateFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ImageData
 interface ImageData {
 
+  /** @domName ImageData.data */
   final CanvasPixelArray data;
 
+  /** @domName ImageData.height */
   final int height;
 
+  /** @domName ImageData.width */
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28467,44 +29608,64 @@ interface ImageData {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLImageElement
 interface ImageElement extends Element {
 
+  /** @domName HTMLImageElement.align */
   String align;
 
+  /** @domName HTMLImageElement.alt */
   String alt;
 
+  /** @domName HTMLImageElement.border */
   String border;
 
+  /** @domName HTMLImageElement.complete */
   final bool complete;
 
+  /** @domName HTMLImageElement.crossOrigin */
   String crossOrigin;
 
+  /** @domName HTMLImageElement.height */
   int height;
 
+  /** @domName HTMLImageElement.hspace */
   int hspace;
 
+  /** @domName HTMLImageElement.isMap */
   bool isMap;
 
+  /** @domName HTMLImageElement.longDesc */
   String longDesc;
 
+  /** @domName HTMLImageElement.lowsrc */
   String lowsrc;
 
+  /** @domName HTMLImageElement.name */
   String name;
 
+  /** @domName HTMLImageElement.naturalHeight */
   final int naturalHeight;
 
+  /** @domName HTMLImageElement.naturalWidth */
   final int naturalWidth;
 
+  /** @domName HTMLImageElement.src */
   String src;
 
+  /** @domName HTMLImageElement.useMap */
   String useMap;
 
+  /** @domName HTMLImageElement.vspace */
   int vspace;
 
+  /** @domName HTMLImageElement.width */
   int width;
 
+  /** @domName HTMLImageElement.x */
   final int x;
 
+  /** @domName HTMLImageElement.y */
   final int y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28513,110 +29674,165 @@ interface ImageElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLInputElement
 interface InputElement extends Element {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   InputElementEvents get on();
 
+  /** @domName HTMLInputElement.accept */
   String accept;
 
+  /** @domName HTMLInputElement.align */
   String align;
 
+  /** @domName HTMLInputElement.alt */
   String alt;
 
+  /** @domName HTMLInputElement.autocomplete */
   String autocomplete;
 
+  /** @domName HTMLInputElement.autofocus */
   bool autofocus;
 
+  /** @domName HTMLInputElement.checked */
   bool checked;
 
+  /** @domName HTMLInputElement.defaultChecked */
   bool defaultChecked;
 
+  /** @domName HTMLInputElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLInputElement.disabled */
   bool disabled;
 
+  /** @domName HTMLInputElement.files */
   final FileList files;
 
+  /** @domName HTMLInputElement.form */
   final FormElement form;
 
+  /** @domName HTMLInputElement.formAction */
   String formAction;
 
+  /** @domName HTMLInputElement.formEnctype */
   String formEnctype;
 
+  /** @domName HTMLInputElement.formMethod */
   String formMethod;
 
+  /** @domName HTMLInputElement.formNoValidate */
   bool formNoValidate;
 
+  /** @domName HTMLInputElement.formTarget */
   String formTarget;
 
+  /** @domName HTMLInputElement.incremental */
   bool incremental;
 
+  /** @domName HTMLInputElement.indeterminate */
   bool indeterminate;
 
+  /** @domName HTMLInputElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLInputElement.max */
   String max;
 
+  /** @domName HTMLInputElement.maxLength */
   int maxLength;
 
+  /** @domName HTMLInputElement.min */
   String min;
 
+  /** @domName HTMLInputElement.multiple */
   bool multiple;
 
+  /** @domName HTMLInputElement.name */
   String name;
 
+  /** @domName HTMLInputElement.pattern */
   String pattern;
 
+  /** @domName HTMLInputElement.placeholder */
   String placeholder;
 
+  /** @domName HTMLInputElement.readOnly */
   bool readOnly;
 
+  /** @domName HTMLInputElement.required */
   bool required;
 
+  /** @domName HTMLInputElement.selectionDirection */
   String selectionDirection;
 
+  /** @domName HTMLInputElement.selectionEnd */
   int selectionEnd;
 
+  /** @domName HTMLInputElement.selectionStart */
   int selectionStart;
 
+  /** @domName HTMLInputElement.size */
   int size;
 
+  /** @domName HTMLInputElement.src */
   String src;
 
+  /** @domName HTMLInputElement.step */
   String step;
 
+  /** @domName HTMLInputElement.type */
   String type;
 
+  /** @domName HTMLInputElement.useMap */
   String useMap;
 
+  /** @domName HTMLInputElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLInputElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLInputElement.value */
   String value;
 
+  /** @domName HTMLInputElement.valueAsDate */
   Date valueAsDate;
 
+  /** @domName HTMLInputElement.valueAsNumber */
   num valueAsNumber;
 
+  /** @domName HTMLInputElement.webkitGrammar */
   bool webkitGrammar;
 
+  /** @domName HTMLInputElement.webkitSpeech */
   bool webkitSpeech;
 
+  /** @domName HTMLInputElement.webkitdirectory */
   bool webkitdirectory;
 
+  /** @domName HTMLInputElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLInputElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLInputElement.select */
   void select();
 
+  /** @domName HTMLInputElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLInputElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 
+  /** @domName HTMLInputElement.stepDown */
   void stepDown([int n]);
 
+  /** @domName HTMLInputElement.stepUp */
   void stepUp([int n]);
 }
 
@@ -28630,6 +29846,7 @@ interface InputElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Int16Array
 interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Int16Array(int length);
@@ -28640,10 +29857,13 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 2;
 
+  /** @domName Int16Array.length */
   final int length;
 
+  /** @domName Int16Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Int16Array.subarray */
   Int16Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28652,6 +29872,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Int32Array
 interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Int32Array(int length);
@@ -28662,10 +29883,13 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 4;
 
+  /** @domName Int32Array.length */
   final int length;
 
+  /** @domName Int32Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Int32Array.subarray */
   Int32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28674,6 +29898,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Int8Array
 interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Int8Array(int length);
@@ -28684,10 +29909,13 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   static final int BYTES_PER_ELEMENT = 1;
 
+  /** @domName Int8Array.length */
   final int length;
 
+  /** @domName Int8Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Int8Array.subarray */
   Int8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28696,10 +29924,13 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
 // WARNING: Do not edit - generated code.
 
+/// @domName JavaScriptAudioNode
 interface JavaScriptAudioNode extends AudioNode {
 
+  /** @domName JavaScriptAudioNode.bufferSize */
   final int bufferSize;
 
+  /** @domName JavaScriptAudioNode.onaudioprocess */
   EventListener onaudioprocess;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28708,6 +29939,7 @@ interface JavaScriptAudioNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName JavaScriptCallFrame
 interface JavaScriptCallFrame {
 
   static final int CATCH_SCOPE = 4;
@@ -28720,24 +29952,34 @@ interface JavaScriptCallFrame {
 
   static final int WITH_SCOPE = 2;
 
+  /** @domName JavaScriptCallFrame.caller */
   final JavaScriptCallFrame caller;
 
+  /** @domName JavaScriptCallFrame.column */
   final int column;
 
+  /** @domName JavaScriptCallFrame.functionName */
   final String functionName;
 
+  /** @domName JavaScriptCallFrame.line */
   final int line;
 
+  /** @domName JavaScriptCallFrame.scopeChain */
   final List scopeChain;
 
+  /** @domName JavaScriptCallFrame.sourceID */
   final int sourceID;
 
+  /** @domName JavaScriptCallFrame.thisObject */
   final Object thisObject;
 
+  /** @domName JavaScriptCallFrame.type */
   final String type;
 
+  /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
 
+  /** @domName JavaScriptCallFrame.scopeType */
   int scopeType(int scopeIndex);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28746,22 +29988,31 @@ interface JavaScriptCallFrame {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName KeyboardEvent
 interface KeyboardEvent extends UIEvent {
 
+  /** @domName KeyboardEvent.altGraphKey */
   final bool altGraphKey;
 
+  /** @domName KeyboardEvent.altKey */
   final bool altKey;
 
+  /** @domName KeyboardEvent.ctrlKey */
   final bool ctrlKey;
 
+  /** @domName KeyboardEvent.keyIdentifier */
   final String keyIdentifier;
 
+  /** @domName KeyboardEvent.keyLocation */
   final int keyLocation;
 
+  /** @domName KeyboardEvent.metaKey */
   final bool metaKey;
 
+  /** @domName KeyboardEvent.shiftKey */
   final bool shiftKey;
 
+  /** @domName KeyboardEvent.initKeyboardEvent */
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, Window view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28770,32 +30021,46 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLKeygenElement
 interface KeygenElement extends Element {
 
+  /** @domName HTMLKeygenElement.autofocus */
   bool autofocus;
 
+  /** @domName HTMLKeygenElement.challenge */
   String challenge;
 
+  /** @domName HTMLKeygenElement.disabled */
   bool disabled;
 
+  /** @domName HTMLKeygenElement.form */
   final FormElement form;
 
+  /** @domName HTMLKeygenElement.keytype */
   String keytype;
 
+  /** @domName HTMLKeygenElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLKeygenElement.name */
   String name;
 
+  /** @domName HTMLKeygenElement.type */
   final String type;
 
+  /** @domName HTMLKeygenElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLKeygenElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLKeygenElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLKeygenElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLKeygenElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28804,10 +30069,13 @@ interface KeygenElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLLIElement
 interface LIElement extends Element {
 
+  /** @domName HTMLLIElement.type */
   String type;
 
+  /** @domName HTMLLIElement.value */
   int value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28816,12 +30084,16 @@ interface LIElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLLabelElement
 interface LabelElement extends Element {
 
+  /** @domName HTMLLabelElement.control */
   final Element control;
 
+  /** @domName HTMLLabelElement.form */
   final FormElement form;
 
+  /** @domName HTMLLabelElement.htmlFor */
   String htmlFor;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28830,10 +30102,13 @@ interface LabelElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLLegendElement
 interface LegendElement extends Element {
 
+  /** @domName HTMLLegendElement.align */
   String align;
 
+  /** @domName HTMLLegendElement.form */
   final FormElement form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28842,28 +30117,40 @@ interface LegendElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLLinkElement
 interface LinkElement extends Element {
 
+  /** @domName HTMLLinkElement.charset */
   String charset;
 
+  /** @domName HTMLLinkElement.disabled */
   bool disabled;
 
+  /** @domName HTMLLinkElement.href */
   String href;
 
+  /** @domName HTMLLinkElement.hreflang */
   String hreflang;
 
+  /** @domName HTMLLinkElement.media */
   String media;
 
+  /** @domName HTMLLinkElement.rel */
   String rel;
 
+  /** @domName HTMLLinkElement.rev */
   String rev;
 
+  /** @domName HTMLLinkElement.sheet */
   final StyleSheet sheet;
 
+  /** @domName HTMLLinkElement.sizes */
   DOMSettableTokenList sizes;
 
+  /** @domName HTMLLinkElement.target */
   String target;
 
+  /** @domName HTMLLinkElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28872,8 +30159,10 @@ interface LinkElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName LocalMediaStream
 interface LocalMediaStream extends MediaStream {
 
+  /** @domName LocalMediaStream.stop */
   void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28882,32 +30171,46 @@ interface LocalMediaStream extends MediaStream {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Location
 interface Location {
 
+  /** @domName Location.hash */
   String hash;
 
+  /** @domName Location.host */
   String host;
 
+  /** @domName Location.hostname */
   String hostname;
 
+  /** @domName Location.href */
   String href;
 
+  /** @domName Location.origin */
   final String origin;
 
+  /** @domName Location.pathname */
   String pathname;
 
+  /** @domName Location.port */
   String port;
 
+  /** @domName Location.protocol */
   String protocol;
 
+  /** @domName Location.search */
   String search;
 
+  /** @domName Location.assign */
   void assign(String url);
 
+  /** @domName Location.reload */
   void reload();
 
+  /** @domName Location.replace */
   void replace(String url);
 
+  /** @domName Location.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28916,10 +30219,13 @@ interface Location {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMapElement
 interface MapElement extends Element {
 
+  /** @domName HTMLMapElement.areas */
   final HTMLCollection areas;
 
+  /** @domName HTMLMapElement.name */
   String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28928,32 +30234,46 @@ interface MapElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMarqueeElement
 interface MarqueeElement extends Element {
 
+  /** @domName HTMLMarqueeElement.behavior */
   String behavior;
 
+  /** @domName HTMLMarqueeElement.bgColor */
   String bgColor;
 
+  /** @domName HTMLMarqueeElement.direction */
   String direction;
 
+  /** @domName HTMLMarqueeElement.height */
   String height;
 
+  /** @domName HTMLMarqueeElement.hspace */
   int hspace;
 
+  /** @domName HTMLMarqueeElement.loop */
   int loop;
 
+  /** @domName HTMLMarqueeElement.scrollAmount */
   int scrollAmount;
 
+  /** @domName HTMLMarqueeElement.scrollDelay */
   int scrollDelay;
 
+  /** @domName HTMLMarqueeElement.trueSpeed */
   bool trueSpeed;
 
+  /** @domName HTMLMarqueeElement.vspace */
   int vspace;
 
+  /** @domName HTMLMarqueeElement.width */
   String width;
 
+  /** @domName HTMLMarqueeElement.start */
   void start();
 
+  /** @domName HTMLMarqueeElement.stop */
   void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28962,38 +30282,54 @@ interface MarqueeElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaController
 interface MediaController default _MediaControllerFactoryProvider {
 
   MediaController();
 
+  /** @domName MediaController.buffered */
   final TimeRanges buffered;
 
+  /** @domName MediaController.currentTime */
   num currentTime;
 
+  /** @domName MediaController.defaultPlaybackRate */
   num defaultPlaybackRate;
 
+  /** @domName MediaController.duration */
   final num duration;
 
+  /** @domName MediaController.muted */
   bool muted;
 
+  /** @domName MediaController.paused */
   final bool paused;
 
+  /** @domName MediaController.playbackRate */
   num playbackRate;
 
+  /** @domName MediaController.played */
   final TimeRanges played;
 
+  /** @domName MediaController.seekable */
   final TimeRanges seekable;
 
+  /** @domName MediaController.volume */
   num volume;
 
+  /** @domName MediaController.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName MediaController.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName MediaController.pause */
   void pause();
 
+  /** @domName MediaController.play */
   void play();
 
+  /** @domName MediaController.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29002,6 +30338,7 @@ interface MediaController default _MediaControllerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMediaElement
 interface MediaElement extends Element {
 
   static final int EOS_DECODE_ERR = 2;
@@ -29034,86 +30371,127 @@ interface MediaElement extends Element {
 
   static final int SOURCE_OPEN = 1;
 
+  /** @domName HTMLMediaElement.autoplay */
   bool autoplay;
 
+  /** @domName HTMLMediaElement.buffered */
   final TimeRanges buffered;
 
+  /** @domName HTMLMediaElement.controller */
   MediaController controller;
 
+  /** @domName HTMLMediaElement.controls */
   bool controls;
 
+  /** @domName HTMLMediaElement.currentSrc */
   final String currentSrc;
 
+  /** @domName HTMLMediaElement.currentTime */
   num currentTime;
 
+  /** @domName HTMLMediaElement.defaultMuted */
   bool defaultMuted;
 
+  /** @domName HTMLMediaElement.defaultPlaybackRate */
   num defaultPlaybackRate;
 
+  /** @domName HTMLMediaElement.duration */
   final num duration;
 
+  /** @domName HTMLMediaElement.ended */
   final bool ended;
 
+  /** @domName HTMLMediaElement.error */
   final MediaError error;
 
+  /** @domName HTMLMediaElement.initialTime */
   final num initialTime;
 
+  /** @domName HTMLMediaElement.loop */
   bool loop;
 
+  /** @domName HTMLMediaElement.mediaGroup */
   String mediaGroup;
 
+  /** @domName HTMLMediaElement.muted */
   bool muted;
 
+  /** @domName HTMLMediaElement.networkState */
   final int networkState;
 
+  /** @domName HTMLMediaElement.paused */
   final bool paused;
 
+  /** @domName HTMLMediaElement.playbackRate */
   num playbackRate;
 
+  /** @domName HTMLMediaElement.played */
   final TimeRanges played;
 
+  /** @domName HTMLMediaElement.preload */
   String preload;
 
+  /** @domName HTMLMediaElement.readyState */
   final int readyState;
 
+  /** @domName HTMLMediaElement.seekable */
   final TimeRanges seekable;
 
+  /** @domName HTMLMediaElement.seeking */
   final bool seeking;
 
+  /** @domName HTMLMediaElement.src */
   String src;
 
+  /** @domName HTMLMediaElement.startTime */
   final num startTime;
 
+  /** @domName HTMLMediaElement.textTracks */
   final TextTrackList textTracks;
 
+  /** @domName HTMLMediaElement.volume */
   num volume;
 
+  /** @domName HTMLMediaElement.webkitAudioDecodedByteCount */
   final int webkitAudioDecodedByteCount;
 
+  /** @domName HTMLMediaElement.webkitClosedCaptionsVisible */
   bool webkitClosedCaptionsVisible;
 
+  /** @domName HTMLMediaElement.webkitHasClosedCaptions */
   final bool webkitHasClosedCaptions;
 
+  /** @domName HTMLMediaElement.webkitMediaSourceURL */
   final String webkitMediaSourceURL;
 
+  /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
+  /** @domName HTMLMediaElement.webkitSourceState */
   final int webkitSourceState;
 
+  /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
   final int webkitVideoDecodedByteCount;
 
+  /** @domName HTMLMediaElement.addTextTrack */
   TextTrack addTextTrack(String kind, [String label, String language]);
 
+  /** @domName HTMLMediaElement.canPlayType */
   String canPlayType(String type);
 
+  /** @domName HTMLMediaElement.load */
   void load();
 
+  /** @domName HTMLMediaElement.pause */
   void pause();
 
+  /** @domName HTMLMediaElement.play */
   void play();
 
+  /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
+  /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29122,8 +30500,10 @@ interface MediaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaElementAudioSourceNode
 interface MediaElementAudioSourceNode extends AudioSourceNode {
 
+  /** @domName MediaElementAudioSourceNode.mediaElement */
   final MediaElement mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29132,6 +30512,7 @@ interface MediaElementAudioSourceNode extends AudioSourceNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaError
 interface MediaError {
 
   static final int MEDIA_ERR_ABORTED = 1;
@@ -29142,6 +30523,7 @@ interface MediaError {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
+  /** @domName MediaError.code */
   final int code;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29150,16 +30532,22 @@ interface MediaError {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaList
 interface MediaList extends List<String> {
 
+  /** @domName MediaList.length */
   final int length;
 
+  /** @domName MediaList.mediaText */
   String mediaText;
 
+  /** @domName MediaList.appendMedium */
   void appendMedium(String newMedium);
 
+  /** @domName MediaList.deleteMedium */
   void deleteMedium(String oldMedium);
 
+  /** @domName MediaList.item */
   String item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29168,14 +30556,19 @@ interface MediaList extends List<String> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaQueryList
 interface MediaQueryList {
 
+  /** @domName MediaQueryList.matches */
   final bool matches;
 
+  /** @domName MediaQueryList.media */
   final String media;
 
+  /** @domName MediaQueryList.addListener */
   void addListener(MediaQueryListListener listener);
 
+  /** @domName MediaQueryList.removeListener */
   void removeListener(MediaQueryListListener listener);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29184,8 +30577,10 @@ interface MediaQueryList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaQueryListListener
 interface MediaQueryListListener {
 
+  /** @domName MediaQueryListListener.queryChanged */
   void queryChanged(MediaQueryList list);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29194,6 +30589,7 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStream
 interface MediaStream default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
@@ -29202,20 +30598,28 @@ interface MediaStream default _MediaStreamFactoryProvider {
 
   static final int LIVE = 1;
 
+  /** @domName MediaStream.audioTracks */
   final MediaStreamTrackList audioTracks;
 
+  /** @domName MediaStream.label */
   final String label;
 
+  /** @domName MediaStream.onended */
   EventListener onended;
 
+  /** @domName MediaStream.readyState */
   final int readyState;
 
+  /** @domName MediaStream.videoTracks */
   final MediaStreamTrackList videoTracks;
 
+  /** @domName MediaStream.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName MediaStream.dispatchEvent */
   bool dispatchEvent(Event event);
 
+  /** @domName MediaStream.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29224,8 +30628,10 @@ interface MediaStream default _MediaStreamFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamEvent
 interface MediaStreamEvent extends Event {
 
+  /** @domName MediaStreamEvent.stream */
   final MediaStream stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29234,10 +30640,13 @@ interface MediaStreamEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamList
 interface MediaStreamList {
 
+  /** @domName MediaStreamList.length */
   final int length;
 
+  /** @domName MediaStreamList.item */
   MediaStream item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29246,12 +30655,16 @@ interface MediaStreamList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamTrack
 interface MediaStreamTrack {
 
+  /** @domName MediaStreamTrack.enabled */
   bool enabled;
 
+  /** @domName MediaStreamTrack.kind */
   final String kind;
 
+  /** @domName MediaStreamTrack.label */
   final String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29260,10 +30673,13 @@ interface MediaStreamTrack {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamTrackList
 interface MediaStreamTrackList {
 
+  /** @domName MediaStreamTrackList.length */
   final int length;
 
+  /** @domName MediaStreamTrackList.item */
   MediaStreamTrack item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29272,12 +30688,16 @@ interface MediaStreamTrackList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MemoryInfo
 interface MemoryInfo {
 
+  /** @domName MemoryInfo.jsHeapSizeLimit */
   final int jsHeapSizeLimit;
 
+  /** @domName MemoryInfo.totalJSHeapSize */
   final int totalJSHeapSize;
 
+  /** @domName MemoryInfo.usedJSHeapSize */
   final int usedJSHeapSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29286,8 +30706,10 @@ interface MemoryInfo {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMenuElement
 interface MenuElement extends Element {
 
+  /** @domName HTMLMenuElement.compact */
   bool compact;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29296,12 +30718,15 @@ interface MenuElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MessageChannel
 interface MessageChannel default _MessageChannelFactoryProvider {
 
   MessageChannel();
 
+  /** @domName MessageChannel.port1 */
   final MessagePort port1;
 
+  /** @domName MessageChannel.port2 */
   final MessagePort port2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29310,20 +30735,28 @@ interface MessageChannel default _MessageChannelFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MessageEvent
 interface MessageEvent extends Event {
 
+  /** @domName MessageEvent.data */
   final Object data;
 
+  /** @domName MessageEvent.lastEventId */
   final String lastEventId;
 
+  /** @domName MessageEvent.origin */
   final String origin;
 
+  /** @domName MessageEvent.ports */
   final List ports;
 
+  /** @domName MessageEvent.source */
   final Window source;
 
+  /** @domName MessageEvent.initMessageEvent */
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List messagePorts);
 
+  /** @domName MessageEvent.webkitInitMessageEvent */
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List transferables);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29332,25 +30765,33 @@ interface MessageEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MessagePort
 interface MessagePort extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   MessagePortEvents get on();
 
-  /** @domName addEventListener */
+  /** @domName MessagePort.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName MessagePort.close */
   void close();
 
-  /** @domName dispatchEvent */
+  /** @domName MessagePort.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName MessagePort.postMessage */
   void postMessage(String message, [List messagePorts]);
 
-  /** @domName removeEventListener */
+  /** @domName MessagePort.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName MessagePort.start */
   void start();
 
+  /** @domName MessagePort.webkitPostMessage */
   void webkitPostMessage(String message, [List transfer]);
 }
 
@@ -29364,14 +30805,19 @@ interface MessagePortEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMetaElement
 interface MetaElement extends Element {
 
+  /** @domName HTMLMetaElement.content */
   String content;
 
+  /** @domName HTMLMetaElement.httpEquiv */
   String httpEquiv;
 
+  /** @domName HTMLMetaElement.name */
   String name;
 
+  /** @domName HTMLMetaElement.scheme */
   String scheme;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29380,10 +30826,13 @@ interface MetaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Metadata
 interface Metadata {
 
+  /** @domName Metadata.modificationTime */
   final Date modificationTime;
 
+  /** @domName Metadata.size */
   final int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -29399,20 +30848,28 @@ typedef bool MetadataCallback(Metadata metadata);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLMeterElement
 interface MeterElement extends Element {
 
+  /** @domName HTMLMeterElement.high */
   num high;
 
+  /** @domName HTMLMeterElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLMeterElement.low */
   num low;
 
+  /** @domName HTMLMeterElement.max */
   num max;
 
+  /** @domName HTMLMeterElement.min */
   num min;
 
+  /** @domName HTMLMeterElement.optimum */
   num optimum;
 
+  /** @domName HTMLMeterElement.value */
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29421,10 +30878,13 @@ interface MeterElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLModElement
 interface ModElement extends Element {
 
+  /** @domName HTMLModElement.cite */
   String cite;
 
+  /** @domName HTMLModElement.dateTime */
   String dateTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29433,6 +30893,7 @@ interface ModElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MouseEvent
 interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
   MouseEvent(String type, Window view, int detail, int screenX, int screenY,
@@ -29441,41 +30902,58 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
       EventTarget relatedTarget]);
 
 
+  /** @domName MouseEvent.altKey */
   final bool altKey;
 
+  /** @domName MouseEvent.button */
   final int button;
 
+  /** @domName MouseEvent.clientX */
   final int clientX;
 
+  /** @domName MouseEvent.clientY */
   final int clientY;
 
+  /** @domName MouseEvent.ctrlKey */
   final bool ctrlKey;
 
+  /** @domName MouseEvent.dataTransfer */
   final Clipboard dataTransfer;
 
+  /** @domName MouseEvent.fromElement */
   final Node fromElement;
 
+  /** @domName MouseEvent.metaKey */
   final bool metaKey;
 
+  /** @domName MouseEvent.offsetX */
   final int offsetX;
 
+  /** @domName MouseEvent.offsetY */
   final int offsetY;
 
+  /** @domName MouseEvent.relatedTarget */
   final EventTarget relatedTarget;
 
+  /** @domName MouseEvent.screenX */
   final int screenX;
 
+  /** @domName MouseEvent.screenY */
   final int screenY;
 
+  /** @domName MouseEvent.shiftKey */
   final bool shiftKey;
 
+  /** @domName MouseEvent.toElement */
   final Node toElement;
 
+  /** @domName MouseEvent.x */
   final int x;
 
+  /** @domName MouseEvent.y */
   final int y;
 
-  /** @domName initMouseEvent */
+  /** @domName MouseEvent.initMouseEvent */
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29484,6 +30962,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MutationCallback
 interface MutationCallback {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29492,6 +30971,7 @@ interface MutationCallback {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MutationEvent
 interface MutationEvent extends Event {
 
   static final int ADDITION = 2;
@@ -29500,16 +30980,22 @@ interface MutationEvent extends Event {
 
   static final int REMOVAL = 3;
 
+  /** @domName MutationEvent.attrChange */
   final int attrChange;
 
+  /** @domName MutationEvent.attrName */
   final String attrName;
 
+  /** @domName MutationEvent.newValue */
   final String newValue;
 
+  /** @domName MutationEvent.prevValue */
   final String prevValue;
 
+  /** @domName MutationEvent.relatedNode */
   final Node relatedNode;
 
+  /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29518,24 +31004,34 @@ interface MutationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MutationRecord
 interface MutationRecord {
 
+  /** @domName MutationRecord.addedNodes */
   final NodeList addedNodes;
 
+  /** @domName MutationRecord.attributeName */
   final String attributeName;
 
+  /** @domName MutationRecord.attributeNamespace */
   final String attributeNamespace;
 
+  /** @domName MutationRecord.nextSibling */
   final Node nextSibling;
 
+  /** @domName MutationRecord.oldValue */
   final String oldValue;
 
+  /** @domName MutationRecord.previousSibling */
   final Node previousSibling;
 
+  /** @domName MutationRecord.removedNodes */
   final NodeList removedNodes;
 
+  /** @domName MutationRecord.target */
   final Node target;
 
+  /** @domName MutationRecord.type */
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29544,22 +31040,31 @@ interface MutationRecord {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NamedNodeMap
 interface NamedNodeMap extends List<Node> {
 
+  /** @domName NamedNodeMap.length */
   final int length;
 
+  /** @domName NamedNodeMap.getNamedItem */
   Node getNamedItem(String name);
 
+  /** @domName NamedNodeMap.getNamedItemNS */
   Node getNamedItemNS(String namespaceURI, String localName);
 
+  /** @domName NamedNodeMap.item */
   Node item(int index);
 
+  /** @domName NamedNodeMap.removeNamedItem */
   Node removeNamedItem(String name);
 
+  /** @domName NamedNodeMap.removeNamedItemNS */
   Node removeNamedItemNS(String namespaceURI, String localName);
 
+  /** @domName NamedNodeMap.setNamedItem */
   Node setNamedItem(Node node);
 
+  /** @domName NamedNodeMap.setNamedItemNS */
   Node setNamedItemNS(Node node);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29568,44 +31073,64 @@ interface NamedNodeMap extends List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Navigator
 interface Navigator {
 
+  /** @domName Navigator.appCodeName */
   final String appCodeName;
 
+  /** @domName Navigator.appName */
   final String appName;
 
+  /** @domName Navigator.appVersion */
   final String appVersion;
 
+  /** @domName Navigator.cookieEnabled */
   final bool cookieEnabled;
 
+  /** @domName Navigator.geolocation */
   final Geolocation geolocation;
 
+  /** @domName Navigator.language */
   final String language;
 
+  /** @domName Navigator.mimeTypes */
   final DOMMimeTypeArray mimeTypes;
 
+  /** @domName Navigator.onLine */
   final bool onLine;
 
+  /** @domName Navigator.platform */
   final String platform;
 
+  /** @domName Navigator.plugins */
   final DOMPluginArray plugins;
 
+  /** @domName Navigator.product */
   final String product;
 
+  /** @domName Navigator.productSub */
   final String productSub;
 
+  /** @domName Navigator.userAgent */
   final String userAgent;
 
+  /** @domName Navigator.vendor */
   final String vendor;
 
+  /** @domName Navigator.vendorSub */
   final String vendorSub;
 
+  /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
 
+  /** @domName Navigator.javaEnabled */
   bool javaEnabled();
 
+  /** @domName Navigator.registerProtocolHandler */
   void registerProtocolHandler(String scheme, String url, String title);
 
+  /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29614,10 +31139,12 @@ interface Navigator {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NavigatorUserMediaError
 interface NavigatorUserMediaError {
 
   static final int PERMISSION_DENIED = 1;
 
+  /** @domName NavigatorUserMediaError.code */
   final int code;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -29640,13 +31167,22 @@ typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Node
 interface Node extends EventTarget {
   NodeList get nodes();
 
   void set nodes(Collection<Node> value);
 
+  /**
+   * Replaces this node with another node.
+   * @domName Node.replaceChild
+   */
   Node replaceWith(Node otherNode);
 
+  /**
+   * Removes this node from the DOM.
+   * @domName Node.removeChild
+   */
   Node remove();
 
 
@@ -29686,52 +31222,55 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  /** @domName attributes */
+  /** @domName Node.attributes */
   final NamedNodeMap $dom_attributes;
 
-  /** @domName childNodes */
+  /** @domName Node.childNodes */
   final NodeList $dom_childNodes;
 
-  /** @domName firstChild */
+  /** @domName Node.firstChild */
   final Node $dom_firstChild;
 
-  /** @domName lastChild */
+  /** @domName Node.lastChild */
   final Node $dom_lastChild;
 
-  /** @domName nextSibling */
+  /** @domName Node.nextSibling */
   final Node nextNode;
 
-  /** @domName nodeType */
+  /** @domName Node.nodeType */
   final int $dom_nodeType;
 
-  /** @domName ownerDocument */
+  /** @domName Node.ownerDocument */
   final Document document;
 
-  /** @domName parentNode */
+  /** @domName Node.parentNode */
   final Node parent;
 
-  /** @domName previousSibling */
+  /** @domName Node.previousSibling */
   final Node previousNode;
 
-  /** @domName textContent */
+  /** @domName Node.textContent */
   String text;
 
-  /** @domName appendChild */
+  /** @domName Node.appendChild */
   Node $dom_appendChild(Node newChild);
 
-  /** @domName cloneNode */
+  /** @domName Node.cloneNode */
   Node clone(bool deep);
 
+  /** @domName Node.contains */
   bool contains(Node other);
 
+  /** @domName Node.hasChildNodes */
   bool hasChildNodes();
 
+  /** @domName Node.insertBefore */
   Node insertBefore(Node newChild, Node refChild);
 
-  /** @domName removeChild */
+  /** @domName Node.removeChild */
   Node $dom_removeChild(Node oldChild);
 
-  /** @domName replaceChild */
+  /** @domName Node.replaceChild */
   Node $dom_replaceChild(Node newChild, Node oldChild);
 
 }
@@ -29741,6 +31280,7 @@ interface Node extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NodeFilter
 interface NodeFilter {
 
   static final int FILTER_ACCEPT = 1;
@@ -29775,6 +31315,7 @@ interface NodeFilter {
 
   static final int SHOW_TEXT = 0x00000004;
 
+  /** @domName NodeFilter.acceptNode */
   int acceptNode(Node n);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29783,24 +31324,34 @@ interface NodeFilter {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NodeIterator
 interface NodeIterator {
 
+  /** @domName NodeIterator.expandEntityReferences */
   final bool expandEntityReferences;
 
+  /** @domName NodeIterator.filter */
   final NodeFilter filter;
 
+  /** @domName NodeIterator.pointerBeforeReferenceNode */
   final bool pointerBeforeReferenceNode;
 
+  /** @domName NodeIterator.referenceNode */
   final Node referenceNode;
 
+  /** @domName NodeIterator.root */
   final Node root;
 
+  /** @domName NodeIterator.whatToShow */
   final int whatToShow;
 
+  /** @domName NodeIterator.detach */
   void detach();
 
+  /** @domName NodeIterator.nextNode */
   Node nextNode();
 
+  /** @domName NodeIterator.previousNode */
   Node previousNode();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -29809,6 +31360,7 @@ interface NodeIterator {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NodeList
 interface NodeList extends List<Node> {
 
   NodeList filter(bool f(Node element));
@@ -29818,6 +31370,7 @@ interface NodeList extends List<Node> {
   Node get first();
 
 
+  /** @domName NodeList.length */
   final int length;
 
 }
@@ -29827,16 +31380,17 @@ interface NodeList extends List<Node> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NodeSelector
 interface NodeSelector {
 
   // TODO(nweiz): add this back once DocumentFragment is ported.
   // ElementList queryAll(String selectors);
 
 
-  /** @domName querySelector */
+  /** @domName NodeSelector.querySelector */
   Element query(String selectors);
 
-  /** @domName querySelectorAll */
+  /** @domName NodeSelector.querySelectorAll */
   NodeList $dom_querySelectorAll(String selectors);
 
 }
@@ -29846,10 +31400,13 @@ interface NodeSelector {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Notation
 interface Notation extends Node {
 
+  /** @domName Notation.publicId */
   final String publicId;
 
+  /** @domName Notation.systemId */
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29858,16 +31415,24 @@ interface Notation extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Notification
 interface Notification extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   NotificationEvents get on();
 
+  /** @domName Notification.dir */
   String dir;
 
+  /** @domName Notification.tag */
   String tag;
 
+  /** @domName Notification.close */
   void close();
 
+  /** @domName Notification.show */
   void show();
 }
 
@@ -29887,14 +31452,19 @@ interface NotificationEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName NotificationCenter
 interface NotificationCenter {
 
+  /** @domName NotificationCenter.checkPermission */
   int checkPermission();
 
+  /** @domName NotificationCenter.createHTMLNotification */
   Notification createHTMLNotification(String url);
 
+  /** @domName NotificationCenter.createNotification */
   Notification createNotification(String iconUrl, String title, String body);
 
+  /** @domName NotificationCenter.requestPermission */
   void requestPermission(VoidCallback callback);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29903,6 +31473,7 @@ interface NotificationCenter {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OESStandardDerivatives
 interface OESStandardDerivatives {
 
   static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
@@ -29913,6 +31484,7 @@ interface OESStandardDerivatives {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OESTextureFloat
 interface OESTextureFloat {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29921,16 +31493,21 @@ interface OESTextureFloat {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OESVertexArrayObject
 interface OESVertexArrayObject {
 
   static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
+  /** @domName OESVertexArrayObject.bindVertexArrayOES */
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject);
 
+  /** @domName OESVertexArrayObject.createVertexArrayOES */
   WebGLVertexArrayObjectOES createVertexArrayOES();
 
+  /** @domName OESVertexArrayObject.deleteVertexArrayOES */
   void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject);
 
+  /** @domName OESVertexArrayObject.isVertexArrayOES */
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29939,14 +31516,19 @@ interface OESVertexArrayObject {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLOListElement
 interface OListElement extends Element {
 
+  /** @domName HTMLOListElement.compact */
   bool compact;
 
+  /** @domName HTMLOListElement.reversed */
   bool reversed;
 
+  /** @domName HTMLOListElement.start */
   int start;
 
+  /** @domName HTMLOListElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29955,52 +31537,76 @@ interface OListElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLObjectElement
 interface ObjectElement extends Element {
 
+  /** @domName HTMLObjectElement.align */
   String align;
 
+  /** @domName HTMLObjectElement.archive */
   String archive;
 
+  /** @domName HTMLObjectElement.border */
   String border;
 
+  /** @domName HTMLObjectElement.code */
   String code;
 
+  /** @domName HTMLObjectElement.codeBase */
   String codeBase;
 
+  /** @domName HTMLObjectElement.codeType */
   String codeType;
 
+  /** @domName HTMLObjectElement.contentDocument */
   final Document contentDocument;
 
+  /** @domName HTMLObjectElement.data */
   String data;
 
+  /** @domName HTMLObjectElement.declare */
   bool declare;
 
+  /** @domName HTMLObjectElement.form */
   final FormElement form;
 
+  /** @domName HTMLObjectElement.height */
   String height;
 
+  /** @domName HTMLObjectElement.hspace */
   int hspace;
 
+  /** @domName HTMLObjectElement.name */
   String name;
 
+  /** @domName HTMLObjectElement.standby */
   String standby;
 
+  /** @domName HTMLObjectElement.type */
   String type;
 
+  /** @domName HTMLObjectElement.useMap */
   String useMap;
 
+  /** @domName HTMLObjectElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLObjectElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLObjectElement.vspace */
   int vspace;
 
+  /** @domName HTMLObjectElement.width */
   String width;
 
+  /** @domName HTMLObjectElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLObjectElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLObjectElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30009,8 +31615,10 @@ interface ObjectElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OfflineAudioCompletionEvent
 interface OfflineAudioCompletionEvent extends Event {
 
+  /** @domName OfflineAudioCompletionEvent.renderedBuffer */
   final AudioBuffer renderedBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30019,16 +31627,21 @@ interface OfflineAudioCompletionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OperationNotAllowedException
 interface OperationNotAllowedException {
 
   static final int NOT_ALLOWED_ERR = 1;
 
+  /** @domName OperationNotAllowedException.code */
   final int code;
 
+  /** @domName OperationNotAllowedException.message */
   final String message;
 
+  /** @domName OperationNotAllowedException.name */
   final String name;
 
+  /** @domName OperationNotAllowedException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30037,10 +31650,13 @@ interface OperationNotAllowedException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLOptGroupElement
 interface OptGroupElement extends Element {
 
+  /** @domName HTMLOptGroupElement.disabled */
   bool disabled;
 
+  /** @domName HTMLOptGroupElement.label */
   String label;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30049,22 +31665,30 @@ interface OptGroupElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLOptionElement
 interface OptionElement extends Element default _OptionElementFactoryProvider {
 
   OptionElement([String data, String value, bool defaultSelected, bool selected]);
 
+  /** @domName HTMLOptionElement.defaultSelected */
   bool defaultSelected;
 
+  /** @domName HTMLOptionElement.disabled */
   bool disabled;
 
+  /** @domName HTMLOptionElement.form */
   final FormElement form;
 
+  /** @domName HTMLOptionElement.index */
   final int index;
 
+  /** @domName HTMLOptionElement.label */
   String label;
 
+  /** @domName HTMLOptionElement.selected */
   bool selected;
 
+  /** @domName HTMLOptionElement.value */
   String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30073,6 +31697,7 @@ interface OptionElement extends Element default _OptionElementFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Oscillator
 interface Oscillator extends AudioSourceNode {
 
   static final int CUSTOM = 4;
@@ -30085,12 +31710,16 @@ interface Oscillator extends AudioSourceNode {
 
   static final int TRIANGLE = 3;
 
+  /** @domName Oscillator.detune */
   final AudioParam detune;
 
+  /** @domName Oscillator.frequency */
   final AudioParam frequency;
 
+  /** @domName Oscillator.type */
   int type;
 
+  /** @domName Oscillator.setWaveTable */
   void setWaveTable(WaveTable waveTable);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30099,30 +31728,43 @@ interface Oscillator extends AudioSourceNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLOutputElement
 interface OutputElement extends Element {
 
+  /** @domName HTMLOutputElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLOutputElement.form */
   final FormElement form;
 
+  /** @domName HTMLOutputElement.htmlFor */
   DOMSettableTokenList htmlFor;
 
+  /** @domName HTMLOutputElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLOutputElement.name */
   String name;
 
+  /** @domName HTMLOutputElement.type */
   final String type;
 
+  /** @domName HTMLOutputElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLOutputElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLOutputElement.value */
   String value;
 
+  /** @domName HTMLOutputElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLOutputElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLOutputElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30131,6 +31773,7 @@ interface OutputElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName OverflowEvent
 interface OverflowEvent extends Event {
 
   static final int BOTH = 2;
@@ -30139,10 +31782,13 @@ interface OverflowEvent extends Event {
 
   static final int VERTICAL = 1;
 
+  /** @domName OverflowEvent.horizontalOverflow */
   final bool horizontalOverflow;
 
+  /** @domName OverflowEvent.orient */
   final int orient;
 
+  /** @domName OverflowEvent.verticalOverflow */
   final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30151,8 +31797,10 @@ interface OverflowEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PageTransitionEvent
 interface PageTransitionEvent extends Event {
 
+  /** @domName PageTransitionEvent.persisted */
   final bool persisted;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30161,8 +31809,10 @@ interface PageTransitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLParagraphElement
 interface ParagraphElement extends Element {
 
+  /** @domName HTMLParagraphElement.align */
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30171,14 +31821,19 @@ interface ParagraphElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLParamElement
 interface ParamElement extends Element {
 
+  /** @domName HTMLParamElement.name */
   String name;
 
+  /** @domName HTMLParamElement.type */
   String type;
 
+  /** @domName HTMLParamElement.value */
   String value;
 
+  /** @domName HTMLParamElement.valueType */
   String valueType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30187,6 +31842,7 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PeerConnection00
 interface PeerConnection00 default _PeerConnection00FactoryProvider {
 
   PeerConnection00(String serverConfiguration, IceCallback iceCallback);
@@ -30219,50 +31875,73 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
 
   static final int SDP_PRANSWER = 0x200;
 
+  /** @domName PeerConnection00.iceState */
   final int iceState;
 
+  /** @domName PeerConnection00.localDescription */
   final SessionDescription localDescription;
 
+  /** @domName PeerConnection00.localStreams */
   final MediaStreamList localStreams;
 
+  /** @domName PeerConnection00.onaddstream */
   EventListener onaddstream;
 
+  /** @domName PeerConnection00.onconnecting */
   EventListener onconnecting;
 
+  /** @domName PeerConnection00.onopen */
   EventListener onopen;
 
+  /** @domName PeerConnection00.onremovestream */
   EventListener onremovestream;
 
+  /** @domName PeerConnection00.onstatechange */
   EventListener onstatechange;
 
+  /** @domName PeerConnection00.readyState */
   final int readyState;
 
+  /** @domName PeerConnection00.remoteDescription */
   final SessionDescription remoteDescription;
 
+  /** @domName PeerConnection00.remoteStreams */
   final MediaStreamList remoteStreams;
 
+  /** @domName PeerConnection00.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName PeerConnection00.addStream */
   void addStream(MediaStream stream, [String mediaStreamHints]);
 
+  /** @domName PeerConnection00.close */
   void close();
 
+  /** @domName PeerConnection00.createAnswer */
   SessionDescription createAnswer(String offer, [String mediaHints]);
 
+  /** @domName PeerConnection00.createOffer */
   SessionDescription createOffer([String mediaHints]);
 
+  /** @domName PeerConnection00.dispatchEvent */
   bool dispatchEvent(Event event);
 
+  /** @domName PeerConnection00.processIceMessage */
   void processIceMessage(IceCandidate candidate);
 
+  /** @domName PeerConnection00.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName PeerConnection00.removeStream */
   void removeStream(MediaStream stream);
 
+  /** @domName PeerConnection00.setLocalDescription */
   void setLocalDescription(int action, SessionDescription desc);
 
+  /** @domName PeerConnection00.setRemoteDescription */
   void setRemoteDescription(int action, SessionDescription desc);
 
+  /** @domName PeerConnection00.startIce */
   void startIce([String iceOptions]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30271,12 +31950,16 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Performance
 interface Performance {
 
+  /** @domName Performance.memory */
   final MemoryInfo memory;
 
+  /** @domName Performance.navigation */
   final PerformanceNavigation navigation;
 
+  /** @domName Performance.timing */
   final PerformanceTiming timing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30285,6 +31968,7 @@ interface Performance {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PerformanceNavigation
 interface PerformanceNavigation {
 
   static final int TYPE_BACK_FORWARD = 2;
@@ -30295,8 +31979,10 @@ interface PerformanceNavigation {
 
   static final int TYPE_RESERVED = 255;
 
+  /** @domName PerformanceNavigation.redirectCount */
   final int redirectCount;
 
+  /** @domName PerformanceNavigation.type */
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30305,48 +31991,70 @@ interface PerformanceNavigation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PerformanceTiming
 interface PerformanceTiming {
 
+  /** @domName PerformanceTiming.connectEnd */
   final int connectEnd;
 
+  /** @domName PerformanceTiming.connectStart */
   final int connectStart;
 
+  /** @domName PerformanceTiming.domComplete */
   final int domComplete;
 
+  /** @domName PerformanceTiming.domContentLoadedEventEnd */
   final int domContentLoadedEventEnd;
 
+  /** @domName PerformanceTiming.domContentLoadedEventStart */
   final int domContentLoadedEventStart;
 
+  /** @domName PerformanceTiming.domInteractive */
   final int domInteractive;
 
+  /** @domName PerformanceTiming.domLoading */
   final int domLoading;
 
+  /** @domName PerformanceTiming.domainLookupEnd */
   final int domainLookupEnd;
 
+  /** @domName PerformanceTiming.domainLookupStart */
   final int domainLookupStart;
 
+  /** @domName PerformanceTiming.fetchStart */
   final int fetchStart;
 
+  /** @domName PerformanceTiming.loadEventEnd */
   final int loadEventEnd;
 
+  /** @domName PerformanceTiming.loadEventStart */
   final int loadEventStart;
 
+  /** @domName PerformanceTiming.navigationStart */
   final int navigationStart;
 
+  /** @domName PerformanceTiming.redirectEnd */
   final int redirectEnd;
 
+  /** @domName PerformanceTiming.redirectStart */
   final int redirectStart;
 
+  /** @domName PerformanceTiming.requestStart */
   final int requestStart;
 
+  /** @domName PerformanceTiming.responseEnd */
   final int responseEnd;
 
+  /** @domName PerformanceTiming.responseStart */
   final int responseStart;
 
+  /** @domName PerformanceTiming.secureConnectionStart */
   final int secureConnectionStart;
 
+  /** @domName PerformanceTiming.unloadEventEnd */
   final int unloadEventEnd;
 
+  /** @domName PerformanceTiming.unloadEventStart */
   final int unloadEventStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30355,12 +32063,15 @@ interface PerformanceTiming {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitPoint
 interface Point default _PointFactoryProvider {
 
   Point(num x, num y);
 
+  /** @domName WebKitPoint.x */
   num x;
 
+  /** @domName WebKitPoint.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30369,8 +32080,10 @@ interface Point default _PointFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PopStateEvent
 interface PopStateEvent extends Event {
 
+  /** @domName PopStateEvent.state */
   final Object state;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30386,6 +32099,7 @@ typedef bool PositionCallback(Geoposition position);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName PositionError
 interface PositionError {
 
   static final int PERMISSION_DENIED = 1;
@@ -30394,8 +32108,10 @@ interface PositionError {
 
   static final int TIMEOUT = 3;
 
+  /** @domName PositionError.code */
   final int code;
 
+  /** @domName PositionError.message */
   final String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30411,10 +32127,13 @@ typedef bool PositionErrorCallback(PositionError error);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLPreElement
 interface PreElement extends Element {
 
+  /** @domName HTMLPreElement.width */
   int width;
 
+  /** @domName HTMLPreElement.wrap */
   bool wrap;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30423,12 +32142,16 @@ interface PreElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ProcessingInstruction
 interface ProcessingInstruction extends Node {
 
+  /** @domName ProcessingInstruction.data */
   String data;
 
+  /** @domName ProcessingInstruction.sheet */
   final StyleSheet sheet;
 
+  /** @domName ProcessingInstruction.target */
   final String target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30437,14 +32160,19 @@ interface ProcessingInstruction extends Node {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLProgressElement
 interface ProgressElement extends Element {
 
+  /** @domName HTMLProgressElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLProgressElement.max */
   num max;
 
+  /** @domName HTMLProgressElement.position */
   final num position;
 
+  /** @domName HTMLProgressElement.value */
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30453,12 +32181,16 @@ interface ProgressElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ProgressEvent
 interface ProgressEvent extends Event {
 
+  /** @domName ProgressEvent.lengthComputable */
   final bool lengthComputable;
 
+  /** @domName ProgressEvent.loaded */
   final int loaded;
 
+  /** @domName ProgressEvent.total */
   final int total;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30467,8 +32199,10 @@ interface ProgressEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLQuoteElement
 interface QuoteElement extends Element {
 
+  /** @domName HTMLQuoteElement.cite */
   String cite;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30477,12 +32211,16 @@ interface QuoteElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RGBColor
 interface RGBColor {
 
+  /** @domName RGBColor.blue */
   final CSSPrimitiveValue blue;
 
+  /** @domName RGBColor.green */
   final CSSPrimitiveValue green;
 
+  /** @domName RGBColor.red */
   final CSSPrimitiveValue red;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30491,6 +32229,7 @@ interface RGBColor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Range
 interface Range {
 
   static final int END_TO_END = 2;
@@ -30509,66 +32248,97 @@ interface Range {
 
   static final int START_TO_START = 0;
 
+  /** @domName Range.collapsed */
   final bool collapsed;
 
+  /** @domName Range.commonAncestorContainer */
   final Node commonAncestorContainer;
 
+  /** @domName Range.endContainer */
   final Node endContainer;
 
+  /** @domName Range.endOffset */
   final int endOffset;
 
+  /** @domName Range.startContainer */
   final Node startContainer;
 
+  /** @domName Range.startOffset */
   final int startOffset;
 
+  /** @domName Range.cloneContents */
   DocumentFragment cloneContents();
 
+  /** @domName Range.cloneRange */
   Range cloneRange();
 
+  /** @domName Range.collapse */
   void collapse(bool toStart);
 
+  /** @domName Range.compareNode */
   int compareNode(Node refNode);
 
+  /** @domName Range.comparePoint */
   int comparePoint(Node refNode, int offset);
 
+  /** @domName Range.createContextualFragment */
   DocumentFragment createContextualFragment(String html);
 
+  /** @domName Range.deleteContents */
   void deleteContents();
 
+  /** @domName Range.detach */
   void detach();
 
+  /** @domName Range.expand */
   void expand(String unit);
 
+  /** @domName Range.extractContents */
   DocumentFragment extractContents();
 
+  /** @domName Range.getBoundingClientRect */
   ClientRect getBoundingClientRect();
 
+  /** @domName Range.getClientRects */
   ClientRectList getClientRects();
 
+  /** @domName Range.insertNode */
   void insertNode(Node newNode);
 
+  /** @domName Range.intersectsNode */
   bool intersectsNode(Node refNode);
 
+  /** @domName Range.isPointInRange */
   bool isPointInRange(Node refNode, int offset);
 
+  /** @domName Range.selectNode */
   void selectNode(Node refNode);
 
+  /** @domName Range.selectNodeContents */
   void selectNodeContents(Node refNode);
 
+  /** @domName Range.setEnd */
   void setEnd(Node refNode, int offset);
 
+  /** @domName Range.setEndAfter */
   void setEndAfter(Node refNode);
 
+  /** @domName Range.setEndBefore */
   void setEndBefore(Node refNode);
 
+  /** @domName Range.setStart */
   void setStart(Node refNode, int offset);
 
+  /** @domName Range.setStartAfter */
   void setStartAfter(Node refNode);
 
+  /** @domName Range.setStartBefore */
   void setStartBefore(Node refNode);
 
+  /** @domName Range.surroundContents */
   void surroundContents(Node newParent);
 
+  /** @domName Range.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30577,18 +32347,23 @@ interface Range {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RangeException
 interface RangeException {
 
   static final int BAD_BOUNDARYPOINTS_ERR = 1;
 
   static final int INVALID_NODE_TYPE_ERR = 2;
 
+  /** @domName RangeException.code */
   final int code;
 
+  /** @domName RangeException.message */
   final String message;
 
+  /** @domName RangeException.name */
   final String name;
 
+  /** @domName RangeException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30597,22 +32372,31 @@ interface RangeException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName RealtimeAnalyserNode
 interface RealtimeAnalyserNode extends AudioNode {
 
+  /** @domName RealtimeAnalyserNode.fftSize */
   int fftSize;
 
+  /** @domName RealtimeAnalyserNode.frequencyBinCount */
   final int frequencyBinCount;
 
+  /** @domName RealtimeAnalyserNode.maxDecibels */
   num maxDecibels;
 
+  /** @domName RealtimeAnalyserNode.minDecibels */
   num minDecibels;
 
+  /** @domName RealtimeAnalyserNode.smoothingTimeConstant */
   num smoothingTimeConstant;
 
+  /** @domName RealtimeAnalyserNode.getByteFrequencyData */
   void getByteFrequencyData(Uint8Array array);
 
+  /** @domName RealtimeAnalyserNode.getByteTimeDomainData */
   void getByteTimeDomainData(Uint8Array array);
 
+  /** @domName RealtimeAnalyserNode.getFloatFrequencyData */
   void getFloatFrequencyData(Float32Array array);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30621,14 +32405,19 @@ interface RealtimeAnalyserNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Rect
 interface Rect {
 
+  /** @domName Rect.bottom */
   final CSSPrimitiveValue bottom;
 
+  /** @domName Rect.left */
   final CSSPrimitiveValue left;
 
+  /** @domName Rect.right */
   final CSSPrimitiveValue right;
 
+  /** @domName Rect.top */
   final CSSPrimitiveValue top;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30644,6 +32433,7 @@ typedef bool RequestAnimationFrameCallback(int time);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLError
 interface SQLError {
 
   static final int CONSTRAINT_ERR = 6;
@@ -30662,8 +32452,10 @@ interface SQLError {
 
   static final int VERSION_ERR = 2;
 
+  /** @domName SQLError.code */
   final int code;
 
+  /** @domName SQLError.message */
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30672,6 +32464,7 @@ interface SQLError {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLException
 interface SQLException {
 
   static final int CONSTRAINT_ERR = 6;
@@ -30690,8 +32483,10 @@ interface SQLException {
 
   static final int VERSION_ERR = 2;
 
+  /** @domName SQLException.code */
   final int code;
 
+  /** @domName SQLException.message */
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30700,12 +32495,16 @@ interface SQLException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLResultSet
 interface SQLResultSet {
 
+  /** @domName SQLResultSet.insertId */
   final int insertId;
 
+  /** @domName SQLResultSet.rows */
   final SQLResultSetRowList rows;
 
+  /** @domName SQLResultSet.rowsAffected */
   final int rowsAffected;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30714,10 +32513,13 @@ interface SQLResultSet {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLResultSetRowList
 interface SQLResultSetRowList {
 
+  /** @domName SQLResultSetRowList.length */
   final int length;
 
+  /** @domName SQLResultSetRowList.item */
   Object item(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30740,6 +32542,7 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLTransaction
 interface SQLTransaction {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30762,6 +32565,7 @@ typedef bool SQLTransactionErrorCallback(SQLError error);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SQLTransactionSync
 interface SQLTransactionSync {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -30777,8 +32581,10 @@ typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAElement
 interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGAElement.target */
   final SVGAnimatedString target;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30787,6 +32593,7 @@ interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpac
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAltGlyphDefElement
 interface SVGAltGlyphDefElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30795,10 +32602,13 @@ interface SVGAltGlyphDefElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAltGlyphElement
 interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference {
 
+  /** @domName SVGAltGlyphElement.format */
   String format;
 
+  /** @domName SVGAltGlyphElement.glyphRef */
   String glyphRef;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30807,6 +32617,7 @@ interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference 
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAltGlyphItemElement
 interface SVGAltGlyphItemElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30815,6 +32626,7 @@ interface SVGAltGlyphItemElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAngle
 interface SVGAngle {
 
   static final int SVG_ANGLETYPE_DEG = 2;
@@ -30827,16 +32639,22 @@ interface SVGAngle {
 
   static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
+  /** @domName SVGAngle.unitType */
   final int unitType;
 
+  /** @domName SVGAngle.value */
   num value;
 
+  /** @domName SVGAngle.valueAsString */
   String valueAsString;
 
+  /** @domName SVGAngle.valueInSpecifiedUnits */
   num valueInSpecifiedUnits;
 
+  /** @domName SVGAngle.convertToSpecifiedUnits */
   void convertToSpecifiedUnits(int unitType);
 
+  /** @domName SVGAngle.newValueSpecifiedUnits */
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30845,6 +32663,7 @@ interface SVGAngle {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimateColorElement
 interface SVGAnimateColorElement extends SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30853,6 +32672,7 @@ interface SVGAnimateColorElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimateElement
 interface SVGAnimateElement extends SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30861,6 +32681,7 @@ interface SVGAnimateElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimateMotionElement
 interface SVGAnimateMotionElement extends SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30869,6 +32690,7 @@ interface SVGAnimateMotionElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimateTransformElement
 interface SVGAnimateTransformElement extends SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30877,10 +32699,13 @@ interface SVGAnimateTransformElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedAngle
 interface SVGAnimatedAngle {
 
+  /** @domName SVGAnimatedAngle.animVal */
   final SVGAngle animVal;
 
+  /** @domName SVGAnimatedAngle.baseVal */
   final SVGAngle baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30889,10 +32714,13 @@ interface SVGAnimatedAngle {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedBoolean
 interface SVGAnimatedBoolean {
 
+  /** @domName SVGAnimatedBoolean.animVal */
   final bool animVal;
 
+  /** @domName SVGAnimatedBoolean.baseVal */
   bool baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30901,10 +32729,13 @@ interface SVGAnimatedBoolean {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedEnumeration
 interface SVGAnimatedEnumeration {
 
+  /** @domName SVGAnimatedEnumeration.animVal */
   final int animVal;
 
+  /** @domName SVGAnimatedEnumeration.baseVal */
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30913,10 +32744,13 @@ interface SVGAnimatedEnumeration {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedInteger
 interface SVGAnimatedInteger {
 
+  /** @domName SVGAnimatedInteger.animVal */
   final int animVal;
 
+  /** @domName SVGAnimatedInteger.baseVal */
   int baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30925,10 +32759,13 @@ interface SVGAnimatedInteger {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedLength
 interface SVGAnimatedLength {
 
+  /** @domName SVGAnimatedLength.animVal */
   final SVGLength animVal;
 
+  /** @domName SVGAnimatedLength.baseVal */
   final SVGLength baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30937,10 +32774,13 @@ interface SVGAnimatedLength {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedLengthList
 interface SVGAnimatedLengthList {
 
+  /** @domName SVGAnimatedLengthList.animVal */
   final SVGLengthList animVal;
 
+  /** @domName SVGAnimatedLengthList.baseVal */
   final SVGLengthList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30949,10 +32789,13 @@ interface SVGAnimatedLengthList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedNumber
 interface SVGAnimatedNumber {
 
+  /** @domName SVGAnimatedNumber.animVal */
   final num animVal;
 
+  /** @domName SVGAnimatedNumber.baseVal */
   num baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30961,10 +32804,13 @@ interface SVGAnimatedNumber {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedNumberList
 interface SVGAnimatedNumberList {
 
+  /** @domName SVGAnimatedNumberList.animVal */
   final SVGNumberList animVal;
 
+  /** @domName SVGAnimatedNumberList.baseVal */
   final SVGNumberList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30973,10 +32819,13 @@ interface SVGAnimatedNumberList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedPreserveAspectRatio
 interface SVGAnimatedPreserveAspectRatio {
 
+  /** @domName SVGAnimatedPreserveAspectRatio.animVal */
   final SVGPreserveAspectRatio animVal;
 
+  /** @domName SVGAnimatedPreserveAspectRatio.baseVal */
   final SVGPreserveAspectRatio baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30985,10 +32834,13 @@ interface SVGAnimatedPreserveAspectRatio {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedRect
 interface SVGAnimatedRect {
 
+  /** @domName SVGAnimatedRect.animVal */
   final SVGRect animVal;
 
+  /** @domName SVGAnimatedRect.baseVal */
   final SVGRect baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30997,10 +32849,13 @@ interface SVGAnimatedRect {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedString
 interface SVGAnimatedString {
 
+  /** @domName SVGAnimatedString.animVal */
   final String animVal;
 
+  /** @domName SVGAnimatedString.baseVal */
   String baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31009,10 +32864,13 @@ interface SVGAnimatedString {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimatedTransformList
 interface SVGAnimatedTransformList {
 
+  /** @domName SVGAnimatedTransformList.animVal */
   final SVGTransformList animVal;
 
+  /** @domName SVGAnimatedTransformList.baseVal */
   final SVGTransformList baseVal;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31021,14 +32879,19 @@ interface SVGAnimatedTransformList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGAnimationElement
 interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
+  /** @domName SVGAnimationElement.targetElement */
   final SVGElement targetElement;
 
+  /** @domName SVGAnimationElement.getCurrentTime */
   num getCurrentTime();
 
+  /** @domName SVGAnimationElement.getSimpleDuration */
   num getSimpleDuration();
 
+  /** @domName SVGAnimationElement.getStartTime */
   num getStartTime();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31037,12 +32900,16 @@ interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResources
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGCircleElement
 interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGCircleElement.cx */
   final SVGAnimatedLength cx;
 
+  /** @domName SVGCircleElement.cy */
   final SVGAnimatedLength cy;
 
+  /** @domName SVGCircleElement.r */
   final SVGAnimatedLength r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31051,8 +32918,10 @@ interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExtern
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGClipPathElement
 interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGClipPathElement.clipPathUnits */
   final SVGAnimatedEnumeration clipPathUnits;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31061,6 +32930,7 @@ interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGColor
 interface SVGColor extends CSSValue {
 
   static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
@@ -31071,14 +32941,19 @@ interface SVGColor extends CSSValue {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
+  /** @domName SVGColor.colorType */
   final int colorType;
 
+  /** @domName SVGColor.rgbColor */
   final RGBColor rgbColor;
 
+  /** @domName SVGColor.setColor */
   void setColor(int colorType, String rgbColor, String iccColor);
 
+  /** @domName SVGColor.setRGBColor */
   void setRGBColor(String rgbColor);
 
+  /** @domName SVGColor.setRGBColorICCColor */
   void setRGBColorICCColor(String rgbColor, String iccColor);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31087,6 +32962,7 @@ interface SVGColor extends CSSValue {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGComponentTransferFunctionElement
 interface SVGComponentTransferFunctionElement extends SVGElement {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
@@ -31101,18 +32977,25 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
+  /** @domName SVGComponentTransferFunctionElement.amplitude */
   final SVGAnimatedNumber amplitude;
 
+  /** @domName SVGComponentTransferFunctionElement.exponent */
   final SVGAnimatedNumber exponent;
 
+  /** @domName SVGComponentTransferFunctionElement.intercept */
   final SVGAnimatedNumber intercept;
 
+  /** @domName SVGComponentTransferFunctionElement.offset */
   final SVGAnimatedNumber offset;
 
+  /** @domName SVGComponentTransferFunctionElement.slope */
   final SVGAnimatedNumber slope;
 
+  /** @domName SVGComponentTransferFunctionElement.tableValues */
   final SVGAnimatedNumberList tableValues;
 
+  /** @domName SVGComponentTransferFunctionElement.type */
   final SVGAnimatedEnumeration type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31121,10 +33004,13 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGCursorElement
 interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
 
+  /** @domName SVGCursorElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGCursorElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31133,6 +33019,7 @@ interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExt
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGDefsElement
 interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31141,6 +33028,7 @@ interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGDescElement
 interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31149,17 +33037,20 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGDocument
 interface SVGDocument extends Document {
 
+  /** @domName SVGDocument.rootElement */
   final SVGSVGElement rootElement;
 
-  /** @domName createEvent */
+  /** @domName SVGDocument.createEvent */
   Event $dom_createEvent(String eventType);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @domName SVGElement
 interface SVGElement extends Element default _SVGElementFactoryProvider {
 
   SVGElement.tag(String tag);
@@ -31168,12 +33059,16 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
   SVGElement clone(bool deep);
 
 
+  /** @domName SVGElement.id */
   String id;
 
+  /** @domName SVGElement.ownerSVGElement */
   final SVGSVGElement ownerSVGElement;
 
+  /** @domName SVGElement.viewportElement */
   final SVGElement viewportElement;
 
+  /** @domName SVGElement.xmlbase */
   String xmlbase;
 
 }
@@ -31183,33 +33078,45 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGElementInstance
 interface SVGElementInstance extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   SVGElementInstanceEvents get on();
 
+  /** @domName SVGElementInstance.childNodes */
   final SVGElementInstanceList childNodes;
 
+  /** @domName SVGElementInstance.correspondingElement */
   final SVGElement correspondingElement;
 
+  /** @domName SVGElementInstance.correspondingUseElement */
   final SVGUseElement correspondingUseElement;
 
+  /** @domName SVGElementInstance.firstChild */
   final SVGElementInstance firstChild;
 
+  /** @domName SVGElementInstance.lastChild */
   final SVGElementInstance lastChild;
 
+  /** @domName SVGElementInstance.nextSibling */
   final SVGElementInstance nextSibling;
 
+  /** @domName SVGElementInstance.parentNode */
   final SVGElementInstance parentNode;
 
+  /** @domName SVGElementInstance.previousSibling */
   final SVGElementInstance previousSibling;
 
-  /** @domName addEventListener */
+  /** @domName SVGElementInstance.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName SVGElementInstance.dispatchEvent */
   bool $dom_dispatchEvent(Event event);
 
-  /** @domName removeEventListener */
+  /** @domName SVGElementInstance.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -31301,10 +33208,13 @@ interface SVGElementInstanceEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGElementInstanceList
 interface SVGElementInstanceList {
 
+  /** @domName SVGElementInstanceList.length */
   final int length;
 
+  /** @domName SVGElementInstanceList.item */
   SVGElementInstance item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31313,14 +33223,19 @@ interface SVGElementInstanceList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGEllipseElement
 interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGEllipseElement.cx */
   final SVGAnimatedLength cx;
 
+  /** @domName SVGEllipseElement.cy */
   final SVGAnimatedLength cy;
 
+  /** @domName SVGEllipseElement.rx */
   final SVGAnimatedLength rx;
 
+  /** @domName SVGEllipseElement.ry */
   final SVGAnimatedLength ry;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31329,6 +33244,7 @@ interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGException
 interface SVGException {
 
   static final int SVG_INVALID_VALUE_ERR = 1;
@@ -31337,12 +33253,16 @@ interface SVGException {
 
   static final int SVG_WRONG_TYPE_ERR = 0;
 
+  /** @domName SVGException.code */
   final int code;
 
+  /** @domName SVGException.message */
   final String message;
 
+  /** @domName SVGException.name */
   final String name;
 
+  /** @domName SVGException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31351,8 +33271,10 @@ interface SVGException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGExternalResourcesRequired
 interface SVGExternalResourcesRequired {
 
+  /** @domName SVGExternalResourcesRequired.externalResourcesRequired */
   final SVGAnimatedBoolean externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31361,6 +33283,7 @@ interface SVGExternalResourcesRequired {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEBlendElement
 interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_FEBLEND_MODE_DARKEN = 4;
@@ -31375,10 +33298,13 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
+  /** @domName SVGFEBlendElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEBlendElement.in2 */
   final SVGAnimatedString in2;
 
+  /** @domName SVGFEBlendElement.mode */
   final SVGAnimatedEnumeration mode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31387,6 +33313,7 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEColorMatrixElement
 interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
@@ -31399,10 +33326,13 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
+  /** @domName SVGFEColorMatrixElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEColorMatrixElement.type */
   final SVGAnimatedEnumeration type;
 
+  /** @domName SVGFEColorMatrixElement.values */
   final SVGAnimatedNumberList values;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31411,8 +33341,10 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEComponentTransferElement
 interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEComponentTransferElement.in1 */
   final SVGAnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31421,6 +33353,7 @@ interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveSt
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFECompositeElement
 interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
@@ -31437,18 +33370,25 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
+  /** @domName SVGFECompositeElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFECompositeElement.in2 */
   final SVGAnimatedString in2;
 
+  /** @domName SVGFECompositeElement.k1 */
   final SVGAnimatedNumber k1;
 
+  /** @domName SVGFECompositeElement.k2 */
   final SVGAnimatedNumber k2;
 
+  /** @domName SVGFECompositeElement.k3 */
   final SVGAnimatedNumber k3;
 
+  /** @domName SVGFECompositeElement.k4 */
   final SVGAnimatedNumber k4;
 
+  /** @domName SVGFECompositeElement.operator */
   final SVGAnimatedEnumeration operator;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31457,6 +33397,7 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEConvolveMatrixElement
 interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_EDGEMODE_DUPLICATE = 1;
@@ -31467,28 +33408,40 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
+  /** @domName SVGFEConvolveMatrixElement.bias */
   final SVGAnimatedNumber bias;
 
+  /** @domName SVGFEConvolveMatrixElement.divisor */
   final SVGAnimatedNumber divisor;
 
+  /** @domName SVGFEConvolveMatrixElement.edgeMode */
   final SVGAnimatedEnumeration edgeMode;
 
+  /** @domName SVGFEConvolveMatrixElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEConvolveMatrixElement.kernelMatrix */
   final SVGAnimatedNumberList kernelMatrix;
 
+  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthX */
   final SVGAnimatedNumber kernelUnitLengthX;
 
+  /** @domName SVGFEConvolveMatrixElement.kernelUnitLengthY */
   final SVGAnimatedNumber kernelUnitLengthY;
 
+  /** @domName SVGFEConvolveMatrixElement.orderX */
   final SVGAnimatedInteger orderX;
 
+  /** @domName SVGFEConvolveMatrixElement.orderY */
   final SVGAnimatedInteger orderY;
 
+  /** @domName SVGFEConvolveMatrixElement.preserveAlpha */
   final SVGAnimatedBoolean preserveAlpha;
 
+  /** @domName SVGFEConvolveMatrixElement.targetX */
   final SVGAnimatedInteger targetX;
 
+  /** @domName SVGFEConvolveMatrixElement.targetY */
   final SVGAnimatedInteger targetY;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31497,16 +33450,22 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEDiffuseLightingElement
 interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEDiffuseLightingElement.diffuseConstant */
   final SVGAnimatedNumber diffuseConstant;
 
+  /** @domName SVGFEDiffuseLightingElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthX */
   final SVGAnimatedNumber kernelUnitLengthX;
 
+  /** @domName SVGFEDiffuseLightingElement.kernelUnitLengthY */
   final SVGAnimatedNumber kernelUnitLengthY;
 
+  /** @domName SVGFEDiffuseLightingElement.surfaceScale */
   final SVGAnimatedNumber surfaceScale;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31515,6 +33474,7 @@ interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStan
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEDisplacementMapElement
 interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_CHANNEL_A = 4;
@@ -31527,14 +33487,19 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
+  /** @domName SVGFEDisplacementMapElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEDisplacementMapElement.in2 */
   final SVGAnimatedString in2;
 
+  /** @domName SVGFEDisplacementMapElement.scale */
   final SVGAnimatedNumber scale;
 
+  /** @domName SVGFEDisplacementMapElement.xChannelSelector */
   final SVGAnimatedEnumeration xChannelSelector;
 
+  /** @domName SVGFEDisplacementMapElement.yChannelSelector */
   final SVGAnimatedEnumeration yChannelSelector;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31543,10 +33508,13 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEDistantLightElement
 interface SVGFEDistantLightElement extends SVGElement {
 
+  /** @domName SVGFEDistantLightElement.azimuth */
   final SVGAnimatedNumber azimuth;
 
+  /** @domName SVGFEDistantLightElement.elevation */
   final SVGAnimatedNumber elevation;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31555,18 +33523,25 @@ interface SVGFEDistantLightElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEDropShadowElement
 interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEDropShadowElement.dx */
   final SVGAnimatedNumber dx;
 
+  /** @domName SVGFEDropShadowElement.dy */
   final SVGAnimatedNumber dy;
 
+  /** @domName SVGFEDropShadowElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEDropShadowElement.stdDeviationX */
   final SVGAnimatedNumber stdDeviationX;
 
+  /** @domName SVGFEDropShadowElement.stdDeviationY */
   final SVGAnimatedNumber stdDeviationY;
 
+  /** @domName SVGFEDropShadowElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31575,6 +33550,7 @@ interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEFloodElement
 interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31583,6 +33559,7 @@ interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEFuncAElement
 interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31591,6 +33568,7 @@ interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEFuncBElement
 interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31599,6 +33577,7 @@ interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEFuncGElement
 interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31607,6 +33586,7 @@ interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEFuncRElement
 interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31615,14 +33595,19 @@ interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEGaussianBlurElement
 interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEGaussianBlurElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEGaussianBlurElement.stdDeviationX */
   final SVGAnimatedNumber stdDeviationX;
 
+  /** @domName SVGFEGaussianBlurElement.stdDeviationY */
   final SVGAnimatedNumber stdDeviationY;
 
+  /** @domName SVGFEGaussianBlurElement.setStdDeviation */
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31631,8 +33616,10 @@ interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandar
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEImageElement
 interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEImageElement.preserveAspectRatio */
   final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31641,6 +33628,7 @@ interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, S
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEMergeElement
 interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31649,8 +33637,10 @@ interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEMergeNodeElement
 interface SVGFEMergeNodeElement extends SVGElement {
 
+  /** @domName SVGFEMergeNodeElement.in1 */
   final SVGAnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31659,6 +33649,7 @@ interface SVGFEMergeNodeElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEMorphologyElement
 interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
@@ -31667,14 +33658,19 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
+  /** @domName SVGFEMorphologyElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFEMorphologyElement.operator */
   final SVGAnimatedEnumeration operator;
 
+  /** @domName SVGFEMorphologyElement.radiusX */
   final SVGAnimatedNumber radiusX;
 
+  /** @domName SVGFEMorphologyElement.radiusY */
   final SVGAnimatedNumber radiusY;
 
+  /** @domName SVGFEMorphologyElement.setRadius */
   void setRadius(num radiusX, num radiusY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31683,12 +33679,16 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEOffsetElement
 interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFEOffsetElement.dx */
   final SVGAnimatedNumber dx;
 
+  /** @domName SVGFEOffsetElement.dy */
   final SVGAnimatedNumber dy;
 
+  /** @domName SVGFEOffsetElement.in1 */
   final SVGAnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31697,12 +33697,16 @@ interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttri
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFEPointLightElement
 interface SVGFEPointLightElement extends SVGElement {
 
+  /** @domName SVGFEPointLightElement.x */
   final SVGAnimatedNumber x;
 
+  /** @domName SVGFEPointLightElement.y */
   final SVGAnimatedNumber y;
 
+  /** @domName SVGFEPointLightElement.z */
   final SVGAnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31711,14 +33715,19 @@ interface SVGFEPointLightElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFESpecularLightingElement
 interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFESpecularLightingElement.in1 */
   final SVGAnimatedString in1;
 
+  /** @domName SVGFESpecularLightingElement.specularConstant */
   final SVGAnimatedNumber specularConstant;
 
+  /** @domName SVGFESpecularLightingElement.specularExponent */
   final SVGAnimatedNumber specularExponent;
 
+  /** @domName SVGFESpecularLightingElement.surfaceScale */
   final SVGAnimatedNumber surfaceScale;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31727,22 +33736,31 @@ interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveSta
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFESpotLightElement
 interface SVGFESpotLightElement extends SVGElement {
 
+  /** @domName SVGFESpotLightElement.limitingConeAngle */
   final SVGAnimatedNumber limitingConeAngle;
 
+  /** @domName SVGFESpotLightElement.pointsAtX */
   final SVGAnimatedNumber pointsAtX;
 
+  /** @domName SVGFESpotLightElement.pointsAtY */
   final SVGAnimatedNumber pointsAtY;
 
+  /** @domName SVGFESpotLightElement.pointsAtZ */
   final SVGAnimatedNumber pointsAtZ;
 
+  /** @domName SVGFESpotLightElement.specularExponent */
   final SVGAnimatedNumber specularExponent;
 
+  /** @domName SVGFESpotLightElement.x */
   final SVGAnimatedNumber x;
 
+  /** @domName SVGFESpotLightElement.y */
   final SVGAnimatedNumber y;
 
+  /** @domName SVGFESpotLightElement.z */
   final SVGAnimatedNumber z;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31751,8 +33769,10 @@ interface SVGFESpotLightElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFETileElement
 interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
+  /** @domName SVGFETileElement.in1 */
   final SVGAnimatedString in1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31761,6 +33781,7 @@ interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttribu
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFETurbulenceElement
 interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
   static final int SVG_STITCHTYPE_NOSTITCH = 2;
@@ -31775,16 +33796,22 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
+  /** @domName SVGFETurbulenceElement.baseFrequencyX */
   final SVGAnimatedNumber baseFrequencyX;
 
+  /** @domName SVGFETurbulenceElement.baseFrequencyY */
   final SVGAnimatedNumber baseFrequencyY;
 
+  /** @domName SVGFETurbulenceElement.numOctaves */
   final SVGAnimatedInteger numOctaves;
 
+  /** @domName SVGFETurbulenceElement.seed */
   final SVGAnimatedNumber seed;
 
+  /** @domName SVGFETurbulenceElement.stitchTiles */
   final SVGAnimatedEnumeration stitchTiles;
 
+  /** @domName SVGFETurbulenceElement.type */
   final SVGAnimatedEnumeration type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31793,24 +33820,34 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFilterElement
 interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
+  /** @domName SVGFilterElement.filterResX */
   final SVGAnimatedInteger filterResX;
 
+  /** @domName SVGFilterElement.filterResY */
   final SVGAnimatedInteger filterResY;
 
+  /** @domName SVGFilterElement.filterUnits */
   final SVGAnimatedEnumeration filterUnits;
 
+  /** @domName SVGFilterElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGFilterElement.primitiveUnits */
   final SVGAnimatedEnumeration primitiveUnits;
 
+  /** @domName SVGFilterElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGFilterElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGFilterElement.y */
   final SVGAnimatedLength y;
 
+  /** @domName SVGFilterElement.setFilterRes */
   void setFilterRes(int filterResX, int filterResY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31819,16 +33856,22 @@ interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SV
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFilterPrimitiveStandardAttributes
 interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
+  /** @domName SVGFilterPrimitiveStandardAttributes.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGFilterPrimitiveStandardAttributes.result */
   final SVGAnimatedString result;
 
+  /** @domName SVGFilterPrimitiveStandardAttributes.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGFilterPrimitiveStandardAttributes.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGFilterPrimitiveStandardAttributes.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31837,10 +33880,13 @@ interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFitToViewBox
 interface SVGFitToViewBox {
 
+  /** @domName SVGFitToViewBox.preserveAspectRatio */
   final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
+  /** @domName SVGFitToViewBox.viewBox */
   final SVGAnimatedRect viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31849,6 +33895,7 @@ interface SVGFitToViewBox {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontElement
 interface SVGFontElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31857,6 +33904,7 @@ interface SVGFontElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontFaceElement
 interface SVGFontFaceElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31865,6 +33913,7 @@ interface SVGFontFaceElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontFaceFormatElement
 interface SVGFontFaceFormatElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31873,6 +33922,7 @@ interface SVGFontFaceFormatElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontFaceNameElement
 interface SVGFontFaceNameElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31881,6 +33931,7 @@ interface SVGFontFaceNameElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontFaceSrcElement
 interface SVGFontFaceSrcElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31889,6 +33940,7 @@ interface SVGFontFaceSrcElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGFontFaceUriElement
 interface SVGFontFaceUriElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31897,14 +33949,19 @@ interface SVGFontFaceUriElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGForeignObjectElement
 interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGForeignObjectElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGForeignObjectElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGForeignObjectElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGForeignObjectElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31913,6 +33970,7 @@ interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SV
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGGElement
 interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31921,6 +33979,7 @@ interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalRes
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGGlyphElement
 interface SVGGlyphElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31929,18 +33988,25 @@ interface SVGGlyphElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGGlyphRefElement
 interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
+  /** @domName SVGGlyphRefElement.dx */
   num dx;
 
+  /** @domName SVGGlyphRefElement.dy */
   num dy;
 
+  /** @domName SVGGlyphRefElement.format */
   String format;
 
+  /** @domName SVGGlyphRefElement.glyphRef */
   String glyphRef;
 
+  /** @domName SVGGlyphRefElement.x */
   num x;
 
+  /** @domName SVGGlyphRefElement.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31949,6 +34015,7 @@ interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGGradientElement
 interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
 
   static final int SVG_SPREADMETHOD_PAD = 1;
@@ -31959,10 +34026,13 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
+  /** @domName SVGGradientElement.gradientTransform */
   final SVGAnimatedTransformList gradientTransform;
 
+  /** @domName SVGGradientElement.gradientUnits */
   final SVGAnimatedEnumeration gradientUnits;
 
+  /** @domName SVGGradientElement.spreadMethod */
   final SVGAnimatedEnumeration spreadMethod;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31971,6 +34041,7 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGHKernElement
 interface SVGHKernElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31979,16 +34050,22 @@ interface SVGHKernElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGImageElement
 interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGImageElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGImageElement.preserveAspectRatio */
   final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
+  /** @domName SVGImageElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGImageElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGImageElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31997,10 +34074,13 @@ interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLang
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLangSpace
 interface SVGLangSpace {
 
+  /** @domName SVGLangSpace.xmllang */
   String xmllang;
 
+  /** @domName SVGLangSpace.xmlspace */
   String xmlspace;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32009,6 +34089,7 @@ interface SVGLangSpace {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLength
 interface SVGLength {
 
   static final int SVG_LENGTHTYPE_CM = 6;
@@ -32033,16 +34114,22 @@ interface SVGLength {
 
   static final int SVG_LENGTHTYPE_UNKNOWN = 0;
 
+  /** @domName SVGLength.unitType */
   final int unitType;
 
+  /** @domName SVGLength.value */
   num value;
 
+  /** @domName SVGLength.valueAsString */
   String valueAsString;
 
+  /** @domName SVGLength.valueInSpecifiedUnits */
   num valueInSpecifiedUnits;
 
+  /** @domName SVGLength.convertToSpecifiedUnits */
   void convertToSpecifiedUnits(int unitType);
 
+  /** @domName SVGLength.newValueSpecifiedUnits */
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32051,22 +34138,31 @@ interface SVGLength {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLengthList
 interface SVGLengthList {
 
+  /** @domName SVGLengthList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGLengthList.appendItem */
   SVGLength appendItem(SVGLength item);
 
+  /** @domName SVGLengthList.clear */
   void clear();
 
+  /** @domName SVGLengthList.getItem */
   SVGLength getItem(int index);
 
+  /** @domName SVGLengthList.initialize */
   SVGLength initialize(SVGLength item);
 
+  /** @domName SVGLengthList.insertItemBefore */
   SVGLength insertItemBefore(SVGLength item, int index);
 
+  /** @domName SVGLengthList.removeItem */
   SVGLength removeItem(int index);
 
+  /** @domName SVGLengthList.replaceItem */
   SVGLength replaceItem(SVGLength item, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32075,14 +34171,19 @@ interface SVGLengthList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLineElement
 interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGLineElement.x1 */
   final SVGAnimatedLength x1;
 
+  /** @domName SVGLineElement.x2 */
   final SVGAnimatedLength x2;
 
+  /** @domName SVGLineElement.y1 */
   final SVGAnimatedLength y1;
 
+  /** @domName SVGLineElement.y2 */
   final SVGAnimatedLength y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32091,14 +34192,19 @@ interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLinearGradientElement
 interface SVGLinearGradientElement extends SVGGradientElement {
 
+  /** @domName SVGLinearGradientElement.x1 */
   final SVGAnimatedLength x1;
 
+  /** @domName SVGLinearGradientElement.x2 */
   final SVGAnimatedLength x2;
 
+  /** @domName SVGLinearGradientElement.y1 */
   final SVGAnimatedLength y1;
 
+  /** @domName SVGLinearGradientElement.y2 */
   final SVGAnimatedLength y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32107,18 +34213,25 @@ interface SVGLinearGradientElement extends SVGGradientElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGLocatable
 interface SVGLocatable {
 
+  /** @domName SVGLocatable.farthestViewportElement */
   final SVGElement farthestViewportElement;
 
+  /** @domName SVGLocatable.nearestViewportElement */
   final SVGElement nearestViewportElement;
 
+  /** @domName SVGLocatable.getBBox */
   SVGRect getBBox();
 
+  /** @domName SVGLocatable.getCTM */
   SVGMatrix getCTM();
 
+  /** @domName SVGLocatable.getScreenCTM */
   SVGMatrix getScreenCTM();
 
+  /** @domName SVGLocatable.getTransformToElement */
   SVGMatrix getTransformToElement(SVGElement element);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32127,6 +34240,7 @@ interface SVGLocatable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMPathElement
 interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32135,6 +34249,7 @@ interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResour
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMarkerElement
 interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
   static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -32149,22 +34264,31 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
+  /** @domName SVGMarkerElement.markerHeight */
   final SVGAnimatedLength markerHeight;
 
+  /** @domName SVGMarkerElement.markerUnits */
   final SVGAnimatedEnumeration markerUnits;
 
+  /** @domName SVGMarkerElement.markerWidth */
   final SVGAnimatedLength markerWidth;
 
+  /** @domName SVGMarkerElement.orientAngle */
   final SVGAnimatedAngle orientAngle;
 
+  /** @domName SVGMarkerElement.orientType */
   final SVGAnimatedEnumeration orientType;
 
+  /** @domName SVGMarkerElement.refX */
   final SVGAnimatedLength refX;
 
+  /** @domName SVGMarkerElement.refY */
   final SVGAnimatedLength refY;
 
+  /** @domName SVGMarkerElement.setOrientToAngle */
   void setOrientToAngle(SVGAngle angle);
 
+  /** @domName SVGMarkerElement.setOrientToAuto */
   void setOrientToAuto();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32173,18 +34297,25 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMaskElement
 interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
+  /** @domName SVGMaskElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGMaskElement.maskContentUnits */
   final SVGAnimatedEnumeration maskContentUnits;
 
+  /** @domName SVGMaskElement.maskUnits */
   final SVGAnimatedEnumeration maskUnits;
 
+  /** @domName SVGMaskElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGMaskElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGMaskElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32193,40 +34324,58 @@ interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMatrix
 interface SVGMatrix {
 
+  /** @domName SVGMatrix.a */
   num a;
 
+  /** @domName SVGMatrix.b */
   num b;
 
+  /** @domName SVGMatrix.c */
   num c;
 
+  /** @domName SVGMatrix.d */
   num d;
 
+  /** @domName SVGMatrix.e */
   num e;
 
+  /** @domName SVGMatrix.f */
   num f;
 
+  /** @domName SVGMatrix.flipX */
   SVGMatrix flipX();
 
+  /** @domName SVGMatrix.flipY */
   SVGMatrix flipY();
 
+  /** @domName SVGMatrix.inverse */
   SVGMatrix inverse();
 
+  /** @domName SVGMatrix.multiply */
   SVGMatrix multiply(SVGMatrix secondMatrix);
 
+  /** @domName SVGMatrix.rotate */
   SVGMatrix rotate(num angle);
 
+  /** @domName SVGMatrix.rotateFromVector */
   SVGMatrix rotateFromVector(num x, num y);
 
+  /** @domName SVGMatrix.scale */
   SVGMatrix scale(num scaleFactor);
 
+  /** @domName SVGMatrix.scaleNonUniform */
   SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY);
 
+  /** @domName SVGMatrix.skewX */
   SVGMatrix skewX(num angle);
 
+  /** @domName SVGMatrix.skewY */
   SVGMatrix skewY(num angle);
 
+  /** @domName SVGMatrix.translate */
   SVGMatrix translate(num x, num y);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32235,6 +34384,7 @@ interface SVGMatrix {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMetadataElement
 interface SVGMetadataElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32243,6 +34393,7 @@ interface SVGMetadataElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGMissingGlyphElement
 interface SVGMissingGlyphElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32251,8 +34402,10 @@ interface SVGMissingGlyphElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGNumber
 interface SVGNumber {
 
+  /** @domName SVGNumber.value */
   num value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32261,22 +34414,31 @@ interface SVGNumber {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGNumberList
 interface SVGNumberList {
 
+  /** @domName SVGNumberList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGNumberList.appendItem */
   SVGNumber appendItem(SVGNumber item);
 
+  /** @domName SVGNumberList.clear */
   void clear();
 
+  /** @domName SVGNumberList.getItem */
   SVGNumber getItem(int index);
 
+  /** @domName SVGNumberList.initialize */
   SVGNumber initialize(SVGNumber item);
 
+  /** @domName SVGNumberList.insertItemBefore */
   SVGNumber insertItemBefore(SVGNumber item, int index);
 
+  /** @domName SVGNumberList.removeItem */
   SVGNumber removeItem(int index);
 
+  /** @domName SVGNumberList.replaceItem */
   SVGNumber replaceItem(SVGNumber item, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32285,6 +34447,7 @@ interface SVGNumberList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPaint
 interface SVGPaint extends SVGColor {
 
   static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
@@ -32307,12 +34470,16 @@ interface SVGPaint extends SVGColor {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
+  /** @domName SVGPaint.paintType */
   final int paintType;
 
+  /** @domName SVGPaint.uri */
   final String uri;
 
+  /** @domName SVGPaint.setPaint */
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
 
+  /** @domName SVGPaint.setUri */
   void setUri(String uri);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32321,60 +34488,88 @@ interface SVGPaint extends SVGColor {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathElement
 interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGPathElement.animatedNormalizedPathSegList */
   final SVGPathSegList animatedNormalizedPathSegList;
 
+  /** @domName SVGPathElement.animatedPathSegList */
   final SVGPathSegList animatedPathSegList;
 
+  /** @domName SVGPathElement.normalizedPathSegList */
   final SVGPathSegList normalizedPathSegList;
 
+  /** @domName SVGPathElement.pathLength */
   final SVGAnimatedNumber pathLength;
 
+  /** @domName SVGPathElement.pathSegList */
   final SVGPathSegList pathSegList;
 
+  /** @domName SVGPathElement.createSVGPathSegArcAbs */
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
 
+  /** @domName SVGPathElement.createSVGPathSegArcRel */
   SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
 
+  /** @domName SVGPathElement.createSVGPathSegClosePath */
   SVGPathSegClosePath createSVGPathSegClosePath();
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicAbs */
   SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicRel */
   SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs */
   SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel */
   SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticAbs */
   SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticRel */
   SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs */
   SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y);
 
+  /** @domName SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel */
   SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoAbs */
   SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalAbs */
   SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoHorizontalRel */
   SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoRel */
   SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalAbs */
   SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y);
 
+  /** @domName SVGPathElement.createSVGPathSegLinetoVerticalRel */
   SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y);
 
+  /** @domName SVGPathElement.createSVGPathSegMovetoAbs */
   SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y);
 
+  /** @domName SVGPathElement.createSVGPathSegMovetoRel */
   SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y);
 
+  /** @domName SVGPathElement.getPathSegAtLength */
   int getPathSegAtLength(num distance);
 
+  /** @domName SVGPathElement.getPointAtLength */
   SVGPoint getPointAtLength(num distance);
 
+  /** @domName SVGPathElement.getTotalLength */
   num getTotalLength();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32383,6 +34578,7 @@ interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSeg
 interface SVGPathSeg {
 
   static final int PATHSEG_ARC_ABS = 10;
@@ -32425,8 +34621,10 @@ interface SVGPathSeg {
 
   static final int PATHSEG_UNKNOWN = 0;
 
+  /** @domName SVGPathSeg.pathSegType */
   final int pathSegType;
 
+  /** @domName SVGPathSeg.pathSegTypeAsLetter */
   final String pathSegTypeAsLetter;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32435,20 +34633,28 @@ interface SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegArcAbs
 interface SVGPathSegArcAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegArcAbs.angle */
   num angle;
 
+  /** @domName SVGPathSegArcAbs.largeArcFlag */
   bool largeArcFlag;
 
+  /** @domName SVGPathSegArcAbs.r1 */
   num r1;
 
+  /** @domName SVGPathSegArcAbs.r2 */
   num r2;
 
+  /** @domName SVGPathSegArcAbs.sweepFlag */
   bool sweepFlag;
 
+  /** @domName SVGPathSegArcAbs.x */
   num x;
 
+  /** @domName SVGPathSegArcAbs.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32457,20 +34663,28 @@ interface SVGPathSegArcAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegArcRel
 interface SVGPathSegArcRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegArcRel.angle */
   num angle;
 
+  /** @domName SVGPathSegArcRel.largeArcFlag */
   bool largeArcFlag;
 
+  /** @domName SVGPathSegArcRel.r1 */
   num r1;
 
+  /** @domName SVGPathSegArcRel.r2 */
   num r2;
 
+  /** @domName SVGPathSegArcRel.sweepFlag */
   bool sweepFlag;
 
+  /** @domName SVGPathSegArcRel.x */
   num x;
 
+  /** @domName SVGPathSegArcRel.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32479,6 +34693,7 @@ interface SVGPathSegArcRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegClosePath
 interface SVGPathSegClosePath extends SVGPathSeg {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32487,18 +34702,25 @@ interface SVGPathSegClosePath extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoCubicAbs
 interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoCubicAbs.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoCubicAbs.x1 */
   num x1;
 
+  /** @domName SVGPathSegCurvetoCubicAbs.x2 */
   num x2;
 
+  /** @domName SVGPathSegCurvetoCubicAbs.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoCubicAbs.y1 */
   num y1;
 
+  /** @domName SVGPathSegCurvetoCubicAbs.y2 */
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32507,18 +34729,25 @@ interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoCubicRel
 interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoCubicRel.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoCubicRel.x1 */
   num x1;
 
+  /** @domName SVGPathSegCurvetoCubicRel.x2 */
   num x2;
 
+  /** @domName SVGPathSegCurvetoCubicRel.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoCubicRel.y1 */
   num y1;
 
+  /** @domName SVGPathSegCurvetoCubicRel.y2 */
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32527,14 +34756,19 @@ interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoCubicSmoothAbs
 interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothAbs.x2 */
   num x2;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothAbs.y2 */
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32543,14 +34777,19 @@ interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoCubicSmoothRel
 interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoCubicSmoothRel.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothRel.x2 */
   num x2;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothRel.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoCubicSmoothRel.y2 */
   num y2;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32559,14 +34798,19 @@ interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoQuadraticAbs
 interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoQuadraticAbs.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoQuadraticAbs.x1 */
   num x1;
 
+  /** @domName SVGPathSegCurvetoQuadraticAbs.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoQuadraticAbs.y1 */
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32575,14 +34819,19 @@ interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoQuadraticRel
 interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoQuadraticRel.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoQuadraticRel.x1 */
   num x1;
 
+  /** @domName SVGPathSegCurvetoQuadraticRel.y */
   num y;
 
+  /** @domName SVGPathSegCurvetoQuadraticRel.y1 */
   num y1;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32591,10 +34840,13 @@ interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoQuadraticSmoothAbs
 interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoQuadraticSmoothAbs.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32603,10 +34855,13 @@ interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegCurvetoQuadraticSmoothRel
 interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.x */
   num x;
 
+  /** @domName SVGPathSegCurvetoQuadraticSmoothRel.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32615,10 +34870,13 @@ interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoAbs
 interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoAbs.x */
   num x;
 
+  /** @domName SVGPathSegLinetoAbs.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32627,8 +34885,10 @@ interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoHorizontalAbs
 interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoHorizontalAbs.x */
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32637,8 +34897,10 @@ interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoHorizontalRel
 interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoHorizontalRel.x */
   num x;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32647,10 +34909,13 @@ interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoRel
 interface SVGPathSegLinetoRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoRel.x */
   num x;
 
+  /** @domName SVGPathSegLinetoRel.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32659,8 +34924,10 @@ interface SVGPathSegLinetoRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoVerticalAbs
 interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoVerticalAbs.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32669,8 +34936,10 @@ interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegLinetoVerticalRel
 interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegLinetoVerticalRel.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32679,22 +34948,31 @@ interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegList
 interface SVGPathSegList {
 
+  /** @domName SVGPathSegList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGPathSegList.appendItem */
   SVGPathSeg appendItem(SVGPathSeg newItem);
 
+  /** @domName SVGPathSegList.clear */
   void clear();
 
+  /** @domName SVGPathSegList.getItem */
   SVGPathSeg getItem(int index);
 
+  /** @domName SVGPathSegList.initialize */
   SVGPathSeg initialize(SVGPathSeg newItem);
 
+  /** @domName SVGPathSegList.insertItemBefore */
   SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index);
 
+  /** @domName SVGPathSegList.removeItem */
   SVGPathSeg removeItem(int index);
 
+  /** @domName SVGPathSegList.replaceItem */
   SVGPathSeg replaceItem(SVGPathSeg newItem, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32703,10 +34981,13 @@ interface SVGPathSegList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegMovetoAbs
 interface SVGPathSegMovetoAbs extends SVGPathSeg {
 
+  /** @domName SVGPathSegMovetoAbs.x */
   num x;
 
+  /** @domName SVGPathSegMovetoAbs.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32715,10 +34996,13 @@ interface SVGPathSegMovetoAbs extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPathSegMovetoRel
 interface SVGPathSegMovetoRel extends SVGPathSeg {
 
+  /** @domName SVGPathSegMovetoRel.x */
   num x;
 
+  /** @domName SVGPathSegMovetoRel.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32727,20 +35011,28 @@ interface SVGPathSegMovetoRel extends SVGPathSeg {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPatternElement
 interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
+  /** @domName SVGPatternElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGPatternElement.patternContentUnits */
   final SVGAnimatedEnumeration patternContentUnits;
 
+  /** @domName SVGPatternElement.patternTransform */
   final SVGAnimatedTransformList patternTransform;
 
+  /** @domName SVGPatternElement.patternUnits */
   final SVGAnimatedEnumeration patternUnits;
 
+  /** @domName SVGPatternElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGPatternElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGPatternElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32749,12 +35041,16 @@ interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLa
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPoint
 interface SVGPoint {
 
+  /** @domName SVGPoint.x */
   num x;
 
+  /** @domName SVGPoint.y */
   num y;
 
+  /** @domName SVGPoint.matrixTransform */
   SVGPoint matrixTransform(SVGMatrix matrix);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32763,22 +35059,31 @@ interface SVGPoint {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPointList
 interface SVGPointList {
 
+  /** @domName SVGPointList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGPointList.appendItem */
   SVGPoint appendItem(SVGPoint item);
 
+  /** @domName SVGPointList.clear */
   void clear();
 
+  /** @domName SVGPointList.getItem */
   SVGPoint getItem(int index);
 
+  /** @domName SVGPointList.initialize */
   SVGPoint initialize(SVGPoint item);
 
+  /** @domName SVGPointList.insertItemBefore */
   SVGPoint insertItemBefore(SVGPoint item, int index);
 
+  /** @domName SVGPointList.removeItem */
   SVGPoint removeItem(int index);
 
+  /** @domName SVGPointList.replaceItem */
   SVGPoint replaceItem(SVGPoint item, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32787,10 +35092,13 @@ interface SVGPointList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPolygonElement
 interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGPolygonElement.animatedPoints */
   final SVGPointList animatedPoints;
 
+  /** @domName SVGPolygonElement.points */
   final SVGPointList points;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32799,10 +35107,13 @@ interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPolylineElement
 interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGPolylineElement.animatedPoints */
   final SVGPointList animatedPoints;
 
+  /** @domName SVGPolylineElement.points */
   final SVGPointList points;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32811,6 +35122,7 @@ interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGPreserveAspectRatio
 interface SVGPreserveAspectRatio {
 
   static final int SVG_MEETORSLICE_MEET = 1;
@@ -32841,8 +35153,10 @@ interface SVGPreserveAspectRatio {
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
+  /** @domName SVGPreserveAspectRatio.align */
   int align;
 
+  /** @domName SVGPreserveAspectRatio.meetOrSlice */
   int meetOrSlice;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32851,16 +35165,22 @@ interface SVGPreserveAspectRatio {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGRadialGradientElement
 interface SVGRadialGradientElement extends SVGGradientElement {
 
+  /** @domName SVGRadialGradientElement.cx */
   final SVGAnimatedLength cx;
 
+  /** @domName SVGRadialGradientElement.cy */
   final SVGAnimatedLength cy;
 
+  /** @domName SVGRadialGradientElement.fx */
   final SVGAnimatedLength fx;
 
+  /** @domName SVGRadialGradientElement.fy */
   final SVGAnimatedLength fy;
 
+  /** @domName SVGRadialGradientElement.r */
   final SVGAnimatedLength r;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32869,14 +35189,19 @@ interface SVGRadialGradientElement extends SVGGradientElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGRect
 interface SVGRect {
 
+  /** @domName SVGRect.height */
   num height;
 
+  /** @domName SVGRect.width */
   num width;
 
+  /** @domName SVGRect.x */
   num x;
 
+  /** @domName SVGRect.y */
   num y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32885,18 +35210,25 @@ interface SVGRect {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGRectElement
 interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGRectElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGRectElement.rx */
   final SVGAnimatedLength rx;
 
+  /** @domName SVGRectElement.ry */
   final SVGAnimatedLength ry;
 
+  /** @domName SVGRectElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGRectElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGRectElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32905,6 +35237,7 @@ interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGRenderingIntent
 interface SVGRenderingIntent {
 
   static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
@@ -32923,83 +35256,121 @@ interface SVGRenderingIntent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @domName SVGSVGElement
 interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
     default _SVGSVGElementFactoryProvider {
   SVGSVGElement();
 
 
+  /** @domName SVGSVGElement.contentScriptType */
   String contentScriptType;
 
+  /** @domName SVGSVGElement.contentStyleType */
   String contentStyleType;
 
+  /** @domName SVGSVGElement.currentScale */
   num currentScale;
 
+  /** @domName SVGSVGElement.currentTranslate */
   final SVGPoint currentTranslate;
 
+  /** @domName SVGSVGElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGSVGElement.pixelUnitToMillimeterX */
   final num pixelUnitToMillimeterX;
 
+  /** @domName SVGSVGElement.pixelUnitToMillimeterY */
   final num pixelUnitToMillimeterY;
 
+  /** @domName SVGSVGElement.screenPixelToMillimeterX */
   final num screenPixelToMillimeterX;
 
+  /** @domName SVGSVGElement.screenPixelToMillimeterY */
   final num screenPixelToMillimeterY;
 
+  /** @domName SVGSVGElement.useCurrentView */
   bool useCurrentView;
 
+  /** @domName SVGSVGElement.viewport */
   final SVGRect viewport;
 
+  /** @domName SVGSVGElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGSVGElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGSVGElement.y */
   final SVGAnimatedLength y;
 
+  /** @domName SVGSVGElement.animationsPaused */
   bool animationsPaused();
 
+  /** @domName SVGSVGElement.checkEnclosure */
   bool checkEnclosure(SVGElement element, SVGRect rect);
 
+  /** @domName SVGSVGElement.checkIntersection */
   bool checkIntersection(SVGElement element, SVGRect rect);
 
+  /** @domName SVGSVGElement.createSVGAngle */
   SVGAngle createSVGAngle();
 
+  /** @domName SVGSVGElement.createSVGLength */
   SVGLength createSVGLength();
 
+  /** @domName SVGSVGElement.createSVGMatrix */
   SVGMatrix createSVGMatrix();
 
+  /** @domName SVGSVGElement.createSVGNumber */
   SVGNumber createSVGNumber();
 
+  /** @domName SVGSVGElement.createSVGPoint */
   SVGPoint createSVGPoint();
 
+  /** @domName SVGSVGElement.createSVGRect */
   SVGRect createSVGRect();
 
+  /** @domName SVGSVGElement.createSVGTransform */
   SVGTransform createSVGTransform();
 
+  /** @domName SVGSVGElement.createSVGTransformFromMatrix */
   SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
 
+  /** @domName SVGSVGElement.deselectAll */
   void deselectAll();
 
+  /** @domName SVGSVGElement.forceRedraw */
   void forceRedraw();
 
+  /** @domName SVGSVGElement.getCurrentTime */
   num getCurrentTime();
 
+  /** @domName SVGSVGElement.getElementById */
   Element getElementById(String elementId);
 
+  /** @domName SVGSVGElement.getEnclosureList */
   NodeList getEnclosureList(SVGRect rect, SVGElement referenceElement);
 
+  /** @domName SVGSVGElement.getIntersectionList */
   NodeList getIntersectionList(SVGRect rect, SVGElement referenceElement);
 
+  /** @domName SVGSVGElement.pauseAnimations */
   void pauseAnimations();
 
+  /** @domName SVGSVGElement.setCurrentTime */
   void setCurrentTime(num seconds);
 
+  /** @domName SVGSVGElement.suspendRedraw */
   int suspendRedraw(int maxWaitMilliseconds);
 
+  /** @domName SVGSVGElement.unpauseAnimations */
   void unpauseAnimations();
 
+  /** @domName SVGSVGElement.unsuspendRedraw */
   void unsuspendRedraw(int suspendHandleId);
 
+  /** @domName SVGSVGElement.unsuspendRedrawAll */
   void unsuspendRedrawAll();
 
 }
@@ -33009,8 +35380,10 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGScriptElement
 interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 
+  /** @domName SVGScriptElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33019,6 +35392,7 @@ interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResou
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGSetElement
 interface SVGSetElement extends SVGAnimationElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33027,8 +35401,10 @@ interface SVGSetElement extends SVGAnimationElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGStopElement
 interface SVGStopElement extends SVGElement, SVGStylable {
 
+  /** @domName SVGStopElement.offset */
   final SVGAnimatedNumber offset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33037,22 +35413,31 @@ interface SVGStopElement extends SVGElement, SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGStringList
 interface SVGStringList {
 
+  /** @domName SVGStringList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGStringList.appendItem */
   String appendItem(String item);
 
+  /** @domName SVGStringList.clear */
   void clear();
 
+  /** @domName SVGStringList.getItem */
   String getItem(int index);
 
+  /** @domName SVGStringList.initialize */
   String initialize(String item);
 
+  /** @domName SVGStringList.insertItemBefore */
   String insertItemBefore(String item, int index);
 
+  /** @domName SVGStringList.removeItem */
   String removeItem(int index);
 
+  /** @domName SVGStringList.replaceItem */
   String replaceItem(String item, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33061,13 +35446,16 @@ interface SVGStringList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGStylable
 interface SVGStylable {
 
-  /** @domName className */
+  /** @domName SVGStylable.className */
   final SVGAnimatedString $dom_svgClassName;
 
+  /** @domName SVGStylable.style */
   final CSSStyleDeclaration style;
 
+  /** @domName SVGStylable.getPresentationAttribute */
   CSSValue getPresentationAttribute(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33076,14 +35464,19 @@ interface SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGStyleElement
 interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
+  /** @domName SVGStyleElement.disabled */
   bool disabled;
 
+  /** @domName SVGStyleElement.media */
   String media;
 
+  /** @domName SVGStyleElement.title */
   String title;
 
+  /** @domName SVGStyleElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33092,6 +35485,7 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGSwitchElement
 interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33100,6 +35494,7 @@ interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExtern
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGSymbolElement
 interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33108,6 +35503,7 @@ interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTRefElement
 interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33116,6 +35512,7 @@ interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTSpanElement
 interface SVGTSpanElement extends SVGTextPositioningElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33124,14 +35521,19 @@ interface SVGTSpanElement extends SVGTextPositioningElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTests
 interface SVGTests {
 
+  /** @domName SVGTests.requiredExtensions */
   final SVGStringList requiredExtensions;
 
+  /** @domName SVGTests.requiredFeatures */
   final SVGStringList requiredFeatures;
 
+  /** @domName SVGTests.systemLanguage */
   final SVGStringList systemLanguage;
 
+  /** @domName SVGTests.hasExtension */
   bool hasExtension(String extension);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33140,6 +35542,7 @@ interface SVGTests {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTextContentElement
 interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
   static final int LENGTHADJUST_SPACING = 1;
@@ -33148,26 +35551,37 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
+  /** @domName SVGTextContentElement.lengthAdjust */
   final SVGAnimatedEnumeration lengthAdjust;
 
+  /** @domName SVGTextContentElement.textLength */
   final SVGAnimatedLength textLength;
 
+  /** @domName SVGTextContentElement.getCharNumAtPosition */
   int getCharNumAtPosition(SVGPoint point);
 
+  /** @domName SVGTextContentElement.getComputedTextLength */
   num getComputedTextLength();
 
+  /** @domName SVGTextContentElement.getEndPositionOfChar */
   SVGPoint getEndPositionOfChar(int offset);
 
+  /** @domName SVGTextContentElement.getExtentOfChar */
   SVGRect getExtentOfChar(int offset);
 
+  /** @domName SVGTextContentElement.getNumberOfChars */
   int getNumberOfChars();
 
+  /** @domName SVGTextContentElement.getRotationOfChar */
   num getRotationOfChar(int offset);
 
+  /** @domName SVGTextContentElement.getStartPositionOfChar */
   SVGPoint getStartPositionOfChar(int offset);
 
+  /** @domName SVGTextContentElement.getSubStringLength */
   num getSubStringLength(int offset, int length);
 
+  /** @domName SVGTextContentElement.selectSubString */
   void selectSubString(int offset, int length);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33176,6 +35590,7 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTextElement
 interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33184,6 +35599,7 @@ interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTextPathElement
 interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
   static final int TEXTPATH_METHODTYPE_ALIGN = 1;
@@ -33198,10 +35614,13 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
+  /** @domName SVGTextPathElement.method */
   final SVGAnimatedEnumeration method;
 
+  /** @domName SVGTextPathElement.spacing */
   final SVGAnimatedEnumeration spacing;
 
+  /** @domName SVGTextPathElement.startOffset */
   final SVGAnimatedLength startOffset;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33210,16 +35629,22 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTextPositioningElement
 interface SVGTextPositioningElement extends SVGTextContentElement {
 
+  /** @domName SVGTextPositioningElement.dx */
   final SVGAnimatedLengthList dx;
 
+  /** @domName SVGTextPositioningElement.dy */
   final SVGAnimatedLengthList dy;
 
+  /** @domName SVGTextPositioningElement.rotate */
   final SVGAnimatedNumberList rotate;
 
+  /** @domName SVGTextPositioningElement.x */
   final SVGAnimatedLengthList x;
 
+  /** @domName SVGTextPositioningElement.y */
   final SVGAnimatedLengthList y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33228,6 +35653,7 @@ interface SVGTextPositioningElement extends SVGTextContentElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTitleElement
 interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33236,6 +35662,7 @@ interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTransform
 interface SVGTransform {
 
   static final int SVG_TRANSFORM_MATRIX = 1;
@@ -33252,22 +35679,31 @@ interface SVGTransform {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
+  /** @domName SVGTransform.angle */
   final num angle;
 
+  /** @domName SVGTransform.matrix */
   final SVGMatrix matrix;
 
+  /** @domName SVGTransform.type */
   final int type;
 
+  /** @domName SVGTransform.setMatrix */
   void setMatrix(SVGMatrix matrix);
 
+  /** @domName SVGTransform.setRotate */
   void setRotate(num angle, num cx, num cy);
 
+  /** @domName SVGTransform.setScale */
   void setScale(num sx, num sy);
 
+  /** @domName SVGTransform.setSkewX */
   void setSkewX(num angle);
 
+  /** @domName SVGTransform.setSkewY */
   void setSkewY(num angle);
 
+  /** @domName SVGTransform.setTranslate */
   void setTranslate(num tx, num ty);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33276,26 +35712,37 @@ interface SVGTransform {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTransformList
 interface SVGTransformList {
 
+  /** @domName SVGTransformList.numberOfItems */
   final int numberOfItems;
 
+  /** @domName SVGTransformList.appendItem */
   SVGTransform appendItem(SVGTransform item);
 
+  /** @domName SVGTransformList.clear */
   void clear();
 
+  /** @domName SVGTransformList.consolidate */
   SVGTransform consolidate();
 
+  /** @domName SVGTransformList.createSVGTransformFromMatrix */
   SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
 
+  /** @domName SVGTransformList.getItem */
   SVGTransform getItem(int index);
 
+  /** @domName SVGTransformList.initialize */
   SVGTransform initialize(SVGTransform item);
 
+  /** @domName SVGTransformList.insertItemBefore */
   SVGTransform insertItemBefore(SVGTransform item, int index);
 
+  /** @domName SVGTransformList.removeItem */
   SVGTransform removeItem(int index);
 
+  /** @domName SVGTransformList.replaceItem */
   SVGTransform replaceItem(SVGTransform item, int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33304,8 +35751,10 @@ interface SVGTransformList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGTransformable
 interface SVGTransformable extends SVGLocatable {
 
+  /** @domName SVGTransformable.transform */
   final SVGAnimatedTransformList transform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33314,8 +35763,10 @@ interface SVGTransformable extends SVGLocatable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGURIReference
 interface SVGURIReference {
 
+  /** @domName SVGURIReference.href */
   final SVGAnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33324,6 +35775,7 @@ interface SVGURIReference {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGUnitTypes
 interface SVGUnitTypes {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
@@ -33338,18 +35790,25 @@ interface SVGUnitTypes {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGUseElement
 interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
+  /** @domName SVGUseElement.animatedInstanceRoot */
   final SVGElementInstance animatedInstanceRoot;
 
+  /** @domName SVGUseElement.height */
   final SVGAnimatedLength height;
 
+  /** @domName SVGUseElement.instanceRoot */
   final SVGElementInstance instanceRoot;
 
+  /** @domName SVGUseElement.width */
   final SVGAnimatedLength width;
 
+  /** @domName SVGUseElement.x */
   final SVGAnimatedLength x;
 
+  /** @domName SVGUseElement.y */
   final SVGAnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33358,6 +35817,7 @@ interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSp
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGVKernElement
 interface SVGVKernElement extends SVGElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33366,8 +35826,10 @@ interface SVGVKernElement extends SVGElement {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGViewElement
 interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
+  /** @domName SVGViewElement.viewTarget */
   final SVGStringList viewTarget;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33376,18 +35838,25 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGViewSpec
 interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
+  /** @domName SVGViewSpec.preserveAspectRatioString */
   final String preserveAspectRatioString;
 
+  /** @domName SVGViewSpec.transform */
   final SVGTransformList transform;
 
+  /** @domName SVGViewSpec.transformString */
   final String transformString;
 
+  /** @domName SVGViewSpec.viewBoxString */
   final String viewBoxString;
 
+  /** @domName SVGViewSpec.viewTarget */
   final SVGElement viewTarget;
 
+  /** @domName SVGViewSpec.viewTargetString */
   final String viewTargetString;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33396,6 +35865,7 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGZoomAndPan
 interface SVGZoomAndPan {
 
   static final int SVG_ZOOMANDPAN_DISABLE = 1;
@@ -33404,6 +35874,7 @@ interface SVGZoomAndPan {
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
+  /** @domName SVGZoomAndPan.zoomAndPan */
   int zoomAndPan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33412,16 +35883,22 @@ interface SVGZoomAndPan {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SVGZoomEvent
 interface SVGZoomEvent extends UIEvent {
 
+  /** @domName SVGZoomEvent.newScale */
   final num newScale;
 
+  /** @domName SVGZoomEvent.newTranslate */
   final SVGPoint newTranslate;
 
+  /** @domName SVGZoomEvent.previousScale */
   final num previousScale;
 
+  /** @domName SVGZoomEvent.previousTranslate */
   final SVGPoint previousTranslate;
 
+  /** @domName SVGZoomEvent.zoomRectScreen */
   final SVGRect zoomRectScreen;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33430,22 +35907,31 @@ interface SVGZoomEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Screen
 interface Screen {
 
+  /** @domName Screen.availHeight */
   final int availHeight;
 
+  /** @domName Screen.availLeft */
   final int availLeft;
 
+  /** @domName Screen.availTop */
   final int availTop;
 
+  /** @domName Screen.availWidth */
   final int availWidth;
 
+  /** @domName Screen.colorDepth */
   final int colorDepth;
 
+  /** @domName Screen.height */
   final int height;
 
+  /** @domName Screen.pixelDepth */
   final int pixelDepth;
 
+  /** @domName Screen.width */
   final int width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33454,22 +35940,31 @@ interface Screen {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLScriptElement
 interface ScriptElement extends Element {
 
+  /** @domName HTMLScriptElement.async */
   bool async;
 
+  /** @domName HTMLScriptElement.charset */
   String charset;
 
+  /** @domName HTMLScriptElement.crossOrigin */
   String crossOrigin;
 
+  /** @domName HTMLScriptElement.defer */
   bool defer;
 
+  /** @domName HTMLScriptElement.event */
   String event;
 
+  /** @domName HTMLScriptElement.htmlFor */
   String htmlFor;
 
+  /** @domName HTMLScriptElement.src */
   String src;
 
+  /** @domName HTMLScriptElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33478,12 +35973,16 @@ interface ScriptElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ScriptProfile
 interface ScriptProfile {
 
+  /** @domName ScriptProfile.head */
   final ScriptProfileNode head;
 
+  /** @domName ScriptProfile.title */
   final String title;
 
+  /** @domName ScriptProfile.uid */
   final int uid;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33492,24 +35991,34 @@ interface ScriptProfile {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ScriptProfileNode
 interface ScriptProfileNode {
 
+  /** @domName ScriptProfileNode.callUID */
   final int callUID;
 
+  /** @domName ScriptProfileNode.children */
   final List<ScriptProfileNode> children;
 
+  /** @domName ScriptProfileNode.functionName */
   final String functionName;
 
+  /** @domName ScriptProfileNode.lineNumber */
   final int lineNumber;
 
+  /** @domName ScriptProfileNode.numberOfCalls */
   final int numberOfCalls;
 
+  /** @domName ScriptProfileNode.selfTime */
   final num selfTime;
 
+  /** @domName ScriptProfileNode.totalTime */
   final num totalTime;
 
+  /** @domName ScriptProfileNode.url */
   final String url;
 
+  /** @domName ScriptProfileNode.visible */
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33518,50 +36027,73 @@ interface ScriptProfileNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLSelectElement
 interface SelectElement extends Element {
 
+  /** @domName HTMLSelectElement.autofocus */
   bool autofocus;
 
+  /** @domName HTMLSelectElement.disabled */
   bool disabled;
 
+  /** @domName HTMLSelectElement.form */
   final FormElement form;
 
+  /** @domName HTMLSelectElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLSelectElement.length */
   int length;
 
+  /** @domName HTMLSelectElement.multiple */
   bool multiple;
 
+  /** @domName HTMLSelectElement.name */
   String name;
 
+  /** @domName HTMLSelectElement.options */
   final HTMLOptionsCollection options;
 
+  /** @domName HTMLSelectElement.required */
   bool required;
 
+  /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
 
+  /** @domName HTMLSelectElement.selectedOptions */
   final HTMLCollection selectedOptions;
 
+  /** @domName HTMLSelectElement.size */
   int size;
 
+  /** @domName HTMLSelectElement.type */
   final String type;
 
+  /** @domName HTMLSelectElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLSelectElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLSelectElement.value */
   String value;
 
+  /** @domName HTMLSelectElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLSelectElement.add */
   void add(Element element, Element before);
 
+  /** @domName HTMLSelectElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLSelectElement.item */
   Node item(int index);
 
+  /** @domName HTMLSelectElement.namedItem */
   Node namedItem(String name);
 
+  /** @domName HTMLSelectElement.setCustomValidity */
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33570,12 +36102,15 @@ interface SelectElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SessionDescription
 interface SessionDescription default _SessionDescriptionFactoryProvider {
 
   SessionDescription(String sdp);
 
+  /** @domName SessionDescription.addCandidate */
   void addCandidate(IceCandidate candidate);
 
+  /** @domName SessionDescription.toSdp */
   String toSdp();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33584,6 +36119,7 @@ interface SessionDescription default _SessionDescriptionFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLShadowElement
 interface ShadowElement extends Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33592,22 +36128,30 @@ interface ShadowElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ShadowRoot
 interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
 
   ShadowRoot(Element host);
 
+  /** @domName ShadowRoot.activeElement */
   final Element activeElement;
 
+  /** @domName ShadowRoot.host */
   final Element host;
 
+  /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
+  /** @domName ShadowRoot.getElementsByClassName */
   NodeList getElementsByClassName(String className);
 
+  /** @domName ShadowRoot.getElementsByTagName */
   NodeList getElementsByTagName(String tagName);
 
+  /** @domName ShadowRoot.getElementsByTagNameNS */
   NodeList getElementsByTagNameNS(String namespaceURI, String localName);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33616,10 +36160,12 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SharedWorker
 interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
 
   SharedWorker(String scriptURL, [String name]);
 
+  /** @domName SharedWorker.port */
   final MessagePort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33628,10 +36174,13 @@ interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvid
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SharedWorkerContext
 interface SharedWorkerContext extends WorkerContext {
 
+  /** @domName SharedWorkerContext.name */
   final String name;
 
+  /** @domName SharedWorkerContext.onconnect */
   EventListener onconnect;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -33647,12 +36196,16 @@ typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLSourceElement
 interface SourceElement extends Element {
 
+  /** @domName HTMLSourceElement.media */
   String media;
 
+  /** @domName HTMLSourceElement.src */
   String src;
 
+  /** @domName HTMLSourceElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33661,6 +36214,7 @@ interface SourceElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLSpanElement
 interface SpanElement extends Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33669,12 +36223,15 @@ interface SpanElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechGrammar
 interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
   SpeechGrammar();
 
+  /** @domName SpeechGrammar.src */
   String src;
 
+  /** @domName SpeechGrammar.weight */
   num weight;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33683,16 +36240,21 @@ interface SpeechGrammar default _SpeechGrammarFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechGrammarList
 interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
 
   SpeechGrammarList();
 
+  /** @domName SpeechGrammarList.length */
   final int length;
 
+  /** @domName SpeechGrammarList.addFromString */
   void addFromString(String string, [num weight]);
 
+  /** @domName SpeechGrammarList.addFromUri */
   void addFromUri(String src, [num weight]);
 
+  /** @domName SpeechGrammarList.item */
   SpeechGrammar item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33701,8 +36263,10 @@ interface SpeechGrammarList default _SpeechGrammarListFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechInputEvent
 interface SpeechInputEvent extends Event {
 
+  /** @domName SpeechInputEvent.results */
   final SpeechInputResultList results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33711,10 +36275,13 @@ interface SpeechInputEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechInputResult
 interface SpeechInputResult {
 
+  /** @domName SpeechInputResult.confidence */
   final num confidence;
 
+  /** @domName SpeechInputResult.utterance */
   final String utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33723,10 +36290,13 @@ interface SpeechInputResult {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechInputResultList
 interface SpeechInputResultList {
 
+  /** @domName SpeechInputResultList.length */
   final int length;
 
+  /** @domName SpeechInputResultList.item */
   SpeechInputResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33735,44 +36305,63 @@ interface SpeechInputResultList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognition
 interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
 
   SpeechRecognition();
 
+  /** @domName SpeechRecognition.continuous */
   bool continuous;
 
+  /** @domName SpeechRecognition.grammars */
   SpeechGrammarList grammars;
 
+  /** @domName SpeechRecognition.lang */
   String lang;
 
+  /** @domName SpeechRecognition.onaudioend */
   EventListener onaudioend;
 
+  /** @domName SpeechRecognition.onaudiostart */
   EventListener onaudiostart;
 
+  /** @domName SpeechRecognition.onend */
   EventListener onend;
 
+  /** @domName SpeechRecognition.onerror */
   EventListener onerror;
 
+  /** @domName SpeechRecognition.onnomatch */
   EventListener onnomatch;
 
+  /** @domName SpeechRecognition.onresult */
   EventListener onresult;
 
+  /** @domName SpeechRecognition.onresultdeleted */
   EventListener onresultdeleted;
 
+  /** @domName SpeechRecognition.onsoundend */
   EventListener onsoundend;
 
+  /** @domName SpeechRecognition.onsoundstart */
   EventListener onsoundstart;
 
+  /** @domName SpeechRecognition.onspeechend */
   EventListener onspeechend;
 
+  /** @domName SpeechRecognition.onspeechstart */
   EventListener onspeechstart;
 
+  /** @domName SpeechRecognition.onstart */
   EventListener onstart;
 
+  /** @domName SpeechRecognition.abort */
   void abort();
 
+  /** @domName SpeechRecognition.start */
   void start();
 
+  /** @domName SpeechRecognition.stop */
   void stop();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33781,10 +36370,13 @@ interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognitionAlternative
 interface SpeechRecognitionAlternative {
 
+  /** @domName SpeechRecognitionAlternative.confidence */
   final num confidence;
 
+  /** @domName SpeechRecognitionAlternative.transcript */
   final String transcript;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33793,6 +36385,7 @@ interface SpeechRecognitionAlternative {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognitionError
 interface SpeechRecognitionError {
 
   static final int ABORTED = 2;
@@ -33813,8 +36406,10 @@ interface SpeechRecognitionError {
 
   static final int SERVICE_NOT_ALLOWED = 6;
 
+  /** @domName SpeechRecognitionError.code */
   final int code;
 
+  /** @domName SpeechRecognitionError.message */
   final String message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33823,14 +36418,19 @@ interface SpeechRecognitionError {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognitionEvent
 interface SpeechRecognitionEvent extends Event {
 
+  /** @domName SpeechRecognitionEvent.error */
   final SpeechRecognitionError error;
 
+  /** @domName SpeechRecognitionEvent.result */
   final SpeechRecognitionResult result;
 
+  /** @domName SpeechRecognitionEvent.resultHistory */
   final SpeechRecognitionResultList resultHistory;
 
+  /** @domName SpeechRecognitionEvent.resultIndex */
   final int resultIndex;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33839,12 +36439,16 @@ interface SpeechRecognitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognitionResult
 interface SpeechRecognitionResult {
 
+  /** @domName SpeechRecognitionResult.finalValue */
   final bool finalValue;
 
+  /** @domName SpeechRecognitionResult.length */
   final int length;
 
+  /** @domName SpeechRecognitionResult.item */
   SpeechRecognitionAlternative item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33853,34 +36457,38 @@ interface SpeechRecognitionResult {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName SpeechRecognitionResultList
 interface SpeechRecognitionResultList {
 
+  /** @domName SpeechRecognitionResultList.length */
   final int length;
 
+  /** @domName SpeechRecognitionResultList.item */
   SpeechRecognitionResult item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @domName Storage
 interface Storage extends Map<String, String> {
 
-  /** @domName length */
+  /** @domName Storage.length */
   final int $dom_length;
 
-  /** @domName clear */
+  /** @domName Storage.clear */
   void $dom_clear();
 
-  /** @domName getItem */
+  /** @domName Storage.getItem */
   String $dom_getItem(String key);
 
-  /** @domName key */
+  /** @domName Storage.key */
   String $dom_key(int index);
 
-  /** @domName removeItem */
+  /** @domName Storage.removeItem */
   void $dom_removeItem(String key);
 
-  /** @domName setItem */
+  /** @domName Storage.setItem */
   void $dom_setItem(String key, String data);
 
 }
@@ -33890,18 +36498,25 @@ interface Storage extends Map<String, String> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StorageEvent
 interface StorageEvent extends Event {
 
+  /** @domName StorageEvent.key */
   final String key;
 
+  /** @domName StorageEvent.newValue */
   final String newValue;
 
+  /** @domName StorageEvent.oldValue */
   final String oldValue;
 
+  /** @domName StorageEvent.storageArea */
   final Storage storageArea;
 
+  /** @domName StorageEvent.url */
   final String url;
 
+  /** @domName StorageEvent.initStorageEvent */
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33910,14 +36525,17 @@ interface StorageEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StorageInfo
 interface StorageInfo {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
+  /** @domName StorageInfo.queryUsageAndQuota */
   void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
 
+  /** @domName StorageInfo.requestQuota */
   void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -33954,14 +36572,19 @@ typedef bool StringCallback(String data);
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLStyleElement
 interface StyleElement extends Element {
 
+  /** @domName HTMLStyleElement.disabled */
   bool disabled;
 
+  /** @domName HTMLStyleElement.media */
   String media;
 
+  /** @domName HTMLStyleElement.sheet */
   final StyleSheet sheet;
 
+  /** @domName HTMLStyleElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33970,10 +36593,13 @@ interface StyleElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StyleMedia
 interface StyleMedia {
 
+  /** @domName StyleMedia.type */
   final String type;
 
+  /** @domName StyleMedia.matchMedium */
   bool matchMedium(String mediaquery);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33982,20 +36608,28 @@ interface StyleMedia {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StyleSheet
 interface StyleSheet {
 
+  /** @domName StyleSheet.disabled */
   bool disabled;
 
+  /** @domName StyleSheet.href */
   final String href;
 
+  /** @domName StyleSheet.media */
   final MediaList media;
 
+  /** @domName StyleSheet.ownerNode */
   final Node ownerNode;
 
+  /** @domName StyleSheet.parentStyleSheet */
   final StyleSheet parentStyleSheet;
 
+  /** @domName StyleSheet.title */
   final String title;
 
+  /** @domName StyleSheet.type */
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34004,10 +36638,13 @@ interface StyleSheet {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StyleSheetList
 interface StyleSheetList extends List<StyleSheet> {
 
+  /** @domName StyleSheetList.length */
   final int length;
 
+  /** @domName StyleSheetList.item */
   StyleSheet item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34016,8 +36653,10 @@ interface StyleSheetList extends List<StyleSheet> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableCaptionElement
 interface TableCaptionElement extends Element {
 
+  /** @domName HTMLTableCaptionElement.align */
   String align;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34026,36 +36665,52 @@ interface TableCaptionElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableCellElement
 interface TableCellElement extends Element {
 
+  /** @domName HTMLTableCellElement.abbr */
   String abbr;
 
+  /** @domName HTMLTableCellElement.align */
   String align;
 
+  /** @domName HTMLTableCellElement.axis */
   String axis;
 
+  /** @domName HTMLTableCellElement.bgColor */
   String bgColor;
 
+  /** @domName HTMLTableCellElement.cellIndex */
   final int cellIndex;
 
+  /** @domName HTMLTableCellElement.ch */
   String ch;
 
+  /** @domName HTMLTableCellElement.chOff */
   String chOff;
 
+  /** @domName HTMLTableCellElement.colSpan */
   int colSpan;
 
+  /** @domName HTMLTableCellElement.headers */
   String headers;
 
+  /** @domName HTMLTableCellElement.height */
   String height;
 
+  /** @domName HTMLTableCellElement.noWrap */
   bool noWrap;
 
+  /** @domName HTMLTableCellElement.rowSpan */
   int rowSpan;
 
+  /** @domName HTMLTableCellElement.scope */
   String scope;
 
+  /** @domName HTMLTableCellElement.vAlign */
   String vAlign;
 
+  /** @domName HTMLTableCellElement.width */
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34064,18 +36719,25 @@ interface TableCellElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableColElement
 interface TableColElement extends Element {
 
+  /** @domName HTMLTableColElement.align */
   String align;
 
+  /** @domName HTMLTableColElement.ch */
   String ch;
 
+  /** @domName HTMLTableColElement.chOff */
   String chOff;
 
+  /** @domName HTMLTableColElement.span */
   int span;
 
+  /** @domName HTMLTableColElement.vAlign */
   String vAlign;
 
+  /** @domName HTMLTableColElement.width */
   String width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34084,50 +36746,73 @@ interface TableColElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableElement
 interface TableElement extends Element {
 
+  /** @domName HTMLTableElement.align */
   String align;
 
+  /** @domName HTMLTableElement.bgColor */
   String bgColor;
 
+  /** @domName HTMLTableElement.border */
   String border;
 
+  /** @domName HTMLTableElement.caption */
   TableCaptionElement caption;
 
+  /** @domName HTMLTableElement.cellPadding */
   String cellPadding;
 
+  /** @domName HTMLTableElement.cellSpacing */
   String cellSpacing;
 
+  /** @domName HTMLTableElement.frame */
   String frame;
 
+  /** @domName HTMLTableElement.rows */
   final HTMLCollection rows;
 
+  /** @domName HTMLTableElement.rules */
   String rules;
 
+  /** @domName HTMLTableElement.summary */
   String summary;
 
+  /** @domName HTMLTableElement.tBodies */
   final HTMLCollection tBodies;
 
+  /** @domName HTMLTableElement.tFoot */
   TableSectionElement tFoot;
 
+  /** @domName HTMLTableElement.tHead */
   TableSectionElement tHead;
 
+  /** @domName HTMLTableElement.width */
   String width;
 
+  /** @domName HTMLTableElement.createCaption */
   Element createCaption();
 
+  /** @domName HTMLTableElement.createTFoot */
   Element createTFoot();
 
+  /** @domName HTMLTableElement.createTHead */
   Element createTHead();
 
+  /** @domName HTMLTableElement.deleteCaption */
   void deleteCaption();
 
+  /** @domName HTMLTableElement.deleteRow */
   void deleteRow(int index);
 
+  /** @domName HTMLTableElement.deleteTFoot */
   void deleteTFoot();
 
+  /** @domName HTMLTableElement.deleteTHead */
   void deleteTHead();
 
+  /** @domName HTMLTableElement.insertRow */
   Element insertRow(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34136,26 +36821,37 @@ interface TableElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableRowElement
 interface TableRowElement extends Element {
 
+  /** @domName HTMLTableRowElement.align */
   String align;
 
+  /** @domName HTMLTableRowElement.bgColor */
   String bgColor;
 
+  /** @domName HTMLTableRowElement.cells */
   final HTMLCollection cells;
 
+  /** @domName HTMLTableRowElement.ch */
   String ch;
 
+  /** @domName HTMLTableRowElement.chOff */
   String chOff;
 
+  /** @domName HTMLTableRowElement.rowIndex */
   final int rowIndex;
 
+  /** @domName HTMLTableRowElement.sectionRowIndex */
   final int sectionRowIndex;
 
+  /** @domName HTMLTableRowElement.vAlign */
   String vAlign;
 
+  /** @domName HTMLTableRowElement.deleteCell */
   void deleteCell(int index);
 
+  /** @domName HTMLTableRowElement.insertCell */
   Element insertCell(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34164,20 +36860,28 @@ interface TableRowElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTableSectionElement
 interface TableSectionElement extends Element {
 
+  /** @domName HTMLTableSectionElement.align */
   String align;
 
+  /** @domName HTMLTableSectionElement.ch */
   String ch;
 
+  /** @domName HTMLTableSectionElement.chOff */
   String chOff;
 
+  /** @domName HTMLTableSectionElement.rows */
   final HTMLCollection rows;
 
+  /** @domName HTMLTableSectionElement.vAlign */
   String vAlign;
 
+  /** @domName HTMLTableSectionElement.deleteRow */
   void deleteRow(int index);
 
+  /** @domName HTMLTableSectionElement.insertRow */
   Element insertRow(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -34186,14 +36890,18 @@ interface TableSectionElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Text
 interface Text extends CharacterData default _TextFactoryProvider {
 
   Text(String data);
 
+  /** @domName Text.wholeText */
   final String wholeText;
 
+  /** @domName Text.replaceWholeText */
   Text replaceWholeText(String content);
 
+  /** @domName Text.splitText */
   Text splitText(int offset);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34202,58 +36910,85 @@ interface Text extends CharacterData default _TextFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTextAreaElement
 interface TextAreaElement extends Element {
 
+  /** @domName HTMLTextAreaElement.autofocus */
   bool autofocus;
 
+  /** @domName HTMLTextAreaElement.cols */
   int cols;
 
+  /** @domName HTMLTextAreaElement.defaultValue */
   String defaultValue;
 
+  /** @domName HTMLTextAreaElement.disabled */
   bool disabled;
 
+  /** @domName HTMLTextAreaElement.form */
   final FormElement form;
 
+  /** @domName HTMLTextAreaElement.labels */
   final NodeList labels;
 
+  /** @domName HTMLTextAreaElement.maxLength */
   int maxLength;
 
+  /** @domName HTMLTextAreaElement.name */
   String name;
 
+  /** @domName HTMLTextAreaElement.placeholder */
   String placeholder;
 
+  /** @domName HTMLTextAreaElement.readOnly */
   bool readOnly;
 
+  /** @domName HTMLTextAreaElement.required */
   bool required;
 
+  /** @domName HTMLTextAreaElement.rows */
   int rows;
 
+  /** @domName HTMLTextAreaElement.selectionDirection */
   String selectionDirection;
 
+  /** @domName HTMLTextAreaElement.selectionEnd */
   int selectionEnd;
 
+  /** @domName HTMLTextAreaElement.selectionStart */
   int selectionStart;
 
+  /** @domName HTMLTextAreaElement.textLength */
   final int textLength;
 
+  /** @domName HTMLTextAreaElement.type */
   final String type;
 
+  /** @domName HTMLTextAreaElement.validationMessage */
   final String validationMessage;
 
+  /** @domName HTMLTextAreaElement.validity */
   final ValidityState validity;
 
+  /** @domName HTMLTextAreaElement.value */
   String value;
 
+  /** @domName HTMLTextAreaElement.willValidate */
   final bool willValidate;
 
+  /** @domName HTMLTextAreaElement.wrap */
   String wrap;
 
+  /** @domName HTMLTextAreaElement.checkValidity */
   bool checkValidity();
 
+  /** @domName HTMLTextAreaElement.select */
   void select();
 
+  /** @domName HTMLTextAreaElement.setCustomValidity */
   void setCustomValidity(String error);
 
+  /** @domName HTMLTextAreaElement.setSelectionRange */
   void setSelectionRange(int start, int end, [String direction]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34262,10 +36997,13 @@ interface TextAreaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextEvent
 interface TextEvent extends UIEvent {
 
+  /** @domName TextEvent.data */
   final String data;
 
+  /** @domName TextEvent.initTextEvent */
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34274,8 +37012,10 @@ interface TextEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextMetrics
 interface TextMetrics {
 
+  /** @domName TextMetrics.width */
   final num width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34284,6 +37024,7 @@ interface TextMetrics {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextTrack
 interface TextTrack {
 
   static final int DISABLED = 0;
@@ -34292,28 +37033,40 @@ interface TextTrack {
 
   static final int SHOWING = 2;
 
+  /** @domName TextTrack.activeCues */
   final TextTrackCueList activeCues;
 
+  /** @domName TextTrack.cues */
   final TextTrackCueList cues;
 
+  /** @domName TextTrack.kind */
   final String kind;
 
+  /** @domName TextTrack.label */
   final String label;
 
+  /** @domName TextTrack.language */
   final String language;
 
+  /** @domName TextTrack.mode */
   int mode;
 
+  /** @domName TextTrack.oncuechange */
   EventListener oncuechange;
 
+  /** @domName TextTrack.addCue */
   void addCue(TextTrackCue cue);
 
+  /** @domName TextTrack.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName TextTrack.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName TextTrack.removeCue */
   void removeCue(TextTrackCue cue);
 
+  /** @domName TextTrack.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34322,44 +37075,63 @@ interface TextTrack {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextTrackCue
 interface TextTrackCue default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
+  /** @domName TextTrackCue.align */
   String align;
 
+  /** @domName TextTrackCue.endTime */
   num endTime;
 
+  /** @domName TextTrackCue.id */
   String id;
 
+  /** @domName TextTrackCue.line */
   int line;
 
+  /** @domName TextTrackCue.onenter */
   EventListener onenter;
 
+  /** @domName TextTrackCue.onexit */
   EventListener onexit;
 
+  /** @domName TextTrackCue.pauseOnExit */
   bool pauseOnExit;
 
+  /** @domName TextTrackCue.position */
   int position;
 
+  /** @domName TextTrackCue.size */
   int size;
 
+  /** @domName TextTrackCue.snapToLines */
   bool snapToLines;
 
+  /** @domName TextTrackCue.startTime */
   num startTime;
 
+  /** @domName TextTrackCue.text */
   String text;
 
+  /** @domName TextTrackCue.track */
   final TextTrack track;
 
+  /** @domName TextTrackCue.vertical */
   String vertical;
 
+  /** @domName TextTrackCue.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName TextTrackCue.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName TextTrackCue.getCueAsHTML */
   DocumentFragment getCueAsHTML();
 
+  /** @domName TextTrackCue.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34368,12 +37140,16 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextTrackCueList
 interface TextTrackCueList {
 
+  /** @domName TextTrackCueList.length */
   final int length;
 
+  /** @domName TextTrackCueList.getCueById */
   TextTrackCue getCueById(String id);
 
+  /** @domName TextTrackCueList.item */
   TextTrackCue item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34382,18 +37158,25 @@ interface TextTrackCueList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TextTrackList
 interface TextTrackList {
 
+  /** @domName TextTrackList.length */
   final int length;
 
+  /** @domName TextTrackList.onaddtrack */
   EventListener onaddtrack;
 
+  /** @domName TextTrackList.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName TextTrackList.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName TextTrackList.item */
   TextTrack item(int index);
 
+  /** @domName TextTrackList.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34402,12 +37185,16 @@ interface TextTrackList {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TimeRanges
 interface TimeRanges {
 
+  /** @domName TimeRanges.length */
   final int length;
 
+  /** @domName TimeRanges.end */
   num end(int index);
 
+  /** @domName TimeRanges.start */
   num start(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -34423,6 +37210,7 @@ typedef void TimeoutHandler();
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTitleElement
 interface TitleElement extends Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34431,30 +37219,43 @@ interface TitleElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Touch
 interface Touch {
 
+  /** @domName Touch.clientX */
   final int clientX;
 
+  /** @domName Touch.clientY */
   final int clientY;
 
+  /** @domName Touch.identifier */
   final int identifier;
 
+  /** @domName Touch.pageX */
   final int pageX;
 
+  /** @domName Touch.pageY */
   final int pageY;
 
+  /** @domName Touch.screenX */
   final int screenX;
 
+  /** @domName Touch.screenY */
   final int screenY;
 
+  /** @domName Touch.target */
   final EventTarget target;
 
+  /** @domName Touch.webkitForce */
   final num webkitForce;
 
+  /** @domName Touch.webkitRadiusX */
   final int webkitRadiusX;
 
+  /** @domName Touch.webkitRadiusY */
   final int webkitRadiusY;
 
+  /** @domName Touch.webkitRotationAngle */
   final num webkitRotationAngle;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34463,22 +37264,31 @@ interface Touch {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TouchEvent
 interface TouchEvent extends UIEvent {
 
+  /** @domName TouchEvent.altKey */
   final bool altKey;
 
+  /** @domName TouchEvent.changedTouches */
   final TouchList changedTouches;
 
+  /** @domName TouchEvent.ctrlKey */
   final bool ctrlKey;
 
+  /** @domName TouchEvent.metaKey */
   final bool metaKey;
 
+  /** @domName TouchEvent.shiftKey */
   final bool shiftKey;
 
+  /** @domName TouchEvent.targetTouches */
   final TouchList targetTouches;
 
+  /** @domName TouchEvent.touches */
   final TouchList touches;
 
+  /** @domName TouchEvent.initTouchEvent */
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34487,10 +37297,13 @@ interface TouchEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TouchList
 interface TouchList extends List<Touch> {
 
+  /** @domName TouchList.length */
   final int length;
 
+  /** @domName TouchList.item */
   Touch item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34499,6 +37312,7 @@ interface TouchList extends List<Touch> {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLTrackElement
 interface TrackElement extends Element {
 
   static final int ERROR = 3;
@@ -34509,18 +37323,25 @@ interface TrackElement extends Element {
 
   static final int NONE = 0;
 
+  /** @domName HTMLTrackElement.defaultValue */
   bool defaultValue;
 
+  /** @domName HTMLTrackElement.kind */
   String kind;
 
+  /** @domName HTMLTrackElement.label */
   String label;
 
+  /** @domName HTMLTrackElement.readyState */
   final int readyState;
 
+  /** @domName HTMLTrackElement.src */
   String src;
 
+  /** @domName HTMLTrackElement.srclang */
   String srclang;
 
+  /** @domName HTMLTrackElement.track */
   final TextTrack track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34529,8 +37350,10 @@ interface TrackElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TrackEvent
 interface TrackEvent extends Event {
 
+  /** @domName TrackEvent.track */
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34539,10 +37362,13 @@ interface TrackEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitTransitionEvent
 interface TransitionEvent extends Event {
 
+  /** @domName WebKitTransitionEvent.elapsedTime */
   final num elapsedTime;
 
+  /** @domName WebKitTransitionEvent.propertyName */
   final String propertyName;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34551,30 +37377,43 @@ interface TransitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName TreeWalker
 interface TreeWalker {
 
+  /** @domName TreeWalker.currentNode */
   Node currentNode;
 
+  /** @domName TreeWalker.expandEntityReferences */
   final bool expandEntityReferences;
 
+  /** @domName TreeWalker.filter */
   final NodeFilter filter;
 
+  /** @domName TreeWalker.root */
   final Node root;
 
+  /** @domName TreeWalker.whatToShow */
   final int whatToShow;
 
+  /** @domName TreeWalker.firstChild */
   Node firstChild();
 
+  /** @domName TreeWalker.lastChild */
   Node lastChild();
 
+  /** @domName TreeWalker.nextNode */
   Node nextNode();
 
+  /** @domName TreeWalker.nextSibling */
   Node nextSibling();
 
+  /** @domName TreeWalker.parentNode */
   Node parentNode();
 
+  /** @domName TreeWalker.previousNode */
   Node previousNode();
 
+  /** @domName TreeWalker.previousSibling */
   Node previousSibling();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34583,26 +37422,37 @@ interface TreeWalker {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName UIEvent
 interface UIEvent extends Event {
 
+  /** @domName UIEvent.charCode */
   final int charCode;
 
+  /** @domName UIEvent.detail */
   final int detail;
 
+  /** @domName UIEvent.keyCode */
   final int keyCode;
 
+  /** @domName UIEvent.layerX */
   final int layerX;
 
+  /** @domName UIEvent.layerY */
   final int layerY;
 
+  /** @domName UIEvent.pageX */
   final int pageX;
 
+  /** @domName UIEvent.pageY */
   final int pageY;
 
+  /** @domName UIEvent.view */
   final Window view;
 
+  /** @domName UIEvent.which */
   final int which;
 
+  /** @domName UIEvent.initUIEvent */
   void initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34611,10 +37461,13 @@ interface UIEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLUListElement
 interface UListElement extends Element {
 
+  /** @domName HTMLUListElement.compact */
   bool compact;
 
+  /** @domName HTMLUListElement.type */
   String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34623,6 +37476,7 @@ interface UListElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Uint16Array
 interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Uint16Array(int length);
@@ -34633,10 +37487,13 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   static final int BYTES_PER_ELEMENT = 2;
 
+  /** @domName Uint16Array.length */
   final int length;
 
+  /** @domName Uint16Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Uint16Array.subarray */
   Uint16Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34645,6 +37502,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Uint32Array
 interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Uint32Array(int length);
@@ -34655,10 +37513,13 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   static final int BYTES_PER_ELEMENT = 4;
 
+  /** @domName Uint32Array.length */
   final int length;
 
+  /** @domName Uint32Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Uint32Array.subarray */
   Uint32Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34667,6 +37528,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Uint8Array
 interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
 
   Uint8Array(int length);
@@ -34677,10 +37539,13 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 1;
 
+  /** @domName Uint8Array.length */
   final int length;
 
+  /** @domName Uint8Array.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Uint8Array.subarray */
   Uint8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34689,6 +37554,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Uint8ClampedArray
 interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
 
   Uint8ClampedArray(int length);
@@ -34697,10 +37563,13 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]);
 
+  /** @domName Uint8ClampedArray.length */
   final int length;
 
+  /** @domName Uint8ClampedArray.setElements */
   void setElements(Object array, [int offset]);
 
+  /** @domName Uint8ClampedArray.subarray */
   Uint8ClampedArray subarray(int start, [int end]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34709,6 +37578,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLUnknownElement
 interface UnknownElement extends Element {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34717,24 +37587,34 @@ interface UnknownElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName ValidityState
 interface ValidityState {
 
+  /** @domName ValidityState.customError */
   final bool customError;
 
+  /** @domName ValidityState.patternMismatch */
   final bool patternMismatch;
 
+  /** @domName ValidityState.rangeOverflow */
   final bool rangeOverflow;
 
+  /** @domName ValidityState.rangeUnderflow */
   final bool rangeUnderflow;
 
+  /** @domName ValidityState.stepMismatch */
   final bool stepMismatch;
 
+  /** @domName ValidityState.tooLong */
   final bool tooLong;
 
+  /** @domName ValidityState.typeMismatch */
   final bool typeMismatch;
 
+  /** @domName ValidityState.valid */
   final bool valid;
 
+  /** @domName ValidityState.valueMissing */
   final bool valueMissing;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34743,32 +37623,46 @@ interface ValidityState {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLVideoElement
 interface VideoElement extends MediaElement {
 
+  /** @domName HTMLVideoElement.height */
   int height;
 
+  /** @domName HTMLVideoElement.poster */
   String poster;
 
+  /** @domName HTMLVideoElement.videoHeight */
   final int videoHeight;
 
+  /** @domName HTMLVideoElement.videoWidth */
   final int videoWidth;
 
+  /** @domName HTMLVideoElement.webkitDecodedFrameCount */
   final int webkitDecodedFrameCount;
 
+  /** @domName HTMLVideoElement.webkitDisplayingFullscreen */
   final bool webkitDisplayingFullscreen;
 
+  /** @domName HTMLVideoElement.webkitDroppedFrameCount */
   final int webkitDroppedFrameCount;
 
+  /** @domName HTMLVideoElement.webkitSupportsFullscreen */
   final bool webkitSupportsFullscreen;
 
+  /** @domName HTMLVideoElement.width */
   int width;
 
+  /** @domName HTMLVideoElement.webkitEnterFullScreen */
   void webkitEnterFullScreen();
 
+  /** @domName HTMLVideoElement.webkitEnterFullscreen */
   void webkitEnterFullscreen();
 
+  /** @domName HTMLVideoElement.webkitExitFullScreen */
   void webkitExitFullScreen();
 
+  /** @domName HTMLVideoElement.webkitExitFullscreen */
   void webkitExitFullscreen();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -34784,8 +37678,10 @@ typedef void VoidCallback();
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WaveShaperNode
 interface WaveShaperNode extends AudioNode {
 
+  /** @domName WaveShaperNode.curve */
   Float32Array curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34794,6 +37690,7 @@ interface WaveShaperNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WaveTable
 interface WaveTable {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34802,12 +37699,16 @@ interface WaveTable {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLActiveInfo
 interface WebGLActiveInfo {
 
+  /** @domName WebGLActiveInfo.name */
   final String name;
 
+  /** @domName WebGLActiveInfo.size */
   final int size;
 
+  /** @domName WebGLActiveInfo.type */
   final int type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34816,6 +37717,7 @@ interface WebGLActiveInfo {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLBuffer
 interface WebGLBuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34824,6 +37726,7 @@ interface WebGLBuffer {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLCompressedTextureS3TC
 interface WebGLCompressedTextureS3TC {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
@@ -34840,18 +37743,25 @@ interface WebGLCompressedTextureS3TC {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLContextAttributes
 interface WebGLContextAttributes {
 
+  /** @domName WebGLContextAttributes.alpha */
   bool alpha;
 
+  /** @domName WebGLContextAttributes.antialias */
   bool antialias;
 
+  /** @domName WebGLContextAttributes.depth */
   bool depth;
 
+  /** @domName WebGLContextAttributes.premultipliedAlpha */
   bool premultipliedAlpha;
 
+  /** @domName WebGLContextAttributes.preserveDrawingBuffer */
   bool preserveDrawingBuffer;
 
+  /** @domName WebGLContextAttributes.stencil */
   bool stencil;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34860,8 +37770,10 @@ interface WebGLContextAttributes {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLContextEvent
 interface WebGLContextEvent extends Event {
 
+  /** @domName WebGLContextEvent.statusMessage */
   final String statusMessage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34870,6 +37782,7 @@ interface WebGLContextEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLDebugRendererInfo
 interface WebGLDebugRendererInfo {
 
   static final int UNMASKED_RENDERER_WEBGL = 0x9246;
@@ -34882,8 +37795,10 @@ interface WebGLDebugRendererInfo {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLDebugShaders
 interface WebGLDebugShaders {
 
+  /** @domName WebGLDebugShaders.getTranslatedShaderSource */
   String getTranslatedShaderSource(WebGLShader shader);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34892,6 +37807,7 @@ interface WebGLDebugShaders {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLFramebuffer
 interface WebGLFramebuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34900,10 +37816,13 @@ interface WebGLFramebuffer {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLLoseContext
 interface WebGLLoseContext {
 
+  /** @domName WebGLLoseContext.loseContext */
   void loseContext();
 
+  /** @domName WebGLLoseContext.restoreContext */
   void restoreContext();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34912,6 +37831,7 @@ interface WebGLLoseContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLProgram
 interface WebGLProgram {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34920,6 +37840,7 @@ interface WebGLProgram {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLRenderbuffer
 interface WebGLRenderbuffer {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34928,6 +37849,7 @@ interface WebGLRenderbuffer {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLRenderingContext
 interface WebGLRenderingContext extends CanvasRenderingContext {
 
   static final int ACTIVE_ATTRIBUTES = 0x8B89;
@@ -35522,280 +38444,418 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   static final int ZERO = 0;
 
+  /** @domName WebGLRenderingContext.drawingBufferHeight */
   final int drawingBufferHeight;
 
+  /** @domName WebGLRenderingContext.drawingBufferWidth */
   final int drawingBufferWidth;
 
+  /** @domName WebGLRenderingContext.activeTexture */
   void activeTexture(int texture);
 
+  /** @domName WebGLRenderingContext.attachShader */
   void attachShader(WebGLProgram program, WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.bindAttribLocation */
   void bindAttribLocation(WebGLProgram program, int index, String name);
 
+  /** @domName WebGLRenderingContext.bindBuffer */
   void bindBuffer(int target, WebGLBuffer buffer);
 
+  /** @domName WebGLRenderingContext.bindFramebuffer */
   void bindFramebuffer(int target, WebGLFramebuffer framebuffer);
 
+  /** @domName WebGLRenderingContext.bindRenderbuffer */
   void bindRenderbuffer(int target, WebGLRenderbuffer renderbuffer);
 
+  /** @domName WebGLRenderingContext.bindTexture */
   void bindTexture(int target, WebGLTexture texture);
 
+  /** @domName WebGLRenderingContext.blendColor */
   void blendColor(num red, num green, num blue, num alpha);
 
+  /** @domName WebGLRenderingContext.blendEquation */
   void blendEquation(int mode);
 
+  /** @domName WebGLRenderingContext.blendEquationSeparate */
   void blendEquationSeparate(int modeRGB, int modeAlpha);
 
+  /** @domName WebGLRenderingContext.blendFunc */
   void blendFunc(int sfactor, int dfactor);
 
+  /** @domName WebGLRenderingContext.blendFuncSeparate */
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 
+  /** @domName WebGLRenderingContext.bufferData */
   void bufferData(int target, var data_OR_size, int usage);
 
+  /** @domName WebGLRenderingContext.bufferSubData */
   void bufferSubData(int target, int offset, var data);
 
+  /** @domName WebGLRenderingContext.checkFramebufferStatus */
   int checkFramebufferStatus(int target);
 
+  /** @domName WebGLRenderingContext.clear */
   void clear(int mask);
 
+  /** @domName WebGLRenderingContext.clearColor */
   void clearColor(num red, num green, num blue, num alpha);
 
+  /** @domName WebGLRenderingContext.clearDepth */
   void clearDepth(num depth);
 
+  /** @domName WebGLRenderingContext.clearStencil */
   void clearStencil(int s);
 
+  /** @domName WebGLRenderingContext.colorMask */
   void colorMask(bool red, bool green, bool blue, bool alpha);
 
+  /** @domName WebGLRenderingContext.compileShader */
   void compileShader(WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.compressedTexImage2D */
   void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data);
 
+  /** @domName WebGLRenderingContext.compressedTexSubImage2D */
   void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data);
 
+  /** @domName WebGLRenderingContext.copyTexImage2D */
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border);
 
+  /** @domName WebGLRenderingContext.copyTexSubImage2D */
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height);
 
+  /** @domName WebGLRenderingContext.createBuffer */
   WebGLBuffer createBuffer();
 
+  /** @domName WebGLRenderingContext.createFramebuffer */
   WebGLFramebuffer createFramebuffer();
 
+  /** @domName WebGLRenderingContext.createProgram */
   WebGLProgram createProgram();
 
+  /** @domName WebGLRenderingContext.createRenderbuffer */
   WebGLRenderbuffer createRenderbuffer();
 
+  /** @domName WebGLRenderingContext.createShader */
   WebGLShader createShader(int type);
 
+  /** @domName WebGLRenderingContext.createTexture */
   WebGLTexture createTexture();
 
+  /** @domName WebGLRenderingContext.cullFace */
   void cullFace(int mode);
 
+  /** @domName WebGLRenderingContext.deleteBuffer */
   void deleteBuffer(WebGLBuffer buffer);
 
+  /** @domName WebGLRenderingContext.deleteFramebuffer */
   void deleteFramebuffer(WebGLFramebuffer framebuffer);
 
+  /** @domName WebGLRenderingContext.deleteProgram */
   void deleteProgram(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.deleteRenderbuffer */
   void deleteRenderbuffer(WebGLRenderbuffer renderbuffer);
 
+  /** @domName WebGLRenderingContext.deleteShader */
   void deleteShader(WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.deleteTexture */
   void deleteTexture(WebGLTexture texture);
 
+  /** @domName WebGLRenderingContext.depthFunc */
   void depthFunc(int func);
 
+  /** @domName WebGLRenderingContext.depthMask */
   void depthMask(bool flag);
 
+  /** @domName WebGLRenderingContext.depthRange */
   void depthRange(num zNear, num zFar);
 
+  /** @domName WebGLRenderingContext.detachShader */
   void detachShader(WebGLProgram program, WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.disable */
   void disable(int cap);
 
+  /** @domName WebGLRenderingContext.disableVertexAttribArray */
   void disableVertexAttribArray(int index);
 
+  /** @domName WebGLRenderingContext.drawArrays */
   void drawArrays(int mode, int first, int count);
 
+  /** @domName WebGLRenderingContext.drawElements */
   void drawElements(int mode, int count, int type, int offset);
 
+  /** @domName WebGLRenderingContext.enable */
   void enable(int cap);
 
+  /** @domName WebGLRenderingContext.enableVertexAttribArray */
   void enableVertexAttribArray(int index);
 
+  /** @domName WebGLRenderingContext.finish */
   void finish();
 
+  /** @domName WebGLRenderingContext.flush */
   void flush();
 
+  /** @domName WebGLRenderingContext.framebufferRenderbuffer */
   void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbuffer renderbuffer);
 
+  /** @domName WebGLRenderingContext.framebufferTexture2D */
   void framebufferTexture2D(int target, int attachment, int textarget, WebGLTexture texture, int level);
 
+  /** @domName WebGLRenderingContext.frontFace */
   void frontFace(int mode);
 
+  /** @domName WebGLRenderingContext.generateMipmap */
   void generateMipmap(int target);
 
+  /** @domName WebGLRenderingContext.getActiveAttrib */
   WebGLActiveInfo getActiveAttrib(WebGLProgram program, int index);
 
+  /** @domName WebGLRenderingContext.getActiveUniform */
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
+  /** @domName WebGLRenderingContext.getAttachedShaders */
   List getAttachedShaders(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
 
+  /** @domName WebGLRenderingContext.getBufferParameter */
   Object getBufferParameter(int target, int pname);
 
+  /** @domName WebGLRenderingContext.getContextAttributes */
   WebGLContextAttributes getContextAttributes();
 
+  /** @domName WebGLRenderingContext.getError */
   int getError();
 
+  /** @domName WebGLRenderingContext.getExtension */
   Object getExtension(String name);
 
+  /** @domName WebGLRenderingContext.getFramebufferAttachmentParameter */
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
 
+  /** @domName WebGLRenderingContext.getParameter */
   Object getParameter(int pname);
 
+  /** @domName WebGLRenderingContext.getProgramInfoLog */
   String getProgramInfoLog(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.getProgramParameter */
   Object getProgramParameter(WebGLProgram program, int pname);
 
+  /** @domName WebGLRenderingContext.getRenderbufferParameter */
   Object getRenderbufferParameter(int target, int pname);
 
+  /** @domName WebGLRenderingContext.getShaderInfoLog */
   String getShaderInfoLog(WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.getShaderParameter */
   Object getShaderParameter(WebGLShader shader, int pname);
 
+  /** @domName WebGLRenderingContext.getShaderPrecisionFormat */
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
 
+  /** @domName WebGLRenderingContext.getShaderSource */
   String getShaderSource(WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.getTexParameter */
   Object getTexParameter(int target, int pname);
 
+  /** @domName WebGLRenderingContext.getUniform */
   Object getUniform(WebGLProgram program, WebGLUniformLocation location);
 
+  /** @domName WebGLRenderingContext.getUniformLocation */
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name);
 
+  /** @domName WebGLRenderingContext.getVertexAttrib */
   Object getVertexAttrib(int index, int pname);
 
+  /** @domName WebGLRenderingContext.getVertexAttribOffset */
   int getVertexAttribOffset(int index, int pname);
 
+  /** @domName WebGLRenderingContext.hint */
   void hint(int target, int mode);
 
+  /** @domName WebGLRenderingContext.isBuffer */
   bool isBuffer(WebGLBuffer buffer);
 
+  /** @domName WebGLRenderingContext.isContextLost */
   bool isContextLost();
 
+  /** @domName WebGLRenderingContext.isEnabled */
   bool isEnabled(int cap);
 
+  /** @domName WebGLRenderingContext.isFramebuffer */
   bool isFramebuffer(WebGLFramebuffer framebuffer);
 
+  /** @domName WebGLRenderingContext.isProgram */
   bool isProgram(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.isRenderbuffer */
   bool isRenderbuffer(WebGLRenderbuffer renderbuffer);
 
+  /** @domName WebGLRenderingContext.isShader */
   bool isShader(WebGLShader shader);
 
+  /** @domName WebGLRenderingContext.isTexture */
   bool isTexture(WebGLTexture texture);
 
+  /** @domName WebGLRenderingContext.lineWidth */
   void lineWidth(num width);
 
+  /** @domName WebGLRenderingContext.linkProgram */
   void linkProgram(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.pixelStorei */
   void pixelStorei(int pname, int param);
 
+  /** @domName WebGLRenderingContext.polygonOffset */
   void polygonOffset(num factor, num units);
 
+  /** @domName WebGLRenderingContext.readPixels */
   void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferView pixels);
 
+  /** @domName WebGLRenderingContext.releaseShaderCompiler */
   void releaseShaderCompiler();
 
+  /** @domName WebGLRenderingContext.renderbufferStorage */
   void renderbufferStorage(int target, int internalformat, int width, int height);
 
+  /** @domName WebGLRenderingContext.sampleCoverage */
   void sampleCoverage(num value, bool invert);
 
+  /** @domName WebGLRenderingContext.scissor */
   void scissor(int x, int y, int width, int height);
 
+  /** @domName WebGLRenderingContext.shaderSource */
   void shaderSource(WebGLShader shader, String string);
 
+  /** @domName WebGLRenderingContext.stencilFunc */
   void stencilFunc(int func, int ref, int mask);
 
+  /** @domName WebGLRenderingContext.stencilFuncSeparate */
   void stencilFuncSeparate(int face, int func, int ref, int mask);
 
+  /** @domName WebGLRenderingContext.stencilMask */
   void stencilMask(int mask);
 
+  /** @domName WebGLRenderingContext.stencilMaskSeparate */
   void stencilMaskSeparate(int face, int mask);
 
+  /** @domName WebGLRenderingContext.stencilOp */
   void stencilOp(int fail, int zfail, int zpass);
 
+  /** @domName WebGLRenderingContext.stencilOpSeparate */
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
+  /** @domName WebGLRenderingContext.texImage2D */
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
 
+  /** @domName WebGLRenderingContext.texParameterf */
   void texParameterf(int target, int pname, num param);
 
+  /** @domName WebGLRenderingContext.texParameteri */
   void texParameteri(int target, int pname, int param);
 
+  /** @domName WebGLRenderingContext.texSubImage2D */
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
 
+  /** @domName WebGLRenderingContext.uniform1f */
   void uniform1f(WebGLUniformLocation location, num x);
 
+  /** @domName WebGLRenderingContext.uniform1fv */
   void uniform1fv(WebGLUniformLocation location, Float32Array v);
 
+  /** @domName WebGLRenderingContext.uniform1i */
   void uniform1i(WebGLUniformLocation location, int x);
 
+  /** @domName WebGLRenderingContext.uniform1iv */
   void uniform1iv(WebGLUniformLocation location, Int32Array v);
 
+  /** @domName WebGLRenderingContext.uniform2f */
   void uniform2f(WebGLUniformLocation location, num x, num y);
 
+  /** @domName WebGLRenderingContext.uniform2fv */
   void uniform2fv(WebGLUniformLocation location, Float32Array v);
 
+  /** @domName WebGLRenderingContext.uniform2i */
   void uniform2i(WebGLUniformLocation location, int x, int y);
 
+  /** @domName WebGLRenderingContext.uniform2iv */
   void uniform2iv(WebGLUniformLocation location, Int32Array v);
 
+  /** @domName WebGLRenderingContext.uniform3f */
   void uniform3f(WebGLUniformLocation location, num x, num y, num z);
 
+  /** @domName WebGLRenderingContext.uniform3fv */
   void uniform3fv(WebGLUniformLocation location, Float32Array v);
 
+  /** @domName WebGLRenderingContext.uniform3i */
   void uniform3i(WebGLUniformLocation location, int x, int y, int z);
 
+  /** @domName WebGLRenderingContext.uniform3iv */
   void uniform3iv(WebGLUniformLocation location, Int32Array v);
 
+  /** @domName WebGLRenderingContext.uniform4f */
   void uniform4f(WebGLUniformLocation location, num x, num y, num z, num w);
 
+  /** @domName WebGLRenderingContext.uniform4fv */
   void uniform4fv(WebGLUniformLocation location, Float32Array v);
 
+  /** @domName WebGLRenderingContext.uniform4i */
   void uniform4i(WebGLUniformLocation location, int x, int y, int z, int w);
 
+  /** @domName WebGLRenderingContext.uniform4iv */
   void uniform4iv(WebGLUniformLocation location, Int32Array v);
 
+  /** @domName WebGLRenderingContext.uniformMatrix2fv */
   void uniformMatrix2fv(WebGLUniformLocation location, bool transpose, Float32Array array);
 
+  /** @domName WebGLRenderingContext.uniformMatrix3fv */
   void uniformMatrix3fv(WebGLUniformLocation location, bool transpose, Float32Array array);
 
+  /** @domName WebGLRenderingContext.uniformMatrix4fv */
   void uniformMatrix4fv(WebGLUniformLocation location, bool transpose, Float32Array array);
 
+  /** @domName WebGLRenderingContext.useProgram */
   void useProgram(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.validateProgram */
   void validateProgram(WebGLProgram program);
 
+  /** @domName WebGLRenderingContext.vertexAttrib1f */
   void vertexAttrib1f(int indx, num x);
 
+  /** @domName WebGLRenderingContext.vertexAttrib1fv */
   void vertexAttrib1fv(int indx, Float32Array values);
 
+  /** @domName WebGLRenderingContext.vertexAttrib2f */
   void vertexAttrib2f(int indx, num x, num y);
 
+  /** @domName WebGLRenderingContext.vertexAttrib2fv */
   void vertexAttrib2fv(int indx, Float32Array values);
 
+  /** @domName WebGLRenderingContext.vertexAttrib3f */
   void vertexAttrib3f(int indx, num x, num y, num z);
 
+  /** @domName WebGLRenderingContext.vertexAttrib3fv */
   void vertexAttrib3fv(int indx, Float32Array values);
 
+  /** @domName WebGLRenderingContext.vertexAttrib4f */
   void vertexAttrib4f(int indx, num x, num y, num z, num w);
 
+  /** @domName WebGLRenderingContext.vertexAttrib4fv */
   void vertexAttrib4fv(int indx, Float32Array values);
 
+  /** @domName WebGLRenderingContext.vertexAttribPointer */
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset);
 
+  /** @domName WebGLRenderingContext.viewport */
   void viewport(int x, int y, int width, int height);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35804,6 +38864,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLShader
 interface WebGLShader {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35812,12 +38873,16 @@ interface WebGLShader {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLShaderPrecisionFormat
 interface WebGLShaderPrecisionFormat {
 
+  /** @domName WebGLShaderPrecisionFormat.precision */
   final int precision;
 
+  /** @domName WebGLShaderPrecisionFormat.rangeMax */
   final int rangeMax;
 
+  /** @domName WebGLShaderPrecisionFormat.rangeMin */
   final int rangeMin;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35826,6 +38891,7 @@ interface WebGLShaderPrecisionFormat {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLTexture
 interface WebGLTexture {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35834,6 +38900,7 @@ interface WebGLTexture {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLUniformLocation
 interface WebGLUniformLocation {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35842,6 +38909,7 @@ interface WebGLUniformLocation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebGLVertexArrayObjectOES
 interface WebGLVertexArrayObjectOES {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35850,8 +38918,10 @@ interface WebGLVertexArrayObjectOES {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitCSSRegionRule
 interface WebKitCSSRegionRule extends CSSRule {
 
+  /** @domName WebKitCSSRegionRule.cssRules */
   final CSSRuleList cssRules;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35860,10 +38930,13 @@ interface WebKitCSSRegionRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitMutationObserver
 interface WebKitMutationObserver {
 
+  /** @domName WebKitMutationObserver.disconnect */
   void disconnect();
 
+  /** @domName WebKitMutationObserver.takeRecords */
   List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35872,10 +38945,13 @@ interface WebKitMutationObserver {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
 
+  /** @domName WebKitNamedFlow.overflow */
   final bool overflow;
 
+  /** @domName WebKitNamedFlow.getRegionsByContentNode */
   NodeList getRegionsByContentNode(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35884,10 +38960,14 @@ interface WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WebSocket
 interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   WebSocket(String url);
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   WebSocketEvents get on();
 
   static final int CLOSED = 3;
@@ -35898,31 +38978,40 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   static final int OPEN = 1;
 
+  /** @domName WebSocket.URL */
   final String URL;
 
+  /** @domName WebSocket.binaryType */
   String binaryType;
 
+  /** @domName WebSocket.bufferedAmount */
   final int bufferedAmount;
 
+  /** @domName WebSocket.extensions */
   final String extensions;
 
+  /** @domName WebSocket.protocol */
   final String protocol;
 
+  /** @domName WebSocket.readyState */
   final int readyState;
 
+  /** @domName WebSocket.url */
   final String url;
 
-  /** @domName addEventListener */
+  /** @domName WebSocket.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName WebSocket.close */
   void close([int code, String reason]);
 
-  /** @domName dispatchEvent */
+  /** @domName WebSocket.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName removeEventListener */
+  /** @domName WebSocket.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName WebSocket.send */
   bool send(String data);
 }
 
@@ -35942,40 +39031,58 @@ interface WebSocketEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WheelEvent
 interface WheelEvent extends UIEvent {
 
+  /** @domName WheelEvent.altKey */
   final bool altKey;
 
+  /** @domName WheelEvent.clientX */
   final int clientX;
 
+  /** @domName WheelEvent.clientY */
   final int clientY;
 
+  /** @domName WheelEvent.ctrlKey */
   final bool ctrlKey;
 
+  /** @domName WheelEvent.metaKey */
   final bool metaKey;
 
+  /** @domName WheelEvent.offsetX */
   final int offsetX;
 
+  /** @domName WheelEvent.offsetY */
   final int offsetY;
 
+  /** @domName WheelEvent.screenX */
   final int screenX;
 
+  /** @domName WheelEvent.screenY */
   final int screenY;
 
+  /** @domName WheelEvent.shiftKey */
   final bool shiftKey;
 
+  /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   final bool webkitDirectionInvertedFromDevice;
 
+  /** @domName WheelEvent.wheelDelta */
   final int wheelDelta;
 
+  /** @domName WheelEvent.wheelDeltaX */
   final int wheelDeltaX;
 
+  /** @domName WheelEvent.wheelDeltaY */
   final int wheelDeltaY;
 
+  /** @domName WheelEvent.x */
   final int x;
 
+  /** @domName WheelEvent.y */
   final int y;
 
+  /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -35984,9 +39091,8 @@ interface WheelEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName DOMWindow
 interface Window extends EventTarget {
-
-  final Document document;
 
   /**
    * Executes a [callback] after the next batch of browser layout measurements
@@ -35996,198 +39102,289 @@ interface Window extends EventTarget {
   void requestLayoutFrame(TimeoutHandler callback);
 
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   WindowEvents get on();
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
+  /** @domName DOMWindow.applicationCache */
   final DOMApplicationCache applicationCache;
 
+  /** @domName DOMWindow.clientInformation */
   final Navigator clientInformation;
 
+  /** @domName DOMWindow.closed */
   final bool closed;
 
+  /** @domName DOMWindow.console */
   final Console console;
 
+  /** @domName DOMWindow.crypto */
   final Crypto crypto;
 
+  /** @domName DOMWindow.defaultStatus */
   String defaultStatus;
 
+  /** @domName DOMWindow.defaultstatus */
   String defaultstatus;
 
+  /** @domName DOMWindow.devicePixelRatio */
   final num devicePixelRatio;
 
+  /** @domName DOMWindow.event */
   final Event event;
 
+  /** @domName DOMWindow.frameElement */
   final Element frameElement;
 
+  /** @domName DOMWindow.frames */
   final Window frames;
 
+  /** @domName DOMWindow.history */
   final History history;
 
+  /** @domName DOMWindow.innerHeight */
   final int innerHeight;
 
+  /** @domName DOMWindow.innerWidth */
   final int innerWidth;
 
+  /** @domName DOMWindow.length */
   final int length;
 
+  /** @domName DOMWindow.localStorage */
   final Storage localStorage;
 
+  /** @domName DOMWindow.location */
   Location location;
 
+  /** @domName DOMWindow.locationbar */
   final BarInfo locationbar;
 
+  /** @domName DOMWindow.menubar */
   final BarInfo menubar;
 
+  /** @domName DOMWindow.name */
   String name;
 
+  /** @domName DOMWindow.navigator */
   final Navigator navigator;
 
+  /** @domName DOMWindow.offscreenBuffering */
   final bool offscreenBuffering;
 
+  /** @domName DOMWindow.opener */
   final Window opener;
 
+  /** @domName DOMWindow.outerHeight */
   final int outerHeight;
 
+  /** @domName DOMWindow.outerWidth */
   final int outerWidth;
 
+  /** @domName DOMWindow.pageXOffset */
   final int pageXOffset;
 
+  /** @domName DOMWindow.pageYOffset */
   final int pageYOffset;
 
+  /** @domName DOMWindow.parent */
   final Window parent;
 
+  /** @domName DOMWindow.performance */
   final Performance performance;
 
+  /** @domName DOMWindow.personalbar */
   final BarInfo personalbar;
 
+  /** @domName DOMWindow.screen */
   final Screen screen;
 
+  /** @domName DOMWindow.screenLeft */
   final int screenLeft;
 
+  /** @domName DOMWindow.screenTop */
   final int screenTop;
 
+  /** @domName DOMWindow.screenX */
   final int screenX;
 
+  /** @domName DOMWindow.screenY */
   final int screenY;
 
+  /** @domName DOMWindow.scrollX */
   final int scrollX;
 
+  /** @domName DOMWindow.scrollY */
   final int scrollY;
 
+  /** @domName DOMWindow.scrollbars */
   final BarInfo scrollbars;
 
+  /** @domName DOMWindow.self */
   final Window self;
 
+  /** @domName DOMWindow.sessionStorage */
   final Storage sessionStorage;
 
+  /** @domName DOMWindow.status */
   String status;
 
+  /** @domName DOMWindow.statusbar */
   final BarInfo statusbar;
 
+  /** @domName DOMWindow.styleMedia */
   final StyleMedia styleMedia;
 
+  /** @domName DOMWindow.toolbar */
   final BarInfo toolbar;
 
+  /** @domName DOMWindow.top */
   final Window top;
 
+  /** @domName DOMWindow.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
 
+  /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
 
+  /** @domName DOMWindow.webkitStorageInfo */
   final StorageInfo webkitStorageInfo;
 
+  /** @domName DOMWindow.window */
   final Window window;
 
-  /** @domName addEventListener */
+  /** @domName DOMWindow.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName DOMWindow.alert */
   void alert(String message);
 
+  /** @domName DOMWindow.atob */
   String atob(String string);
 
+  /** @domName DOMWindow.blur */
   void blur();
 
+  /** @domName DOMWindow.btoa */
   String btoa(String string);
 
+  /** @domName DOMWindow.captureEvents */
   void captureEvents();
 
+  /** @domName DOMWindow.clearInterval */
   void clearInterval(int handle);
 
+  /** @domName DOMWindow.clearTimeout */
   void clearTimeout(int handle);
 
+  /** @domName DOMWindow.close */
   void close();
 
+  /** @domName DOMWindow.confirm */
   bool confirm(String message);
 
-  /** @domName dispatchEvent */
+  /** @domName DOMWindow.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName DOMWindow.find */
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog);
 
+  /** @domName DOMWindow.focus */
   void focus();
 
-  /** @domName getComputedStyle */
+  /** @domName DOMWindow.getComputedStyle */
   CSSStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement);
 
+  /** @domName DOMWindow.getMatchedCSSRules */
   CSSRuleList getMatchedCSSRules(Element element, String pseudoElement);
 
+  /** @domName DOMWindow.getSelection */
   DOMSelection getSelection();
 
+  /** @domName DOMWindow.matchMedia */
   MediaQueryList matchMedia(String query);
 
+  /** @domName DOMWindow.moveBy */
   void moveBy(num x, num y);
 
+  /** @domName DOMWindow.moveTo */
   void moveTo(num x, num y);
 
+  /** @domName DOMWindow.open */
   Window open(String url, String name, [String options]);
 
+  /** @domName DOMWindow.openDatabase */
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
+  /** @domName DOMWindow.postMessage */
   void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
 
+  /** @domName DOMWindow.print */
   void print();
 
+  /** @domName DOMWindow.prompt */
   String prompt(String message, String defaultValue);
 
+  /** @domName DOMWindow.releaseEvents */
   void releaseEvents();
 
-  /** @domName removeEventListener */
+  /** @domName DOMWindow.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName DOMWindow.resizeBy */
   void resizeBy(num x, num y);
 
+  /** @domName DOMWindow.resizeTo */
   void resizeTo(num width, num height);
 
+  /** @domName DOMWindow.scroll */
   void scroll(int x, int y);
 
+  /** @domName DOMWindow.scrollBy */
   void scrollBy(int x, int y);
 
+  /** @domName DOMWindow.scrollTo */
   void scrollTo(int x, int y);
 
+  /** @domName DOMWindow.setInterval */
   int setInterval(TimeoutHandler handler, int timeout);
 
+  /** @domName DOMWindow.setTimeout */
   int setTimeout(TimeoutHandler handler, int timeout);
 
+  /** @domName DOMWindow.showModalDialog */
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]);
 
+  /** @domName DOMWindow.stop */
   void stop();
 
+  /** @domName DOMWindow.webkitCancelAnimationFrame */
   void webkitCancelAnimationFrame(int id);
 
+  /** @domName DOMWindow.webkitCancelRequestAnimationFrame */
   void webkitCancelRequestAnimationFrame(int id);
 
+  /** @domName DOMWindow.webkitConvertPointFromNodeToPage */
   Point webkitConvertPointFromNodeToPage(Node node, Point p);
 
+  /** @domName DOMWindow.webkitConvertPointFromPageToNode */
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
+  /** @domName DOMWindow.webkitPostMessage */
   void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
+  /** @domName DOMWindow.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
 
+  /** @domName DOMWindow.webkitResolveLocalFileSystemURL */
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 
 }
@@ -36348,16 +39545,23 @@ interface WindowEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Worker
 interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
   Worker(String scriptUrl);
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   WorkerEvents get on();
 
+  /** @domName Worker.postMessage */
   void postMessage(Dynamic message, [List messagePorts]);
 
+  /** @domName Worker.terminate */
   void terminate();
 
+  /** @domName Worker.webkitPostMessage */
   void webkitPostMessage(Dynamic message, [List messagePorts]);
 }
 
@@ -36371,52 +39575,74 @@ interface WorkerEvents extends AbstractWorkerEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WorkerContext
 interface WorkerContext {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
+  /** @domName WorkerContext.location */
   final WorkerLocation location;
 
+  /** @domName WorkerContext.navigator */
   final WorkerNavigator navigator;
 
+  /** @domName WorkerContext.onerror */
   EventListener onerror;
 
+  /** @domName WorkerContext.self */
   final WorkerContext self;
 
+  /** @domName WorkerContext.webkitIndexedDB */
   final IDBFactory webkitIndexedDB;
 
+  /** @domName WorkerContext.webkitNotifications */
   final NotificationCenter webkitNotifications;
 
+  /** @domName WorkerContext.addEventListener */
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName WorkerContext.clearInterval */
   void clearInterval(int handle);
 
+  /** @domName WorkerContext.clearTimeout */
   void clearTimeout(int handle);
 
+  /** @domName WorkerContext.close */
   void close();
 
+  /** @domName WorkerContext.dispatchEvent */
   bool dispatchEvent(Event evt);
 
+  /** @domName WorkerContext.importScripts */
   void importScripts();
 
+  /** @domName WorkerContext.openDatabase */
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
+  /** @domName WorkerContext.openDatabaseSync */
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
+  /** @domName WorkerContext.removeEventListener */
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName WorkerContext.setInterval */
   int setInterval(TimeoutHandler handler, int timeout);
 
+  /** @domName WorkerContext.setTimeout */
   int setTimeout(TimeoutHandler handler, int timeout);
 
+  /** @domName WorkerContext.webkitRequestFileSystem */
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]);
 
+  /** @domName WorkerContext.webkitRequestFileSystemSync */
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size);
 
+  /** @domName WorkerContext.webkitResolveLocalFileSystemSyncURL */
   EntrySync webkitResolveLocalFileSystemSyncURL(String url);
 
+  /** @domName WorkerContext.webkitResolveLocalFileSystemURL */
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36425,24 +39651,34 @@ interface WorkerContext {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WorkerLocation
 interface WorkerLocation {
 
+  /** @domName WorkerLocation.hash */
   final String hash;
 
+  /** @domName WorkerLocation.host */
   final String host;
 
+  /** @domName WorkerLocation.hostname */
   final String hostname;
 
+  /** @domName WorkerLocation.href */
   final String href;
 
+  /** @domName WorkerLocation.pathname */
   final String pathname;
 
+  /** @domName WorkerLocation.port */
   final String port;
 
+  /** @domName WorkerLocation.protocol */
   final String protocol;
 
+  /** @domName WorkerLocation.search */
   final String search;
 
+  /** @domName WorkerLocation.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36451,16 +39687,22 @@ interface WorkerLocation {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName WorkerNavigator
 interface WorkerNavigator {
 
+  /** @domName WorkerNavigator.appName */
   final String appName;
 
+  /** @domName WorkerNavigator.appVersion */
   final String appVersion;
 
+  /** @domName WorkerNavigator.onLine */
   final bool onLine;
 
+  /** @domName WorkerNavigator.platform */
   final String platform;
 
+  /** @domName WorkerNavigator.userAgent */
   final String userAgent;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -36469,6 +39711,7 @@ interface WorkerNavigator {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XMLHttpRequest
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
   // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
   // not correctly implemented yet. (b/4970173)
@@ -36476,6 +39719,9 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   XMLHttpRequestEvents get on();
 
   static final int DONE = 4;
@@ -36488,49 +39734,67 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
+  /** @domName XMLHttpRequest.asBlob */
   bool asBlob;
 
+  /** @domName XMLHttpRequest.readyState */
   final int readyState;
 
+  /** @domName XMLHttpRequest.response */
   final Object response;
 
+  /** @domName XMLHttpRequest.responseBlob */
   final Blob responseBlob;
 
+  /** @domName XMLHttpRequest.responseText */
   final String responseText;
 
+  /** @domName XMLHttpRequest.responseType */
   String responseType;
 
+  /** @domName XMLHttpRequest.responseXML */
   final Document responseXML;
 
+  /** @domName XMLHttpRequest.status */
   final int status;
 
+  /** @domName XMLHttpRequest.statusText */
   final String statusText;
 
+  /** @domName XMLHttpRequest.upload */
   final XMLHttpRequestUpload upload;
 
+  /** @domName XMLHttpRequest.withCredentials */
   bool withCredentials;
 
+  /** @domName XMLHttpRequest.abort */
   void abort();
 
-  /** @domName addEventListener */
+  /** @domName XMLHttpRequest.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName XMLHttpRequest.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
+  /** @domName XMLHttpRequest.getAllResponseHeaders */
   String getAllResponseHeaders();
 
+  /** @domName XMLHttpRequest.getResponseHeader */
   String getResponseHeader(String header);
 
+  /** @domName XMLHttpRequest.open */
   void open(String method, String url, [bool async, String user, String password]);
 
+  /** @domName XMLHttpRequest.overrideMimeType */
   void overrideMimeType(String override);
 
-  /** @domName removeEventListener */
+  /** @domName XMLHttpRequest.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
+  /** @domName XMLHttpRequest.send */
   void send([var data]);
 
+  /** @domName XMLHttpRequest.setRequestHeader */
   void setRequestHeader(String header, String value);
 }
 
@@ -36556,18 +39820,23 @@ interface XMLHttpRequestEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XMLHttpRequestException
 interface XMLHttpRequestException {
 
   static final int ABORT_ERR = 102;
 
   static final int NETWORK_ERR = 101;
 
+  /** @domName XMLHttpRequestException.code */
   final int code;
 
+  /** @domName XMLHttpRequestException.message */
   final String message;
 
+  /** @domName XMLHttpRequestException.name */
   final String name;
 
+  /** @domName XMLHttpRequestException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36576,10 +39845,13 @@ interface XMLHttpRequestException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XMLHttpRequestProgressEvent
 interface XMLHttpRequestProgressEvent extends ProgressEvent {
 
+  /** @domName XMLHttpRequestProgressEvent.position */
   final int position;
 
+  /** @domName XMLHttpRequestProgressEvent.totalSize */
   final int totalSize;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36588,17 +39860,21 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XMLHttpRequestUpload
 interface XMLHttpRequestUpload extends EventTarget {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
   XMLHttpRequestUploadEvents get on();
 
-  /** @domName addEventListener */
+  /** @domName XMLHttpRequestUpload.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
 
-  /** @domName dispatchEvent */
+  /** @domName XMLHttpRequestUpload.dispatchEvent */
   bool $dom_dispatchEvent(Event evt);
 
-  /** @domName removeEventListener */
+  /** @domName XMLHttpRequestUpload.removeEventListener */
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
@@ -36622,10 +39898,12 @@ interface XMLHttpRequestUploadEvents extends Events {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XMLSerializer
 interface XMLSerializer default _XMLSerializerFactoryProvider {
 
   XMLSerializer();
 
+  /** @domName XMLSerializer.serializeToString */
   String serializeToString(Node node);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36634,14 +39912,18 @@ interface XMLSerializer default _XMLSerializerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XPathEvaluator
 interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
 
   XPathEvaluator();
 
+  /** @domName XPathEvaluator.createExpression */
   XPathExpression createExpression(String expression, XPathNSResolver resolver);
 
+  /** @domName XPathEvaluator.createNSResolver */
   XPathNSResolver createNSResolver(Node nodeResolver);
 
+  /** @domName XPathEvaluator.evaluate */
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36650,18 +39932,23 @@ interface XPathEvaluator default _XPathEvaluatorFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XPathException
 interface XPathException {
 
   static final int INVALID_EXPRESSION_ERR = 51;
 
   static final int TYPE_ERR = 52;
 
+  /** @domName XPathException.code */
   final int code;
 
+  /** @domName XPathException.message */
   final String message;
 
+  /** @domName XPathException.name */
   final String name;
 
+  /** @domName XPathException.toString */
   String toString();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36670,8 +39957,10 @@ interface XPathException {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XPathExpression
 interface XPathExpression {
 
+  /** @domName XPathExpression.evaluate */
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36680,8 +39969,10 @@ interface XPathExpression {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XPathNSResolver
 interface XPathNSResolver {
 
+  /** @domName XPathNSResolver.lookupNamespaceURI */
   String lookupNamespaceURI(String prefix);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36690,6 +39981,7 @@ interface XPathNSResolver {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XPathResult
 interface XPathResult {
 
   static final int ANY_TYPE = 0;
@@ -36712,22 +40004,31 @@ interface XPathResult {
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
+  /** @domName XPathResult.booleanValue */
   final bool booleanValue;
 
+  /** @domName XPathResult.invalidIteratorState */
   final bool invalidIteratorState;
 
+  /** @domName XPathResult.numberValue */
   final num numberValue;
 
+  /** @domName XPathResult.resultType */
   final int resultType;
 
+  /** @domName XPathResult.singleNodeValue */
   final Node singleNodeValue;
 
+  /** @domName XPathResult.snapshotLength */
   final int snapshotLength;
 
+  /** @domName XPathResult.stringValue */
   final String stringValue;
 
+  /** @domName XPathResult.iterateNext */
   Node iterateNext();
 
+  /** @domName XPathResult.snapshotItem */
   Node snapshotItem(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36736,24 +40037,33 @@ interface XPathResult {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName XSLTProcessor
 interface XSLTProcessor default _XSLTProcessorFactoryProvider {
 
   XSLTProcessor();
 
+  /** @domName XSLTProcessor.clearParameters */
   void clearParameters();
 
+  /** @domName XSLTProcessor.getParameter */
   String getParameter(String namespaceURI, String localName);
 
+  /** @domName XSLTProcessor.importStylesheet */
   void importStylesheet(Node stylesheet);
 
+  /** @domName XSLTProcessor.removeParameter */
   void removeParameter(String namespaceURI, String localName);
 
+  /** @domName XSLTProcessor.reset */
   void reset();
 
+  /** @domName XSLTProcessor.setParameter */
   void setParameter(String namespaceURI, String localName, String value);
 
+  /** @domName XSLTProcessor.transformToDocument */
   Document transformToDocument(Node source);
 
+  /** @domName XSLTProcessor.transformToFragment */
   DocumentFragment transformToFragment(Node source, Document docVal);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

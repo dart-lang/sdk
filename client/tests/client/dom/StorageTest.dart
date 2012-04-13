@@ -1,9 +1,10 @@
 #library('StorageTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   test('GetItem', () {
     final value = window.localStorage.getItem('does not exist');
     Expect.isNull(value);

@@ -4,6 +4,10 @@
 
 // Global constants.
 class _Const {
+  // Bytes for "HTTP".
+  static final HTTP = const [72, 84, 84, 80];
+  // Bytes for "HTTP/1.".
+  static final HTTP1DOT = const [72, 84, 84, 80, 47, 49, 46];
   // Bytes for "HTTP/1.0".
   static final HTTP10 = const [72, 84, 84, 80, 47, 49, 46, 48];
   // Bytes for "HTTP/1.1".
@@ -28,6 +32,9 @@ class _CharCode {
   static final int LF = 10;
   static final int CR = 13;
   static final int SP = 32;
+  static final int SLASH = 47;
+  static final int ZERO = 48;
+  static final int ONE = 49;
   static final int COLON = 58;
   static final int SEMI_COLON = 59;
 }
@@ -36,37 +43,44 @@ class _CharCode {
 // States of the HTTP parser state machine.
 class _State {
   static final int START = 0;
-  static final int METHOD_OR_HTTP_VERSION = 1;
-  static final int REQUEST_LINE_METHOD = 2;
-  static final int REQUEST_LINE_URI = 3;
-  static final int REQUEST_LINE_HTTP_VERSION = 4;
-  static final int REQUEST_LINE_ENDING = 5;
-  static final int RESPONSE_LINE_STATUS_CODE = 6;
-  static final int RESPONSE_LINE_REASON_PHRASE = 7;
-  static final int RESPONSE_LINE_ENDING = 8;
-  static final int HEADER_START = 9;
-  static final int HEADER_FIELD = 10;
-  static final int HEADER_VALUE_START = 11;
-  static final int HEADER_VALUE = 12;
-  static final int HEADER_VALUE_FOLDING_OR_ENDING = 13;
-  static final int HEADER_VALUE_FOLD_OR_END = 14;
-  static final int HEADER_ENDING = 15;
+  static final int METHOD_OR_RESPONSE_HTTP_VERSION = 1;
+  static final int RESPONSE_HTTP_VERSION = 2;
+  static final int REQUEST_LINE_METHOD = 3;
+  static final int REQUEST_LINE_URI = 4;
+  static final int REQUEST_LINE_HTTP_VERSION = 5;
+  static final int REQUEST_LINE_ENDING = 6;
+  static final int RESPONSE_LINE_STATUS_CODE = 7;
+  static final int RESPONSE_LINE_REASON_PHRASE = 8;
+  static final int RESPONSE_LINE_ENDING = 9;
+  static final int HEADER_START = 10;
+  static final int HEADER_FIELD = 11;
+  static final int HEADER_VALUE_START = 12;
+  static final int HEADER_VALUE = 13;
+  static final int HEADER_VALUE_FOLDING_OR_ENDING = 14;
+  static final int HEADER_VALUE_FOLD_OR_END = 15;
+  static final int HEADER_ENDING = 16;
 
-  static final int CHUNK_SIZE_STARTING_CR = 16;
-  static final int CHUNK_SIZE_STARTING_LF = 17;
-  static final int CHUNK_SIZE = 18;
-  static final int CHUNK_SIZE_EXTENSION = 19;
-  static final int CHUNK_SIZE_ENDING = 20;
-  static final int CHUNKED_BODY_DONE_CR = 21;
-  static final int CHUNKED_BODY_DONE_LF = 22;
-  static final int BODY = 23;
-  static final int CLOSED = 24;
-  static final int UPGRADED = 25;
-  static final int FAILURE = 26;
+  static final int CHUNK_SIZE_STARTING_CR = 17;
+  static final int CHUNK_SIZE_STARTING_LF = 18;
+  static final int CHUNK_SIZE = 19;
+  static final int CHUNK_SIZE_EXTENSION = 20;
+  static final int CHUNK_SIZE_ENDING = 21;
+  static final int CHUNKED_BODY_DONE_CR = 22;
+  static final int CHUNKED_BODY_DONE_LF = 23;
+  static final int BODY = 24;
+  static final int CLOSED = 25;
+  static final int UPGRADED = 26;
+  static final int FAILURE = 27;
 
   static final int FIRST_BODY_STATE = CHUNK_SIZE_STARTING_CR;
 }
 
+// HTTP version of the request or response being parsed.
+class _HttpVersion {
+  static final int UNDETERMINED = 0;
+  static final int HTTP10 = 1;
+  static final int HTTP11 = 2;
+}
 
 // States of the HTTP parser state machine.
 class _MessageType {
@@ -134,13 +148,13 @@ class _HttpParser {
         int byte = buffer[index];
         switch (_state) {
           case _State.START:
-            if (byte == _Const.HTTP11[0]) {
-              // Start parsing HTTP method.
+            if (byte == _Const.HTTP[0]) {
+              // Start parsing method or HTTP version.
               _httpVersionIndex = 1;
-              _state = _State.METHOD_OR_HTTP_VERSION;
+              _state = _State.METHOD_OR_RESPONSE_HTTP_VERSION;
             } else {
               // Start parsing method.
-              if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
+              if (!_isTokenChar(byte)) {
                 throw new HttpParserException("Invalid request method");
               }
               _method_or_status_code.addCharCode(byte);
@@ -148,21 +162,50 @@ class _HttpParser {
             }
             break;
 
-          case _State.METHOD_OR_HTTP_VERSION:
-            if (_httpVersionIndex < _Const.HTTP11.length &&
-                byte == _Const.HTTP11[_httpVersionIndex]) {
+          case _State.METHOD_OR_RESPONSE_HTTP_VERSION:
+            if (_httpVersionIndex < _Const.HTTP.length &&
+                byte == _Const.HTTP[_httpVersionIndex]) {
               // Continue parsing HTTP version.
               _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP11.length &&
-                       byte == _CharCode.SP) {
-              // HTTP version parsed.
-              _state = _State.RESPONSE_LINE_STATUS_CODE;
+            } else if (_httpVersionIndex == _Const.HTTP.length &&
+                       byte == _CharCode.SLASH) {
+              // HTTP/ parsed. As method is a token this cannot be a method anymore.
+              _httpVersionIndex++;
+              _state = _State.RESPONSE_HTTP_VERSION;
             } else {
               // Did not parse HTTP version. Expect method instead.
               for (int i = 0; i < _httpVersionIndex; i++) {
-                _method_or_status_code.addCharCode(_Const.HTTP11[i]);
+                _method_or_status_code.addCharCode(_Const.HTTP[i]);
               }
+              //_method_or_status_code.addCharCode(byte);
+              _httpVersion = _HttpVersion.UNDETERMINED;
               _state = _State.REQUEST_LINE_URI;
+            }
+            break;
+
+          case _State.RESPONSE_HTTP_VERSION:
+            if (_httpVersionIndex < _Const.HTTP1DOT.length) {
+              // Continue parsing HTTP version.
+              _expect(byte, _Const.HTTP1DOT[_httpVersionIndex]);
+              _httpVersionIndex++;
+            } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
+                       byte == _CharCode.ONE) {
+              // HTTP/1.1 parsed.
+              _httpVersion = _HttpVersion.HTTP11;
+              _persistentConnection = true;
+              _httpVersionIndex++;
+            } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
+                       byte == _CharCode.ZERO) {
+              // HTTP/1.0 parsed.
+              _httpVersion = _HttpVersion.HTTP10;
+              _persistentConnection = false;
+              _httpVersionIndex++;
+            } else if (_httpVersionIndex == _Const.HTTP1DOT.length + 1) {
+              _expect(byte, _CharCode.SP);
+              // HTTP version parsed.
+              _state = _State.RESPONSE_LINE_STATUS_CODE;
+            } else {
+              throw new HttpParserException("Invalid response line");
             }
             break;
 
@@ -190,9 +233,23 @@ class _HttpParser {
             break;
 
           case _State.REQUEST_LINE_HTTP_VERSION:
-            if (_httpVersionIndex < _Const.HTTP11.length) {
+            if (_httpVersionIndex < _Const.HTTP1DOT.length) {
               _expect(byte, _Const.HTTP11[_httpVersionIndex]);
               _httpVersionIndex++;
+            } else if (_httpVersionIndex == _Const.HTTP1DOT.length) {
+              if (byte == _CharCode.ONE) {
+                // HTTP/1.1 parsed.
+                _httpVersion = _HttpVersion.HTTP11;
+                _persistentConnection = true;
+                _httpVersionIndex++;
+              } else if (byte == _CharCode.ZERO) {
+                // HTTP/1.0 parsed.
+                _httpVersion = _HttpVersion.HTTP10;
+                _persistentConnection = false;
+                _httpVersionIndex++;
+              } else {
+                throw new HttpParserException("Invalid response line");
+              }
             } else {
               _expect(byte, _CharCode.CR);
               _state = _State.REQUEST_LINE_ENDING;
@@ -204,7 +261,8 @@ class _HttpParser {
             _messageType = _MessageType.REQUEST;
             if (requestStart != null) {
               requestStart(_method_or_status_code.toString(),
-                           _uri_or_reason_phrase.toString());
+                           _uri_or_reason_phrase.toString(),
+                           version);
             }
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
@@ -252,7 +310,7 @@ class _HttpParser {
                   statusCode <= 199 || statusCode == 204 || statusCode == 304;
             }
             if (responseStart != null) {
-              responseStart(statusCode, _uri_or_reason_phrase.toString());
+              responseStart(statusCode, _uri_or_reason_phrase.toString(), version);
             }
             _method_or_status_code.clear();
             _uri_or_reason_phrase.clear();
@@ -318,15 +376,15 @@ class _HttpParser {
                 for (int i = 0; i < tokens.length; i++) {
                   String token = tokens[i].toLowerCase();
                   if (token == "keep-alive") {
-                    _keepAlive = true;
+                    _persistentConnection = true;
                   } else if (token == "close") {
-                    _connectionClose = true;
+                    _persistentConnection = false;
                   } else if (token == "upgrade") {
                     _connectionUpgrade = true;
                   }
                 }
               } else if (headerField == "transfer-encoding" &&
-                         headerValue == "chunked") {
+                         headerValue.toLowerCase() == "chunked") {
                 _chunked = true;
                 _contentLength = -1;
               }
@@ -516,10 +574,22 @@ class _HttpParser {
     }
   }
 
+  String get version() {
+    switch (_httpVersion) {
+      case _HttpVersion.HTTP10:
+        return "1.0";
+        break;
+      case _HttpVersion.HTTP11:
+        return "1.1";
+        break;
+    }
+    return null;
+  }
+
   int get messageType() => _messageType;
   int get contentLength() => _contentLength;
-  bool get keepAlive() => _keepAlive;
   bool get upgrade() => _connectionUpgrade && _state == _State.UPGRADED;
+  bool get persistentConnection() => _persistentConnection;
 
   void set responseToMethod(String method) => _responseToMethod = method;
 
@@ -527,7 +597,7 @@ class _HttpParser {
 
   void _bodyEnd() {
     if (dataEnd != null) {
-      dataEnd(_messageType == _MessageType.RESPONSE && _connectionClose);
+      dataEnd(_messageType == _MessageType.RESPONSE && !_persistentConnection);
     }
   }
 
@@ -539,9 +609,9 @@ class _HttpParser {
     _method_or_status_code = new StringBuffer();
     _uri_or_reason_phrase = new StringBuffer();
 
+    _httpVersion = _HttpVersion.UNDETERMINED;
     _contentLength = -1;
-    _keepAlive = false;
-    _connectionClose = false;
+    _persistentConnection = false;
     _connectionUpgrade = false;
     _chunked = false;
 
@@ -604,9 +674,9 @@ class _HttpParser {
   StringBuffer _headerField;
   StringBuffer _headerValue;
 
+  int _httpVersion;
   int _contentLength;
-  bool _keepAlive;
-  bool _connectionClose;
+  bool _persistentConnection;
   bool _connectionUpgrade;
   bool _chunked;
 

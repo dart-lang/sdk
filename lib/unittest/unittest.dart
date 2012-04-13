@@ -3,13 +3,112 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * This file is sourced from unittest_html, unittest_dom, and unittest_vm.
- * These libraries shold also source 'config.dart' and should define a class
- * called [PlatformConfiguration] that implements [Configuration].
+ * A library for writing dart unit tests.
+ *
+ * ##Concepts##
+ *
+ *  * Tests: Tests are specified via the top-level function [test], they can be
+ *    organized together using [group].
+ *  * Checks: Test expectations can be specified via [expect] (see methods in
+ *    [Expectation]), [expectThrow], or using assertions with the [Expect]
+ *    class.
+ *  * Configuration: The framework can be adapted by calling [configure] with a
+ *    [Configuration].  Common configurations can be found in this package
+ *    under: 'dom\_config.dart', 'html\_config.dart', and 'vm\_config.dart'.
+ *
+ * ##Examples##
+ *
+ * A trivial test:
+ *
+ *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     main() {
+ *       test('this is a test', () {
+ *         int x = 2 + 3;
+ *         expect(x).equals(5);
+ *       });
+ *     }
+ *
+ * Multiple tests:
+ *
+ *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     main() {
+ *       test('this is a test', () {
+ *         int x = 2 + 3;
+ *         expect(x).equals(5);
+ *       });
+ *       test('this is another test', () {
+ *         int x = 2 + 3;
+ *         expect(x).equals(5);
+ *       });
+ *     }
+ *
+ * Multiple tests, grouped by category:
+ *
+ *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     main() {
+ *       group('group A', () {
+ *         test('test A.1', () {
+ *           int x = 2 + 3;
+ *           expect(x).equals(5);
+ *         });
+ *         test('test A.2', () {
+ *           int x = 2 + 3;
+ *           expect(x).equals(5);
+ *         });
+ *       });
+ *       group('group B', () {
+ *         test('this B.1', () {
+ *           int x = 2 + 3;
+ *           expect(x).equals(5);
+ *         });
+ *       });
+ *     }
+ *
+ * Asynchronous tests: under the current API (soon to be deprecated):
+ *
+ *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('dart:dom');
+ *     main() {
+ *       // use [asyncTest], indicate the expected number of callbacks:
+ *       asyncTest('this is a test', 1, () {
+ *         window.setTimeout(() {
+ *           int x = 2 + 3;
+ *           expect(x).equals(5);
+ *           // invoke [callbackDone] at the end of the callback.
+ *           callbackDone();
+ *         }, 0);
+ *       });
+ *     }
+ *
+ * We plan to replace this with a different API, one API we are considering is:
+ *
+ *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('dart:dom');
+ *     main() {
+ *       test('this is a test', () {
+ *         // wrap the callback of an asynchronous call with [later]
+ *         window.setTimeout(later(() {
+ *           int x = 2 + 3;
+ *           expect(x).equals(5);
+ *         }), 0);
+ *       });
+ *     }
  */
+#library('unittest');
+
+#import('dart:isolate');
+
+#source('config.dart');
+#source('expectation.dart');
+#source('test_case.dart');
 
 /** [Configuration] used by the unittest library. */
 Configuration _config = null;
+
+/** Set the [Configuration] used by the unittest library. */
+void configure(Configuration config) {
+  _config = config;
+}
 
 /**
  * Description text of the current test group. If multiple groups are nested,
@@ -79,6 +178,7 @@ void test(String spec, TestFunction body) {
  * description will include the descriptions of any surrounding group()
  * calls.
  */
+// TODO(sigmund): deprecate this API
 void asyncTest(String spec, int callbacks, TestFunction body) {
   _ensureInitialized();
 
@@ -90,6 +190,46 @@ void asyncTest(String spec, int callbacks, TestFunction body) {
     testCase.error(
         'Async tests must wait for at least one callback ', '');
   }
+}
+
+/**
+ * Indicate to the unittest framework that a 0-argument callback is expected.
+ *
+ * The framework will wait for the callback to run before it continues with the
+ * following test. The callback must excute once and only once. Using [later]
+ * will also ensure that errors that occur within the callback are tracked and
+ * reported by the unittest framework.
+ */
+// TODO(sigmund): expose this functionality
+Function _later0(Function callback) {
+  Expect.isTrue(_currentTest < _tests.length);
+  var testCase = _tests[_currentTest];
+  testCase.callbacks++;
+  return () {
+    _guard(() => callback(), callbackDone);
+  };
+}
+
+// TODO(sigmund): expose this functionality
+/** Like [_later0] but expecting a callback with 1 argument. */
+Function _later1(Function callback) {
+  Expect.isTrue(_currentTest < _tests.length);
+  var testCase = _tests[_currentTest];
+  testCase.callbacks++;
+  return (arg0) {
+    _guard(() => callback(arg0), callbackDone);
+  };
+}
+
+// TODO(sigmund): expose this functionality
+/** Like [_later0] but expecting a callback with 2 arguments. */
+Function _later2(Function callback) {
+  Expect.isTrue(_currentTest < _tests.length);
+  var testCase = _tests[_currentTest];
+  testCase.callbacks++;
+  return (arg0, arg1) {
+    _guard(() => callback(arg0, arg1), callbackDone);
+  };
 }
 
 /**
@@ -121,11 +261,7 @@ void group(String description, void body()) {
 void callbackDone() {
   _callbacksCalled++;
   final testCase = _tests[_currentTest];
-  if (testCase.callbacks == 0) {
-    testCase.error(
-        "Can't call callbackDone() on a synchronous test", '');
-    _state = _UNCAUGHT_ERROR;
-  } else if (_callbacksCalled > testCase.callbacks) {
+  if (_callbacksCalled > testCase.callbacks) {
     final expected = testCase.callbacks;
     testCase.error(
         'More calls to callbackDone() than expected. '
@@ -133,9 +269,21 @@ void callbackDone() {
     _state = _UNCAUGHT_ERROR;
   } else if ((_callbacksCalled == testCase.callbacks) &&
       (_state != _RUNNING_TEST)) {
-    testCase.pass();
+    if (testCase.result == null) testCase.pass();
     _currentTest++;
     _testRunner();
+  }
+}
+
+void notifyError(String msg, String trace) {
+ if (_currentTest < _tests.length) {
+    final testCase = _tests[_currentTest];
+    testCase.error(msg, trace);
+    _state = _UNCAUGHT_ERROR;
+    if (testCase.callbacks > 0) {
+      _currentTest++;
+      _testRunner();
+    }
   }
 }
 
@@ -162,20 +310,14 @@ _runTests() {
   });
 }
 
-/** Runs a single test. */
-_runTest(TestCase testCase) {
+/**
+ * Run [tryBody] guarded in a try-catch block. If an exception is thrown, update
+ * the [_currentTest] status accordingly.
+ */
+_guard(tryBody, [finallyBody]) {
+  final testCase = _tests[_currentTest];
   try {
-    _callbacksCalled = 0;
-    _state = _RUNNING_TEST;
-
-    testCase.test();
-
-    if (_state != _UNCAUGHT_ERROR) {
-      if (testCase.callbacks == _callbacksCalled) {
-        testCase.pass();
-      }
-    }
-
+    tryBody();
   } catch (ExpectException e, var trace) {
     if (_state != _UNCAUGHT_ERROR) {
       //TODO(pquitslund) remove guard once dartc reliably propagates traces
@@ -188,6 +330,7 @@ _runTest(TestCase testCase) {
     }
   } finally {
     _state = _READY;
+    if (finallyBody != null) finallyBody();
   }
 }
 
@@ -200,7 +343,18 @@ _nextBatch() {
   while (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
 
-    _runTest(testCase);
+    _guard(() {
+      _callbacksCalled = 0;
+      _state = _RUNNING_TEST;
+
+      testCase.test();
+
+      if (_state != _UNCAUGHT_ERROR) {
+        if (testCase.callbacks == _callbacksCalled) {
+          testCase.pass();
+        }
+      }
+    });
 
     if (!testCase.isComplete && testCase.callbacks > 0) return;
 
@@ -246,9 +400,7 @@ _ensureInitialized() {
   _testRunner = _nextBatch;
 
   if (_config == null) {
-    // TODO(sigmund): make this [new Configuration], set configuration
-    // for each platform in test.dart
-    _config = new PlatformConfiguration();
+    _config = new Configuration();
   }
   _config.onInit();
 
@@ -257,122 +409,5 @@ _ensureInitialized() {
   _defer(_runTests);
 }
 
-/**
- * Wraps an value and provides an "==" operator that can be used to verify that
- * the value matches a given expectation.
- */
-class Expectation {
-  final _value;
-
-  Expectation(this._value);
-
-  /** Asserts that the value is equivalent to [expected]. */
-  void equals(expected) {
-    // Use the type-specialized versions when appropriate to give better
-    // error messages.
-    if (_value is String && expected is String) {
-      Expect.stringEquals(expected, _value);
-    } else if (_value is Map && expected is Map) {
-      Expect.mapEquals(expected, _value);
-    } else if (_value is Set && expected is Set) {
-      Expect.setEquals(expected, _value);
-    } else {
-      Expect.equals(expected, _value);
-    }
-  }
-
-  /**
-   * Asserts that the difference between [expected] and the value is within
-   * [tolerance]. If no tolerance is given, it is assumed to be the value 4
-   * significant digits smaller than the expected value.
-   */
-  void approxEquals(num expected,
-      [num tolerance = null, String reason = null]) {
-    Expect.approxEquals(expected, _value, tolerance: tolerance, reason: reason);
-  }
-
-  /** Asserts that the value is [null]. */
-  void isNull() {
-    Expect.equals(null, _value);
-  }
-
-  /** Asserts that the value is not [null]. */
-  void isNotNull() {
-    Expect.notEquals(null, _value);
-  }
-
-  /** Asserts that the value is [true]. */
-  void isTrue() {
-    Expect.equals(true, _value);
-  }
-
-  /** Asserts that the value is [false]. */
-  void isFalse() {
-    Expect.equals(false, _value);
-  }
-
-  /** Asserts that the value has the same elements as [expected]. */
-  void equalsCollection(Collection expected) {
-    Expect.listEquals(expected, _value);
-  }
-
-  /**
-   * Checks that every element of [expected] is also in [actual], and that
-   * every element of [actual] is also in [expected].
-   */
-  void equalsSet(Iterable expected) {
-    Expect.setEquals(expected, _value);
-  }
-}
-
-/** Summarizes information about a single test case. */
-class TestCase {
-  /** Identifier for this test. */
-  final id;
-
-  /** A description of what the test is specifying. */
-  final String description;
-
-  /** The body of the test case. */
-  final TestFunction test;
-
-  /** Total number of callbacks to wait for before the test completes. */
-  int callbacks;
-
-  /** Error or failure message. */
-  String message  = '';
-
-  /**
-   * One of [_PASS], [_FAIL], or [_ERROR] or [null] if the test hasn't run yet.
-   */
-  String result;
-
-  /** Stack trace associated with this test, or null if it succeeded. */
-  String stackTrace;
-
-  Date startTime;
-
-  Duration runningTime;
-
-  TestCase(this.id, this.description, this.test, this.callbacks);
-
-  bool get isComplete() => result != null;
-
-  void pass() {
-    result = _PASS;
-  }
-
-  void fail(String message_, String stackTrace_) {
-    result = _FAIL;
-    this.message = message_;
-    this.stackTrace = stackTrace_;
-  }
-
-  void error(String message_, String stackTrace_) {
-    result = _ERROR;
-    this.message = message_;
-    this.stackTrace = stackTrace_;
-  }
-}
-
+/** Signature for a test function. */
 typedef void TestFunction();

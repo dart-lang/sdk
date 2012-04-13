@@ -5,10 +5,12 @@
 [ $arch == simarm ]
 *: Skip
 
-[ $compiler == frog || $compiler == frogsh ]
+[ $compiler == frog || $compiler == frogsh || $compiler == dart2js ]
 # Dartdoc only runs on the VM.
 DartdocTest: Skip
 MarkdownTest: Skip
+
+[ $compiler == frog || $compiler == frogsh ]
 DummyCompilerTest: Fail
 
 [ $runtime == vm || $compiler == dartc || ($compiler == none && $runtime == drt) ]
@@ -21,10 +23,8 @@ MarkdownTest: Skip
 [ $compiler == none && $runtime == drt ]
 DummyCompilerTest: Fail # Issue 2264.
 
-
 [ $compiler == dartc ]
 DummyCompilerTest: Fail # Issue 2263.
-
 
 [ $compiler == dart2js && $runtime == drt ]
 *: Skip

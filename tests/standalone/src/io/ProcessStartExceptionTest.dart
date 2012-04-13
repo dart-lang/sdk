@@ -2,27 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Process test program to test process communication.
+// Process test program to errors during startup of the process.
 
 #import("dart:io");
 
-class ProcessStartExceptionTest {
+testStartError() {
+  Process process =
+      new Process.start("__path_to_something_that_should_not_exist__",
+                        const []);
 
-  static void testStartError() {
-    Process process =
-        new Process.start("__path_to_something_that_should_not_exist__",
-                          const []);
+  process.onExit = (int exitCode) {
+    Expect.fail("exit handler called");
+  };
 
-    process.onExit = (int exitCode) {
-      Expect.fail("exit handler called");
-    };
+  process.onError = (ProcessException e) {
+    Expect.equals(2, e.errorCode, e.toString());
+  };
+}
 
-    process.onError = (ProcessException e) {
-      Expect.equals(2, e.errorCode, e.toString());
-    };
-  }
+
+testRunError() {
+  Process process =
+      new Process.run("__path_to_something_that_should_not_exist__",
+                      const [],
+                      null,
+                      (exit, out, err) {
+    Expect.fail("exit handler called");
+  });
+
+  process.onError = (ProcessException e) {
+    Expect.equals(2, e.errorCode, e.toString());
+  };
 }
 
 main() {
-  ProcessStartExceptionTest.testStartError();
+  testStartError();
+  testRunError();
 }

@@ -1,5 +1,6 @@
 #library('HTMLCollectionTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 // Test that HTMLCollection implements List<T>
@@ -31,7 +32,7 @@ main() {
     return element;
   }
 
-  forLayoutTests();
+  useDomConfiguration();
   test('IsList', () {
     HTMLElement root = insertTestDiv();
 

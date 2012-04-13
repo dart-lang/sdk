@@ -1020,7 +1020,7 @@ void FlowGraphCompiler::VisitReturn(ReturnInstr* instr) {
   __ nop(1);
   __ nop(1);
   AddCurrentDescriptor(PcDescriptors::kReturn,
-                       AstNode::kNoId,
+                       instr->node_id(),
                        instr->token_index(),
                        CatchClauseNode::kInvalidTryIndex);  // try-index.
 }

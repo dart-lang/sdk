@@ -1,5 +1,6 @@
 #library('DartObjectLocalStorageTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 verify(var object) {
@@ -10,7 +11,7 @@ verify(var object) {
 }
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
   test('body', () {
       HTMLBodyElement body = document.body;
       verify(body);

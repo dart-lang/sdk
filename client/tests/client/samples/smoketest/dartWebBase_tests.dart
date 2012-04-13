@@ -5,9 +5,12 @@
 
 #import('benchmarklib.dart');
 #import('dart:html');
-#import('../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../lib/unittest/unittest.dart');
+#import('../../../../../lib/unittest/html_config.dart');
 
 void main() {
+  useHtmlConfiguration();
+
   asyncTest('performanceTesting', 1, () { 
     window.setTimeout(BENCHMARK_SUITE.runBenchmarks, 0);
     window.setTimeout(testForCompletion, 0);

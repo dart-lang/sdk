@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/** This file is sourced by both dom_config.dart and html_config.dart. */
 
 /** Creates a table showing tests results in HTML. */
 void _showResultsInPage(int testsPassed, int testsFailed, int testsErrors,

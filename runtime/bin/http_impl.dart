@@ -5,11 +5,9 @@
 class _HttpRequestResponseBase {
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _contentLength = -1,
-        _keepAlive = false,
         _headers = new Map();
 
   int get contentLength() => _contentLength;
-  bool get keepAlive() => _keepAlive;
   Map get headers() => _headers;
 
   void _setHeader(String name, String value) {
@@ -105,7 +103,6 @@ class _HttpRequestResponseBase {
   // when starting to send data chunked transfer encoding will be
   // used.
   int _contentLength;
-  bool _keepAlive;
 }
 
 
@@ -126,7 +123,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     return _inputStream;
   }
 
-  void _onRequestStart(String method, String uri) {
+  void _onRequestStart(String method, String uri, String version) {
     _method = method;
     _uri = uri;
     _parseRequestUri(uri);
@@ -208,11 +205,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   void set contentLength(int contentLength) {
     if (_outputStream != null) throw new HttpException("Header already sent");
     _contentLength = contentLength;
-  }
-
-  void set keepAlive(bool keepAlive) {
-    if (_outputStream != null) throw new HttpException("Header already sent");
-    _keepAlive = keepAlive;
   }
 
   int get statusCode() => _statusCode;
@@ -356,7 +348,11 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     List<int> data;
 
     // Write status line.
-    _httpConnection._write(_Const.HTTP11);
+    if (_protocolVersion == "1.1") {
+      _httpConnection._write(_Const.HTTP11);
+    } else {
+      _httpConnection._write(_Const.HTTP10);
+    }
     _writeSP();
     data = _statusCode.toString().charCodes();
     _httpConnection._write(data);
@@ -365,9 +361,12 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     _httpConnection._write(data);
     _writeCRLF();
 
-    // Determine the value of the "Connection" header
-    // based on the keep alive state.
-    setHeader("Connection", keepAlive ? "keep-alive" : "close");
+    // Determine the value of the "Connection" header.
+    if (_protocolVersion == "1.1" && !_persistentConnection) {
+      setHeader("Connection", "close");
+    } else if (_protocolVersion == "1.0" && _persistentConnection) {
+      setHeader("Connection", "keep-alive");
+    }
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
     if (_contentLength >= 0) {
@@ -385,7 +384,9 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   // Response status code.
   int _statusCode;
   String _reasonPhrase;
+  String _protocolVersion;
   Date _expires;
+  bool _persistentConnection;
   _HttpOutputStream _outputStream;
   int _state;
   Function _streamErrorHandler;
@@ -553,10 +554,10 @@ class _HttpConnection extends _HttpConnectionBase {
   _HttpConnection(HttpServer this._server) {
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
-        (method, uri) => _onRequestStart(method, uri);
+      (method, uri, version) => _onRequestStart(method, uri, version);
     _httpParser.responseStart =
-        (statusCode, reasonPhrase) =>
-            _onResponseStart(statusCode, reasonPhrase);
+      (statusCode, reasonPhrase, version) =>
+      _onResponseStart(statusCode, reasonPhrase, version);
     _httpParser.headerReceived =
         (name, value) => _onHeaderReceived(name, value);
     _httpParser.headersComplete = () => _onHeadersComplete();
@@ -594,14 +595,15 @@ class _HttpConnection extends _HttpConnectionBase {
     }
   }
 
-  void _onRequestStart(String method, String uri) {
+  void _onRequestStart(String method, String uri, String version) {
     // Create new request and response objects for this request.
     _request = new _HttpRequest(this);
     _response = new _HttpResponse(this);
-    _request._onRequestStart(method, uri);
+    _request._onRequestStart(method, uri, version);
+    _response._protocolVersion = version;
   }
 
-  void _onResponseStart(int statusCode, String reasonPhrase) {
+  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
     // TODO(sgjesse): Error handling.
   }
 
@@ -611,7 +613,7 @@ class _HttpConnection extends _HttpConnectionBase {
 
   void _onHeadersComplete() {
     _request._onHeadersComplete();
-    _response.keepAlive = _httpParser.keepAlive;
+    _response._persistentConnection = _httpParser.persistentConnection;
     if (onRequestReceived != null) {
       onRequestReceived(_request, _response);
     }
@@ -730,7 +732,6 @@ class _HttpClientRequest
   }
 
   void set contentLength(int contentLength) => _contentLength = contentLength;
-  void set keepAlive(bool keepAlive) => _keepAlive = keepAlive;
 
   String get host() => _host;
   void set host(String host) {
@@ -826,9 +827,6 @@ class _HttpClientRequest
     _httpConnection._write(_Const.HTTP11);
     _writeCRLF();
 
-    // Determine the value of the "Connection" header
-    // based on the keep alive state.
-    setHeader("Connection", keepAlive ? "keep-alive" : "close");
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
     if (_contentLength >= 0) {
@@ -878,11 +876,11 @@ class _HttpClientResponse
     return _inputStream;
   }
 
-  void _onRequestStart(String method, String uri) {
+  void _onRequestStart(String method, String uri, String version) {
     // TODO(sgjesse): Error handling
   }
 
-  void _onResponseStart(int statusCode, String reasonPhrase) {
+  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
     _statusCode = statusCode;
     _reasonPhrase = reasonPhrase;
   }
@@ -946,10 +944,10 @@ class _HttpClientConnection
     _socketConn = socketConn;
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
-        (method, uri) => _onRequestStart(method, uri);
+      (method, uri, version) => _onRequestStart(method, uri, version);
     _httpParser.responseStart =
-        (statusCode, reasonPhrase) =>
-            _onResponseStart(statusCode, reasonPhrase);
+      (statusCode, reasonPhrase, version) =>
+      _onResponseStart(statusCode, reasonPhrase, version);
     _httpParser.headerReceived =
         (name, value) => _onHeaderReceived(name, value);
     _httpParser.headersComplete = () => _onHeadersComplete();
@@ -975,7 +973,6 @@ class _HttpClientConnection
   HttpClientRequest open(String method, String uri) {
     _method = method;
     _request = new _HttpClientRequest(method, uri, this);
-    _request.keepAlive = true;
     _response = new _HttpClientResponse(this);
     return _request;
   }
@@ -1002,12 +999,12 @@ class _HttpClientConnection
     }
   }
 
-  void _onRequestStart(String method, String uri) {
+  void _onRequestStart(String method, String uri, String version) {
     // TODO(sgjesse): Error handling.
   }
 
-  void _onResponseStart(int statusCode, String reasonPhrase) {
-    _response._onResponseStart(statusCode, reasonPhrase);
+  void _onResponseStart(int statusCode, String reasonPhrase, String version) {
+    _response._onResponseStart(statusCode, reasonPhrase, version);
   }
 
   void _onHeaderReceived(String name, String value) {

@@ -1,5 +1,6 @@
 #library('DOMIsolatesTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 #import('dart:isolate');
 
@@ -26,7 +27,7 @@ isolateMainTrampoline(port) {
 }
 
 main() {
-  forLayoutTests();
+  useDomConfiguration();
 
   final iframe = document.createElement('iframe');
   document.body.appendChild(iframe);

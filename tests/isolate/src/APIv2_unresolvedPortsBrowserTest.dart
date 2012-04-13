@@ -6,7 +6,8 @@
 #library('unresolved_ports');
 #import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest_dom.dart');
+#import('../../../lib/unittest/unittest.dart');
+#import('../../../lib/unittest/dom_config.dart');
 
 // This is similar to APIv2_unresolvedPortsStandaloneTest but using
 // 'unittest.dart' so it can run to completion in browsers.
@@ -28,6 +29,7 @@ bobIsolate() {
 }
 
 main() {
+  useDomConfiguration();
   asyncTest('Message chain with unresolved ports', 1, () {
     ReceivePort port = new ReceivePort();
     port.receive((msg, _) {

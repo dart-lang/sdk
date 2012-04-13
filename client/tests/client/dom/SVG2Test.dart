@@ -1,5 +1,6 @@
 #library('SVG2Test');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 // Test that SVG elements explicitly implement the IDL interfaces (is-checks
@@ -18,7 +19,7 @@ main() {
     return element;
   }
 
-  forLayoutTests();
+  useDomConfiguration();
 
   test('rect_isChecks', () {
       var div = insertTestDiv();

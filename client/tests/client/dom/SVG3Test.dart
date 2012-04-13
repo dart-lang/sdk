@@ -1,5 +1,6 @@
 #library('SVG3Test');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 // Test that SVG elements have the operations advertised through all the IDL
@@ -19,7 +20,7 @@ main() {
     return element;
   }
 
-  forLayoutTests();
+  useDomConfiguration();
 
   /**
    * Verifies that [e] supports the operations on the SVGTests interface.

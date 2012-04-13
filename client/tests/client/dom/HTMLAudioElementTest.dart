@@ -1,10 +1,11 @@
 #library('HTMLAudioElementTest');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
 
-  forLayoutTests();
+  useDomConfiguration();
 
   test('constructorTest1', () {
       var audio = new HTMLAudioElement();   // would be new Audio() in JS

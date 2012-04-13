@@ -4,7 +4,8 @@
 
 // Example of spawning an isolate from a function.
 #library('spawn_tests');
-#import('../../../lib/unittest/unittest_dom.dart');
+#import('../../../lib/unittest/unittest.dart');
+#import('../../../lib/unittest/dom_config.dart');
 #import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
 
@@ -13,6 +14,7 @@ child() {
 }
 
 main() {
+  useDomConfiguration();
   asyncTest('message - reply chain', 1, () {
     ReceivePort port = new ReceivePort();
     port.receive((msg, _) {

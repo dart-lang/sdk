@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('TypedArrays4Test');
-#import('../../../../lib/unittest/unittest_dom.dart');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/dom_config.dart');
 #import('dart:dom');
 
 main() {
 
-  forLayoutTests();
+  useDomConfiguration();
 
   test('indexOf_dynamic', () {
       var a1 = new Uint8Array(1024);

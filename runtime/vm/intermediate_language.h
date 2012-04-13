@@ -1267,8 +1267,8 @@ class BindInstr : public Instruction {
 
 class ReturnInstr : public Instruction {
  public:
-  ReturnInstr(Value* value, intptr_t token_index)
-      : value_(value), token_index_(token_index) {
+  ReturnInstr(intptr_t node_id, intptr_t token_index, Value* value)
+      : node_id_(node_id), token_index_(token_index), value_(value) {
     ASSERT(value_ != NULL);
   }
 
@@ -1276,13 +1276,15 @@ class ReturnInstr : public Instruction {
 
   Value* value() const { return value_; }
   intptr_t token_index() const { return token_index_; }
+  intptr_t node_id() const { return node_id_; }
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
  private:
+  const intptr_t node_id_;
+  const intptr_t token_index_;
   Value* value_;
-  intptr_t token_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };

@@ -368,13 +368,17 @@ class IDLInterface(IDLNode):
     self._convert_annotations(ast)
     self.parents = self._convert_all(ast, 'ParentInterface',
       IDLParentInterface)
-    self.operations = self._convert_all(ast, 'Operation', IDLOperation)
-    self.attributes = self._convert_all(ast, 'Attribute', IDLAttribute)
-    self.constants = self._convert_all(ast, 'Const', IDLConstant)
+    self.javascript_binding_name = self.id
+    self.doc_js_name = self.id
+    self.operations = self._convert_all(ast, 'Operation', 
+      lambda ast: IDLOperation(ast, self.doc_js_name))
+    self.attributes = self._convert_all(ast, 'Attribute',
+      lambda ast: IDLAttribute(ast, self.doc_js_name))
+    self.constants = self._convert_all(ast, 'Const',
+      lambda ast: IDLConstant(ast, self.doc_js_name))
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
-    self.javascript_binding_name = self.id
 
   def has_attribute(self, candidate):
     for attribute in self.attributes:
@@ -397,18 +401,19 @@ class IDLParentInterface(IDLNode):
 class IDLMember(IDLNode):
   """A base class for constants, attributes and operations."""
 
-  def __init__(self, ast):
+  def __init__(self, ast, doc_js_interface_name):
     IDLNode.__init__(self, ast)
     self.type = self._convert_first(ast, 'Type', IDLType)
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
+    self.doc_js_interface_name = doc_js_interface_name
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
 
 
 class IDLOperation(IDLMember):
   """IDLNode specialization for 'type name(args)' declarations."""
-  def __init__(self, ast):
-    IDLMember.__init__(self, ast)
+  def __init__(self, ast, doc_js_interface_name):
+    IDLMember.__init__(self, ast, doc_js_interface_name)
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
     self.arguments = self._convert_all(ast, 'Argument', IDLArgument)
     self.raises = self._convert_first(ast, 'Raises', IDLType)
@@ -421,8 +426,8 @@ class IDLOperation(IDLMember):
 
 class IDLAttribute(IDLMember):
   """IDLNode specialization for 'attribute type name' declarations."""
-  def __init__(self, ast):
-    IDLMember.__init__(self, ast)
+  def __init__(self, ast, doc_js_interface_name):
+    IDLMember.__init__(self, ast, doc_js_interface_name)
     self.is_read_only = self._has(ast, 'ReadOnly')
     # There are various ways to define exceptions for attributes:
     self.raises = self._convert_first(ast, 'Raises', IDLType)
@@ -443,8 +448,8 @@ class IDLAttribute(IDLMember):
 
 class IDLConstant(IDLMember):
   """IDLNode specialization for 'const type name = value' declarations."""
-  def __init__(self, ast):
-    IDLMember.__init__(self, ast)
+  def __init__(self, ast, doc_js_interface_name):
+    IDLMember.__init__(self, ast, doc_js_interface_name)
     self.value = self._find_first(ast, 'ConstExpr')
 
 
