@@ -3770,6 +3770,8 @@ class _HTMLStyleElementJs extends _HTMLElementJs implements HTMLStyleElement nat
 
   String media;
 
+  bool scoped;
+
   final _StyleSheetJs sheet;
 
   String type;
@@ -5013,6 +5015,10 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final _NodeJs toElement;
 
+  final int webkitMovementX;
+
+  final int webkitMovementY;
+
   final int x;
 
   final int y;
@@ -5197,6 +5203,8 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
   final String vendor;
 
   final String vendorSub;
+
+  final _PointerLockJs webkitPointer;
 
   void getStorageUpdates() native;
 
@@ -5490,9 +5498,13 @@ class _NotificationJs extends _EventTargetJs implements Notification native "*No
 
   String dir;
 
+  String replaceId;
+
   String tag;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void cancel() native;
 
   void close() native;
 
@@ -5728,6 +5740,15 @@ class _PerformanceTimingJs extends _DOMTypeJs implements PerformanceTiming nativ
   final int unloadEventEnd;
 
   final int unloadEventStart;
+}
+
+class _PointerLockJs extends _DOMTypeJs implements PointerLock native "*PointerLock" {
+
+  final bool isLocked;
+
+  void lock(_ElementJs target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+
+  void unlock() native;
 }
 
 class _PopStateEventJs extends _EventJs implements PopStateEvent native "*PopStateEvent" {
@@ -11274,6 +11295,35 @@ class _WebKitBlobBuilderJs extends _DOMTypeJs implements WebKitBlobBuilder nativ
   _BlobJs getBlob([String contentType = null]) native;
 }
 
+class _WebKitCSSFilterValueJs extends _CSSValueListJs implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  final int operationType;
+}
+
 class _WebKitCSSKeyframeRuleJs extends _CSSRuleJs implements WebKitCSSKeyframeRule native "*WebKitCSSKeyframeRule" {
 
   String keyText;
@@ -16431,6 +16481,8 @@ interface HTMLStyleElement extends HTMLElement {
 
   String media;
 
+  bool scoped;
+
   final StyleSheet sheet;
 
   String type;
@@ -17639,6 +17691,10 @@ interface MouseEvent extends UIEvent {
 
   final Node toElement;
 
+  final int webkitMovementX;
+
+  final int webkitMovementY;
+
   final int x;
 
   final int y;
@@ -17766,6 +17822,8 @@ interface Navigator {
   final String vendor;
 
   final String vendorSub;
+
+  final PointerLock webkitPointer;
 
   void getStorageUpdates();
 
@@ -18031,9 +18089,13 @@ interface Notification extends EventTarget {
 
   String dir;
 
+  String replaceId;
+
   String tag;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void cancel();
 
   void close();
 
@@ -18336,6 +18398,20 @@ interface PerformanceTiming {
   final int unloadEventEnd;
 
   final int unloadEventStart;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PointerLock {
+
+  final bool isLocked;
+
+  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
+
+  void unlock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23268,6 +23344,40 @@ interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 
   Blob getBlob([String contentType]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebKitCSSFilterValue extends CSSValueList {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

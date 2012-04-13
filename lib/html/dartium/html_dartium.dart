@@ -311,6 +311,7 @@ _wrap(raw) {
     case 'PerformanceNavigation': return new _PerformanceNavigationImpl._wrap(domObject);
     case 'PerformanceTiming': return new _PerformanceTimingImpl._wrap(domObject);
     case 'WebKitPoint': return new _PointImpl._wrap(domObject);
+    case 'PointerLock': return new _PointerLockImpl._wrap(domObject);
     case 'PopStateEvent': return new _PopStateEventImpl._wrap(domObject);
     case 'PositionError': return new _PositionErrorImpl._wrap(domObject);
     case 'HTMLPreElement': return new _PreElementImpl._wrap(domObject);
@@ -559,6 +560,7 @@ _wrap(raw) {
     case 'WebGLTexture': return new _WebGLTextureImpl._wrap(domObject);
     case 'WebGLUniformLocation': return new _WebGLUniformLocationImpl._wrap(domObject);
     case 'WebGLVertexArrayObjectOES': return new _WebGLVertexArrayObjectOESImpl._wrap(domObject);
+    case 'WebKitCSSFilterValue': return new _WebKitCSSFilterValueImpl._wrap(domObject);
     case 'WebKitCSSRegionRule': return new _WebKitCSSRegionRuleImpl._wrap(domObject);
     case 'WebKitMutationObserver': return new _WebKitMutationObserverImpl._wrap(domObject);
     case 'WebKitNamedFlow': return new _WebKitNamedFlowImpl._wrap(domObject);
@@ -12295,6 +12297,10 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
   Node get toElement() => _wrap(_ptr.toElement);
 
+  int get webkitMovementX() => _wrap(_ptr.webkitMovementX);
+
+  int get webkitMovementY() => _wrap(_ptr.webkitMovementY);
+
   int get x() => _wrap(_ptr.x);
 
   int get y() => _wrap(_ptr.y);
@@ -12498,6 +12504,8 @@ class _NavigatorImpl extends _DOMTypeBase implements Navigator {
   String get vendor() => _wrap(_ptr.vendor);
 
   String get vendorSub() => _wrap(_ptr.vendorSub);
+
+  PointerLock get webkitPointer() => _wrap(_ptr.webkitPointer);
 
   void getStorageUpdates() {
     _ptr.getStorageUpdates();
@@ -12969,9 +12977,18 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set dir(String value) { _ptr.dir = _unwrap(value); }
 
+  String get replaceId() => _wrap(_ptr.replaceId);
+
+  void set replaceId(String value) { _ptr.replaceId = _unwrap(value); }
+
   String get tag() => _wrap(_ptr.tag);
 
   void set tag(String value) { _ptr.tag = _unwrap(value); }
+
+  void cancel() {
+    _ptr.cancel();
+    return;
+  }
 
   void close() {
     _ptr.close();
@@ -12990,6 +13007,8 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
   EventListenerList get click() => _get('click');
 
   EventListenerList get close() => _get('close');
+
+  EventListenerList get display() => _get('display');
 
   EventListenerList get error() => _get('error');
 
@@ -13510,6 +13529,35 @@ class _PointImpl extends _DOMTypeBase implements Point {
   num get y() => _wrap(_ptr.y);
 
   void set y(num value) { _ptr.y = _unwrap(value); }
+}
+
+class _PointerLockImpl extends _DOMTypeBase implements PointerLock {
+  _PointerLockImpl._wrap(ptr) : super._wrap(ptr);
+
+  bool get isLocked() => _wrap(_ptr.isLocked);
+
+  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) {
+    if (successCallback === null) {
+      if (failureCallback === null) {
+        _ptr.lock(_unwrap(target));
+        return;
+      }
+    } else {
+      if (failureCallback === null) {
+        _ptr.lock(_unwrap(target), _unwrap(successCallback));
+        return;
+      } else {
+        _ptr.lock(_unwrap(target), _unwrap(successCallback), _unwrap(failureCallback));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
+  }
+
+  void unlock() {
+    _ptr.unlock();
+    return;
+  }
 }
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
@@ -18596,6 +18644,10 @@ class _StyleElementImpl extends _ElementImpl implements StyleElement {
 
   void set media(String value) { _ptr.media = _unwrap(value); }
 
+  bool get scoped() => _wrap(_ptr.scoped);
+
+  void set scoped(bool value) { _ptr.scoped = _unwrap(value); }
+
   StyleSheet get sheet() => _wrap(_ptr.sheet);
 
   String get type() => _wrap(_ptr.type);
@@ -20917,6 +20969,12 @@ class _WebGLUniformLocationImpl extends _DOMTypeBase implements WebGLUniformLoca
 
 class _WebGLVertexArrayObjectOESImpl extends _DOMTypeBase implements WebGLVertexArrayObjectOES {
   _WebGLVertexArrayObjectOESImpl._wrap(ptr) : super._wrap(ptr);
+}
+
+class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue {
+  _WebKitCSSFilterValueImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get operationType() => _wrap(_ptr.operationType);
 }
 
 class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule {
@@ -31136,6 +31194,12 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   /** @domName MouseEvent.toElement */
   final Node toElement;
 
+  /** @domName MouseEvent.webkitMovementX */
+  final int webkitMovementX;
+
+  /** @domName MouseEvent.webkitMovementY */
+  final int webkitMovementY;
+
   /** @domName MouseEvent.x */
   final int x;
 
@@ -31309,6 +31373,9 @@ interface Navigator {
 
   /** @domName Navigator.vendorSub */
   final String vendorSub;
+
+  /** @domName Navigator.webkitPointer */
+  final PointerLock webkitPointer;
 
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
@@ -31615,8 +31682,14 @@ interface Notification extends EventTarget {
   /** @domName Notification.dir */
   String dir;
 
+  /** @domName Notification.replaceId */
+  String replaceId;
+
   /** @domName Notification.tag */
   String tag;
+
+  /** @domName Notification.cancel */
+  void cancel();
 
   /** @domName Notification.close */
   void close();
@@ -31630,6 +31703,8 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
+
+  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -32265,6 +32340,24 @@ interface Point default _PointFactoryProvider {
 
   /** @domName WebKitPoint.y */
   num y;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PointerLock
+interface PointerLock {
+
+  /** @domName PointerLock.isLocked */
+  final bool isLocked;
+
+  /** @domName PointerLock.lock */
+  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
+
+  /** @domName PointerLock.unlock */
+  void unlock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36776,6 +36869,9 @@ interface StyleElement extends Element {
   /** @domName HTMLStyleElement.media */
   String media;
 
+  /** @domName HTMLStyleElement.scoped */
+  bool scoped;
+
   /** @domName HTMLStyleElement.sheet */
   final StyleSheet sheet;
 
@@ -39126,6 +39222,42 @@ interface WebGLUniformLocation {
 
 /// @domName WebGLVertexArrayObjectOES
 interface WebGLVertexArrayObjectOES {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName WebKitCSSFilterValue
+interface WebKitCSSFilterValue extends CSSValueList {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  /** @domName WebKitCSSFilterValue.operationType */
+  final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

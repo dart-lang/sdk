@@ -8807,6 +8807,10 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
 
   final _NodeImpl toElement;
 
+  final int webkitMovementX;
+
+  final int webkitMovementY;
+
   final int x;
 
   final int y;
@@ -8991,6 +8995,8 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
   final String vendor;
 
   final String vendorSub;
+
+  final _PointerLockImpl webkitPointer;
 
   void getStorageUpdates() native;
 
@@ -9477,7 +9483,11 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   String dir;
 
+  String replaceId;
+
   String tag;
+
+  void cancel() native;
 
   void close() native;
 
@@ -9490,6 +9500,8 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
   EventListenerList get click() => _get('click');
 
   EventListenerList get close() => _get('close');
+
+  EventListenerList get display() => _get('display');
 
   EventListenerList get error() => _get('error');
 
@@ -9872,6 +9884,15 @@ class _PointImpl implements Point native "*WebKitPoint" {
   num x;
 
   num y;
+}
+
+class _PointerLockImpl implements PointerLock native "*PointerLock" {
+
+  final bool isLocked;
+
+  void lock(_ElementImpl target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+
+  void unlock() native;
 }
 
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent native "*PopStateEvent" {
@@ -13983,6 +14004,8 @@ class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HT
 
   String media;
 
+  bool scoped;
+
   final _StyleSheetImpl sheet;
 
   String type;
@@ -15982,6 +16005,35 @@ class _WebGLUniformLocationImpl implements WebGLUniformLocation native "*WebGLUn
 }
 
 class _WebGLVertexArrayObjectOESImpl implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
+}
+
+class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  final int operationType;
 }
 
 class _WebKitCSSRegionRuleImpl extends _CSSRuleImpl implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
@@ -25758,6 +25810,12 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
   /** @domName MouseEvent.toElement */
   final Node toElement;
 
+  /** @domName MouseEvent.webkitMovementX */
+  final int webkitMovementX;
+
+  /** @domName MouseEvent.webkitMovementY */
+  final int webkitMovementY;
+
   /** @domName MouseEvent.x */
   final int x;
 
@@ -25931,6 +25989,9 @@ interface Navigator {
 
   /** @domName Navigator.vendorSub */
   final String vendorSub;
+
+  /** @domName Navigator.webkitPointer */
+  final PointerLock webkitPointer;
 
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
@@ -26237,8 +26298,14 @@ interface Notification extends EventTarget {
   /** @domName Notification.dir */
   String dir;
 
+  /** @domName Notification.replaceId */
+  String replaceId;
+
   /** @domName Notification.tag */
   String tag;
+
+  /** @domName Notification.cancel */
+  void cancel();
 
   /** @domName Notification.close */
   void close();
@@ -26252,6 +26319,8 @@ interface NotificationEvents extends Events {
   EventListenerList get click();
 
   EventListenerList get close();
+
+  EventListenerList get display();
 
   EventListenerList get error();
 
@@ -26887,6 +26956,24 @@ interface Point default _PointFactoryProvider {
 
   /** @domName WebKitPoint.y */
   num y;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName PointerLock
+interface PointerLock {
+
+  /** @domName PointerLock.isLocked */
+  final bool isLocked;
+
+  /** @domName PointerLock.lock */
+  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
+
+  /** @domName PointerLock.unlock */
+  void unlock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31398,6 +31485,9 @@ interface StyleElement extends Element {
   /** @domName HTMLStyleElement.media */
   String media;
 
+  /** @domName HTMLStyleElement.scoped */
+  bool scoped;
+
   /** @domName HTMLStyleElement.sheet */
   final StyleSheet sheet;
 
@@ -33748,6 +33838,42 @@ interface WebGLUniformLocation {
 
 /// @domName WebGLVertexArrayObjectOES
 interface WebGLVertexArrayObjectOES {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName WebKitCSSFilterValue
+interface WebKitCSSFilterValue extends CSSValueList {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  /** @domName WebKitCSSFilterValue.operationType */
+  final int operationType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
