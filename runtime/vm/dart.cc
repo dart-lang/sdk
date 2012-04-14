@@ -4,7 +4,6 @@
 
 #include "vm/dart.h"
 
-#include "vm/code_index_table.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
@@ -94,7 +93,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   StubCode::Init(isolate);
-  CodeIndexTable::Init(isolate);
   isolate->set_init_callback_data(data);
   return Error::null();
 }

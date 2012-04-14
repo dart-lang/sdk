@@ -15,7 +15,7 @@ namespace dart {
 // Compiler only implemented on IA32 and x64 now.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
-TEST_CASE(CodeIndexTable) {
+TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32)
   const int kLoopCount = 50000;
 #else
@@ -24,7 +24,7 @@ TEST_CASE(CodeIndexTable) {
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
-  String& url = String::Handle(String::New("dart-test:CodeIndexTable"));
+  String& url = String::Handle(String::New("dart-test:FincCodeObject"));
   String& source = String::Handle();
   Script& script = Script::Handle();
   Library& lib = Library::Handle();
@@ -99,7 +99,7 @@ TEST_CASE(CodeIndexTable) {
                            buffer);
   }
   OS::SNPrint((scriptChars + written), (kScriptSize - written), "}");
-  url = String::New("dart-test:CodeIndexTable");
+  url = String::New("dart-test:FindCodeObject");
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kSource);
   EXPECT(CompilerTest::TestCompileScript(lib, script));

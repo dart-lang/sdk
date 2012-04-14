@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -105,7 +104,6 @@ Isolate::Isolate()
       library_tag_handler_(NULL),
       api_state_(NULL),
       stub_code_(NULL),
-      code_index_table_(NULL),
       debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
@@ -122,7 +120,6 @@ Isolate::~Isolate() {
   delete object_store_;
   delete api_state_;
   delete stub_code_;
-  delete code_index_table_;
   delete debugger_;
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
@@ -456,11 +453,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
     api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
-  }
-
-  // Visit all objects in the code index table.
-  if (code_index_table() != NULL) {
-    code_index_table()->VisitObjectPointers(visitor);
   }
 
   // Visit the top context which is stored in the isolate.
