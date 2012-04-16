@@ -3,6 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables': {
+    # These variables are used in the creation of the .vcproj file on
+    # Windows.
+    'cygwin_dir': '../../third_party/cygwin',
+  },
   'targets': [
     {
       'target_name': 'api_docs',
@@ -10,6 +15,11 @@
       'dependencies': [
         '../../frog/dart-frog.gyp:frog',
         '../../runtime/dart-runtime.gyp:dart',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
       ],
       'actions': [
         {
