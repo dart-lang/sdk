@@ -130,16 +130,8 @@ def build_database(idl_files, database_dir, feature_defines = None):
       ]
 
   # Import WebKit IDLs.
-  if isinstance(idl_files, list):
-    for file_name in idl_files:
-      builder.import_idl_file(file_name, webkit_options)
-  else:
-    idl_list_file = open(idl_files, 'r')
-    for file_name in idl_list_file:
-      file_name = file_name.strip()
-      idl_file_name = os.path.join(os.path.dirname(idl_files), file_name)
-      builder.import_idl_file(idl_file_name, webkit_options)
-    idl_list_file.close()
+  for file_name in idl_files:
+    builder.import_idl_file(file_name, webkit_options)
 
   # Import Dart idl:
   dart_options = databasebuilder.DatabaseBuilderOptions(
