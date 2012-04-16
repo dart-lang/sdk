@@ -803,6 +803,45 @@ class SsaBuilder implements Visitor {
     return bodyElement;
   }
 
+  void inlineSuperOrRedirect(FunctionElement constructor,
+                             Selector selector,
+                             Link<Node> arguments,
+                             List<FunctionElement> constructors,
+                             Map<Element, HInstruction> fieldValues) {
+    constructors.addLast(constructor);
+
+    List<HInstruction> compiledArguments = new List<HInstruction>();
+    bool succeeded = addStaticSendArgumentsToList(selector,
+                                                  arguments,
+                                                  constructor,
+                                                  compiledArguments);
+    if (!succeeded) {
+      // Non-matching super and redirects are compile-time errors and thus
+      // checked by the resolver. 
+      compiler.internalError(
+          "Parameters and arguments didn't match for super/redirect call",
+          element: constructor);
+    }
+
+    int index = 0;
+    FunctionParameters parameters = constructor.computeParameters(compiler);
+    parameters.forEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[index++];
+      localsHandler.updateLocal(parameter, argument);
+      // Don't forget to update the field, if the parameter is of the
+      // form [:this.x:].
+      if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+        FieldParameterElement fieldParameterElement = parameter;
+        fieldValues[fieldParameterElement.fieldElement] = argument;
+      }
+    });
+
+    // Build the initializers in the context of the new constructor.
+    TreeElements oldElements = elements;
+    elements = compiler.resolver.resolveMethodElement(constructor);
+    buildInitializers(constructor, constructors, fieldValues);
+    elements = oldElements;
+  }
   /**
    * Run through the initializers and inline all field initializers. Recursively
    * inlines super initializers.
@@ -810,14 +849,12 @@ class SsaBuilder implements Visitor {
    * The constructors of the inlined initializers is added to [constructors]
    * with sub constructors having a lower index than super constructors.
    */
-  void inlineInitializers(FunctionElement constructor,
-                          List<FunctionElement> constructors,
-                          Map<Element, HInstruction> fieldValues) {
-    TreeElements oldElements = elements;
-    constructors.addLast(constructor);
-    bool initializedSuper = false;
-    elements = compiler.resolver.resolveMethodElement(constructor);
+  void buildInitializers(FunctionElement constructor,
+                         List<FunctionElement> constructors,
+                         Map<Element, HInstruction> fieldValues) {
     FunctionExpression functionNode = constructor.parseNode(compiler);
+
+    bool foundSuperOrRedirect = false;
 
     if (functionNode.initializers !== null) {
       Link<Node> initializers = functionNode.initializers.nodes;
@@ -828,26 +865,12 @@ class SsaBuilder implements Visitor {
           Send call = link.head;
           assert(Initializers.isSuperConstructorCall(call) ||
                  Initializers.isConstructorRedirect(call));
-          FunctionElement nextConstructor = elements[call];
-          // Visit arguments and map the corresponding parameter value to
-          // the resulting HInstruction value.
-          List<HInstruction> arguments = new List<HInstruction>();
-          addStaticSendArgumentsToList(call, nextConstructor, arguments);
-          int index = 0;
-          FunctionParameters parameters =
-              nextConstructor.computeParameters(compiler);
-          parameters.forEachParameter((Element parameter) {
-            HInstruction argument = arguments[index++];
-            localsHandler.updateLocal(parameter, argument);
-            // Don't forget to update the field, if the parameter is of the
-            // form [:this.x:].
-            if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-              FieldParameterElement fieldParameterElement = parameter;
-              fieldValues[fieldParameterElement.fieldElement] = argument;
-            }
-          });
-          inlineInitializers(nextConstructor, constructors, fieldValues);
-          initializedSuper = true;
+          FunctionElement target = elements[call];
+          Selector selector = elements.getSelector(call);
+          Link<Node> arguments = call.arguments;
+          inlineSuperOrRedirect(target, selector, arguments, constructors,
+                                fieldValues);
+          foundSuperOrRedirect = true;
         } else {
           // A field initializer.
           SendSet init = link.head;
@@ -859,7 +882,7 @@ class SsaBuilder implements Visitor {
       }
     }
 
-    if (!initializedSuper) {
+    if (!foundSuperOrRedirect) {
       // No super initializer found. Try to find the default constructor if
       // the class is not Object.
       ClassElement enclosingClass = constructor.enclosingElement;
@@ -867,16 +890,17 @@ class SsaBuilder implements Visitor {
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
         assert(superClass.isResolved);
-        FunctionElement nextConstructor =
-            superClass.lookupConstructor(superClass.name);
-        if (nextConstructor === null) {
+        FunctionElement target = superClass.lookupConstructor(superClass.name);
+        if (target === null) {
           compiler.internalError("no default constructor available");
         }
-        inlineInitializers(nextConstructor, constructors, fieldValues);
+        inlineSuperOrRedirect(target,
+                              Selector.INVOCATION_0,
+                              const EmptyLink<Node>(),
+                              constructors,
+                              fieldValues);
       }
     }
-
-    elements = oldElements;
   }
 
   /**
@@ -912,11 +936,11 @@ class SsaBuilder implements Visitor {
 
     final Map<FunctionElement, TreeElements> constructorElements =
         compiler.resolver.constructorElements;
-    List<FunctionElement> constructors = new List<FunctionElement>();
+    List<FunctionElement> constructors = <FunctionElement>[functionElement];
 
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
-    inlineInitializers(functionElement, constructors, fieldValues);
+    buildInitializers(functionElement, constructors, fieldValues);
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
@@ -1778,7 +1802,11 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  void addStaticSendArgumentsToList(Send node,
+  /**
+   * Returns true if the arguments were compatible with the function signature.
+   */
+  bool addStaticSendArgumentsToList(Selector selector,
+                                    Link<Node> arguments,
                                     FunctionElement element,
                                     List<HInstruction> list) {
     HInstruction compileArgument(Node argument) {
@@ -1791,16 +1819,9 @@ class SsaBuilder implements Visitor {
       return graph.addConstant(constant);
     }
 
-    Selector selector = elements.getSelector(node);
     FunctionParameters parameters = element.computeParameters(compiler);
-    bool succeeded = selector.addSendArgumentsToList(node, list, parameters,
-                                                     compileArgument,
-                                                     compileConstant);
-   if (!succeeded) {
-      // TODO(ngeoffray): Match the VM behavior and throw an
-      // exception at runtime.
-      compiler.cancel('Unimplemented non-matching static call', node: node);
-    }
+    return selector.addArgumentsToList(arguments, list, parameters,
+                                       compileArgument, compileConstant);
   }
 
   void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
@@ -2066,7 +2087,13 @@ class SsaBuilder implements Visitor {
     var inputs = <HInstruction>[target, context];
     if (element.kind == ElementKind.FUNCTION ||
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      addStaticSendArgumentsToList(node, element, inputs);
+      bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
+                                                    element, inputs);
+      if (!succeeded) {
+        // TODO(ngeoffray): Match the VM behavior and throw an
+        // exception at runtime.
+        compiler.cancel('Unimplemented non-matching static call', node);
+      }
       push(new HInvokeSuper(selector, inputs));
     } else {
       target = new HInvokeSuper(Selector.GETTER, inputs);
@@ -2091,7 +2118,13 @@ class SsaBuilder implements Visitor {
     inputs.add(target);
     if (element.kind == ElementKind.FUNCTION ||
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      addStaticSendArgumentsToList(node, element, inputs);
+      bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
+                                                    element, inputs);
+      if (!succeeded) {
+        // TODO(ngeoffray): Match the VM behavior and throw an
+        // exception at runtime.
+        compiler.cancel('Unimplemented non-matching static call', node: node);
+      }
       push(new HInvokeStatic(selector, inputs));
     } else {
       if (element.kind == ElementKind.GETTER) {
