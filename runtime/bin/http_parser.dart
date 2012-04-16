@@ -32,6 +32,7 @@ class _CharCode {
   static final int LF = 10;
   static final int CR = 13;
   static final int SP = 32;
+  static final int COMMA = 44;
   static final int SLASH = 47;
   static final int ZERO = 48;
   static final int ONE = 49;
