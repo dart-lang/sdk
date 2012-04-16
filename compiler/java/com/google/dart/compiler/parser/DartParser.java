@@ -3710,7 +3710,7 @@ public class DartParser extends CompletionHooksParserBase {
         if (optional(Token.FINAL)) {
           modifiers = modifiers.makeFinal();
         }
-        DartTypeNode type = (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT)
+        DartTypeNode type = (peek(1) == Token.IDENTIFIER || peek(1) == Token.LT || peek(1) == Token.PERIOD)
             ? tryTypeAnnotation() : null;
         if (modifiers.isFinal() || type != null) {
           setup = done(new DartVariableStatement(parseInitializedVariableList(), type, modifiers));
