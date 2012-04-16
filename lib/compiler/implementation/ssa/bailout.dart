@@ -276,7 +276,9 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
   }
 
   bool shouldCaptureEnvironment(HInstruction instruction) {
-    return instruction.type.isKnown() && !instruction.hasExpectedType();
+    HType propagatedType = instruction.propagatedType;
+    return propagatedType.isUseful()
+        && propagatedType != instruction.computeTypeFromInputTypes();
   }
 
   void insertCapturedEnvironments() {
