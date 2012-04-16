@@ -6,7 +6,7 @@
 
 class A {
   A(
-    this.x;  /// 01: compile-time error
+    this.x  /// 01: compile-time error
   );
   final foo = 499;
 }
