@@ -949,26 +949,24 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   /** Returns the list of constants that are passed to the static function. */
-  List<Constant> evaluateArgumentsToConstructor(Selector selector,
-                                                Link<Node> arguments,
+  List<Constant> evaluateArgumentsToConstructor(Send send,
                                                 FunctionElement target) {
     FunctionParameters parameters = target.computeParameters(compiler);
-    List<Constant> compiledArguments = <Constant>[];
+    List<Constant> arguments = <Constant>[];
+    Selector selector = elements.getSelector(send);
 
     Function compileArgument = evaluate;
     Function compileConstant = compiler.compileVariable;
-    bool succeeded = selector.addArgumentsToList(arguments, compiledArguments,
-                                                 parameters, compileArgument,
-                                                 compileConstant);
-    assert(succeeded);
-    return compiledArguments;
+    bool succeeded = selector.addSendArgumentsToList(
+        send, arguments, parameters, compileArgument, compileConstant);
+    if (!succeeded) error(send);
+    return arguments;
   }
 
   Constant visitNewExpression(NewExpression node) {
     if (!node.isConst()) error(node);
 
-    Send send = node.send;
-    FunctionElement constructor = elements[send];
+    FunctionElement constructor = elements[node.send];
     ClassElement classElement = constructor.enclosingElement;
     if (classElement.isInterface()) {
       compiler.resolver.resolveMethodElement(constructor);
@@ -976,13 +974,12 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       classElement = constructor.enclosingElement;
     }
 
-    Selector selector = elements.getSelector(send);
     List<Constant> arguments =
-        evaluateArgumentsToConstructor(selector, send.arguments, constructor);
+        evaluateArgumentsToConstructor(node.send, constructor);
     ConstructorEvaluator evaluator =
         new ConstructorEvaluator(constructor, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
-    List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
+    List<Constant>jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
     compiler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
@@ -1047,15 +1044,11 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     });    
   }
 
-  void evaluateSuperOrRedirectSend(Selector selector,
-                                   Link<Node> arguments,
-                                   FunctionElement targetConstructor) {
-    List<Constant> compiledArguments =
-        evaluateArgumentsToConstructor(selector, arguments, targetConstructor);
-
+  void evaluateSuperOrRedirectSend(FunctionElement targetConstructor,
+                                   List<Constant> targetArguments) {
     ConstructorEvaluator evaluator =
         new ConstructorEvaluator(targetConstructor, compiler);
-    evaluator.evaluateConstructorFieldValues(compiledArguments);
+    evaluator.evaluateConstructorFieldValues(targetArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
     evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
   }
@@ -1079,9 +1072,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           // A super initializer or constructor redirection.
           Send call = link.head;
           FunctionElement targetConstructor = elements[call];
-          Selector selector = elements.getSelector(call);
-          Link<Node> arguments = call.arguments;
-          evaluateSuperOrRedirectSend(selector, arguments, targetConstructor);
+          List<Constant> targetArguments =
+              evaluateArgumentsToConstructor(call, targetConstructor);
+          evaluateSuperOrRedirectSend(targetConstructor, targetArguments);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1105,13 +1098,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         FunctionElement targetConstructor =
             superClass.lookupConstructor(superClass.name);
         if (targetConstructor === null) {
-          compiler.internalError("no default constructor available",
-                                 node: functionNode);
+          compiler.internalError("no default constructor available");
         }
-
-        evaluateSuperOrRedirectSend(Selector.INVOCATION_0,
-                                    const EmptyLink<Node>(),
-                                    targetConstructor);
+        evaluateSuperOrRedirectSend(targetConstructor, const <Constant>[]);
       }
     }
   }

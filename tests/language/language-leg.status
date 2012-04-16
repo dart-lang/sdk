@@ -47,6 +47,7 @@ NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamingTest: Fail # Broken because operator negate is not accessible as if it was a method.
 ParameterInitializerTest: Fail # internal error: super property read not implemented
 PseudoKWTest: Fail # Unexpected token '('
+SuperAllNamedConstructorTest: Fail # internal error: Cannot find value parameter(v).
 SuperFieldAccessTest: Fail # internal error: super property read not implemented
 SuperFieldTest: Fail # internal error: super property read not implemented
 SuperImplicitClosureTest: Fail # internal error: super property read not implemented

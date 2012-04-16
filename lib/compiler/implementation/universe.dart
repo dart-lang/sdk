@@ -119,19 +119,20 @@ class Selector implements Hashable {
    * Returns [:true:] if the selector and the [element] match; [:false:]
    * otherwise.
    */
-  bool addArgumentsToList(Link<Node> arguments,
-                          List list,
-                          FunctionParameters parameters,
-                          compileArgument(Node argument),
-                          compileConstant(Element element)) {
-    void addMatchingArgumentsToList(Link<Node> link) {
+  bool addSendArgumentsToList(Send send,
+                              List list,
+                              FunctionParameters parameters,
+                              compileArgument(Node argument),
+                              compileConstant(Element element)) {
+    void addMatchingSendArgumentsToList(Link<Node> link) {
+      for (; !link.isEmpty(); link = link.tail) {
+        list.add(compileArgument(link.head));
+      }
     }
 
     if (!this.applies(parameters)) return false;
     if (this.positionalArgumentCount == parameters.parameterCount) {
-      for (Link<Node> link = arguments; !link.isEmpty(); link = link.tail) {
-        list.add(compileArgument(link.head));
-      }
+      addMatchingSendArgumentsToList(send.arguments);
       return true;
     }
 
@@ -139,6 +140,7 @@ class Selector implements Hashable {
     // expected by the called function, which is the source order.
 
     // Visit positional arguments and add them to the list.
+    Link<Node> arguments = send.arguments;
     int positionalArgumentCount = this.positionalArgumentCount;
     for (int i = 0;
          i < positionalArgumentCount;
