@@ -108,6 +108,25 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 }
 
 
+static void InstallUnoptimizedCode(const Function& function) {
+  // Disable optimized code.
+  ASSERT(function.HasOptimizedCode());
+  // Patch entry of optimized code.
+  CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
+  if (FLAG_trace_compiler) {
+    OS::Print("--> patching entry 0x%x\n",
+              Code::Handle(function.CurrentCode()).EntryPoint());
+  }
+  // Use previously compiled code.
+  function.SetCode(Code::Handle(function.unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(function.unoptimized_code()));
+  if (FLAG_trace_compiler) {
+    OS::Print("--> restoring entry at 0x%x\n",
+              Code::Handle(function.unoptimized_code()).EntryPoint());
+  }
+}
+
+
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
   Isolate* isolate = Isolate::Current();
@@ -115,6 +134,11 @@ static RawError* CompileFunctionHelper(const Function& function,
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
+  // Skips parsing if we need to only install unoptimized code.
+  if (!optimized && !Code::Handle(function.unoptimized_code()).IsNull()) {
+    InstallUnoptimizedCode(function);
+    return Error::null();
+  }
   if (setjmp(*jump.Set()) == 0) {
     TIMERSCOPE(time_compilation);
     ParsedFunction parsed_function(function);
@@ -129,7 +153,6 @@ static RawError* CompileFunctionHelper(const Function& function,
     parsed_function.AllocateVariables();
 
     TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
-
     bool is_compiled = false;
     if (FLAG_use_new_compiler) {
       ASSERT(!optimized);
@@ -204,39 +227,21 @@ static RawError* CompileFunctionHelper(const Function& function,
                     Code::Handle(function.unoptimized_code()).EntryPoint());
         }
       } else {
-        // Unoptimized code.
-        if (Code::Handle(function.unoptimized_code()).IsNull()) {
-          ASSERT(!function.HasCode());
-          // Compiling first time.
-          CodeGenerator code_gen(&assembler, parsed_function);
-          code_gen.GenerateCode();
-          const Code& code =
-              Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
-          code.set_is_optimized(false);
-          code_gen.FinalizePcDescriptors(code);
-          code_gen.FinalizeStackmaps(code);
-          code_gen.FinalizeVarDescriptors(code);
-          code_gen.FinalizeExceptionHandlers(code);
-          function.set_unoptimized_code(code);
-          function.SetCode(code);
-          ASSERT(CodePatcher::CodeIsPatchable(code));
-        } else {
-          // Disable optimized code.
-          ASSERT(function.HasOptimizedCode());
-          // Patch entry of optimized code.
-          CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
-          if (FLAG_trace_compiler) {
-            OS::Print("--> patching entry 0x%x\n",
-                      Code::Handle(function.CurrentCode()).EntryPoint());
-          }
-          // Use previously compiled code.
-          function.SetCode(Code::Handle(function.unoptimized_code()));
-          CodePatcher::RestoreEntry(Code::Handle(function.unoptimized_code()));
-          if (FLAG_trace_compiler) {
-            OS::Print("--> restoring entry at 0x%x\n",
-                      Code::Handle(function.unoptimized_code()).EntryPoint());
-          }
-        }
+        // Compile unnoptimized code.
+        ASSERT(!function.HasCode());
+        // Compiling first time.
+        CodeGenerator code_gen(&assembler, parsed_function);
+        code_gen.GenerateCode();
+        const Code& code =
+            Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
+        code.set_is_optimized(false);
+        code_gen.FinalizePcDescriptors(code);
+        code_gen.FinalizeStackmaps(code);
+        code_gen.FinalizeVarDescriptors(code);
+        code_gen.FinalizeExceptionHandlers(code);
+        function.set_unoptimized_code(code);
+        function.SetCode(code);
+        ASSERT(CodePatcher::CodeIsPatchable(code));
       }
     }
     if (FLAG_trace_compiler) {
@@ -304,12 +309,12 @@ static RawError* CompileFunctionHelper(const Function& function,
 
 
 RawError* Compiler::CompileFunction(const Function& function) {
-  return CompileFunctionHelper(function, false);
+  return CompileFunctionHelper(function, false);  // Non-optimized.
 }
 
 
 RawError* Compiler::CompileOptimizedFunction(const Function& function) {
-  return CompileFunctionHelper(function, true);
+  return CompileFunctionHelper(function, true);  // Optimized.
 }
 
 
