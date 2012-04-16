@@ -626,9 +626,9 @@ class LiteralInt extends Literal<int> {
 
   int get value() {
     try {
-      Token token = this.token;
-      if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseInt(token.value.slowToString());
+      Token valueToken = token;
+      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      return Math.parseInt(valueToken.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -645,9 +645,9 @@ class LiteralDouble extends Literal<double> {
 
   double get value() {
     try {
-      Token token = this.token;
-      if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseDouble(token.value.slowToString());
+      Token valueToken = token;
+      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      return Math.parseDouble(valueToken.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -1380,7 +1380,7 @@ class SwitchCase extends Node {
       }
       return const EmptyLink<Token>();
     }
-    return recursiveGetCases(token, expressions);
+    return recursiveGetCases(token, expressions.nodes);
   }
 }
 

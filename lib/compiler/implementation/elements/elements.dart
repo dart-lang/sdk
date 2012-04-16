@@ -181,7 +181,7 @@ class Element implements Hashable {
   toString() => '$kind(${name.slowToString()})';
 
   bool _isNative = false;
-  void setNative() => _isNative = true;
+  void setNative() { _isNative = true; }
   bool isNative() => _isNative;
 }
 

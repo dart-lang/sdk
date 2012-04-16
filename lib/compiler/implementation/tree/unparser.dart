@@ -119,7 +119,7 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
-  visitStringJuxtaposition(LiteralStringJuxtaposition node) {
+  visitStringJuxtaposition(StringJuxtaposition node) {
     visit(node.first);
     sb.add(" ");
     visit(node.second);

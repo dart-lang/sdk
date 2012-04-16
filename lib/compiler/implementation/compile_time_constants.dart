@@ -795,10 +795,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant expression = evaluate(part.expression);
       DartString expressionString;
       if (expression.isNum() || expression.isBool()) {
-        Object value = expression.value;
-        expressionString = new DartString.literal(value.toString());
+        PrimitiveConstant primitive = expression;
+        expressionString = new DartString.literal(primitive.value.toString());
       } else if (expression.isString()) {
-        expressionString = expression.value;
+        PrimitiveConstant primitive = expression;
+        expressionString = primitive.value;
       } else {
         error(part.expression);
       }

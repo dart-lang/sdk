@@ -14,7 +14,7 @@
 
 class VmScannerBench extends ScannerBench {
   int getBytes(String filename, void callback(List<int> bytes)) {
-    var file = (new File(filename)).openSync();
+    var file = (new File(filename)).openSync(FileMode.READ);
     int size = file.lengthSync();
     List<int> bytes = new ByteArray(size + 1);
     file.readListSync(bytes, 0, size);

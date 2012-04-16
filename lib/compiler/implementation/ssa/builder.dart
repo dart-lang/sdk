@@ -1889,7 +1889,8 @@ class SsaBuilder implements Visitor {
     // argument, which is the type, and the second argument,
     // which is the foreign code.
     if (link.isEmpty() || link.isEmpty()) {
-      compiler.cancel('At least two arguments expected', node: node.arguments);
+      compiler.cancel('At least two arguments expected',
+                      node: node.argumentsNode);
     }
     link = link.tail.tail;
     List<HInstruction> inputs = <HInstruction>[];
@@ -2698,24 +2699,24 @@ class SsaBuilder implements Visitor {
 
     // Recursively build the test conditions. Leaves the result on the
     // expression stack.
-    void buildTests(Link<Node> expressions) {
+    void buildTests(Link<Node> remainingExpressions) {
       // Build comparison for one case expression.
       void left() {
         Element equalsHelper = interceptors.getEqualsInterceptor();
         HInstruction target = new HStatic(equalsHelper);
         add(target);
-        visit(expressions.head);
+        visit(remainingExpressions.head);
         push(new HEquals(target, pop(), expression));
       }
 
       // If this is the last expression, just return it.
-      if (expressions.tail.isEmpty()) {
+      if (remainingExpressions.tail.isEmpty()) {
         left();
         return;
       }
 
       void right() {
-        buildTests(expressions.tail);
+        buildTests(remainingExpressions.tail);
       }
       handleLogicalAndOr(left, right, isAnd: false);
     }

@@ -143,7 +143,7 @@ void writeString(Uri uri, String text) {
 }
 
 String readAll(String filename) {
-  var file = (new File(filename)).openSync();
+  var file = (new File(filename)).openSync(FileMode.READ);
   var length = file.lengthSync();
   var buffer = new List<int>(length);
   var bytes = file.readListSync(buffer, 0, length);

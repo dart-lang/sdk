@@ -630,9 +630,10 @@ class ElementListener extends Listener {
                                                  endToken,
                                                  modifiers,
                                                  enclosingElement);
-    for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
-         nodes = nodes.tail) {
-      Expression initializedIdentifier = nodes.head;
+    for (Link<Node> variableNodes = variables.nodes;
+         !variableNodes.isEmpty();
+         variableNodes = variableNodes.tail) {
+      Expression initializedIdentifier = variableNodes.head;
       Identifier identifier = initializedIdentifier.asIdentifier();
       if (identifier === null) {
         identifier = initializedIdentifier.asSendSet().selector.asIdentifier();
@@ -694,8 +695,8 @@ class ElementListener extends Listener {
   }
 
   void handleModifiers(int count) {
-    NodeList nodes = makeNodeList(count, null, null, null);
-    pushNode(new Modifiers(nodes));
+    NodeList modifierNodes = makeNodeList(count, null, null, null);
+    pushNode(new Modifiers(modifierNodes));
   }
 
   Token expected(String string, Token token) {
@@ -792,15 +793,15 @@ class ElementListener extends Listener {
 
   NodeList makeNodeList(int count, Token beginToken, Token endToken,
                         String delimiter) {
-    Link<Node> nodes = const EmptyLink<Node>();
+    Link<Node> poppedNodes = const EmptyLink<Node>();
     for (; count > 0; --count) {
       // This effectively reverses the order of nodes so they end up
       // in correct (source) order.
-      nodes = nodes.prepend(popNode());
+      poppedNodes = poppedNodes.prepend(popNode());
     }
     SourceString sourceDelimiter =
         (delimiter === null) ? null : new SourceString(delimiter);
-    return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
+    return new NodeList(beginToken, poppedNodes, endToken, sourceDelimiter);
   }
 
   void beginLiteralString(Token token) {
@@ -849,8 +850,8 @@ class ElementListener extends Listener {
     if (isLast) {
       pushNode(string);
     } else {
-      NodeList nodes = new NodeList(null, parts, null, null);
-      pushNode(new StringInterpolation(string, nodes));
+      NodeList partNodes = new NodeList(null, parts, null, null);
+      pushNode(new StringInterpolation(string, partNodes));
     }
   }
 
@@ -971,8 +972,9 @@ class NodeListener extends ElementListener {
     pushNode(new ExpressionStatement(popNode(), token));
   }
 
-  void handleOnError(Token token, var error) {
-    listener.cancel("internal error: '${token.value}': ${error}", token: token);
+  void handleOnError(Token token, var errorInformation) {
+    listener.cancel("internal error: '${token.value}': ${errorInformation}",
+                    token: token);
   }
 
   Token expectedFunctionBody(Token token) {
@@ -1328,13 +1330,13 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
-    Link<Node> nodes = const EmptyLink<Node>();
+    Link<Node> caseNodes = const EmptyLink<Node>();
     while (caseCount > 0) {
       SwitchCase switchCase = popNode();
-      nodes = nodes.prepend(switchCase);
+      caseNodes = caseNodes.prepend(switchCase);
       caseCount--;
     }
-    pushNode(new NodeList(beginToken, nodes, endToken, null));
+    pushNode(new NodeList(beginToken, caseNodes, endToken, null));
   }
 
   void handleSwitchCase(Token labelToken, int expressionCount,

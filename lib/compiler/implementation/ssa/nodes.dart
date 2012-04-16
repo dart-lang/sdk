@@ -505,7 +505,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   void removePhi(HPhi phi) {
     phis.remove(phi);
-    phi.notifyRemovedFromBlock(this);
+    assert(phi.block == this);
+    phi.notifyRemovedFromBlock();
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
@@ -528,7 +529,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
     assert(isOpen() || isClosed());
     assert(instruction is !HPhi);
     super.remove(instruction);
-    instruction.notifyRemovedFromBlock(this);
+    assert(instruction.block == this);
+    instruction.notifyRemovedFromBlock();
   }
 
   void addSuccessor(HBasicBlock block) {
@@ -941,22 +943,21 @@ class HInstruction implements Hashable {
 
   abstract accept(HVisitor visitor);
 
-  void notifyAddedToBlock(HBasicBlock block) {
+  void notifyAddedToBlock(HBasicBlock targetBlock) {
     assert(!isInBasicBlock());
-    assert(this.block === null);
+    assert(block === null);
     // Add [this] to the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
       assert(inputs[i].isInBasicBlock());
       inputs[i].usedBy.add(this);
     }
-    this.block = block;
+    block = targetBlock;
     assert(isValid());
   }
 
-  void notifyRemovedFromBlock(HBasicBlock block) {
+  void notifyRemovedFromBlock() {
     assert(isInBasicBlock());
     assert(usedBy.isEmpty());
-    assert(this.block === block);
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {

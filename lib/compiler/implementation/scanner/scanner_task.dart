@@ -146,8 +146,10 @@ class ScannerTask extends CompilerTask {
         });
         compiler.reportError(tag.prefix, 'duplicate defintion');
       }
+      PrefixElement prefixElement = e;
       imported.forEachExport((Element element) {
-        Element existing = e.imported.putIfAbsent(element.name, () => element);
+        Element existing =
+            prefixElement.imported.putIfAbsent(element.name, () => element);
         if (existing !== element) {
           compiler.withCurrentElement(existing, () {
             compiler.reportWarning(new Identifier(existing.position()),

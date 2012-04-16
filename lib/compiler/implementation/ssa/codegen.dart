@@ -236,15 +236,15 @@ class SsaCodeGenerator implements HVisitor {
     return isExpression(limits) && (limits.end.last is HConditionalBranch);
   }
 
-  void visitExpressionGraph(SubGraph subGraph) {
+  void visitExpressionGraph(SubGraph expressionSubGraph) {
     int oldState = generationState;
     generationState = STATE_FIRST_EXPRESSION;
-    visitSubGraph(subGraph);
+    visitSubGraph(expressionSubGraph);
     generationState = oldState;
   }
 
-  void visitConditionGraph(SubGraph subGraph) {
-    visitExpressionGraph(subGraph);
+  void visitConditionGraph(SubGraph conditionSubGraph) {
+    visitExpressionGraph(conditionSubGraph);
   }
 
   String temporary(HInstruction instruction) {
@@ -348,26 +348,26 @@ class SsaCodeGenerator implements HVisitor {
     visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
-  void use(HInstruction argument, int expectedPrecedence) {
+  void use(HInstruction argument, int expectedPrecedenceForArgument) {
     if (isGenerateAtUseSite(argument)) {
-      visit(argument, expectedPrecedence);
+      visit(argument, expectedPrecedenceForArgument);
     } else if (argument is HIntegerCheck) {
       HIntegerCheck instruction = argument;
-      use(instruction.value, expectedPrecedence);
+      use(instruction.value, expectedPrecedenceForArgument);
     } else if (argument is HBoundsCheck) {
       HBoundsCheck instruction = argument;
-      use(instruction.index, expectedPrecedence);
+      use(instruction.index, expectedPrecedenceForArgument);
     } else if (argument is HTypeGuard) {
       HTypeGuard instruction = argument;
-      use(instruction.guarded, expectedPrecedence);
+      use(instruction.guarded, expectedPrecedenceForArgument);
     } else {
       buffer.add(temporary(argument));
     }
   }
 
-  visit(HInstruction node, int expectedPrecedence) {
+  visit(HInstruction node, int expectedPrecedenceForNode) {
     int oldPrecedence = this.expectedPrecedence;
-    this.expectedPrecedence = expectedPrecedence;
+    this.expectedPrecedence = expectedPrecedenceForNode;
     node.accept(this);
     this.expectedPrecedence = oldPrecedence;
   }
@@ -479,7 +479,7 @@ class SsaCodeGenerator implements HVisitor {
           continueAction[label] = continueAsBreak;
         }
       }
-      addImplicitContinueLabel();
+      writeImplicitContinueLabel(target);
       buffer.add(":{\n");
       continueAction[info.target] = implicitContinueAsBreak;
       indent++;
@@ -1796,7 +1796,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    for (SourceString label in block.loopInformation.labels) {
+    for (LabelElement label in block.loopInformation.labels) {
       writeLabel(label);
       buffer.add(":");
     }

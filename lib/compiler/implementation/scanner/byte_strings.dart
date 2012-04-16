@@ -47,6 +47,9 @@ class ByteString implements SourceString {
   }
 
   bool isEmpty() => length == 0;
+  bool isPrivate() => !isEmpty() && bytes[offset] === $_;
+
+  String get stringValue() => null;
 }
 
 /**

@@ -139,6 +139,11 @@ class Keyword implements SourceString {
   String slowToString() => syntax;
   String get stringValue() => syntax;
 
+  SourceString copyWithoutQuotes(int initial, int terminal) {
+    // TODO(lrn): consider remodelling to avoid having this method in keywords.
+    return this;
+  }
+
   bool isEmpty() => false;
   bool isPrivate() => false;
 }

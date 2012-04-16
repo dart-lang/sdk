@@ -141,7 +141,7 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
       // will be replaced by the live environment at the loop entry,
       // in this case {x}.
       environment.removeLoopMarker(block);
-      capturedEnvironments.forEach((instruction, env) {
+      capturedEnvironments.forEach((ignoredInstruction, env) {
         if (env.containsLoopMarker(block)) {
           env.removeLoopMarker(block);
           env.addAll(environment);

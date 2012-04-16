@@ -1034,7 +1034,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (constructor === null) {
       Element resolved = resolveTypeRequired(node.send.selector);
       if (resolved !== null && resolved.kind === ElementKind.TYPE_VARIABLE) {
-        error(node, WarningKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
+        error(node, MessageKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
         return null;
       } else {
         error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
@@ -1210,8 +1210,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
         TargetElement targetElement =
             new TargetElement(switchCase,
-                                 statementScope.nestingLevel,
-                                 enclosingElement);
+                              statementScope.nestingLevel,
+                              enclosingElement);
         mapping[switchCase] = targetElement;
 
         LabelElement label =
