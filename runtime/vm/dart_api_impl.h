@@ -111,6 +111,18 @@ class Api : AllStatic {
   // Gets the handle used to designate successful return.
   static Dart_Handle Success(Isolate* isolate);
 
+  // Returns true if the handle holds a Smi.
+  static bool IsSmi(Dart_Handle handle) {
+    RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
+    return !raw->IsHeapObject();
+  }
+
+  // Returns the value of a Smi.
+  static intptr_t SmiValue(Dart_Handle handle) {
+    uword value = *(reinterpret_cast<uword*>(handle));
+    return Smi::ValueFromRaw(value);
+  }
+
   // Generates a handle used to designate an error return.
   static Dart_Handle NewError(const char* format, ...);
 

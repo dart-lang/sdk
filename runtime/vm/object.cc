@@ -6699,16 +6699,6 @@ bool Smi::Equals(const Instance& other) const {
 }
 
 
-bool Smi::IsValid(intptr_t value) {
-  return (value >= kMinValue) && (value <= kMaxValue);
-}
-
-
-bool Smi::IsValid64(int64_t value) {
-  return (value >= kMinValue) && (value <= kMaxValue);
-}
-
-
 double Smi::AsDoubleValue() const {
   return static_cast<double>(this->Value());
 }

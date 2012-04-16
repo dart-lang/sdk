@@ -1090,6 +1090,11 @@ DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
 
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
+  // Fast path for Smis.
+  if (Api::IsSmi(object)) {
+    return true;
+  }
+
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
@@ -1099,8 +1104,15 @@ DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits) {
+  // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  if (Api::IsSmi(integer)) {
+    *fits = true;
+    return Api::Success(isolate);
+  }
+
+  DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
@@ -1122,8 +1134,15 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
 
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
                                                    bool* fits) {
+  // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  if (Api::IsSmi(integer)) {
+    *fits = (Api::SmiValue(integer) >= 0);
+    return Api::Success(isolate);
+  }
+
+  DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
@@ -1141,8 +1160,15 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
 
 
 DART_EXPORT Dart_Handle Dart_NewInteger(int64_t value) {
+  // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  if (Smi::IsValid64(value)) {
+    NOHANDLESCOPE(isolate);
+    return Api::NewHandle(isolate, Smi::New(value));
+  }
+
+  DARTSCOPE_NOCHECKS(isolate);
   return Api::NewHandle(isolate, Integer::New(value));
 }
 
@@ -1157,8 +1183,15 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
 
 DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
                                             int64_t* value) {
+  // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  if (Api::IsSmi(integer)) {
+    *value = Api::SmiValue(integer);
+    return Api::Success(isolate);
+  }
+
+  DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);
@@ -1182,8 +1215,18 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
 
 DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
                                              uint64_t* value) {
+  // Fast path for Smis.
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  if (Api::IsSmi(integer)) {
+    intptr_t smi_value = Api::SmiValue(integer);
+    if (smi_value >= 0) {
+      *value = smi_value;
+      return Api::Success(isolate);
+    }
+  }
+
+  DARTSCOPE_NOCHECKS(isolate);
   const Integer& int_obj = Api::UnwrapIntegerHandle(isolate, integer);
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(isolate, integer, Integer);

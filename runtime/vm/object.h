@@ -25,6 +25,7 @@ namespace dart {
   class clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
+class Api;
 class Assembler;
 class Code;
 class LocalScope;
@@ -2737,10 +2738,17 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(intptr_t value);
-  static bool IsValid64(int64_t value);
+  static bool IsValid(intptr_t value) {
+    return (value >= kMinValue) && (value <= kMaxValue);
+  }
+
+  static bool IsValid64(int64_t value) {
+    return (value >= kMinValue) && (value <= kMaxValue);
+  }
 
  private:
+  friend class Api;  // For ValueFromRaw
+
   static intptr_t ValueFromRaw(uword raw_value) {
     intptr_t value = raw_value;
     ASSERT((value & kSmiTagMask) == kSmiTag);
