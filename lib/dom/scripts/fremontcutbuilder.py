@@ -199,7 +199,7 @@ def main():
       file_name = os.path.join(dir_name, name)
       (interface, ext) = os.path.splitext(file_name)
       if ext == '.idl' and not name.startswith('._'):
-        idl_files.add(file_name)
+        idl_files.append(file_name)
 
   for dir_name in webkit_dirs:
     dir_path = os.path.join(webcore_dir, dir_name)

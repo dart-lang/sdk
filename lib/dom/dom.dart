@@ -339,7 +339,7 @@ interface AudioChannelSplitter extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface AudioContext default _AudioContextFactoryProvider {
+interface AudioContext extends EventTarget default _AudioContextFactoryProvider {
 
   AudioContext();
 
@@ -350,8 +350,6 @@ interface AudioContext default _AudioContextFactoryProvider {
   final AudioDestinationNode destination;
 
   final AudioListener listener;
-
-  EventListener oncomplete;
 
   final num sampleRate;
 
@@ -1999,8 +1997,6 @@ interface DatabaseSync {
 
 interface DedicatedWorkerGlobalScope extends WorkerContext {
 
-  EventListener onmessage;
-
   void postMessage(Object message, [List messagePorts]);
 
   void webkitPostMessage(Object message, [List transferList]);
@@ -2024,7 +2020,7 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvider {
+interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
 
   DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
 
@@ -2037,18 +2033,6 @@ interface DeprecatedPeerConnection default _DeprecatedPeerConnectionFactoryProvi
   static final int NEW = 0;
 
   final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onmessage;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -2944,7 +2928,7 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader default _FileReaderFactoryProvider {
+interface FileReader extends EventTarget default _FileReaderFactoryProvider {
 
   FileReader();
 
@@ -2955,18 +2939,6 @@ interface FileReader default _FileReaderFactoryProvider {
   static final int LOADING = 1;
 
   final FileError error;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onload;
-
-  EventListener onloadend;
-
-  EventListener onloadstart;
-
-  EventListener onprogress;
 
   final int readyState;
 
@@ -3019,7 +2991,7 @@ typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 
 // WARNING: Do not edit - generated code.
 
-interface FileWriter {
+interface FileWriter extends EventTarget {
 
   static final int DONE = 2;
 
@@ -3030,18 +3002,6 @@ interface FileWriter {
   final FileError error;
 
   final int length;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onprogress;
-
-  EventListener onwrite;
-
-  EventListener onwriteend;
-
-  EventListener onwritestart;
 
   final int position;
 
@@ -4642,6 +4602,8 @@ interface HTMLStyleElement extends HTMLElement {
 
   String media;
 
+  bool scoped;
+
   final StyleSheet sheet;
 
   String type;
@@ -5062,17 +5024,11 @@ interface IDBCursorWithValue extends IDBCursor {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBDatabase {
+interface IDBDatabase extends EventTarget {
 
   final String name;
 
   final List<String> objectStoreNames;
-
-  EventListener onabort;
-
-  EventListener onerror;
-
-  EventListener onversionchange;
 
   final String version;
 
@@ -5252,17 +5208,13 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBRequest {
+interface IDBRequest extends EventTarget {
 
   static final int DONE = 2;
 
   static final int LOADING = 1;
 
   final int errorCode;
-
-  EventListener onerror;
-
-  EventListener onsuccess;
 
   final int readyState;
 
@@ -5286,7 +5238,7 @@ interface IDBRequest {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBTransaction {
+interface IDBTransaction extends EventTarget {
 
   static final int READ_ONLY = 0;
 
@@ -5297,12 +5249,6 @@ interface IDBTransaction {
   final IDBDatabase db;
 
   final int mode;
-
-  EventListener onabort;
-
-  EventListener oncomplete;
-
-  EventListener onerror;
 
   void abort();
 
@@ -5330,9 +5276,7 @@ interface IDBVersionChangeEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBVersionChangeRequest extends IDBRequest {
-
-  EventListener onblocked;
+interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5441,11 +5385,9 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
 // WARNING: Do not edit - generated code.
 
-interface JavaScriptAudioNode extends AudioNode {
+interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
   final int bufferSize;
-
-  EventListener onaudioprocess;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5515,7 +5457,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream {
+interface LocalMediaStream extends MediaStream, EventTarget {
 
   void stop();
 }
@@ -5559,7 +5501,7 @@ interface Location {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaController default _MediaControllerFactoryProvider {
+interface MediaController extends EventTarget default _MediaControllerFactoryProvider {
 
   MediaController();
 
@@ -5671,7 +5613,7 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStream default _MediaStreamFactoryProvider {
+interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
 
@@ -5682,8 +5624,6 @@ interface MediaStream default _MediaStreamFactoryProvider {
   final MediaStreamTrackList audioTracks;
 
   final String label;
-
-  EventListener onended;
 
   final int readyState;
 
@@ -5872,6 +5812,10 @@ interface MouseEvent extends UIEvent {
 
   final Node toElement;
 
+  final int webkitMovementX;
+
+  final int webkitMovementY;
+
   final int x;
 
   final int y;
@@ -5999,6 +5943,8 @@ interface Navigator {
   final String vendor;
 
   final String vendorSub;
+
+  final PointerLock webkitPointer;
 
   void getStorageUpdates();
 
@@ -6264,9 +6210,13 @@ interface Notification extends EventTarget {
 
   String dir;
 
+  String replaceId;
+
   String tag;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void cancel();
 
   void close();
 
@@ -6418,7 +6368,7 @@ interface PageTransitionEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection00 default _PeerConnection00FactoryProvider {
+interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryProvider {
 
   PeerConnection00(String serverConfiguration, IceCallback iceCallback);
 
@@ -6455,16 +6405,6 @@ interface PeerConnection00 default _PeerConnection00FactoryProvider {
   final SessionDescription localDescription;
 
   final MediaStreamList localStreams;
-
-  EventListener onaddstream;
-
-  EventListener onconnecting;
-
-  EventListener onopen;
-
-  EventListener onremovestream;
-
-  EventListener onstatechange;
 
   final int readyState;
 
@@ -6579,6 +6519,20 @@ interface PerformanceTiming {
   final int unloadEventEnd;
 
   final int unloadEventStart;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PointerLock {
+
+  final bool isLocked;
+
+  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
+
+  void unlock();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7356,7 +7310,7 @@ interface SVGElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface SVGElementInstance extends EventTarget {
+interface SVGElementInstance {
 
   final SVGElementInstanceList childNodes;
 
@@ -9629,8 +9583,6 @@ interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvid
 interface SharedWorkerGlobalScope extends WorkerContext {
 
   final String name;
-
-  EventListener onconnect;
 }
 
 interface SharedWorkerContext extends SharedWorkerGlobalScope {
@@ -9714,7 +9666,7 @@ interface SpeechInputResultList {
 
 // WARNING: Do not edit - generated code.
 
-interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
+interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactoryProvider {
 
   SpeechRecognition();
 
@@ -9723,30 +9675,6 @@ interface SpeechRecognition default _SpeechRecognitionFactoryProvider {
   SpeechGrammarList grammars;
 
   String lang;
-
-  EventListener onaudioend;
-
-  EventListener onaudiostart;
-
-  EventListener onend;
-
-  EventListener onerror;
-
-  EventListener onnomatch;
-
-  EventListener onresult;
-
-  EventListener onresultdeleted;
-
-  EventListener onsoundend;
-
-  EventListener onsoundstart;
-
-  EventListener onspeechend;
-
-  EventListener onspeechstart;
-
-  EventListener onstart;
 
   void abort();
 
@@ -10010,7 +9938,7 @@ interface TextMetrics {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrack {
+interface TextTrack extends EventTarget {
 
   static final int DISABLED = 0;
 
@@ -10030,8 +9958,6 @@ interface TextTrack {
 
   int mode;
 
-  EventListener oncuechange;
-
   void addCue(TextTrackCue cue);
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -10048,7 +9974,7 @@ interface TextTrack {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackCue default _TextTrackCueFactoryProvider {
+interface TextTrackCue extends EventTarget default _TextTrackCueFactoryProvider {
 
   TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]);
 
@@ -10059,10 +9985,6 @@ interface TextTrackCue default _TextTrackCueFactoryProvider {
   String id;
 
   int line;
-
-  EventListener onenter;
-
-  EventListener onexit;
 
   bool pauseOnExit;
 
@@ -10108,11 +10030,9 @@ interface TextTrackCueList {
 
 // WARNING: Do not edit - generated code.
 
-interface TextTrackList {
+interface TextTrackList extends EventTarget {
 
   final int length;
-
-  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -11552,6 +11472,40 @@ interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+interface WebKitCSSFilterValue extends CSSValueList {
+
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
+
+  static final int CSS_FILTER_CUSTOM = 12;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  final int operationType;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebKitCSSKeyframeRule extends CSSRule {
 
   String keyText;
@@ -11868,13 +11822,11 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-interface WorkerGlobalScope {
+interface WorkerGlobalScope extends EventTarget {
 
   final WorkerLocation location;
 
   final WorkerNavigator navigator;
-
-  EventListener onerror;
 
   final WorkerContext self;
 
