@@ -756,7 +756,7 @@ class StandardTestSuite implements TestSuite {
     }
   }
   
-  String get hasRuntime() {
+  bool get hasRuntime() {
     switch(configuration['runtime']) {
       case null:
         Expect.fail("configuration['runtime'] is not set");

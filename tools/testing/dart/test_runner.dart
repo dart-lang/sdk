@@ -189,6 +189,8 @@ interface TestOutput default TestOutputImpl {
   bool get hasTimedOut();
 
   bool get didFail();
+  
+  bool requestRetry;
 
   Duration get time();
 

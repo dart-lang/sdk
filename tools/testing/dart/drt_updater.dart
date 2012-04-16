@@ -34,7 +34,7 @@ class _DartiumUpdater {
     }
   }
 
-  String get _getUpdateCommand() {
+  List<String> get _getUpdateCommand() {
     String scriptPath = new Options().script.replaceAll('\\', '/');
     String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
     List<String> command = ['$toolsDir/$script'];
