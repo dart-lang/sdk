@@ -27,11 +27,6 @@ PseudoKWIllegalTest/08: Fail  # Issue 356
 PseudoKWIllegalTest/10: Fail  # Issue 356
 PseudoKWIllegalTest/14: Fail  # Issue 356
 
-ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
-ImplicitThisTest/02: Fail # Issue 374
-ImplicitThisTest/03: Fail # Issue 374
-ImplicitThisTest/04: Fail # Issue 374
-ImplicitThisTest/none: Fail # Issue 374
 
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)

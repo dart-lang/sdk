@@ -3643,6 +3643,10 @@ void Parser::ParseTopLevel() {
       ParseFunctionTypeAlias(pending_classes);
     } else if (CurrentToken() == Token::kINTERFACE) {
       ParseInterfaceDefinition(pending_classes);
+    } else if ((CurrentToken() == Token::kABSTRACT) &&
+        (LookaheadToken(1) == Token::kCLASS)) {
+      ConsumeToken();  // Consume and ignore 'abstract'.
+      ParseClassDefinition(pending_classes);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
