@@ -5,8 +5,9 @@
 #library('uri');
 
 /**
- * A parsed URI, inspired by:
- * http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
+ * A parsed URI, inspired by Closure's [URI][] class. Implements [RFC-3986][].
+ * [uri]: http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
+ * [RFC-3986]: http://tools.ietf.org/html/rfc3986#section-4.3)
  */
 class Uri {
   final String scheme;
@@ -72,9 +73,7 @@ class Uri {
   static final _COMPONENT_FRAGMENT = 7;
 
   /**
-   * Determines whether a URI is absolute.
-   *
-   * See: http://tools.ietf.org/html/rfc3986#section-4.3
+   * Returns `true` if the URI is absolute.
    */
   bool isAbsolute() {
     if ("" == scheme) return false;

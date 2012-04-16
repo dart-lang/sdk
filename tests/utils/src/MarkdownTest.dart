@@ -707,6 +707,20 @@ void main() {
         ''', '''
         <p>[bad] <code>code</code></p>
         ''');
+    validate('empty reference uses text from link', '''
+        links [are][] awesome
+
+        [are]: http://foo.com
+        ''', '''
+        <p>links <a href="http://foo.com">are</a> awesome</p>
+        ''');
+    validate('references are case-insensitive', '''
+        links [ARE][] awesome
+
+        [are]: http://foo.com
+        ''', '''
+        <p>links <a href="http://foo.com">ARE</a> awesome</p>
+        ''');
   });
 
   group('Inline links', () {

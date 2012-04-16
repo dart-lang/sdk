@@ -288,6 +288,9 @@ class LinkSyntax extends TagSyntax {
         id = parser.source.substring(state.startPos + 1, parser.pos);
       }
 
+      // References are case-insensitive.
+      id = id.toLowerCase();
+
       // Look up the link.
       final link = parser.document.refLinks[id];
       // If it's an unknown link just emit plaintext.

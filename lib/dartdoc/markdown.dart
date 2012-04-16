@@ -57,8 +57,8 @@ class Document {
       final match = pattern.firstMatch(lines[i]);
       if (match != null) {
         // Parse the link.
-        final id = match[1];
-        final url = match[2];
+        var id = match[1];
+        var url = match[2];
         var title = match[3];
 
         if (title == '') {
@@ -68,6 +68,9 @@ class Document {
           // Remove "", '', or ().
           title = title.substring(1, title.length - 1);
         }
+
+        // References are case-insensitive.
+        id = id.toLowerCase();
 
         refLinks[id] = new Link(id, url, title);
 
