@@ -203,6 +203,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 [ ($compiler == frog || $compiler == frogsh) && $unchecked ]
 BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
+Operator4Test: Fail
 
 [ $compiler == frog  || $compiler == frogsh ]
 StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
@@ -333,7 +334,6 @@ NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
-Operator4Test: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
 OverrideMethodWithFieldTest/01: Fail
