@@ -62,7 +62,7 @@ class StatementType implements Type {
 
 class InterfaceType implements Type {
   final SourceString name;
-  final ClassElement element;
+  final Element element;
   final Link<Type> arguments;
 
   const InterfaceType(this.name, this.element, this.arguments);
