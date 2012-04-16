@@ -54,8 +54,8 @@ class SsaOptimizerTask extends CompilerTask {
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
       work.guards.forEach((HTypeGuard guard) {
-        guard.propagatedType = guard.guarded.propagatedType;
-        guard.guarded.propagatedType = HType.UNKNOWN;
+        guard.type = guard.guarded.type;
+        guard.guarded.type = HType.UNKNOWN;
       });
       // We also need to insert range and integer checks for the type guards,
       // now that they know their type. We did not need to do that
@@ -99,8 +99,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         block.remove(instruction);
         // If the replacement instruction does not know its type yet,
         // use the type of the instruction.
-        if (!replacement.propagatedType.isUseful()) {
-          replacement.propagatedType = instruction.propagatedType;
+        if (!replacement.type.isKnown()) {
+          replacement.type = instruction.type;
         }
       }
       instruction = next;
@@ -117,7 +117,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.propagatedType.isUseful()) {
+    if (input.type.isKnown()) {
       return graph.addConstantBool(false);
     }
     return node;
@@ -186,8 +186,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.guarded;
-    HType combinedType = value.propagatedType.combine(node.propagatedType);
-    return (combinedType == value.propagatedType) ? value : node;
+    return (value.type.combine(node.type) == value.type) ? value : node;
   }
 
   HInstruction visitIntegerCheck(HIntegerCheck node) {
@@ -202,7 +201,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       compiler.unimplemented("visitIs for type variables");
     }
 
-    HType expressionType = node.expression.propagatedType;
+    HType expressionType = node.expression.type;
     if (element === compiler.objectClass
         || element === compiler.dynamicClass) {
       return graph.addConstantBool(true);
@@ -285,7 +284,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
         const SourceString("length"),
         true,
         <HInstruction>[interceptor, receiver]);
-    length.propagatedType = HType.INTEGER;
+    length.type = HType.NUMBER;
     node.block.addBefore(node, length);
 
     HBoundsCheck check = new HBoundsCheck(length, index);
@@ -300,12 +299,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndex(HIndex node) {
-    if (!node.receiver.isStringOrArray()) return;
-    HInstruction index = node.index;
-    if (index is HBoundsCheck) return;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
+    if (!node.builtin) return;
+    if (node.index is HBoundsCheck) return;
+    HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndex newInstruction = new HIndex(node.target, node.receiver, index);
     node.block.addBefore(node, newInstruction);
@@ -314,12 +310,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.isMutableArray()) return;
-    HInstruction index = node.index;
-    if (index is HBoundsCheck) return;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
+    if (!node.builtin) return;
+    if (node.index is HBoundsCheck) return;
+    HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndexAssign newInstruction =
         new HIndexAssign(node.target, node.receiver, index, node.value);

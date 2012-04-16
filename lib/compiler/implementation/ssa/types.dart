@@ -14,21 +14,19 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
         worklist = new List<int>();
 
 
-  HType computeType(HInstruction instruction) {
-    return instruction.computeTypeFromInputTypes();
-  }
+  HType computeType(HInstruction instruction) => instruction.computeType();
 
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType(HInstruction instruction) {
-    if (instruction.propagatedType.isConflicting()) return false;
+    if (instruction.type.isConflicting()) return false;
+    // Constants have the type they have. It can't be changed.
+    if (instruction.isConstant()) return false;
 
-    HType oldType = instruction.propagatedType;
-    HType newType = instruction.hasGuaranteedType()
-                    ? instruction.guaranteedType
-                    : computeType(instruction);
-    instruction.propagatedType = oldType.combine(newType);
-    return oldType !== instruction.propagatedType;
+    HType oldType = instruction.type;
+    HType newType = computeType(instruction);
+    instruction.type = oldType.combine(newType);
+    return oldType !== instruction.type;
   }
 
   void visitGraph(HGraph graph) {
@@ -39,24 +37,19 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
-        // Set the initial type for the phi. In theory we would need to mark the
-        // type of all other incoming edges as "unitialized" and take this into
-        // account when doing the propagation inside the phis. Just setting
-        // the [propagatedType] is however easier.
-        phi.propagatedType = phi.inputs[0].propagatedType;
+        // Set the initial type for the phi.
+        phi.type = phi.inputs[0].type;
         addToWorkList(phi);
       });
     } else {
       block.forEachPhi((HPhi phi) {
-        if (updateType(phi)) addDependentInstructionsToWorkList(phi);
+        if (updateType(phi)) addUsersAndInputsToWorklist(phi);
       });
     }
 
     HInstruction instruction = block.first;
     while (instruction !== null) {
-      if (updateType(instruction)) {
-        addDependentInstructionsToWorkList(instruction);
-      }
+      if (updateType(instruction)) addUsersAndInputsToWorklist(instruction);
       instruction = instruction.next;
     }
   }
@@ -67,18 +60,17 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       HInstruction instruction = workmap[id];
       assert(instruction !== null);
       workmap.remove(id);
-      if (updateType(instruction)) {
-        addDependentInstructionsToWorkList(instruction);
-      }
+      if (updateType(instruction)) addUsersAndInputsToWorklist(instruction);
     }
   }
 
-  void addDependentInstructionsToWorkList(HInstruction instruction) {
+  void addUsersAndInputsToWorklist(HInstruction instruction) {
     for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      // The non-speculative type propagator only propagates types forward. We
-      // thus only need to add the users of the [instruction] to the list.
       addToWorkList(instruction.usedBy[i]);
-    }    
+    }
+    for (int i = 0, length = instruction.inputs.length; i < length; i++) {
+      addToWorkList(instruction.inputs[i]);
+    }
   }
 
   void addToWorkList(HInstruction instruction) {
@@ -94,24 +86,11 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
   final String name = 'speculative type propagator';
   SsaSpeculativeTypePropagator(Compiler compiler) : super(compiler);
 
-  void addDependentInstructionsToWorkList(HInstruction instruction) {
-    // The speculative type propagator propagates types forward and backward.
-    // Not only do we need to add the users of the [instruction] to the list.
-    // We also need to add the inputs fo the [instruction], since they might
-    // want to propagate the desired outgoing type.
-    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      addToWorkList(instruction.usedBy[i]);
-    }    
-    for (int i = 0, length = instruction.inputs.length; i < length; i++) {
-      addToWorkList(instruction.inputs[i]);
-    }
-  }
-
   HType computeDesiredType(HInstruction instruction) {
     HType desiredType = HType.UNKNOWN;
     for (final user in instruction.usedBy) {
       desiredType =
-          desiredType.combine(user.computeDesiredTypeForInput(instruction));
+          desiredType.combine(user.computeDesiredInputType(instruction));
       // No need to continue if two users disagree on the type.
       if (desiredType.isConflicting()) break;
     }
@@ -120,12 +99,9 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
 
   HType computeType(HInstruction instruction) {
     HType newType = super.computeType(instruction);
-    // [computeDesiredType] goes to all usedBys and lets them compute their
-    // desired type. By setting the [newType] here we give them more context to
-    // work with. 
-    instruction.propagatedType = newType;
     HType desiredType = computeDesiredType(instruction);
-    // If the desired type is conflicting just return the computed type.
+    // If the desired type is conflicting just return the computed
+    // type.
     if (desiredType.isConflicting()) return newType;
     return newType.combine(desiredType);
   }
