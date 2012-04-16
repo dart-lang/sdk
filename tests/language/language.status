@@ -99,6 +99,7 @@ CharEscapeTest: Pass # Issue 1654
 ClosureCallWrongArgumentCountNegativeTest: Fail
 CompileTimeConstant3Test: Fail # Issue 1780
 CompileTimeConstantOTest: Fail # Issue 2126
+CompileTimeConstantPTest: Fail # Implicit super calls that don't match are not caught in compile-time constants.
 ConstConstructorSyntaxTest/05: Fail
 ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
