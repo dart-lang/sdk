@@ -6,6 +6,7 @@ dom/WebGL1Test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 html/html_tests: Pass, Fail   # Issue 1946.
+dom/IndexedDB3Test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
 html/TypedArrays1Test: Fail   # Fails only on checked mode.
@@ -53,6 +54,7 @@ dom/HiddenDom1Test: Fail
 dom/HiddenDom2Test: Fail
 dom/IndexedDB1Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/IndexedDB2Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+dom/IndexedDB3Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/InstanceOfTest: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
 dom/InnerFrameTest: Fail
@@ -106,8 +108,11 @@ html/frog_html_tests: Skip # Issue 1884
 *: Skip
 
 [ $checked ]
-dom/IndexedDB1Test: Skip  # Type check fails for IDBKey, causing Fail or Timeout.  Needs to be renamed to Object or Dynamic.
-dom/IndexedDB2Test: Skip  # Type check fails for IDBKey, causing Fail or Timeout.  Needs to be renamed to Object or Dynamic.
+# IndexedDB tests: type check fails for IDBKey, causing Fail or Timeout.  Needs
+# to be renamed to Dynamic.
+dom/IndexedDB1Test: Skip
+dom/IndexedDB2Test: Skip
+dom/IndexedDB3Test: Skip
 
 [ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
 *: Skip
