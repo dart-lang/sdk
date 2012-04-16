@@ -5,6 +5,8 @@
 interface Visitor<R> {
   R visitBlock(Block node);
   R visitBreakStatement(BreakStatement node);
+  R visitCascade(Cascade node);
+  R visitCascadeReceiver(CascadeReceiver node);
   R visitCatchBlock(CatchBlock node);
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
@@ -108,6 +110,8 @@ class Node implements Hashable {
 
   Block asBlock() => null;
   BreakStatement asBreakStatement() => null;
+  Cascade asCascade() => null;
+  CascadeReceiver asCascadeReceiver() => null;
   CatchBlock asCatchBlock() => null;
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
@@ -1562,6 +1566,39 @@ class TryStatement extends Statement {
     if (!catchBlocks.isEmpty()) return catchBlocks.getEndToken();
     return tryBlock.getEndToken();
   }
+}
+
+class Cascade extends Node {
+  final Node expression;
+  Cascade(this.expression);
+
+  Cascade asCascade() => this;
+  accept(Visitor visitor) => visitor.visitCascade(this);
+
+  void visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => expression.getEndToken();
+}
+
+class CascadeReceiver extends Node {
+  final Node expression;
+  final Token cascadeOperator;
+  CascadeReceiver(this.expression, this.cascadeOperator);
+
+  CascadeReceiver asCascadeReceiver() => this;
+  accept(Visitor visitor) => visitor.visitCascadeReceiver(this);
+
+  void visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => expression.getEndToken();
 }
 
 class CatchBlock extends Node {

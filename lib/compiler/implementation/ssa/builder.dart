@@ -1019,6 +1019,10 @@ class SsaBuilder implements Visitor {
     return stack.removeLast();
   }
 
+  void dup() {
+    stack.add(stack.last());
+  }
+
   HBoolify popBoolified() {
     HBoolify boolified = new HBoolify(pop());
     add(boolified);
@@ -2296,6 +2300,17 @@ class SsaBuilder implements Visitor {
   visitOperator(Operator node) {
     // Operators are intercepted in their surrounding Send nodes.
     unreachable();
+  }
+
+  visitCascade(Cascade node) {
+    visit(node.expression);
+    // Remove the result and reveal the duplicated receiver on the stack.
+    pop();
+  }
+
+  visitCascadeReceiver(CascadeReceiver node) {
+    visit(node.expression);
+    dup();
   }
 
   visitReturn(Return node) {

@@ -17,6 +17,12 @@ class Listener {
   void endBlock(int count, Token beginToken, Token endToken) {
   }
 
+  void beginCascade(Token token) {
+  }
+
+  void endCascade() {
+  }
+
   void beginClassBody(Token token) {
   }
 
@@ -1010,7 +1016,8 @@ class NodeListener extends ElementListener {
   void handleBinaryExpression(Token token) {
     Node argument = popNode();
     Node receiver = popNode();
-    if (token.stringValue === '.') {
+    String tokenString = token.stringValue;
+    if (tokenString === '.' || tokenString === '..') {
       if (argument is !Send) internalError(node: argument);
       if (argument.asSend().receiver !== null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
@@ -1019,6 +1026,14 @@ class NodeListener extends ElementListener {
       NodeList arguments = new NodeList.singleton(argument);
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
+  }
+
+  void beginCascade(Token token) {
+    pushNode(new CascadeReceiver(popNode(), token));
+  }
+
+  void endCascade() {
+    pushNode(new Cascade(popNode()));
   }
 
   void handleAssignmentExpression(Token token) {

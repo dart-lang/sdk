@@ -30,15 +30,15 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
     int next = advance();
     if (next === choice) {
-      appendPrecenceToken(yes);
+      appendPrecedenceToken(yes);
       return advance();
     } else {
-      appendPrecenceToken(no);
+      appendPrecedenceToken(no);
       return next;
     }
   }
 
-  void appendPrecenceToken(PrecedenceInfo info) {
+  void appendPrecedenceToken(PrecedenceInfo info) {
     tail.next = new Token(info, tokenStart);
     tail = tail.next;
   }

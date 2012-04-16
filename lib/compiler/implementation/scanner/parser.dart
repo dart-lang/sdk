@@ -236,7 +236,6 @@ class Parser {
     return token.next;
   }
 
-
   Token parseStringPart(Token token) {
     if (token.kind === STRING_TOKEN) {
       listener.handleStringPart(token);
@@ -856,7 +855,7 @@ class Parser {
   }
 
   Token parseExpression(Token token) {
-    return parsePrecedenceExpression(token, 2);
+    return parsePrecedenceExpression(token, CASCADE_PRECEDENCE);
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -871,7 +870,7 @@ class Parser {
   }
 
   Token parsePrecedenceExpression(Token token, int precedence) {
-    assert(precedence >= 2);
+    assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
     token = parseUnaryExpression(token);
     PrecedenceInfo info = token.info;
@@ -879,7 +878,9 @@ class Parser {
     for (int level = tokenLevel; level >= precedence; --level) {
       while (tokenLevel === level) {
         Token operator = token;
-        if (tokenLevel === ASSIGNMENT_PRECEDENCE) {
+        if (tokenLevel === CASCADE_PRECEDENCE) {
+          token = parseCascadeExpression(token);
+        } else if (tokenLevel === ASSIGNMENT_PRECEDENCE) {
           // Right associative, so we recurse at the same precedence
           // level.
           token = parsePrecedenceExpression(token.next, level);
@@ -916,6 +917,38 @@ class Parser {
         tokenLevel = info.precedence;
       }
     }
+    return token;
+  }
+
+  Token parseCascadeExpression(Token token) {
+    listener.beginCascade(token);
+    assert(optional('..', token));
+    Token cascadeOperator = token;
+    if (optional('[', token)) {
+      token = parseArgumentOrIndexStar(token);
+    } else if (isIdentifier(token)) {
+      token = parseSend(token);
+      listener.handleBinaryExpression(cascadeOperator);
+    } else {
+      return listener.unexpected(token);
+    }
+    Token mark;
+    do {
+      mark = token;
+      if (optional('.', token)) {
+        Token period = token;
+        token = parseSend(period.token);
+        listener.handleBinaryExpression(period);
+      }
+      token = parseArgumentOrIndexStar(token);
+    } while (mark !== token);
+
+    if (token.info.precedence === ASSIGNMENT_PRECEDENCE) {
+      Token assignment = token;
+      token = parsePrecedenceExpression(token.token, CASCADE_PRECEDENCE + 1);
+      listener.handleAssignmentExpression(assignment);
+    }
+    listener.endCascade();
     return token;
   }
 

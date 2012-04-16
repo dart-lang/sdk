@@ -674,6 +674,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     });
   }
 
+  visitCascade(Cascade node) {
+    visit(node.expression);
+  }
+
+  visitCascadeReceiver(CascadeReceiver node) {
+    visit(node.expression);
+  }
+
   Element visitClassNode(ClassNode node) {
     cancel(node, "shouldn't be called");
   }

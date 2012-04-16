@@ -178,6 +178,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type expectedReturnType;
   ClassElement currentClass;
 
+  Link<Type> cascadeTypes = const EmptyLink<Type>();
+
   Type intType;
   Type doubleType;
   Type boolType;
@@ -252,8 +254,29 @@ class TypeCheckerVisitor implements Visitor<Type> {
     checkAssignable(condition, boolType, analyze(condition));
   }
 
+  void pushCascadeType(Type type) {
+    cascadeTypes = cascadeTypes.prepend(type);
+  }
+
+  void popCascadeType() {
+    Type type = cascadeTypes.head;
+    cascadeTypes = cascadeTypes.tail;
+    return type;
+  }
+
   Type visitBlock(Block node) {
     return analyze(node.statements);
+  }
+
+  Type visitCascade(Cascade node) {
+    analyze(node.expression);
+    return popCascadeType();
+  }
+
+  Type visitCascadeReceiver(CascadeReceiver node) {
+    Type type = analyze(node.expression);
+    pushCascadeType(type);
+    return type;
   }
 
   Type visitClassNode(ClassNode node) {
