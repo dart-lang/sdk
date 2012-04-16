@@ -1150,10 +1150,10 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
                   String::Handle(interface.Name()).ToCString());
     }
     interface_class = interface.type_class();
-    if (!interface_class.is_interface()) {
+    if (interface_class.IsSignatureClass()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_index(),
-                  "class '%s' is used where an interface is expected",
+                  "'%s' is used where an interface or class name is expected",
                   String::Handle(interface_class.Name()).ToCString());
     }
     // Verify that unless cls belongs to core lib, it cannot extend or implement

@@ -177,7 +177,6 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
-Language/07_Classes/9_Superinterfaces_A02_t04: Fail
 Language/08_Interfaces/1_Methods_A03_t01: Fail
 Language/08_Interfaces/1_Methods_A03_t02: Fail
 Language/08_Interfaces/1_Methods_A03_t03: Fail
@@ -205,7 +204,6 @@ Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail
 Language/08_Interfaces/4_Superinterfaces_A01_t02: Fail
-Language/08_Interfaces/4_Superinterfaces_A02_t04: Fail
 Language/09_Generics/09_Generics_A04_t06: Fail
 LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t01: Fail
