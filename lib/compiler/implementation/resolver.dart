@@ -69,15 +69,6 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  FunctionElement lookupConstructor(ClassElement classElement, Send send,
-                                    [noConstructor(Element)]) {
-    final SourceString constructorName = getConstructorName(send);
-    final SourceString className = classElement.name;
-    return classElement.lookupConstructor(className,
-                                          constructorName,
-                                          noConstructor);
-  }
-
   FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
     FunctionExpression node = constructor.parseNode(compiler);
     // A synthetic constructor does not have a node.
@@ -86,7 +77,11 @@ class ResolverTask extends CompilerTask {
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
-      return lookupConstructor(constructor.enclosingElement, initializers.head);
+      final ClassElement classElement = constructor.enclosingElement;
+      final SourceString constructorName =
+          getConstructorName(initializers.head);
+      final SourceString className = classElement.name;
+      return classElement.lookupConstructor(className, constructorName);
     }
     return null;
   }
@@ -123,16 +118,17 @@ class ResolverTask extends CompilerTask {
       visitor.useElement(tree, element);
       visitor.setupFunction(tree, element);
 
-      if (tree.initializers != null) {
-        if (!isConstructor) {
-          error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
-        }
+      if (isConstructor) {
+        // Even if there is no initializer list we still have to do the
+        // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver = new InitializerResolver(visitor);
         FunctionElement redirection =
             resolver.resolveInitializers(element, tree);
         if (redirection !== null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
+      } else if (tree.initializers != null) {
+        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);        
       }
       visitor.visit(tree.body);
 
@@ -281,66 +277,76 @@ class InitializerResolver {
     visitor.visitInStaticContext(init.arguments.head);
   }
 
-  Element resolveSuperOrThis(FunctionElement constructor,
-                             FunctionExpression functionNode,
-                             Send call) {
-    noConstructor(e) {
-      if (e !== null) error(call, MessageKind.NO_CONSTRUCTOR, [e.name, e.kind]);
-    }
+  Element resolveSuperOrThisForSend(FunctionElement constructor,
+                                    FunctionExpression functionNode,
+                                    Send call) {
+    // Resolve the arguments, and make sure the call gets a selector
+    // by calling handleArguments.
+    ResolverTask resolver = visitor.compiler.resolver;
+    visitor.inStaticContext( () => visitor.handleArguments(call) );
+    Selector selector = visitor.mapping.getSelector(call);
+    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+    SourceString constructorName = resolver.getConstructorName(call);
+    Element result = resolveSuperOrThis(
+        constructor, isSuperCall, false, constructorName, selector, call);
+    visitor.useElement(call, result);
+    return result;
+  }
 
+  void resolveImplicitSuperConstructorSend(FunctionElement constructor,
+                                           FunctionExpression functionNode) {
+    // If the class has a super resolve the implicit super call.
+    ClassElement classElement = constructor.enclosingElement;
+    ClassElement superClass = classElement.superclass;
+    if (classElement != visitor.compiler.objectClass) {
+      assert(superClass !== null);
+      assert(superClass.isResolved);
+      resolveSuperOrThis(constructor, true, true, const SourceString(''),
+                         Selector.INVOCATION_0, functionNode);
+    }
+  }
+
+  Element resolveSuperOrThis(FunctionElement constructor,
+                             bool isSuperCall,
+                             bool isImplicitSuperCall,
+                             SourceString constructorName,
+                             Selector selector,
+                             Node diagnosticNode) {
     ClassElement lookupTarget = constructor.enclosingElement;
     bool validTarget = true;
     FunctionElement result;
-    if (Initializers.isSuperConstructorCall(call)) {
-      // Check for invalid initializers.
-      if (hasSuper) {
-        error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
-      }
-      hasSuper = true;
+    if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
       if (lookupTarget.name == Types.OBJECT) {
-        error(call, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
       } else {
         lookupTarget = lookupTarget.supertype.element;
       }
-    } else if (Initializers.isConstructorRedirect(call)) {
-      // Check that there is no body (Language specification 7.5.1).
-      if (functionNode.hasBody()) {
-        error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
-      }
-      // Check that there are no other initializers.
-      if (!initializers.tail.isEmpty()) {
-        error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
-      }
-    } else {
-      visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
-      validTarget = false;
     }
 
-    if (validTarget) {
-      // Resolve the arguments, and make sure the call gets a selector
-      // by calling handleArguments.
-      visitor.inStaticContext( () => visitor.handleArguments(call) );
-      // Lookup constructor and try to match it to the selector.
-      ResolverTask resolver = visitor.compiler.resolver;
-      result = resolver.lookupConstructor(lookupTarget, call);
-      if (result === null) {
-        SourceString constructorName = resolver.getConstructorName(call);
-        String className = lookupTarget.name.slowToString();
-        String name = (constructorName === const SourceString(''))
-                          ? className
-                          : "$className.${constructorName.slowToString()}";
-        error(call, MessageKind.CANNOT_RESOLVE_CONSTRUCTOR, [name]);
-      } else {
-        final Compiler compiler = visitor.compiler;
-        Selector selector = visitor.mapping.getSelector(call);
-        FunctionParameters parameters = result.computeParameters(compiler);
-        // TODO(karlklose): support optional arguments.
-        if (!selector.applies(parameters)) {
-          error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
-        }
+    // Lookup constructor and try to match it to the selector.
+    ResolverTask resolver = visitor.compiler.resolver;
+    final SourceString className = lookupTarget.name;
+    result = lookupTarget.lookupConstructor(className, constructorName);
+    if (result === null) {
+      String classNameString = className.slowToString();
+      String constructorNameString = constructorName.slowToString();
+      String name = (constructorName === const SourceString(''))
+                        ? classNameString
+                        : "$classNameString.$constructorNameString";
+      MessageKind kind = isImplicitSuperCall
+                         ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
+                         : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
+      error(diagnosticNode, kind, [name]);
+    } else {
+      final Compiler compiler = visitor.compiler;
+      FunctionParameters parameters = result.computeParameters(compiler);
+      if (!selector.applies(parameters)) {
+        MessageKind kind = isImplicitSuperCall
+                           ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
+                           : MessageKind.NO_MATCHING_CONSTRUCTOR;
+        error(diagnosticNode, kind);
       }
-      visitor.useElement(call, result);
     }
     return result;
   }
@@ -350,7 +356,7 @@ class InitializerResolver {
     if (functionNode.initializers === null) return null;
     Link<Node> link = functionNode.initializers.nodes;
     if (!link.isEmpty() && Initializers.isConstructorRedirect(link.head)) {
-      return resolveSuperOrThis(constructor, functionNode, link.head);
+      return resolveSuperOrThisForSend(constructor, functionNode, link.head);
     }
     return null;
   }
@@ -361,9 +367,13 @@ class InitializerResolver {
    */
   FunctionElement resolveInitializers(FunctionElement constructor,
                                       FunctionExpression functionNode) {
-    if (functionNode.initializers === null) return null;
-    initializers = functionNode.initializers.nodes;
+    if (functionNode.initializers === null) {
+      initializers = const EmptyLink<Node>();
+    } else {
+      initializers = functionNode.initializers.nodes;
+    }
     FunctionElement result;
+    bool resolvedSuper = false;
     for (Link<Node> link = initializers;
          !link.isEmpty();
          link = link.tail) {
@@ -372,12 +382,34 @@ class InitializerResolver {
         resolveFieldInitializer(constructor, init);
       } else if (link.head.asSend() !== null) {
         final Send call = link.head.asSend();
-        result = resolveSuperOrThis(constructor, functionNode, call);
+        if (Initializers.isSuperConstructorCall(call)) {
+          if (resolvedSuper) {
+            error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);          
+          }
+          resolveSuperOrThisForSend(constructor, functionNode, call);
+          resolvedSuper = true;
+        } else if (Initializers.isConstructorRedirect(call)) {
+          // Check that there is no body (Language specification 7.5.1).
+          if (functionNode.hasBody()) {
+            error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
+          }
+          // Check that there are no other initializers.
+          if (!initializers.tail.isEmpty()) {
+            error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
+          }
+          return resolveSuperOrThisForSend(constructor, functionNode, call);
+        } else {
+          visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
+          return null;
+        }
       } else {
         error(link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
-    return result;
+    if (!resolvedSuper) {
+      resolveImplicitSuperConstructorSend(constructor, functionNode);
+    }
+    return null;  // If there was no redirection always return null.
   }
 }
 
@@ -1176,15 +1208,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           }
         }
 
-        TargetElement TargetElement =
+        TargetElement targetElement =
             new TargetElement(switchCase,
                                  statementScope.nestingLevel,
                                  enclosingElement);
-        mapping[switchCase] = TargetElement;
+        mapping[switchCase] = targetElement;
 
         LabelElement label =
             new LabelElement(labelIdentifier, labelName,
-                             TargetElement, enclosingElement);
+                             targetElement, enclosingElement);
         mapping[labelIdentifier] = label;
         continueLabels[labelName] = label;
       }
@@ -1199,8 +1231,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     // Clean-up unused labels
     continueLabels.forEach((String key, LabelElement label) {
-      TargetElement TargetElement = label.target;
-      SwitchCase switchCase = TargetElement.statement;
+      TargetElement targetElement = label.target;
+      SwitchCase switchCase = targetElement.statement;
       if (!label.isContinueTarget) {
         mapping.remove(switchCase);
         mapping.remove(label.label);

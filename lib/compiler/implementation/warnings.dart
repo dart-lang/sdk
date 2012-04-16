@@ -40,6 +40,8 @@ class MessageKind {
       'cannot resolve #{1}');
   static final CANNOT_RESOLVE_CONSTRUCTOR = const MessageKind(
       'cannot resolve constructor #{1}');
+  static final CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
+      'cannot resolve constructor #{1} for implicit super call');
   static final CANNOT_RESOLVE_TYPE = const MessageKind(
       'cannot resolve type #{1}');
   static final DUPLICATE_DEFINITION = const MessageKind(
@@ -87,7 +89,9 @@ class MessageKind {
   static final DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       'cannot have more than one super initializer');
   static final NO_MATCHING_CONSTRUCTOR = const MessageKind(
-      'no matching constructor found');
+      "super call arguments and constructor parameters don't match");
+  static final NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
+      "implicit super call arguments and constructor parameters don't match");
   static final NO_CONSTRUCTOR = const MessageKind(
       '#{1} is a #{2}, not a constructor');
   static final FIELD_PARAMETER_NOT_ALLOWED = const MessageKind(
