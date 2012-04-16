@@ -149,7 +149,10 @@ Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpecte
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
-
+Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Pass # internal error: visitIs for typedefs not implemented
+Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Pass # internal error: visitIs for typedefs not implemented
+Language/13_Types/3_Type_Declarations/1_Typedef_A06_t03: Pass # internal error: visitIs for typedefs not implemented
+Language/13_Types/3_Type_Declarations/1_Typedef_A06_t04: Pass # internal error: visitIs for typedefs not implemented
 
 
 Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
@@ -188,6 +191,15 @@ Language/13_Types/5_Function_Types_A01_t11: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A01_t12: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A01_t13: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A01_t14: Fail # Expect.isTrue(false) fails.
+Language/13_Types/5_Function_Types_A01_t15: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t16: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t17: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t18: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t19: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t20: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t21: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t22: Fail # is-check on typedefs.
+Language/13_Types/5_Function_Types_A01_t23: Fail # is-check on typedefs.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
@@ -458,8 +470,6 @@ Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail, OK # @compil
 Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A07_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation_A02_t01: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation_A02_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A03_t01: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A03_t02: Fail, OK # @compile-error
 Language/10_Expressions/10_Instance_Creation_A04_t01: Fail, OK # @compile-error
@@ -497,8 +507,4 @@ Language/12_Libraries_and_Scripts/1_Imports_A07_t02: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A01_t01: Fail, OK # @compile-error
 Language/12_Libraries_and_Scripts/2_Includes_A03_t03: Fail, OK # @compile-error
 Language/13_Types/1_Static_Types_A02_t08: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A06_t03: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A06_t04: Fail, OK # @compile-error
 Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error

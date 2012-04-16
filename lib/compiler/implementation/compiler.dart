@@ -35,7 +35,7 @@ class Compiler implements DiagnosticListener {
   Universe universe;
   String assembledCode;
   Namer namer;
-  Types types;
+  final Types types;
 
   final Tracer tracer;
 
@@ -222,7 +222,7 @@ class Compiler implements DiagnosticListener {
     functionClass = coreLibrary.find(const SourceString('Function'));
     listClass = coreLibrary.find(const SourceString('List'));
     closureClass = jsHelperLibrary.find(const SourceString('Closure'));
-    dynamicClass = jsHelperLibrary.find(const SourceString('Dynamic'));
+    dynamicClass = types.dynamicType.element;
     nullClass = jsHelperLibrary.find(const SourceString('Null'));
   }
 
@@ -407,10 +407,7 @@ class Compiler implements DiagnosticListener {
   }
 
   reportWarning(Node node, var message) {
-    if (message is ResolutionWarning) {
-      // TODO(ahe): Don't supress this warning when we support type variables.
-      if (message.message.kind === MessageKind.CANNOT_RESOLVE_TYPE) return;
-    } else if (message is TypeWarning) {
+    if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
       if (message.message.kind === MessageKind.NOT_ASSIGNABLE) return;
