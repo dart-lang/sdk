@@ -302,7 +302,11 @@ bool checkWriteReadOnlyFileException(e) {
   return true;
 }
 
-testWriteByteToReadOnlyFile() {
+
+// Create a test file in a temporary directory. Setup a port to signal
+// when the temporary directory should be deleted. Pass the file and
+// the port to the callback argument.
+createTestFile(callback) {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
   p.receive((x, y) {
@@ -312,67 +316,60 @@ testWriteByteToReadOnlyFile() {
 
   var file = new File("${temp.path}/test_file");
   file.createSync();
-  var openedFile = file.openSync(FileMode.READ);
+  callback(file, p.toSendPort());
+}
 
-  // Writing to read only file should throw an exception.
-  Expect.throws(() => openedFile.writeByteSync(0),
-                (e) => checkWriteReadOnlyFileException(e));
 
-  openedFile.writeByte(0);
-  openedFile.onError = (e) {
-    checkWriteReadOnlyFileException(e);
-    openedFile.close(() => p.toSendPort().send(null));
-  };
+testWriteByteToReadOnlyFile() {
+  createTestFile((file, port) {
+      var openedFile = file.openSync(FileMode.READ);
+
+      // Writing to read only file should throw an exception.
+      Expect.throws(() => openedFile.writeByteSync(0),
+                    (e) => checkWriteReadOnlyFileException(e));
+
+      openedFile.writeByte(0);
+      openedFile.onError = (e) {
+        checkWriteReadOnlyFileException(e);
+        openedFile.close(() => port.send(null));
+    };
+  });
 }
 
 testWriteListToReadOnlyFile() {
-  Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteRecursivelySync();
+  createTestFile((file, port) {
+    var openedFile = file.openSync(FileMode.READ);
+
+    List data = [0, 1, 2, 3];
+    // Writing to read only file should throw an exception.
+    Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
+                  (e) => checkWriteReadOnlyFileException(e));
+
+    openedFile.writeList(data, 0, data.length);
+    openedFile.onError = (e) {
+      checkWriteReadOnlyFileException(e);
+      openedFile.close(() => port.send(null));
+    };
   });
-
-  var file = new File("${temp.path}/test_file");
-  file.createSync();
-  var openedFile = file.openSync(FileMode.READ);
-
-  List data = [0, 1, 2, 3];
-  // Writing to read only file should throw an exception.
-  Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
-                (e) => checkWriteReadOnlyFileException(e));
-
-  openedFile.writeList(data, 0, data.length);
-  openedFile.onError = (e) {
-    checkWriteReadOnlyFileException(e);
-    openedFile.close(() => p.toSendPort().send(null));
-  };
 }
 
 testTruncateReadOnlyFile() {
-  Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteRecursivelySync();
+  createTestFile((file, port) {
+    var openedFile = file.openSync(FileMode.WRITE);
+    openedFile.writeByteSync(0);
+    openedFile.closeSync();
+    openedFile = file.openSync(FileMode.READ);
+
+    // Truncating read only file should throw an exception.
+    Expect.throws(() => openedFile.truncateSync(0),
+                  (e) => checkWriteReadOnlyFileException(e));
+
+    openedFile.truncate(0, () => Expect.fail("Unreachable code"));
+    openedFile.onError = (e) {
+      checkWriteReadOnlyFileException(e);
+      openedFile.close(() => port.send(null));
+    };
   });
-
-  var file = new File("${temp.path}/test_file");
-  file.createSync();
-  var openedFile = file.openSync(FileMode.WRITE);
-  openedFile.writeByteSync(0);
-  openedFile.closeSync();
-  openedFile = file.openSync(FileMode.READ);
-
-  // Truncating read only file should throw an exception.
-  Expect.throws(() => openedFile.truncateSync(0),
-                (e) => checkWriteReadOnlyFileException(e));
-
-  openedFile.truncate(0, () => Expect.fail("Unreachable code"));
-  openedFile.onError = (e) {
-    checkWriteReadOnlyFileException(e);
-    openedFile.close(() => p.toSendPort().send(null));
-  };
 }
 
 bool checkFileClosedException(e) {
@@ -383,69 +380,75 @@ bool checkFileClosedException(e) {
 }
 
 testOperateOnClosedFile() {
-  Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteRecursivelySync();
+  createTestFile((file, port) {
+    var openedFile = file.openSync(FileMode.READ);
+    openedFile.closeSync();
+
+    List data = [0, 1, 2, 3];
+    Expect.throws(() => openedFile.readByteSync(),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.writeByteSync(0),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.readListSync(data, 0, data.length),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.writeStringSync("Hello"),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.positionSync(),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.setPositionSync(0),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.truncateSync(0),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.lengthSync(),
+                  (e) => checkFileClosedException(e));
+    Expect.throws(() => openedFile.flushSync(),
+                  (e) => checkFileClosedException(e));
+
+    var errorCount = 0;
+    openedFile.readByte((byte) => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.writeByte(0);
+    errorCount++;
+    openedFile.readList(
+        data, 0, data.length, (bytesRead) => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.writeList(data, 0, data.length);
+    errorCount++;
+    openedFile.writeString("Hello");
+    errorCount++;
+    openedFile.position((position) => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.setPosition(0, () => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.truncate(0, () => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.length((length) => Expect.fail("Unreachable code"));
+    errorCount++;
+    openedFile.flush(() => Expect.fail("Unreachable code"));
+    errorCount++;
+
+    openedFile.onError = (e) {
+      checkFileClosedException(e);
+      if (--errorCount == 0) {
+        port.send(null);
+      }
+    };
   });
+}
 
-  var file = new File("${temp.path}/test_file");
-  file.createSync();
-  var openedFile = file.openSync(FileMode.READ);
-  openedFile.closeSync();
-
-  List data = [0, 1, 2, 3];
-  Expect.throws(() => openedFile.readByteSync(),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.writeByteSync(0),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.readListSync(data, 0, data.length),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.writeStringSync("Hello"),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.positionSync(),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.setPositionSync(0),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.truncateSync(0),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.lengthSync(),
-                (e) => checkFileClosedException(e));
-  Expect.throws(() => openedFile.flushSync(),
-                (e) => checkFileClosedException(e));
-
-  var errorCount = 0;
-  openedFile.readByte((byte) => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.writeByte(0);
-  errorCount++;
-  openedFile.readList(
-      data, 0, data.length, (bytesRead) => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.writeList(data, 0, data.length);
-  errorCount++;
-  openedFile.writeString("Hello");
-  errorCount++;
-  openedFile.position((position) => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.setPosition(0, () => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.truncate(0, () => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.length((length) => Expect.fail("Unreachable code"));
-  errorCount++;
-  openedFile.flush(() => Expect.fail("Unreachable code"));
-  errorCount++;
-
-  openedFile.onError = (e) {
-    checkFileClosedException(e);
-    if (--errorCount == 0) {
-      p.toSendPort().send(null);
-    }
-  };
+testRepeatedlyCloseFile() {
+  createTestFile((file, port) {
+    var openedFile = file.openSync();
+    openedFile.close(() {
+      openedFile.onError = (e) {
+        Expect.isTrue(e is FileIOException);
+        port.send(null);
+      };
+      openedFile.close(() => null);
+    });
+  });
 }
 
 main() {
@@ -462,4 +465,5 @@ main() {
   testWriteListToReadOnlyFile();
   testTruncateReadOnlyFile();
   testOperateOnClosedFile();
+  testRepeatedlyCloseFile();
 }

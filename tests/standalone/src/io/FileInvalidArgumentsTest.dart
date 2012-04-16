@@ -66,7 +66,8 @@ class FileTest {
     var errors = 0;
     file.onError = (s) {
       errors++;
-      Expect.isTrue(s.contains('Invalid arguments'));
+      Expect.isTrue(s is FileIOException);
+      Expect.isTrue(s.toString().contains('Invalid arguments'));
       file.close(() {
         Expect.equals(1, errors);
       });
@@ -90,7 +91,8 @@ class FileTest {
     var errors = 0;
     file.onError = (s) {
       errors++;
-      Expect.isTrue(s.contains('Invalid argument'));
+      Expect.isTrue(s is FileIOException);
+      Expect.isTrue(s.toString().contains('Invalid argument'));
       file.close(() {
         Expect.equals(1, errors);
       });
@@ -116,7 +118,8 @@ class FileTest {
     var errors = 0;
     file.onError = (s) {
       errors++;
-      Expect.isTrue(s.contains('Invalid arguments'));
+      Expect.isTrue(s is FileIOException);
+      Expect.isTrue(s.toString().contains('Invalid arguments'));
       file.close(() {
         Expect.equals(1, errors);
       });

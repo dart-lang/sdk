@@ -703,7 +703,12 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   _RandomAccessFile(int this._id, String this._name);
 
   void close(void callback()) {
-    if (_id == 0) return;
+    if (_id == 0) {
+      if (_onError != null) {
+        _onError(new FileIOException("Cannot close file: $_name"));
+      }
+      return;
+    }
     _ensureFileService();
     List request = new List(2);
     request[0] = _FileUtils.kCloseRequest;
@@ -716,7 +721,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
         _id = result;
         callback();
       } else if (_onError != null) {
-        _onError("Cannot close file: $_name");
+        _onError(new FileIOException("Cannot close file: $_name"));
       }
     });
   }
@@ -757,7 +762,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
       if (_onError != null) {
-        _onError("Invalid arguments to readList");
+        _onError(new FileIOException("Invalid arguments to readList"));
       }
       return;
     };
@@ -799,7 +804,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     if (value is !int) {
       if (_onError != null) {
-        _onError("Invalid argument to writeByte");
+        _onError(new FileIOException("Invalid argument to writeByte"));
       }
       return;
     }
@@ -832,7 +837,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
       if (_onError != null) {
-        _onError("Invalid arguments to writeList");
+        _onError(new FileIOException("Invalid arguments to writeList"));
       }
       return;
     }
