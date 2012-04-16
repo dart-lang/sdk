@@ -62,12 +62,10 @@ GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-ListDoubleIndexInLoopTest: Fail # Issue 2564.
 ListLiteral4Test: Fail # Illegal argument(s): 0 -- checked mode test.
 MapLiteral4Test: Fail # Attempt to modify an immutable object -- checked mode test.
 NamedParametersTypeTest: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
 Operator3Test: Fail # Issue 2558.
-Operator4Test: Fail # Issue 2563.
 TypeChecksInFactoryMethodTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
 TypeDartcTest: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
 
