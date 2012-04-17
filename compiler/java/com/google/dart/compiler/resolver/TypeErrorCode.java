@@ -28,8 +28,6 @@ public enum TypeErrorCode implements ErrorCode {
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),
-  INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY(
-      "instantiation of an abstract class '%s' using factory"),
   INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS(
       "instantiation of class %s with the inherited abstract members: %s"),
   INTERFACE_HAS_NO_METHOD_NAMED("%s has no method named \"%s\""),
