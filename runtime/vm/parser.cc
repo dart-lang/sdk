@@ -7094,8 +7094,21 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
   AstNode* var_or_field = NULL;
   ResolveIdentInLocalScope(ident_pos, ident, &var_or_field);
   if (var_or_field == NULL) {
-    // Not found in the local scope, so try finding the variable in the
-    // library scope (current library and all libraries imported by it).
+    // Check whether the identifier is a type parameter. Type parameters
+    // can never be used in primary expressions.
+    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+    if (!scope_class.IsNull()) {
+      TypeParameter& type_param = TypeParameter::Handle(
+          scope_class.LookupTypeParameter(ident, ident_pos));
+      if (!type_param.IsNull()) {
+        String& type_param_name = String::Handle(type_param.Name());
+        ErrorMsg(ident_pos, "illegal use of type parameter %s",
+                 type_param_name.ToCString());
+      }
+    }
+    // Not found in the local scope, and the name is not a type parameter.
+    // Try finding the variable in the library scope (current library
+    // and all libraries imported by it).
     QualIdent qual_ident;
     qual_ident.lib_prefix = NULL;
     qual_ident.ident_pos = ident_pos;
