@@ -26,6 +26,11 @@ void addSubtypes(ClassElement cls,
         () => <ClassElement>[]);
     subtypes.add(cls);
   }
+
+  List<Element> directSubtypes = emitter.directSubtypes.putIfAbsent(
+      cls.superclass,
+      () => <ClassElement>[]);
+  directSubtypes.add(cls);
 }
 
 void processNativeClassesInLibrary(Compiler compiler,

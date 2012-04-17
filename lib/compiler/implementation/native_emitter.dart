@@ -14,8 +14,11 @@ class NativeEmitter {
   // Native classes found in the application.
   Set<ClassElement> nativeClasses;
 
-  // Caches the direct native subtypes of a native class.
+  // Caches the native subtypes of a native class.
   Map<ClassElement, List<ClassElement>> subtypes;
+
+  // Caches the direct native subtypes of a native class.
+  Map<ClassElement, List<ClassElement>> directSubtypes;
 
   // Caches the native methods that are overridden by a native class.
   // Note that the method that overrides does not have to be native:
@@ -27,6 +30,7 @@ class NativeEmitter {
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
+        directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         buffer = new StringBuffer();
 
@@ -132,9 +136,8 @@ class NativeEmitter {
   }
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
-    List<ClassElement> result = subtypes[cls];
-    if (result === null) result = const<ClassElement>[];
-    return result;
+    List<ClassElement> result = directSubtypes[cls];
+    return result === null ? const<ClassElement>[] : result;
   }
 
   void potentiallyConvertDartClosuresToJs(StringBuffer code,
