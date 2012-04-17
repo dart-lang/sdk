@@ -138,12 +138,11 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(int kind,
+  HBasicBlock addNewLoopHeaderBlock(int type,
                                     TargetElement target,
                                     List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
-    result.blockInformation =
-        new HLoopInformation(kind, result, target, labels);
+    result.loopInformation = new HLoopInformation(type, result, target, labels);
     return result;
   }
 
@@ -414,7 +413,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   HInstructionList phis;
 
-  HBlockInformation blockInformation = null;
+  HLoopInformation loopInformation = null;
+  HLabeledBlockInformation labeledBlockInformation = null;
   HBasicBlock parentLoopHeader = null;
   List<HTypeGuard> guards;
 
@@ -438,8 +438,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isOpen() => status == STATUS_OPEN;
   bool isClosed() => status == STATUS_CLOSED;
 
-  bool isLoopHeader() => blockInformation is HLoopInformation;
-  bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
+  bool isLoopHeader() => loopInformation !== null;
+  bool hasLabeledBlockInformation() => labeledBlockInformation !== null;
 
   bool hasGuards() => !guards.isEmpty();
 
@@ -548,7 +548,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the
     // loop. All other entries must be back edges.
-    HLoopInformation loopInformation = this.blockInformation;
     for (int i = 1, length = predecessors.length; i < length; i++) {
       loopInformation.addBackEdge(predecessors[i]);
     }
@@ -656,6 +655,100 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 }
 
+interface HBlockInformation {}
+
+class HLabeledBlockInformation implements HBlockInformation {
+  final SubGraph body;
+  final HBasicBlock joinBlock;
+  final List<LabelElement> labels;
+  final TargetElement target;
+  final bool isContinue;
+
+  HLabeledBlockInformation(this.body, this.joinBlock,
+                           List<LabelElement> labels,
+                           [this.isContinue = false]) :
+      this.labels = labels, this.target = labels[0].target;
+
+  HLabeledBlockInformation.implicit(this.body,
+                                    this.joinBlock,
+                                    this.target,
+                                    [this.isContinue = false])
+      : this.labels = const<LabelElement>[];
+}
+
+class LoopTypeVisitor extends AbstractVisitor {
+  const LoopTypeVisitor();
+  int visitNode(Node node) {
+    unreachable();
+  }
+  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
+  int visitFor(For node) => HLoopInformation.FOR_LOOP;
+  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
+  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
+}
+
+class HLoopInformation implements HBlockInformation {
+  static final int WHILE_LOOP = 0;
+  static final int FOR_LOOP = 1;
+  static final int DO_WHILE_LOOP = 2;
+  static final int FOR_IN_LOOP = 3;
+
+  final int type;
+  final HBasicBlock header;
+  final List<HBasicBlock> blocks;
+  final List<HBasicBlock> backEdges;
+  final List<LabelElement> labels;
+  final TargetElement target;
+  SubGraph initializer = null;
+  SubExpression condition = null;
+  SubGraph body = null;
+  SubGraph updates = null;
+  HBasicBlock joinBlock;
+
+  HLoopInformation(this.type, this.header, this.target, this.labels)
+      : blocks = new List<HBasicBlock>(),
+        backEdges = new List<HBasicBlock>();
+
+  static int loopType(Node node) {
+    return node.accept(const LoopTypeVisitor());
+  }
+
+  void addBackEdge(HBasicBlock predecessor) {
+    backEdges.add(predecessor);
+    addBlock(predecessor);
+  }
+
+  // Adds a block and transitively all its predecessors in the loop as
+  // loop blocks.
+  void addBlock(HBasicBlock block) {
+    if (block === header) return;
+    HBasicBlock parentHeader = block.parentLoopHeader;
+    if (parentHeader === header) {
+      // Nothing to do in this case.
+    } else if (parentHeader !== null) {
+      addBlock(parentHeader);
+    } else {
+      block.parentLoopHeader = header;
+      blocks.add(block);
+      for (int i = 0, length = block.predecessors.length; i < length; i++) {
+        addBlock(block.predecessors[i]);
+      }
+    }
+  }
+
+  HBasicBlock getLastBackEdge() {
+    int maxId = -1;
+    HBasicBlock result = null;
+    for (int i = 0, length = backEdges.length; i < length; i++) {
+      HBasicBlock current = backEdges[i];
+      if (current.id > maxId) {
+        maxId = current.id;
+        result = current;
+      }
+    }
+    return result;
+  }
+}
 
 class HType {
   final int flag;
@@ -816,7 +909,7 @@ class HInstruction implements Hashable {
   /**
    * Some instructions have a good idea of their return type, but cannot
    * guarantee the type. The [likelyType] does not need to be more specialized
-   * than the [propagatedType].
+   * than the [propagatedType]. 
    *
    * Examples: the [likelyType] of [:x == y:] is a boolean. In most cases this
    * cannot be guaranteed, but when merging types we still want to use this
@@ -824,8 +917,8 @@ class HInstruction implements Hashable {
    *
    * Similarily the [HAdd] instruction is likely a number. Note that, even if
    * the [propagatedType] is already set to integer, the [likelyType] still
-   * might just return the number type.
-   */
+   * might just return the number type. 
+   */ 
   HType get likelyType() => propagatedType;
 
   /**
@@ -1914,7 +2007,7 @@ class HEquals extends HRelational {
       if (right.isNumber()) return HType.NUMBER;  // No need to be more precise.
       // String equality testing is much more common than array equality
       // testing.
-      if (right.isStringOrArray()) return HType.STRING;
+      if (right.isStringOrArray()) return HType.STRING; 
       return right.propagatedType;
     }
     // String equality testing is much more common than array equality testing.
@@ -2130,136 +2223,13 @@ class HIs extends HInstruction {
   toString() => "$expression is $typeName";
 }
 
-
-interface HBlockInformation {
-  bool accept(HBlockInformationVisitor visitor);
-}
-
-interface HBlockInformationVisitor {
-  bool visitLabeledBlockInfo(HLabeledBlockInformation info);
-  bool visitLoopInfo(HLoopInformation info);
-  bool visitIfInfo(HIfBlockInformation info);
-  bool visitAndOrInfo(HAndOrBlockInformation info);
-}
-
-class HLabeledBlockInformation implements HBlockInformation {
-  final SubGraph body;
-  final HBasicBlock joinBlock;
-  final List<LabelElement> labels;
-  final TargetElement target;
-  final bool isContinue;
-
-  HLabeledBlockInformation(this.body, this.joinBlock,
-                           List<LabelElement> labels,
-                           [this.isContinue = false]) :
-      this.labels = labels, this.target = labels[0].target;
-
-  HLabeledBlockInformation.implicit(this.body,
-                                    this.joinBlock,
-                                    this.target,
-                                    [this.isContinue = false])
-      : this.labels = const<LabelElement>[];
-
-  bool accept(HBlockInformationVisitor visitor) =>
-    visitor.visitLabeledBlockInfo(this);
-}
-
-class LoopTypeVisitor extends AbstractVisitor {
-  const LoopTypeVisitor();
-  int visitNode(Node node) {
-    unreachable();
-  }
-  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
-  int visitFor(For node) => HLoopInformation.FOR_LOOP;
-  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
-  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
-}
-
-class HLoopInformation implements HBlockInformation {
-  static final int WHILE_LOOP = 0;
-  static final int FOR_LOOP = 1;
-  static final int DO_WHILE_LOOP = 2;
-  static final int FOR_IN_LOOP = 3;
-
-  final int kind;
-  final HBasicBlock header;
-  final List<HBasicBlock> blocks;
-  final List<HBasicBlock> backEdges;
-  final List<LabelElement> labels;
-  final TargetElement target;
-  SubGraph initializer = null;
-  SubExpression condition = null;
-  SubGraph body = null;
-  SubGraph updates = null;
-  HBasicBlock joinBlock;
-
-  HLoopInformation(this.kind, this.header, this.target, this.labels)
-      : blocks = new List<HBasicBlock>(),
-        backEdges = new List<HBasicBlock>();
-
-  static int loopType(Node node) {
-    return node.accept(const LoopTypeVisitor());
-  }
-
-  void addBackEdge(HBasicBlock predecessor) {
-    backEdges.add(predecessor);
-    addBlock(predecessor);
-  }
-
-  // Adds a block and transitively all its predecessors in the loop as
-  // loop blocks.
-  void addBlock(HBasicBlock block) {
-    if (block === header) return;
-    HBasicBlock parentHeader = block.parentLoopHeader;
-    if (parentHeader === header) {
-      // Nothing to do in this case.
-    } else if (parentHeader !== null) {
-      addBlock(parentHeader);
-    } else {
-      block.parentLoopHeader = header;
-      blocks.add(block);
-      for (int i = 0, length = block.predecessors.length; i < length; i++) {
-        addBlock(block.predecessors[i]);
-      }
-    }
-  }
-
-  HBasicBlock getLastBackEdge() {
-    int maxId = -1;
-    HBasicBlock result = null;
-    for (int i = 0, length = backEdges.length; i < length; i++) {
-      HBasicBlock current = backEdges[i];
-      if (current.id > maxId) {
-        maxId = current.id;
-        result = current;
-      }
-    }
-    return result;
-  }
-
-  bool accept(HBlockInformationVisitor visitor) => visitor.visitLoopInfo(this);
-}
-
-class HIfBlockInformation implements HBlockInformation {
-  final SubExpression condition;
+class HIfBlockInformation {
+  final HIf branch;
   final SubGraph thenGraph;
   final SubGraph elseGraph;
   final HBasicBlock joinBlock;
-  HIfBlockInformation(this.condition,
+  HIfBlockInformation(this.branch,
                       this.thenGraph,
                       this.elseGraph,
                       this.joinBlock);
-  bool accept(HBlockInformationVisitor visitor) => visitor.visitIfInfo(this);
-}
-
-class HAndOrBlockInformation implements HBlockInformation {
-  final bool isAnd;
-  final SubExpression left;
-  final SubExpression right;
-  final HBasicBlock joinBlock;
-  HAndOrBlockInformation(this.isAnd,
-                         this.left,
-                         this.right,
-                         this.joinBlock);
-  bool accept(HBlockInformationVisitor visitor) => visitor.visitAndOrInfo(this);
 }
