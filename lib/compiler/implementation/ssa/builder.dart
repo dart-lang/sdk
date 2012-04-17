@@ -817,7 +817,7 @@ class SsaBuilder implements Visitor {
                                                   compiledArguments);
     if (!succeeded) {
       // Non-matching super and redirects are compile-time errors and thus
-      // checked by the resolver. 
+      // checked by the resolver.
       compiler.internalError(
           "Parameters and arguments didn't match for super/redirect call",
           element: constructor);
@@ -1030,6 +1030,17 @@ class SsaBuilder implements Visitor {
     return current === null;
   }
 
+  /**
+   * Creates a new block, transitions to it from any current block, and
+   * opens the new block.
+   */
+  HBasicBlock openNewBlock() {
+    HBasicBlock newBlock = addNewBlock();
+    if (!isAborted()) goto(current, newBlock);
+    open(newBlock);
+    return newBlock;
+  }
+
   void add(HInstruction instruction) {
     current.add(instruction);
   }
@@ -1150,16 +1161,14 @@ class SsaBuilder implements Visitor {
     localsHandler.startLoop(loop);
 
     // The initializer.
-    HBasicBlock initializerBlock = graph.addNewBlock();
-    goto(current, initializerBlock);
-    open(initializerBlock);
+    HBasicBlock initializerBlock = openNewBlock();
     initialize();
     assert(!isAborted());
     SubGraph initializerGraph = new SubGraph(initializerBlock, current);
 
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
-    HLoopInformation loopInfo = current.loopInformation;
+    HLoopInformation loopInfo = current.blockInformation;
     // The initializer graph is currently unused due to the way we
     // generate code.
     loopInfo.initializer = initializerGraph;
@@ -1207,11 +1216,11 @@ class SsaBuilder implements Visitor {
     List<LabelElement> labels = jumpHandler.labels();
     TargetElement target = elements[loop];
     if (!labels.isEmpty()) {
-      beginBodyBlock.labeledBlockInformation =
+      beginBodyBlock.blockInformation =
           new HLabeledBlockInformation(bodyGraph, updateBlock,
                                        jumpHandler.labels(), isContinue: true);
     } else if (target !== null && target.isContinueTarget) {
-      beginBodyBlock.labeledBlockInformation =
+      beginBodyBlock.blockInformation =
           new HLabeledBlockInformation.implicit(bodyGraph, updateBlock,
                                                 target, isContinue: true);
     }
@@ -1280,7 +1289,7 @@ class SsaBuilder implements Visitor {
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
     JumpHandler jumpHandler = beginLoopHeader(node);
-    HLoopInformation loopInfo = current.loopInformation;
+    HLoopInformation loopInfo = current.blockInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
     TargetElement target = elements[node];
@@ -1293,9 +1302,7 @@ class SsaBuilder implements Visitor {
       // either handled twice, or it's handled after the labeled block info,
       // both of which generate the wrong code.
       // Using a separate block is just a simple workaround.
-      bodyEntryBlock = graph.addNewBlock();
-      goto(current, bodyEntryBlock);
-      open(bodyEntryBlock);
+      bodyEntryBlock = openNewBlock();
     }
     localsHandler.enterLoopBody(node);
     hackAroundPossiblyAbortingBody(node, () { visit(node.body); });
@@ -1317,13 +1324,13 @@ class SsaBuilder implements Visitor {
       SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
       List<LabelElement> labels = jumpHandler.labels();
       if (!labels.isEmpty()) {
-        bodyEntryBlock.labeledBlockInformation =
+        bodyEntryBlock.blockInformation =
             new HLabeledBlockInformation(bodyGraph,
                                          conditionBlock,
                                          labels,
                                          isContinue: true);
       } else {
-        bodyEntryBlock.labeledBlockInformation =
+        bodyEntryBlock.blockInformation =
             new HLabeledBlockInformation.implicit(bodyGraph,
                                                   conditionBlock,
                                                   target,
@@ -1395,20 +1402,20 @@ class SsaBuilder implements Visitor {
   }
 
   visitIf(If node) {
-    visit(node.condition);
-    Function visitElse;
-    if (node.elsePart != null) {
-      visitElse = () {
-        visit(node.elsePart);
-      };
-    }
-    handleIf(() => visit(node.thenPart), visitElse);
+    handleIf(() => visit(node.condition),
+             () => visit(node.thenPart),
+             node.elsePart != null ? () => visit(node.elsePart) : null);
   }
 
-  void handleIf(void visitThen(), void visitElse()) {
+  void handleIf(void visitCondition(), void visitThen(), void visitElse()) {
+    HBasicBlock conditionStartBlock = openNewBlock();
+    visitCondition();
+    SubExpression conditionGraph =
+        new SubExpression(conditionStartBlock, lastOpenedBlock, stack.last());
     bool hasElse = visitElse != null;
-    HIf condition = new HIf(popBoolified(), hasElse);
-    HBasicBlock conditionBlock = close(condition);
+    HInstruction condition = popBoolified();
+    HIf branch = new HIf(condition, hasElse);
+    HBasicBlock conditionBlock = close(branch);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1456,8 +1463,12 @@ class SsaBuilder implements Visitor {
         localsHandler = thenLocals;
       }
     }
-    condition.blockInformation =
-        new HIfBlockInformation(condition, thenGraph, elseGraph, joinBlock);
+    HIfBlockInformation info = new HIfBlockInformation(conditionGraph,
+                                                       thenGraph,
+                                                       elseGraph,
+                                                       joinBlock);
+    conditionStartBlock.blockInformation = info;
+    branch.blockInformation = info;
   }
 
   void visitLogicalAndOr(Send node, Operator op) {
@@ -1477,6 +1488,7 @@ class SsaBuilder implements Visitor {
     //   t0 = boolify(x);
     //   if (not(t0)) t1 = boolify(y);
     //   result = phi(t0, t1);
+    HBasicBlock leftBlock = openNewBlock();
     left();
     HInstruction boolifiedLeft = popBoolified();
     HInstruction condition;
@@ -1486,8 +1498,10 @@ class SsaBuilder implements Visitor {
       condition = new HNot(boolifiedLeft);
       add(condition);
     }
+    SubExpression leftGraph =
+        new SubExpression(leftBlock, lastOpenedBlock, boolifiedLeft);
     HIf branch = new HIf(condition, false);
-    HBasicBlock leftBlock = close(branch);
+    leftBlock = close(branch);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
     HBasicBlock rightBlock = addNewBlock();
@@ -1496,7 +1510,8 @@ class SsaBuilder implements Visitor {
 
     right();
     HInstruction boolifiedRight = popBoolified();
-    SubGraph rightGraph = new SubGraph(rightBlock, current);
+    SubExpression rightGraph =
+        new SubExpression(rightBlock, current, boolifiedRight);
     rightBlock = close(new HGoto());
 
     HBasicBlock joinBlock = addNewBlock();
@@ -1504,8 +1519,10 @@ class SsaBuilder implements Visitor {
     rightBlock.addSuccessor(joinBlock);
     open(joinBlock);
 
+    leftGraph.start.blockInformation =
+        new HAndOrBlockInformation(isAnd, leftGraph, rightGraph, joinBlock);
     branch.blockInformation =
-        new HIfBlockInformation(branch, rightGraph, null, joinBlock);
+        new HIfBlockInformation(leftGraph, rightGraph, null, joinBlock);
 
     localsHandler.mergeWith(savedLocals, joinBlock);
     HPhi result = new HPhi.manyInputs(null,
@@ -2584,9 +2601,7 @@ class SsaBuilder implements Visitor {
     assert(targetElement.isBreakTarget);
     JumpHandler handler = new JumpHandler(this, targetElement);
     // Introduce a new basic block.
-    HBasicBlock entryBlock = graph.addNewBlock();
-    goto(current, entryBlock);
-    open(entryBlock);
+    HBasicBlock entryBlock = openNewBlock();
     hackAroundPossiblyAbortingBody(node, () { visit(body); });
     SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
 
@@ -2606,9 +2621,8 @@ class SsaBuilder implements Visitor {
 
     if (hasBreak) {
       // There was at least one reachable break, so the label is needed.
-      HLabeledBlockInformation blockInfo =
+      entryBlock.blockInformation =
           new HLabeledBlockInformation(bodyGraph, joinBlock, handler.labels());
-      entryBlock.labeledBlockInformation = blockInfo;
     }
     handler.close();
   }
@@ -2648,9 +2662,7 @@ class SsaBuilder implements Visitor {
   visitSwitchStatement(SwitchStatement node) {
     work.allowSpeculativeOptimization = false;
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    HBasicBlock startBlock = graph.addNewBlock();
-    goto(current, startBlock);
-    open(startBlock);
+    HBasicBlock startBlock = openNewBlock();
     visit(node.expression);
     HInstruction expression = pop();
     if (node.cases.isEmpty()) {
@@ -2690,7 +2702,7 @@ class SsaBuilder implements Visitor {
       // The joinblock is not used.
       joinBlock = null;
     }
-    startBlock.labeledBlockInformation = new HLabeledBlockInformation.implicit(
+    startBlock.blockInformation = new HLabeledBlockInformation.implicit(
         new SubGraph(startBlock, lastBlock),
         joinBlock,
         elements[node]);
@@ -2755,19 +2767,19 @@ class SsaBuilder implements Visitor {
       handleLogicalAndOr(left, right, isAnd: false);
     }
 
-    buildTests(expressions);
-    HInstruction result = popBoolified();
-
     if (node.isDefaultCase) {
-      // Don't actually use the condition result.
-      // This must be final case, so don't check for abort.
+      buildTests(expressions);
+      // Throw away the test result. We always execute the default case.
+      pop();
       visit(node.statements);
     } else {
-      stack.add(result);
       if (cases.tail.isEmpty()) {
-        handleIf(() { visit(node.statements); }, null);
+        handleIf(() { buildTests(expressions); },
+                 () { visit(node.statements); },
+                 null);
       } else {
-        handleIf(() { visitStatementsAndAbort(); },
+        handleIf(() { buildTests(expressions); },
+                 () { visitStatementsAndAbort(); },
                  () { buildSwitchCases(cases.tail, expression); });
       }
     }
@@ -2779,9 +2791,7 @@ class SsaBuilder implements Visitor {
 
   visitTryStatement(TryStatement node) {
     work.allowSpeculativeOptimization = false;
-    HBasicBlock enterBlock = graph.addNewBlock();
-    close(new HGoto()).addSuccessor(enterBlock);
-    open(enterBlock);
+    HBasicBlock enterBlock = openNewBlock();
     HTry tryInstruction = new HTry();
     List<HBasicBlock> blocks = <HBasicBlock>[];
     blocks.add(close(tryInstruction));
@@ -2849,14 +2859,13 @@ class SsaBuilder implements Visitor {
           close(new HThrow(exception, isRethrow: true));
         } else {
           CatchBlock newBlock = link.head;
-          pushCondition(newBlock);
-          handleIf(visitThen, visitElse);
+          handleIf(() { pushCondition(newBlock); },
+                   visitThen, visitElse);
         }
       }
 
       CatchBlock firstBlock = link.head;
-      pushCondition(firstBlock);
-      handleIf(visitThen, visitElse);
+      handleIf(() { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
       rethrowableException = oldRethrowableException;
     }
@@ -2911,7 +2920,9 @@ class SsaBuilder implements Visitor {
 
   /** HACK HACK HACK */
   void hackAroundPossiblyAbortingBody(Node statement, void body()) {
-    stack.add(graph.addConstantBool(true));
+    visitCondition() {
+      stack.add(graph.addConstantBool(true));
+    }
     buildBody() {
       // TODO(lrn): Make sure to take continue into account.
       body();
@@ -2919,7 +2930,7 @@ class SsaBuilder implements Visitor {
         compiler.reportWarning(statement, "aborting loop body");
       }
     }
-    handleIf(buildBody, null);
+    handleIf(visitCondition, buildBody, null);
   }
 }
 

@@ -338,7 +338,7 @@ void generateMethodWithPrototypeCheck(Compiler compiler,
                                       StringBuffer buffer,
                                       String methodName,
                                       String code,
-                                      String parameters) {     
+                                      String parameters) {
   buffer.add("  if (Object.getPrototypeOf(this).hasOwnProperty");
   buffer.add("('$methodName')) {\n");
   buffer.add("  $code");
