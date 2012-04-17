@@ -240,8 +240,6 @@ class ClosureTranslator extends AbstractVisitor {
     Element box = null;
     Map<Element, Element> scopeMapping = new Map<Element, Element>();
     for (Element element in scopeVariables) {
-      // No need to box non-assignable elements.
-      if (!element.isAssignable()) continue;
       if (capturedVariableMapping.containsKey(element)) {
         if (box == null) {
           // TODO(floitsch): construct better box names.
@@ -355,6 +353,9 @@ class ClosureTranslator extends AbstractVisitor {
       closureData = new ClosureData(null, null, null, thisElement);
     }
     scopeVariables = new List<Element>();
+
+    // TODO(floitsch): a named function is visible from inside itself. Add
+    // the element to the block.
 
     // We have to declare the implicit 'this' parameter.
     if (!insideClosure && closureData.thisElement !== null) {
