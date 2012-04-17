@@ -29,21 +29,37 @@ writeScript(Uri uri, List<String> chunks) {
   }
   stream.closeSync();
 
-  // TODO(ahe): Make script executable.
   // TODO(ahe): Also make a .bat file for Windows.
+
+  if (new Platform().operatingSystem() != 'windows') {
+    onExit(int exitCode, String stdout, String stderr) {
+      if (exitCode != 0) {
+        print(stdout);
+        print(stderr);
+        exit(exitCode);
+      }
+    }
+    new Process.run('/bin/chmod', ['+x', uri.path], null, onExit);
+  }
 }
 
 buildScript(Uri uri) {
+  String dart2jsPath =
+      uri.resolve('../../lib/compiler/implementation/dart2js.dart').path;
+  String libraryRoot = uri.resolve('../../').path;
   return """
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 #import('dart:io');
 
-#import('${uri.resolve('../../lib/compiler/implementation/dart2js.dart').path}');
+#import('$dart2jsPath');
 
 class Helper {
   void run() {
     try {
-      List<String> argv = ['--library-root=${uri.resolve('../../').path}'];
+      List<String> argv = ['--library-root=$libraryRoot'];
       argv.addAll(new Options().arguments);
       compile(argv);
     } catch (var exception, var trace) {
