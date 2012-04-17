@@ -275,12 +275,20 @@ class ArgumentGraphVisitor : public ValueGraphVisitor {
 //
 // We expect that AstNode in test contexts either have only nonlocal exits
 // or else control flow has both true and false successors.
+//
+// The node_id and token_index are used in checked mode to verify that the
+// condition of the test is of type bool.
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
-  TestGraphVisitor(FlowGraphBuilder* owner, intptr_t temp_index)
+  TestGraphVisitor(FlowGraphBuilder* owner,
+                   intptr_t temp_index,
+                   intptr_t condition_node_id,
+                   intptr_t condition_token_index)
       : ValueGraphVisitor(owner, temp_index),
         true_successor_address_(NULL),
-        false_successor_address_(NULL) {
+        false_successor_address_(NULL),
+        condition_node_id_(condition_node_id),
+        condition_token_index_(condition_token_index) {
   }
 
   // Visit functions overridden by this class.
@@ -295,6 +303,9 @@ class TestGraphVisitor : public ValueGraphVisitor {
     ASSERT(false_successor_address_ != NULL);
     return false_successor_address_;
   }
+
+  intptr_t condition_node_id() const { return condition_node_id_; }
+  intptr_t condition_token_index() const { return condition_token_index_; }
 
  private:
   // Construct and concatenate a Branch instruction to this graph fragment.
@@ -311,6 +322,9 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // Output parameters.
   TargetEntryInstr** true_successor_address_;
   TargetEntryInstr** false_successor_address_;
+
+  intptr_t condition_node_id_;
+  intptr_t condition_token_index_;
 };
 
 }  // namespace dart

@@ -160,6 +160,15 @@ void EffectGraphVisitor::BuildLoadContext(
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
+  if (FLAG_enable_type_checks) {
+    AssertBooleanComp* assert_boolean =
+        new AssertBooleanComp(condition_node_id(),
+                              condition_token_index(),
+                              owner()->try_index(),
+                              value);
+    AddInstruction(new BindInstr(temp_index(), assert_boolean));
+    value = new TempVal(temp_index());
+  }
   BranchInstr* branch = new BranchInstr(value);
   AddInstruction(branch);
   CloseFragment();
@@ -298,7 +307,10 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   // operator.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
     // See ValueGraphVisitor::VisitBinaryOpNode.
-    TestGraphVisitor for_left(owner(), temp_index());
+    TestGraphVisitor for_left(owner(),
+                              temp_index(),
+                              node->left()->id(),
+                              node->left()->token_index());
     node->left()->Visit(&for_left);
     EffectGraphVisitor for_right(owner(), temp_index());
     node->right()->Visit(&for_right);
@@ -343,19 +355,26 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     const Bool& bool_true = Bool::ZoneHandle(Bool::True());
     const Bool& bool_false = Bool::ZoneHandle(Bool::False());
 
-    TestGraphVisitor for_test(owner(), temp_index());
+    TestGraphVisitor for_test(owner(),
+                              temp_index(),
+                              node->left()->id(),
+                              node->left()->token_index());
     node->left()->Visit(&for_test);
-    if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in kAND/kOR");
-    }
 
     ValueGraphVisitor for_right(owner(), temp_index());
     node->right()->Visit(&for_right);
+    Value* right_value = for_right.value();
     if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in kAND/kOR");
+      AssertBooleanComp* assert_boolean =
+          new AssertBooleanComp(node->right()->id(),
+                                node->right()->token_index(),
+                                owner()->try_index(),
+                                right_value);
+      for_right.AddInstruction(new BindInstr(temp_index(), assert_boolean));
+      right_value = new TempVal(temp_index());
     }
     StrictCompareComp* comp = new StrictCompareComp(Token::kEQ_STRICT,
-        for_right.value(), new ConstantVal(bool_true));
+        right_value, new ConstantVal(bool_true));
     for_right.AddInstruction(new BindInstr(temp_index(), comp));
 
     if (node->kind() == Token::kAND) {
@@ -569,6 +588,15 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     } else {
       AddInstruction(new BindInstr(temp_index(), comp));
       Value* eq_result = new TempVal(temp_index());
+      if (FLAG_enable_type_checks) {
+        AssertBooleanComp* assert_boolean =
+            new AssertBooleanComp(node->id(),
+                                  node->token_index(),
+                                  owner()->try_index(),
+                                  eq_result);
+        AddInstruction(new BindInstr(temp_index(), assert_boolean));
+        eq_result = new TempVal(temp_index());
+      }
       BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
       ReturnComputation(negate);
     }
@@ -598,10 +626,17 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     ValueGraphVisitor for_value(owner(), temp_index());
     node->operand()->Visit(&for_value);
     Append(for_value);
+    Value* value = for_value.value();
     if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in kNOT");
+      AssertBooleanComp* assert_boolean =
+          new AssertBooleanComp(node->operand()->id(),
+                                node->operand()->token_index(),
+                                owner()->try_index(),
+                                value);
+      AddInstruction(new BindInstr(temp_index(), assert_boolean));
+      value = new TempVal(temp_index());
     }
-    BooleanNegateComp* negate = new BooleanNegateComp(for_value.value());
+    BooleanNegateComp* negate = new BooleanNegateComp(value);
     ReturnComputation(negate);
     return;
   }
@@ -865,11 +900,11 @@ void ValueGraphVisitor::VisitIncrOpIndexedNode(IncrOpIndexedNode* node) {
 
 
 void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
-  TestGraphVisitor for_test(owner(), temp_index());
+  TestGraphVisitor for_test(owner(),
+                            temp_index(),
+                            node->condition()->id(),
+                            node->condition()->token_index());
   node->condition()->Visit(&for_test);
-  if (FLAG_enable_type_checks) {
-    Bailout("GenerateConditionTypeCheck in conditional expr");
-  }
 
   // Translate the subexpressions for their effects.
   EffectGraphVisitor for_true(owner(), temp_index());
@@ -882,11 +917,11 @@ void EffectGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 
 
 void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
-  TestGraphVisitor for_test(owner(), temp_index());
+  TestGraphVisitor for_test(owner(),
+                            temp_index(),
+                            node->condition()->id(),
+                            node->condition()->token_index());
   node->condition()->Visit(&for_test);
-  if (FLAG_enable_type_checks) {
-    Bailout("GenerateConditionTypeCheck in conditional expr");
-  }
 
   // Ensure that the value of the true/false subexpressions are named with
   // the same temporary name.
@@ -917,11 +952,11 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 //                      true_branch: <Sequence>
 //                      false_branch: <Sequence> }
 void EffectGraphVisitor::VisitIfNode(IfNode* node) {
-  TestGraphVisitor for_test(owner(), temp_index());
+  TestGraphVisitor for_test(owner(),
+                            temp_index(),
+                            node->condition()->id(),
+                            node->condition()->token_index());
   node->condition()->Visit(&for_test);
-  if (FLAG_enable_type_checks) {
-    Bailout("GenerateConditionTypeCheck in if");
-  }
 
   EffectGraphVisitor for_true(owner(), temp_index());
   EffectGraphVisitor for_false(owner(), temp_index());
@@ -1008,7 +1043,10 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   GrowableArray<TargetEntryInstr*> case_entries;
   for (intptr_t i = 0; i < len; i++) {
     AstNode* case_expr = node->case_expressions()->NodeAt(i);
-    TestGraphVisitor for_case_expression(owner(), temp_index());
+    TestGraphVisitor for_case_expression(owner(),
+                                         temp_index(),
+                                         case_expr->id(),
+                                         case_expr->token_index());
     if (i == 0) {
       case_entries.Add(NULL);  // Not to be used
       case_expr->Visit(&for_case_expression);
@@ -1088,13 +1126,12 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
-  TestGraphVisitor for_test(owner(), temp_index());
+  TestGraphVisitor for_test(owner(),
+                            temp_index(),
+                            node->condition()->id(),
+                            node->condition()->token_index());
   node->condition()->Visit(&for_test);
   ASSERT(!for_test.is_empty());  // Language spec.
-
-  if (FLAG_enable_type_checks) {
-    Bailout("GenerateConditionTypeCheck in while");
-  }
 
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -1125,13 +1162,12 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
 
-  TestGraphVisitor for_test(owner(), temp_index());
+  TestGraphVisitor for_test(owner(),
+                            temp_index(),
+                            node->condition()->id(),
+                            node->condition()->token_index());
   node->condition()->Visit(&for_test);
   ASSERT(is_open());
-
-  if (FLAG_enable_type_checks) {
-    Bailout("GenerateConditionTypeCheck in do while");
-  }
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join = new JoinEntryInstr();
@@ -1235,12 +1271,12 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     }
   } else {
     TargetEntryInstr* loop_exit = new TargetEntryInstr();
-    TestGraphVisitor for_test(owner(), temp_index());
+    TestGraphVisitor for_test(owner(),
+                              temp_index(),
+                              node->condition()->id(),
+                              node->condition()->token_index());
     node->condition()->Visit(&for_test);
     Append(for_test);
-    if (FLAG_enable_type_checks) {
-      Bailout("GenerateConditionTypeCheck in for");
-    }
     *for_test.true_successor_address() = body_entry;
     *for_test.false_successor_address() = loop_exit;
     if (node->label()->join_for_break() == NULL) {
@@ -1771,7 +1807,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
     }
     AssertAssignableComp* assert_assignable =
         new AssertAssignableComp(node->id(),
-                                 node->local().token_index(),
+                                 node->value()->token_index(),
                                  owner()->try_index(),
                                  value,
                                  type_arguments,
@@ -1851,7 +1887,7 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
     }
     AssertAssignableComp* assert_assignable =
         new AssertAssignableComp(node->id(),
-                                 node->field().token_index(),
+                                 node->value()->token_index(),
                                  owner()->try_index(),
                                  store_value,
                                  type_arguments,
@@ -2268,7 +2304,7 @@ void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
   OS::Print("AssertAssignable(");
   comp->value()->Accept(this);
   OS::Print(", %s, '%s'",
-            comp->dst_type().ToCString(),
+            String::Handle(comp->dst_type().Name()).ToCString(),
             comp->dst_name().ToCString());
   if (comp->type_arguments() != NULL) {
     OS::Print(" (type-arg:");

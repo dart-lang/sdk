@@ -439,7 +439,6 @@ void FlowGraphCompiler::VisitAssertBoolean(AssertBooleanComp* comp) {
   // Check that the type of the value is allowed in conditional context.
   // Call the runtime if the object is not bool::true or bool::false.
   Label done;
-  __ popq(RAX);
   __ CompareObject(RAX, Bool::ZoneHandle(Bool::True()));
   __ j(EQUAL, &done, Assembler::kNearJump);
   __ CompareObject(RAX, Bool::ZoneHandle(Bool::False()));
