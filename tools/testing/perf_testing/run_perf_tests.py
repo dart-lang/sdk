@@ -67,9 +67,11 @@ class TestRunner(object):
         out.seek(0, os.SEEK_END)
     p = subprocess.Popen(cmd_list, stdout = out, stderr=subprocess.PIPE,
                          stdin=subprocess.PIPE, shell=self.has_shell)
-    output, _ = p.communicate(std_in);
+    output, stderr = p.communicate(std_in);
     if output:
       print output
+    if stderr:
+      print stderr
     return output
 
   def time_cmd(self, cmd):
@@ -865,7 +867,7 @@ class DromaeoTest(RuntimePerformanceTest):
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
           self.add_svn_revision_to_trace(self.test.trace_file)
-          file_path = os.path.join(os.getcwd(), dromaeo_path,
+          file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
           self.test.test_runner.run_cmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
