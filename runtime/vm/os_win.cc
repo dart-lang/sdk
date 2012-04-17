@@ -160,16 +160,28 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 }
 
 
+// TODO(asiva): Consider moving this to "globals.h".
+#ifndef va_copy
+#define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
+#endif  /* va_copy */
+
+
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
   if (str == NULL || size == 0) {
     return _vscprintf(format, args);
   }
-  int written =_vsnprintf(str, size, format, args);
+  va_list args_copy;
+  va_copy(args_copy, args);
+  int written =_vsnprintf(str, size, format, args_copy);
+  va_end(args_copy);
   if (written < 0) {
     // _vsnprintf returns -1 if the number of characters to be written is
     // larger than 'size', so we call _vscprintf which returns the number
     // of characters that would have been written.
-    written = _vscprintf(format, args);
+    va_list args_retry;
+    va_copy(args_retry, args);
+    written = _vscprintf(format, args_retry);
+    va_end(args_retry);
   }
   // Make sure to zero-terminate the string if the output was
   // truncated or if there was an error.
