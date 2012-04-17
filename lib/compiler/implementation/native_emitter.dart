@@ -73,8 +73,7 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(
-            member, attachTo, buffer, isNative: true);
+        compiler.emitter.addInstanceMember(member, attachTo, buffer);
       }
     }
   }
@@ -119,8 +118,7 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(
-            member, attachTo, buffer, isNative: true);
+        compiler.emitter.addInstanceMember(member, attachTo, buffer);
       }
     }
 
