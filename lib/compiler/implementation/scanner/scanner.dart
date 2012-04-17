@@ -9,7 +9,7 @@ interface Scanner {
 /**
  * Common base class for a Dart scanner.
  */
-class AbstractScanner<T> implements Scanner {
+class AbstractScanner<T extends SourceString> implements Scanner {
   abstract int advance();
   abstract int nextByte();
   abstract int peek();
