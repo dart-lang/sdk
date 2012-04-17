@@ -416,8 +416,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * Factory constructor can instantiate any class and return it non-abstract class instance, but
-   * spec requires warnings, so we provide it, but using different constant.
+   * Factory constructor can instantiate any class and return it non-abstract class instance, Even
+   * thought this is an abstract class, there should be no warnings for the invocation of the
+   * factory constructor.
    */
   public void test_abstractClass_whenInstantiate_factoryConstructor()
       throws Exception {
@@ -425,18 +426,47 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         analyzeLibrary(
             getName(),
             makeCode(
-                "abstract class A {",
+                "abstract class A {",  // explicitly abstract
                 "  factory A() {",
                 "    return null;",
                 "  }",
                 "}",
                 "class C {",
                 "  foo() {",
-                "    return new A();",
+                "    return new A();",  // no error - factory constructor
                 "  }",
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors());
+  }
+
+  /**
+   * Factory constructor can instantiate any class and return it non-abstract class instance, Even
+   * thought this is an abstract class, there should be no warnings for the invocation of the
+   * factory constructor.
+   */
+  public void test_abstractClass_whenInstantiate_factoryConstructor2()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A extends B {",  // class doesn't implement all abstract methods
+                "  factory A() {",
+                "    return null;",
+                "  }",
+                "}",
+                "class B {",
+                "  abstract method();",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",  // no error, factory constructor
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 1, 7, 1));
   }
 
   /**
