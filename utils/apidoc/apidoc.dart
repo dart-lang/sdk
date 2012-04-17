@@ -90,7 +90,7 @@ void main() {
 
   print('Cross-referencing dart:dom and dart:html...');
   HtmlDiff.initialize();
-  _diff = new HtmlDiff();
+  _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
   world.reset();
 
