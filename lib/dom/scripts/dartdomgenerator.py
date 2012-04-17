@@ -85,17 +85,13 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
     common_database.LoadFromCache()
   else:
     common_database.Load()
-  # Remove these types since they are mapped directly to dart.
-  common_database.DeleteInterface('DOMStringMap')
-  common_database.DeleteInterface('DOMStringList')
 
   generator.RenameTypes(common_database, {
       # W3C -> Dart renames
       'AbstractView': 'Window',
       'Function': 'EventListener',
-      'DOMStringMap': 'Map<String, String>',
-      'DOMStringList': 'List<String>',
       }, True)
+
   generator.FilterMembersWithUnidentifiedTypes(common_database)
   webkit_database = common_database.Clone()
 

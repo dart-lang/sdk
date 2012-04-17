@@ -95,7 +95,7 @@ class LocationCrossFrameImplementation extends DOMWrapperBase implements Locatio
   String get typeName() => "Location";
 }
 
-class DOMStringMapImplementation extends DOMWrapperBase implements Map<String, String> {
+class DOMStringMapImplementation extends DOMWrapperBase implements DOMStringMap {
   static DOMStringMapImplementation _createDOMStringMapImplementation() => new DOMStringMapImplementation._createDOMStringMapImplementation();
   DOMStringMapImplementation._createDOMStringMapImplementation();
 
@@ -111,4 +111,11 @@ class DOMStringMapImplementation extends DOMWrapperBase implements Map<String, S
   Collection<String> getValues() => Maps.getValues(this);
   int get length() => Maps.length(this);
   bool isEmpty() => Maps.isEmpty(this);
+}
+
+class DOMStringListImplementation extends DOMWrapperBase implements DOMStringList {
+  static DOMStringListImplementation _createDOMStringListImplementation() => new DOMStringListImplementation._createDOMStringListImplementation();
+  DOMStringListImplementation._createDOMStringListImplementation();
+
+  // FIXME: provide implementation.
 }

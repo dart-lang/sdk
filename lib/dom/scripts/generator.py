@@ -9,6 +9,8 @@ Dart APIs from the IDL database."""
 import re
 
 _pure_interfaces = set([
+    'DOMStringList',
+    'DOMStringMap',
     'ElementTimeControl',
     'ElementTraversal',
     'MediaQueryListListener',
@@ -543,11 +545,6 @@ _idl_type_registry = {
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
-    'List<String>': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
-    # TODO: there is no Map<String, String> type in idls. Fix the
-    # fremontcut builder and remove this entry.
-    'Map<String, String>': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>',
-        conversion_includes=['DOMStringMap']),
     'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
