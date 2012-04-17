@@ -20,6 +20,7 @@ import subprocess
 import sys
 import urllib
 import urllib2
+import zipfile
 
 def run_cmd(cmd, stdin=None):
   """Run the command on the command line in the shell. We print the output of
@@ -28,9 +29,11 @@ def run_cmd(cmd, stdin=None):
   print cmd
   p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
       stdin=subprocess.PIPE, shell=True)
-  output, not_used = p.communicate(input=stdin)
+  output, stderr = p.communicate(input=stdin)
   if output:
     print output
+  if stderr:
+    print stderr
 
 def parse_args():
   parser = optparse.OptionParser()
@@ -131,8 +134,9 @@ class GoogleCodeInstaller(object):
     urllib.urlretrieve(self.google_code_download() + '/' + download_name,
         os.path.join(self.download_location, download_name))
     if download_name.endswith('.zip'):
-      run_cmd('unzip -u %s -d %s' % (os.path.join(self.download_location,
-          download_name), self.download_location))
+      z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
+      z.extractall(self.download_location)
+      z.close()
       os.remove(os.path.join(self.download_location, download_name))
 
   @property
