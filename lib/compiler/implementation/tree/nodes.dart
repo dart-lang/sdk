@@ -1375,7 +1375,7 @@ class SwitchCase extends Node {
     LinkBuilder<Token> builder = new LinkBuilder<Token>();
     Link<Expression> link = expressions.nodes;
     while (token.stringValue === 'case') {
-      assert(token.next === link.head.getBeginToken(0));
+      assert(token.next === link.head.getBeginToken());
       builder.addLast(token);
       Token colon = link.head.getEndToken().next;
       token = colon.next;

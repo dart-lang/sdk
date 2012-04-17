@@ -18,7 +18,7 @@ class D8ScannerBench extends ScannerBench {
     return s.length;
   }
 
-  Scanner makeScanner(bytes) => new StringScanner(bytes);
+  StringScanner makeScanner(bytes) => new StringScanner(bytes);
 
   void checkExistence(String filename) {
   }
