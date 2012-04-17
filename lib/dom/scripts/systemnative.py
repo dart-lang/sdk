@@ -567,7 +567,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
       dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
-      argument_count = 1 + len(info.arg_infos)
+      argument_count = 1 + len(info.param_infos)
       self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
           'Callback', True)
       return
@@ -604,7 +604,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     native_name = info.name
     if self._native_version > 1:
       native_name = '%s_%s' % (native_name, self._native_version)
-    argument_list = ', '.join([info.arg_infos[i][0]
+    argument_list = ', '.join([info.param_infos[i].name
                                for (i, arg) in enumerate(operation.arguments)])
 
     # Generate dispatcher.

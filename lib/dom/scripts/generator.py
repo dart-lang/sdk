@@ -131,8 +131,26 @@ def MatchSourceFilter(filter, thing):
   else:
     return any(token in thing.annotations for token in filter)
 
+
 def DartType(idl_type_name):
   return GetIDLTypeInfo(idl_type_name).dart_type()
+
+
+class ParamInfo(object):
+  """Holder for various information about a parameter of a Dart operation.
+
+  Attributes:
+    name: Name of parameter.
+    type_id: Original type id.  None for merged types.
+    dart_type: DartType of parameter.
+    default_value: String holding the expression.  None for mandatory parameter.
+  """
+  def __init__(self, name, type_id, dart_type, default_value):
+    self.name = name
+    self.type_id = type_id
+    self.dart_type = dart_type
+    self.default_value = default_value
+
 
 # Given a list of overloaded arguments, render a dart argument.
 def _DartArg(args, interface):
@@ -142,20 +160,24 @@ def _DartArg(args, interface):
 
   # Given a list of overloaded arguments, choose a suitable type.
   def OverloadedType(args):
-    typeIds = sorted(set(DartType(arg.type.id) for arg in args))
-    if len(typeIds) == 1:
-      return typeIds[0]
+    type_ids = sorted(set(arg.type.id for arg in args))
+    dart_types = sorted(set(DartType(arg.type.id) for arg in args))
+    if len(dart_types) == 1:
+      if len(type_ids) == 1:
+        return (type_ids[0], dart_types[0])
+      else:
+        return (None, dart_types[0])
     else:
-      return TypeName(typeIds, interface)
+      return (None, TypeName(type_ids, interface))
 
   filtered = filter(None, args)
   optional = any(not arg or arg.is_optional for arg in args)
-  type = OverloadedType(filtered)
+  (type_id, dart_type) = OverloadedType(filtered)
   name = OverloadedName(filtered)
   if optional:
-    return (name, type, 'null')
+    return ParamInfo(name, type_id, dart_type, 'null')
   else:
-    return (name, type, None)
+    return ParamInfo(name, type_id, dart_type, None)
 
 
 def AnalyzeOperation(interface, operations):
@@ -175,7 +197,7 @@ def AnalyzeOperation(interface, operations):
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
   info.js_name = info.declared_name
   info.type_name = DartType(operations[0].type.id)   # TODO: widen.
-  info.arg_infos = args
+  info.param_infos = args
   return info
 
 
@@ -213,7 +235,7 @@ def AnalyzeConstructor(interface):
   info.name = name
   info.js_name = name
   info.type_name = interface.id
-  info.arg_infos = args
+  info.param_infos = args
   return info
 
 
@@ -257,6 +279,33 @@ def DartDomNameOfAttribute(attr):
   name = attr.ext_attrs.get('DartName', None) or name
   return name
 
+
+def TypeOrNothing(dart_type, comment=None):
+  """Returns string for declaring something with |dart_type| in a context
+  where a type may be omitted.
+  The string is empty or has a trailing space.
+  """
+  if dart_type == 'Dynamic':
+    if comment:
+      return '/*%s*/ ' % comment   # Just a comment foo(/*T*/ x)
+    else:
+      return ''                    # foo(x) looks nicer than foo(Dynamic x)
+  else:
+    return dart_type + ' '
+
+
+def TypeOrVar(dart_type, comment=None):
+  """Returns string for declaring something with |dart_type| in a context
+  where if a type is omitted, 'var' must be used instead."""
+  if dart_type == 'Dynamic':
+    if comment:
+      return 'var /*%s*/' % comment   # e.g.  var /*T*/ x;
+    else:
+      return 'var'                    # e.g.  var x;
+  else:
+    return dart_type
+
+
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.
 
@@ -264,13 +313,14 @@ class OperationInfo(object):
     overloads: A list of IDL operation overloads with the same name.
     name: A string, the simple name of the operation.
     type_name: A string, the name of the return type of the operation.
-    arg_infos: A list of (name, type, default_value) tuples.
-        default_value is None for mandatory arguments.
+    param_infos: A list of ParamInfo.
   """
 
   def ParametersInterfaceDeclaration(self):
     """Returns a formatted string declaring the parameters for the interface."""
-    return self._FormatArgs(self.arg_infos, True)
+    return self._FormatParams(
+        self.param_infos, True,
+        lambda param: TypeOrNothing(param.dart_type, param.type_id))
 
   def ParametersImplementationDeclaration(self, rename_type=None):
     """Returns a formatted string declaring the parameters for the
@@ -278,44 +328,54 @@ class OperationInfo(object):
 
     Args:
       rename_type: A function that allows the types to be renamed.
+        The function is applied to the parameter's dart_type.
     """
-    args = self.arg_infos
     if rename_type:
-      args = [(name, rename_type(type), default)
-              for (name, type, default) in args]
-    return self._FormatArgs(args, False)
+      def renamer(param_info):
+        return TypeOrNothing(rename_type(param_info.dart_type))
+      return self._FormatParams(self.param_infos, False, renamer)
+    else:
+      def type_fn(param_info):
+        if param_info.dart_type == 'Dynamic':
+          if param_info.type_id:
+            # It is more informative to use a comment IDL type.
+            return '/*%s*/' % param_info.type_id
+          else:
+            return 'var'
+        else:
+          return param_info.dart_type
+      return self._FormatParams(
+          self.param_infos, False,
+          lambda param: TypeOrNothing(param.dart_type, param.type_id))
 
   def ParametersAsArgumentList(self):
-    """Returns a formatted string declaring the parameters names as an argument
-    list.
+    """Returns a string of the parameter names suitable for passing the
+    parameters as arguments.
     """
-    return ', '.join(map(lambda arg_info: arg_info[0], self.arg_infos))
+    return ', '.join(map(lambda param_info: param_info.name, self.param_infos))
 
-  def _FormatArgs(self, args, is_interface):
-    def FormatArg(arg_info):
-      """Returns an argument declaration fragment for an argument info tuple."""
-      (name, type, default) = arg_info
-      if default:
-        return '%s %s = %s' % (type, name, default)
+  def _FormatParams(self, params, is_interface, type_fn):
+    def FormatParam(param):
+      """Returns a parameter declaration fragment for an ParamInfo."""
+      type = type_fn(param)
+      if is_interface or param.default_value is None:
+        return '%s%s' % (type, param.name)
       else:
-        return '%s %s' % (type, name)
+        return '%s%s = %s' % (type, param.name, param.default_value)
 
     required = []
     optional = []
-    for (name, type, default) in args:
-      if default:
-        if is_interface:
-          optional.append((name, type, None))  # Default values illegal.
-        else:
-          optional.append((name, type, default))
+    for param_info in params:
+      if param_info.default_value:
+        optional.append(param_info)
       else:
         if optional:
-          raise Exception('Optional arguments cannot precede required ones: '
+          raise Exception('Optional parameters cannot precede required ones: '
                           + str(args))
-        required.append((name, type, None))
-    argtexts = map(FormatArg, required)
+        required.append(param_info)
+    argtexts = map(FormatParam, required)
     if optional:
-      argtexts.append('[' + ', '.join(map(FormatArg, optional)) + ']')
+      argtexts.append('[' + ', '.join(map(FormatParam, optional)) + ']')
     return ', '.join(argtexts)
 
 
@@ -357,14 +417,15 @@ def IndentText(text, indent):
 
 # Given a sorted sequence of type identifiers, return an appropriate type
 # name
-def TypeName(typeIds, interface):
+def TypeName(type_ids, interface):
   # Dynamically type this field for now.
-  return 'var'
+  return 'Dynamic'
 
 # ------------------------------------------------------------------------------
 
 class IDLTypeInfo(object):
-  def __init__(self, idl_type, dart_type=None, native_type=None, ref_counted=True,
+  def __init__(self, idl_type, dart_type=None,
+               native_type=None, ref_counted=True,
                has_dart_wrapper=True, conversion_template=None,
                custom_to_dart=False, conversion_includes=[]):
     self._idl_type = idl_type
@@ -441,12 +502,15 @@ class IDLTypeInfo(object):
 
   def conversion_includes(self):
     def NeededDartTypes(type_name):
+      if re.match(r'Dynamic(\/.*)?$', type_name): return []
       match = re.match(r'List<(\w*)>$', type_name)
       if match:
         return NeededDartTypes(match.group(1))
       return [type_name]
 
-    return ['"Dart%s.h"' % include for include in NeededDartTypes(self.dart_type()) + self._conversion_includes]
+    return ['"Dart%s.h"' % include
+            for include in
+            NeededDartTypes(self.dart_type()) + self._conversion_includes]
 
   def conversion_cast(self, expression):
     if self._conversion_template:
@@ -568,7 +632,14 @@ _idl_type_registry = {
     'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
     'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
-    'IDBKey': IDLTypeInfo('IDBKey', has_dart_wrapper=False),
+    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic',
+                          native_type='IDBAny',
+                          has_dart_wrapper=False,
+                          conversion_includes=['IDBAny']),
+    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic',
+                          native_type='IDBKey',
+                          has_dart_wrapper=False,
+                          conversion_includes=['IDBKey']),
     'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
     'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),

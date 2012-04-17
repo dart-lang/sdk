@@ -175,21 +175,24 @@ class DartInterfaceGenerator(object):
       self._EmitConstant(self._members_emitter, constant)
 
   def _EmitConstant(self, emitter, constant):
-    emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
+    emitter.Emit('\n  static final $TYPE$NAME = $VALUE;\n',
                  NAME=constant.id,
-                 TYPE=DartType(constant.type.id),
+                 TYPE=TypeOrNothing(DartType(constant.type.id),
+                                    constant.type.id),
                  VALUE=constant.value)
 
   def AddAttribute(self, getter, setter):
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),
-                                 TYPE=DartType(getter.type.id));
+                                 TYPE=TypeOrVar(DartType(getter.type.id),
+                                                getter.type.id))
       return
     if getter and not setter:
-      self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
+      self._members_emitter.Emit('\n  final $TYPE$NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),
-                                 TYPE=DartType(getter.type.id));
+                                 TYPE=TypeOrNothing(DartType(getter.type.id),
+                                                    getter.type.id))
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))

@@ -107,12 +107,5 @@ html/frog_html_tests: Skip # Issue 1884
 [ $runtime == opera ]
 *: Skip
 
-[ $checked ]
-# IndexedDB tests: type check fails for IDBKey, causing Fail or Timeout.  Needs
-# to be renamed to Dynamic.
-dom/IndexedDB1Test: Skip
-dom/IndexedDB2Test: Skip
-dom/IndexedDB3Test: Skip
-
 [ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
 *: Skip

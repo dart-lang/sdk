@@ -1322,17 +1322,16 @@ class HtmlDartiumInterfaceGenerator(object):
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
         NAMED_CONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=self._UnwrappedParameters(constructor_info,
-                                            len(constructor_info.arg_infos)))
+                                            len(constructor_info.param_infos)))
 
   def _UnwrappedParameters(self, operation_info, length):
     """Returns string for an argument list that unwraps first |length|
     parameters."""
-    def UnwrapArgInfo(arg_info):
-      (name, type, value) = arg_info
+    def UnwrapParamInfo(param_info):
       # TODO(sra): Type dependent unwrapping.
-      return '_unwrap(%s)' % name
+      return '_unwrap(%s)' % param_info.name
 
-    return ', '.join(map(UnwrapArgInfo, operation_info.arg_infos[:length]))
+    return ', '.join(map(UnwrapParamInfo, operation_info.param_infos[:length]))
 
   def _BaseClassName(self, interface):
     if not interface.parents:
@@ -1614,7 +1613,7 @@ class HtmlDartiumInterfaceGenerator(object):
     def TypeCheck(name, type):
       return '%s is %s' % (name, type)
 
-    if position == len(info.arg_infos):
+    if position == len(info.param_infos):
       if len(overloads) > 1:
         raise Exception('Duplicate operations ' + str(overloads))
       operation = overloads[0]
@@ -1629,7 +1628,7 @@ class HtmlDartiumInterfaceGenerator(object):
     positive = []
     negative = []
     first_overload = overloads[0]
-    (param_name, param_type, param_default) = info.arg_infos[position]
+    param = info.param_infos[position]
 
     if position < len(first_overload.arguments):
       # FIXME: This will not work if the second overload has a more
@@ -1637,12 +1636,12 @@ class HtmlDartiumInterfaceGenerator(object):
       # void foo(Node x);
       # void foo(Element x);
       type = DartType(first_overload.arguments[position].type.id)
-      test = TypeCheck(param_name, type)
+      test = TypeCheck(param.name, type)
       pred = lambda op: (len(op.arguments) > position and
           DartType(op.arguments[position].type.id) == type)
     else:
       type = None
-      test = NullCheck(param_name)
+      test = NullCheck(param.name)
       pred = lambda op: position >= len(op.arguments)
 
     for overload in overloads:
@@ -1674,7 +1673,7 @@ class HtmlDartiumInterfaceGenerator(object):
     # will have done the test already. (It could be null too but we ignore that
     # case since all the overload behave the same and we don't know which types
     # in the IDL are not nullable.)
-    if type == param_type:
+    if type == param.dart_type:
       return self.GenerateDispatch(
           emitter, info, indent, position + 1, positive)
 

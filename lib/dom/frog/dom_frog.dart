@@ -120,7 +120,7 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _BiquadFilterNodeJs createBiquadFilter() native;
 
-  _AudioBufferJs createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  _AudioBufferJs createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
   _AudioBufferSourceNodeJs createBufferSource() native;
 
@@ -647,7 +647,7 @@ class _CanvasRenderingContextJs extends _DOMTypeJs implements CanvasRenderingCon
 
 class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
-  Dynamic fillStyle;
+  var fillStyle;
 
   String font;
 
@@ -671,7 +671,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   num shadowOffsetY;
 
-  Dynamic strokeStyle;
+  var strokeStyle;
 
   String textAlign;
 
@@ -697,15 +697,15 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void closePath() native;
 
-  _ImageDataJs createImageData(var imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataJs createImageData(imagedata_OR_sw, [num sh = null]) native;
 
   _CanvasGradientJs createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  _CanvasPatternJs createPattern(var canvas_OR_image, String repetitionType) native;
+  _CanvasPatternJs createPattern(canvas_OR_image, String repetitionType) native;
 
   _CanvasGradientJs createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
 
   void drawImageFromRect(_HTMLImageElementJs image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
 
@@ -743,7 +743,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void setCompositeOperation(String compositeOperation) native;
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setLineCap(String cap) native;
 
@@ -753,9 +753,9 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void setMiterLimit(num limit) native;
 
-  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -1204,7 +1204,7 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
 
-  String createObjectURL(var blob_OR_stream) native;
+  String createObjectURL(blob_OR_stream) native;
 
   void revokeObjectURL(String url) native;
 }
@@ -1356,7 +1356,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -1392,7 +1392,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   _WebKitPointJs webkitConvertPointFromPageToNode(_NodeJs node, _WebKitPointJs p) native;
 
-  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
@@ -1424,7 +1424,7 @@ class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList
 
   final int length;
 
-  void add(var data_OR_file, [String type = null]) native;
+  void add(data_OR_file, [String type = null]) native;
 
   void clear() native;
 
@@ -3744,7 +3744,7 @@ class _HTMLSelectElementJs extends _HTMLElementJs implements HTMLSelectElement n
 
   _NodeJs namedItem(String name) native;
 
-  void remove(var index_OR_option) native;
+  void remove(index_OR_option) native;
 
   void setCustomValidity(String error) native;
 }
@@ -4057,7 +4057,7 @@ class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   final int length;
 
-  final Dynamic state;
+  final state;
 
   void back() native;
 
@@ -4085,25 +4085,25 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   final int direction;
 
-  final _IDBKeyJs key;
+  final key;
 
-  final _IDBKeyJs primaryKey;
+  final primaryKey;
 
-  final _IDBAnyJs source;
+  final source;
 
-  void continueFunction([_IDBKeyJs key = null]) native '''
+  void continueFunction([key = null]) native '''
         if (key == null) return this['continue']();
         return this['continue'](key);
       ''';
 
   _IDBRequestJs delete() native;
 
-  _IDBRequestJs update(Dynamic value) native;
+  _IDBRequestJs update(value) native;
 }
 
 class _IDBCursorWithValueJs extends _IDBCursorJs implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  final _IDBAnyJs value;
+  final value;
 }
 
 class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBDatabase" {
@@ -4128,7 +4128,7 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(var storeName_OR_storeNames, [int mode = null]) native;
+  _IDBTransactionJs transaction(storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -4170,7 +4170,7 @@ class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException
 
 class _IDBFactoryJs extends _DOMTypeJs implements IDBFactory native "*IDBFactory" {
 
-  int cmp(_IDBKeyJs first, _IDBKeyJs second) native;
+  int cmp(first, second) native;
 
   _IDBVersionChangeRequestJs deleteDatabase(String name) native;
 
@@ -4191,11 +4191,11 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestJs count([var key_OR_range = null]) native;
+  _IDBRequestJs count([key_OR_range = null]) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native 'get';
+  _IDBRequestJs getObject(key) native 'get';
 
-  _IDBRequestJs getKey(_IDBKeyJs key) native;
+  _IDBRequestJs getKey(key) native;
 
   _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
 
@@ -4207,21 +4207,21 @@ class _IDBKeyJs extends _DOMTypeJs implements IDBKey native "*IDBKey" {
 
 class _IDBKeyRangeJs extends _DOMTypeJs implements IDBKeyRange native "*IDBKeyRange" {
 
-  final _IDBKeyJs lower;
+  final lower;
 
   final bool lowerOpen;
 
-  final _IDBKeyJs upper;
+  final upper;
 
   final bool upperOpen;
 
-  _IDBKeyRangeJs bound(_IDBKeyJs lower, _IDBKeyJs upper, [bool lowerOpen = null, bool upperOpen = null]) native;
+  _IDBKeyRangeJs bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 
-  _IDBKeyRangeJs lowerBound(_IDBKeyJs bound, [bool open = null]) native;
+  _IDBKeyRangeJs lowerBound(bound, [bool open = null]) native;
 
-  _IDBKeyRangeJs only(_IDBKeyJs value) native;
+  _IDBKeyRangeJs only(value) native;
 
-  _IDBKeyRangeJs upperBound(_IDBKeyJs bound, [bool open = null]) native;
+  _IDBKeyRangeJs upperBound(bound, [bool open = null]) native;
 }
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
@@ -4234,25 +4234,25 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   final _IDBTransactionJs transaction;
 
-  _IDBRequestJs add(Dynamic value, [_IDBKeyJs key = null]) native;
+  _IDBRequestJs add(value, [key = null]) native;
 
   _IDBRequestJs clear() native;
 
-  _IDBRequestJs count([var key_OR_range = null]) native;
+  _IDBRequestJs count([key_OR_range = null]) native;
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
-  _IDBRequestJs delete(var key_OR_keyRange) native;
+  _IDBRequestJs delete(key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native 'get';
+  _IDBRequestJs getObject(key) native 'get';
 
   _IDBIndexJs index(String name) native;
 
   _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
 
-  _IDBRequestJs put(Dynamic value, [_IDBKeyJs key = null]) native;
+  _IDBRequestJs put(value, [key = null]) native;
 }
 
 class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBRequest" {
@@ -4265,9 +4265,9 @@ class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBReq
 
   final int readyState;
 
-  final _IDBAnyJs result;
+  final result;
 
-  final _IDBAnyJs source;
+  final source;
 
   final _IDBTransactionJs transaction;
 
@@ -10967,9 +10967,9 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  void bufferData(int target, var data_OR_size, int usage) native;
+  void bufferData(int target, data_OR_size, int usage) native;
 
-  void bufferSubData(int target, int offset, var data) native;
+  void bufferSubData(int target, int offset, data) native;
 
   int checkFramebufferStatus(int target) native;
 
@@ -11145,13 +11145,13 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewJs pixels = null]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewJs pixels = null]) native;
 
   void uniform1f(_WebGLUniformLocationJs location, num x) native;
 
@@ -11290,7 +11290,7 @@ class _WebKitAnimationListJs extends _DOMTypeJs implements WebKitAnimationList n
 
 class _WebKitBlobBuilderJs extends _DOMTypeJs implements WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
-  void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
+  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
 
   _BlobJs getBlob([String contentType = null]) native;
 }
@@ -11565,11 +11565,11 @@ class _WheelEventJs extends _UIEventJs implements WheelEvent native "*WheelEvent
 
 class _WorkerJs extends _AbstractWorkerJs implements Worker native "*Worker" {
 
-  void postMessage(Dynamic message, [List messagePorts = null]) native;
+  void postMessage(message, [List messagePorts = null]) native;
 
   void terminate() native;
 
-  void webkitPostMessage(Dynamic message, [List messagePorts = null]) native;
+  void webkitPostMessage(message, [List messagePorts = null]) native;
 }
 
 class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*WorkerContext" {
@@ -11703,7 +11703,7 @@ class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native 
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  void send([var data = null]) native;
+  void send([data = null]) native;
 
   void setRequestHeader(String header, String value) native;
 }
@@ -12236,7 +12236,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   BiquadFilterNode createBiquadFilter();
 
-  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate]);
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]);
 
   AudioBufferSourceNode createBufferSource();
 
@@ -12851,7 +12851,7 @@ interface CanvasRenderingContext {
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
-  Dynamic fillStyle;
+  var /*custom*/ fillStyle;
 
   String font;
 
@@ -12875,7 +12875,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   num shadowOffsetY;
 
-  Dynamic strokeStyle;
+  var /*custom*/ strokeStyle;
 
   String textAlign;
 
@@ -12901,15 +12901,15 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void closePath();
 
-  ImageData createImageData(var imagedata_OR_sw, [num sh]);
+  ImageData createImageData(imagedata_OR_sw, [num sh]);
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
 
-  CanvasPattern createPattern(var canvas_OR_image, String repetitionType);
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType);
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
-  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
   void drawImageFromRect(HTMLImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
 
@@ -12947,7 +12947,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setCompositeOperation(String compositeOperation);
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setLineCap(String cap);
 
@@ -12957,9 +12957,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setMiterLimit(num limit);
 
-  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
 
@@ -13548,7 +13548,7 @@ interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
 
-  String createObjectURL(var blob_OR_stream);
+  String createObjectURL(blob_OR_stream);
 
   void revokeObjectURL(String url);
 }
@@ -13702,7 +13702,7 @@ interface Window extends EventTarget {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
 
   void print();
 
@@ -13738,7 +13738,7 @@ interface Window extends EventTarget {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
@@ -13781,7 +13781,7 @@ interface DataTransferItemList {
 
   final int length;
 
-  void add(var data_OR_file, [String type]);
+  void add(data_OR_file, [String type]);
 
   void clear();
 
@@ -13849,7 +13849,7 @@ interface Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(var database);
+typedef bool DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16435,7 +16435,7 @@ interface HTMLSelectElement extends HTMLElement {
 
   Node namedItem(String name);
 
-  void remove(var index_OR_option);
+  void remove(index_OR_option);
 
   void setCustomValidity(String error);
 }
@@ -16837,7 +16837,7 @@ interface History {
 
   final int length;
 
-  final Dynamic state;
+  final /*SerializedScriptValue*/ state;
 
   void back();
 
@@ -16875,17 +16875,17 @@ interface IDBCursor {
 
   final int direction;
 
-  final IDBKey key;
+  final /*IDBKey*/ key;
 
-  final IDBKey primaryKey;
+  final /*IDBKey*/ primaryKey;
 
-  final IDBAny source;
+  final /*IDBAny*/ source;
 
-  void continueFunction([IDBKey key]);
+  void continueFunction([/*IDBKey*/ key]);
 
   IDBRequest delete();
 
-  IDBRequest update(Dynamic value);
+  IDBRequest update(/*SerializedScriptValue*/ value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16895,7 +16895,7 @@ interface IDBCursor {
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  final IDBAny value;
+  final /*IDBAny*/ value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16925,7 +16925,7 @@ interface IDBDatabase extends EventTarget {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16977,7 +16977,7 @@ interface IDBDatabaseException {
 
 interface IDBFactory {
 
-  int cmp(IDBKey first, IDBKey second);
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second);
 
   IDBVersionChangeRequest deleteDatabase(String name);
 
@@ -17003,11 +17003,11 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
-  IDBRequest getKey(IDBKey key);
+  IDBRequest getKey(/*IDBKey*/ key);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
@@ -17029,21 +17029,21 @@ interface IDBKey {
 
 interface IDBKeyRange {
 
-  final IDBKey lower;
+  final /*IDBKey*/ lower;
 
   final bool lowerOpen;
 
-  final IDBKey upper;
+  final /*IDBKey*/ upper;
 
   final bool upperOpen;
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
+  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open]);
+  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
 
-  IDBKeyRange only(IDBKey value);
+  IDBKeyRange only(/*IDBKey*/ value);
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open]);
+  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17061,25 +17061,25 @@ interface IDBObjectStore {
 
   final IDBTransaction transaction;
 
-  IDBRequest add(Dynamic value, [IDBKey key]);
+  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 
   IDBRequest clear();
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(var key_OR_keyRange);
+  IDBRequest delete(key_OR_keyRange);
 
   void deleteIndex(String name);
 
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
   IDBIndex index(String name);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(Dynamic value, [IDBKey key]);
+  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17097,9 +17097,9 @@ interface IDBRequest extends EventTarget {
 
   final int readyState;
 
-  final IDBAny result;
+  final /*IDBAny*/ result;
 
-  final IDBAny source;
+  final /*IDBAny*/ source;
 
   final IDBTransaction transaction;
 
@@ -22971,9 +22971,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 
-  void bufferData(int target, var data_OR_size, int usage);
+  void bufferData(int target, data_OR_size, int usage);
 
-  void bufferSubData(int target, int offset, var data);
+  void bufferSubData(int target, int offset, data);
 
   int checkFramebufferStatus(int target);
 
@@ -23149,13 +23149,13 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
 
   void texParameterf(int target, int pname, num param);
 
   void texParameteri(int target, int pname, int param);
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
 
   void uniform1f(WebGLUniformLocation location, num x);
 
@@ -23341,7 +23341,7 @@ interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
 
   WebKitBlobBuilder();
 
-  void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
+  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
 
   Blob getBlob([String contentType]);
 }
@@ -23689,11 +23689,11 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
   Worker(String scriptUrl);
 
-  void postMessage(Dynamic message, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 
   void terminate();
 
-  void webkitPostMessage(Dynamic message, [List messagePorts]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23852,7 +23852,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void send([var data]);
+  void send([data]);
 
   void setRequestHeader(String header, String value);
 }

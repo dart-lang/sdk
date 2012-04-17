@@ -292,7 +292,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _BiquadFilterNodeImpl createBiquadFilter() native;
 
-  _AudioBufferImpl createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  _AudioBufferImpl createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
   _AudioBufferSourceNodeImpl createBufferSource() native;
 
@@ -522,7 +522,7 @@ class _BlobImpl implements Blob native "*Blob" {
 
 class _BlobBuilderImpl implements BlobBuilder native "*WebKitBlobBuilder" {
 
-  void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
+  void append(arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
 
   _BlobImpl getBlob([String contentType = null]) native;
 }
@@ -3917,15 +3917,15 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native;
 
-  _ImageDataImpl createImageData(var imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataImpl createImageData(imagedata_OR_sw, [num sh = null]) native;
 
   _CanvasGradientImpl createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  _CanvasPatternImpl createPattern(var canvas_OR_image, String repetitionType) native;
+  _CanvasPatternImpl createPattern(canvas_OR_image, String repetitionType) native;
 
   _CanvasGradientImpl createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
 
   void drawImageFromRect(_ImageElementImpl image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
 
@@ -3963,7 +3963,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native;
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setLineCap(String cap) native;
 
@@ -3973,9 +3973,9 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setMiterLimit(num limit) native;
 
-  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -4451,7 +4451,7 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
 
-  String createObjectURL(var blob_OR_stream) native;
+  String createObjectURL(blob_OR_stream) native;
 
   void revokeObjectURL(String url) native;
 }
@@ -4473,7 +4473,7 @@ class _DataTransferItemListImpl implements DataTransferItemList native "*DataTra
 
   final int length;
 
-  void add(var data_OR_file, [String type = null]) native;
+  void add(data_OR_file, [String type = null]) native;
 
   void clear() native;
 
@@ -7351,22 +7351,22 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   final int direction;
 
-  final _IDBKeyImpl key;
+  final Dynamic key;
 
-  final _IDBKeyImpl primaryKey;
+  final Dynamic primaryKey;
 
-  final _IDBAnyImpl source;
+  final Dynamic source;
 
-  void continueFunction([_IDBKeyImpl key = null]) native "continue";
+  void continueFunction([key = null]) native "continue";
 
   _IDBRequestImpl delete() native;
 
-  _IDBRequestImpl update(Dynamic value) native;
+  _IDBRequestImpl update(value) native;
 }
 
 class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  final _IDBAnyImpl value;
+  final Dynamic value;
 }
 
 class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*IDBDatabase" {
@@ -7394,7 +7394,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 
-  _IDBTransactionImpl transaction(var storeName_OR_storeNames, [int mode = null]) native;
+  _IDBTransactionImpl transaction(storeName_OR_storeNames, [int mode = null]) native;
 }
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -7446,7 +7446,7 @@ class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBData
 
 class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
-  int cmp(_IDBKeyImpl first, _IDBKeyImpl second) native;
+  int cmp(first, second) native;
 
   _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
@@ -7467,11 +7467,11 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([var key_OR_range = null]) native;
+  _IDBRequestImpl count([key_OR_range = null]) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
+  _IDBRequestImpl getObject(key) native "get";
 
-  _IDBRequestImpl getKey(_IDBKeyImpl key) native;
+  _IDBRequestImpl getKey(key) native;
 
   _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
 
@@ -7483,21 +7483,21 @@ class _IDBKeyImpl implements IDBKey native "*IDBKey" {
 
 class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
 
-  final _IDBKeyImpl lower;
+  final Dynamic lower;
 
   final bool lowerOpen;
 
-  final _IDBKeyImpl upper;
+  final Dynamic upper;
 
   final bool upperOpen;
 
-  _IDBKeyRangeImpl bound(_IDBKeyImpl lower, _IDBKeyImpl upper, [bool lowerOpen = null, bool upperOpen = null]) native;
+  _IDBKeyRangeImpl bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 
-  _IDBKeyRangeImpl lowerBound(_IDBKeyImpl bound, [bool open = null]) native;
+  _IDBKeyRangeImpl lowerBound(bound, [bool open = null]) native;
 
-  _IDBKeyRangeImpl only(_IDBKeyImpl value) native;
+  _IDBKeyRangeImpl only(value) native;
 
-  _IDBKeyRangeImpl upperBound(_IDBKeyImpl bound, [bool open = null]) native;
+  _IDBKeyRangeImpl upperBound(bound, [bool open = null]) native;
 }
 
 class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
@@ -7510,25 +7510,25 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _IDBTransactionImpl transaction;
 
-  _IDBRequestImpl add(Dynamic value, [_IDBKeyImpl key = null]) native;
+  _IDBRequestImpl add(value, [key = null]) native;
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([var key_OR_range = null]) native;
+  _IDBRequestImpl count([key_OR_range = null]) native;
 
   _IDBIndexImpl createIndex(String name, String keyPath) native;
 
-  _IDBRequestImpl delete(var key_OR_keyRange) native;
+  _IDBRequestImpl delete(key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
-  _IDBRequestImpl getObject(_IDBKeyImpl key) native "get";
+  _IDBRequestImpl getObject(key) native "get";
 
   _IDBIndexImpl index(String name) native;
 
   _IDBRequestImpl openCursor([_IDBKeyRangeImpl range = null, int direction = null]) native;
 
-  _IDBRequestImpl put(Dynamic value, [_IDBKeyImpl key = null]) native;
+  _IDBRequestImpl put(value, [key = null]) native;
 }
 
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*IDBRequest" {
@@ -7544,9 +7544,9 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final int readyState;
 
-  final _IDBAnyImpl result;
+  final Dynamic result;
 
-  final _IDBAnyImpl source;
+  final Dynamic source;
 
   final _IDBTransactionImpl transaction;
 
@@ -15737,9 +15737,9 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native;
 
-  void bufferData(int target, var data_OR_size, int usage) native;
+  void bufferData(int target, data_OR_size, int usage) native;
 
-  void bufferSubData(int target, int offset, var data) native;
+  void bufferSubData(int target, int offset, data) native;
 
   int checkFramebufferStatus(int target) native;
 
@@ -15915,13 +15915,13 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewImpl pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewImpl pixels = null]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewImpl pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewImpl pixels = null]) native;
 
   void uniform1f(_WebGLUniformLocationImpl location, num x) native;
 
@@ -16301,7 +16301,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -16337,7 +16337,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
 
-  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
@@ -16504,11 +16504,11 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
   _WorkerEventsImpl get on() =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(Dynamic message, [List messagePorts = null]) native;
+  void postMessage(message, [List messagePorts = null]) native;
 
   void terminate() native;
 
-  void webkitPostMessage(Dynamic message, [List messagePorts = null]) native;
+  void webkitPostMessage(message, [List messagePorts = null]) native;
 }
 
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
@@ -16660,7 +16660,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
-  void send([var data = null]) native;
+  void send([data = null]) native;
 
   void setRequestHeader(String header, String value) native;
 }
@@ -17533,7 +17533,7 @@ interface AudioContext extends EventTarget {
   BiquadFilterNode createBiquadFilter();
 
   /** @domName AudioContext.createBuffer */
-  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate]);
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]);
 
   /** @domName AudioContext.createBufferSource */
   AudioBufferSourceNode createBufferSource();
@@ -17945,7 +17945,7 @@ interface BlobBuilder default _BlobBuilderFactoryProvider {
   BlobBuilder();
 
   /** @domName WebKitBlobBuilder.append */
-  void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
+  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
 
   /** @domName WebKitBlobBuilder.getBlob */
   Blob getBlob([String contentType]);
@@ -20633,19 +20633,19 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void closePath();
 
   /** @domName CanvasRenderingContext2D.createImageData */
-  ImageData createImageData(var imagedata_OR_sw, [num sh]);
+  ImageData createImageData(imagedata_OR_sw, [num sh]);
 
   /** @domName CanvasRenderingContext2D.createLinearGradient */
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
 
   /** @domName CanvasRenderingContext2D.createPattern */
-  CanvasPattern createPattern(var canvas_OR_image, String repetitionType);
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType);
 
   /** @domName CanvasRenderingContext2D.createRadialGradient */
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
   /** @domName CanvasRenderingContext2D.drawImage */
-  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
   /** @domName CanvasRenderingContext2D.drawImageFromRect */
   void drawImageFromRect(ImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
@@ -20702,7 +20702,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void setCompositeOperation(String compositeOperation);
 
   /** @domName CanvasRenderingContext2D.setFillColor */
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setLineCap */
   void setLineCap(String cap);
@@ -20717,10 +20717,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void setMiterLimit(num limit);
 
   /** @domName CanvasRenderingContext2D.setShadow */
-  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setStrokeColor */
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   /** @domName CanvasRenderingContext2D.setTransform */
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
@@ -21521,7 +21521,7 @@ interface DOMURL default _DOMURLFactoryProvider {
   DOMURL();
 
   /** @domName DOMURL.createObjectURL */
-  String createObjectURL(var blob_OR_stream);
+  String createObjectURL(blob_OR_stream);
 
   /** @domName DOMURL.revokeObjectURL */
   void revokeObjectURL(String url);
@@ -21563,7 +21563,7 @@ interface DataTransferItemList {
   final int length;
 
   /** @domName DataTransferItemList.add */
-  void add(var data_OR_file, [String type]);
+  void add(data_OR_file, [String type]);
 
   /** @domName DataTransferItemList.clear */
   void clear();
@@ -21655,7 +21655,7 @@ interface Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(var database);
+typedef bool DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23937,22 +23937,22 @@ interface IDBCursor {
   final int direction;
 
   /** @domName IDBCursor.key */
-  final IDBKey key;
+  final Dynamic key;
 
   /** @domName IDBCursor.primaryKey */
-  final IDBKey primaryKey;
+  final Dynamic primaryKey;
 
   /** @domName IDBCursor.source */
-  final IDBAny source;
+  final Dynamic source;
 
   /** @domName IDBCursor.continueFunction */
-  void continueFunction([IDBKey key]);
+  void continueFunction([/*IDBKey*/ key]);
 
   /** @domName IDBCursor.delete */
   IDBRequest delete();
 
   /** @domName IDBCursor.update */
-  IDBRequest update(Dynamic value);
+  IDBRequest update(/*SerializedScriptValue*/ value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23964,7 +23964,7 @@ interface IDBCursor {
 interface IDBCursorWithValue extends IDBCursor {
 
   /** @domName IDBCursorWithValue.value */
-  final IDBAny value;
+  final Dynamic value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24011,7 +24011,7 @@ interface IDBDatabase extends EventTarget {
   IDBVersionChangeRequest setVersion(String version);
 
   /** @domName IDBDatabase.transaction */
-  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
 }
 
 interface IDBDatabaseEvents extends Events {
@@ -24079,7 +24079,7 @@ interface IDBDatabaseException {
 interface IDBFactory {
 
   /** @domName IDBFactory.cmp */
-  int cmp(IDBKey first, IDBKey second);
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second);
 
   /** @domName IDBFactory.deleteDatabase */
   IDBVersionChangeRequest deleteDatabase(String name);
@@ -24115,13 +24115,13 @@ interface IDBIndex {
   final bool unique;
 
   /** @domName IDBIndex.count */
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
   /** @domName IDBIndex.getObject */
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
   /** @domName IDBIndex.getKey */
-  IDBRequest getKey(IDBKey key);
+  IDBRequest getKey(/*IDBKey*/ key);
 
   /** @domName IDBIndex.openCursor */
   IDBRequest openCursor([IDBKeyRange range, int direction]);
@@ -24148,28 +24148,28 @@ interface IDBKey {
 interface IDBKeyRange {
 
   /** @domName IDBKeyRange.lower */
-  final IDBKey lower;
+  final Dynamic lower;
 
   /** @domName IDBKeyRange.lowerOpen */
   final bool lowerOpen;
 
   /** @domName IDBKeyRange.upper */
-  final IDBKey upper;
+  final Dynamic upper;
 
   /** @domName IDBKeyRange.upperOpen */
   final bool upperOpen;
 
   /** @domName IDBKeyRange.bound */
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
+  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
 
   /** @domName IDBKeyRange.lowerBound */
-  IDBKeyRange lowerBound(IDBKey bound, [bool open]);
+  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
 
   /** @domName IDBKeyRange.only */
-  IDBKeyRange only(IDBKey value);
+  IDBKeyRange only(/*IDBKey*/ value);
 
   /** @domName IDBKeyRange.upperBound */
-  IDBKeyRange upperBound(IDBKey bound, [bool open]);
+  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24193,25 +24193,25 @@ interface IDBObjectStore {
   final IDBTransaction transaction;
 
   /** @domName IDBObjectStore.add */
-  IDBRequest add(Dynamic value, [IDBKey key]);
+  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 
   /** @domName IDBObjectStore.clear */
   IDBRequest clear();
 
   /** @domName IDBObjectStore.count */
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
   IDBIndex createIndex(String name, String keyPath);
 
   /** @domName IDBObjectStore.delete */
-  IDBRequest delete(var key_OR_keyRange);
+  IDBRequest delete(key_OR_keyRange);
 
   /** @domName IDBObjectStore.deleteIndex */
   void deleteIndex(String name);
 
   /** @domName IDBObjectStore.getObject */
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
   /** @domName IDBObjectStore.index */
   IDBIndex index(String name);
@@ -24220,7 +24220,7 @@ interface IDBObjectStore {
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
   /** @domName IDBObjectStore.put */
-  IDBRequest put(Dynamic value, [IDBKey key]);
+  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24247,10 +24247,10 @@ interface IDBRequest extends EventTarget {
   final int readyState;
 
   /** @domName IDBRequest.result */
-  final IDBAny result;
+  final Dynamic result;
 
   /** @domName IDBRequest.source */
-  final IDBAny source;
+  final Dynamic source;
 
   /** @domName IDBRequest.transaction */
   final IDBTransaction transaction;
@@ -33414,10 +33414,10 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 
   /** @domName WebGLRenderingContext.bufferData */
-  void bufferData(int target, var data_OR_size, int usage);
+  void bufferData(int target, data_OR_size, int usage);
 
   /** @domName WebGLRenderingContext.bufferSubData */
-  void bufferSubData(int target, int offset, var data);
+  void bufferSubData(int target, int offset, data);
 
   /** @domName WebGLRenderingContext.checkFramebufferStatus */
   int checkFramebufferStatus(int target);
@@ -33681,7 +33681,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
   /** @domName WebGLRenderingContext.texImage2D */
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
 
   /** @domName WebGLRenderingContext.texParameterf */
   void texParameterf(int target, int pname, num param);
@@ -33690,7 +33690,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   void texParameteri(int target, int pname, int param);
 
   /** @domName WebGLRenderingContext.texSubImage2D */
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
 
   /** @domName WebGLRenderingContext.uniform1f */
   void uniform1f(WebGLUniformLocation location, num x);
@@ -34285,7 +34285,7 @@ interface Window extends EventTarget {
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   /** @domName DOMWindow.postMessage */
-  void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
 
   /** @domName DOMWindow.print */
   void print();
@@ -34339,7 +34339,7 @@ interface Window extends EventTarget {
   Point webkitConvertPointFromPageToNode(Node node, Point p);
 
   /** @domName DOMWindow.webkitPostMessage */
-  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   /** @domName DOMWindow.webkitRequestAnimationFrame */
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
@@ -34519,13 +34519,13 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
   WorkerEvents get on();
 
   /** @domName Worker.postMessage */
-  void postMessage(Dynamic message, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 
   /** @domName Worker.terminate */
   void terminate();
 
   /** @domName Worker.webkitPostMessage */
-  void webkitPostMessage(Dynamic message, [List messagePorts]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 }
 
 interface WorkerEvents extends AbstractWorkerEvents {
@@ -34762,7 +34762,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName XMLHttpRequest.send */
-  void send([var data]);
+  void send([data]);
 
   /** @domName XMLHttpRequest.setRequestHeader */
   void setRequestHeader(String header, String value);

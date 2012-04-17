@@ -357,7 +357,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   BiquadFilterNode createBiquadFilter();
 
-  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate]);
+  AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]);
 
   AudioBufferSourceNode createBufferSource();
 
@@ -972,7 +972,7 @@ interface CanvasRenderingContext {
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
-  Dynamic fillStyle;
+  var /*custom*/ fillStyle;
 
   String font;
 
@@ -996,7 +996,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   num shadowOffsetY;
 
-  Dynamic strokeStyle;
+  var /*custom*/ strokeStyle;
 
   String textAlign;
 
@@ -1022,15 +1022,15 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void closePath();
 
-  ImageData createImageData(var imagedata_OR_sw, [num sh]);
+  ImageData createImageData(imagedata_OR_sw, [num sh]);
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1);
 
-  CanvasPattern createPattern(var canvas_OR_image, String repetitionType);
+  CanvasPattern createPattern(canvas_OR_image, String repetitionType);
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
-  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
   void drawImageFromRect(HTMLImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
 
@@ -1068,7 +1068,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setCompositeOperation(String compositeOperation);
 
-  void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setLineCap(String cap);
 
@@ -1078,9 +1078,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setMiterLimit(num limit);
 
-  void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
-  void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
 
@@ -1669,7 +1669,7 @@ interface DOMURL default _DOMURLFactoryProvider {
 
   DOMURL();
 
-  String createObjectURL(var blob_OR_stream);
+  String createObjectURL(blob_OR_stream);
 
   void revokeObjectURL(String url);
 }
@@ -1823,7 +1823,7 @@ interface Window extends EventTarget {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]);
 
   void print();
 
@@ -1859,7 +1859,7 @@ interface Window extends EventTarget {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List transferList]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback);
 
@@ -1902,7 +1902,7 @@ interface DataTransferItemList {
 
   final int length;
 
-  void add(var data_OR_file, [String type]);
+  void add(data_OR_file, [String type]);
 
   void clear();
 
@@ -1970,7 +1970,7 @@ interface Database {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool DatabaseCallback(var database);
+typedef bool DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -4556,7 +4556,7 @@ interface HTMLSelectElement extends HTMLElement {
 
   Node namedItem(String name);
 
-  void remove(var index_OR_option);
+  void remove(index_OR_option);
 
   void setCustomValidity(String error);
 }
@@ -4958,7 +4958,7 @@ interface History {
 
   final int length;
 
-  final Dynamic state;
+  final /*SerializedScriptValue*/ state;
 
   void back();
 
@@ -4996,17 +4996,17 @@ interface IDBCursor {
 
   final int direction;
 
-  final IDBKey key;
+  final /*IDBKey*/ key;
 
-  final IDBKey primaryKey;
+  final /*IDBKey*/ primaryKey;
 
-  final IDBAny source;
+  final /*IDBAny*/ source;
 
-  void continueFunction([IDBKey key]);
+  void continueFunction([/*IDBKey*/ key]);
 
   IDBRequest delete();
 
-  IDBRequest update(Dynamic value);
+  IDBRequest update(/*SerializedScriptValue*/ value);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5016,7 +5016,7 @@ interface IDBCursor {
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  final IDBAny value;
+  final /*IDBAny*/ value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5046,7 +5046,7 @@ interface IDBDatabase extends EventTarget {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(var storeName_OR_storeNames, [int mode]);
+  IDBTransaction transaction(storeName_OR_storeNames, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5098,7 +5098,7 @@ interface IDBDatabaseException {
 
 interface IDBFactory {
 
-  int cmp(IDBKey first, IDBKey second);
+  int cmp(/*IDBKey*/ first, /*IDBKey*/ second);
 
   IDBVersionChangeRequest deleteDatabase(String name);
 
@@ -5124,11 +5124,11 @@ interface IDBIndex {
 
   final bool unique;
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
-  IDBRequest getKey(IDBKey key);
+  IDBRequest getKey(/*IDBKey*/ key);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
@@ -5150,21 +5150,21 @@ interface IDBKey {
 
 interface IDBKeyRange {
 
-  final IDBKey lower;
+  final /*IDBKey*/ lower;
 
   final bool lowerOpen;
 
-  final IDBKey upper;
+  final /*IDBKey*/ upper;
 
   final bool upperOpen;
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
+  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open]);
+  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
 
-  IDBKeyRange only(IDBKey value);
+  IDBKeyRange only(/*IDBKey*/ value);
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open]);
+  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5182,25 +5182,25 @@ interface IDBObjectStore {
 
   final IDBTransaction transaction;
 
-  IDBRequest add(Dynamic value, [IDBKey key]);
+  IDBRequest add(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 
   IDBRequest clear();
 
-  IDBRequest count([var key_OR_range]);
+  IDBRequest count([key_OR_range]);
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(var key_OR_keyRange);
+  IDBRequest delete(key_OR_keyRange);
 
   void deleteIndex(String name);
 
-  IDBRequest getObject(IDBKey key);
+  IDBRequest getObject(/*IDBKey*/ key);
 
   IDBIndex index(String name);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(Dynamic value, [IDBKey key]);
+  IDBRequest put(/*SerializedScriptValue*/ value, [/*IDBKey*/ key]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5218,9 +5218,9 @@ interface IDBRequest extends EventTarget {
 
   final int readyState;
 
-  final IDBAny result;
+  final /*IDBAny*/ result;
 
-  final IDBAny source;
+  final /*IDBAny*/ source;
 
   final IDBTransaction transaction;
 
@@ -11092,9 +11092,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 
-  void bufferData(int target, var data_OR_size, int usage);
+  void bufferData(int target, data_OR_size, int usage);
 
-  void bufferSubData(int target, int offset, var data);
+  void bufferSubData(int target, int offset, data);
 
   int checkFramebufferStatus(int target);
 
@@ -11270,13 +11270,13 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass);
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, ArrayBufferView pixels]);
 
   void texParameterf(int target, int pname, num param);
 
   void texParameteri(int target, int pname, int param);
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, ArrayBufferView pixels]);
 
   void uniform1f(WebGLUniformLocation location, num x);
 
@@ -11462,7 +11462,7 @@ interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
 
   WebKitBlobBuilder();
 
-  void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
+  void append(arrayBuffer_OR_blob_OR_value, [String endings]);
 
   Blob getBlob([String contentType]);
 }
@@ -11810,11 +11810,11 @@ interface Worker extends AbstractWorker default _WorkerFactoryProvider {
 
   Worker(String scriptUrl);
 
-  void postMessage(Dynamic message, [List messagePorts]);
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 
   void terminate();
 
-  void webkitPostMessage(Dynamic message, [List messagePorts]);
+  void webkitPostMessage(/*SerializedScriptValue*/ message, [List messagePorts]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11973,7 +11973,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
-  void send([var data]);
+  void send([data]);
 
   void setRequestHeader(String header, String value);
 }
