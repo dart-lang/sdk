@@ -20,7 +20,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, print_ast);
+DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
@@ -2002,8 +2002,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // the captured parameters from the frame into the context.
     if (node == owner()->parsed_function().node_sequence()) {
       ASSERT(scope->context_level() == 1);
-      const Immediate raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
       const Function& function = owner()->parsed_function().function();
       const int num_params = function.NumberOfParameters();
       int param_frame_index =

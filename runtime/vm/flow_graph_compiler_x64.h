@@ -120,6 +120,11 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   intptr_t StackSize() const;
 
+  bool TryIntrinsify();
+  void IntrinsifyGetter();
+  void IntrinsifySetter();
+  static bool CanOptimize();
+
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
 

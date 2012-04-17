@@ -11,7 +11,9 @@
 #include "vm/ast_printer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
+#include "vm/debugger.h"
 #include "vm/disassembler.h"
+#include "vm/intrinsifier.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -20,9 +22,13 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, intrinsify);
+DECLARE_FLAG(bool, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
+DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
+
 
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
@@ -1519,9 +1525,88 @@ void FlowGraphCompiler::CopyParameters() {
 }
 
 
+bool FlowGraphCompiler::CanOptimize() {
+  return
+      !FLAG_report_usage_count &&
+      (FLAG_optimization_counter_threshold >= 0) &&
+      !Isolate::Current()->debugger()->IsActive();
+}
+
+
+void FlowGraphCompiler::IntrinsifyGetter() {
+  // TOS: return address.
+  // +1 : receiver.
+  // Sequence node has one return node, its input is load field node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 1);
+  ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
+  const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
+  ASSERT(return_node.value()->IsLoadInstanceFieldNode());
+  const LoadInstanceFieldNode& load_node =
+      *return_node.value()->AsLoadInstanceFieldNode();
+  __ movq(RAX, Address(RSP, 1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, load_node.field().Offset()));
+  __ ret();
+}
+
+
+void FlowGraphCompiler::IntrinsifySetter() {
+  // TOS: return address.
+  // +1 : value
+  // +2 : receiver.
+  // Sequence node has one store node and one return NULL node.
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  ASSERT(sequence_node.length() == 2);
+  ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
+  ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
+  const StoreInstanceFieldNode& store_node =
+      *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
+  __ movq(RAX, Address(RSP, 2 * kWordSize));  // Receiver.
+  __ movq(RBX, Address(RSP, 1 * kWordSize));  // Value.
+  __ StoreIntoObject(RAX, FieldAddress(RAX, store_node.field().Offset()), RBX);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movq(RAX, raw_null);
+  __ ret();
+}
+
+
+// Returns 'true' if code generation for this function is complete, i.e.,
+// no fall-through to regular code is needed.
+bool FlowGraphCompiler::TryIntrinsify() {
+  if (!CanOptimize()) return false;
+  // Intrinsification skips arguments checks, therefore disable if in checked
+  // mode.
+  if (FLAG_intrinsify && !FLAG_trace_functions && !FLAG_enable_type_checks) {
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitGetter)) {
+      IntrinsifyGetter();
+      return true;
+    }
+    if ((parsed_function_.function().kind() == RawFunction::kImplicitSetter)) {
+      IntrinsifySetter();
+      return true;
+    }
+  }
+  // Even if an intrinsified version of the function was successfully
+  // generated, it may fall through to the non-intrinsified method body.
+  if (!FLAG_trace_functions) {
+    return Intrinsifier::Intrinsify(parsed_function_.function(), assembler_);
+  }
+  return false;
+}
+
+
 // TODO(srdjan): Investigate where to put the argument type checks for
 // checked mode.
 void FlowGraphCompiler::CompileGraph() {
+  if (TryIntrinsify()) {
+    // Make it patchable: code must have a minimum code size, nop(2) increases
+    // the minimum code size appropriately.
+    __ nop(2);
+    __ int3();
+    __ jmp(&StubCode::FixCallersTargetLabel());
+    return;
+  }
   // Specialized version of entry code from CodeGenerator::GenerateEntryCode.
   const Function& function = parsed_function_.function();
 

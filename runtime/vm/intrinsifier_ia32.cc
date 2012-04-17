@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -22,79 +22,12 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
 DECLARE_FLAG(bool, enable_type_checks);
 
-// List of intrinsics: (class-name, function-name, intrinsification method).
-#define INTRINSIC_LIST(V)                                                      \
-  V(IntegerImplementation, addFromInteger, Integer_addFromInteger)             \
-  V(IntegerImplementation, +, Integer_addFromInteger)                          \
-  V(IntegerImplementation, subFromInteger, Integer_subFromInteger)             \
-  V(IntegerImplementation, -, Integer_sub)                                     \
-  V(IntegerImplementation, mulFromInteger, Integer_mulFromInteger)             \
-  V(IntegerImplementation, *, Integer_mulFromInteger)                          \
-  V(IntegerImplementation, %, Integer_modulo)                                  \
-  V(IntegerImplementation, ~/, Integer_truncDivide)                            \
-  V(IntegerImplementation, negate, Integer_negate)                             \
-  V(IntegerImplementation, bitAndFromInteger, Integer_bitAndFromInteger)       \
-  V(IntegerImplementation, &, Integer_bitAndFromInteger)                       \
-  V(IntegerImplementation, bitOrFromInteger, Integer_bitOrFromInteger)         \
-  V(IntegerImplementation, |, Integer_bitOrFromInteger)                        \
-  V(IntegerImplementation, bitXorFromInteger, Integer_bitXorFromInteger)       \
-  V(IntegerImplementation, ^, Integer_bitXorFromInteger)                       \
-  V(IntegerImplementation, greaterThanFromInteger, Integer_lessThan)           \
-  V(IntegerImplementation, >, Integer_greaterThan)                             \
-  V(IntegerImplementation, ==, Integer_equalToInteger)                         \
-  V(IntegerImplementation, equalToInteger, Integer_equalToInteger)             \
-  V(IntegerImplementation, <, Integer_lessThan)                                \
-  V(IntegerImplementation, <=, Integer_lessEqualThan)                          \
-  V(IntegerImplementation, >=, Integer_greaterEqualThan)                       \
-  V(IntegerImplementation, <<, Integer_shl)                                    \
-  V(IntegerImplementation, >>, Integer_sar)                                    \
-  V(Smi, ~, Smi_bitNegate)                                                     \
-  V(Double, >, Double_greaterThan)                                             \
-  V(Double, >=, Double_greaterEqualThan)                                       \
-  V(Double, <, Double_lessThan)                                                \
-  V(Double, <=, Double_lessEqualThan)                                          \
-  V(Double, ==, Double_equal)                                                  \
-  V(Double, +, Double_add)                                                     \
-  V(Double, -, Double_sub)                                                     \
-  V(Double, *, Double_mul)                                                     \
-  V(Double, /, Double_div)                                                     \
-  V(Double, toDouble, Double_toDouble)                                         \
-  V(Double, mulFromInteger, Double_mulFromInteger)                             \
-  V(Double, Double.fromInteger, Double_fromInteger)                            \
-  V(Double, isNaN, Double_isNaN)                                               \
-  V(Double, isNegative, Double_isNegative)                                     \
-  V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
-  V(ObjectArray, get:length, Array_getLength)                                  \
-  V(ObjectArray, [], Array_getIndexed)                                         \
-  V(ObjectArray, []=, Array_setIndexed)                                        \
-  V(GrowableObjectArray, GrowableObjectArray.fromObjectArray, GArray_Allocate) \
-  V(GrowableObjectArray, get:length, GrowableArray_getLength)                  \
-  V(GrowableObjectArray, get:capacity, GrowableArray_getCapacity)              \
-  V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
-  V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
-  V(GrowableObjectArray, _setLength, GrowableArray_setLength)                  \
-  V(GrowableObjectArray, set:data, GrowableArray_setData)                      \
-  V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
-  V(_ByteArrayBase, [], ByteArrayBase_getIndexed)                              \
-  V(ImmutableArray, [], Array_getIndexed)                                      \
-  V(ImmutableArray, get:length, Array_getLength)                               \
-  V(Math, sqrt, Math_sqrt)                                                     \
-  V(Math, sin, Math_sin)                                                       \
-  V(Math, cos, Math_cos)                                                       \
-  V(Object, ==, Object_equal)                                                  \
-  V(FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                 \
-  V(FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)           \
-  V(StringBase, get:length, String_getLength)                                  \
-  V(StringBase, charCodeAt, String_charCodeAt)                                 \
-  V(StringBase, hashCode, String_hashCode)                                     \
-  V(StringBase, isEmpty, String_isEmpty)                                       \
 
 #define __ assembler->
 
-static bool ObjectArray_Allocate(Assembler* assembler) {
+bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // EAX, EBX, EDI
   // and the newly allocated object is returned in EAX.
@@ -193,7 +126,7 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
 }
 
 
-static bool Array_getLength(Assembler* assembler) {
+bool Intrinsifier::Array_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
   __ ret();
@@ -201,7 +134,12 @@ static bool Array_getLength(Assembler* assembler) {
 }
 
 
-static bool Array_getIndexed(Assembler* assembler) {
+bool Intrinsifier::ImmutableArray_getLength(Assembler* assembler) {
+  return Array_getLength(assembler);
+}
+
+
+bool Intrinsifier::Array_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
@@ -220,6 +158,11 @@ static bool Array_getIndexed(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
+  return Array_getIndexed(assembler);
+}
+
+
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const String& class_name = String::Handle(String::NewSymbol("ObjectArray"));
   const Class& cls = Class::Handle(
@@ -235,7 +178,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
-static bool Array_setIndexed(Assembler* assembler) {
+bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   Label fall_through;
   if (FLAG_enable_type_checks) {
     const intptr_t type_args_field_offset =
@@ -310,7 +253,7 @@ static intptr_t GetOffsetForField(const char* class_name_p,
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-static bool GArray_Allocate(Assembler* assembler) {
+bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // EAX, EBX
   // and the newly allocated object is returned in EAX.
@@ -378,7 +321,7 @@ static bool GArray_Allocate(Assembler* assembler) {
 
 // Get length of growable object array.
 // On stack: growable array (+1), return-address (+0).
-static bool GrowableArray_getLength(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   __ ret();
@@ -388,7 +331,7 @@ static bool GrowableArray_getLength(Assembler* assembler) {
 
 // Get capacity of growable object array.
 // On stack: growable array (+1), return-address (+0).
-static bool GrowableArray_getCapacity(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_getCapacity(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));
   __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
@@ -399,7 +342,7 @@ static bool GrowableArray_getCapacity(Assembler* assembler) {
 
 // Access growable object array at specified index.
 // On stack: growable array (+2), index (+1), return-address (+0).
-static bool GrowableArray_getIndexed(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_getIndexed(Assembler* assembler) {
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // GrowableArray.
@@ -422,7 +365,7 @@ static bool GrowableArray_getIndexed(Assembler* assembler) {
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-static bool GrowableArray_setIndexed(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
@@ -450,7 +393,7 @@ static bool GrowableArray_setIndexed(Assembler* assembler) {
 
 // Set length of growable object array.
 // On stack: growable array (+2), length (+1), return-address (+0).
-static bool GrowableArray_setLength(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 2 * kWordSize));
   __ movl(EBX, Address(ESP, + 1 * kWordSize));
@@ -466,7 +409,7 @@ static bool GrowableArray_setLength(Assembler* assembler) {
 
 // Set data of growable object array.
 // On stack: growable array (+2), data (+1), return-address (+0).
-static bool GrowableArray_setData(Assembler* assembler) {
+bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return false;
   }
@@ -479,7 +422,7 @@ static bool GrowableArray_setData(Assembler* assembler) {
 
 
 // Handles only class InternalByteArray.
-static bool ByteArrayBase_getLength(Assembler* assembler) {
+bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
@@ -495,7 +438,7 @@ static bool ByteArrayBase_getLength(Assembler* assembler) {
 
 
 // Handles only class InternalByteArray.
-static bool ByteArrayBase_getIndexed(Assembler* assembler) {
+bool Intrinsifier::ByteArrayBase_getIndexed(Assembler* assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Label fall_through;
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
@@ -533,7 +476,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
 }
 
 
-static bool Integer_addFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ addl(EAX, Address(ESP, + 2 * kWordSize));
@@ -545,7 +488,12 @@ static bool Integer_addFromInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_subFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_add(Assembler* assembler) {
+  return Integer_addFromInteger(assembler);
+}
+
+
+bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ subl(EAX, Address(ESP, + 2 * kWordSize));
@@ -557,7 +505,7 @@ static bool Integer_subFromInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_sub(Assembler* assembler) {
+bool Intrinsifier::Integer_sub(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ movl(EBX, EAX);
@@ -572,7 +520,7 @@ static bool Integer_sub(Assembler* assembler) {
 
 
 
-static bool Integer_mulFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
@@ -586,9 +534,14 @@ static bool Integer_mulFromInteger(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Integer_mul(Assembler* assembler) {
+  return Integer_mulFromInteger(assembler);
+}
+
+
 // Simple implementation: for positive dividend values greater than divisor,
 // return dividend.
-static bool Integer_modulo(Assembler* assembler) {
+bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   Label fall_through, return_zero;
   TestBothArgumentsSmis(assembler, &fall_through);
   // EAX: right argument (divisor)
@@ -611,7 +564,7 @@ static bool Integer_modulo(Assembler* assembler) {
 }
 
 
-static bool Integer_truncDivide(Assembler* assembler) {
+bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // EAX: right argument (divisor)
@@ -636,7 +589,7 @@ static bool Integer_truncDivide(Assembler* assembler) {
 }
 
 
-static bool Integer_negate(Assembler* assembler) {
+bool Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
@@ -650,7 +603,7 @@ static bool Integer_negate(Assembler* assembler) {
 }
 
 
-static bool Integer_bitAndFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ movl(EBX, Address(ESP, + 2 * kWordSize));
@@ -662,7 +615,12 @@ static bool Integer_bitAndFromInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_bitOrFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_bitAnd(Assembler* assembler) {
+  return Integer_bitAndFromInteger(assembler);
+}
+
+
+bool Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ movl(EBX, Address(ESP, + 2 * kWordSize));
@@ -674,7 +632,12 @@ static bool Integer_bitOrFromInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_bitXorFromInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_bitOr(Assembler* assembler) {
+  return Integer_bitOrFromInteger(assembler);
+}
+
+
+bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   __ movl(EBX, Address(ESP, + 2 * kWordSize));
@@ -686,7 +649,12 @@ static bool Integer_bitXorFromInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_shl(Assembler* assembler) {
+bool Intrinsifier::Integer_bitXor(Assembler* assembler) {
+  return Integer_bitXorFromInteger(assembler);
+}
+
+
+bool Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label fall_through, overflow;
@@ -757,28 +725,33 @@ static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
 }
 
 
-static bool Integer_lessThan(Assembler* assembler) {
+bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
   return CompareIntegers(assembler, LESS);
 }
 
 
-static bool Integer_greaterThan(Assembler* assembler) {
+bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
+  return CompareIntegers(assembler, LESS);
+}
+
+
+bool Intrinsifier::Integer_greaterThan(Assembler* assembler) {
   return CompareIntegers(assembler, GREATER);
 }
 
 
-static bool Integer_lessEqualThan(Assembler* assembler) {
+bool Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
   return CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
-static bool Integer_greaterEqualThan(Assembler* assembler) {
+bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
   return CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
 // This is called for Smi, Mint and Bigint receivers. Bigints are not handled.
-static bool Integer_equalToInteger(Assembler* assembler) {
+bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -834,7 +807,12 @@ static bool Integer_equalToInteger(Assembler* assembler) {
 }
 
 
-static bool Integer_sar(Assembler* assembler) {
+bool Intrinsifier::Integer_equal(Assembler* assembler) {
+  return Integer_equalToInteger(assembler);
+}
+
+
+bool Intrinsifier::Integer_sar(Assembler* assembler) {
   Label fall_through, shift_count_ok;
   TestBothArgumentsSmis(assembler, &fall_through);
   // Can destroy ECX since we are not falling through.
@@ -861,7 +839,7 @@ static bool Integer_sar(Assembler* assembler) {
 }
 
 
-static bool Smi_bitNegate(Assembler* assembler) {
+bool Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Index.
   __ testl(EAX, Immediate(kSmiTagMask));
@@ -925,36 +903,36 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
 
 
 // arg0 is Double, arg1 is unknown.
-static bool Double_greaterThan(Assembler* assembler) {
+bool Intrinsifier::Double_greaterThan(Assembler* assembler) {
   return CompareDoubles(assembler, ABOVE);
 }
 
 
 // arg0 is Double, arg1 is unknown.
-static bool Double_greaterEqualThan(Assembler* assembler) {
+bool Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
   return CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
 
 // arg0 is Double, arg1 is unknown.
-static bool Double_lessThan(Assembler* assembler) {
+bool Intrinsifier::Double_lessThan(Assembler* assembler) {
   return CompareDoubles(assembler, BELOW);
 }
 
 
 // arg0 is Double, arg1 is unknown.
-static bool Double_equal(Assembler* assembler) {
+bool Intrinsifier::Double_equal(Assembler* assembler) {
   return CompareDoubles(assembler, EQUAL);
 }
 
 
 // arg0 is Double, arg1 is unknown.
-static bool Double_lessEqualThan(Assembler* assembler) {
+bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
   return CompareDoubles(assembler, BELOW_EQUAL);
 }
 
 
-static bool Double_toDouble(Assembler* assembler) {
+bool Intrinsifier::Double_toDouble(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ ret();
   return true;
@@ -992,28 +970,28 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
 }
 
 
-static bool Double_add(Assembler* assembler) {
+bool Intrinsifier::Double_add(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
-static bool Double_mul(Assembler* assembler) {
+bool Intrinsifier::Double_mul(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
-static bool Double_sub(Assembler* assembler) {
+bool Intrinsifier::Double_sub(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
-static bool Double_div(Assembler* assembler) {
+bool Intrinsifier::Double_div(Assembler* assembler) {
   return DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 
 // Left is double right is integer (bigint or Smi)
-static bool Double_mulFromInteger(Assembler* assembler) {
+bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only Smi-s allowed.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
@@ -1040,7 +1018,7 @@ static bool Double_mulFromInteger(Assembler* assembler) {
 }
 
 
-static bool Double_fromInteger(Assembler* assembler) {
+bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
@@ -1063,7 +1041,7 @@ static bool Double_fromInteger(Assembler* assembler) {
 }
 
 
-static bool Double_isNaN(Assembler* assembler) {
+bool Intrinsifier::Double_isNaN(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_true;
@@ -1080,7 +1058,7 @@ static bool Double_isNaN(Assembler* assembler) {
 }
 
 
-static bool Double_isNegative(Assembler* assembler) {
+bool Intrinsifier::Double_isNegative(Assembler* assembler) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label is_false, is_true, is_zero;
@@ -1108,7 +1086,7 @@ static bool Double_isNegative(Assembler* assembler) {
 
 
 // Argument type is not known
-static bool Math_sqrt(Assembler* assembler) {
+bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in EAX, class in EBX.
@@ -1180,20 +1158,20 @@ static void EmitTrigonometric(Assembler* assembler,
 }
 
 
-static bool Math_sin(Assembler* assembler) {
+bool Intrinsifier::Math_sin(Assembler* assembler) {
   EmitTrigonometric(assembler, kSine);
   return false;  // Compile method for slow case.
 }
 
 
-static bool Math_cos(Assembler* assembler) {
+bool Intrinsifier::Math_cos(Assembler* assembler) {
   EmitTrigonometric(assembler, kCosine);
   return false;  // Compile method for slow case.
 }
 
 
 // Identity comparison.
-static bool Object_equal(Assembler* assembler) {
+bool Intrinsifier::Object_equal(Assembler* assembler) {
   Label is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -1219,7 +1197,7 @@ static const char* kFixedSizeArrayIteratorClassName = "FixedSizeArrayIterator";
 // Intrinsify: return _array[_pos++];
 // TODO(srdjan): Throw a 'NoMoreElementsException' exception if the iterator
 // has no more elements.
-static bool FixedSizeArrayIterator_next(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
   Label fall_through;
   intptr_t array_offset =
       GetOffsetForField(kFixedSizeArrayIteratorClassName, "_array");
@@ -1261,7 +1239,7 @@ static bool FixedSizeArrayIterator_next(Assembler* assembler) {
 //   bool hasNext() {
 //     return _length > _pos;
 //   }
-static bool FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
   Label fall_through, is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -1288,7 +1266,7 @@ static bool FixedSizeArrayIterator_hasNext(Assembler* assembler) {
 }
 
 
-static bool String_getLength(Assembler* assembler) {
+bool Intrinsifier::String_getLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
   __ movl(EAX, FieldAddress(EAX, String::length_offset()));
   __ ret();
@@ -1297,7 +1275,7 @@ static bool String_getLength(Assembler* assembler) {
 
 
 // TODO(srdjan): Implement for two and four byte strings as well.
-static bool String_charCodeAt(Assembler* assembler) {
+bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Label fall_through;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
@@ -1321,7 +1299,7 @@ static bool String_charCodeAt(Assembler* assembler) {
 }
 
 
-static bool String_hashCode(Assembler* assembler) {
+bool Intrinsifier::String_hashCode(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
   __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
@@ -1334,7 +1312,7 @@ static bool String_hashCode(Assembler* assembler) {
 }
 
 
-static bool String_isEmpty(Assembler* assembler) {
+bool Intrinsifier::String_isEmpty(Assembler* assembler) {
   Label is_true;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
@@ -1352,70 +1330,6 @@ static bool String_isEmpty(Assembler* assembler) {
 }
 
 #undef __
-
-
-static bool CompareNames(const char* test_name, const char* name) {
-  if (strcmp(test_name, name) == 0) {
-    return true;
-  }
-  if ((name[0] == '_') && (test_name[0] == '_')) {
-    // Check if the private class is member of corelib and matches the
-    // test_class_name.
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    String& test_str = String::Handle(String::New(test_name));
-    String& test_str_with_key = String::Handle();
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-      return true;
-    }
-    test_str_with_key =
-        String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
-    if (strcmp(test_str_with_key.ToCString(), name) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-// Returns true if the function matches function_name and class_name, with
-// special recognition of corelib private classes
-static bool TestFunction(const Function& function,
-                         const char* function_class_name,
-                         const char* function_name,
-                         const char* test_class_name,
-                         const char* test_function_name) {
-  return CompareNames(test_class_name, function_class_name) &&
-         CompareNames(test_function_name, function_name);
-}
-
-
-bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
-  if (!FLAG_intrinsify) return false;
-  const char* function_name = String::Handle(function.name()).ToCString();
-  const Class& function_class = Class::Handle(function.owner());
-  const char* class_name = String::Handle(function_class.Name()).ToCString();
-  // Only core library methods can be intrinsified.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  if ((function_class.library() != core_lib.raw()) &&
-      (function_class.library() != core_impl_lib.raw())) {
-    return false;
-  }
-#define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
-  if (TestFunction(function,                                                   \
-                   class_name, function_name,                                  \
-                   #test_class_name, #test_function_name)) {                   \
-    return destination(assembler);                                             \
-  }                                                                            \
-
-INTRINSIC_LIST(FIND_INTRINSICS);
-#undef FIND_INTRINSICS
-  return false;
-}
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

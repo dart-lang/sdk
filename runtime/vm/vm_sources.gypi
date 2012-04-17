@@ -152,6 +152,7 @@
     'intermediate_language.h',
     'intermediate_language_test.cc',
     'intrinsifier.h',
+    'intrinsifier.cc',
     'intrinsifier_arm.cc',
     'intrinsifier_ia32.cc',
     'intrinsifier_x64.cc',

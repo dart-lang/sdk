@@ -22,7 +22,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
+DECLARE_FLAG(bool, print_ast);
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, enable_type_checks);
