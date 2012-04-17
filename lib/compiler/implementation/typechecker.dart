@@ -65,7 +65,8 @@ class InterfaceType implements Type {
   final Element element;
   final Link<Type> arguments;
 
-  const InterfaceType(this.name, this.element, this.arguments);
+  const InterfaceType(this.name, this.element,
+                      [this.arguments = const EmptyLink<Type>()]);
 
   toString() {
     StringBuffer sb = new StringBuffer();
@@ -77,13 +78,6 @@ class InterfaceType implements Type {
     }
     return sb.toString();
   }
-}
-
-// TODO(karlklose): merge into InterfaceType as a named constructor.
-class SimpleType extends InterfaceType {
-  const SimpleType(SourceString name, Element element)
-    : super(name, element, const EmptyLink<Type>());
-  String toString() => name.slowToString();
 }
 
 class FunctionType implements Type {
@@ -116,14 +110,14 @@ class Types {
   static final OBJECT = const SourceString('Object');
   static final LIST = const SourceString('List');
 
-  final SimpleType voidType;
-  final SimpleType dynamicType;
+  final InterfaceType voidType;
+  final InterfaceType dynamicType;
 
   Types() : this.with(new LibraryElement(new Script(null, null)));
 
   Types.with(LibraryElement library)
-    : voidType = new SimpleType(VOID, new ClassElement(VOID, library)),
-      dynamicType = new SimpleType(DYNAMIC, new ClassElement(DYNAMIC, library));
+    : voidType = new InterfaceType(VOID, new ClassElement(VOID, library)),
+      dynamicType = new InterfaceType(DYNAMIC, new ClassElement(DYNAMIC, library));
 
   Type lookup(SourceString s) {
     if (VOID == s) {
@@ -138,8 +132,8 @@ class Types {
   bool isSubtype(Type t, Type s) {
     if (t === s || t === dynamicType || s === dynamicType ||
         s.name == OBJECT) return true;
-    if (t is SimpleType) {
-      if (s is !SimpleType) return false;
+    if (t is InterfaceType) {
+      if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
       for (Link<Type> supertypes = tc.allSupertypes;
            supertypes != null && !supertypes.isEmpty();

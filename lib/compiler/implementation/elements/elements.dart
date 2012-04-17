@@ -713,7 +713,7 @@ class ClassElement extends ContainerElement {
 
   Type computeType(compiler) {
     if (type === null) {
-      type = new SimpleType(name, this);
+      type = new InterfaceType(name, this);
     }
     return type;
   }

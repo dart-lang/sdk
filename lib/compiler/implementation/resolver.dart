@@ -1118,7 +1118,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else if (element.isTypedef()) {
         // TODO(karlklose): implement typedefs. We return a fake type that the
         // code generator can use to detect typedefs in is-checks.
-        type = new SimpleType(element.name, element);
+        type = new InterfaceType(element.name, element);
       } else {
         type = element.computeType(compiler);
       }
@@ -1413,7 +1413,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       } else if (objectElement === null){
         error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
-      classElement.supertype = new SimpleType(Types.OBJECT, objectElement);
+      classElement.supertype = new InterfaceType(Types.OBJECT, objectElement);
     }
     if (node.defaultClause !== null) {
       classElement.defaultClass = visit(node.defaultClause);
