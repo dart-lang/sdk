@@ -21,7 +21,7 @@
 
   <property name="build.test.classes.dir" value="${build.dir}/test/classes"/>
 
-  <property name="dartc.jar" value="${build.dir}/dartc.jar"/>
+  <property name="dart_analyzer.jar" value="${build.dir}/dart_analyzer.jar"/>
 
   <property name="dist.dir" value="${build.dir}/dist"/>
 
@@ -84,7 +84,7 @@
   </target>
 
   <!--
-    We rely on GYP to call these targets when the dartc dependencies change, hence this
+    We rely on GYP to call these targets when the dart_analyzer dependencies change, hence this
     ant file cannot be used standalone.
   -->
   <target name="compile-tests" depends="compile" description="Compiles all of the java tests and copies the resources to the test classes directory." >
@@ -106,55 +106,57 @@
     </copy>
   </target>
 
-  <target name="dartc.jar" depends="compile" description="Creates a jar for dartc without bundling the dependencies.">
-    <jar destfile="${dartc.jar}" basedir="${build.classes.dir}" manifest="dartc.mf"/>
+  <target name="dart_analyzer.jar" depends="compile" 
+      description="Creates a jar for dart analyzer w/o bundling dependencies.">
+    <jar destfile="${dart_analyzer.jar}" basedir="${build.classes.dir}" 
+        manifest="dart_analyzer.mf"/>
   </target>
 
-  <target name="dist" depends="dartc.jar" description="Creates a directory that contains a standalone distribution for dartc.">
+  <target name="dist" depends="dart_analyzer.jar" 
+      description="Creates a directory with a standalone distribution.">
     <!--
       Ensure the necessary subdirectories exist.
     -->
     <mkdir dir="${dist.dir}/bin"/>
-    <mkdir dir="${dist.dir}/lib"/>
+    <mkdir dir="${dist.dir}/util"/>
+    <mkdir dir="${dist.dir}/util/analyzer"/>
 
     <!--
       Copy the dart jar to the lib folder.
     -->
-    <copy file="${dartc.jar}" todir="${dist.dir}/lib"/>
+    <copy file="${dart_analyzer.jar}" todir="${dist.dir}/util/analyzer"/>
 
     <!--
-      Re-root the classpaths from third_party into the lib folder of the distro.
+      Re-root the classpaths from third_party into the library folder of the distro.
     -->
-    <pathconvert property="dartc.classpath.runtime.unix" targetos="unix" refid="classpath.runtime">
-      <regexpmapper from="${third_party.dir}/(.*)" to="$DARTC_LIBS/\1"/>
+    <pathconvert property="analyzer.classpath.runtime.unix" targetos="unix" refid="classpath.runtime">
+      <regexpmapper from="${third_party.dir}/(.*)" to="$DART_ANALYZER_LIBS/\1"/>
     </pathconvert>
 
-    <copy file="scripts/dartc.sh" tofile="${dist.dir}/bin/dartc">
+    <copy file="scripts/dart_analyzer.sh" tofile="${dist.dir}/bin/dart_analyzer">
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.unix}"/>
       </filterset>
     </copy>
-    <chmod file="${dist.dir}/bin/dartc" perm="a+rx"/>
+    <chmod file="${dist.dir}/bin/dart_analyzer" perm="a+rx"/>
 
    <!--
       TODO: The following files are not strictly due to dist, move them out.
     -->
     <copy todir="${build.dir}">
       <fileset dir="scripts">
-        <include name="dartc_run.sh"/>
-        <include name="dartc_metrics.sh"/>
+        <include name="analyzer_metrics.sh"/>
       </fileset>
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DART_ANALYZER_LIBS/dart_analyzer.jar:${analyzer.classpath.runtime.unix}"/>
       </filterset>
     </copy>
-    <chmod file="${build.dir}/dartc_run.sh" perm="a+rx"/>
-    <chmod file="${build.dir}/dartc_metrics.sh" perm="a+rx"/>
+    <chmod file="${build.dir}/analyzer_metrics.sh" perm="a+rx"/>
 
     <!--
-      Copy of all of the dartc dependencies to the lib folder.
+      Copy of all of the dart anayzer dependencies to the library folder.
     -->
-    <copy todir="${dist.dir}/lib">
+    <copy todir="${dist.dir}/util/analyzer">
       <path refid="classpath.runtime"/>
       <regexpmapper from="${third_party.dir}/(.*)" to="\1"/>
     </copy>

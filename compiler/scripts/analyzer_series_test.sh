@@ -158,8 +158,8 @@ function failStats() {
 
 function compileRevision() {
   REVISION=$1
-  PREBUILT_DIR=$ROOT_OF_REPO/compiler/revs/$REVISION/prebuilt
-  PREBUILT_BIN=$PREBUILT_DIR/compiler/bin/dartc
+  PREBUILT_DIR=$ROOT_OF_REPO/analyzer/revs/$REVISION/prebuilt
+  PREBUILT_BIN=$PREBUILT_DIR/analyzer/bin/dart_analyzer
   if [ ! -x $PREBUILT_BIN ]; then
     echo "No prebuilt, building and caching"
     echo "Checking out clean version of $REVISION; will take some time. Look at $LOG_FILE for progress"
@@ -170,7 +170,7 @@ function compileRevision() {
     echo "Run hooks"
     gclient runhooks >> $LOG_FILE 2>&1
 
-    echo "Compiling clean version of dartc; may take some time"
+    echo "Compiling clean version of dart_analyzer; may take some time"
     date
     cd compiler
     ../tools/build.py --mode release >> $LOG_FILE 2>&1
@@ -198,10 +198,10 @@ function compileRevision() {
   fi
 
   # Do the second test
-  echo "Running test with dartc $REVISION!"
+  echo "Running test with dart_analyzer $REVISION!"
   date
-  echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=$REVISION --dartc=$PREBUILT_DIR/compiler/bin/dartc $COMPARE_OPTIONS >> $LOG_FILE 2>&1
-  $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=$REVISION --dartc=$PREBUILT_DIR/compiler/bin/dartc $COMPARE_OPTIONS > $STAT1
+  echo $SCRIPT_PATH/compiler_metrics.sh --stats-prefix=$REVISION --analyzer=$PREBUILT_DIR/analyzer/bin/dart_analyzer $COMPARE_OPTIONS >> $LOG_FILE 2>&1
+  $SCRIPT_PATH/dart_analyzer.sh --stats-prefix=$REVISION --analyzer=$PREBUILT_DIR/analyzer/bin/dart_analyzer $COMPARE_OPTIONS > $STAT1
   if [ ! $? -eq 0 ]; then
     echo "error sampling"
     failStats $REVISION

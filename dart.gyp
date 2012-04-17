@@ -12,7 +12,7 @@
       'target_name': 'compiler',
       'type': 'none',
       'dependencies': [
-        'compiler/dart-compiler.gyp:dartc',
+        'compiler/dart-compiler.gyp:dart_analyzer',
       ],
       'actions': []
     },
@@ -30,6 +30,7 @@
       'type': 'none',
       'dependencies': [
         'runtime',
+        'compiler',
       ],
       'actions': [
         {
