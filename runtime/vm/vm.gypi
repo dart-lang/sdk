@@ -12,7 +12,6 @@
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
-    'cygwin_dir': '../../third_party/cygwin',
   },
   'targets': [
     {
@@ -91,11 +90,6 @@
     {
       'target_name': 'generate_corelib_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/lib_sources.gypi',
@@ -136,11 +130,6 @@
     {
       'target_name': 'generate_corelib_impl_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/lib_impl_sources.gypi',
@@ -181,11 +170,6 @@
     {
       'target_name': 'generate_mirrors_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         # Load the shared core library sources.
         '../lib/mirrors_sources.gypi',
@@ -224,11 +208,6 @@
     {
       'target_name': 'generate_isolate_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/isolate_sources.gypi',
@@ -267,11 +246,6 @@
     {
       'target_name': 'generate_snapshot_test_dat_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'actions': [
         {
           'action_name': 'generate_snapshot_test_dat',

@@ -6,7 +6,6 @@
   'variables': {
     # These variables are used in the creation of the .vcproj file on
     # Windows.
-    'cygwin_dir': 'third_party/cygwin',
   },
   'targets': [
     {
@@ -29,11 +28,6 @@
     {
       'target_name': 'create_sdk',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'dependencies': [
         'runtime',
       ],
@@ -66,11 +60,6 @@
     {
       'target_name': 'upload_sdk',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'dependencies': [
         'create_sdk',
       ],
