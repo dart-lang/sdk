@@ -137,6 +137,21 @@ class NativeEmitter {
     return result;
   }
 
+  void potentiallyConvertDartClosuresToJs(StringBuffer code,
+                                          FunctionElement member) {
+    FunctionParameters parameters = member.computeParameters(compiler);
+    Element converter =
+        compiler.findHelper(const SourceString('convertDartClosureToJS'));
+    String closureConverter = compiler.namer.isolateAccess(converter);
+    parameters.forEachParameter((Element parameter) {
+      Type type = parameter.computeType(compiler);
+      if (type is FunctionType) {
+        String name = parameter.name.slowToString();
+        code.add('  $name = $closureConverter($name);\n');
+      }
+    });
+  }
+
   void emitParameterStub(Element member,
                          String invocationName,
                          String stubParameters,
@@ -158,14 +173,18 @@ class NativeEmitter {
     String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
+    StringBuffer code = new StringBuffer();
+    potentiallyConvertDartClosuresToJs(code, member);
+
     String name = member.name.slowToString();
-    String code = '  return this.$name($nativeArguments);\n';
+    code.add('  return this.$name($nativeArguments);');
+
     if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
       // Call the method directly.
-      buffer.add(code);
+      buffer.add(code.toString());
     } else {
       native.generateMethodWithPrototypeCheck(
-          compiler, buffer, invocationName, code, stubParameters);
+          compiler, buffer, invocationName, code.toString(), stubParameters);
     }
   }
 
