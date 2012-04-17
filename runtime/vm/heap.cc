@@ -9,6 +9,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
+#include "vm/object.h"
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
@@ -136,7 +137,8 @@ void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
   // The code heap can only have RawInstructions objects.
   RawObject* raw_obj = code_space_->FindObject(visitor);
-  ASSERT(raw_obj->ptr()->class_->ptr()->instance_kind_ == kInstructions);
+  ASSERT((raw_obj == Object::null()) ||
+         (raw_obj->ptr()->class_->ptr()->instance_kind_ == kInstructions));
   return reinterpret_cast<RawInstructions*>(raw_obj);
 }
 
