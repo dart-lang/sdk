@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,6 +36,21 @@ const char* Platform::OperatingSystem() {
 
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
+}
+
+
+char** Platform::Environment(intptr_t* count) {
+  // Using environ directly is only safe as long as we do not
+  // provide access to modifying environment variables.
+  intptr_t i = 0;
+  char** tmp = environ;
+  while (*(tmp++) != NULL) i++;
+  *count = i;
+  char** result = new char*[i];
+  for (intptr_t current = 0; current < i; current++) {
+    result[current] = environ[current];
+  }
+  return result;
 }
 
 

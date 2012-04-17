@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,7 +25,13 @@ class Platform {
   static char* StrError(int error_code);
 
   // Extracts the local hostname.
-  static bool LocalHostname(char *buffer, intptr_t buffer_length);
+  static bool LocalHostname(char* buffer, intptr_t buffer_length);
+
+  // Extracts the environment variables for the current process.
+  // The array of strings returned must be deallocated using
+  // delete[]. The number of elements in the array is returned
+  // in the count argument.
+  static char** Environment(intptr_t* count);
 
  private:
   DISALLOW_ALLOCATION();

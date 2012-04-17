@@ -33,4 +33,9 @@ interface Platform default _Platform {
    * Get the local hostname for the system.
    */
   String localHostname();
+
+  /**
+   * Get the environment for this process.
+   */
+  Map<String, String> environment();
 }

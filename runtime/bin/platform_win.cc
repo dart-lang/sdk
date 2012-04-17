@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,13 +25,32 @@ const char* Platform::OperatingSystem() {
 
 
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
-  static bool socketInitialized = false;
-  if (!socketInitialized) {
+  static bool socket_initialized = false;
+  if (!socket_initialized) {
     // Initialize Socket for gethostname.
     if (!Socket::Initialize()) return false;
-    socketInitialized = true;
+    socket_initialized = true;
   }
   return gethostname(buffer, buffer_length) == 0;
+}
+
+
+char** Platform::Environment(intptr_t* count) {
+  char* strings = GetEnvironmentStringsA();
+  if (strings == NULL) return NULL;
+  char* tmp = strings;
+  intptr_t i = 0;
+  while (*tmp != '\0') {
+    i++;
+    tmp += (strlen(tmp) + 1);
+  }
+  *count = i;
+  char** result = new char*[i];
+  for (intptr_t current = 0; current < i; current++) {
+    result[current] = strings;
+    strings += (strlen(strings) + 1);
+  }
+  return result;
 }
 
 
