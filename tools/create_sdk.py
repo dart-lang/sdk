@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -16,7 +16,6 @@
 # ......dart or dart.exe (executable)
 # ......frogc.dart
 # ......frogsh (coming later)
-# ......dart_analyzer
 # ....lib/
 # ......builtin/
 # ........builtin_runtime.dart
@@ -48,9 +47,6 @@
 # ......utf/
 # ......(more will come here)
 # ....util/
-# .......analyzer/
-# .........dart_analyzer.jar
-# .........(third-party libraries for dart_analyzer)
 # ......(more will come here)
 
 
@@ -118,11 +114,9 @@ def Main(argv):
   build_dir = os.path.dirname(argv[1])
   frogc_file_extension = ''
   dart_file_extension = ''
-  analyzer_file_extension = ''
   if utils.GuessOS() == 'win32':
     dart_file_extension = '.exe'
     frogc_file_extension = '.bat'
-    analyzer_file_extension = '.sh' # TODO(zundel): never tested on Windows
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
   frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap',
@@ -132,12 +126,6 @@ def Main(argv):
   copymode(dart_src_binary, dart_dest_binary)
   copyfile(frogc_src_binary, frogc_dest_binary)
   copymode(frogc_src_binary, frogc_dest_binary)
-  ANALYZER_HOME = join(HOME, build_dir, 'analyzer')
-  dart_analyzer_src_binary = join(ANALYZER_HOME, 'bin', 'dart_analyzer')
-  dart_analyzer_dest_binary = join(BIN,
-      'dart_analyzer' + analyzer_file_extension)
-  copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
-  copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
 
   # Create sdk/bin/frogc.dart, and hack as needed.
   frog_src_dir = join(HOME, 'frog')
@@ -428,28 +416,8 @@ def Main(argv):
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
 
-  # Create and copy Analyzer library.
-  
-  ANALYZER_DEST = join(UTIL, 'analyzer')
-  os.makedirs(ANALYZER_DEST)
 
-  darta_src_jar = join(ANALYZER_HOME, 'util', 'analyzer', 'dart_analyzer.jar')
-  darta_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
-  copyfile(darta_src_jar, darta_dest_jar)
-  
-  jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
-                 join("guava", "r09", "guava-r09.jar"),
-                 join("json", "r2_20080312", "json.jar") ]
-  for jarToCopy in jarsToCopy:
-      dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
-      os.makedirs(dest_dir)
-      dest_file = join (ANALYZER_DEST, jarToCopy)
-      src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
-      copyfile(src_file, dest_file)
-
-  
   # Copy import maps
-  
   PLATFORMS = ['any', 'vm', 'dartium', 'dart2js', 'frog' ]
   os.makedirs(join(LIB, 'config'))
   for platform in PLATFORMS:

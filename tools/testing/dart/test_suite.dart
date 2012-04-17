@@ -1171,8 +1171,9 @@ class JUnitTestSuite implements TestSuite {
 
   void computeClassPath() {
     classPath = Strings.join(
-        ['$buildDir/analyzer/util/analyzer/dart_analyzer.jar',
-         '$buildDir/analyzer/dart_analyzer_tests.jar',
+        ['$buildDir/compiler/lib/dartc.jar',
+         '$buildDir/compiler-tests.jar',
+         '$buildDir/closure_out/compiler.jar',
          // Third party libraries.
          '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
          '$dartDir/third_party/guava/r09/guava-r09.jar',
@@ -1236,7 +1237,7 @@ class TestUtils {
       case 'none':
         return 'dart$suffix';
       case 'dartc':
-        return 'analyzer/bin/dart_analyzer$suffix';
+        return 'compiler/bin/dartc$suffix';
       case 'frog':
       case 'dart2js':
         return 'frog/bin/frog$suffix';
@@ -1251,7 +1252,7 @@ class TestUtils {
     String suffix = executableSuffix(configuration['compiler']);
     switch (configuration['compiler']) {
       case 'dartc':
-        return 'analyzer/bin/dart_analyzer$suffix';
+        return 'compiler/bin/dartc$suffix';
       case 'frog':
       case 'dart2js':
         return 'frog/bin/frog$suffix';
