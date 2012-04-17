@@ -253,6 +253,24 @@ interface HttpHeaders default _HttpHeaders {
    * header.
    */
   void removeAll(String name);
+
+  /**
+   * Gets and sets the expiry date. The value of this property will
+   * reflect the "Expires" header
+   */
+  Date expires;
+
+  /**
+   * Gets and sets the host part of the "Host" header for the
+   * connection.
+   */
+  String host;
+
+  /**
+   * Gets and sets the port part of the "Host" header for the
+   * connection.
+   */
+  int port;
 }
 
 
@@ -327,12 +345,6 @@ interface HttpResponse default _HttpResponse {
    * set a default reason phrase is provided.
    */
   String reasonPhrase;
-
-  /**
-   * Gets and sets the expiry date. The value of this property will
-   * reflect the "Expires" header
-   */
-  Date expires;
 
   /**
    * Returns the response headers.
@@ -453,20 +465,6 @@ interface HttpClientRequest default _HttpClientRequest {
   int contentLength;
 
   /**
-   * Gets and sets the " host part of the "Host" header for the
-   * connection. By default this will be set to the value of the host
-   * used when initiating the connection.
-   */
-  String host;
-
-  /**
-   * Gets and sets the port part of the "Host" header for the
-   * connection. By default this will be set to the value of the port
-   * used when initiating the connection.
-   */
-  int port;
-
-  /**
    * Returns the request headers.
    */
   HttpHeaders get headers();
@@ -503,14 +501,6 @@ interface HttpClientResponse default _HttpClientResponse {
    * the request body is not known in advance this -1.
    */
   int get contentLength();
-
-  /**
-   * Returns the date value for the "Expires" header. Returns null if
-   * the response has no "Expires" header. Throws a HttpException if
-   * the response has an "Expires" header which is not formatted as a
-   * valid HTTP date.
-   */
-  Date get expires();
 
   /**
    * Returns the response headers.
