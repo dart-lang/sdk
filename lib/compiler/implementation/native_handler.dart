@@ -147,7 +147,7 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
     listener.endSend(token);
     token = token.next;
     // If this native method is just redirecting to another method,
-    // we add a return node to match the SSA builder expactations.
+    // we add a return node to match the SSA builder expectations.
     if (nativeRedirectionRegExp.hasMatch(str.dartString.slowToString())) {
       listener.endReturnStatement(true, begin, token);
     } else {
@@ -256,91 +256,23 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       inputs.add(input);
       arguments.add('#');
     });
+
     String foreignParameters = Strings.join(arguments, ',');
-
-    String dartMethodName;
     String nativeMethodCall;
-
     if (element.kind == ElementKind.FUNCTION) {
-      dartMethodName = builder.compiler.namer.instanceMethodName(
-          element.getLibrary(), element.name, parameters.parameterCount);
       nativeMethodCall = '$receiver$nativeMethodName($foreignParameters)';
     } else if (element.kind == ElementKind.GETTER) {
-      dartMethodName = builder.compiler.namer.getterName(
-          element.getLibrary(), element.name);
       nativeMethodCall = '$receiver$nativeMethodName';
     } else if (element.kind == ElementKind.SETTER) {
-      dartMethodName = builder.compiler.namer.setterName(
-          element.getLibrary(), element.name);
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
       builder.compiler.internalError('unexpected kind: "${element.kind}"',
                                      element: element);
     }
 
-    HInstruction thenInstruction;
-    void visitThen() {
-      DartString jsCode = new DartString.literal(nativeMethodCall);
-      thenInstruction =
-          new HForeign(jsCode, const LiteralDartString('Object'), inputs);
-      builder.add(thenInstruction);
-    }
-
-    bool isNativeLiteral = false;
-    bool isOverridden = false;
-    NativeEmitter nativeEmitter = builder.compiler.emitter.nativeEmitter;
-    if (element.enclosingElement.kind == ElementKind.CLASS) {
-      ClassElement classElement = element.enclosingElement;
-      String nativeName = classElement.nativeName.slowToString();
-      isNativeLiteral = nativeEmitter.isNativeLiteral(nativeName);
-      isOverridden = isOverriddenMethod(element, classElement, nativeEmitter);
-    }
-    if (!element.isInstanceMember() || isNativeLiteral || !isOverridden) {
-      // We generate a direct call to the native method.
-      visitThen();
-      builder.stack.add(thenInstruction);
-    } else {
-      // Record that this method is overridden. In case of optional
-      // arguments, the emitter will generate stubs to handle them,
-      // and needs to know if the method is overridden.
-      nativeEmitter.overriddenMethods.add(element);
-
-      // If the method is an instance method that is overridden, we
-      // generate the following code:
-      // function(params) {
-      //   return Object.getPrototypeOf(this).hasOwnProperty(dartMethodName))
-      //      ? this.methodName(params)
-      //      : Object.prototype.methodName.call(this, params);
-      // }
-      //
-      // The property check at the beginning is to make sure we won't
-      // call the method from the super class, in case the prototype of
-      // 'this' does not have the method yet.
-      HInstruction elseInstruction;
-      void visitElse() {
-        String params = arguments.isEmpty() ? '' : ', $foreignParameters';
-        DartString jsCode = new DartString.literal(
-            'Object.prototype.$dartMethodName.call(#$params)');
-        elseInstruction =
-            new HForeign(jsCode, const LiteralDartString('Object'), inputs);
-        builder.add(elseInstruction);
-      }
-
-      HConstant constant = builder.graph.addConstantString(
-          new DartString.literal('$dartMethodName'));
-      DartString jsCode = new DartString.literal(
-          'Object.getPrototypeOf(#).hasOwnProperty(#)');
-      builder.push(new HForeign(
-          jsCode, const LiteralDartString('Object'),
-          <HInstruction>[builder.localsHandler.readThis(), constant]));
-
-      builder.handleIf(visitThen, visitElse);
-
-      HPhi phi = new HPhi.manyInputs(
-          null, <HInstruction>[thenInstruction, elseInstruction]);
-      builder.current.addPhi(phi);
-      builder.stack.add(phi);
-    }
+    DartString jsCode = new DartString.literal(nativeMethodCall);
+    builder.push(
+        new HForeign(jsCode, const LiteralDartString('Object'), inputs));
   } else {
     // This is JS code written in a Dart file with the construct
     // native """ ... """;. It does not work well with mangling,
@@ -365,4 +297,49 @@ void handleSsaNative(SsaBuilder builder, Send node) {
                               const LiteralDartString('Object'),
                               <HInstruction>[]));
   }
+}
+
+void generateMethodWithPrototypeCheckForElement(Compiler compiler,
+                                                StringBuffer buffer,
+                                                FunctionElement element,
+                                                String code,
+                                                String parameters) {
+  String methodName;
+  Namer namer = compiler.namer;
+  if (element.kind == ElementKind.FUNCTION) {
+    FunctionParameters parameters = element.computeParameters(compiler);
+    methodName = namer.instanceMethodName(
+        element.getLibrary(), element.name, parameters.parameterCount);
+  } else if (element.kind == ElementKind.GETTER) {
+    methodName = namer.getterName(element.getLibrary(), element.name);
+  } else if (element.kind == ElementKind.SETTER) {
+    methodName = namer.setterName(element.getLibrary(), element.name);
+  } else {
+    compiler.internalError('unexpected kind: "${element.kind}"',
+                           element: element);
+  }
+
+  generateMethodWithPrototypeCheck(
+      compiler, buffer, methodName, code, parameters);
+}
+
+
+// If a method is overridden, we must check if the prototype of
+// 'this' has the method available. Otherwise, we may end up
+// calling the method from the super class. If the method is not
+// available, we make a direct call to Object.prototype.$methodName.
+// This method will patch the prototype of 'this' to the real method.
+void generateMethodWithPrototypeCheck(Compiler compiler,
+                                      StringBuffer buffer,
+                                      String methodName,
+                                      String code,
+                                      String parameters) {     
+  buffer.add("  if (Object.getPrototypeOf(this).hasOwnProperty");
+  buffer.add("('$methodName')) {\n");
+  buffer.add("  $code");
+  buffer.add("  } else {\n");
+  buffer.add("    return Object.prototype.$methodName.call(this");
+  buffer.add(parameters == '' ? '' : ', $parameters');
+  buffer.add(");\n");
+  buffer.add("  }\n");
 }

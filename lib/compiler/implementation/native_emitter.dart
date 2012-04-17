@@ -160,28 +160,15 @@ class NativeEmitter {
     String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
+    String name = member.name.slowToString();
+    String code = '  return this.$name($nativeArguments);\n';
     if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
       // Call the method directly.
-      buffer.add('    return this.${member.name.slowToString()}');
-      buffer.add('($nativeArguments)');
-      return;
+      buffer.add(code);
+    } else {
+      native.generateMethodWithPrototypeCheck(
+          compiler, buffer, invocationName, code, stubParameters);
     }
-
-    // If the method is overridden, we must check if the prototype of
-    // 'this' has the method available. Otherwise, we may end up
-    // calling the method from the super class. If the method is not
-    // available, we make a direct call to
-    // Object.prototype.$invocationName. This method will patch the
-    // prototype of 'this' to the real method.
-
-    buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
-    buffer.add("'$invocationName')) {\n");
-    buffer.add('    return this.${member.name.slowToString()}');
-    buffer.add('($nativeArguments)');
-    buffer.add('\n  }\n');
-    buffer.add('  return Object.prototype.$invocationName.call(this');
-    buffer.add(stubParameters == '' ? '' : ', $stubParameters');
-    buffer.add(');');
   }
 
   void emitDynamicDispatchMetadata() {

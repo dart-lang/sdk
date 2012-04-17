@@ -15,7 +15,27 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           compiler, work, parameters, parameterNames);
       codegen.visitGraph(graph);
-      return 'function($parameters) {\n${codegen.buffer}}';
+      
+      FunctionElement element = work.element;
+      String code;
+      if (element.isInstanceMember()
+          && element.enclosingElement.isClass()
+          && element.enclosingElement.isNative()
+          && native.isOverriddenMethod(element,
+                                       element.enclosingElement,
+                                       compiler.emitter.nativeEmitter)) {
+        // Record that this method is overridden. In case of optional
+        // arguments, the emitter will generate stubs to handle them,
+        // and needs to know if the method is overridden.
+        compiler.emitter.nativeEmitter.overriddenMethods.add(element);
+        StringBuffer buffer = new StringBuffer();
+        native.generateMethodWithPrototypeCheckForElement(
+            compiler, buffer, element, '${codegen.buffer}', parameters);
+        code = buffer.toString();
+      } else {
+        code = codegen.buffer.toString();
+      }
+      return 'function($parameters) {\n$code}';
     });
   }
 
