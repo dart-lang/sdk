@@ -1487,43 +1487,42 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     return e.computeType(compiler);
   }
 
-  Link<Type> getOrCalculateAllSupertypes(ClassElement classElement,
+  Link<Type> getOrCalculateAllSupertypes(ClassElement cls,
                                          [Set<ClassElement> seen]) {
-    Link<Type> allSupertypes = classElement.allSupertypes;
+    Link<Type> allSupertypes = cls.allSupertypes;
     if (allSupertypes !== null) return allSupertypes;
     if (seen === null) {
       seen = new Set<ClassElement>();
     }
-    if (seen.contains(classElement)) {
-      error(classElement.parseNode(compiler),
+    if (seen.contains(cls)) {
+      error(cls.parseNode(compiler),
             MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [classElement.name]);
-      classElement.allSupertypes = const EmptyLink<Type>();
+            [cls.name]);
+      cls.allSupertypes = const EmptyLink<Type>();
     } else {
-      classElement.ensureResolved(compiler);
-      calculateAllSupertypes(classElement, seen);
+      cls.ensureResolved(compiler);
+      calculateAllSupertypes(cls, seen);
     }
-    return classElement.allSupertypes;
+    return cls.allSupertypes;
   }
 
-  void calculateAllSupertypes(ClassElement classElement,
-                              Set<ClassElement> seen) {
+  void calculateAllSupertypes(ClassElement cls, Set<ClassElement> seen) {
     // TODO(karlklose): substitute type variables.
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
-    if (classElement.allSupertypes !== null) return;
-    final Type supertype = classElement.supertype;
-    if (seen.contains(classElement)) {
-      error(classElement.parseNode(compiler),
+    if (cls.allSupertypes !== null) return;
+    final Type supertype = cls.supertype;
+    if (seen.contains(cls)) {
+      error(cls.parseNode(compiler),
             MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [classElement.name]);
-      classElement.allSupertypes = const EmptyLink<Type>();
+            [cls.name]);
+      cls.allSupertypes = const EmptyLink<Type>();
     } else if (supertype != null) {
-      seen.add(classElement);
+      seen.add(cls);
       Link<Type> superSupertypes =
           getOrCalculateAllSupertypes(supertype.element, seen);
       Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
-      for (Link<Type> interfaces = classElement.interfaces;
+      for (Link<Type> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
         Element element = interfaces.head.element;
@@ -1532,10 +1531,10 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
         supertypes = supertypes.prepend(interfaces.head);
       }
-      seen.remove(classElement);
-      classElement.allSupertypes = supertypes;
+      seen.remove(cls);
+      cls.allSupertypes = supertypes;
     } else {
-      classElement.allSupertypes = const EmptyLink<Type>();
+      cls.allSupertypes = const EmptyLink<Type>();
     }
   }
 
@@ -1860,7 +1859,7 @@ class Scope {
 
 class TypeVariablesScope extends Scope {
   TypeVariablesScope(parent, ClassElement element) : super(parent, element);
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add element to TypeVariableScope";
   }
   Element lookup(SourceString name) {
@@ -1878,15 +1877,17 @@ class MethodScope extends Scope {
     : super(parent, element), this.elements = new Map<SourceString, Element>();
 
   Element lookup(SourceString name) {
-    Element element = elements[name];
-    if (element !== null) return element;
+    Element found = elements[name];
+    if (found !== null) return found;
     return parent.lookup(name);
   }
 
-  Element add(Element element) {
-    if (elements.containsKey(element.name)) return elements[element.name];
-    elements[element.name] = element;
-    return element;
+  Element add(Element newElement) {
+    if (elements.containsKey(newElement.name)) {
+      return elements[newElement.name];
+    }
+    elements[newElement.name] = newElement;
+    return newElement;
   }
 }
 
@@ -1909,7 +1910,7 @@ class ClassScope extends Scope {
     return cls.lookupSuperMember(name);
   }
 
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add an element in a class scope";
   }
 }
@@ -1922,7 +1923,7 @@ class TopScope extends Scope {
     return library.find(name);
   }
 
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add an element in the top scope";
   }
 }

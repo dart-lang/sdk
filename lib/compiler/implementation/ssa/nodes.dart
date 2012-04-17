@@ -622,19 +622,19 @@ class HBasicBlock extends HInstructionList implements Hashable {
       // If the predecessor has a dominator and this basic block has a
       // dominator, we find a common parent in the dominator tree and
       // use that as the dominator.
-      HBasicBlock first = dominator;
-      HBasicBlock second = predecessor;
-      while (first !== second) {
-        if (first.id > second.id) {
-          first = first.dominator;
+      HBasicBlock block0 = dominator;
+      HBasicBlock block1 = predecessor;
+      while (block0 !== block1) {
+        if (block0.id > block1.id) {
+          block0 = block0.dominator;
         } else {
-          second = second.dominator;
+          block1 = block1.dominator;
         }
-        assert(first !== null && second !== null);
+        assert(block0 !== null && block1 !== null);
       }
-      if (dominator !== first) {
+      if (dominator !== block0) {
         dominator.removeDominatedBlock(this);
-        first.addDominatedBlock(this);
+        block0.addDominatedBlock(this);
       }
     }
   }

@@ -78,9 +78,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   SsaConstantFolder(this.compiler);
 
-  void visitGraph(HGraph graph) {
-    this.graph = graph;
-    visitDominatorTree(graph);
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    visitDominatorTree(visitee);
   }
 
   visitBasicBlock(HBasicBlock block) {

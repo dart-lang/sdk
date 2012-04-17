@@ -111,8 +111,8 @@ class ProgressBar {
     }
   }
 
-  void recordScore(num score) {
-    scores.addLast(score);
+  void recordScore(num newScore) {
+    scores.addLast(newScore);
   }
 
   int score() {

@@ -204,8 +204,9 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   if (element.name == const SourceString('typeName')
       && element.isGetter()
       && nativeEmitter.toNativeName(element.enclosingElement) == 'DOMType') {
-    Element element = compiler.findHelper(const SourceString('getTypeNameOf'));
-    HStatic method = new HStatic(element);
+    Element methodElement =
+        compiler.findHelper(const SourceString('getTypeNameOf'));
+    HStatic method = new HStatic(methodElement);
     builder.add(method);
     builder.push(new HInvokeStatic(Selector.INVOCATION_1,
         <HInstruction>[method, builder.localsHandler.readThis()]));
@@ -312,9 +313,10 @@ void generateMethodWithPrototypeCheckForElement(Compiler compiler,
   String methodName;
   Namer namer = compiler.namer;
   if (element.kind == ElementKind.FUNCTION) {
-    FunctionParameters parameters = element.computeParameters(compiler);
+    FunctionParameters computedParameters =
+        element.computeParameters(compiler);
     methodName = namer.instanceMethodName(
-        element.getLibrary(), element.name, parameters.parameterCount);
+        element.getLibrary(), element.name, computedParameters.parameterCount);
   } else if (element.kind == ElementKind.GETTER) {
     methodName = namer.getterName(element.getLibrary(), element.name);
   } else if (element.kind == ElementKind.SETTER) {

@@ -206,8 +206,8 @@ class NativeEmitter {
       }
       classes.add(cls);
     }
-    for (final ClassElement cls in classesWithDynamicDispatch) {
-      visit(cls);
+    for (final ClassElement classElement in classesWithDynamicDispatch) {
+      visit(classElement);
     }
 
     Collection<ClassElement> dispatchClasses = classes.filter(
@@ -239,11 +239,11 @@ class NativeEmitter {
     // tag -> expression (a string or a variable)
     Map<ClassElement, String> tagDefns = new Map<ClassElement, String>();
 
-    String makeExpression(ClassElement cls) {
+    String makeExpression(ClassElement classElement) {
       // Expression fragments for this set of cls keys.
       List<String> expressions = <String>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = [toNativeName(cls)];
+      List<String> subtags = [toNativeName(classElement)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
@@ -264,7 +264,7 @@ class NativeEmitter {
           }
         }
       }
-      walk(cls);
+      walk(classElement);
       String constantPart = "'${Strings.join(subtags, '|')}'";
       if (constantPart != "''") expressions.add(constantPart);
       String expression;
@@ -276,8 +276,8 @@ class NativeEmitter {
       return expression;
     }
 
-    for (final ClassElement cls in dispatchClasses) {
-      tagDefns[cls] = makeExpression(cls);
+    for (final ClassElement classElement in dispatchClasses) {
+      tagDefns[classElement] = makeExpression(classElement);
     }
 
     // Write out a thunk that builds the metadata.
