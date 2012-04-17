@@ -1372,15 +1372,16 @@ class SwitchCase extends Node {
       // Skip past the label: <Identifier> ':'.
       token = token.next.next;
     }
-    Link<Token> recursiveGetCases(Token token, Link<Expression> expressions) {
-      if (token.stringValue === 'case') {
-        Token colon = expressions.head.getEndToken().next;
-        return new Link<Token>(token,
-                               recursiveGetCases(colon.next, expressions.tail));
-      }
-      return const EmptyLink<Token>();
+    LinkBuilder<Token> builder = new LinkBuilder<Token>();
+    Link<Expression> link = expressions.nodes;
+    while (token.stringValue === 'case') {
+      assert(token.next === link.head.getBeginToken(0));
+      builder.addLast(token);
+      Token colon = link.head.getEndToken().next;
+      token = colon.next;
+      link = link.tail;
     }
-    return recursiveGetCases(token, expressions.nodes);
+    return builder.toLink();
   }
 }
 
@@ -1568,8 +1569,8 @@ class TryStatement extends Statement {
   }
 }
 
-class Cascade extends Node {
-  final Node expression;
+class Cascade extends Expression {
+  final Expression expression;
   Cascade(this.expression);
 
   Cascade asCascade() => this;
@@ -1584,8 +1585,8 @@ class Cascade extends Node {
   Token getEndToken() => expression.getEndToken();
 }
 
-class CascadeReceiver extends Node {
-  final Node expression;
+class CascadeReceiver extends Expression {
+  final Expression expression;
   final Token cascadeOperator;
   CascadeReceiver(this.expression, this.cascadeOperator);
 

@@ -12,7 +12,7 @@ class ParserBench extends BaseParserBench {
   Token scanFileNamed(String filename) {
     Token token;
     getBytes(filename, (bytes) {
-      Scanner scanner = makeScanner(bytes);
+      AbstractScanner scanner = makeScanner(bytes);
       try {
         token = scanner.tokenize();
         printTokens(token);

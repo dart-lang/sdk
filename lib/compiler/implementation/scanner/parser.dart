@@ -937,7 +937,7 @@ class Parser {
       mark = token;
       if (optional('.', token)) {
         Token period = token;
-        token = parseSend(period.token);
+        token = parseSend(token);
         listener.handleBinaryExpression(period);
       }
       token = parseArgumentOrIndexStar(token);
@@ -945,7 +945,7 @@ class Parser {
 
     if (token.info.precedence === ASSIGNMENT_PRECEDENCE) {
       Token assignment = token;
-      token = parsePrecedenceExpression(token.token, CASCADE_PRECEDENCE + 1);
+      token = parsePrecedenceExpression(token, CASCADE_PRECEDENCE + 1);
       listener.handleAssignmentExpression(assignment);
     }
     listener.endCascade();
@@ -1557,19 +1557,21 @@ class Parser {
     // Then one or more case expressions, the last of which may be
     // 'default' instead.
     int expressionCount = 0;
-    String value = token.stringValue;
-    do {
-      if (value === 'default') {
-        defaultKeyword = token;
-        token = expect(':', token.next);
-        break;
-      }
-      token = expect('case', token);
-      token = parseExpression(token);
-      token = expect(':', token);
-      expressionCount++;
-      value = token.stringValue;
-    } while (value === 'case' || value === 'default');
+    {
+      String value = token.stringValue;
+      do {
+        if (value === 'default') {
+          defaultKeyword = token;
+          token = expect(':', token.next);
+          break;
+        }
+        token = expect('case', token);
+        token = parseExpression(token);
+        token = expect(':', token);
+        expressionCount++;
+        value = token.stringValue;
+      } while (value === 'case' || value === 'default');
+    }
     // Finally zero or more statements.
     int statementCount = 0;
     while (token.kind !== EOF_TOKEN) {

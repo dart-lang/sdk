@@ -419,7 +419,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitIs(HIs node) {
-    String type = node.typeExpression.toString();
+    String type = node.typeName.toString();
     return "TypeTest: ${temporaryId(node.expression)} is $type";
   }
 }

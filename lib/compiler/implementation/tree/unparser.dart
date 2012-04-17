@@ -32,6 +32,14 @@ class Unparser implements Visitor {
     visit(node.statements);
   }
 
+  visitCascade(Cascade node) {
+    visit(node.expression);
+  }
+
+  visitCascadeReceiver(CascadeReceiver node) {
+    visit(node.expression);
+  }
+
   visitClassNode(ClassNode node) {
     node.beginToken.value.printOn(sb);
     sb.add(' ');

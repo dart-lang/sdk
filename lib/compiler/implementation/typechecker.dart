@@ -277,7 +277,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     cascadeTypes = cascadeTypes.prepend(type);
   }
 
-  void popCascadeType() {
+  Type popCascadeType() {
     Type type = cascadeTypes.head;
     cascadeTypes = cascadeTypes.tail;
     return type;
