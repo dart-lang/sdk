@@ -343,7 +343,13 @@ class Test(object):
         for extra_metric in extra_metrics:
           self.revision_dict[platform][f][extra_metric] = []
           self.values_dict[platform][f][extra_metric] = []
-  
+
+  def is_valid_combination(self, platform, variant):
+    """Check whether data should be captured for this platform/variant
+    combination.
+    """
+    return True
+
   def run(self, graph_only):
     """Run the benchmarks/tests from the command line and plot the
     results.
@@ -386,7 +392,7 @@ class Tester(object):
     """Perform any initial setup required before the test is run."""
     pass
 
-  def add_svn_revision_to_trace(self, outfile):
+  def add_svn_revision_to_trace(self, outfile, browser = None):
     """Add the svn version number to the provided tracefile."""
     def search_for_revision(svn_info_command):
       p = subprocess.Popen(svn_info_command, stdout = subprocess.PIPE,
@@ -399,7 +405,18 @@ class Tester(object):
           return True
       return False
 
-    if not search_for_revision(['svn', 'info']):
+    def get_dartium_revision():
+      version_file_name = os.path.join(DART_INSTALL_LOCATION, 'client', 'tests',
+                                       'dartium', 'LAST_VERSION')
+      version_file = open(version_file_name, 'r')
+      version = version_file.read().split('.')[-2]
+      version_file.close()
+      return version
+
+    if browser and browser == 'dartium':
+      revision = get_dartium_revision()
+      self.test.test_runner.run_cmd(['echo', 'Revision: ' + revision], outfile)
+    elif not search_for_revision(['svn', 'info']):
       if not search_for_revision(['git', 'svn', 'info']):
         self.test.test_runner.run_cmd(['echo', 'Revision: unknown'], outfile)
 
@@ -420,9 +437,13 @@ class Processor(object):
     """Calculate the aggregate geometric mean for JS and frog benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0
-    for benchmark in self.test.values_list:
-      geo_mean += math.log(self.test.values_dict[platform][variant][benchmark][
-          len(self.test.values_dict[platform][variant][benchmark]) - 1])
+    # TODO(vsm): Suppress graphing this combination altogether.  For
+    # now, we feed a geomean of 0.
+    if self.test.is_valid_combination(platform, variant):
+      for benchmark in self.test.values_list:
+        geo_mean += math.log(
+            self.test.values_dict[platform][variant][benchmark][
+                len(self.test.values_dict[platform][variant][benchmark]) - 1])
 
     self.test.values_dict[platform][variant]['Geo-Mean'] += \
         [math.pow(math.e, geo_mean / len(self.test.values_list))]
@@ -566,11 +587,12 @@ class RuntimePerformanceTest(Test):
       clear_axis = True
       for platform in self.test.platform_list:
         for version in self.test.versions:
-          for metric in self.test.extra_metrics:
-            self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
-                                          filename, [platform], [version],
-                                          [metric], clear_axis)
-            clear_axis = False
+          if self.test.is_valid_combination(platform, version):
+            for metric in self.test.extra_metrics:
+              self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
+                                            filename, [platform], [version],
+                                            [metric], clear_axis)
+              clear_axis = False
 
     def plot_results(self, png_filename):
       self.plot_all_perf(png_filename)
@@ -656,14 +678,23 @@ class CommonCommandLineTest(RuntimePerformanceTest):
 
 
 class BrowserTester(Tester):
-  # TODO(vsm): Add Dartium.
   @staticmethod
   def get_browsers():
-    browsers = ['ff', 'chrome']
+    browsers = ['dartium', 'ff', 'chrome']
+    has_shell = False
     if platform.system() == 'Darwin':
       browsers += ['safari']
     if platform.system() == 'Windows':
       browsers += ['ie']
+      has_shell = True
+    if 'dartium' in browsers:
+      # Fetch it if necessary.
+      get_dartium = ['python',
+                     os.path.join(DART_INSTALL_LOCATION, 'tools', 'get_drt.py'),
+                     '--dartium']
+      # TODO(vsm): It's inconvenient that run_cmd isn't in scope here.
+      # Perhaps there is a better place to put that or this.
+      subprocess.Popen(get_dartium, shell=has_shell)
     return browsers
 
 
@@ -702,10 +733,12 @@ class CommonBrowserTest(RuntimePerformanceTest):
 
       for browser in BrowserTester.get_browsers():
         for version in self.test.versions:
+          if not self.test.is_valid_combination(browser, version):
+            continue
           self.test.trace_file = os.path.join(
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'perf-%s-%s-%s' % (self.test.cur_time, browser, version))
-          self.add_svn_revision_to_trace(self.test.trace_file)
+          self.add_svn_revision_to_trace(self.test.trace_file, browser)
           file_path = os.path.join(
               os.getcwd(), 'internal', 'browserBenchmarks',
               'benchmark_page_%s.html' % version)
@@ -846,6 +879,13 @@ class DromaeoTest(RuntimePerformanceTest):
   def name():
     return 'dromaeo'
 
+  def is_valid_combination(self, browser, version):
+    # TODO(vsm): This avoids a bug in 32-bit Chrome (dartium)
+    # running JS dromaeo.
+    if browser == 'dartium' and version == 'js':
+      return False
+    return True
+
   class DromaeoPerfTester(DromaeoTester):
     def run_tests(self):
       """Run dromaeo in the browser."""
@@ -861,12 +901,14 @@ class DromaeoTest(RuntimePerformanceTest):
 
       for browser in BrowserTester.get_browsers():
         for version_name in versions:
+          if not self.test.is_valid_combination(browser, version):
+            continue
           version = DromaeoTest.DromaeoPerfTester.get_dromaeo_url_query(
-              version_name)
+              browser, version_name)
           self.test.trace_file = os.path.join(
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
-          self.add_svn_revision_to_trace(self.test.trace_file)
+          self.add_svn_revision_to_trace(self.test.trace_file, browser)
           file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
           self.test.test_runner.run_cmd(
@@ -876,7 +918,9 @@ class DromaeoTest(RuntimePerformanceTest):
                append=True)
 
     @staticmethod
-    def get_dromaeo_url_query(version):
+    def get_dromaeo_url_query(browser, version):
+      if browser == 'dartium':
+        version = version.replace('frog', 'dart')
       version = version.replace('_','&')
       tags = DromaeoTester.get_valid_dromaeo_tags()
       return '|'.join([ '%s&%s' % (version, tag) for tag in tags])
