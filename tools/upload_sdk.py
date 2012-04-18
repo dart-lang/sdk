@@ -52,15 +52,6 @@ def UploadArchive(source, target):
   (status, output) = ExecuteCommand(cmd)
   return status
 
-def GetSVNRevision():
-  p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=HAS_SHELL)
-  output, not_used = p.communicate()
-  for line in output.split('\n'):
-    if 'Revision' in line:
-      return (line.strip().split())[1]
-  return None
-
 
 def Usage(progname):
   sys.stderr.write('Usage: %s path_to_sdk\n' % progname)
@@ -82,13 +73,11 @@ def main(argv):
     #should fail with a message.  
     #If we are not on a buildbot then fail silently. 
     exit(0)
-  revision = GetSVNRevision()
+  revision = utils.GetSVNRevision()
   if revision is None:
     sys.stderr.write('Unable to find SVN revision.\n')
     return 1
   os.chdir(os.path.dirname(argv[1]))
-  with open(os.path.join(os.path.basename(argv[1]), 'revision'), 'w') as f:
-    f.write(revision + '\n')
 
   if (os.path.basename(os.path.dirname(argv[1])) ==
       utils.GetBuildConf('release', 'ia32')):
