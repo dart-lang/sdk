@@ -53,6 +53,15 @@ interface HttpStatus {
 
 
 /**
+ * Interface to implement by HTTP request handler classes.
+ */
+
+interface RequestHandler {
+  void onRequest(HttpRequest request, HttpResponse response);
+}
+
+
+/**
  * HTTP server.
  */
 interface HttpServer default _HttpServer {
@@ -76,6 +85,24 @@ interface HttpServer default _HttpServer {
   void listenOn(ServerSocket serverSocket);
 
   /**
+   * Adds a request handler to the list of request handlers. The
+   * function [matcher] is called with the request and must return
+   * [:true:] if the [handler] should handle the request. The first
+   * handler for which [matcher] returns [:true:] will be handed the
+   * request. The [handler] can be either an object implementing the
+   * [RequestHandler] interface or a function taking two arguments.
+   */
+  addRequestHandler(bool matcher(HttpRequest request), Object handler);
+
+  /**
+   * Sets the request handler. This request handler will be called if
+   * none of the request handlers registered by [addRequestHandler]
+   * matches the current request. If no default request handler is set
+   * the server will just respond with status code [:NOT_FOUND:] (404).
+   */
+  void set defaultRequestHandler(Object handler);
+
+  /**
    * Stop server listening.
    */
   void close();
@@ -86,11 +113,6 @@ interface HttpServer default _HttpServer {
    * specified in the [listen] call.
    */
   int get port();
-
-  /**
-   * Sets the handler that gets called when a new HTTP request is received.
-   */
-  void set onRequest(void callback(HttpRequest, HttpResponse));
 
   /**
    * Sets the error handler that is called when a connection error occurs.

@@ -10,7 +10,7 @@ void test1(int totalConnections) {
   // Server which just closes immediately.
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, totalConnections);
-  server.onRequest = (HttpRequest request, HttpResponse response) {
+  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     response.outputStream.close();
   };
 
@@ -36,7 +36,7 @@ void test2(int totalConnections) {
   // Server which responds without waiting for request body.
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, totalConnections);
-  server.onRequest = (HttpRequest request, HttpResponse response) {
+  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     response.outputStream.writeString("!dlrow ,olleH");
     response.outputStream.close();
   };
@@ -64,7 +64,7 @@ void test3(int totalConnections) {
   // Server which responds when request body has been received.
   HttpServer server = new HttpServer();
   server.listen("127.0.0.1", 0, totalConnections);
-  server.onRequest = (HttpRequest request, HttpResponse response) {
+  server.defaultRequestHandler = (HttpRequest request, HttpResponse response) {
     request.inputStream.onClosed = () {
       response.outputStream.writeString("!dlrow ,olleH");
       response.outputStream.close();

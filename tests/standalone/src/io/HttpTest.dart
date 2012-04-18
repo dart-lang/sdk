@@ -186,7 +186,7 @@ class TestServer extends Isolate {
         _server = new HttpServer();
         try {
           _server.listen("127.0.0.1", 0);
-          _server.onRequest = (HttpRequest req, HttpResponse rsp) {
+          _server.defaultRequestHandler = (HttpRequest req, HttpResponse rsp) {
             _requestReceivedHandler(req, rsp);
           };
           replyTo.send(new TestServerStatus.started(_server.port), null);
@@ -515,7 +515,7 @@ void testExpires() {
 
 
 void main() {
-  //testStartStop();
+  testStartStop();
   testGET();
   testPOST(true);
   testPOST(false);

@@ -172,13 +172,14 @@ void testSocketClose() {
     void runSettings(int cutoff,
                      bool closeAsError,
                      bool expectError) {
-      server.onRequest = (HttpRequest request, HttpResponse response) {
-        request.inputStream.onData = () {
-        };
-        request.inputStream.onClosed = () {
-          response.outputStream.close();
-        };
-      };
+      server.defaultRequestHandler =
+          (HttpRequest request, HttpResponse response) {
+            request.inputStream.onData = () {
+            };
+            request.inputStream.onClosed = () {
+              response.outputStream.close();
+            };
+          };
 
       if (expectError) {
         ReceivePort port = new ReceivePort();

@@ -17,12 +17,13 @@ void testListenOn() {
     Expect.throws(() => server.port);
 
     ReceivePort serverPort = new ReceivePort();
-    server.onRequest = (HttpRequest request, HttpResponse response) {
-      request.inputStream.onClosed = () {
-        response.outputStream.close();
-        serverPort.close();
-      };
-    };
+    server.defaultRequestHandler =
+        (HttpRequest request, HttpResponse response) {
+          request.inputStream.onClosed = () {
+            response.outputStream.close();
+            serverPort.close();
+          };
+        };
 
     server.onError = (Exception e) {
       Expect.fail("Unexpected error in Http Server: $e");

@@ -793,10 +793,26 @@ class _HttpConnection extends _HttpConnectionBase {
 }
 
 
+class _RequestHandlerRegistration {
+  _RequestHandlerRegistration(Function this._matcher, Object this._handler);
+  Function _matcher;
+  RequestHandler _handler;
+}
+
+
+class _RequestHandlerImpl implements RequestHandler {
+  _RequestHandlerImpl(Function this._handler);
+  void onRequest(HttpRequest request, HttpResponse response) =>
+    _handler(request, response);
+  Function _handler;
+}
+
+
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
-  _HttpServer() : _connections = new Set<_HttpConnection>();
+  _HttpServer() : _connections = new Set<_HttpConnection>(),
+                  _handlers = new List<_RequestHandlerRegistration>();
 
   void listen(String host, int port, [int backlog = 5]) {
     listenOn(new ServerSocket(host, port, backlog));
@@ -808,7 +824,7 @@ class _HttpServer implements HttpServer {
       // Accept the client connection.
       _HttpConnection connection = new _HttpConnection(this);
       connection._connectionEstablished(socket);
-      connection.onRequestReceived = _onRequest;
+      connection.onRequestReceived = _handleRequest;
       connection.onClosed = () => _connections.remove(connection);
       connection.onError = (e) {
         _connections.remove(connection);
@@ -820,6 +836,17 @@ class _HttpServer implements HttpServer {
     serverSocket.onConnection = onConnection;
     _server = serverSocket;
     _closeServer = false;
+  }
+
+  addRequestHandler(bool matcher(String path), Object handler) {
+    if (handler is Function) {
+      handler = new _RequestHandlerImpl(handler);
+    }
+    _handlers.add(new _RequestHandlerRegistration(matcher, handler));
+  }
+
+  void set defaultRequestHandler(Object handler) {
+    _defaultHandler = handler;
   }
 
   void close() {
@@ -844,14 +871,39 @@ class _HttpServer implements HttpServer {
     _onError = callback;
   }
 
-  void set onRequest(void callback(HttpRequest, HttpResponse)) {
-    _onRequest = callback;
+  void _handleRequest(HttpRequest request, HttpResponse response) {
+    for (int i = 0; i < _handlers.length; i++) {
+      if (_handlers[i]._matcher(request)) {
+        var handler = _handlers[i]._handler;
+        try {
+          handler.onRequest(request, response);
+        } catch (var e) {
+          if (_onError != null) {
+            _onError(e);
+          }
+        }
+        return;
+      }
+    }
+
+    if (_defaultHandler != null) {
+      if (_defaultHandler is Function) {
+        _defaultHandler(request, response);
+      } else {
+        _defaultHandler.onRequest(request, response);
+      }
+    } else {
+      response.statusCode = HttpStatus.NOT_FOUND;
+      response.outputStream.close();
+    }
   }
+
 
   ServerSocket _server;  // The server listen socket.
   bool _closeServer = false;
   Set<_HttpConnection> _connections;  // Set of currently connected clients.
-  Function _onRequest;
+  List<_RequestHandlerRegistration> _handlers;
+  Object _defaultHandler;
   Function _onError;
 }
 
