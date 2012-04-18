@@ -974,8 +974,10 @@ class HCheck extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  int state;
-  HTypeGuard(int this.state, List<HInstruction> env) : super(env);
+  final int state;
+  final HType guardedType;
+  bool isOn = false;
+  HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -984,12 +986,18 @@ class HTypeGuard extends HInstruction {
 
   HInstruction get guarded() => inputs.last();
 
+  HType computeTypeFromInputTypes() {
+    return isOn ? guardedType : guarded.propagatedType;
+  }
+
+  HType get guaranteedType() => isOn ? guardedType : HType.UNKNOWN;
+
   bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) => propagatedType == other.propagatedType;
+  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
 }
 
 class HBoundsCheck extends HCheck {
@@ -1325,6 +1333,14 @@ class HBinaryArithmetic extends HInvokeBinary {
     if (propagatedType.isUnknown() || propagatedType.isNumber()) {
       return HType.NUMBER;
     }
+    // Even if the desired outgoing type is not a number we still want the
+    // second argument to be a number if the first one is a number. This will
+    // not help for the outgoing type, but at least the binary arithmetic
+    // operation will not have type problems.
+    // TODO(floitsch): normally we shouldn't request a number, but simply
+    // throw an IllegalArgumentException if it isn't. This would be similar
+    // to the array case.
+    if (input == right && left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 

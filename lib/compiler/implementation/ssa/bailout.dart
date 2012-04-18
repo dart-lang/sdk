@@ -286,7 +286,8 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
     int state = 1;
     capturedEnvironments.forEach((HInstruction instruction, Environment env) {
       List<HInstruction> inputs = env.buildAndSetLast(instruction);
-      HTypeGuard guard = new HTypeGuard(state++, inputs);
+      HTypeGuard guard =
+          new HTypeGuard(instruction.propagatedType, state++, inputs);
       work.guards.add(guard);
       instruction.block.rewrite(instruction, guard);
       HInstruction insertionPoint = (instruction is HPhi)

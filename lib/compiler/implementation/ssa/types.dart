@@ -21,14 +21,14 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   // Re-compute and update the type of the instruction. Returns
   // whether or not the type was changed.
   bool updateType(HInstruction instruction) {
-    if (instruction.propagatedType.isConflicting()) return false;
-
     HType oldType = instruction.propagatedType;
     HType newType = instruction.hasGuaranteedType()
                     ? instruction.guaranteedType
                     : computeType(instruction);
-    instruction.propagatedType = oldType.combine(newType);
-    return oldType !== instruction.propagatedType;
+    // We unconditionally replace the propagated type with the new type. The
+    // computeType must make sure that we eventually reach a stable state.
+    instruction.propagatedType = newType;
+    return oldType !== newType;
   }
 
   void visitGraph(HGraph graph) {
@@ -78,7 +78,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       // The non-speculative type propagator only propagates types forward. We
       // thus only need to add the users of the [instruction] to the list.
       addToWorkList(instruction.usedBy[i]);
-    }    
+    }
   }
 
   void addToWorkList(HInstruction instruction) {
@@ -101,7 +101,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     // want to propagate the desired outgoing type.
     for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
       addToWorkList(instruction.usedBy[i]);
-    }    
+    }
     for (int i = 0, length = instruction.inputs.length; i < length; i++) {
       addToWorkList(instruction.inputs[i]);
     }
@@ -119,10 +119,14 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
   }
 
   HType computeType(HInstruction instruction) {
+    // Once we are in a conflicting state don't update the type anymore.
+    HType oldType = instruction.propagatedType;
+    if (oldType.isConflicting()) return oldType;
+
     HType newType = super.computeType(instruction);
     // [computeDesiredType] goes to all usedBys and lets them compute their
     // desired type. By setting the [newType] here we give them more context to
-    // work with. 
+    // work with.
     instruction.propagatedType = newType;
     HType desiredType = computeDesiredType(instruction);
     // If the desired type is conflicting just return the computed type.

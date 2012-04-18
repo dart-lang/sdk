@@ -35,13 +35,20 @@ class SsaOptimizerTask extends CompilerTask {
 
   bool trySpeculativeOptimizations(WorkItem work, HGraph graph) {
     return measure(() {
-      // Run the phases that will generate type guards. We must also run
-      // [SsaCheckInserter] because the type propagator also propagates
-      // types non-speculatively. For example, it propagates the type
-      // array for a call to the List constructor.
+      // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
           new SsaSpeculativeTypePropagator(compiler),
           new SsaTypeGuardBuilder(compiler, work),
+          // Change the propagated types back to what they were before we
+          // speculatively propagated, so that we can generate the bailout
+          // version.
+          // Note that we do this even if there were no guards inserted. If a
+          // guard is not beneficial enough we don't emit one, but there might
+          // still be speculative types on the instructions.
+          new SsaTypePropagator(compiler),
+          // Then run the [SsaCheckInserter] because the type propagator also
+          // propagated types non-speculatively. For example, it might have
+          // propagated the type array for a call to the List constructor.
           new SsaCheckInserter(compiler)];
       runPhases(graph, phases);
       return !work.guards.isEmpty();
@@ -53,10 +60,7 @@ class SsaOptimizerTask extends CompilerTask {
       // In order to generate correct code for the bailout version, we did not
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
-      work.guards.forEach((HTypeGuard guard) {
-        guard.propagatedType = guard.guarded.propagatedType;
-        guard.guarded.propagatedType = HType.UNKNOWN;
-      });
+      work.guards.forEach((HTypeGuard guard) { guard.isOn = true; });
       // We also need to insert range and integer checks for the type guards,
       // now that they know their type. We did not need to do that
       // before because instructions that reference a guard would

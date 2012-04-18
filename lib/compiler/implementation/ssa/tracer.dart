@@ -403,7 +403,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitTypeGuard(HTypeGuard node) {
     String type;
-    switch (node.propagatedType) {
+    switch (node.guardedType) {
       case HType.MUTABLE_ARRAY: type = "mutable_array"; break;
       case HType.READABLE_ARRAY: type = "readable_array"; break;
       case HType.BOOLEAN: type = "bool"; break;
@@ -415,7 +415,8 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.UNKNOWN: type = 'unknown'; break;
       default: unreachable();
     }
-    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
+    String onString = node.isOn ? "on" : "off";
+    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type ($onString)";
   }
 
   String visitIs(HIs node) {
