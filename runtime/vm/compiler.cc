@@ -137,6 +137,7 @@ static RawError* CompileFunctionHelper(const Function& function,
   // Skips parsing if we need to only install unoptimized code.
   if (!optimized && !Code::Handle(function.unoptimized_code()).IsNull()) {
     InstallUnoptimizedCode(function);
+    isolate->set_long_jump_base(base);
     return Error::null();
   }
   if (setjmp(*jump.Set()) == 0) {
