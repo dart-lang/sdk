@@ -836,9 +836,15 @@ def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in includes])
 
 def _DOMWrapperType(database, interface):
+  if interface.id == 'MessagePort':
+    return 'MessagePort'
+
+  type = 'Object'
   if _InstanceOfNode(database, interface):
-    return 'DOMNode'
-  return 'DOMObject'
+    type = 'Node'
+  if 'ActiveDOMObject' in interface.ext_attrs:
+    type = 'Active%s' % type
+  return type
 
 def _InstanceOfNode(database, interface):
   if interface.id == 'Node':
