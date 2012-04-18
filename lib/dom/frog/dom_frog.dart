@@ -124,9 +124,9 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _AudioBufferSourceNodeJs createBufferSource() native;
 
-  _AudioChannelMergerJs createChannelMerger() native;
+  _AudioChannelMergerJs createChannelMerger([int numberOfInputs = null]) native;
 
-  _AudioChannelSplitterJs createChannelSplitter() native;
+  _AudioChannelSplitterJs createChannelSplitter([int numberOfOutputs = null]) native;
 
   _ConvolverNodeJs createConvolver() native;
 
@@ -136,7 +136,7 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _AudioGainNodeJs createGainNode() native;
 
-  _JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize) native;
+  _JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) native;
 
   _MediaElementAudioSourceNodeJs createMediaElementSource(_HTMLMediaElementJs mediaElement) native;
 
@@ -187,7 +187,7 @@ class _AudioNodeJs extends _DOMTypeJs implements AudioNode native "*AudioNode" {
 
   final int numberOfOutputs;
 
-  void connect(_AudioNodeJs destination, int output, int input) native;
+  void connect(destination, int output, [int input = null]) native;
 
   void disconnect(int output) native;
 }
@@ -677,6 +677,8 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   String textBaseline;
 
+  final num webkitBackingStorePixelRatio;
+
   List webkitLineDash;
 
   num webkitLineDashOffset;
@@ -768,6 +770,10 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
   void translate(num tx, num ty) native;
+
+  _ImageDataJs webkitGetImageDataHD(num sx, num sy, num sw, num sh) native;
+
+  void webkitPutImageDataHD(_ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
 }
 
 class _CharacterDataJs extends _NodeJs implements CharacterData native "*CharacterData" {
@@ -2278,6 +2284,12 @@ class _FileWriterJs extends _EventTargetJs implements FileWriter native "*FileWr
 
   void abort() native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs evt) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
   void seek(int position) native;
 
   void truncate(int size) native;
@@ -3469,9 +3481,13 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   void play() native;
 
+  void webkitSourceAddId(String id, String type) native;
+
   void webkitSourceAppend(_Uint8ArrayJs data) native;
 
   void webkitSourceEndOfStream(int status) native;
+
+  void webkitSourceRemoveId(String id) native;
 }
 
 class _HTMLMenuElementJs extends _HTMLElementJs implements HTMLMenuElement native "*HTMLMenuElement" {
@@ -4676,17 +4692,11 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
 class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
-
-  // From EventTarget
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  bool dispatchEvent(_EventJs event) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }
 
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
+
+  final List<String> ancestorOrigins;
 
   String hash;
 
@@ -9344,6 +9354,8 @@ class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*S
 
   String innerHTML;
 
+  final _DOMSelectionJs selection;
+
   _ElementJs getElementById(String elementId) native;
 
   _NodeListJs getElementsByClassName(String className) native;
@@ -9409,6 +9421,12 @@ class _SpeechRecognitionJs extends _EventTargetJs implements SpeechRecognition n
   String lang;
 
   void abort() native;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs evt) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void start() native;
 
@@ -11472,6 +11490,8 @@ class _WebKitMutationObserverJs extends _DOMTypeJs implements WebKitMutationObse
 
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
+  final _NodeListJs contentNodes;
+
   final bool overflow;
 
   _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
@@ -12240,9 +12260,9 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   AudioBufferSourceNode createBufferSource();
 
-  AudioChannelMerger createChannelMerger();
+  AudioChannelMerger createChannelMerger([int numberOfInputs]);
 
-  AudioChannelSplitter createChannelSplitter();
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
 
   ConvolverNode createConvolver();
 
@@ -12252,7 +12272,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   AudioGainNode createGainNode();
 
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize);
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
 
@@ -12328,7 +12348,7 @@ interface AudioNode {
 
   final int numberOfOutputs;
 
-  void connect(AudioNode destination, int output, int input);
+  void connect(destination, int output, [int input]);
 
   void disconnect(int output);
 }
@@ -12881,6 +12901,8 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   String textBaseline;
 
+  final num webkitBackingStorePixelRatio;
+
   List webkitLineDash;
 
   num webkitLineDashOffset;
@@ -12972,6 +12994,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void transform(num m11, num m12, num m21, num m22, num dx, num dy);
 
   void translate(num tx, num ty);
+
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh);
+
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14888,6 +14914,12 @@ interface FileWriter extends EventTarget {
 
   void abort();
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   void seek(int position);
 
   void truncate(int size);
@@ -16075,9 +16107,13 @@ interface HTMLMediaElement extends HTMLElement {
 
   void play();
 
+  void webkitSourceAddId(String id, String type);
+
   void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
+
+  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17336,7 +17372,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   void stop();
 }
@@ -17347,6 +17383,8 @@ interface LocalMediaStream extends MediaStream, EventTarget {
 // WARNING: Do not edit - generated code.
 
 interface Location {
+
+  final List<String> ancestorOrigins;
 
   String hash;
 
@@ -21433,6 +21471,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   String innerHTML;
 
+  final DOMSelection selection;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -21556,6 +21596,12 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   String lang;
 
   void abort();
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -23564,6 +23610,8 @@ interface WebKitMutationObserver {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final NodeList contentNodes;
 
   final bool overflow;
 

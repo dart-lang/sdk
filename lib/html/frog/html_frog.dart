@@ -296,9 +296,9 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _AudioBufferSourceNodeImpl createBufferSource() native;
 
-  _AudioChannelMergerImpl createChannelMerger() native;
+  _AudioChannelMergerImpl createChannelMerger([int numberOfInputs = null]) native;
 
-  _AudioChannelSplitterImpl createChannelSplitter() native;
+  _AudioChannelSplitterImpl createChannelSplitter([int numberOfOutputs = null]) native;
 
   _ConvolverNodeImpl createConvolver() native;
 
@@ -308,7 +308,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _AudioGainNodeImpl createGainNode() native;
 
-  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize) native;
+  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) native;
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
@@ -368,7 +368,7 @@ class _AudioNodeImpl implements AudioNode native "*AudioNode" {
 
   final int numberOfOutputs;
 
-  void connect(_AudioNodeImpl destination, int output, int input) native;
+  void connect(destination, int output, [int input = null]) native;
 
   void disconnect(int output) native;
 }
@@ -3897,6 +3897,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   String textBaseline;
 
+  final num webkitBackingStorePixelRatio;
+
   List webkitLineDash;
 
   num webkitLineDashOffset;
@@ -3988,6 +3990,10 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
   void translate(num tx, num ty) native;
+
+  _ImageDataImpl webkitGetImageDataHD(num sx, num sy, num sw, num sh) native;
+
+  void webkitPutImageDataHD(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
 }
 
 class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*CharacterData" {
@@ -6829,6 +6835,12 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*Fi
 
   void abort() native;
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+
   void seek(int position) native;
 
   void truncate(int size) native;
@@ -8259,17 +8271,11 @@ class _LinkElementImpl extends _ElementImpl implements LinkElement native "*HTML
 class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream native "*LocalMediaStream" {
 
   void stop() native;
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 }
 
 class _LocationImpl implements Location native "*Location" {
+
+  final List<String> ancestorOrigins;
 
   String hash;
 
@@ -8477,9 +8483,13 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   void play() native;
 
+  void webkitSourceAddId(String id, String type) native;
+
   void webkitSourceAppend(_Uint8ArrayImpl data) native;
 
   void webkitSourceEndOfStream(int status) native;
+
+  void webkitSourceRemoveId(String id) native;
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -13724,6 +13734,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
 
   String innerHTML;
 
+  final _DOMSelectionImpl selection;
+
   _ElementImpl getElementById(String elementId) native;
 
   _NodeListImpl getElementsByClassName(String className) native;
@@ -13813,6 +13825,12 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   String lang;
 
   void abort() native;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
 
   void start() native;
 
@@ -16050,6 +16068,8 @@ class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*Web
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
+  final _NodeListImpl contentNodes;
+
   final bool overflow;
 
   _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
@@ -17539,10 +17559,10 @@ interface AudioContext extends EventTarget {
   AudioBufferSourceNode createBufferSource();
 
   /** @domName AudioContext.createChannelMerger */
-  AudioChannelMerger createChannelMerger();
+  AudioChannelMerger createChannelMerger([int numberOfInputs]);
 
   /** @domName AudioContext.createChannelSplitter */
-  AudioChannelSplitter createChannelSplitter();
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
 
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
@@ -17557,7 +17577,7 @@ interface AudioContext extends EventTarget {
   AudioGainNode createGainNode();
 
   /** @domName AudioContext.createJavaScriptNode */
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize);
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -17672,7 +17692,7 @@ interface AudioNode {
   final int numberOfOutputs;
 
   /** @domName AudioNode.connect */
-  void connect(AudioNode destination, int output, int input);
+  void connect(destination, int output, [int input]);
 
   /** @domName AudioNode.disconnect */
   void disconnect(int output);
@@ -20602,6 +20622,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.textBaseline */
   String textBaseline;
 
+  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  final num webkitBackingStorePixelRatio;
+
   /** @domName CanvasRenderingContext2D.webkitLineDash */
   List webkitLineDash;
 
@@ -20739,6 +20762,12 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.translate */
   void translate(num tx, num ty);
+
+  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh);
+
+  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23442,6 +23471,15 @@ interface FileWriter extends EventTarget {
   /** @domName FileWriter.abort */
   void abort();
 
+  /** @domName FileWriter.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName FileWriter.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName FileWriter.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName FileWriter.seek */
   void seek(int position);
 
@@ -25016,7 +25054,7 @@ interface LinkElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -25029,6 +25067,9 @@ interface LocalMediaStream extends MediaStream, EventTarget {
 
 /// @domName Location
 interface Location {
+
+  /** @domName Location.ancestorOrigins */
+  final List<String> ancestorOrigins;
 
   /** @domName Location.hash */
   String hash;
@@ -25344,11 +25385,17 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.play */
   void play();
 
+  /** @domName HTMLMediaElement.webkitSourceAddId */
+  void webkitSourceAddId(String id, String type);
+
   /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
+
+  /** @domName HTMLMediaElement.webkitSourceRemoveId */
+  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31043,6 +31090,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.selection */
+  final DOMSelection selection;
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -31234,6 +31284,15 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
   /** @domName SpeechRecognition.abort */
   void abort();
+
+  /** @domName SpeechRecognition.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName SpeechRecognition.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName SpeechRecognition.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName SpeechRecognition.start */
   void start();
@@ -33910,6 +33969,9 @@ interface WebKitMutationObserver {
 
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
+
+  /** @domName WebKitNamedFlow.contentNodes */
+  final NodeList contentNodes;
 
   /** @domName WebKitNamedFlow.overflow */
   final bool overflow;

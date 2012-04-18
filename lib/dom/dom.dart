@@ -361,9 +361,9 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   AudioBufferSourceNode createBufferSource();
 
-  AudioChannelMerger createChannelMerger();
+  AudioChannelMerger createChannelMerger([int numberOfInputs]);
 
-  AudioChannelSplitter createChannelSplitter();
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
 
   ConvolverNode createConvolver();
 
@@ -373,7 +373,7 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   AudioGainNode createGainNode();
 
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize);
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
 
@@ -449,7 +449,7 @@ interface AudioNode {
 
   final int numberOfOutputs;
 
-  void connect(AudioNode destination, int output, int input);
+  void connect(destination, int output, [int input]);
 
   void disconnect(int output);
 }
@@ -1002,6 +1002,8 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   String textBaseline;
 
+  final num webkitBackingStorePixelRatio;
+
   List webkitLineDash;
 
   num webkitLineDashOffset;
@@ -1093,6 +1095,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void transform(num m11, num m12, num m21, num m22, num dx, num dy);
 
   void translate(num tx, num ty);
+
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh);
+
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3009,6 +3015,12 @@ interface FileWriter extends EventTarget {
 
   void abort();
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   void seek(int position);
 
   void truncate(int size);
@@ -4196,9 +4208,13 @@ interface HTMLMediaElement extends HTMLElement {
 
   void play();
 
+  void webkitSourceAddId(String id, String type);
+
   void webkitSourceAppend(Uint8Array data);
 
   void webkitSourceEndOfStream(int status);
+
+  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5457,7 +5473,7 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   void stop();
 }
@@ -5468,6 +5484,8 @@ interface LocalMediaStream extends MediaStream, EventTarget {
 // WARNING: Do not edit - generated code.
 
 interface Location {
+
+  final List<String> ancestorOrigins;
 
   String hash;
 
@@ -9554,6 +9572,8 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   String innerHTML;
 
+  final DOMSelection selection;
+
   Element getElementById(String elementId);
 
   NodeList getElementsByClassName(String className);
@@ -9677,6 +9697,12 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   String lang;
 
   void abort();
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void start();
 
@@ -11685,6 +11711,8 @@ interface WebKitMutationObserver {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final NodeList contentNodes;
 
   final bool overflow;
 

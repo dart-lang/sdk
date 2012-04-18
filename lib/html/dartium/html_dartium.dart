@@ -1011,12 +1011,20 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
     return _wrap(_ptr.createBufferSource());
   }
 
-  AudioChannelMerger createChannelMerger() {
-    return _wrap(_ptr.createChannelMerger());
+  AudioChannelMerger createChannelMerger([int numberOfInputs = null]) {
+    if (numberOfInputs === null) {
+      return _wrap(_ptr.createChannelMerger());
+    } else {
+      return _wrap(_ptr.createChannelMerger(_unwrap(numberOfInputs)));
+    }
   }
 
-  AudioChannelSplitter createChannelSplitter() {
-    return _wrap(_ptr.createChannelSplitter());
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs = null]) {
+    if (numberOfOutputs === null) {
+      return _wrap(_ptr.createChannelSplitter());
+    } else {
+      return _wrap(_ptr.createChannelSplitter(_unwrap(numberOfOutputs)));
+    }
   }
 
   ConvolverNode createConvolver() {
@@ -1039,8 +1047,19 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
     return _wrap(_ptr.createGainNode());
   }
 
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize) {
-    return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize)));
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) {
+    if (numberOfInputChannels === null) {
+      if (numberOfOutputChannels === null) {
+        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize)));
+      }
+    } else {
+      if (numberOfOutputChannels === null) {
+        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize), _unwrap(numberOfInputChannels)));
+      } else {
+        return _wrap(_ptr.createJavaScriptNode(_unwrap(bufferSize), _unwrap(numberOfInputChannels), _unwrap(numberOfOutputChannels)));
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) {
@@ -1141,9 +1160,19 @@ class _AudioNodeImpl extends _DOMTypeBase implements AudioNode {
 
   int get numberOfOutputs() => _wrap(_ptr.numberOfOutputs);
 
-  void connect(AudioNode destination, int output, int input) {
-    _ptr.connect(_unwrap(destination), _unwrap(output), _unwrap(input));
-    return;
+  void connect(destination, int output, [int input = null]) {
+    if (destination is AudioParam) {
+      if (input === null) {
+        _ptr.connect(_unwrap(destination), _unwrap(output));
+        return;
+      }
+    } else {
+      if (destination is AudioNode) {
+        _ptr.connect(_unwrap(destination), _unwrap(output), _unwrap(input));
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   void disconnect(int output) {
@@ -4901,6 +4930,8 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void set textBaseline(String value) { _ptr.textBaseline = _unwrap(value); }
 
+  num get webkitBackingStorePixelRatio() => _wrap(_ptr.webkitBackingStorePixelRatio);
+
   List get webkitLineDash() => _wrap(_ptr.webkitLineDash);
 
   void set webkitLineDash(List value) { _ptr.webkitLineDash = _unwrap(value); }
@@ -5535,6 +5566,27 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void translate(num tx, num ty) {
     _ptr.translate(_unwrap(tx), _unwrap(ty));
     return;
+  }
+
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
+    return _wrap(_ptr.webkitGetImageDataHD(_unwrap(sx), _unwrap(sy), _unwrap(sw), _unwrap(sh)));
+  }
+
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) {
+    if (dirtyX === null) {
+      if (dirtyY === null) {
+        if (dirtyWidth === null) {
+          if (dirtyHeight === null) {
+            _ptr.webkitPutImageDataHD(_unwrap(imagedata), _unwrap(dx), _unwrap(dy));
+            return;
+          }
+        }
+      }
+    } else {
+      _ptr.webkitPutImageDataHD(_unwrap(imagedata), _unwrap(dx), _unwrap(dy), _unwrap(dirtyX), _unwrap(dirtyY), _unwrap(dirtyWidth), _unwrap(dirtyHeight));
+      return;
+    }
+    throw "Incorrect number or type of arguments";
   }
 }
 
@@ -9332,6 +9384,30 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
     return;
   }
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  }
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
   void seek(int position) {
     _ptr.seek(_unwrap(position));
     return;
@@ -11469,36 +11545,12 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
     _ptr.stop();
     return;
   }
-
-  // From EventTarget
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
-
-  bool $dom_dispatchEvent(Event event) {
-    return _wrap(_ptr.dispatchEvent(_unwrap(event)));
-  }
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
-      return;
-    } else {
-      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
-      return;
-    }
-  }
 }
 
 class _LocationImpl extends _DOMTypeBase implements Location {
   _LocationImpl._wrap(ptr) : super._wrap(ptr);
+
+  List<String> get ancestorOrigins() => _wrap(_ptr.ancestorOrigins);
 
   String get hash() => _wrap(_ptr.hash);
 
@@ -11825,6 +11877,11 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
     return;
   }
 
+  void webkitSourceAddId(String id, String type) {
+    _ptr.webkitSourceAddId(_unwrap(id), _unwrap(type));
+    return;
+  }
+
   void webkitSourceAppend(Uint8Array data) {
     _ptr.webkitSourceAppend(_unwrap(data));
     return;
@@ -11832,6 +11889,11 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement {
 
   void webkitSourceEndOfStream(int status) {
     _ptr.webkitSourceEndOfStream(_unwrap(status));
+    return;
+  }
+
+  void webkitSourceRemoveId(String id) {
+    _ptr.webkitSourceRemoveId(_unwrap(id));
     return;
   }
 }
@@ -18245,6 +18307,8 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set innerHTML(String value) { _ptr.innerHTML = _unwrap(value); }
 
+  DOMSelection get selection() => _wrap(_ptr.selection);
+
   Element getElementById(String elementId) {
     return _wrap(_ptr.getElementById(_unwrap(elementId)));
   }
@@ -18394,6 +18458,30 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   void abort() {
     _ptr.abort();
     return;
+  }
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.addEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
+  }
+
+  bool $dom_dispatchEvent(Event evt) {
+    return _wrap(_ptr.dispatchEvent(_unwrap(evt)));
+  }
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener));
+      return;
+    } else {
+      _ptr.removeEventListener(_unwrap(type), _unwrap(listener), _unwrap(useCapture));
+      return;
+    }
   }
 
   void start() {
@@ -20990,6 +21078,8 @@ class _WebKitMutationObserverImpl extends _DOMTypeBase implements WebKitMutation
 class _WebKitNamedFlowImpl extends _DOMTypeBase implements WebKitNamedFlow {
   _WebKitNamedFlowImpl._wrap(ptr) : super._wrap(ptr);
 
+  NodeList get contentNodes() => _wrap(_ptr.contentNodes);
+
   bool get overflow() => _wrap(_ptr.overflow);
 
   NodeList getRegionsByContentNode(Node contentNode) {
@@ -22914,10 +23004,10 @@ interface AudioContext extends EventTarget {
   AudioBufferSourceNode createBufferSource();
 
   /** @domName AudioContext.createChannelMerger */
-  AudioChannelMerger createChannelMerger();
+  AudioChannelMerger createChannelMerger([int numberOfInputs]);
 
   /** @domName AudioContext.createChannelSplitter */
-  AudioChannelSplitter createChannelSplitter();
+  AudioChannelSplitter createChannelSplitter([int numberOfOutputs]);
 
   /** @domName AudioContext.createConvolver */
   ConvolverNode createConvolver();
@@ -22932,7 +23022,7 @@ interface AudioContext extends EventTarget {
   AudioGainNode createGainNode();
 
   /** @domName AudioContext.createJavaScriptNode */
-  JavaScriptAudioNode createJavaScriptNode(int bufferSize);
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
@@ -23047,7 +23137,7 @@ interface AudioNode {
   final int numberOfOutputs;
 
   /** @domName AudioNode.connect */
-  void connect(AudioNode destination, int output, int input);
+  void connect(destination, int output, [int input]);
 
   /** @domName AudioNode.disconnect */
   void disconnect(int output);
@@ -25977,6 +26067,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   /** @domName CanvasRenderingContext2D.textBaseline */
   String textBaseline;
 
+  /** @domName CanvasRenderingContext2D.webkitBackingStorePixelRatio */
+  final num webkitBackingStorePixelRatio;
+
   /** @domName CanvasRenderingContext2D.webkitLineDash */
   List webkitLineDash;
 
@@ -26114,6 +26207,12 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   /** @domName CanvasRenderingContext2D.translate */
   void translate(num tx, num ty);
+
+  /** @domName CanvasRenderingContext2D.webkitGetImageDataHD */
+  ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh);
+
+  /** @domName CanvasRenderingContext2D.webkitPutImageDataHD */
+  void webkitPutImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28817,6 +28916,15 @@ interface FileWriter extends EventTarget {
   /** @domName FileWriter.abort */
   void abort();
 
+  /** @domName FileWriter.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName FileWriter.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName FileWriter.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
   /** @domName FileWriter.seek */
   void seek(int position);
 
@@ -30391,7 +30499,7 @@ interface LinkElement extends Element {
 // WARNING: Do not edit - generated code.
 
 /// @domName LocalMediaStream
-interface LocalMediaStream extends MediaStream, EventTarget {
+interface LocalMediaStream extends MediaStream {
 
   /** @domName LocalMediaStream.stop */
   void stop();
@@ -30404,6 +30512,9 @@ interface LocalMediaStream extends MediaStream, EventTarget {
 
 /// @domName Location
 interface Location {
+
+  /** @domName Location.ancestorOrigins */
+  final List<String> ancestorOrigins;
 
   /** @domName Location.hash */
   String hash;
@@ -30719,11 +30830,17 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.play */
   void play();
 
+  /** @domName HTMLMediaElement.webkitSourceAddId */
+  void webkitSourceAddId(String id, String type);
+
   /** @domName HTMLMediaElement.webkitSourceAppend */
   void webkitSourceAppend(Uint8Array data);
 
   /** @domName HTMLMediaElement.webkitSourceEndOfStream */
   void webkitSourceEndOfStream(int status);
+
+  /** @domName HTMLMediaElement.webkitSourceRemoveId */
+  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36418,6 +36535,9 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
 
+  /** @domName ShadowRoot.selection */
+  final DOMSelection selection;
+
   /** @domName ShadowRoot.getElementById */
   Element getElementById(String elementId);
 
@@ -36609,6 +36729,15 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
   /** @domName SpeechRecognition.abort */
   void abort();
+
+  /** @domName SpeechRecognition.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName SpeechRecognition.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName SpeechRecognition.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   /** @domName SpeechRecognition.start */
   void start();
@@ -39285,6 +39414,9 @@ interface WebKitMutationObserver {
 
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
+
+  /** @domName WebKitNamedFlow.contentNodes */
+  final NodeList contentNodes;
 
   /** @domName WebKitNamedFlow.overflow */
   final bool overflow;
