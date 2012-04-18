@@ -1512,7 +1512,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 // Generate inline cache check for 'num_args'.
 //  RBX: Inline cache data object.
-//  R10: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): return address
 // Control flow:
 // - If receiver is null -> jump to IC miss.
@@ -1525,7 +1525,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   // TODO(srdjan): Add usage counter increment and test (see ia32).
   ASSERT(num_args > 0);
-  // Get receiver.
+  // Get receiver (first read number of arguments from argument descriptor array
+  // and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
 
@@ -1589,14 +1590,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 
   __ Bind(&ic_miss);
-  // Get receiver, again.
+  // Compute address of arguments (first read number of arguments from argument
+  // descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterFrame(0);
   __ pushq(R10);  // Preserve arguments array.
   __ pushq(RBX);  // Preserve IC data array
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
-  __ movq(R10, FieldAddress(R10, Array::data_offset()));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movq(R10, Address(RAX, -kWordSize * i));

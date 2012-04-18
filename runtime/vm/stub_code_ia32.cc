@@ -1513,7 +1513,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 // Generate inline cache check for 'num_args'.
 //  ECX: Inline cache data object.
-//  EDX: Arguments array.
+//  EDX: Arguments descriptor array.
 //  TOS(0): return address
 // Control flow:
 // - If receiver is null -> jump to IC miss.
@@ -1544,7 +1544,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 
   ASSERT(num_args > 0);
-  // Get receiver.
+  // Get receiver (first read number of arguments from argument descriptor array
+  // and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is Smi.
 
@@ -1613,14 +1614,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 
   __ Bind(&ic_miss);
-  // Get receiver, again.
+  // Compute address of arguments (first read number of arguments from argument
+  // descriptor array and then compute address on the stack).
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
   __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
   __ EnterFrame(0);
   __ pushl(EDX);  // Preserve arguments array.
   __ pushl(ECX);  // Preserve IC data array
   __ pushl(raw_null);  // Setup space on stack for result (target code object).
-  __ movl(EDX, FieldAddress(EDX, Array::data_offset()));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movl(EDX, Address(EAX, -kWordSize * i));
