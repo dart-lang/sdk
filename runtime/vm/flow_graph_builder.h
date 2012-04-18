@@ -156,6 +156,22 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Value* BuildInstantiatorTypeArguments(intptr_t token_index,
                                         intptr_t start_index);
 
+  // Perform a type check on the given value.
+  void BuildAssertAssignable(intptr_t node_id,
+                             intptr_t token_index,
+                             Value* value,
+                             const AbstractType& dst_type,
+                             const String& dst_name,
+                             intptr_t start_index);
+
+  // Perform a type check on the given value and return it.
+  Value* BuildAssignableValue(intptr_t node_id,
+                              intptr_t token_index,
+                              Value* value,
+                              const AbstractType& dst_type,
+                              const String& dst_name,
+                              intptr_t start_index);
+
   virtual void BuildInstanceOf(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
@@ -211,6 +227,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
+  virtual void VisitAssignableNode(AssignableNode* node);
   virtual void VisitIncrOpLocalNode(IncrOpLocalNode* node);
   virtual void VisitIncrOpInstanceFieldNode(IncrOpInstanceFieldNode* node);
   virtual void VisitIncrOpIndexedNode(IncrOpIndexedNode* node);

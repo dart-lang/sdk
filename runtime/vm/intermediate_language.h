@@ -143,14 +143,14 @@ class AssertAssignableComp : public Computation {
                        intptr_t token_index,
                        intptr_t try_index,
                        Value* value,
-                       Value* type_arguments,  // Can be NULL.
+                       Value* instantiator_type_arguments,  // Can be NULL.
                        const AbstractType& dst_type,
                        const String& dst_name)
       : node_id_(node_id),
         token_index_(token_index),
         try_index_(try_index),
         value_(value),
-        type_arguments_(type_arguments),
+        instantiator_type_arguments_(instantiator_type_arguments),
         dst_type_(dst_type),
         dst_name_(dst_name) {
     ASSERT(value_ != NULL);
@@ -164,7 +164,9 @@ class AssertAssignableComp : public Computation {
   intptr_t token_index() const { return token_index_; }
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return value_; }
-  Value* type_arguments() const { return type_arguments_; }
+  Value* instantiator_type_arguments() const {
+    return instantiator_type_arguments_;
+  }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
@@ -173,7 +175,7 @@ class AssertAssignableComp : public Computation {
   const intptr_t token_index_;
   const intptr_t try_index_;
   Value* value_;
-  Value* type_arguments_;
+  Value* instantiator_type_arguments_;
   const AbstractType& dst_type_;
   const String& dst_name_;
 
@@ -767,7 +769,13 @@ class CreateArrayComp : public Computation {
   CreateArrayComp(ArrayNode* node,
                   intptr_t try_index,
                   ZoneGrowableArray<Value*>* elements)
-      : ast_node_(*node), try_index_(try_index), elements_(elements) { }
+      : ast_node_(*node), try_index_(try_index), elements_(elements) {
+#if defined(DEBUG)
+    for (int i = 0; i < ElementCount(); ++i) {
+      ASSERT(ElementAt(i) != NULL);
+    }
+#endif
+  }
 
   DECLARE_COMPUTATION(CreateArray)
 

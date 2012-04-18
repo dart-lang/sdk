@@ -220,21 +220,12 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
               owner()->parsed_function().function().result_type());
       const String& dst_name =
           String::ZoneHandle(String::NewSymbol("function result"));
-      Value* type_arguments = NULL;
-      if (!dst_type.IsInstantiated()) {
-        type_arguments = BuildInstantiatorTypeArguments(
-            node->token_index(), for_value.temp_index());
-      }
-      AssertAssignableComp* assert =
-          new AssertAssignableComp(node->id(),
-                                   node->value()->token_index(),
-                                   owner()->try_index(),
-                                   return_value,
-                                   type_arguments,
-                                   dst_type,
-                                   dst_name);
-      AddInstruction(new BindInstr(temp_index(), assert));
-      return_value = new TempVal(temp_index());
+      return_value = BuildAssignableValue(node->id(),
+                                          node->value()->token_index(),
+                                          return_value,
+                                          dst_type,
+                                          dst_name,
+                                          temp_index());
     }
   }
 
@@ -275,27 +266,78 @@ void TestGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
+// Returns true if the type check can be skipped, for example, if the type is
+// Dynamic or if the value is a compile time constant and an instance of type.
+static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
+  ASSERT(FLAG_enable_type_checks);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+
+  // Any expression is assignable to the Dynamic type and to the Object type.
+  // Skip the test.
+  if (!dst_type.IsMalformed() &&
+      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
+    return true;
+  }
+
+  // It is a compile-time error to explicitly return a value (including null)
+  // from a void function. However, functions that do not explicitly return a
+  // value, implicitly return null. This includes void functions. Therefore, we
+  // skip the type test here and trust the parser to only return null in void
+  // function.
+  if (dst_type.IsVoidType()) {
+    return true;
+  }
+
+  // Eliminate the test if it can be performed successfully at compile time.
+  if ((value != NULL) && value->IsConstant()) {
+    Instance& literal_value = Instance::Handle();
+    literal_value ^= value->AsConstant()->value().raw();
+    const Class& cls = Class::Handle(literal_value.clazz());
+    if (cls.IsNullClass()) {
+      // There are only three instances that can be of Class Null:
+      // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+      // The inline code and run time code performing the type check will never
+      // encounter the 2 sentinel values. The type check of a sentinel value
+      // will always be eliminated here, because these sentinel values can only
+      // be encountered as constants, never as actual value of an heap object
+      // being type checked.
+      ASSERT(literal_value.IsNull() ||
+             (literal_value.raw() == Object::sentinel()) ||
+             (literal_value.raw() == Object::transition_sentinel()));
+      return true;
+    }
+    Error& malformed_error = Error::Handle();
+    if (!dst_type.IsMalformed() &&
+        dst_type.IsInstantiated() &&
+        literal_value.IsInstanceOf(dst_type,
+                                   TypeArguments::Handle(),
+                                   &malformed_error)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 // <Expression> :: Assignable { expr:     <Expression>
 //                              type:     AbstractType
 //                              dst_name: String }
 void EffectGraphVisitor::VisitAssignableNode(AssignableNode* node) {
+  UNREACHABLE();
+}
+
+
+void ValueGraphVisitor::VisitAssignableNode(AssignableNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->expr()->Visit(&for_value);
   Append(for_value);
-  Value* type_arguments = NULL;
-  if (!node->type().IsInstantiated()) {
-    type_arguments = BuildInstantiatorTypeArguments(
-        node->token_index(), for_value.temp_index());
-  }
-  AssertAssignableComp* assert_assignable =
-      new AssertAssignableComp(node->id(),
-                               node->token_index(),
-                               owner()->try_index(),
-                               for_value.value(),
-                               type_arguments,
-                               node->type(),
-                               node->dst_name());
-  ReturnComputation(assert_assignable);
+  ReturnValue(BuildAssignableValue(node->id(),
+                                   node->token_index(),
+                                   for_value.value(),
+                                   node->type(),
+                                   node->dst_name(),
+                                   temp_index()));
 }
 
 
@@ -470,6 +512,62 @@ void EffectGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
                          interpol_arg->names(),
                          values);
   ReturnComputation(call);
+}
+
+
+void EffectGraphVisitor::BuildAssertAssignable(intptr_t node_id,
+                                               intptr_t token_index,
+                                               Value* value,
+                                               const AbstractType& dst_type,
+                                               const String& dst_name,
+                                               intptr_t start_index) {
+  // We should not call this function if the type check can be skipped.
+  ASSERT(!CanSkipTypeCheck(value, dst_type));
+
+  // Build the type check computation.
+  Value* instantiator_type_arguments = NULL;
+  if (!dst_type.IsInstantiated()) {
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_index, start_index + 1);
+  }
+  AssertAssignableComp* assert_assignable =
+      new AssertAssignableComp(node_id,
+                               token_index,
+                               owner()->try_index(),
+                               value,
+                               instantiator_type_arguments,
+                               dst_type,
+                               dst_name);
+  AddInstruction(new DoInstr(assert_assignable));
+}
+
+
+Value* EffectGraphVisitor::BuildAssignableValue(intptr_t node_id,
+                                                intptr_t token_index,
+                                                Value* value,
+                                                const AbstractType& dst_type,
+                                                const String& dst_name,
+                                                intptr_t start_index) {
+  if (CanSkipTypeCheck(value, dst_type)) {
+    return value;
+  }
+
+  // Build the type check computation.
+  Value* instantiator_type_arguments = NULL;
+  if (!dst_type.IsInstantiated()) {
+    instantiator_type_arguments =
+        BuildInstantiatorTypeArguments(token_index, start_index + 1);
+  }
+  AssertAssignableComp* assert_assignable =
+      new AssertAssignableComp(node_id,
+                               token_index,
+                               owner()->try_index(),
+                               value,
+                               instantiator_type_arguments,
+                               dst_type,
+                               dst_name);
+  AddInstruction(new BindInstr(start_index, assert_assignable));
+  return new TempVal(start_index);
 }
 
 
@@ -1797,28 +1895,17 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-
-  Value* value = for_value.value();
+  Value* store_value = for_value.value();
   if (FLAG_enable_type_checks) {
-    Value* type_arguments = NULL;
-    if (!node->local().type().IsInstantiated()) {
-      type_arguments = BuildInstantiatorTypeArguments(
-          node->token_index(), for_value.temp_index());
-    }
-    AssertAssignableComp* assert_assignable =
-        new AssertAssignableComp(node->id(),
-                                 node->value()->token_index(),
-                                 owner()->try_index(),
-                                 value,
-                                 type_arguments,
-                                 node->local().type(),
-                                 node->local().name());
-    AddInstruction(new BindInstr(temp_index(), assert_assignable));
-    value = new TempVal(temp_index());
+    store_value = BuildAssignableValue(node->id(),
+                                       node->value()->token_index(),
+                                       store_value,
+                                       node->local().type(),
+                                       node->local().name(),
+                                       temp_index());
   }
-
   StoreLocalComp* store =
-      new StoreLocalComp(node->local(), value, owner()->context_level());
+      new StoreLocalComp(node->local(), store_value, owner()->context_level());
   ReturnComputation(store);
 }
 
@@ -1845,21 +1932,13 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   Value* store_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
-    Value* type_arguments = NULL;
-    if (!type.IsInstantiated()) {
-      type_arguments = BuildInstantiatorTypeArguments(
-          node->token_index(), for_value.temp_index());
-    }
-    AssertAssignableComp* assert_assignable =
-        new AssertAssignableComp(node->id(),
-                                 node->value()->token_index(),
-                                 owner()->try_index(),
-                                 store_value,
-                                 type_arguments,
-                                 type,
-                                 String::ZoneHandle(node->field().name()));
-    AddInstruction(new BindInstr(temp_index() + 1, assert_assignable));
-    store_value = new TempVal(temp_index() + 1);
+    const String& dst_name = String::ZoneHandle(node->field().name());
+    store_value = BuildAssignableValue(node->id(),
+                                       node->value()->token_index(),
+                                       store_value,
+                                       type,
+                                       dst_name,
+                                       for_instance.temp_index());
   }
   StoreInstanceFieldComp* store =
       new StoreInstanceFieldComp(node, for_instance.value(), store_value);
@@ -1880,21 +1959,13 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   Value* store_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const AbstractType& type = AbstractType::ZoneHandle(node->field().type());
-    Value* type_arguments = NULL;
-    if (!type.IsInstantiated()) {
-      type_arguments = BuildInstantiatorTypeArguments(
-          node->token_index(), for_value.temp_index());
-    }
-    AssertAssignableComp* assert_assignable =
-        new AssertAssignableComp(node->id(),
-                                 node->value()->token_index(),
-                                 owner()->try_index(),
-                                 store_value,
-                                 type_arguments,
-                                 type,
-                                 String::ZoneHandle(node->field().name()));
-    AddInstruction(new BindInstr(temp_index(), assert_assignable));
-    store_value = new TempVal(temp_index());
+    const String& dst_name = String::ZoneHandle(node->field().name());
+    store_value = BuildAssignableValue(node->id(),
+                                       node->value()->token_index(),
+                                       store_value,
+                                       type,
+                                       dst_name,
+                                       temp_index());
   }
   StoreStaticFieldComp* store =
       new StoreStaticFieldComp(node->field(), store_value);
@@ -2048,24 +2119,18 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     for (int pos = 0; pos < num_params; pos++) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
-      LoadLocalComp* load = new LoadLocalComp(parameter,
-                                              owner()->context_level());
-      AddInstruction(new BindInstr(temp_index(), load));
-      TempVal* argument_value = new TempVal(temp_index());
-      Value* type_arguments = NULL;
-      if (!parameter.type().IsInstantiated()) {
-        type_arguments = BuildInstantiatorTypeArguments(
-            node->token_index(), temp_index() + 1);
+      if (!CanSkipTypeCheck(NULL, parameter.type())) {
+        LoadLocalComp* load = new LoadLocalComp(parameter,
+                                                owner()->context_level());
+        AddInstruction(new BindInstr(temp_index(), load));
+        TempVal* argument_value = new TempVal(temp_index());
+        BuildAssertAssignable(node->id(),
+                              parameter.token_index(),
+                              argument_value,
+                              parameter.type(),
+                              parameter.name(),
+                              temp_index());
       }
-      AssertAssignableComp* assert_assignable =
-          new AssertAssignableComp(node->id(),
-                                   parameter.token_index(),
-                                   owner()->try_index(),
-                                   argument_value,
-                                   type_arguments,
-                                   parameter.type(),
-                                   parameter.name());
-      AddInstruction(new DoInstr(assert_assignable));
     }
   }
 
@@ -2304,9 +2369,9 @@ void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
   OS::Print(", %s, '%s'",
             String::Handle(comp->dst_type().Name()).ToCString(),
             comp->dst_name().ToCString());
-  if (comp->type_arguments() != NULL) {
-    OS::Print(" (type-arg:");
-    comp->type_arguments()->Accept(this);
+  if (comp->instantiator_type_arguments() != NULL) {
+    OS::Print(" (instantiator:");
+    comp->instantiator_type_arguments()->Accept(this);
   }
   OS::Print(")");
 }
