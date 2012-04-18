@@ -164,7 +164,6 @@ static RawError* CompileFunctionHelper(const Function& function,
         FlowGraphBuilder graph_builder(parsed_function);
         graph_builder.BuildGraph();
 
-        Assembler assembler;
         // The non-optimizing compiler compiles blocks in reverse postorder,
         // because it is a 'natural' order for the human reader of the
         // generated code.
@@ -173,13 +172,19 @@ static RawError* CompileFunctionHelper(const Function& function,
         for (intptr_t i = length - 1; i >= 0; --i) {
           block_order.Add(graph_builder.postorder_block_entries()[i]);
         }
+
+        Assembler assembler;
         FlowGraphCompiler graph_compiler(&assembler, parsed_function,
                                          block_order);
         graph_compiler.CompileGraph();
+
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::codefinalizer_timer);
         const Code& code =
             Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
         code.set_is_optimized(false);
         graph_compiler.FinalizePcDescriptors(code);
+        graph_compiler.FinalizeStackmaps(code);
         graph_compiler.FinalizeVarDescriptors(code);
         graph_compiler.FinalizeExceptionHandlers(code);
         function.set_unoptimized_code(code);
@@ -215,6 +220,8 @@ static RawError* CompileFunctionHelper(const Function& function,
         }
         OptimizingCodeGenerator code_gen(&assembler, parsed_function);
         code_gen.GenerateCode();
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::codefinalizer_timer);
         Code& code = Code::Handle(
             Code::FinalizeCode(function_fullname, &assembler));
         code.set_is_optimized(true);
@@ -233,6 +240,8 @@ static RawError* CompileFunctionHelper(const Function& function,
         // Compiling first time.
         CodeGenerator code_gen(&assembler, parsed_function);
         code_gen.GenerateCode();
+        TimerScope timer(FLAG_compiler_stats,
+                         &CompilerStats::codefinalizer_timer);
         const Code& code =
             Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
         code.set_is_optimized(false);

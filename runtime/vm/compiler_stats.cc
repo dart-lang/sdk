@@ -27,6 +27,16 @@ Timer CompilerStats::scanner_timer(true, "scanner timer");
 // Cumulative runtime of code generator.
 Timer CompilerStats::codegen_timer(true, "codegen timer");
 
+// Cumulative timer of flow graph builder, included in codegen_timer.
+Timer CompilerStats::graphbuilder_timer(true, "flow graph builder timer");
+
+// Cumulative timer of flow graph compiler, included in codegen_timer.
+Timer CompilerStats::graphcompiler_timer(true, "flow graph compiler timer");
+
+// Cumulative timer of code finalization, included in codegen_timer.
+Timer CompilerStats::codefinalizer_timer(true, "code finalization timer");
+
+
 intptr_t CompilerStats::num_tokens_total = 0;
 intptr_t CompilerStats::num_literal_tokens_total = 0;
 intptr_t CompilerStats::num_ident_tokens_total = 0;
@@ -63,6 +73,12 @@ void CompilerStats::Print() {
   intptr_t codegen_usecs = codegen_timer.TotalElapsedTime();
   OS::Print("Code gen. time:     %ld msecs\n",
             codegen_usecs / 1000);
+  intptr_t graphbuilder_usecs = graphbuilder_timer.TotalElapsedTime();
+  OS::Print("  Graph builder time: %ld msecs\n", graphbuilder_usecs / 1000);
+  intptr_t graphcompiler_usecs = graphcompiler_timer.TotalElapsedTime();
+  OS::Print("  Graph comp. time:   %ld msecs\n",  graphcompiler_usecs / 1000);
+  intptr_t codefinalizer_usecs = codefinalizer_timer.TotalElapsedTime();
+  OS::Print("  Code final. time:   %ld msecs\n",  codefinalizer_usecs / 1000);
   OS::Print("Compilation speed:  %ld tokens per msec\n",
             1000 * num_tokens_total / (parse_usecs + codegen_usecs));
   OS::Print("Code size:          %ld KB\n",

@@ -1599,6 +1599,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // TODO(srdjan): Investigate where to put the argument type checks for
 // checked mode.
 void FlowGraphCompiler::CompileGraph() {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
   if (TryIntrinsify()) {
     // Make it patchable: code must have a minimum code size, nop(2) increases
     // the minimum code size appropriately.
@@ -1729,6 +1730,12 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
   descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
+}
+
+
+void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
+  // TODO(srdjan): Compute stack maps for optimizing compiler.
+  code.set_stackmaps(Array::Handle());
 }
 
 

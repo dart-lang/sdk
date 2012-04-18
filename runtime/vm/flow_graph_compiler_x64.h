@@ -33,6 +33,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   // Infrastructure copied from class CodeGenerator or stubbed out.
   void FinalizePcDescriptors(const Code& code);
+  void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeExceptionHandlers(const Code& code);
 

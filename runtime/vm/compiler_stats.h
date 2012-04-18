@@ -28,9 +28,12 @@ class CompilerStats : AllStatic {
 
   static intptr_t src_length;        // Total number of characters in source.
   static intptr_t code_allocated;    // Bytes allocated for generated code.
-  static Timer    parser_timer;      // Cumulative runtime of parser.
-  static Timer    scanner_timer;     // Cumulative runtime of scanner.
-  static Timer    codegen_timer;     // Cumulative runtime of code generator.
+  static Timer parser_timer;         // Cumulative runtime of parser.
+  static Timer scanner_timer;        // Cumulative runtime of scanner.
+  static Timer codegen_timer;        // Cumulative runtime of code generator.
+  static Timer graphbuilder_timer;   // Included in codegen_timer.
+  static Timer graphcompiler_timer;  // Included in codegen_timer.
+  static Timer codefinalizer_timer;  // Included in codegen_timer.
 
   static void Print();
 };

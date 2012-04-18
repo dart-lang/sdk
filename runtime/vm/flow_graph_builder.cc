@@ -2638,6 +2638,7 @@ void FlowGraphBuilder::BuildGraph() {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
   }
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphbuilder_timer);
   const Function& function = parsed_function().function();
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());

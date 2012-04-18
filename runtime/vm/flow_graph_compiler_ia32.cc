@@ -7,9 +7,12 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/compiler_stats.h"
 #include "vm/longjump.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, compiler_stats);
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphCompiler Bailout: %s.";
@@ -24,11 +27,17 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 void FlowGraphCompiler::CompileGraph() {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
   Bailout("CompileGraph");
 }
 
 
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
+  UNIMPLEMENTED();
+}
+
+
+void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
   UNIMPLEMENTED();
 }
 
