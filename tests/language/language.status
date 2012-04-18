@@ -106,6 +106,7 @@ FieldMethod4NegativeTest: Fail
 FinalSyntaxTest/*: Skip  # can't handle base case
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
+GettersSettersTest: Fail  # issue 2639
 GettersSettersType3Test: Fail # Issue 2351
 InstanceCallWrongArgumentCountNegativeTest: Fail
 Label2NegativeTest: Fail    # issue 1658
