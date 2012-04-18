@@ -570,6 +570,28 @@ interface BarInfo extends BarProp {
 
 // WARNING: Do not edit - generated code.
 
+interface BatteryManager extends EventTarget {
+
+  final bool charging;
+
+  final num chargingTime;
+
+  final num dischargingTime;
+
+  final num level;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface BeforeLoadEvent extends Event {
 
   final String url;
@@ -4200,13 +4222,19 @@ interface HTMLMediaElement extends HTMLElement {
 
   TextTrack addTextTrack(String kind, [String label, String language]);
 
-  String canPlayType(String type);
+  String canPlayType(String type, String keySystem);
 
   void load();
 
   void pause();
 
   void play();
+
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]);
+
+  void webkitCancelKeyRequest(String keySystem, String sessionId);
+
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
   void webkitSourceAddId(String id, String type);
 
@@ -5575,11 +5603,57 @@ interface MediaError {
 
   static final int MEDIA_ERR_DECODE = 3;
 
+  static final int MEDIA_ERR_ENCRYPTED = 5;
+
   static final int MEDIA_ERR_NETWORK = 2;
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   final int code;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaKeyError {
+
+  static final int MEDIA_KEYERR_CLIENT = 2;
+
+  static final int MEDIA_KEYERR_DOMAIN = 6;
+
+  static final int MEDIA_KEYERR_HARDWARECHANGE = 5;
+
+  static final int MEDIA_KEYERR_OUTPUT = 4;
+
+  static final int MEDIA_KEYERR_SERVICE = 3;
+
+  static final int MEDIA_KEYERR_UNKNOWN = 1;
+
+  final int code;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaKeyEvent extends Event {
+
+  final String defaultURL;
+
+  final MediaKeyError errorCode;
+
+  final Uint8Array initData;
+
+  final String keySystem;
+
+  final Uint8Array message;
+
+  final String sessionId;
+
+  final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5961,6 +6035,8 @@ interface Navigator {
   final String vendor;
 
   final String vendorSub;
+
+  final BatteryManager webkitBattery;
 
   final PointerLock webkitPointer;
 

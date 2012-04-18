@@ -477,6 +477,38 @@ class _BaseFontElementImpl extends _ElementImpl implements BaseFontElement nativ
   int size;
 }
 
+class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager native "*BatteryManager" {
+
+  _BatteryManagerEventsImpl get on() =>
+    new _BatteryManagerEventsImpl(this);
+
+  final bool charging;
+
+  final num chargingTime;
+
+  final num dischargingTime;
+
+  final num level;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+}
+
+class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
+  _BatteryManagerEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get chargingChange() => _get('chargingchange');
+
+  EventListenerList get chargingTimeChange() => _get('chargingtimechange');
+
+  EventListenerList get dischargingTimeChange() => _get('dischargingtimechange');
+
+  EventListenerList get levelChange() => _get('levelchange');
+}
+
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
 
   final String url;
@@ -8375,6 +8407,9 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController n
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
 
+  _MediaElementEventsImpl get on() =>
+    new _MediaElementEventsImpl(this);
+
   static final int EOS_DECODE_ERR = 2;
 
   static final int EOS_NETWORK_ERR = 1;
@@ -8475,13 +8510,19 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   _TextTrackImpl addTextTrack(String kind, [String label = null, String language = null]) native;
 
-  String canPlayType(String type) native;
+  String canPlayType(String type, String keySystem) native;
 
   void load() native;
 
   void pause() native;
 
   void play() native;
+
+  void webkitAddKey(String keySystem, _Uint8ArrayImpl key, [_Uint8ArrayImpl initData = null, String sessionId = null]) native;
+
+  void webkitCancelKeyRequest(String keySystem, String sessionId) native;
+
+  void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData = null]) native;
 
   void webkitSourceAddId(String id, String type) native;
 
@@ -8490,6 +8531,18 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
   void webkitSourceEndOfStream(int status) native;
 
   void webkitSourceRemoveId(String id) native;
+}
+
+class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
+  _MediaElementEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get keyAdded() => _get('webkitkeyadded');
+
+  EventListenerList get keyError() => _get('webkitkeyerror');
+
+  EventListenerList get keyMessage() => _get('webkitkeymessage');
+
+  EventListenerList get needKey() => _get('webkitneedkey');
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -8503,11 +8556,47 @@ class _MediaErrorImpl implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_DECODE = 3;
 
+  static final int MEDIA_ERR_ENCRYPTED = 5;
+
   static final int MEDIA_ERR_NETWORK = 2;
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   final int code;
+}
+
+class _MediaKeyErrorImpl implements MediaKeyError native "*MediaKeyError" {
+
+  static final int MEDIA_KEYERR_CLIENT = 2;
+
+  static final int MEDIA_KEYERR_DOMAIN = 6;
+
+  static final int MEDIA_KEYERR_HARDWARECHANGE = 5;
+
+  static final int MEDIA_KEYERR_OUTPUT = 4;
+
+  static final int MEDIA_KEYERR_SERVICE = 3;
+
+  static final int MEDIA_KEYERR_UNKNOWN = 1;
+
+  final int code;
+}
+
+class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*MediaKeyEvent" {
+
+  final String defaultURL;
+
+  final _MediaKeyErrorImpl errorCode;
+
+  final _Uint8ArrayImpl initData;
+
+  final String keySystem;
+
+  final _Uint8ArrayImpl message;
+
+  final String sessionId;
+
+  final int systemCode;
 }
 
 class _MediaListImpl implements MediaList native "*MediaList" {
@@ -9005,6 +9094,8 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
   final String vendor;
 
   final String vendorSub;
+
+  final _BatteryManagerImpl webkitBattery;
 
   final _PointerLockImpl webkitPointer;
 
@@ -17889,6 +17980,52 @@ interface BaseFontElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName BatteryManager
+interface BatteryManager extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  BatteryManagerEvents get on();
+
+  /** @domName BatteryManager.charging */
+  final bool charging;
+
+  /** @domName BatteryManager.chargingTime */
+  final num chargingTime;
+
+  /** @domName BatteryManager.dischargingTime */
+  final num dischargingTime;
+
+  /** @domName BatteryManager.level */
+  final num level;
+
+  /** @domName BatteryManager.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName BatteryManager.dispatchEvent */
+  bool $dom_dispatchEvent(Event evt);
+
+  /** @domName BatteryManager.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface BatteryManagerEvents extends Events {
+
+  EventListenerList get chargingChange();
+
+  EventListenerList get chargingTimeChange();
+
+  EventListenerList get dischargingTimeChange();
+
+  EventListenerList get levelChange();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName BeforeLoadEvent
 interface BeforeLoadEvent extends Event {
 
@@ -25238,6 +25375,11 @@ interface MediaController extends EventTarget default _MediaControllerFactoryPro
 /// @domName HTMLMediaElement
 interface MediaElement extends Element {
 
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaElementEvents get on();
+
   static final int EOS_DECODE_ERR = 2;
 
   static final int EOS_NETWORK_ERR = 1;
@@ -25374,7 +25516,7 @@ interface MediaElement extends Element {
   TextTrack addTextTrack(String kind, [String label, String language]);
 
   /** @domName HTMLMediaElement.canPlayType */
-  String canPlayType(String type);
+  String canPlayType(String type, String keySystem);
 
   /** @domName HTMLMediaElement.load */
   void load();
@@ -25384,6 +25526,15 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.play */
   void play();
+
+  /** @domName HTMLMediaElement.webkitAddKey */
+  void webkitAddKey(String keySystem, Uint8Array key, [Uint8Array initData, String sessionId]);
+
+  /** @domName HTMLMediaElement.webkitCancelKeyRequest */
+  void webkitCancelKeyRequest(String keySystem, String sessionId);
+
+  /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
+  void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
 
   /** @domName HTMLMediaElement.webkitSourceAddId */
   void webkitSourceAddId(String id, String type);
@@ -25396,6 +25547,17 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.webkitSourceRemoveId */
   void webkitSourceRemoveId(String id);
+}
+
+interface MediaElementEvents extends ElementEvents {
+
+  EventListenerList get keyAdded();
+
+  EventListenerList get keyError();
+
+  EventListenerList get keyMessage();
+
+  EventListenerList get needKey();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25422,12 +25584,68 @@ interface MediaError {
 
   static final int MEDIA_ERR_DECODE = 3;
 
+  static final int MEDIA_ERR_ENCRYPTED = 5;
+
   static final int MEDIA_ERR_NETWORK = 2;
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   /** @domName MediaError.code */
   final int code;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MediaKeyError
+interface MediaKeyError {
+
+  static final int MEDIA_KEYERR_CLIENT = 2;
+
+  static final int MEDIA_KEYERR_DOMAIN = 6;
+
+  static final int MEDIA_KEYERR_HARDWARECHANGE = 5;
+
+  static final int MEDIA_KEYERR_OUTPUT = 4;
+
+  static final int MEDIA_KEYERR_SERVICE = 3;
+
+  static final int MEDIA_KEYERR_UNKNOWN = 1;
+
+  /** @domName MediaKeyError.code */
+  final int code;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MediaKeyEvent
+interface MediaKeyEvent extends Event {
+
+  /** @domName MediaKeyEvent.defaultURL */
+  final String defaultURL;
+
+  /** @domName MediaKeyEvent.errorCode */
+  final MediaKeyError errorCode;
+
+  /** @domName MediaKeyEvent.initData */
+  final Uint8Array initData;
+
+  /** @domName MediaKeyEvent.keySystem */
+  final String keySystem;
+
+  /** @domName MediaKeyEvent.message */
+  final Uint8Array message;
+
+  /** @domName MediaKeyEvent.sessionId */
+  final String sessionId;
+
+  /** @domName MediaKeyEvent.systemCode */
+  final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26036,6 +26254,9 @@ interface Navigator {
 
   /** @domName Navigator.vendorSub */
   final String vendorSub;
+
+  /** @domName Navigator.webkitBattery */
+  final BatteryManager webkitBattery;
 
   /** @domName Navigator.webkitPointer */
   final PointerLock webkitPointer;
