@@ -479,7 +479,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       HBasicBlock block = graph.blocks[i];
       if (block.isLoopHeader()) {
         int changesFlags = loopChangesFlags[block.id];
-        HBasicBlock last = block.loopInformation.getLastBackEdge();
+        HLoopInformation info = block.blockInformation;
+        HBasicBlock last = info.getLastBackEdge();
         for (int j = block.id; j <= last.id; j++) {
           moveLoopInvariantCodeFromBlock(graph.blocks[j], block, changesFlags);
         }
