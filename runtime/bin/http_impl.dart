@@ -23,7 +23,7 @@ class _HttpHeaders implements HttpHeaders {
   void add(String name, Object value) {
     if (value is List) {
       for (int i = 0; i < value.length; i++) {
-        _add(name, vlaie[i]);
+        _add(name, value[i]);
       }
     } else {
       _add(name, value);
@@ -64,20 +64,20 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   Date get expires() {
-    if (_expires == null) {
-      List<String> values = _headers["expires"];
-      if (values != null) {
-        _expires = _HttpUtils.parseDate(values[0]);
+    List<String> values = _headers["expires"];
+    if (values != null) {
+      try {
+        return _HttpUtils.parseDate(values[0]);
+      } catch (Exception e) {
+        return null;
       }
     }
-    return _expires;
   }
 
   void set expires(Date expires) {
-    _expires = expires;
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
     String formatted =
-        _HttpUtils.formatDate(_expires.changeTimeZone(new TimeZone.utc()));
+        _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
     _set("expires", formatted);
   }
 
@@ -87,7 +87,7 @@ class _HttpHeaders implements HttpHeaders {
       if (value is Date) {
         expires = value;
       } else if (value is String) {
-        expires = _HttpUtils.parseDate(value);
+        _set("expires", value);
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
@@ -97,14 +97,22 @@ class _HttpHeaders implements HttpHeaders {
         _host = value;
         _port = HttpClient.DEFAULT_HTTP_PORT;
       } else {
-        _host = value.substring(0, pos);
+        if (pos > 0) {
+          _host = value.substring(0, pos);
+        } else {
+          _host = null;
+        }
         if (pos + 1 == value.length) {
           _port = HttpClient.DEFAULT_HTTP_PORT;
         } else {
-          _port = Math.parseInt(value.substring(pos + 1));
+          try {
+            _port = Math.parseInt(value.substring(pos + 1));
+          } catch (BadNumberFormatException e) {
+            _port = null;
+          }
         }
+        _set("host", value);
       }
-      _updateHostHeader();
     } else {
       name = name.toLowerCase();
       List<String> values = _headers[name];
@@ -124,7 +132,8 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   _updateHostHeader() {
-    String portPart = _port == HttpClient.DEFAULT_HTTP_PORT ? "" : ":$_port";
+    bool defaultPort = _port == null || _port == HttpClient.DEFAULT_HTTP_PORT;
+    String portPart = defaultPort ? "" : ":$_port";
     _set("host", "$host$portPart");
   }
 
@@ -170,7 +179,6 @@ class _HttpHeaders implements HttpHeaders {
 
   String _host;
   int _port;
-  Date _expires;
 }
 
 
