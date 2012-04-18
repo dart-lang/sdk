@@ -31,6 +31,3 @@ DummyCompilerTest: Fail # Issue 2263.
 
 [ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
 *: Skip
-
-[ $compiler == dart2js ]
-DummyCompilerTest: Fail
