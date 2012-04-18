@@ -88,14 +88,19 @@ String _filePathFromUri(String userUri) {
 
   var path;
   switch (uri.scheme) {
-  case 'file': path = _filePathFromFileUri(uri); break;
-  case 'dart-ext': path = _filePathFromOtherUri(uri); break;
-  case 'package': path = _filePathFromPackageUri(uri); break;
-
-  default:
-    // Only handling file, dart-ext and package URIs in standalone binary.
-    _logResolution("# Not a file, dart-ext, or package URI.");
-    throw "Not a known scheme: $uri";
+    case 'file':
+      path = _filePathFromFileUri(uri);
+      break;
+    case 'dart-ext':
+      path = _filePathFromOtherUri(uri);
+      break;
+    case 'package':
+      path = _filePathFromPackageUri(uri);
+      break;
+    default:
+      // Only handling file and package URIs in standalone binary.
+      _logResolution("# Unknown scheme (${uri.scheme}) in $uri.");
+      throw "Not a known scheme: $uri";
   }
 
   if (_is_windows) {
