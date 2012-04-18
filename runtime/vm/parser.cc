@@ -6901,86 +6901,85 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     return true;
   }
 
-  // Try to find the identifier in the class scope.
+  // Try to find the identifier in the class scope of the current class.
   Class& cls = Class::Handle(isolate, current_class().raw());
   Function& func = Function::Handle(isolate, Function::null());
   Field& field = Field::Handle(isolate, Field::null());
-  while (!cls.IsNull()) {
-    // First check if a field exists.
-    field = cls.LookupField(ident);
-    if (!field.IsNull()) {
-      if (node != NULL) {
-        if (!field.is_static()) {
-          CheckInstanceFieldAccess(ident_pos, ident);
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        } else {
-          *node = GenerateStaticFieldLookup(field, ident_pos);
-        }
-      }
-      return true;
-    }
 
-    // Check if an instance/static function exists.
-    func = cls.LookupFunction(ident);
-    if (!func.IsNull() &&
-        (func.IsDynamicFunction() || func.IsStaticFunction())) {
-      if (node != NULL) {
-        *node = new PrimaryNode(ident_pos,
-                                Function::ZoneHandle(isolate, func.raw()));
-      }
-      return true;
-    }
-
-    // Now check if a getter/setter method exists for it in which case
-    // it is still a field.
-    func = cls.LookupGetterFunction(ident);
-    if (!func.IsNull()) {
-      if (func.IsDynamicFunction()) {
-        if (node != NULL) {
-          CheckInstanceFieldAccess(ident_pos, ident);
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        }
-        return true;
-      } else if (func.IsStaticFunction()) {
-        if (node != NULL) {
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = new StaticGetterNode(ident_pos,
-                                       Class::ZoneHandle(isolate, cls.raw()),
-                                       ident);
-        }
-        return true;
+  // First check if a field exists.
+  field = cls.LookupField(ident);
+  if (!field.IsNull()) {
+    if (node != NULL) {
+      if (!field.is_static()) {
+        CheckInstanceFieldAccess(ident_pos, ident);
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      } else {
+        *node = GenerateStaticFieldLookup(field, ident_pos);
       }
     }
-    func = cls.LookupSetterFunction(ident);
-    if (!func.IsNull()) {
-      if (func.IsDynamicFunction()) {
-        if (node != NULL) {
-          // We create a getter node even though a getter doesn't exist as
-          // it could be followed by an assignment which will convert it to
-          // a setter node. If there is no assignment we will get an error
-          // when we try to invoke the getter.
-          CheckInstanceFieldAccess(ident_pos, ident);
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        }
-        return true;
-      } else if (func.IsStaticFunction()) {
-        if (node != NULL) {
-          // We create a getter node even though a getter doesn't exist as
-          // it could be followed by an assignment which will convert it to
-          // a setter node. If there is no assignment we will get an error
-          // when we try to invoke the getter.
-          *node = new StaticGetterNode(ident_pos,
-                                       Class::ZoneHandle(isolate, cls.raw()),
-                                       ident);
-        }
-        return true;
-      }
-    }
-
-    cls = cls.SuperClass();
+    return true;
   }
+
+  // Check if an instance/static function exists.
+  func = cls.LookupFunction(ident);
+  if (!func.IsNull() &&
+      (func.IsDynamicFunction() || func.IsStaticFunction())) {
+    if (node != NULL) {
+      *node = new PrimaryNode(ident_pos,
+                              Function::ZoneHandle(isolate, func.raw()));
+    }
+    return true;
+  }
+
+  // Now check if a getter/setter method exists for it in which case
+  // it is still a field.
+  func = cls.LookupGetterFunction(ident);
+  if (!func.IsNull()) {
+    if (func.IsDynamicFunction()) {
+      if (node != NULL) {
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      }
+      return true;
+    } else if (func.IsStaticFunction()) {
+      if (node != NULL) {
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+      }
+      return true;
+    }
+  }
+  func = cls.LookupSetterFunction(ident);
+  if (!func.IsNull()) {
+    if (func.IsDynamicFunction()) {
+      if (node != NULL) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      }
+      return true;
+    } else if (func.IsStaticFunction()) {
+      if (node != NULL) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+      }
+      return true;
+    }
+  }
+
+  // Nothing found in scope of current class.
   if (node != NULL) {
     *node = NULL;
   }

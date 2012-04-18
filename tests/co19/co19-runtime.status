@@ -18,6 +18,9 @@ Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals ille
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2014 (Evaluation order in ctor initializers)
 Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail # co19 issue 93 (must import dart:isolate)
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t07: Fail # co19 issue 116
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail # co19 issue 116
+
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # issue 1604.
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A02_t04: Fail # issue 2024, 1244
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t01: Fail # issue 2024, 1244
@@ -43,6 +46,7 @@ Language/10_Expressions/25_Unary_Expressions_A08_t01: Fail # issue 1288 (unary s
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # issue 1286 (function literals vs. function statements)
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # co19 issue 91: map literals illegal at statement beginning.
+Language/10_Expressions/28_Identifier_Reference_A04_t05: Fail # co19 issue 116
 Language/10_Expressions/29_Type_Test_A04_t01: Fail # co19 issue 97.
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: map literals illegal at statement beginning.

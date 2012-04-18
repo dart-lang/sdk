@@ -282,7 +282,7 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
   void set onConnection(void callback(Socket connection)) {
     _clientConnectionHandler = callback;
-    _setHandler(_IN_EVENT,
+    _setHandler(_SocketBase._IN_EVENT,
                 _clientConnectionHandler != null ? _connectionHandler : null);
   }
 
@@ -483,8 +483,8 @@ class _Socket extends _SocketBase implements Socket {
 
   InputStream get inputStream() {
     if (_inputStream == null) {
-      if (_handlerMap[_IN_EVENT] !== null ||
-          _handlerMap[_CLOSE_EVENT] !== null) {
+      if (_handlerMap[_SocketBase._IN_EVENT] !== null ||
+          _handlerMap[_SocketBase._CLOSE_EVENT] !== null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
@@ -495,7 +495,7 @@ class _Socket extends _SocketBase implements Socket {
 
   OutputStream get outputStream() {
     if (_outputStream == null) {
-      if (_handlerMap[_OUT_EVENT] !== null) {
+      if (_handlerMap[_SocketBase._OUT_EVENT] !== null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
@@ -505,15 +505,15 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   void set _onWrite(void callback()) {
-    _setHandler(_OUT_EVENT, callback);
+    _setHandler(_SocketBase._OUT_EVENT, callback);
   }
 
   void set _onData(void callback()) {
-    _setHandler(_IN_EVENT, callback);
+    _setHandler(_SocketBase._IN_EVENT, callback);
   }
 
   void set _onClosed(void callback()) {
-    _setHandler(_CLOSE_EVENT, callback);
+    _setHandler(_SocketBase._CLOSE_EVENT, callback);
   }
 
   void _propagateError(Exception e) {

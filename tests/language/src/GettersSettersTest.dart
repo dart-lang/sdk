@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,8 +59,6 @@ class GettersSettersTest {
 }
 
 class A {
-  // TODO(fabiofmv): consider removing once http://b/4254120 is fixed.
-  A() { }
   int x_;
   static int foo;
 
@@ -97,9 +95,7 @@ class A {
   }
 }
 
-class B extends A {
-  B() : super() {}
-}
+class B extends A { }
 
 class C extends A {
   int y_;
@@ -118,8 +114,6 @@ class C extends A {
 }
 
 class D extends A {
-  D() : super() {}
-
   var x2_;
 
   set x(new_x) {
@@ -131,30 +125,16 @@ class D extends A {
     Expect.equals(87, x2_);
     x = 42;
     Expect.equals(42, x2_);
-
-    foo = 0;
-    Expect.equals(0, bar);
-    bar = 1;
-    Expect.equals(1, foo);
-    var tmp = foo;
-    foo += 3;
-    Expect.equals(4, bar);
-    bar += 5;
-    Expect.equals(9, foo);
   }
 }
 
 class OverrideField extends A {
-  OverrideField() : super() {}
-
   int get x_() {
     return 27;
   }
 }
 
 class ReferenceField extends A {
-  ReferenceField() : super() {}
-
   setIt(a) {
      super.x_ = a;
   }
