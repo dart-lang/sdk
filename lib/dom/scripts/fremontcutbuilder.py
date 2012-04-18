@@ -187,6 +187,10 @@ def main():
     'xml',
     ]
 
+  ignored_idls = [
+    'AbstractView.idl',
+    ]
+
   idl_files = []
 
   webcore_dir = os.path.join(current_dir, '..', '..', '..',
@@ -198,7 +202,7 @@ def main():
     for name in names:
       file_name = os.path.join(dir_name, name)
       (interface, ext) = os.path.splitext(file_name)
-      if ext == '.idl' and not name.startswith('._'):
+      if ext == '.idl' and name not in ignored_idls:
         idl_files.append(file_name)
 
   for dir_name in webkit_dirs:

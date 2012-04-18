@@ -409,11 +409,6 @@ class DatabaseBuilder(object):
     _logger.info('merging impl stmt %s implements %s' %
                  (implementor_name, implemented_name))
 
-    if implementor_name == implemented_name:
-      # After renaming, this might happen (e.g. Window impls
-      # AbstractView, but AbstractView was renamed to Window).
-      return
-
     source = import_options.source
     if self._database.HasInterface(implementor_name):
       interface = self._database.GetInterface(implementor_name)

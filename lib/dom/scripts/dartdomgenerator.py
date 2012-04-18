@@ -86,12 +86,6 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
   else:
     common_database.Load()
 
-  generator.RenameTypes(common_database, {
-      # W3C -> Dart renames
-      'AbstractView': 'Window',
-      'Function': 'EventListener',
-      }, True)
-
   generator.FilterMembersWithUnidentifiedTypes(common_database)
   webkit_database = common_database.Clone()
 
