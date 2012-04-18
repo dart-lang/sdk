@@ -92,7 +92,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
-    bool findInInputs(HInstruction instruction) {
+    bool findInInputsAndPopNonMatching(HInstruction instruction) {
       while (!expectedInputs.isEmpty()) {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
@@ -134,20 +134,14 @@ class SsaInstructionMerger extends HBaseVisitor {
         generateAtUseSite.add(instruction);
         continue;
       }
-      bool foundInInputs = false;
       // See if the current instruction is the next non-trivial
-      // expected input. If not, drop the expectedInputs and
-      // start over.
-      if (findInInputs(instruction)) {
-        foundInInputs = true;
+      // expected input.
+      if (findInInputsAndPopNonMatching(instruction)) {
         tryGenerateAtUseSite(instruction);
       } else {
         assert(expectedInputs.isEmpty());
       }
-      if (foundInInputs || usedOnlyByPhis(instruction)) {
-        // Try merging all non-trivial inputs.
-        instruction.accept(this);
-      }
+      instruction.accept(this);
     }
 
     if (block.predecessors.length === 1
