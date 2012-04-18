@@ -2379,8 +2379,13 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
       }
     }
 
-    const Function& function =
-        Function::Handle(isolate, lib.LookupLocalFunction(function_name));
+    Function& function = Function::Handle(isolate);
+    function = lib.LookupLocalFunction(function_name);
+    // LookupLocalFunction does not check argument arity, so we do it here.
+    if (!function.IsNull() &&
+        !function.AreValidArgumentCounts(number_of_arguments, 0)) {
+      function = Function::null();
+    }
     if (function.IsNull()) {
       return Api::NewError("%s: did not find top-level function '%s'.",
                            CURRENT_FUNC,
