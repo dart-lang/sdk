@@ -118,7 +118,7 @@ class EnqueueTask extends CompilerTask {
         seenClasses.add(cls);
         // TODO(ahe): Don't call resolveType, instead, call this method
         // when resolveType is called.
-        compiler.resolveType(cls);
+        compiler.resolveClass(cls);
         cls.members.forEach(processInstantiatedClassMember);
         cls = cls.superclass;
       }

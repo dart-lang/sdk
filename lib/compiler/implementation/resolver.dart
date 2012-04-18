@@ -211,15 +211,14 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  Type resolveType(ClassElement element) {
-    if (element.isResolved) return element.type;
-    return measure(() {
+  void resolveClass(ClassElement element) {
+    if (element.isResolved) return;
+    measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor =
         new ClassResolverVisitor(compiler, element.getLibrary(), element);
       visitor.visit(tree);
       element.isResolved = true;
-      return element.type;
     });
   }
 
@@ -1054,7 +1053,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  Element resolveTypeName(node) {
+  Element resolveTypeName(TypeAnnotation node) {
     Identifier typeName = node.typeName.asIdentifier();
     Send send = node.typeName.asSend();
     if (send !== null) {
@@ -1071,7 +1070,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         // The receiver is the class part of a named constructor.
         return e;
       } else {
-        error(send.receiver, MessageKind.CANNOT_RESOLVE);
+        return null;
       }
     } else {
       return context.lookup(typeName.source);
@@ -1079,38 +1078,36 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Type resolveTypeAnnotation(TypeAnnotation node) {
+    Function report = typeRequired ? error : warning;
     Element element = resolveTypeName(node);
     Type type;
     if (element === null) {
-      if (typeRequired) {
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      }
+      report(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
     } else if (!element.impliesType()) {
-      if (typeRequired) {
-        error(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      }
+      report(node, MessageKind.NOT_A_TYPE, [node.typeName]);
     } else {
-      if (element == compiler.types.voidType.element) {
-        type = compiler.types.voidType;
-      } else if (element == compiler.types.dynamicType.element) {
-        type = compiler.types.dynamicType;
+      if (element === compiler.types.voidType.element ||
+          element === compiler.types.dynamicType.element) {
+        type = element.computeType(compiler);
       } else if (element.isClass()) {
-        // TODO(ngeoffray): Should we also resolve typedef?
         ClassElement cls = element;
-        compiler.resolver.toResolve.add(cls);
+        if (!cls.isResolved) compiler.resolveClass(cls);
         LinkBuilder<Type> arguments = new LinkBuilder<Type>();
         if (node.typeArguments !== null) {
+          int index = 0;
           for (Link<Node> typeArguments = node.typeArguments.nodes;
                !typeArguments.isEmpty();
                typeArguments = typeArguments.tail) {
+            if (++index > cls.typeParameters.length) {
+              report(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+            }
             arguments.addLast(resolveTypeAnnotation(typeArguments.head));
           }
+          if (index < cls.typeParameters.length) {
+            report(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+          }
         }
-        type = new InterfaceType(element.name, element, arguments.toLink());
+        type = new InterfaceType(cls.name, cls, arguments.toLink());
       } else if (element.isTypedef()) {
         // TODO(karlklose): implement typedefs. We return a fake type that the
         // code generator can use to detect typedefs in is-checks.

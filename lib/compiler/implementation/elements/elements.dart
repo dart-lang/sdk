@@ -721,7 +721,7 @@ class ClassElement extends ContainerElement {
   ClassElement ensureResolved(Compiler compiler) {
     if (!isResolved && !isBeingResolved) {
       isBeingResolved = true;
-      compiler.resolveType(this);
+      compiler.resolveClass(this);
       isBeingResolved = false;
       isResolved = true;
     }

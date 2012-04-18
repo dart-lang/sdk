@@ -180,14 +180,12 @@ SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
-TypeVariableBoundsTest/08: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
 TypeVariableScopeTest/02: Fail, OK # Negative language test.
 TypeVariableScopeTest/03: Fail, OK # Negative language test.
 TypeVariableScopeTest/04: Fail, OK # Negative language test.
 TypeVariableScopeTest/05: Fail, OK # Negative language test.
-WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.

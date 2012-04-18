@@ -403,8 +403,8 @@ class Compiler implements DiagnosticListener {
     universe.isChecks.add(element);
   }
 
-  Type resolveType(ClassElement element) {
-    return withCurrentElement(element, () => resolver.resolveType(element));
+  void resolveClass(ClassElement element) {
+    withCurrentElement(element, () => resolver.resolveClass(element));
   }
 
   FunctionParameters resolveSignature(FunctionElement element) {

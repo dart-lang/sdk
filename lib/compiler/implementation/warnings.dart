@@ -165,6 +165,12 @@ class MessageKind {
   static final ILLEGAL_SUPER_SEND = const MessageKind(
       "#{1} cannot be called on super");
 
+  static final ADDITIONAL_TYPE_ARGUMENT = const MessageKind(
+      "additional type argument");
+
+  static final MISSING_TYPE_ARGUMENT = const MessageKind(
+      "missing type argument");
+
   toString() => template;
 }
 
