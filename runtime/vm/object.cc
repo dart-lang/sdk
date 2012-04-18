@@ -6126,12 +6126,12 @@ const char* ICData::ToCString() const {
 
 
 void ICData::set_function(const Function& value) const {
-  raw_ptr()->function_ = value.raw();
+  StorePointer(&raw_ptr()->function_, value.raw());
 }
 
 
 void ICData::set_target_name(const String& value) const {
-  raw_ptr()->target_name_ = value.raw();
+  StorePointer(&raw_ptr()->target_name_, value.raw());
 }
 
 
@@ -6146,7 +6146,7 @@ void ICData::set_num_args_tested(intptr_t value) const {
 
 
 void ICData::set_ic_data(const Array& value) const {
-  raw_ptr()->ic_data_ = value.raw();
+  StorePointer(&raw_ptr()->ic_data_, value.raw());
 }
 
 
@@ -8541,6 +8541,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // space as an Array object.
       RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
       raw->ptr()->class_ = isolate->object_store()->array_class();
+      tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       raw->ptr()->tags_ = tags;
       intptr_t leftover_len =
@@ -8552,6 +8553,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       raw->ptr()->class_ = isolate->object_store()->object_class();
+      tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       raw->ptr()->tags_ = tags;
     }
