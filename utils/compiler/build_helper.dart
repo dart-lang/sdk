@@ -31,7 +31,7 @@ writeScript(Uri uri, List<String> chunks) {
 
   // TODO(ahe): Also make a .bat file for Windows.
 
-  if (new Platform().operatingSystem() != 'windows') {
+  if (Platform.operatingSystem() != 'windows') {
     onExit(int exitCode, String stdout, String stderr) {
       if (exitCode != 0) {
         print(stdout);

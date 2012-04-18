@@ -5,14 +5,13 @@
 #import("dart:io");
 
 main() {
-  var p = new Platform();
-  Expect.isTrue(p.numberOfProcessors() > 0);
-  var os = p.operatingSystem();
+  Expect.isTrue(Platform.numberOfProcessors() > 0);
+  var os = Platform.operatingSystem();
   Expect.isTrue(os == "linux" || os == "macos" || os == "windows");
-  var sep = p.pathSeparator();
+  var sep = Platform.pathSeparator();
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
-  var hostname = p.localHostname();
+  var hostname = Platform.localHostname();
   Expect.isTrue(hostname is String && hostname != "");
-  var environment = p.environment();
+  var environment = Platform.environment();
   Expect.isTrue(environment is Map<String, String>);
 }

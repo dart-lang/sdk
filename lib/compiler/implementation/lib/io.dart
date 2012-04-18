@@ -59,8 +59,24 @@ class _File {
 }
 
 class _Platform {
-  factory Platform() {
-    throw new UnsupportedOperationException('new Platform()');
+  static int numberOfProcessors() {
+    throw new UnsupportedOperationException('_Platform.numberOfProcessors()');
+  }
+
+  static String pathSeparator() {
+    throw new UnsupportedOperationException('_Platform.pathSeparator()');
+  }
+
+  static String operatingSystem() {
+    throw new UnsupportedOperationException('_Platform.operatingSystem()');
+  }
+
+  static String localHostname() {
+    throw new UnsupportedOperationException('_Platform.localHostname()');
+  }
+
+  static Map<String, String> environment() {
+    throw new UnsupportedOperationException('_Platform.environment()');
   }
 }
 

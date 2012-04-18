@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -117,7 +117,7 @@ is 'dart file.dart' and you specify special command
               'The operating system to run tests on',
               ['-s', '--system'],
               ['linux', 'macos', 'windows'],
-              new Platform().operatingSystem()),
+              Platform.operatingSystem()),
           new _TestOptionSpecification(
               'checked',
               'Run tests in checked mode',
@@ -158,7 +158,7 @@ is 'dart file.dart' and you specify special command
               'The number of parallel tasks to run',
               ['-j', '--tasks'],
               [],
-              new Platform().numberOfProcessors(),
+              Platform.numberOfProcessors(),
               'int'),
           new _TestOptionSpecification(
               'shards',
@@ -405,7 +405,7 @@ is 'dart file.dart' and you specify special command
           "${config['runtime']} is invalid. Skipping this combination.");
     }
     if (config['runtime'] == 'ie' &&
-        new Platform().operatingSystem() != 'windows') {
+        Platform.operatingSystem() != 'windows') {
       isValid = false;
       print("Warning cannot run Internet Explorer on non-Windows operating" +
           " system.");

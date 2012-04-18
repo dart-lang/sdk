@@ -21,7 +21,7 @@ void testOutput(String description, List<String> pubArgs, String expected,
     // Find a dart executable we can use to run pub. Uses the one that the
     // test infrastructure uses.
     final scriptDir = new File(new Options().script).directorySync().path;
-    final platform = new Platform().operatingSystem();
+    final platform = Platform.operatingSystem();
     final dartBin = joinPaths(scriptDir,
         '../../../tools/testing/bin/$platform/dart');
 

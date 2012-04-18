@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -155,7 +155,7 @@ class _Annotation {
 Set<String> _findAllRelativeImports(String topLibrary) {
   Set<String> toSearch = new Set<String>.from([topLibrary]);
   Set<String> foundImports = new HashSet<String>();
-  String pathSep = new Platform().pathSeparator();
+  String pathSep = Platform.pathSeparator();
   int end = topLibrary.lastIndexOf(pathSep);
   String libraryDir = topLibrary.substring(0, end);
 
@@ -209,7 +209,7 @@ void DoMultitest(String filename,
 
   String directory = CreateMultitestDirectory(outputDir, testDir);
   Expect.isNotNull(directory);
-  String pathSep = new Platform().pathSeparator();
+  String pathSep = Platform.pathSeparator();
   int start = filename.lastIndexOf(pathSep) + 1;
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);

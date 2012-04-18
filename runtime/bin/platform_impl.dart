@@ -2,28 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _Platform implements Platform {
-  _Platform();
-
+class _Platform {
   static int _numberOfProcessors() native "Platform_NumberOfProcessors";
   static String _pathSeparator() native "Platform_PathSeparator";
   static String _operatingSystem() native "Platform_OperatingSystem";
   static _localHostname() native "Platform_LocalHostname";
   static _environment() native "Platform_Environment";
 
-  int numberOfProcessors() {
+  static int numberOfProcessors() {
     return _numberOfProcessors();
   }
 
-  String pathSeparator() {
+  static String pathSeparator() {
     return _pathSeparator();
   }
 
-  String operatingSystem() {
+  static String operatingSystem() {
     return _operatingSystem();
   }
 
-  String localHostname() {
+  static String localHostname() {
     var result = _localHostname();
     if (result is OSError) {
       throw result;
@@ -32,7 +30,7 @@ class _Platform implements Platform {
     }
   }
 
-  Map<String, String> environment() {
+  static Map<String, String> environment() {
     var env = _environment();
     if (env is OSError) {
       throw env;
