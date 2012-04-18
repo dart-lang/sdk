@@ -924,6 +924,7 @@ class Parser {
     listener.beginCascade(token);
     assert(optional('..', token));
     Token cascadeOperator = token;
+    token = token.next;
     if (optional('[', token)) {
       token = parseArgumentOrIndexStar(token);
     } else if (isIdentifier(token)) {
@@ -937,7 +938,7 @@ class Parser {
       mark = token;
       if (optional('.', token)) {
         Token period = token;
-        token = parseSend(token);
+        token = parseSend(token.next);
         listener.handleBinaryExpression(period);
       }
       token = parseArgumentOrIndexStar(token);
@@ -945,7 +946,7 @@ class Parser {
 
     if (token.info.precedence === ASSIGNMENT_PRECEDENCE) {
       Token assignment = token;
-      token = parsePrecedenceExpression(token, CASCADE_PRECEDENCE + 1);
+      token = parsePrecedenceExpression(token.next, CASCADE_PRECEDENCE + 1);
       listener.handleAssignmentExpression(assignment);
     }
     listener.endCascade();
