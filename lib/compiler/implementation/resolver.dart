@@ -847,7 +847,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Type resolveTypeTest(Node argument) {
     TypeAnnotation node = argument.asTypeAnnotation();
-    if (node == null) {
+    if (node === null) {
       // node is of the form !Type.
       node = argument.asSend().receiver.asTypeAnnotation();
       if (node === null) compiler.cancel("malformed send");
@@ -1061,10 +1061,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       typeName = send.selector;
     }
     if (typeName.source == Types.VOID) return compiler.types.voidType.element;
-    if (typeName.source == Types.DYNAMIC ||
-        typeName.source.stringValue == "var") {
-      return compiler.types.dynamicType.element;
-    }
     if (send !== null) {
       Element e = context.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {

@@ -35,7 +35,7 @@ class Compiler implements DiagnosticListener {
   Universe universe;
   String assembledCode;
   Namer namer;
-  final Types types;
+  Types types;
 
   final Tracer tracer;
 
@@ -96,8 +96,7 @@ class Compiler implements DiagnosticListener {
   Stopwatch codegenProgress;
 
   Compiler([this.tracer = const Tracer()])
-      : types = new Types(),
-        universe = new Universe(),
+      : universe = new Universe(),
         worklist = new Queue<WorkItem>(),
         codegenProgress = new Stopwatch.start() {
     namer = new Namer(this);
@@ -213,17 +212,30 @@ class Compiler implements DiagnosticListener {
   abstract LibraryElement scanBuiltinLibrary(String filename);
 
   void initializeSpecialClasses() {
-    objectClass = coreLibrary.find(const SourceString('Object'));
-    boolClass = coreLibrary.find(const SourceString('bool'));
-    numClass = coreLibrary.find(const SourceString('num'));
-    intClass = coreLibrary.find(const SourceString('int'));
-    doubleClass = coreLibrary.find(const SourceString('double'));
-    stringClass = coreLibrary.find(const SourceString('String'));
-    functionClass = coreLibrary.find(const SourceString('Function'));
-    listClass = coreLibrary.find(const SourceString('List'));
-    closureClass = jsHelperLibrary.find(const SourceString('Closure'));
-    dynamicClass = types.dynamicType.element;
-    nullClass = jsHelperLibrary.find(const SourceString('Null'));
+    bool coreLibValid = true;
+    ClassElement lookupSpecialClass(SourceString name) {
+      ClassElement result = coreLibrary.find(name);
+      if (result === null) {
+        log('core library class $name missing');
+        coreLibValid = false;
+      }
+      return result;
+    }
+    objectClass = lookupSpecialClass(const SourceString('Object'));
+    boolClass = lookupSpecialClass(const SourceString('bool'));
+    numClass = lookupSpecialClass(const SourceString('num'));
+    intClass = lookupSpecialClass(const SourceString('int'));
+    doubleClass = lookupSpecialClass(const SourceString('double'));
+    stringClass = lookupSpecialClass(const SourceString('String'));
+    functionClass = lookupSpecialClass(const SourceString('Function'));
+    listClass = lookupSpecialClass(const SourceString('List'));
+    closureClass = lookupSpecialClass(const SourceString('Closure'));
+    dynamicClass = lookupSpecialClass(const SourceString('Dynamic'));
+    nullClass = lookupSpecialClass(const SourceString('Null'));
+    types = new Types(dynamicClass);
+    if (!coreLibValid) {
+      cancel('core library does not contain required classes');
+    }
   }
 
   void scanBuiltinLibraries() {

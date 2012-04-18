@@ -113,11 +113,13 @@ class Types {
   final InterfaceType voidType;
   final InterfaceType dynamicType;
 
-  Types() : this.with(new LibraryElement(new Script(null, null)));
+  Types(Element dynamicElement)
+    : this.with(dynamicElement, new LibraryElement(new Script(null, null)));
 
-  Types.with(LibraryElement library)
+  // TODO(karlklose): should we have a class Void?
+  Types.with(Element dynamicElement, LibraryElement library)
     : voidType = new InterfaceType(VOID, new ClassElement(VOID, library)),
-      dynamicType = new InterfaceType(DYNAMIC, new ClassElement(DYNAMIC, library));
+      dynamicType = new InterfaceType(DYNAMIC, dynamicElement);
 
   Type lookup(SourceString s) {
     if (VOID == s) {
@@ -135,6 +137,7 @@ class Types {
     if (t is InterfaceType) {
       if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
+      if (tc === s.element) return true;
       for (Link<Type> supertypes = tc.allSupertypes;
            supertypes != null && !supertypes.isEmpty();
            supertypes = supertypes.tail) {
@@ -156,6 +159,9 @@ class Types {
       if (!tps.isEmpty() || !sps.isEmpty()) return false;
       if (!isAssignable(sf.returnType, tf.returnType)) return false;
       return true;
+    } else if (t is TypeVariableType) {
+      if (s is !TypeVariableType) return false;
+      return (t.element === s.element);
     } else {
       throw 'internal error: unknown type kind';
     }
@@ -171,16 +177,6 @@ class CancelTypeCheckException {
   final String reason;
 
   CancelTypeCheckException(this.node, this.reason);
-}
-
-Type lookupType(SourceString name, Compiler compiler, types) {
-  Type t = types.lookup(name);
-  if (t !== null) return t;
-  Element element = compiler.coreLibrary.find(name);
-  if (element !== null && element.kind === ElementKind.CLASS) {
-    return element.computeType(compiler);
-  }
-  return null;
 }
 
 class TypeCheckerVisitor implements Visitor<Type> {
@@ -202,12 +198,12 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type listType;
 
   TypeCheckerVisitor(this.compiler, this.elements, this.types) {
-    intType = lookupType(Types.INT, compiler, types);
-    doubleType = lookupType(Types.DOUBLE, compiler, types);
-    boolType = lookupType(Types.BOOL, compiler, types);
-    stringType = lookupType(Types.STRING, compiler, types);
-    objectType = lookupType(Types.OBJECT, compiler, types);
-    listType = lookupType(Types.LIST, compiler, types);
+    intType = compiler.intClass.computeType(compiler);
+    doubleType = compiler.doubleClass.computeType(compiler);
+    boolType = compiler.boolClass.computeType(compiler);
+    stringType = compiler.stringClass.computeType(compiler);
+    objectType = compiler.objectClass.computeType(compiler);
+    listType = compiler.listClass.computeType(compiler);
   }
 
   Type fail(node, [reason]) {
@@ -619,19 +615,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
-    if (node.typeName === null) return types.dynamicType;
-    Identifier identifier = node.typeName.asIdentifier();
-    if (identifier === null) {
-      fail(node.typeName, 'library prefix not implemented');
-    }
-    // TODO(ahe): Why wasn't this resolved by the resolver?
-    Type type = lookupType(identifier.source, compiler, types);
-    if (type === null) {
-      // The type name cannot be resolved, but the resolver
-      // already gave a warning, so we continue checking.
-      return types.dynamicType;
-    }
-    return type;
+    return elements.getType(node);
   }
 
   visitTypeVariable(TypeVariable node) {
