@@ -69,7 +69,6 @@ class DatabaseBuilder(object):
     self._database = database
     self._imported_interfaces = []
     self._impl_stmts = []
-    self._same_signatures = {}
 
   def _load_idl_file(self, file_name, import_options):
     """Loads an IDL file intor memory"""
@@ -209,8 +208,6 @@ class DatabaseBuilder(object):
       res = node.id
       if res.startswith('unsigned '):
         res = res[len('unsigned '):]
-      if res in self._same_signatures:
-        res = self._same_signatures[res]
       return res
 
     res = []
@@ -427,11 +424,6 @@ class DatabaseBuilder(object):
         parent.annotations[source] = IDLAnnotation(
             import_options.source_attributes)
       interface.parents.append(parent)
-
-  def set_same_signatures(self, signatures_table):
-    """Customize signature calculations by providing a custom table
-    indicating which types are equivalent"""
-    self._same_signatures = signatures_table
 
   def merge_imported_interfaces(self, optional_argument_whitelist):
     """Merges all imported interfaces and loads them into the DB."""

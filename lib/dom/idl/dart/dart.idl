@@ -193,7 +193,7 @@ module canvas {
   [Supplemental]
   interface Uint8ClampedArray {
     // Avoid 'overriding static member BYTES_PER_ELEMENT'.
-    [Suppressed] const unsigned int BYTES_PER_ELEMENT = 1;
+    [Suppressed] const long BYTES_PER_ELEMENT = 1;
 
     [Suppressed] void set();
     [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);

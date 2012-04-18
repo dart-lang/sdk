@@ -143,11 +143,6 @@ def build_database(idl_files, database_dir, feature_defines = None):
       os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl'),
       dart_options)
 
-  builder.set_same_signatures({
-    'EventListener': 'Function',
-    'int': 'long',
-  })
-
   # Merging:
   builder.merge_imported_interfaces(optional_argument_whitelist)
 
