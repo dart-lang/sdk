@@ -6,7 +6,7 @@
 
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
-  const char* strings[5] = { library_path, "/", extension_name, ".dll", NULL };
+  const char* strings[] = { library_path, "/", extension_name, ".dll", NULL };
   char* library_file = Concatenate(strings);
   void* lib_handle = LoadLibrary(library_file);
   free(library_file);

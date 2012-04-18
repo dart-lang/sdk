@@ -263,13 +263,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     Dart_Handle dart_args[2];
     dart_args[0] = library_url;
     dart_args[1] = url;
-    if (is_dart_extension_url) {
-      return Dart_Invoke(
-          builtin_lib, Dart_NewString("_resolveExtensionUri"), 2, dart_args);
-    } else {
-      return Dart_Invoke(
-          builtin_lib, Dart_NewString("_resolveUri"), 2, dart_args);
-    }
+    return Dart_Invoke(
+        builtin_lib, Dart_NewString("_resolveUri"), 2, dart_args);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == kImportTag);
@@ -285,11 +280,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
-  } else if (is_dart_extension_url) {
-    if (tag != kImportTag) {
-      return Dart_Error("Dart extensions must use import: '%s'", url_string);
-    }
-    return Extensions::LoadExtension(url_string, library);
   } else {
     // Get the file path out of the url.
     Dart_Handle builtin_lib = Builtin::LoadLibrary(Builtin::kBuiltinLibrary);
@@ -301,6 +291,12 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return file_path;
     }
     Dart_StringToCString(file_path, &url_string);
+  }
+  if (is_dart_extension_url) {
+    if (tag != kImportTag) {
+      return Dart_Error("Dart extensions must use import: '%s'", url_string);
+    }
+    return Extensions::LoadExtension(url_string, library);
   }
   result = DartUtils::LoadSource(NULL,
                                  library,

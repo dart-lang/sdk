@@ -14,16 +14,7 @@
 
 Dart_Handle Extensions::LoadExtension(const char* extension_url,
                                       Dart_Handle parent_library) {
-  ASSERT(DartUtils::IsDartExtensionSchemeURL(extension_url));
-  // Make a mutable copy of the extension url, without the "dart:" scheme.
-  const char* path_component =
-      extension_url + strlen(DartUtils::kDartExtensionScheme);
-#ifdef TARGET_OS_WINDOWS
-  // Remove initial '/' from a uri formatted absolute path "/C:/path/to/dll"
-  ASSERT(path_component[0] == '/');
-  path_component++;
-#endif
-  char* library_path = strdup(path_component);
+  char* library_path = strdup(extension_url);
   if (!library_path || !File::IsAbsolutePath(library_path)) {
     free(library_path);
     return Dart_Error("unexpected error in library path");
@@ -39,7 +30,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_url,
     return Dart_Error("cannot find extension library");
   }
 
-  const char* strings[3] = { extension_name, "_Init", NULL };
+  const char* strings[] = { extension_name, "_Init", NULL };
   char* init_function_name = Concatenate(strings);
   typedef Dart_Handle (*InitFunctionType)(Dart_Handle import_map);
   InitFunctionType fn = reinterpret_cast<InitFunctionType>(

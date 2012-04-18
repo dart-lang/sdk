@@ -67,24 +67,20 @@ String _resolveScriptUri(String cwd, String scriptName, bool windows) {
 String _resolveUri(String base, String userString) {
   var baseUri = new Uri.fromString(base);
   _logResolution("# Resolving: $userString from $base");
-  var resolved = baseUri.resolve(userString);
+
+  // Relative URIs with scheme dart-ext should be resolved as if with no scheme.
+  var uri = new Uri.fromString(userString);
+  var resolved;
+  if ('dart-ext' == uri.scheme) {
+    resolved = baseUri.resolve(uri.path);
+    resolved = new Uri(scheme: "dart-ext", path: resolved.path);
+  } else {
+    resolved = baseUri.resolve(userString);
+  }
   _logResolution("# Resolved to: $resolved");
   return resolved.toString();
 }
 
-String _resolveExtensionUri(String base, String userString) {
-  var uri = new Uri.fromString(userString);
-  if ("dart-ext" != uri.scheme) {
-    throw "Not a Dart extension uri: $uri";
-  }
-  var schemelessUri = new Uri(path: uri.path);
-  var baseUri = new Uri.fromString(base);
-  _logResolution("# Resolving: $userString from $base");
-  var resolved = baseUri.resolveUri(schemelessUri);
-  resolved = new Uri(scheme: 'dart-ext', path: resolved.path);
-  _logResolution("# Resolved to: $resolved");
-  return resolved.toString();
-}
 
 String _filePathFromUri(String userUri) {
   var uri = new Uri.fromString(userUri);
@@ -92,12 +88,13 @@ String _filePathFromUri(String userUri) {
 
   var path;
   switch (uri.scheme) {
-  case 'file':    path = _filePathFromFileUri(uri); break;
+  case 'file': path = _filePathFromFileUri(uri); break;
+  case 'dart-ext': path = _filePathFromOtherUri(uri); break;
   case 'package': path = _filePathFromPackageUri(uri); break;
 
   default:
-    // Only handling file and package URIs in standalone binary.
-    _logResolution("# Not a file or package URI.");
+    // Only handling file, dart-ext and package URIs in standalone binary.
+    _logResolution("# Not a file, dart-ext, or package URI.");
     throw "Not a known scheme: $uri";
   }
 
@@ -113,6 +110,15 @@ String _filePathFromUri(String userUri) {
 String _filePathFromFileUri(Uri uri) {
   if (uri.domain != '') {
     throw "URIs using the 'file:' scheme may not contain a domain.";
+  }
+
+  _logResolution("# Path: ${uri.path}");
+  return uri.path;
+}
+
+String _filePathFromOtherUri(Uri uri) {
+  if (uri.domain != '') {
+    throw "URIs whose paths are used as file paths may not contain a domain.";
   }
 
   _logResolution("# Path: ${uri.path}");
