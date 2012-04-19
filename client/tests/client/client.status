@@ -21,6 +21,9 @@ dom/AudioContextTest: Skip
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 
+[ $compiler == frog && $runtime == drt ]
+html/html_tests: Skip   # Issue 2657
+
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
