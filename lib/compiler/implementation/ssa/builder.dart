@@ -2152,12 +2152,14 @@ class SsaBuilder implements Visitor {
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
       HType type = HType.UNKNOWN;
-      if (element.isGenerativeConstructor()) {
-        ClassElement cls = element.enclosingElement;
-        type = new HNonPrimitiveType(cls.type);
-      } else if (element.isFactoryConstructor()
-                 && element === compiler.listClass) {
-        type = HType.MUTABLE_ARRAY;
+      Element originalElement = elements[node];
+      if (originalElement.isGenerativeConstructor()) {
+        ClassElement cls = originalElement.enclosingElement;
+        if (cls === compiler.listClass) {
+          type = HType.MUTABLE_ARRAY;
+        } else {
+          type = new HNonPrimitiveType(cls.type);
+        }
       }
       push(new HInvokeStatic(selector, inputs, type));
     } else {
