@@ -380,7 +380,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // would compile func automatically. We are checking fewer invariants
     // here.
     ParsedFunction parsed_function(func);
-    parsed_function.set_node_sequence(fragment);
+    parsed_function.SetNodeSequence(fragment);
     parsed_function.set_default_parameter_values(Array::Handle());
 
     Assembler assembler;

@@ -2124,7 +2124,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                                                 owner()->context_level());
         AddInstruction(new BindInstr(temp_index(), load));
         TempVal* argument_value = new TempVal(temp_index());
-        BuildAssertAssignable(node->id(),
+        BuildAssertAssignable(node->ParameterIdAt(pos),
                               parameter.token_index(),
                               argument_value,
                               parameter.type(),

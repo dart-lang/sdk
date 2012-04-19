@@ -112,6 +112,23 @@ static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
 }
 
 
+void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
+  ASSERT(node_sequence_ == NULL);
+  ASSERT(node_sequence != NULL);
+  node_sequence_ = node_sequence;
+  const int num_fixed_params = function().num_fixed_parameters();
+  const int num_opt_params = function().num_optional_parameters();
+  // Allocated ids for parameters.
+  intptr_t parameter_id = AstNode::kNoId;
+  for (intptr_t i = 0; i < num_fixed_params + num_opt_params; i++) {
+    parameter_id = AstNode::GetNextId();
+    if (i == 0) {
+      node_sequence_->set_first_parameter_id(parameter_id);
+    }
+  }
+  node_sequence_->set_last_parameter_id(parameter_id);
+}
+
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const int fixed_parameter_count = function().num_fixed_parameters();
@@ -666,7 +683,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(parser.token_index_));
   }
-  parsed_function->set_node_sequence(node_sequence);
+  parsed_function->SetNodeSequence(node_sequence);
 
   // The instantiator may be required at run time for generic type checks or
   // allocation of generic types.

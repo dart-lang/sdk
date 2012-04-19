@@ -44,10 +44,7 @@ class ParsedFunction : ValueObject {
   const Function& function() const { return function_; }
 
   SequenceNode* node_sequence() const { return node_sequence_; }
-  void set_node_sequence(SequenceNode* node_sequence) {
-    ASSERT(node_sequence != NULL);
-    node_sequence_ = node_sequence;
-  }
+  void SetNodeSequence(SequenceNode* node_sequence);
 
   AstNode* instantiator() const { return instantiator_; }
   void set_instantiator(AstNode* instantiator) {
