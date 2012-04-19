@@ -751,7 +751,7 @@ class HNonPrimitiveType extends HType {
       if (this.type === temp.type) return this;
     }
     if (other.isUnknown()) return this;
-    return CONFLICTING;
+    return HType.CONFLICTING;
   }
 
   String toString() => type.toString();
