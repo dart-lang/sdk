@@ -768,10 +768,42 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
 }
 
 
+struct RunLoopData {
+  Monitor* monitor;
+  bool done;
+};
+
+
+static void RunLoopDone(uword param) {
+  RunLoopData* data = reinterpret_cast<RunLoopData*>(param);
+  ASSERT(data->monitor != NULL);
+  MonitorLocker ml(data->monitor);
+  data->done = true;
+  ml.Notify();
+}
+
+
 DART_EXPORT Dart_Handle Dart_RunLoop() {
   Isolate* isolate = Isolate::Current();
+
   DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, isolate->StandardRunLoop());
+  Monitor monitor;
+  MonitorLocker ml(&monitor);
+  {
+    SwitchIsolateScope switch_scope(NULL);
+
+    RunLoopData data;
+    data.monitor = &monitor;
+    data.done = false;
+    isolate->message_handler()->Run(
+        Dart::thread_pool(),
+        NULL, RunLoopDone, reinterpret_cast<uword>(&data));
+    while (!data.done) {
+      ml.Wait();
+    }
+  }
+  const Object& obj = Object::Handle(isolate->object_store()->sticky_error());
+  isolate->object_store()->clear_sticky_error();
   if (obj.IsError()) {
     return Api::NewHandle(isolate, obj.raw());
   }
@@ -780,58 +812,13 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
 }
 
 
-static RawInstance* DeserializeMessage(Isolate* isolate, void* data) {
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsMessageSnapshot());
-
-  // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, isolate);
-  Instance& instance = Instance::Handle(isolate);
-  instance ^= reader.ReadObject();
-  return instance.raw();
-}
-
-
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* isolate = Isolate::Current();
-  // Process all OOB messages and at most one normal message.
-  Message* message = NULL;
-  Message::Priority priority = Message::kNormalPriority;
-  do {
-    DARTSCOPE(isolate);
-    // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
-    message = isolate->message_handler()->queue()->DequeueNoWait();
-    if (message == NULL) {
-      break;
-    }
-    const Instance& msg =
-        Instance::Handle(isolate, DeserializeMessage(isolate, message->data()));
-    priority = message->priority();
-    if (priority == Message::kOOBPriority) {
-      // For now the only OOB messages are Mirrors messages.
-      const Object& result = Object::Handle(
-          isolate,
-          DartLibraryCalls::HandleMirrorsMessage(
-              message->dest_port(), message->reply_port(), msg));
-      delete message;
-      if (result.IsError()) {
-        // TODO(turnidge): Propagating the error is probably wrong here.
-        return Api::NewHandle(isolate, result.raw());
-      }
-      ASSERT(result.IsNull());
-    } else {
-      const Object& result = Object::Handle(
-          isolate,
-          DartLibraryCalls::HandleMessage(
-              message->dest_port(), message->reply_port(), msg));
-      delete message;
-      if (result.IsError()) {
-        return Api::NewHandle(isolate, result.raw());
-      }
-      ASSERT(result.IsNull());
-    }
-  } while (priority >= Message::kOOBPriority);
+  CHECK_ISOLATE(isolate);
+  if (!isolate->message_handler()->HandleNextMessage()) {
+    // TODO(turnidge): Clear sticky error here?
+    return Api::NewHandle(isolate, isolate->object_store()->sticky_error());
+  }
   return Api::Success(isolate);
 }
 
@@ -896,7 +883,8 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
     name = "<UnnamedNativePort>";
   }
   if (handler == NULL) {
-    OS::PrintErr("%s expects argument 'handler' to be non-null.", CURRENT_FUNC);
+    OS::PrintErr("%s expects argument 'handler' to be non-null.\n",
+                 CURRENT_FUNC);
     return kIllegalPort;
   }
   // Start the native port without a current isolate.
@@ -905,7 +893,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
-  nmh->StartWorker();
+  nmh->Run(Dart::thread_pool(), NULL, NULL, NULL);
   return port_id;
 }
 

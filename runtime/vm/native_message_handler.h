@@ -6,7 +6,7 @@
 #define VM_NATIVE_MESSAGE_HANDLER_H_
 
 #include "include/dart_api.h"
-#include "vm/message.h"
+#include "vm/message_handler.h"
 
 namespace dart {
 
@@ -20,6 +20,8 @@ class NativeMessageHandler : public MessageHandler {
   const char* name() const { return name_; }
   Dart_NativeMessageHandler func() const { return func_; }
 
+  bool HandleMessage(Message* message);
+
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
   void CheckAccess();
@@ -27,15 +29,6 @@ class NativeMessageHandler : public MessageHandler {
 
   // Delete this handlers when its last live port is closed.
   virtual bool OwnedByPortMap() const { return true; }
-
-  // Start a worker thread which will service messages for this handler.
-  //
-  // TODO(turnidge): Instead of starting a worker for each
-  // NativeMessageHandler, we should instead use a shared thread pool
-  // which services a queue of ready MessageHandlers.  If we implement
-  // this correctly, the same pool will work for
-  // IsolateMessageHandlers as well.
-  void StartWorker();
 
  private:
   char* name_;

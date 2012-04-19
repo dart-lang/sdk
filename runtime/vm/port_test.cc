@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/unit_test.h"
@@ -29,20 +29,22 @@ class PortMapTestPeer {
 };
 
 
-class TestMessageHandler : public MessageHandler {
+class PortTestMessageHandler : public MessageHandler {
  public:
-  TestMessageHandler() : notify_count(0) {}
+  PortTestMessageHandler() : notify_count(0) {}
 
   void MessageNotify(Message::Priority priority) {
     notify_count++;
   }
+
+  bool HandleMessage(Message* message) { return true; }
 
   int notify_count;
 };
 
 
 TEST_CASE(PortMap_CreateAndCloseOnePort) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   intptr_t port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
@@ -53,7 +55,7 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
 
 
 TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   Dart_Port port1 = PortMap::CreatePort(&handler);
   Dart_Port port2 = PortMap::CreatePort(&handler);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
@@ -73,7 +75,7 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
 
 
 TEST_CASE(PortMap_ClosePorts) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   Dart_Port port1 = PortMap::CreatePort(&handler);
   Dart_Port port2 = PortMap::CreatePort(&handler);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
@@ -87,7 +89,7 @@ TEST_CASE(PortMap_ClosePorts) {
 
 
 TEST_CASE(PortMap_CreateManyPorts) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   for (int i = 0; i < 32; i++) {
     Dart_Port port = PortMap::CreatePort(&handler);
     EXPECT(PortMapTestPeer::IsActivePort(port));
@@ -98,7 +100,7 @@ TEST_CASE(PortMap_CreateManyPorts) {
 
 
 TEST_CASE(PortMap_SetLive) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   intptr_t port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
@@ -115,7 +117,7 @@ TEST_CASE(PortMap_SetLive) {
 
 
 TEST_CASE(PortMap_PostMessage) {
-  TestMessageHandler handler;
+  PortTestMessageHandler handler;
   Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_EQ(0, handler.notify_count);
 
@@ -133,100 +135,6 @@ TEST_CASE(PortMap_PostMessageInvalidPort) {
   EXPECT(!PortMap::PostMessage(new Message(
       0, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
       Message::kNormalPriority)));
-}
-
-
-// End-of-test marker.
-static const intptr_t kEOT = 0xFFFF;
-
-
-uint8_t* AllocIntData(intptr_t payload) {
-  intptr_t* result = reinterpret_cast<intptr_t*>(malloc(sizeof(payload)));
-  *result = payload;
-  return reinterpret_cast<uint8_t*>(result);
-}
-
-
-intptr_t GetIntData(uint8_t* data) {
-  return *reinterpret_cast<intptr_t*>(data);
-}
-
-
-static Message* NextMessage() {
-  Isolate* isolate = Isolate::Current();
-  Message* result = isolate->message_handler()->queue()->Dequeue(0);
-  return result;
-}
-
-
-void ThreadedPort_start(uword parameter) {
-  // TODO(turnidge): We only use the isolate to get access to its
-  // message handler.  I should rewrite this test to use a
-  // TestMessageHandler instead.
-  Isolate* isolate = Dart::CreateIsolate(NULL);
-
-  intptr_t remote = parameter;
-  intptr_t local = PortMap::CreatePort(isolate->message_handler());
-
-  PortMap::PostMessage(new Message(
-      remote, 0, AllocIntData(local), Message::kNormalPriority));
-  intptr_t count = 0;
-  while (true) {
-    Message* msg = NextMessage();
-    EXPECT_EQ(local, msg->dest_port());
-    EXPECT(msg != NULL);
-    if (GetIntData(msg->data()) == kEOT) {
-      break;
-    }
-    EXPECT(GetIntData(msg->data()) == count);
-    delete msg;
-    PortMap::PostMessage(new Message(
-        remote, 0, AllocIntData(count * 2), Message::kNormalPriority));
-    count++;
-  }
-  PortMap::PostMessage(new Message(
-      remote, 0, AllocIntData(kEOT), Message::kNormalPriority));
-  Dart::ShutdownIsolate();
-}
-
-
-TEST_CASE(ThreadedPort) {
-  intptr_t local = PortMap::CreatePort(Isolate::Current()->message_handler());
-
-  int result = Thread::Start(ThreadedPort_start, local);
-  EXPECT_EQ(0, result);
-
-  Message* msg = NextMessage();
-  EXPECT_EQ(local, msg->dest_port());
-  EXPECT(msg != NULL);
-  intptr_t remote = GetIntData(msg->data());  // Get the remote port.
-  delete msg;
-
-  for (intptr_t i = 0; i < 10; i++) {
-    PortMap::PostMessage(
-        new Message(remote, 0, AllocIntData(i), Message::kNormalPriority));
-    Message* msg = NextMessage();
-    EXPECT_EQ(local, msg->dest_port());
-    EXPECT(msg != NULL);
-    EXPECT_EQ(i * 2, GetIntData(msg->data()));
-    delete msg;
-  }
-
-  PortMap::PostMessage(
-      new Message(remote, 0, AllocIntData(kEOT), Message::kNormalPriority));
-  msg = NextMessage();
-  EXPECT_EQ(local, msg->dest_port());
-  EXPECT(msg != NULL);
-  EXPECT_EQ(kEOT, GetIntData(msg->data()));
-  delete msg;
-
-  // Give the spawned thread enough time to properly exit.
-  Monitor* waiter = new Monitor();
-  {
-    MonitorLocker ml(waiter);
-    ml.Wait(20);
-  }
-  delete waiter;
 }
 
 }  // namespace dart

@@ -12,7 +12,7 @@
 #include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
-#include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -39,6 +39,7 @@ class IsolateMessageHandler : public MessageHandler {
 
   const char* name() const;
   void MessageNotify(Message::Priority priority);
+  bool HandleMessage(Message* message);
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
@@ -72,6 +73,57 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
     // Allow the embedder to handle message notification.
     (*callback)(Api::CastIsolate(isolate_));
   }
+}
+
+
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsMessageSnapshot());
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+bool IsolateMessageHandler::HandleMessage(Message* message) {
+  StartIsolateScope start_scope(isolate_);
+  Zone zone(isolate_);
+  HandleScope handle_scope(isolate_);
+
+  const Instance& msg =
+      Instance::Handle(DeserializeMessage(message->data()));
+  if (message->IsOOB()) {
+    // For now the only OOB messages are Mirrors messages.
+    const Object& result = Object::Handle(
+        DartLibraryCalls::HandleMirrorsMessage(
+            message->dest_port(), message->reply_port(), msg));
+    delete message;
+    if (result.IsError()) {
+      // TODO(turnidge): Propagating the error is probably wrong here.
+      Error& error = Error::Handle();
+      error ^= result.raw();
+      isolate_->object_store()->set_sticky_error(error);
+      return false;
+    }
+    ASSERT(result.IsNull());
+  } else {
+    const Object& result = Object::Handle(
+        DartLibraryCalls::HandleMessage(
+            message->dest_port(), message->reply_port(), msg));
+    delete message;
+    if (result.IsError()) {
+      Error& error = Error::Handle();
+      error ^= result.raw();
+      isolate_->object_store()->set_sticky_error(error);
+      return false;
+    }
+    ASSERT(result.IsNull());
+  }
+  return true;
 }
 
 
@@ -110,7 +162,9 @@ Isolate::Isolate()
       ast_node_id_(AstNode::kNoId),
       mutex_(new Mutex()),
       stack_limit_(0),
-      saved_stack_limit_(0) {
+      saved_stack_limit_(0),
+      message_handler_(NULL),
+      spawn_data_(NULL) {
 }
 
 
@@ -364,67 +418,6 @@ void Isolate::SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
 
 Dart_IsolateInterruptCallback Isolate::InterruptCallback() {
   return interrupt_callback_;
-}
-
-
-static RawInstance* DeserializeMessage(void* data) {
-  // Create a snapshot object using the buffer.
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsMessageSnapshot());
-
-  // Read object back from the snapshot.
-  SnapshotReader reader(snapshot, Isolate::Current());
-  Instance& instance = Instance::Handle();
-  instance ^= reader.ReadObject();
-  return instance.raw();
-}
-
-
-
-RawError* Isolate::StandardRunLoop() {
-  ASSERT(message_notify_callback() == NULL);
-  ASSERT(message_handler() != NULL);
-
-  while (message_handler()->HasLivePorts()) {
-    ASSERT(this == Isolate::Current());
-    Zone zone(this);
-    HandleScope handle_scope(this);
-
-    // TODO(turnidge): This code is duplicated elsewhere.  Consolidate.
-    Message* message = message_handler()->queue()->Dequeue(0);
-    if (message != NULL) {
-      const Instance& msg =
-          Instance::Handle(DeserializeMessage(message->data()));
-      if (message->priority() >= Message::kOOBPriority) {
-        // For now the only OOB messages are Mirrors messages.
-        const Object& result = Object::Handle(
-            DartLibraryCalls::HandleMirrorsMessage(
-                message->dest_port(), message->reply_port(), msg));
-        delete message;
-        if (result.IsError()) {
-          // TODO(turnidge): Propagating the error is probably wrong here.
-          Error& error = Error::Handle();
-          error ^= result.raw();
-          return error.raw();
-        }
-        ASSERT(result.IsNull());
-      } else {
-        const Object& result = Object::Handle(
-            DartLibraryCalls::HandleMessage(
-                message->dest_port(), message->reply_port(), msg));
-        delete message;
-        if (result.IsError()) {
-          Error& error = Error::Handle();
-          error ^= result.raw();
-          return error.raw();
-        }
-        ASSERT(result.IsNull());
-      }
-    }
-  }
-
-  // Indicates success.
-  return Error::null();
 }
 
 

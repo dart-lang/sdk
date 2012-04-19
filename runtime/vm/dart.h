@@ -14,6 +14,7 @@ namespace dart {
 class DebugInfo;
 class Isolate;
 class RawError;
+class ThreadPool;
 
 class Dart : public AllStatic {
  public:
@@ -25,6 +26,7 @@ class Dart : public AllStatic {
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }
+  static ThreadPool* thread_pool() { return thread_pool_; }
 
   static void set_pprof_symbol_generator(DebugInfo* value) {
     pprof_symbol_generator_ = value;
@@ -33,6 +35,7 @@ class Dart : public AllStatic {
 
  private:
   static Isolate* vm_isolate_;
+  static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
 };
 

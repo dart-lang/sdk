@@ -33,7 +33,6 @@ class StackResource;
 class StubCode;
 class Zone;
 
-
 class Isolate : public BaseIsolate {
  public:
   ~Isolate();
@@ -139,8 +138,7 @@ class Isolate : public BaseIsolate {
   // value to trigger interrupts.
   uword stack_limit() const { return stack_limit_; }
 
-  // The true stack limit for this isolate.  This does not change
-  // after isolate initialization.
+  // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
   enum {
@@ -156,8 +154,8 @@ class Isolate : public BaseIsolate {
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
-  // Returns null on success, a RawError on failure.
-  RawError* StandardRunLoop();
+  uword spawn_data() const { return spawn_data_; }
+  void set_spawn_data(uword value) { spawn_data_ = value; }
 
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
@@ -211,6 +209,7 @@ class Isolate : public BaseIsolate {
   uword stack_limit_;
   uword saved_stack_limit_;
   MessageHandler* message_handler_;
+  uword spawn_data_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
 
@@ -218,6 +217,70 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateInterruptCallback interrupt_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
+};
+
+// When we need to execute code in an isolate, we use the
+// StartIsolateScope.
+class StartIsolateScope {
+ public:
+  explicit StartIsolateScope(Isolate* new_isolate)
+      : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
+    ASSERT(new_isolate_ != NULL);
+    if (saved_isolate_ != new_isolate_) {
+      ASSERT(Isolate::Current() == NULL);
+      Isolate::SetCurrent(new_isolate_);
+      new_isolate_->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(this));
+    }
+  }
+
+  ~StartIsolateScope() {
+    if (saved_isolate_ != new_isolate_) {
+      new_isolate_->SetStackLimit(~static_cast<uword>(0));
+      Isolate::SetCurrent(saved_isolate_);
+    }
+  }
+
+ private:
+  Isolate* new_isolate_;
+  Isolate* saved_isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(StartIsolateScope);
+};
+
+// When we need to temporarily become another isolate, we use the
+// SwitchIsolateScope.  It is not permitted to run dart code while in
+// a SwitchIsolateScope.
+class SwitchIsolateScope {
+ public:
+  explicit SwitchIsolateScope(Isolate* new_isolate)
+      : new_isolate_(new_isolate),
+        saved_isolate_(Isolate::Current()),
+        saved_stack_limit_(saved_isolate_
+                           ? saved_isolate_->saved_stack_limit() : 0) {
+    if (saved_isolate_ != new_isolate_) {
+      Isolate::SetCurrent(new_isolate_);
+      if (new_isolate_ != NULL) {
+        // Don't allow dart code to execute.
+        new_isolate_->SetStackLimit(~static_cast<uword>(0));
+      }
+    }
+  }
+
+  ~SwitchIsolateScope() {
+    if (saved_isolate_ != new_isolate_) {
+      Isolate::SetCurrent(saved_isolate_);
+      if (saved_isolate_ != NULL) {
+        saved_isolate_->SetStackLimit(saved_stack_limit_);
+      }
+    }
+  }
+
+ private:
+  Isolate* new_isolate_;
+  Isolate* saved_isolate_;
+  uword saved_stack_limit_;
+
+  DISALLOW_COPY_AND_ASSIGN(SwitchIsolateScope);
 };
 
 }  // namespace dart
