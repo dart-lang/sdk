@@ -245,6 +245,27 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return visitInvokeBinary(node);
     }
 
+    if (left.isNonPrimitive()) {
+      HNonPrimitiveType type = left.propagatedType;
+      Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
+      if (element !== null) {
+        // If the left-hand side is guaranteed to be a non-primitive
+        // type and and it defines operator==, we emit a call to that
+        // operator.
+        return visitInvokeBinary(node);
+      } else if (right.isConstantNull()) {
+        return graph.addConstantBool(false);
+      } else {
+        // We can just emit an identity check because the type does
+        // not implement operator=.
+        // TODO(floitsch): cache interceptors.
+        HStatic target = new HStatic(
+            compiler.builder.interceptors.getTripleEqualsInterceptor());
+        return new HIdentity(target, left, right);
+      }
+    }
+
+
     if (right.isConstantNull()) {
       if (left.propagatedType.isUseful()) {
         return graph.addConstantBool(false);
@@ -254,20 +275,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             compiler.builder.interceptors.getEqualsNullInterceptor());
         node.block.addBefore(node,target);
         return new HEquals(target, node.left, node.right);
-      }
-    }
-
-    if (left.isNonPrimitive()) {
-      // If the left-hand side is guaranteed to be a non-primitive
-      // type and and it does not define operator==, we can just emit
-      // an identity check.
-      HNonPrimitiveType type = left.propagatedType;
-      Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
-      if (element === null) {
-        // TODO(floitsch): cache interceptors.
-        HStatic target = new HStatic(
-            compiler.builder.interceptors.getTripleEqualsInterceptor());
-        return new HIdentity(target, left, right);
       }
     }
 
