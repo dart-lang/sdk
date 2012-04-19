@@ -131,6 +131,9 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     HType desiredType = computeDesiredType(instruction);
     // If the desired type is conflicting just return the computed type.
     if (desiredType.isConflicting()) return newType;
+    // TODO(ngeoffray): Allow speculative optimizations on
+    // non-primitive types?
+    if (desiredType.isNonPrimitive()) return newType;
     return newType.combine(desiredType);
   }
 }

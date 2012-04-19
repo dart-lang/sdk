@@ -247,6 +247,7 @@ class StringConstant extends PrimitiveConstant {
 
   int hashCode() => _hashCode;
   DartString toDartString() => value;
+  int get length() => value.length;
 }
 
 class ObjectConstant extends Constant {
@@ -307,6 +308,8 @@ class ListConstant extends ObjectConstant {
   int hashCode() => _hashCode;
 
   List<Constant> getDependencies() => entries;
+
+  int get length() => entries.length;
 }
 
 class MapConstant extends ObjectConstant {
@@ -418,6 +421,8 @@ class MapConstant extends ObjectConstant {
     result.addAll(values);
     return result;
   }
+
+  int get length() => keys.length;
 }
 
 class ConstructedConstant extends ObjectConstant {

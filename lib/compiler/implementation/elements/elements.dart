@@ -749,6 +749,17 @@ class ClassElement extends ContainerElement {
     return null;
   }
 
+  /**
+   * Find the first member in the class chain with the given
+   * [memberName]. This method is NOT to be used for resolving
+   * unqualified sends because it does not implement the scoping
+   * rules, where library scope comes before superclass scope.
+   */
+  Element lookupMember(SourceString memberName) {
+    Element localMember = localMembers[memberName];
+    return localMember === null ? lookupSuperMember(memberName) : localMember;
+  }
+
   Element lookupConstructor(SourceString className,
                             [SourceString constructorName =
                                  const SourceString(''),

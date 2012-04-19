@@ -154,6 +154,10 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
+    if (constant.isMap()) {
+      MapConstant map = constant;
+      return new HNonPrimitiveType(map.type);
+    }
     return HType.UNKNOWN;
   }
 
@@ -670,6 +674,7 @@ class HType {
   // FLAG_WRITABLE_ARRAY implies FLAG_READABLE_ARRAY.
   static final int FLAG_WRITEABLE_ARRAY = FLAG_READABLE_ARRAY << 1;
   static final int FLAG_DOUBLE = FLAG_WRITEABLE_ARRAY << 1;
+  static final int FLAG_NON_PRIMITIVE = FLAG_DOUBLE << 1;
 
   static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
   static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
@@ -695,6 +700,7 @@ class HType {
   bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
   bool isStringOrArray() =>
       (this.flag & (FLAG_STRING | FLAG_READABLE_ARRAY)) != 0;
+  bool isNonPrimitive() => this.flag === FLAG_NON_PRIMITIVE;
   /** A type is useful it is not unknown and not conflicting. */
   bool isUseful() => this !== UNKNOWN && this !== CONFLICTING;
 
@@ -709,7 +715,7 @@ class HType {
     if (flag === MUTABLE_ARRAY.flag) return MUTABLE_ARRAY;
     if (flag === NUMBER.flag) return NUMBER;
     if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
-    assert(false);
+    unreachable();
   }
 
   String toString() {
@@ -731,6 +737,25 @@ class HType {
     if (other.isUnknown()) return this;
     return getTypeFromFlag(this.flag & other.flag);
   }
+}
+
+class HNonPrimitiveType extends HType {
+  final Type type;
+
+  // TODO(ngeoffray): Add a HPrimitiveType to get rid of the flag.
+  const HNonPrimitiveType(Type this.type) : super(HType.FLAG_NON_PRIMITIVE);
+
+  HType combine(HType other) {
+    if (other.isNonPrimitive()) {
+      HNonPrimitiveType temp = other;
+      if (this.type === temp.type) return this;
+    }
+    if (other.isUnknown()) return this;
+    return CONFLICTING;
+  }
+
+  String toString() => type.toString();
+  Element lookupMember(SourceString name) => type.element.lookupMember(name);
 }
 
 class HInstruction implements Hashable {
@@ -793,6 +818,7 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isStringOrArray() => propagatedType.isStringOrArray();
+  bool isNonPrimitive() => propagatedType.isNonPrimitive();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
@@ -935,6 +961,8 @@ class HInstruction implements Hashable {
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
   bool isConstantString() => false;
+  bool isConstantList() => false;
+  bool isConstantMap() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1068,9 +1096,11 @@ class HInvoke extends HInstruction {
 }
 
 class HInvokeDynamic extends HInvoke {
+  Element element;
   SourceString name;
-  HInvokeDynamic(Selector selector, this.name, List<HInstruction> inputs)
-      : super(selector, inputs);
+  HInvokeDynamic(
+      Selector selector, this.element, this.name, List<HInstruction> inputs)
+    : super(selector, inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
 
@@ -1079,9 +1109,8 @@ class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  Element element;
   HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, const SourceString('call'), inputs);
+    : super(selector, null, const SourceString('call'), inputs);
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
@@ -1089,18 +1118,17 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector,
                        SourceString methodName,
                        List<HInstruction> inputs)
-    : super(selector, methodName, inputs);
+    : super(selector, null, methodName, inputs);
   toString() => 'invoke dynamic method: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 class HInvokeDynamicField extends HInvokeDynamic {
-  Element element;
   HInvokeDynamicField(Selector selector,
-                      Element this.element,
+                      Element element,
                       SourceString name,
                       List<HInstruction>inputs)
-      : super(selector, name, inputs);
+      : super(selector, element, name, inputs);
   toString() => 'invoke dynamic field: $name';
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1122,26 +1150,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  final HType concreteType;
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs) : super(selector, inputs);
+  HInvokeStatic(selector, inputs, [this.concreteType = HType.UNKNOWN])
+      : super(selector, inputs);
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
-  bool isArrayConstructor() {
-    // TODO(ngeoffray): This is not the right way to do the check,
-    // nor the right place. We need to move it to a phase.
-    return (element.isFactoryConstructor()
-        && element.enclosingElement.name.slowToString() == 'List');
-  }
-
-  HType get guaranteedType() {
-    if (isArrayConstructor()) {
-      return HType.MUTABLE_ARRAY;
-    }
-    return HType.UNKNOWN;
-  }
+  HType get guaranteedType() => concreteType;
 
   HType computeDesiredTypeForInput(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1174,9 +1192,12 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
+  bool isLengthGetter() {
+    return getter && name == const SourceString('length');
+  }
+
   bool isLengthGetterOnStringOrArray() {
-    return getter
-        && name == const SourceString('length')
+    return isLengthGetter()
         && inputs[1].isStringOrArray();
   }
 
@@ -1740,6 +1761,8 @@ class HConstant extends HInstruction {
   bool isConstantNull() => constant.isNull();
   bool isConstantNumber() => constant.isNum();
   bool isConstantString() => constant.isString();
+  bool isConstantList() => constant.isList();
+  bool isConstantMap() => constant.isMap();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;

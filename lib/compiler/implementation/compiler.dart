@@ -385,6 +385,10 @@ class Compiler implements DiagnosticListener {
     enqueuer.registerInvocation(methodName, selector);
   }
 
+  void registerDynamicInvocationOf(Element element) {
+    addToWorkList(element);
+  }
+
   void registerDynamicGetter(SourceString methodName) {
     enqueuer.registerGetter(methodName);
   }

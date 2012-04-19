@@ -106,6 +106,10 @@ class Interceptors {
     return compiler.findHelper(const SourceString('eq'));
   }
 
+  Element getTripleEqualsInterceptor() {
+    return compiler.findHelper(const SourceString('eqq'));
+  }
+
   Element getMapMaker() {
     return compiler.findHelper(const SourceString('makeLiteralMap'));
   }
@@ -2147,7 +2151,15 @@ class SsaBuilder implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      push(new HInvokeStatic(selector, inputs));
+      HType type = HType.UNKNOWN;
+      if (element.isGenerativeConstructor()) {
+        ClassElement cls = element.enclosingElement;
+        type = new HNonPrimitiveType(cls.type);
+      } else if (element.isFactoryConstructor()
+                 && element === compiler.listClass) {
+        type = HType.MUTABLE_ARRAY;
+      }
+      push(new HInvokeStatic(selector, inputs, type));
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(Selector.GETTER, inputs);
@@ -2656,7 +2668,8 @@ class SsaBuilder implements Visitor {
     add(keyValuePairs);
     add(mapMaker);
     inputs = <HInstruction>[mapMaker, keyValuePairs];
-    push(new HInvokeStatic(Selector.INVOCATION_1, inputs));
+    // TODO(ngeoffray): give the concrete type of our map literal.
+    push(new HInvokeStatic(Selector.INVOCATION_1, inputs, HType.UNKNOWN));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
