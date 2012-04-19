@@ -582,10 +582,7 @@ int main(int argc, char** argv) {
     }
   }
   // Lookup and invoke the top level main function.
-  result = Dart_InvokeStatic(library,
-                             Dart_NewString(""),
-                             Dart_NewString("main"),
-                             0, NULL);
+  result = Dart_Invoke(library, Dart_NewString("main"), 0, NULL);
   if (Dart_IsError(result)) {
     return ErrorExit("%s\n", Dart_GetError(result));
   }

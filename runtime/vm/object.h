@@ -1770,7 +1770,9 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawField* LookupFieldAllowPrivate(const String& name) const;
   RawField* LookupLocalField(const String& name) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;

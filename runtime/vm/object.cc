@@ -4687,6 +4687,35 @@ static bool ShouldBePrivate(const String& name) {
 }
 
 
+RawField* Library::LookupFieldAllowPrivate(const String& name) const {
+  // First check if name is found in the local scope of the library.
+  Field& field = Field::Handle(LookupLocalField(name));
+  if (!field.IsNull()) {
+    return field.raw();
+  }
+
+  // Do not look up private names in imported libraries.
+  if (ShouldBePrivate(name)) {
+    return Field::null();
+  }
+
+  // Now check if name is found in the top level scope of any imported
+  // libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+
+
+    field = import_lib.LookupLocalField(name);
+    if (!field.IsNull()) {
+      return field.raw();
+    }
+  }
+  return Field::null();
+}
+
+
 RawField* Library::LookupLocalField(const String& name) const {
   Isolate* isolate = Isolate::Current();
   Field& field = Field::Handle(isolate, Field::null());
@@ -4705,6 +4734,35 @@ RawField* Library::LookupLocalField(const String& name) const {
 
   // No field found.
   return Field::null();
+}
+
+
+RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
+  // First check if name is found in the local scope of the library.
+  Function& function = Function::Handle(LookupLocalFunction(name));
+  if (!function.IsNull()) {
+    return function.raw();
+  }
+
+  // Do not look up private names in imported libraries.
+  if (ShouldBePrivate(name)) {
+    return Function::null();
+  }
+
+  // Now check if name is found in the top level scope of any imported
+  // libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+
+
+    function = import_lib.LookupLocalFunction(name);
+    if (!function.IsNull()) {
+      return function.raw();
+    }
+  }
+  return Function::null();
 }
 
 
