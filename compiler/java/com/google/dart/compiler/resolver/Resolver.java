@@ -927,8 +927,17 @@ public class Resolver {
       visit(x.getArguments());
       String name = x.getName() == null ? "" : x.getName().getName();
       InterfaceType supertype = ((ClassElement) currentHolder).getSupertype();
-      ConstructorElement element = (supertype == null) ?
-          null : Elements.lookupConstructor(supertype.getElement(), name);
+      ConstructorElement element;
+      if (supertype == null) {
+        element = null;
+      } else {
+        ClassElement classElement = supertype.getElement();
+        element = Elements.lookupConstructor(classElement, name);
+        if (element == null && "".equals(name) && x.getArguments().isEmpty()
+            && Elements.needsImplicitDefaultConstructor(classElement)) {
+          element = new SyntheticDefaultConstructorElement(null, classElement, typeProvider);
+        }
+      }
       if (element == null) {
         onError(x, ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, name);
       }
@@ -1163,6 +1172,9 @@ public class Resolver {
         }
 
         case SUPER: {
+          if (x.getParent() instanceof DartInitializer) {
+            onError(x, ResolverErrorCode.SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER);
+          }
           // Must be a superclass' method or field.
           ClassElement classElement = ((SuperElement) target).getClassElement();
           InterfaceType type = classElement.getType();

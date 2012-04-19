@@ -1512,7 +1512,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 // Generate inline cache check for 'num_args'.
 //  RBX: Inline cache data object.
-//  R10: Arguments array.
+//  R10: Arguments descriptor array.
 //  TOS(0): return address
 // Control flow:
 // - If receiver is null -> jump to IC miss.
@@ -1525,7 +1525,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   // TODO(srdjan): Add usage counter increment and test (see ia32).
   ASSERT(num_args > 0);
-  // Get receiver.
+  // Get receiver (first read number of arguments from argument descriptor array
+  // and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
 
@@ -1589,14 +1590,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 
   __ Bind(&ic_miss);
-  // Get receiver, again.
+  // Compute address of arguments (first read number of arguments from argument
+  // descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterFrame(0);
   __ pushq(R10);  // Preserve arguments array.
   __ pushq(RBX);  // Preserve IC data array
   __ pushq(raw_null);  // Setup space on stack for result (target code object).
-  __ movq(R10, FieldAddress(R10, Array::data_offset()));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movq(R10, Address(RAX, -kWordSize * i));
@@ -1729,8 +1730,83 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 }
 
 
+// Check if an instance class is a subtype of class/interface using simple
+// superchain and interface array traversal. Does not take type parameters into
+// account.
+// RAX: instance (preserved)
+// RCX: class/interface to test against (is class of instance a subtype of it).
+//      (preserved).
+// Result in RBX: 1 is subtype, 0 maybe not.
+// Must preserve RDX.
+// Destroys RBX, R13, R10.
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
-  __ Unimplemented("IsRawSubType Stub");
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label test_class, not_found, found, class_loaded_in_R10, smi_value;
+  __ EnterFrame(0);
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &smi_value, Assembler::kNearJump);
+  __ movq(R10, FieldAddress(RAX, Object::class_offset()));
+  __ jmp(&class_loaded_in_R10, Assembler::kNearJump);
+  __ Bind(&smi_value);
+  __ movq(R10, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(R10, Address(R10, Isolate::object_store_offset()));
+  __ movq(R10, Address(R10, ObjectStore::smi_class_offset()));
+  __ Bind(&class_loaded_in_R10);
+
+  __ movzxb(RBX, FieldAddress(RCX, Class::is_interface_offset()));
+  // Check if we are comparing against class or interface.
+  __ cmpq(RBX, Immediate(0));
+  __ j(EQUAL, &test_class, Assembler::kNearJump);
+
+  // Get interfaces array from instance class.
+  __ movq(RBX, FieldAddress(R10, Class::interfaces_offset()));
+  __ cmpq(RBX, raw_null);
+  __ j(EQUAL, &not_found, Assembler::kNearJump);
+  __ movq(R13, FieldAddress(RBX, Array::length_offset()));
+  // R13: array index.
+  // RBX: interface array.
+  // RCX: interface searched
+  Label array_loop;
+  __ Bind(&array_loop);
+  __ subq(R13, Immediate(Smi::RawValue(1)));
+  // __ cmpq(R13, Immediate(0));
+  __ j(LESS, &not_found, Assembler::kNearJump);
+  // R13 is Smi therefore TIMES_4 instead of TIMES_8.
+  // Get type from array.
+  __ movq(R10, FieldAddress(RBX, R13, TIMES_4, Array::data_offset()));
+  __ movq(R10, FieldAddress(R10, Type::type_class_offset()));
+  __ cmpq(R10, RCX);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+  __ jmp(&array_loop, Assembler::kNearJump);
+
+  __ Bind(&not_found);
+  __ xorq(RBX, RBX);
+  __ LeaveFrame();
+  __ ret();
+
+  __ Bind(&found);
+  __ movq(RBX, Immediate(1));
+  __ LeaveFrame();
+  __ ret();
+
+  __ Bind(&test_class);
+  // RCX: test class.
+  __ cmpq(R10, RCX);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  // Check superclasses using a loop (faster than runtime call).
+  Label super_loop;
+  __ Bind(&super_loop);
+  // R10: class -> super.
+  __ movq(R10, FieldAddress(R10, Class::super_type_offset()));
+  // The supertype of Object is a null object.
+  __ cmpq(R10, raw_null);
+  __ j(EQUAL, &not_found, Assembler::kNearJump);
+  __ movq(R10, FieldAddress(R10, Type::type_class_offset()));
+  __ cmpq(RCX, R10);
+  __ j(NOT_EQUAL, &super_loop, Assembler::kNearJump);
+  __ jmp(&found, Assembler::kNearJump);
 }
 
 }  // namespace dart

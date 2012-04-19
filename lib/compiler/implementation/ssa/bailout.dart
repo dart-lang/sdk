@@ -141,7 +141,7 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
       // will be replaced by the live environment at the loop entry,
       // in this case {x}.
       environment.removeLoopMarker(block);
-      capturedEnvironments.forEach((instruction, env) {
+      capturedEnvironments.forEach((ignoredInstruction, env) {
         if (env.containsLoopMarker(block)) {
           env.removeLoopMarker(block);
           env.addAll(environment);
@@ -276,7 +276,9 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
   }
 
   bool shouldCaptureEnvironment(HInstruction instruction) {
-    return instruction.type.isKnown() && !instruction.hasExpectedType();
+    HType propagatedType = instruction.propagatedType;
+    return propagatedType.isUseful()
+        && propagatedType != instruction.computeTypeFromInputTypes();
   }
 
   void insertCapturedEnvironments() {
@@ -284,7 +286,8 @@ class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
     int state = 1;
     capturedEnvironments.forEach((HInstruction instruction, Environment env) {
       List<HInstruction> inputs = env.buildAndSetLast(instruction);
-      HTypeGuard guard = new HTypeGuard(state++, inputs);
+      HTypeGuard guard =
+          new HTypeGuard(instruction.propagatedType, state++, inputs);
       work.guards.add(guard);
       instruction.block.rewrite(instruction, guard);
       HInstruction insertionPoint = (instruction is HPhi)

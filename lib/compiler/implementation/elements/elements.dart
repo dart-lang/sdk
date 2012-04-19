@@ -181,7 +181,7 @@ class Element implements Hashable {
   toString() => '$kind(${name.slowToString()})';
 
   bool _isNative = false;
-  void setNative() => _isNative = true;
+  void setNative() { _isNative = true; }
   bool isNative() => _isNative;
 }
 
@@ -713,7 +713,7 @@ class ClassElement extends ContainerElement {
 
   Type computeType(compiler) {
     if (type === null) {
-      type = new SimpleType(name, this);
+      type = new InterfaceType(name, this);
     }
     return type;
   }
@@ -721,7 +721,7 @@ class ClassElement extends ContainerElement {
   ClassElement ensureResolved(Compiler compiler) {
     if (!isResolved && !isBeingResolved) {
       isBeingResolved = true;
-      compiler.resolveType(this);
+      compiler.resolveClass(this);
       isBeingResolved = false;
       isResolved = true;
     }

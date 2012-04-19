@@ -216,7 +216,8 @@ class FrogInterfaceGenerator(object):
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
               SUPER=super_getter_interface.id,
-              NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
+              NAME=DartDomNameOfAttribute(getter),
+              TYPE=output_type)
           return
 
       self._members_emitter.Emit('\n  // Shadowing definition.')
@@ -231,12 +232,14 @@ class FrogInterfaceGenerator(object):
     if getter and setter and input_type == output_type:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
-          NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
+          NAME=DartDomNameOfAttribute(getter),
+          TYPE=TypeOrVar(output_type))
       return
     if getter and not setter:
       self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;\n',
-          NAME=DartDomNameOfAttribute(getter), TYPE=output_type)
+          '\n  final $OPT_TYPE$NAME;\n',
+          NAME=DartDomNameOfAttribute(getter),
+          OPT_TYPE=TypeOrNothing(output_type))
       return
     self._AddAttributeUsingProperties(getter, setter)
 
@@ -252,18 +255,19 @@ class FrogInterfaceGenerator(object):
   def _AddGetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  $TYPE get $NAME() native "return this.$NATIVE_NAME;";\n',
+        '\n  $(OPT_TYPE)get $NAME() native "return this.$NATIVE_NAME;";\n',
         NAME=DartDomNameOfAttribute(attr),
         NATIVE_NAME=attr.id,
-        TYPE=self._NarrowOutputType(attr.type.id))
+        OPT_TYPE=TypeOrNothing(self._NarrowOutputType(attr.type.id)))
 
   def _AddSetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '  void set $NAME($TYPE value) native "this.$NATIVE_NAME = value;";\n',
+        '  void set $NAME($(OPT_TYPE)value)'
+            ' native "this.$NATIVE_NAME = value;";\n',
         NAME=DartDomNameOfAttribute(attr),
         NATIVE_NAME=attr.id,
-        TYPE=self._NarrowInputType(attr.type.id))
+        OPT_TYPE=TypeOrNothing(self._NarrowInputType(attr.type.id)))
 
   def _FindShadowedAttribute(self, attr):
     """Returns (attribute, superinterface) or (None, None)."""

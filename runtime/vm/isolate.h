@@ -105,11 +105,6 @@ class Isolate : public BaseIsolate {
   StubCode* stub_code() const { return stub_code_; }
   void set_stub_code(StubCode* value) { stub_code_ = value; }
 
-  CodeIndexTable* code_index_table() const { return code_index_table_; }
-  void set_code_index_table(CodeIndexTable* value) {
-    code_index_table_ = value;
-  }
-
   LongJump* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJump* value) { long_jump_base_ = value; }
 
@@ -208,7 +203,6 @@ class Isolate : public BaseIsolate {
   Dart_LibraryTagHandler library_tag_handler_;
   ApiState* api_state_;
   StubCode* stub_code_;
-  CodeIndexTable* code_index_table_;
   Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;

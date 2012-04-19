@@ -40,7 +40,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   test->node_sequence()->Add(new ReturnNode(kPos, l));
-  parsed_function.set_node_sequence(test->node_sequence());
+  parsed_function.SetNodeSequence(test->node_sequence());
   parsed_function.set_instantiator(NULL);
   parsed_function.set_default_parameter_values(Array::Handle());
   parsed_function.AllocateVariables();

@@ -138,11 +138,12 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(int type,
+  HBasicBlock addNewLoopHeaderBlock(int kind,
                                     TargetElement target,
                                     List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
-    result.loopInformation = new HLoopInformation(type, result, target, labels);
+    result.blockInformation =
+        new HLoopInformation(kind, result, target, labels);
     return result;
   }
 
@@ -413,8 +414,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   HInstructionList phis;
 
-  HLoopInformation loopInformation = null;
-  HLabeledBlockInformation labeledBlockInformation = null;
+  HBlockInformation blockInformation = null;
   HBasicBlock parentLoopHeader = null;
   List<HTypeGuard> guards;
 
@@ -438,8 +438,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isOpen() => status == STATUS_OPEN;
   bool isClosed() => status == STATUS_CLOSED;
 
-  bool isLoopHeader() => loopInformation !== null;
-  bool hasLabeledBlockInformation() => labeledBlockInformation !== null;
+  bool isLoopHeader() => blockInformation is HLoopInformation;
+  bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
 
   bool hasGuards() => !guards.isEmpty();
 
@@ -505,7 +505,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   void removePhi(HPhi phi) {
     phis.remove(phi);
-    phi.notifyRemovedFromBlock(this);
+    assert(phi.block == this);
+    phi.notifyRemovedFromBlock();
   }
 
   void addAfter(HInstruction cursor, HInstruction instruction) {
@@ -528,7 +529,8 @@ class HBasicBlock extends HInstructionList implements Hashable {
     assert(isOpen() || isClosed());
     assert(instruction is !HPhi);
     super.remove(instruction);
-    instruction.notifyRemovedFromBlock(this);
+    assert(instruction.block == this);
+    instruction.notifyRemovedFromBlock();
   }
 
   void addSuccessor(HBasicBlock block) {
@@ -546,6 +548,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
     assert(isLoopHeader());
     // Only the first entry into the loop is from outside the
     // loop. All other entries must be back edges.
+    HLoopInformation loopInformation = this.blockInformation;
     for (int i = 1, length = predecessors.length; i < length; i++) {
       loopInformation.addBackEdge(predecessors[i]);
     }
@@ -620,19 +623,19 @@ class HBasicBlock extends HInstructionList implements Hashable {
       // If the predecessor has a dominator and this basic block has a
       // dominator, we find a common parent in the dominator tree and
       // use that as the dominator.
-      HBasicBlock first = dominator;
-      HBasicBlock second = predecessor;
-      while (first !== second) {
-        if (first.id > second.id) {
-          first = first.dominator;
+      HBasicBlock block0 = dominator;
+      HBasicBlock block1 = predecessor;
+      while (block0 !== block1) {
+        if (block0.id > block1.id) {
+          block0 = block0.dominator;
         } else {
-          second = second.dominator;
+          block1 = block1.dominator;
         }
-        assert(first !== null && second !== null);
+        assert(block0 !== null && block1 !== null);
       }
-      if (dominator !== first) {
+      if (dominator !== block0) {
         dominator.removeDominatedBlock(this);
-        first.addDominatedBlock(this);
+        block0.addDominatedBlock(this);
       }
     }
   }
@@ -653,100 +656,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 }
 
-interface HBlockInformation {}
-
-class HLabeledBlockInformation implements HBlockInformation {
-  final SubGraph body;
-  final HBasicBlock joinBlock;
-  final List<LabelElement> labels;
-  final TargetElement target;
-  final bool isContinue;
-
-  HLabeledBlockInformation(this.body, this.joinBlock,
-                           List<LabelElement> labels,
-                           [this.isContinue = false]) :
-      this.labels = labels, this.target = labels[0].target;
-
-  HLabeledBlockInformation.implicit(this.body,
-                                    this.joinBlock,
-                                    this.target,
-                                    [this.isContinue = false])
-      : this.labels = const<LabelElement>[];
-}
-
-class LoopTypeVisitor extends AbstractVisitor {
-  const LoopTypeVisitor();
-  int visitNode(Node node) {
-    unreachable();
-  }
-  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
-  int visitFor(For node) => HLoopInformation.FOR_LOOP;
-  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
-  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
-}
-
-class HLoopInformation implements HBlockInformation {
-  static final int WHILE_LOOP = 0;
-  static final int FOR_LOOP = 1;
-  static final int DO_WHILE_LOOP = 2;
-  static final int FOR_IN_LOOP = 3;
-
-  final int type;
-  final HBasicBlock header;
-  final List<HBasicBlock> blocks;
-  final List<HBasicBlock> backEdges;
-  final List<LabelElement> labels;
-  final TargetElement target;
-  SubGraph initializer = null;
-  SubExpression condition = null;
-  SubGraph body = null;
-  SubGraph updates = null;
-  HBasicBlock joinBlock;
-
-  HLoopInformation(this.type, this.header, this.target, this.labels)
-      : blocks = new List<HBasicBlock>(),
-        backEdges = new List<HBasicBlock>();
-
-  static int loopType(Node node) {
-    return node.accept(const LoopTypeVisitor());
-  }
-
-  void addBackEdge(HBasicBlock predecessor) {
-    backEdges.add(predecessor);
-    addBlock(predecessor);
-  }
-
-  // Adds a block and transitively all its predecessors in the loop as
-  // loop blocks.
-  void addBlock(HBasicBlock block) {
-    if (block === header) return;
-    HBasicBlock parentHeader = block.parentLoopHeader;
-    if (parentHeader === header) {
-      // Nothing to do in this case.
-    } else if (parentHeader !== null) {
-      addBlock(parentHeader);
-    } else {
-      block.parentLoopHeader = header;
-      blocks.add(block);
-      for (int i = 0, length = block.predecessors.length; i < length; i++) {
-        addBlock(block.predecessors[i]);
-      }
-    }
-  }
-
-  HBasicBlock getLastBackEdge() {
-    int maxId = -1;
-    HBasicBlock result = null;
-    for (int i = 0, length = backEdges.length; i < length; i++) {
-      HBasicBlock current = backEdges[i];
-      if (current.id > maxId) {
-        maxId = current.id;
-        result = current;
-      }
-    }
-    return result;
-  }
-}
 
 class HType {
   final int flag;
@@ -786,7 +695,8 @@ class HType {
   bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
   bool isStringOrArray() =>
       (this.flag & (FLAG_STRING | FLAG_READABLE_ARRAY)) != 0;
-  bool isKnown() => this !== UNKNOWN && this !== CONFLICTING;
+  /** A type is useful it is not unknown and not conflicting. */
+  bool isUseful() => this !== UNKNOWN && this !== CONFLICTING;
 
   static HType getTypeFromFlag(int flag) {
     if (flag === CONFLICTING.flag) return CONFLICTING;
@@ -834,7 +744,6 @@ class HInstruction implements Hashable {
   HInstruction previous = null;
   HInstruction next = null;
   int flags = 0;
-  HType type = HType.UNKNOWN;
 
   // Changes flags.
   static final int FLAG_CHANGES_SOMETHING    = 0;
@@ -846,7 +755,11 @@ class HInstruction implements Hashable {
   // Other flags.
   static final int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
 
-  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
+  HInstruction(this.inputs)
+      : id = idCounter++,
+        usedBy = <HInstruction>[] {
+    if (guaranteedType.isUseful()) propagatedType = guaranteedType;
+  }
 
   int hashCode() => id;
 
@@ -868,24 +781,68 @@ class HInstruction implements Hashable {
   // Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
-  bool isArray() => type.isArray();
-  bool isMutableArray() => type.isMutableArray();
-  bool isBoolean() => type.isBoolean();
-  bool isInteger() => type.isInteger();
-  bool isNumber() => type.isNumber();
-  bool isString() => type.isString();
-  bool isTypeUnknown() => type.isUnknown();
-  bool isStringOrArray() => type.isStringOrArray();
+  // All isFunctions work on the propagated types.
+  bool isArray() => propagatedType.isArray();
+  bool isMutableArray() => propagatedType.isMutableArray();
+  bool isBoolean() => propagatedType.isBoolean();
+  bool isInteger() => propagatedType.isInteger();
+  bool isDouble() => propagatedType.isDouble();
+  bool isNumber() => propagatedType.isNumber();
+  bool isString() => propagatedType.isString();
+  bool isTypeUnknown() => propagatedType.isUnknown();
+  bool isStringOrArray() => propagatedType.isStringOrArray();
 
-  // Compute the type of the instruction.
-  HType computeType() => HType.UNKNOWN;
+  /**
+   * This is the type the instruction is guaranteed to have. It does not
+   * take any propagation into account.
+   */
+  HType get guaranteedType() => HType.UNKNOWN;
+  bool hasGuaranteedType() => !guaranteedType.isUnknown();
 
-  HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
+  /**
+   * The [propagatedType] is the type the instruction is assumed to have.
+   * Without speculative type assumptions it is computed frome the propagated
+   * type of the instruction's inputs and does not any guess work.
+   *
+   * With speculative types [computeTypeFromInputTypes()] and [propagatedType]
+   * may differ. In this case the instruction's type must be guarded.
+   *
+   * Note that the [propagatedType] may only be set to [HType.CONFLICTING] with
+   * speculative types (as otherwise the instruction either sets the output
+   * type to [HType.UNKNOWN] or a specific type.
+   */
+  HType propagatedType = HType.UNKNOWN;
 
-  // Returns whether the instruction does produce the type it claims.
-  // For most instructions, this returns false. A type guard will be
-  // inserted to make sure the users get the right type in.
-  bool hasExpectedType() => false;
+  /**
+   * Some instructions have a good idea of their return type, but cannot
+   * guarantee the type. The [likelyType] does not need to be more specialized
+   * than the [propagatedType].
+   *
+   * Examples: the [likelyType] of [:x == y:] is a boolean. In most cases this
+   * cannot be guaranteed, but when merging types we still want to use this
+   * information.
+   *
+   * Similarily the [HAdd] instruction is likely a number. Note that, even if
+   * the [propagatedType] is already set to integer, the [likelyType] still
+   * might just return the number type.
+   */
+  HType get likelyType() => propagatedType;
+
+  /**
+   * Compute the type of the instruction by propagating the input types through
+   * the instruction.
+   *
+   * By default just copy the guaranteed type.
+   */
+  HType computeTypeFromInputTypes() => guaranteedType;
+
+  /**
+   * Compute the desired type for the the given [input]. Aside from using
+   * other inputs to compute the desired type one should also use
+   * the [propagatedType] which, during the invocation of this method,
+   * represents the desired type of [this].
+   */
+  HType computeDesiredTypeForInput(HInstruction input) => HType.UNKNOWN;
 
   bool isInBasicBlock() => block !== null;
 
@@ -941,22 +898,21 @@ class HInstruction implements Hashable {
 
   abstract accept(HVisitor visitor);
 
-  void notifyAddedToBlock(HBasicBlock block) {
+  void notifyAddedToBlock(HBasicBlock targetBlock) {
     assert(!isInBasicBlock());
-    assert(this.block === null);
+    assert(block === null);
     // Add [this] to the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
       assert(inputs[i].isInBasicBlock());
       inputs[i].usedBy.add(this);
     }
-    this.block = block;
+    block = targetBlock;
     assert(isValid());
   }
 
-  void notifyRemovedFromBlock(HBasicBlock block) {
+  void notifyRemovedFromBlock() {
     assert(isInBasicBlock());
     assert(usedBy.isEmpty());
-    assert(this.block === block);
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
@@ -1000,8 +956,7 @@ class HBoolify extends HInstruction {
     setUseGvn();
   }
 
-  HType computeType() => HType.BOOLEAN;
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
   int typeCode() => 0;
@@ -1019,8 +974,10 @@ class HCheck extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  int state;
-  HTypeGuard(int this.state, List<HInstruction> env) : super(env);
+  final int state;
+  final HType guardedType;
+  bool isOn = false;
+  HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -1029,21 +986,22 @@ class HTypeGuard extends HInstruction {
 
   HInstruction get guarded() => inputs.last();
 
-  HType computeType() => type;
-  bool hasExpectedType() => true;
+  HType computeTypeFromInputTypes() {
+    return isOn ? guardedType : guarded.propagatedType;
+  }
+
+  HType get guaranteedType() => isOn ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) => type == other.type;
+  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
 }
 
 class HBoundsCheck extends HCheck {
-  HBoundsCheck(length, index) : super(<HInstruction>[length, index]) {
-    type = HType.INTEGER;
-  }
+  HBoundsCheck(length, index) : super(<HInstruction>[length, index]);
 
   HInstruction get length() => inputs[0];
   HInstruction get index() => inputs[1];
@@ -1053,8 +1011,7 @@ class HBoundsCheck extends HCheck {
     setUseGvn();
   }
 
-  HType computeType() => HType.INTEGER;
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
   int typeCode() => 2;
@@ -1072,8 +1029,7 @@ class HIntegerCheck extends HCheck {
     setUseGvn();
   }
 
-  HType computeType() => HType.INTEGER;
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => HType.INTEGER;
 
   accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
   int typeCode() => 3;
@@ -1178,15 +1134,24 @@ class HInvokeStatic extends HInvoke {
         && element.enclosingElement.name.slowToString() == 'List');
   }
 
-  HType computeType() {
+  HType get guaranteedType() {
     if (isArrayConstructor()) {
       return HType.MUTABLE_ARRAY;
     }
     return HType.UNKNOWN;
   }
 
+  HType computeDesiredTypeForInput(HInstruction input) {
+    // TODO(floitsch): we want the target to be a function.
+    if (input == target) return HType.UNKNOWN;
+    return computeDesiredTypeForNonTargetInput(input);
+  }
+
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    return HType.UNKNOWN;
+  }
+
   bool get builtin() => isArrayConstructor();
-  bool hasExpectedType() => isArrayConstructor();
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1207,10 +1172,14 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
-  String get builtinJsName() {
-    if (getter
+  bool isLengthGetterOnStringOrArray() {
+    return getter
         && name == const SourceString('length')
-        && inputs[1].isStringOrArray()) {
+        && inputs[1].isStringOrArray();
+  }
+
+  String get builtinJsName() {
+    if (isLengthGetterOnStringOrArray()) {
       return 'length';
     } else if (name == const SourceString('add')
                && inputs[1].isMutableArray()) {
@@ -1222,17 +1191,23 @@ class HInvokeInterceptor extends HInvokeStatic {
     return null;
   }
 
-  HType computeType() {
-    if (getter
-        && name == const SourceString('length')
-        && inputs[1].isStringOrArray()) {
-      return HType.INTEGER;
-    }
+  HType get guaranteedType() => HType.UNKNOWN;
+
+  HType get likelyType() {
+    // In general a length getter or method returns an int.
+    if (name == const SourceString('length')) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    if (input == inputs[0]) return HType.UNKNOWN;
+  HType computeTypeFromInputTypes() {
+    if (isLengthGetterOnStringOrArray()) return HType.INTEGER;
+    return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // If the first argument is a string or an array and we invoke methods
+    // on it that mutate it, then we want to restrict the incoming type to be
+    // a mutable array.
     if (input == inputs[1] && input.isStringOrArray()) {
       if (name == const SourceString('add')
           || name == const SourceString('removeLast')) {
@@ -1242,10 +1217,8 @@ class HInvokeInterceptor extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtinJsName != null;
-
   void prepareGvn() {
-    if (builtinJsName == 'length') {
+    if (isLengthGetterOnStringOrArray()) {
       clearAllSideEffects();
     } else {
       setAllSideEffects();
@@ -1288,12 +1261,13 @@ class HFieldSet extends HInstruction {
 
 class HForeign extends HInstruction {
   final DartString code;
-  final DartString declaredType;
-  HForeign(this.code, this.declaredType, List<HInstruction> inputs)
-      : super(inputs);
+  final HType foreignType;
+  HForeign(this.code, DartString declaredType, List<HInstruction> inputs)
+      : foreignType = computeTypeFromDeclaredType(declaredType),
+        super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
-  HType computeType() {
+  static HType computeTypeFromDeclaredType(DartString declaredType) {
     if (declaredType.slowToString() == 'bool') return HType.BOOLEAN;
     if (declaredType.slowToString() == 'int') return HType.INTEGER;
     if (declaredType.slowToString() == 'num') return HType.NUMBER;
@@ -1301,7 +1275,7 @@ class HForeign extends HInstruction {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => foreignType;
 }
 
 class HForeignNew extends HForeign {
@@ -1318,15 +1292,6 @@ class HInvokeBinary extends HInvokeStatic {
 
   HInstruction get left() => inputs[1];
   HInstruction get right() => inputs[2];
-
-  HType computeInputsType() {
-    HType leftType = left.type;
-    HType rightType = right.type;
-    if (leftType.isUnknown() || rightType.isUnknown()) {
-      return HType.UNKNOWN;
-    }
-    return leftType.combine(rightType);
-  }
 
   abstract BinaryOperation get operation();
 }
@@ -1349,22 +1314,41 @@ class HBinaryArithmetic extends HInvokeBinary {
 
   bool get builtin() => left.isNumber() && right.isNumber();
 
-  HType computeType() {
-    HType inputsType = computeInputsType();
-    if (inputsType.isKnown()) return inputsType;
-    if (left.isNumber()) return HType.NUMBER;
+  HType computeTypeFromInputTypes() {
+    if (left.isInteger() && right.isInteger()) return left.propagatedType;
+    if (left.isNumber()) {
+      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
+      return HType.NUMBER;
+    }
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
-    if (type.isUnknown()) return HType.NUMBER;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // If the desired output type should be an integer we want to get two
+    // integers as arguments.
+    if (propagatedType.isInteger()) return HType.INTEGER;
+    // If the outgoing type should be a number we can get that if both inputs
+    // are numbers. If we don't know the outgoing type we try to make it a
+    // number.
+    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      return HType.NUMBER;
+    }
+    // Even if the desired outgoing type is not a number we still want the
+    // second argument to be a number if the first one is a number. This will
+    // not help for the outgoing type, but at least the binary arithmetic
+    // operation will not have type problems.
+    // TODO(floitsch): normally we shouldn't request a number, but simply
+    // throw an IllegalArgumentException if it isn't. This would be similar
+    // to the array case.
+    if (input == right && left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => left.isNumber() && right.isNumber();
+  HType get likelyType() {
+    if (left.isTypeUnknown()) return HType.NUMBER;
+    return HType.UNKNOWN;
+  }
+
   // TODO(1603): The class should be marked as abstract.
   abstract BinaryOperation get operation();
 }
@@ -1380,24 +1364,38 @@ class HAdd extends HBinaryArithmetic {
             || (left.isString() && right is HConstant);
   }
 
-  HType computeType() {
-    HType computedType = computeInputsType();
-    if (computedType.isConflicting() && left.isString()) return HType.STRING;
-    if (computedType.isKnown()) return computedType;
-    if (left.isNumber()) return HType.NUMBER;
+  HType computeTypeFromInputTypes() {
+    if (left.isInteger() && right.isInteger()) return left.propagatedType;
+    if (left.isNumber()) {
+      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
+      return HType.NUMBER;
+    }
+    if (left.isString()) return HType.STRING;
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || type.isUnknown() || left.isString();
-
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (isString() || left.isString()) {
-      return (input == left) ? HType.STRING : HType.UNKNOWN;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // If the desired output type is an integer we want two integers as input.
+    if (propagatedType.isInteger()) {
+      return HType.INTEGER;
     }
-    if (right.isString()) return HType.STRING;
-    if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
+    // TODO(floitsch): remove string specialization once string+ is removed
+    // from dart2js.
+    if (propagatedType.isString() || left.isString() || right.isString()) {
+      return HType.STRING;
+    }
+    // If the desired output is a number or any of the inputs is a number
+    // ask for a number. Note that we might return the input's (say 'left')
+    // type depending on its (the 'left's) type. But that shouldn't matter.
+    if (propagatedType.isNumber() || left.isNumber() || right.isNumber()) {
+      return HType.NUMBER;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HType get likelyType() {
+    if (left.isString() || right.isString()) return HType.STRING;
+    if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
@@ -1415,10 +1413,15 @@ class HDivide extends HBinaryArithmetic {
 
   bool get builtin() => left.isNumber() && right.isNumber();
 
-  HType computeType() {
-    HType inputsType = computeInputsType();
+  HType computeTypeFromInputTypes() {
     if (left.isNumber()) return HType.DOUBLE;
     return HType.UNKNOWN;
+  }
+
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // A division can never return an integer. So don't ask for integer inputs.
+    if (propagatedType.isInteger()) return HType.UNKNOWN;
+    return super.computeDesiredTypeForNonTargetInput(input);
   }
 
   DivideOperation get operation() => const DivideOperation();
@@ -1481,17 +1484,24 @@ class HBinaryBitOp extends HBinaryArithmetic {
 
   bool get builtin() => left.isInteger() && right.isInteger();
 
-  HType computeType() {
-    HType inputsType = computeInputsType();
-    if (inputsType.isKnown()) return inputsType;
+  HType computeTypeFromInputTypes() {
     if (left.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    return HType.INTEGER;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // If the outgoing type should be a number we can get that only if both
+    // inputs are integers. If we don't know the outgoing type we try to make
+    // it an integer.
+    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      return HType.INTEGER;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HType get likelyType() {
+    if (left.isTypeUnknown()) return HType.INTEGER;
+    return HType.UNKNOWN;
   }
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1573,20 +1583,22 @@ class HInvokeUnary extends HInvokeStatic {
 
   bool get builtin() => operand.isNumber();
 
-  HType computeType() {
-    HType operandType = operand.type;
-    if (!operandType.isUnknown()) return operandType;
+  HType computeTypeFromInputTypes() {
+    HType operandType = operand.propagatedType;
+    if (operandType.isNumber()) return operandType;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (type.isUnknown() || type.isNumber()) return HType.NUMBER;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // If the outgoing type should be a number (integer, double or both) we
+    // want the outgoing type to be the input too.
+    // If we don't know the outgoing type we try to make it a number.
+    if (propagatedType.isNumber()) return propagatedType;
+    if (propagatedType.isUnknown()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || type.isUnknown();
+  HType get likelyType() => HType.NUMBER;
 
   abstract UnaryOperation get operation();
 }
@@ -1607,16 +1619,19 @@ class HBitNot extends HInvokeUnary {
 
   bool get builtin() => operand.isInteger();
 
-  HType computeType() {
-    HType operandType = operand.type;
-    if (!operandType.isUnknown()) return operandType;
+  HType computeTypeFromInputTypes() {
+    HType operandType = operand.propagatedType;
+    if (operandType.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    return HType.INTEGER;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // Bit operations only work on integers. If there is no desired output
+    // type or if it as a number we want to get an integer as input.
+    if (propagatedType.isUnknown() || propagatedType.isNumber()) {
+      return HType.INTEGER;
+    }
+    return HType.UNKNOWN;
   }
 
   BitNotOperation get operation() => const BitNotOperation();
@@ -1705,9 +1720,9 @@ class HLoopBranch extends HConditionalBranch {
 
 class HConstant extends HInstruction {
   final Constant constant;
-  HConstant.internal(this.constant, HType type) : super(<HInstruction>[]) {
-    this.type = type;
-  }
+  final HType constantType;
+  HConstant.internal(this.constant, HType this.constantType)
+      : super(<HInstruction>[]);
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -1715,9 +1730,8 @@ class HConstant extends HInstruction {
 
   toString() => 'literal: $constant';
   accept(HVisitor visitor) => visitor.visitConstant(this);
-  HType computeType() => type;
 
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => constantType;
 
   bool isConstant() => true;
   bool isConstantBoolean() => constant.isBool();
@@ -1736,11 +1750,10 @@ class HNot extends HInstruction {
     setUseGvn();
   }
 
-  HType computeType() => HType.BOOLEAN;
-  bool hasExpectedType() => true;
-  HType computeDesiredInputType(HInstruction input) {
-    return HType.BOOLEAN;
-  }
+  HType get guaranteedType() => HType.BOOLEAN;
+
+  // 'Not' only works on booleans. That's what we want as input.
+  HType computeDesiredTypeForInput(HInstruction input) => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitNot(this);
   int typeCode() => 18;
@@ -1796,35 +1809,48 @@ class HPhi extends HInstruction {
   // have the same known type return it. If any two inputs have
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
-  HType computeInputsType() {
+  HType computeInputsType(bool unknownWins) {
     bool seenUnknown = false;
-    HType candidateType = inputs[0].type;
+    HType candidateType = inputs[0].propagatedType;
     for (int i = 1, length = inputs.length; i < length; i++) {
-      HType inputType = inputs[i].type;
-      if (inputType.isUnknown()) return HType.UNKNOWN;
-      candidateType = candidateType.combine(inputType);
-      if (candidateType.isConflicting()) return HType.CONFLICTING;
+      HType inputType = inputs[i].propagatedType;
+      if (inputType.isUnknown()) {
+        seenUnknown = true;
+      } else {
+        candidateType = candidateType.combine(inputType);
+        if (candidateType.isConflicting()) return HType.CONFLICTING;
+      }
     }
+    if (seenUnknown && unknownWins) return HType.UNKNOWN;
     return candidateType;
   }
 
-  HType computeType() {
-    HType inputsType = computeInputsType();
-    if (!inputsType.isUnknown()) return inputsType;
-    return super.computeType();
+  HType computeTypeFromInputTypes() {
+    HType inputsType = computeInputsType(true);
+    if (inputsType.isConflicting()) return HType.UNKNOWN;
+    return inputsType;
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    if (type.isNumber()) return HType.NUMBER;
-    if (type.isStringOrArray()) return HType.STRING_OR_ARRAY;
-    return type;
+  HType computeDesiredTypeForInput(HInstruction input) {
+    // Best case scenario for a phi is, when all inputs have the same type. If
+    // there is no desired outgoing type we therefore try to unify the input
+    // types (which is basically the [likelyType]).
+    if (propagatedType.isUnknown()) return likelyType;
+    // When the desired outgoing type is conflicting we don't need to give any
+    // requirements on the inputs.
+    if (propagatedType.isConflicting()) return HType.UNKNOWN;
+    // Otherwise the input type must match the desired outgoing type.
+    return propagatedType;
   }
 
-  bool hasExpectedType() {
-    for (int i = 0; i < inputs.length; i++) {
-      if (type.combine(inputs[i].type).isConflicting()) return false;
-    }
-    return true;
+  HType get likelyType() {
+    HType agreedType = computeInputsType(false);
+    if (agreedType.isConflicting()) return HType.UNKNOWN;
+    // Don't be too restrictive. If the agreed type is integer or double just
+    // say that the likely type is number. If more is expected the type will be
+    // propagated back.
+    if (agreedType.isNumber()) return HType.NUMBER;
+    return agreedType;
   }
 
   bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
@@ -1842,9 +1868,7 @@ class HPhi extends HInstruction {
 
 class HRelational extends HInvokeBinary {
   HRelational(HStatic target, HInstruction left, HInstruction right)
-      : super(target, left, right) {
-    type = HType.BOOLEAN;
-  }
+      : super(target, left, right);
 
   void prepareGvn() {
     // Relational expressions can take part in global value numbering
@@ -1858,19 +1882,24 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    // For all relational operations exept HEquals, we expect to only
-    // get numbers.
-    return HType.NUMBER;
+  HType computeTypeFromInputTypes() {
+    if (left.isNumber()) return HType.BOOLEAN;
+    return HType.UNKNOWN;
   }
 
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    // For all relational operations exept HEquals, we expect to get numbers
+    // only. With numbers the outgoing type is a boolean. If something else
+    // is desired, then numbers are incorrect, though.
+    if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
+      if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HType get likelyType() => HType.BOOLEAN;
+
   bool get builtin() => left.isNumber() && right.isNumber();
-  HType computeType() => HType.BOOLEAN;
-  // A HRelational goes through the builtin operator or the top level
-  // element. Therefore, it always has the expected type.
-  bool hasExpectedType() => true;
   // TODO(1603): the class should be marked as abstract.
   abstract BinaryOperation get operation();
 }
@@ -1881,20 +1910,37 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool get builtin() {
-    if (left.isNumber() && right.isNumber()) return true;
-    if (left is !HConstant) return false;
-    HConstant leftConstant = left;
-    // TODO(floitsch): we can do better if we know that the constant does not
-    // have the equality operator overridden.
-    return !leftConstant.constant.isConstructedObject();
+    // All useful types have === semantics.
+    // Note that this includes all constants except the user-constructed
+    // objects.
+    return left.isConstantNull() || left.propagatedType.isUseful();
   }
 
-  HType computeType() => HType.BOOLEAN;
+  HType computeTypeFromInputTypes() {
+    if (builtin) return HType.BOOLEAN;
+    return HType.UNKNOWN;
+  }
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (left.isNumber() || right.isNumber()) return HType.NUMBER;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    if (input == left && right.propagatedType.isUseful()) {
+      // All our useful types have === semantics. But we don't want to
+      // speculatively test for all possible types. Therefore we try to match
+      // the two types. That is, if we see x == 3, then we speculatively test
+      // if x is a number and bailout if it isn't.
+      if (right.isNumber()) return HType.NUMBER;  // No need to be more precise.
+      // String equality testing is much more common than array equality
+      // testing.
+      if (right.isStringOrArray()) return HType.STRING;
+      return right.propagatedType;
+    }
+    // String equality testing is much more common than array equality testing.
+    if (input == left && left.isStringOrArray()) {
+      return HType.READABLE_ARRAY;
+    }
+    // String equality testing is much more common than array equality testing.
+    if (input == right && right.isStringOrArray()) {
+      return HType.STRING;
+    }
     return HType.UNKNOWN;
   }
 
@@ -1910,10 +1956,11 @@ class HIdentity extends HRelational {
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
   bool get builtin() => true;
-  HType computeType() => HType.BOOLEAN;
-  bool hasExpectedType() => true;
 
-  HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
+  HType get guaranteedType() => HType.BOOLEAN;
+  HType computeTypeFromInputTypes() => HType.BOOLEAN;
+  // Note that the identity operator really does not care for its input types.
+  HType computeDesiredTypeForInput(HInstruction input) => HType.UNKNOWN;
 
   IdentityOperation get operation() => const IdentityOperation();
   int typeCode() => 20;
@@ -2013,8 +2060,8 @@ class HLiteralList extends HInstruction {
   HLiteralList(inputs) : super(inputs);
   toString() => 'literal list';
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
-  HType computeType() => HType.MUTABLE_ARRAY;
-  bool hasExpectedType() => true;
+
+  HType get guaranteedType() => HType.MUTABLE_ARRAY;
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -2038,16 +2085,18 @@ class HIndex extends HInvokeStatic {
   HInstruction get receiver() => inputs[1];
   HInstruction get index() => inputs[2];
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (input == receiver) return HType.STRING_OR_ARRAY;
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    if (input == receiver && (index.isTypeUnknown() || index.isNumber())) {
+      return HType.STRING_OR_ARRAY;
+    }
+    // The index should be an int when the receiver is a string or array.
+    // However it turns out that inserting an integer check in the optimized
+    // version is cheaper than having another bailout case. This is true,
+    // because the integer check will simply throw if it fails.
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isStringOrArray();
-  HType computeType() => HType.UNKNOWN;
-  bool hasExpectedType() => false;
+  bool get builtin() => receiver.isStringOrArray() && index.isInteger();
 }
 
 class HIndexAssign extends HInvokeStatic {
@@ -2064,45 +2113,169 @@ class HIndexAssign extends HInvokeStatic {
   HInstruction get index() => inputs[2];
   HInstruction get value() => inputs[3];
 
-  HType computeDesiredInputType(HInstruction input) {
-    // TODO(floitsch): we want the target to be a function.
-    if (input == target) return HType.UNKNOWN;
-    if (input == receiver) return HType.MUTABLE_ARRAY;
+  // Note, that we don't have a computeTypeFromInputTypes, since [HIndexAssign]
+  // is never used as input.
+
+  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+    if (input == receiver && (index.isTypeUnknown() || index.isNumber())) {
+      return HType.MUTABLE_ARRAY;
+    }
+    // The index should be an int when the receiver is a string or array.
+    // However it turns out that inserting an integer check in the optimized
+    // version is cheaper than having another bailout case. This is true,
+    // because the integer check will simply throw if it fails.
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isMutableArray();
-  HType computeType() => value.type;
-  // This instruction does not yield a new value, so it always
-  // has the expected type (void).
-  bool hasExpectedType() => true;
+  bool get builtin() => receiver.isMutableArray() && index.isInteger();
 }
 
 class HIs extends HInstruction {
-  // TODO(ahe): This should be a Type, not Element.
-  final Element typeExpression;
+  final Type typeName;
   final bool nullOk;
 
-  HIs(this.typeExpression, HInstruction expression, [nullOk = false])
+  HIs(this.typeName, HInstruction expression, [nullOk = false])
     : this.nullOk = nullOk, super(<HInstruction>[expression]);
 
   HInstruction get expression() => inputs[0];
 
-  HType computeType() => HType.BOOLEAN;
-  bool hasExpectedType() => true;
+  HType get guaranteedType() => HType.BOOLEAN;
 
   accept(HVisitor visitor) => visitor.visitIs(this);
 
-  toString() => "$expression is $typeExpression";
+  toString() => "$expression is $typeName";
 }
 
-class HIfBlockInformation {
-  final HIf branch;
+
+interface HBlockInformation {
+  bool accept(HBlockInformationVisitor visitor);
+}
+
+interface HBlockInformationVisitor {
+  bool visitLabeledBlockInfo(HLabeledBlockInformation info);
+  bool visitLoopInfo(HLoopInformation info);
+  bool visitIfInfo(HIfBlockInformation info);
+  bool visitAndOrInfo(HAndOrBlockInformation info);
+}
+
+class HLabeledBlockInformation implements HBlockInformation {
+  final SubGraph body;
+  final HBasicBlock joinBlock;
+  final List<LabelElement> labels;
+  final TargetElement target;
+  final bool isContinue;
+
+  HLabeledBlockInformation(this.body, this.joinBlock,
+                           List<LabelElement> labels,
+                           [this.isContinue = false]) :
+      this.labels = labels, this.target = labels[0].target;
+
+  HLabeledBlockInformation.implicit(this.body,
+                                    this.joinBlock,
+                                    this.target,
+                                    [this.isContinue = false])
+      : this.labels = const<LabelElement>[];
+
+  bool accept(HBlockInformationVisitor visitor) =>
+    visitor.visitLabeledBlockInfo(this);
+}
+
+class LoopTypeVisitor extends AbstractVisitor {
+  const LoopTypeVisitor();
+  int visitNode(Node node) {
+    unreachable();
+  }
+  int visitWhile(While node) => HLoopInformation.WHILE_LOOP;
+  int visitFor(For node) => HLoopInformation.FOR_LOOP;
+  int visitDoWhile(DoWhile node) => HLoopInformation.DO_WHILE_LOOP;
+  int visitForIn(ForIn node) => HLoopInformation.FOR_IN_LOOP;
+}
+
+class HLoopInformation implements HBlockInformation {
+  static final int WHILE_LOOP = 0;
+  static final int FOR_LOOP = 1;
+  static final int DO_WHILE_LOOP = 2;
+  static final int FOR_IN_LOOP = 3;
+
+  final int kind;
+  final HBasicBlock header;
+  final List<HBasicBlock> blocks;
+  final List<HBasicBlock> backEdges;
+  final List<LabelElement> labels;
+  final TargetElement target;
+  SubGraph initializer = null;
+  SubExpression condition = null;
+  SubGraph body = null;
+  SubGraph updates = null;
+  HBasicBlock joinBlock;
+
+  HLoopInformation(this.kind, this.header, this.target, this.labels)
+      : blocks = new List<HBasicBlock>(),
+        backEdges = new List<HBasicBlock>();
+
+  static int loopType(Node node) {
+    return node.accept(const LoopTypeVisitor());
+  }
+
+  void addBackEdge(HBasicBlock predecessor) {
+    backEdges.add(predecessor);
+    addBlock(predecessor);
+  }
+
+  // Adds a block and transitively all its predecessors in the loop as
+  // loop blocks.
+  void addBlock(HBasicBlock block) {
+    if (block === header) return;
+    HBasicBlock parentHeader = block.parentLoopHeader;
+    if (parentHeader === header) {
+      // Nothing to do in this case.
+    } else if (parentHeader !== null) {
+      addBlock(parentHeader);
+    } else {
+      block.parentLoopHeader = header;
+      blocks.add(block);
+      for (int i = 0, length = block.predecessors.length; i < length; i++) {
+        addBlock(block.predecessors[i]);
+      }
+    }
+  }
+
+  HBasicBlock getLastBackEdge() {
+    int maxId = -1;
+    HBasicBlock result = null;
+    for (int i = 0, length = backEdges.length; i < length; i++) {
+      HBasicBlock current = backEdges[i];
+      if (current.id > maxId) {
+        maxId = current.id;
+        result = current;
+      }
+    }
+    return result;
+  }
+
+  bool accept(HBlockInformationVisitor visitor) => visitor.visitLoopInfo(this);
+}
+
+class HIfBlockInformation implements HBlockInformation {
+  final SubExpression condition;
   final SubGraph thenGraph;
   final SubGraph elseGraph;
   final HBasicBlock joinBlock;
-  HIfBlockInformation(this.branch,
+  HIfBlockInformation(this.condition,
                       this.thenGraph,
                       this.elseGraph,
                       this.joinBlock);
+  bool accept(HBlockInformationVisitor visitor) => visitor.visitIfInfo(this);
+}
+
+class HAndOrBlockInformation implements HBlockInformation {
+  final bool isAnd;
+  final SubExpression left;
+  final SubExpression right;
+  final HBasicBlock joinBlock;
+  HAndOrBlockInformation(this.isAnd,
+                         this.left,
+                         this.right,
+                         this.joinBlock);
+  bool accept(HBlockInformationVisitor visitor) => visitor.visitAndOrInfo(this);
 }

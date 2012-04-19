@@ -24,12 +24,13 @@ class EarlyCloseTest {
 
     bool calledOnRequest = false;
     bool calledOnError = false;
-    server.onRequest = (HttpRequest request, HttpResponse response) {
-      Expect.isTrue(expectRequest);
-      Expect.isFalse(calledOnError);
-      Expect.isFalse(calledOnRequest, "onRequest called multiple times");
-      calledOnRequest = true;
-    };
+    server.defaultRequestHandler =
+        (HttpRequest request, HttpResponse response) {
+          Expect.isTrue(expectRequest);
+          Expect.isFalse(calledOnError);
+          Expect.isFalse(calledOnRequest, "onRequest called multiple times");
+          calledOnRequest = true;
+        };
     ReceivePort port = new ReceivePort();
     server.onError = (Exception error) {
       Expect.isFalse(calledOnError);

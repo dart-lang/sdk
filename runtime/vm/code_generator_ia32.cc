@@ -23,7 +23,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
+DECLARE_FLAG(bool, print_ast);
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DEFINE_FLAG(bool, print_ic_in_optimized, false,
@@ -1750,6 +1750,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
       __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
       __ j(EQUAL,  &done, Assembler::kNearJump);
       __ Bind(&not_smi);
+      // The instantiated type parameter may not be a Type, but could be an
+      // InstantiatedType. It is therefore necessary to check its class.
+      __ movl(ECX, FieldAddress(EDX, Object::class_offset()));
+      __ CompareObject(ECX, Object::ZoneHandle(Object::type_class()));
+      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
       __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
       __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
       // Check that class of dst_type has no type parameters.
@@ -1790,14 +1795,15 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
 
 void CodeGenerator::GenerateArgumentTypeChecks() {
   const Function& function = parsed_function_.function();
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  LocalScope* scope = sequence_node.scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
   ASSERT(num_fixed_params + num_opt_params <= scope->num_variables());
-  for (int i = 0; i < num_fixed_params + num_opt_params; i++) {
+  for (intptr_t i = 0; i < num_fixed_params + num_opt_params; i++) {
     LocalVariable* parameter = scope->VariableAt(i);
     GenerateLoadVariable(EAX, *parameter);
-    GenerateAssertAssignable(AstNode::kNoId,
+    GenerateAssertAssignable(sequence_node.ParameterIdAt(i),
                              parameter->token_index(),
                              NULL,
                              parameter->type(),

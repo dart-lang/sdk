@@ -15,7 +15,27 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           compiler, work, parameters, parameterNames);
       codegen.visitGraph(graph);
-      return 'function($parameters) {\n${codegen.buffer}}';
+
+      FunctionElement element = work.element;
+      String code;
+      if (element.isInstanceMember()
+          && element.enclosingElement.isClass()
+          && element.enclosingElement.isNative()
+          && native.isOverriddenMethod(element,
+                                       element.enclosingElement,
+                                       compiler.emitter.nativeEmitter)) {
+        // Record that this method is overridden. In case of optional
+        // arguments, the emitter will generate stubs to handle them,
+        // and needs to know if the method is overridden.
+        compiler.emitter.nativeEmitter.overriddenMethods.add(element);
+        StringBuffer buffer = new StringBuffer();
+        native.generateMethodWithPrototypeCheckForElement(
+            compiler, buffer, element, '${codegen.buffer}', parameters);
+        code = buffer.toString();
+      } else {
+        code = codegen.buffer.toString();
+      }
+      return 'function($parameters) {\n$code}';
     });
   }
 
@@ -60,7 +80,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
 typedef void ElementAction(Element element);
 
-class SsaCodeGenerator implements HVisitor {
+class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
    * Current state for generating simple (non-local-control) code.
    * It is generated as either statements (indented and ';'-terminated),
@@ -236,15 +256,15 @@ class SsaCodeGenerator implements HVisitor {
     return isExpression(limits) && (limits.end.last is HConditionalBranch);
   }
 
-  void visitExpressionGraph(SubGraph subGraph) {
+  void visitExpressionGraph(SubGraph expressionSubGraph) {
     int oldState = generationState;
     generationState = STATE_FIRST_EXPRESSION;
-    visitSubGraph(subGraph);
+    visitSubGraph(expressionSubGraph);
     generationState = oldState;
   }
 
-  void visitConditionGraph(SubGraph subGraph) {
-    visitExpressionGraph(subGraph);
+  void visitConditionGraph(SubGraph conditionSubGraph) {
+    visitExpressionGraph(conditionSubGraph);
   }
 
   String temporary(HInstruction instruction) {
@@ -348,26 +368,26 @@ class SsaCodeGenerator implements HVisitor {
     visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
-  void use(HInstruction argument, int expectedPrecedence) {
+  void use(HInstruction argument, int expectedPrecedenceForArgument) {
     if (isGenerateAtUseSite(argument)) {
-      visit(argument, expectedPrecedence);
+      visit(argument, expectedPrecedenceForArgument);
     } else if (argument is HIntegerCheck) {
       HIntegerCheck instruction = argument;
-      use(instruction.value, expectedPrecedence);
+      use(instruction.value, expectedPrecedenceForArgument);
     } else if (argument is HBoundsCheck) {
       HBoundsCheck instruction = argument;
-      use(instruction.index, expectedPrecedence);
+      use(instruction.index, expectedPrecedenceForArgument);
     } else if (argument is HTypeGuard) {
       HTypeGuard instruction = argument;
-      use(instruction.guarded, expectedPrecedence);
+      use(instruction.guarded, expectedPrecedenceForArgument);
     } else {
       buffer.add(temporary(argument));
     }
   }
 
-  visit(HInstruction node, int expectedPrecedence) {
+  visit(HInstruction node, int expectedPrecedenceForNode) {
     int oldPrecedence = this.expectedPrecedence;
-    this.expectedPrecedence = expectedPrecedence;
+    this.expectedPrecedence = expectedPrecedenceForNode;
     node.accept(this);
     this.expectedPrecedence = oldPrecedence;
   }
@@ -393,7 +413,114 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(";\n");
   }
 
-  void handleLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+  bool visitIfInfo(HIfBlockInformation info) {
+    return false;
+  }
+
+  bool visitAndOrInfo(HAndOrBlockInformation info) {
+    return false;
+  }
+
+  bool visitLoopInfo(HLoopInformation info) {
+    SubExpression condition = info.condition;
+    void visitBodyIgnoreLabels() {
+      if (info.body.start.isLabeledBlock()) {
+        HBlockInformation oldInfo = currentBlockInformation;
+        currentBlockInformation = info.body.start.blockInformation;
+        visitSubGraph(info.body);
+        currentBlockInformation = oldInfo;
+      } else {
+        visitSubGraph(info.body);
+      }
+    }
+
+    if (!isCondition(condition)) {
+      return false;
+    }
+    switch (info.kind) {
+      case HLoopInformation.WHILE_LOOP:
+      case HLoopInformation.FOR_IN_LOOP: {
+        addIndentation();
+        for (LabelElement label in info.labels) {
+          writeLabel(label);
+          buffer.add(":");
+        }
+        bool inlineUpdates =
+            info.updates !== null && isExpression(info.updates);
+        if (inlineUpdates) {
+          buffer.add("for (; ");
+          visitConditionGraph(condition);
+          buffer.add("; ");
+          visitExpressionGraph(info.updates);
+          buffer.add(") {\n");
+          indent++;
+          // The body might be labeled. Ignore this when recursing on the
+          // subgraph.
+          // TODO(lrn): Remove this extra labeling when handling all loops
+          // using subgraphs.
+          visitBodyIgnoreLabels();
+
+          indent--;
+        } else {
+          buffer.add("while (");
+          visitConditionGraph(condition);
+          buffer.add(") {\n");
+          indent++;
+          wrapLoopBodyForContinue(info);
+          if (info.updates !== null) visitSubGraph(info.updates);
+          indent--;
+        }
+        addIndentation();
+        buffer.add("}\n");
+        break;
+      }
+      case HLoopInformation.FOR_LOOP: {
+        // TODO(lrn): Find a way to put initialization into the for.
+        // It's currently handled before we reach the [HLoopInformation].
+        addIndentation();
+        for (LabelElement label in info.labels) {
+          if (label.isTarget) {
+            writeLabel(label);
+            buffer.add(":");
+          }
+        }
+        buffer.add("for(;");
+        visitConditionGraph(info.condition);
+        buffer.add(";");
+        if (isExpression(info.updates)) {
+          visitExpressionGraph(info.updates);
+          buffer.add(") {\n");
+          indent++;
+
+          visitBodyIgnoreLabels();
+
+          indent--;
+          addIndentation();
+          buffer.add("}\n");
+        } else {
+          addIndentation();
+          buffer.add(") {\n");
+          indent++;
+          wrapLoopBodyForContinue(info);
+          visitSubGraph(info.updates);
+          indent--;
+          buffer.add("}\n");
+        }
+        break;
+      }
+      case HLoopInformation.DO_WHILE_LOOP:
+        // Currently unhandled.
+        return false;
+      default:
+        compiler.internalError(
+          'Unexpected loop kind: ${info.kind}',
+          instruction: condition.expression);
+    }
+    visitBasicBlock(info.joinBlock);
+    return true;
+  }
+
+  bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
     addIndentation();
     Link<Element> continueOverrides = const EmptyLink<Element>();
     // If [labeledBlockInfo.isContinue], the block is an artificial
@@ -454,6 +581,7 @@ class SsaCodeGenerator implements HVisitor {
     } else {
       breakAction.remove(labeledBlockInfo.target);
     }
+    return true;
   }
 
   void emitLogicalOperation(HPhi node, String operation) {
@@ -479,7 +607,7 @@ class SsaCodeGenerator implements HVisitor {
           continueAction[label] = continueAsBreak;
         }
       }
-      addImplicitContinueLabel();
+      writeImplicitContinueLabel(target);
       buffer.add(":{\n");
       continueAction[info.target] = implicitContinueAsBreak;
       indent++;
@@ -499,99 +627,6 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  bool handleLoop(HBasicBlock node) {
-    bool success = false;
-    assert(node.isLoopHeader());
-    HLoopInformation info = node.loopInformation;
-    SubExpression condition = info.condition;
-    if (isCondition(condition)) {
-      switch (info.type) {
-        case HLoopInformation.WHILE_LOOP:
-        case HLoopInformation.FOR_IN_LOOP: {
-          addIndentation();
-          for (LabelElement label in info.labels) {
-            writeLabel(label);
-            buffer.add(":");
-          }
-          bool inlineUpdates =
-              info.updates !== null && isExpression(info.updates);
-          if (inlineUpdates) {
-            buffer.add("for (; ");
-            visitConditionGraph(condition);
-            buffer.add("; ");
-            visitExpressionGraph(info.updates);
-            buffer.add(") {\n");
-            indent++;
-            // The body might be labeled. Ignore this when recursing on the
-            // subgraph.
-            // TODO(lrn): Remove this extra labeling when handling all loops
-            // using subgraphs.
-            HBlockInformation oldInfo = currentBlockInformation;
-            currentBlockInformation = info.body.start.labeledBlockInformation;
-            visitSubGraph(info.body);
-            currentBlockInformation = oldInfo;
-
-            indent--;
-          } else {
-            buffer.add("while (");
-            visitConditionGraph(condition);
-            buffer.add(") {\n");
-            indent++;
-            wrapLoopBodyForContinue(info);
-            if (info.updates !== null) visitSubGraph(info.updates);
-            indent--;
-          }
-          addIndentation();
-          buffer.add("}\n");
-          success = true;
-          break;
-        }
-        case HLoopInformation.FOR_LOOP: {
-          // TODO(lrn): Find a way to put initialization into the for.
-          // It's currently handled before we reach the [HLoopInformation].
-          addIndentation();
-          for (LabelElement label in info.labels) {
-            if (label.isTarget) {
-              writeLabel(label);
-              buffer.add(":");
-            }
-          }
-          buffer.add("for(;");
-          visitConditionGraph(info.condition);
-          buffer.add(";");
-          if (isExpression(info.updates)) {
-            visitExpressionGraph(info.updates);
-            buffer.add(") {\n");
-            indent++;
-
-            HBlockInformation oldInfo = currentBlockInformation;
-            currentBlockInformation = info.body.start.labeledBlockInformation;
-            visitSubGraph(info.body);
-            currentBlockInformation = oldInfo;
-
-            indent--;
-            addIndentation();
-            buffer.add("}\n");
-          } else {
-            addIndentation();
-            buffer.add(") {\n");
-            indent++;
-            wrapLoopBodyForContinue(info);
-            visitSubGraph(info.updates);
-            indent--;
-            buffer.add("}\n");
-          }
-          success = true;
-          break;
-        }
-        case HLoopInformation.DO_WHILE_LOOP:
-          // Currently unhandled.
-        default:
-      }
-    }
-    return success;
-  }
-
   void visitBasicBlock(HBasicBlock node) {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
@@ -600,28 +635,20 @@ class SsaCodeGenerator implements HVisitor {
     // If we reach here again while handling the attached information,
     // e.g., because we call visitSubGraph on a subgraph starting here,
     // don't handle it again.
-    if (node.hasLabeledBlockInformation() &&
-        node.labeledBlockInformation !== currentBlockInformation) {
+    if (node.blockInformation !== null &&
+        node.blockInformation !== currentBlockInformation) {
       HBlockInformation oldBlockInformation = currentBlockInformation;
-      currentBlockInformation = node.labeledBlockInformation;
-      handleLabeledBlock(currentBlockInformation);
+      currentBlockInformation = node.blockInformation;
+      bool success = currentBlockInformation.accept(this);
       currentBlockInformation = oldBlockInformation;
-      return;
-    }
+      if (success) return;
 
-    if (node.isLoopHeader() &&
-        node.loopInformation !== currentBlockInformation) {
-      HBlockInformation oldBlockInformation = currentBlockInformation;
-      currentBlockInformation = node.loopInformation;
-      bool prettyLoop = handleLoop(node);
-      currentBlockInformation = oldBlockInformation;
-      if (prettyLoop) {
-        visitBasicBlock(node.loopInformation.joinBlock);
-        return;
+      // If our special handling didn't succeed, we have to emit a generic
+      // version. This still requires special handling for loop-blocks
+      if (node.isLoopHeader()) {
+        beginLoop(node);
       }
-      beginLoop(node);
     }
-
     iterateBasicBlock(node);
   }
 
@@ -1465,13 +1492,16 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitIs(HIs node) {
-    Element element = node.typeExpression;
+    Type type = node.typeName;
+    Element element = type.element;
     if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
+    } else if (element.kind === ElementKind.TYPEDEF) {
+      compiler.unimplemented("visitIs for typedefs");
     }
     compiler.registerIsCheck(element);
     LibraryElement coreLibrary = compiler.coreLibrary;
-    ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
+    ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
     if (node.nullOk) {
       beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
@@ -1591,7 +1621,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       buffer.add('||');
       checkImmutableArray(input);
       buffer.add(') ');
-      bailout(node, 'Not a mutable array');      
+      bailout(node, 'Not a mutable array');
     } else if (node.isArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
@@ -1616,7 +1646,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     addIndentation();
-    for (LabelElement label in block.loopInformation.labels) {
+    HLoopInformation info = block.blockInformation;
+    for (LabelElement label in info.labels) {
       writeLabel(label);
       buffer.add(":");
     }
@@ -1735,7 +1766,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
   }
 
-  bool handleLoop(HBasicBlock node) => false;
+  bool visitLoopInfo(HLoopInformation info) => false;
 
   void visitTypeGuard(HTypeGuard node) {
     indent--;
@@ -1787,7 +1818,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('}\n');  // Close 'switch'.
   }
 
-
   void beginLoop(HBasicBlock block) {
     // TODO(ngeoffray): Don't put labels on loops that don't bailout.
     String newLabel = pushLabel();
@@ -1796,7 +1826,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    for (SourceString label in block.loopInformation.labels) {
+    HLoopInformation loopInformation = block.blockInformation;
+    for (LabelElement label in loopInformation.labels) {
       writeLabel(label);
       buffer.add(":");
     }

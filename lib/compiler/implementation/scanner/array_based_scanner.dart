@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ArrayBasedScanner<S> extends AbstractScanner<S> {
+class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   int get charOffset() => byteOffset + extraCharOffset;
   final Token tokens;
   Token tail;
@@ -30,15 +30,15 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   int select(int choice, PrecedenceInfo yes, PrecedenceInfo no) {
     int next = advance();
     if (next === choice) {
-      appendPrecenceToken(yes);
+      appendPrecedenceToken(yes);
       return advance();
     } else {
-      appendPrecenceToken(no);
+      appendPrecedenceToken(no);
       return next;
     }
   }
 
-  void appendPrecenceToken(PrecedenceInfo info) {
+  void appendPrecedenceToken(PrecedenceInfo info) {
     tail.next = new Token(info, tokenStart);
     tail = tail.next;
   }

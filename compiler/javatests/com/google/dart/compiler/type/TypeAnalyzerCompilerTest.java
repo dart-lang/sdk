@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -41,6 +38,9 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -116,7 +116,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     MethodElement methodElement = (MethodElement) functionElement.getEnclosingElement();
     assertNotNull(methodElement);
     assertSame(ElementKind.METHOD, methodElement.getKind());
-    assertEquals("foo", ((MethodElement) methodElement).getName());
+    assertEquals("foo", methodElement.getName());
     // use EnclosingElement methods implementations in MethodElement
     assertEquals(false, methodElement.isInterface());
     assertEquals(true, Iterables.isEmpty(methodElement.getMembers()));
@@ -416,28 +416,57 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * Factory constructor can instantiate any class and return it non-abstract class instance, but
-   * spec requires warnings, so we provide it, but using different constant.
+   * Factory constructor can instantiate any class and return it non-abstract class instance, Even
+   * thought this is an abstract class, there should be no warnings for the invocation of the
+   * factory constructor.
    */
-  public void test_warnAbstract_onAbstractClass_whenInstantiate_factoryConstructor()
+  public void test_abstractClass_whenInstantiate_factoryConstructor()
       throws Exception {
     AnalyzeLibraryResult libraryResult =
         analyzeLibrary(
             getName(),
             makeCode(
-                "abstract class A {",
+                "abstract class A {",  // explicitly abstract
                 "  factory A() {",
                 "    return null;",
                 "  }",
                 "}",
                 "class C {",
                 "  foo() {",
-                "    return new A();",
+                "    return new A();",  // no error - factory constructor
+                "  }",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors());
+  }
+
+  /**
+   * Factory constructor can instantiate any class and return it non-abstract class instance, Even
+   * thought this is an abstract class, there should be no warnings for the invocation of the
+   * factory constructor.
+   */
+  public void test_abstractClass_whenInstantiate_factoryConstructor2()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A extends B {",  // class doesn't implement all abstract methods
+                "  factory A() {",
+                "    return null;",
+                "  }",
+                "}",
+                "class B {",
+                "  abstract method();",
+                "}",
+                "class C {",
+                "  foo() {",
+                "    return new A();",  // no error, factory constructor
                 "  }",
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY, 8, 16, 1));
+        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 1, 7, 1));
   }
 
   /**

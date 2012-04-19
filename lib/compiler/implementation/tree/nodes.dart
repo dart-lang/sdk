@@ -5,6 +5,8 @@
 interface Visitor<R> {
   R visitBlock(Block node);
   R visitBreakStatement(BreakStatement node);
+  R visitCascade(Cascade node);
+  R visitCascadeReceiver(CascadeReceiver node);
   R visitCatchBlock(CatchBlock node);
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
@@ -108,6 +110,8 @@ class Node implements Hashable {
 
   Block asBlock() => null;
   BreakStatement asBreakStatement() => null;
+  Cascade asCascade() => null;
+  CascadeReceiver asCascadeReceiver() => null;
   CatchBlock asCatchBlock() => null;
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
@@ -141,6 +145,7 @@ class Node implements Hashable {
   Send asSend() => null;
   SendSet asSendSet() => null;
   Statement asStatement() => null;
+  StringNode asStringNode() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
   StringJuxtaposition asStringJuxtaposition() => null;
@@ -621,9 +626,9 @@ class LiteralInt extends Literal<int> {
 
   int get value() {
     try {
-      Token token = this.token;
-      if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseInt(token.value.slowToString());
+      Token valueToken = token;
+      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      return Math.parseInt(valueToken.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -640,9 +645,9 @@ class LiteralDouble extends Literal<double> {
 
   double get value() {
     try {
-      Token token = this.token;
-      if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseDouble(token.value.slowToString());
+      Token valueToken = token;
+      if (valueToken.kind === PLUS_TOKEN) valueToken = valueToken.next;
+      return Math.parseDouble(valueToken.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -744,6 +749,8 @@ class StringQuoting {
 class StringNode extends Expression {
   abstract DartString get dartString();
   abstract bool get isInterpolation();
+
+  StringNode asStringNode() => this;
 }
 
 class LiteralString extends StringNode {
@@ -1365,15 +1372,16 @@ class SwitchCase extends Node {
       // Skip past the label: <Identifier> ':'.
       token = token.next.next;
     }
-    Link<Token> recursiveGetCases(Token token, Link<Expression> expressions) {
-      if (token.stringValue === 'case') {
-        Token colon = expressions.head.getEndToken().next;
-        return new Link<Token>(token,
-                               recursiveGetCases(colon.next, expressions.tail));
-      }
-      return const EmptyLink<Token>();
+    LinkBuilder<Token> builder = new LinkBuilder<Token>();
+    Link<Expression> link = expressions.nodes;
+    while (token.stringValue === 'case') {
+      assert(token.next === link.head.getBeginToken());
+      builder.addLast(token);
+      Token colon = link.head.getEndToken().next;
+      token = colon.next;
+      link = link.tail;
     }
-    return recursiveGetCases(token, expressions);
+    return builder.toLink();
   }
 }
 
@@ -1559,6 +1567,39 @@ class TryStatement extends Statement {
     if (!catchBlocks.isEmpty()) return catchBlocks.getEndToken();
     return tryBlock.getEndToken();
   }
+}
+
+class Cascade extends Expression {
+  final Expression expression;
+  Cascade(this.expression);
+
+  Cascade asCascade() => this;
+  accept(Visitor visitor) => visitor.visitCascade(this);
+
+  void visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => expression.getEndToken();
+}
+
+class CascadeReceiver extends Expression {
+  final Expression expression;
+  final Token cascadeOperator;
+  CascadeReceiver(this.expression, this.cascadeOperator);
+
+  CascadeReceiver asCascadeReceiver() => this;
+  accept(Visitor visitor) => visitor.visitCascadeReceiver(this);
+
+  void visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => expression.getBeginToken();
+
+  Token getEndToken() => expression.getEndToken();
 }
 
 class CatchBlock extends Node {

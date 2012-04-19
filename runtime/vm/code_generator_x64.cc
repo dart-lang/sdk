@@ -22,7 +22,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
+DECLARE_FLAG(bool, print_ast);
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -1629,14 +1629,15 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
 
 void CodeGenerator::GenerateArgumentTypeChecks() {
   const Function& function = parsed_function_.function();
-  LocalScope* scope = parsed_function_.node_sequence()->scope();
+  const SequenceNode& sequence_node = *parsed_function_.node_sequence();
+  LocalScope* scope = sequence_node.scope();
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
   ASSERT(num_fixed_params + num_opt_params <= scope->num_variables());
   for (int i = 0; i < num_fixed_params + num_opt_params; i++) {
     LocalVariable* parameter = scope->VariableAt(i);
     GenerateLoadVariable(RAX, *parameter);
-    GenerateAssertAssignable(AstNode::kNoId,
+    GenerateAssertAssignable(sequence_node.ParameterIdAt(i),
                              parameter->token_index(),
                              NULL,
                              parameter->type(),

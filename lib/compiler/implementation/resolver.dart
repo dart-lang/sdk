@@ -5,18 +5,28 @@
 interface TreeElements {
   Element operator[](Node node);
   Selector getSelector(Send send);
+  Type getType(TypeAnnotation annotation);
 }
 
 class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
   Map<Send, Selector> selectors;
+  Map<TypeAnnotation, Type> types;
+
   TreeElementMapping()
     : map = new LinkedHashMap<Node, Element>(),
-      selectors = new LinkedHashMap<Send, Selector>();
+      selectors = new LinkedHashMap<Send, Selector>(),
+      types = new LinkedHashMap<TypeAnnotation, Type>();
 
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
   void remove(Node node) { map.remove(node); }
+
+  void setType(TypeAnnotation annotation, Type type) {
+    types[annotation] = type;
+  }
+
+  Type getType(TypeAnnotation annotation) => types[annotation];
 
   void setSelector(Send send, Selector selector) {
     selectors[send] = selector;
@@ -69,15 +79,6 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  FunctionElement lookupConstructor(ClassElement classElement, Send send,
-                                    [noConstructor(Element)]) {
-    final SourceString constructorName = getConstructorName(send);
-    final SourceString className = classElement.name;
-    return classElement.lookupConstructor(className,
-                                          constructorName,
-                                          noConstructor);
-  }
-
   FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
     FunctionExpression node = constructor.parseNode(compiler);
     // A synthetic constructor does not have a node.
@@ -86,7 +87,11 @@ class ResolverTask extends CompilerTask {
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
-      return lookupConstructor(constructor.enclosingElement, initializers.head);
+      final ClassElement classElement = constructor.enclosingElement;
+      final SourceString constructorName =
+          getConstructorName(initializers.head);
+      final SourceString className = classElement.name;
+      return classElement.lookupConstructor(className, constructorName);
     }
     return null;
   }
@@ -123,16 +128,17 @@ class ResolverTask extends CompilerTask {
       visitor.useElement(tree, element);
       visitor.setupFunction(tree, element);
 
-      if (tree.initializers != null) {
-        if (!isConstructor) {
-          error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
-        }
+      if (isConstructor) {
+        // Even if there is no initializer list we still have to do the
+        // resolution in case there is an implicit super constructor call.
         InitializerResolver resolver = new InitializerResolver(visitor);
         FunctionElement redirection =
             resolver.resolveInitializers(element, tree);
         if (redirection !== null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }
+      } else if (tree.initializers != null) {
+        error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);        
       }
       visitor.visit(tree.body);
 
@@ -205,15 +211,14 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  Type resolveType(ClassElement element) {
-    if (element.isResolved) return element.type;
-    return measure(() {
+  void resolveClass(ClassElement element) {
+    if (element.isResolved) return;
+    measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor =
         new ClassResolverVisitor(compiler, element.getLibrary(), element);
       visitor.visit(tree);
       element.isResolved = true;
-      return element.type;
     });
   }
 
@@ -281,66 +286,76 @@ class InitializerResolver {
     visitor.visitInStaticContext(init.arguments.head);
   }
 
-  Element resolveSuperOrThis(FunctionElement constructor,
-                             FunctionExpression functionNode,
-                             Send call) {
-    noConstructor(e) {
-      if (e !== null) error(call, MessageKind.NO_CONSTRUCTOR, [e.name, e.kind]);
-    }
+  Element resolveSuperOrThisForSend(FunctionElement constructor,
+                                    FunctionExpression functionNode,
+                                    Send call) {
+    // Resolve the arguments, and make sure the call gets a selector
+    // by calling handleArguments.
+    ResolverTask resolver = visitor.compiler.resolver;
+    visitor.inStaticContext( () => visitor.handleArguments(call) );
+    Selector selector = visitor.mapping.getSelector(call);
+    bool isSuperCall = Initializers.isSuperConstructorCall(call);
+    SourceString constructorName = resolver.getConstructorName(call);
+    Element result = resolveSuperOrThis(
+        constructor, isSuperCall, false, constructorName, selector, call);
+    visitor.useElement(call, result);
+    return result;
+  }
 
+  void resolveImplicitSuperConstructorSend(FunctionElement constructor,
+                                           FunctionExpression functionNode) {
+    // If the class has a super resolve the implicit super call.
+    ClassElement classElement = constructor.enclosingElement;
+    ClassElement superClass = classElement.superclass;
+    if (classElement != visitor.compiler.objectClass) {
+      assert(superClass !== null);
+      assert(superClass.isResolved);
+      resolveSuperOrThis(constructor, true, true, const SourceString(''),
+                         Selector.INVOCATION_0, functionNode);
+    }
+  }
+
+  Element resolveSuperOrThis(FunctionElement constructor,
+                             bool isSuperCall,
+                             bool isImplicitSuperCall,
+                             SourceString constructorName,
+                             Selector selector,
+                             Node diagnosticNode) {
     ClassElement lookupTarget = constructor.enclosingElement;
     bool validTarget = true;
     FunctionElement result;
-    if (Initializers.isSuperConstructorCall(call)) {
-      // Check for invalid initializers.
-      if (hasSuper) {
-        error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
-      }
-      hasSuper = true;
+    if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
       if (lookupTarget.name == Types.OBJECT) {
-        error(call, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
+        error(diagnosticNode, MessageKind.SUPER_INITIALIZER_IN_OBJECT);
       } else {
         lookupTarget = lookupTarget.supertype.element;
       }
-    } else if (Initializers.isConstructorRedirect(call)) {
-      // Check that there is no body (Language specification 7.5.1).
-      if (functionNode.hasBody()) {
-        error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
-      }
-      // Check that there are no other initializers.
-      if (!initializers.tail.isEmpty()) {
-        error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
-      }
-    } else {
-      visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
-      validTarget = false;
     }
 
-    if (validTarget) {
-      // Resolve the arguments, and make sure the call gets a selector
-      // by calling handleArguments.
-      visitor.inStaticContext( () => visitor.handleArguments(call) );
-      // Lookup constructor and try to match it to the selector.
-      ResolverTask resolver = visitor.compiler.resolver;
-      result = resolver.lookupConstructor(lookupTarget, call);
-      if (result === null) {
-        SourceString constructorName = resolver.getConstructorName(call);
-        String className = lookupTarget.name.slowToString();
-        String name = (constructorName === const SourceString(''))
-                          ? className
-                          : "$className.${constructorName.slowToString()}";
-        error(call, MessageKind.CANNOT_RESOLVE_CONSTRUCTOR, [name]);
-      } else {
-        final Compiler compiler = visitor.compiler;
-        Selector selector = visitor.mapping.getSelector(call);
-        FunctionParameters parameters = result.computeParameters(compiler);
-        // TODO(karlklose): support optional arguments.
-        if (!selector.applies(parameters)) {
-          error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
-        }
+    // Lookup constructor and try to match it to the selector.
+    ResolverTask resolver = visitor.compiler.resolver;
+    final SourceString className = lookupTarget.name;
+    result = lookupTarget.lookupConstructor(className, constructorName);
+    if (result === null) {
+      String classNameString = className.slowToString();
+      String constructorNameString = constructorName.slowToString();
+      String name = (constructorName === const SourceString(''))
+                        ? classNameString
+                        : "$classNameString.$constructorNameString";
+      MessageKind kind = isImplicitSuperCall
+                         ? MessageKind.CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT
+                         : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
+      error(diagnosticNode, kind, [name]);
+    } else {
+      final Compiler compiler = visitor.compiler;
+      FunctionParameters parameters = result.computeParameters(compiler);
+      if (!selector.applies(parameters)) {
+        MessageKind kind = isImplicitSuperCall
+                           ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
+                           : MessageKind.NO_MATCHING_CONSTRUCTOR;
+        error(diagnosticNode, kind);
       }
-      visitor.useElement(call, result);
     }
     return result;
   }
@@ -350,7 +365,7 @@ class InitializerResolver {
     if (functionNode.initializers === null) return null;
     Link<Node> link = functionNode.initializers.nodes;
     if (!link.isEmpty() && Initializers.isConstructorRedirect(link.head)) {
-      return resolveSuperOrThis(constructor, functionNode, link.head);
+      return resolveSuperOrThisForSend(constructor, functionNode, link.head);
     }
     return null;
   }
@@ -361,9 +376,13 @@ class InitializerResolver {
    */
   FunctionElement resolveInitializers(FunctionElement constructor,
                                       FunctionExpression functionNode) {
-    if (functionNode.initializers === null) return null;
-    initializers = functionNode.initializers.nodes;
+    if (functionNode.initializers === null) {
+      initializers = const EmptyLink<Node>();
+    } else {
+      initializers = functionNode.initializers.nodes;
+    }
     FunctionElement result;
+    bool resolvedSuper = false;
     for (Link<Node> link = initializers;
          !link.isEmpty();
          link = link.tail) {
@@ -372,12 +391,34 @@ class InitializerResolver {
         resolveFieldInitializer(constructor, init);
       } else if (link.head.asSend() !== null) {
         final Send call = link.head.asSend();
-        result = resolveSuperOrThis(constructor, functionNode, call);
+        if (Initializers.isSuperConstructorCall(call)) {
+          if (resolvedSuper) {
+            error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);          
+          }
+          resolveSuperOrThisForSend(constructor, functionNode, call);
+          resolvedSuper = true;
+        } else if (Initializers.isConstructorRedirect(call)) {
+          // Check that there is no body (Language specification 7.5.1).
+          if (functionNode.hasBody()) {
+            error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
+          }
+          // Check that there are no other initializers.
+          if (!initializers.tail.isEmpty()) {
+            error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
+          }
+          return resolveSuperOrThisForSend(constructor, functionNode, call);
+        } else {
+          visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
+          return null;
+        }
       } else {
         error(link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
-    return result;
+    if (!resolvedSuper) {
+      resolveImplicitSuperConstructorSend(constructor, functionNode);
+    }
+    return null;  // If there was no redirection always return null.
   }
 }
 
@@ -592,43 +633,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
-    Send send = node.typeName.asSend();
-    Element element;
-    if (send !== null) {
-      if (typeRequired) {
-        element = resolveSend(send);
-      } else {
-        // Not calling resolveSend as it will emit an error instead of
-        // a warning if the type is bogus.
-        // TODO(ahe): Change resolveSend so it can emit a warning when needed.
-        return null;
-      }
-    } else {
-      element = context.lookup(node.typeName.asIdentifier().source);
-    }
-    if (element === null) {
-      if (typeRequired) {
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
-      }
-    } else if (!element.impliesType()) {
-      if (typeRequired) {
-        error(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      } else {
-        warning(node, MessageKind.NOT_A_TYPE, [node.typeName]);
-      }
-    } else {
-      if (element.isClass()) {
-        // TODO(ngeoffray): Should we also resolve typedef?
-        ClassElement cls = element;
-        compiler.resolver.toResolve.add(element);
-      }
-      // TODO(ahe): This should be a Type.
-      useElement(node, element);
-    }
-    return element;
+  Element visitTypeAnnotation(TypeAnnotation node) {
+    Type type = resolveTypeAnnotation(node);
+    if (type !== null) return type.element;
+    return null;
   }
 
   Element defineElement(Node node, Element element,
@@ -647,6 +655,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   Element useElement(Node node, Element element) {
     if (element === null) return null;
     return mapping[node] = element;
+  }
+
+  Type useType(TypeAnnotation annotation, Type type) {
+    if (type !== null) {
+      mapping.setType(annotation, type);
+      useElement(annotation, type.element);
+    }
+    return type;
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
@@ -672,6 +688,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       parameterNodes = parameterNodes.tail;
     });
+  }
+
+  visitCascade(Cascade node) {
+    visit(node.expression);
+  }
+
+  visitCascadeReceiver(CascadeReceiver node) {
+    visit(node.expression);
   }
 
   Element visitClassNode(ClassNode node) {
@@ -820,12 +844,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return target;
   }
 
-  resolveTypeTest(Node argument) {
+  Type resolveTypeTest(Node argument) {
     TypeAnnotation node = argument.asTypeAnnotation();
-    if (node == null) {
-      node = argument.asSend().receiver;
+    if (node === null) {
+      // node is of the form !Type.
+      node = argument.asSend().receiver.asTypeAnnotation();
+      if (node === null) compiler.cancel("malformed send");
     }
-    resolveTypeRequired(node);
+    return resolveTypeRequired(node);
   }
 
   void handleArguments(Send node) {
@@ -988,27 +1014,109 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return null;
   }
 
+  TypeAnnotation getTypeAnnotationFromSend(Send send) {
+    if (send.selector.asTypeAnnotation() !== null) {
+      return send.selector;
+    } else if (send.selector.asSend() !== null) {
+      Send selector = send.selector;
+      if (selector.receiver.asTypeAnnotation() !== null) {
+        return selector.receiver;
+      }
+    } else {
+      compiler.internalError("malformed send in new expression");
+    }
+  }
+
   FunctionElement resolveConstructor(NewExpression node) {
     FunctionElement constructor =
         node.accept(new ConstructorResolver(compiler, this));
+    TypeAnnotation annotation = getTypeAnnotationFromSend(node.send);
+    Type type = resolveTypeRequired(annotation);
     if (constructor === null) {
-      Element resolved = resolveTypeRequired(node.send.selector);
+      Element resolved = (type != null) ? type.element : null;
       if (resolved !== null && resolved.kind === ElementKind.TYPE_VARIABLE) {
-        error(node, WarningKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
+        error(node, MessageKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
         return null;
       } else {
         error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+        return null;
       }
     }
     return constructor;
   }
 
-  Element resolveTypeRequired(Node node) {
+  Type resolveTypeRequired(TypeAnnotation node) {
     bool old = typeRequired;
     typeRequired = true;
-    Element element = visit(node);
+    Type result = resolveTypeAnnotation(node);
     typeRequired = old;
-    return element;
+    return result;
+  }
+
+  Element resolveTypeName(TypeAnnotation node) {
+    Identifier typeName = node.typeName.asIdentifier();
+    Send send = node.typeName.asSend();
+    if (send !== null) {
+      typeName = send.selector;
+    }
+    if (typeName.source == Types.VOID) return compiler.types.voidType.element;
+    if (send !== null) {
+      Element e = context.lookup(send.receiver.asIdentifier().source);
+      if (e !== null && e.kind === ElementKind.PREFIX) {
+        // The receiver is a prefix. Lookup in the imported members.
+        PrefixElement prefix = e;
+        return prefix.lookupLocalMember(typeName.source);
+      } else if (e !== null && e.kind === ElementKind.CLASS) {
+        // The receiver is the class part of a named constructor.
+        return e;
+      } else {
+        return null;
+      }
+    } else {
+      return context.lookup(typeName.source);
+    }
+  }
+
+  Type resolveTypeAnnotation(TypeAnnotation node) {
+    Function report = typeRequired ? error : warning;
+    Element element = resolveTypeName(node);
+    Type type;
+    if (element === null) {
+      report(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
+    } else if (!element.impliesType()) {
+      report(node, MessageKind.NOT_A_TYPE, [node.typeName]);
+    } else {
+      if (element === compiler.types.voidType.element ||
+          element === compiler.types.dynamicType.element) {
+        type = element.computeType(compiler);
+      } else if (element.isClass()) {
+        ClassElement cls = element;
+        if (!cls.isResolved) compiler.resolveClass(cls);
+        LinkBuilder<Type> arguments = new LinkBuilder<Type>();
+        if (node.typeArguments !== null) {
+          int index = 0;
+          for (Link<Node> typeArguments = node.typeArguments.nodes;
+               !typeArguments.isEmpty();
+               typeArguments = typeArguments.tail) {
+            if (++index > cls.typeParameters.length) {
+              report(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+            }
+            arguments.addLast(resolveTypeAnnotation(typeArguments.head));
+          }
+          if (index < cls.typeParameters.length) {
+            report(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+          }
+        }
+        type = new InterfaceType(cls.name, cls, arguments.toLink());
+      } else if (element.isTypedef()) {
+        // TODO(karlklose): implement typedefs. We return a fake type that the
+        // code generator can use to detect typedefs in is-checks.
+        type = new InterfaceType(element.name, element);
+      } else {
+        type = element.computeType(compiler);
+      }
+    }
+    return useType(node, type);
   }
 
   visitModifiers(Modifiers node) {
@@ -1168,15 +1276,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           }
         }
 
-        TargetElement TargetElement =
+        TargetElement targetElement =
             new TargetElement(switchCase,
-                                 statementScope.nestingLevel,
-                                 enclosingElement);
-        mapping[switchCase] = TargetElement;
+                              statementScope.nestingLevel,
+                              enclosingElement);
+        mapping[switchCase] = targetElement;
 
         LabelElement label =
             new LabelElement(labelIdentifier, labelName,
-                             TargetElement, enclosingElement);
+                             targetElement, enclosingElement);
         mapping[labelIdentifier] = label;
         continueLabels[labelName] = label;
       }
@@ -1191,8 +1299,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     // Clean-up unused labels
     continueLabels.forEach((String key, LabelElement label) {
-      TargetElement TargetElement = label.target;
-      SwitchCase switchCase = TargetElement.statement;
+      TargetElement targetElement = label.target;
+      SwitchCase switchCase = targetElement.statement;
       if (!label.isContinueTarget) {
         mapping.remove(switchCase);
         mapping.remove(label.label);
@@ -1298,7 +1406,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       } else if (objectElement === null){
         error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
-      classElement.supertype = new SimpleType(Types.OBJECT, objectElement);
+      classElement.supertype = new InterfaceType(Types.OBJECT, objectElement);
     }
     if (node.defaultClause !== null) {
       classElement.defaultClass = visit(node.defaultClause);
@@ -1372,43 +1480,42 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     return e.computeType(compiler);
   }
 
-  Link<Type> getOrCalculateAllSupertypes(ClassElement classElement,
+  Link<Type> getOrCalculateAllSupertypes(ClassElement cls,
                                          [Set<ClassElement> seen]) {
-    Link<Type> allSupertypes = classElement.allSupertypes;
+    Link<Type> allSupertypes = cls.allSupertypes;
     if (allSupertypes !== null) return allSupertypes;
     if (seen === null) {
       seen = new Set<ClassElement>();
     }
-    if (seen.contains(classElement)) {
-      error(classElement.parseNode(compiler),
+    if (seen.contains(cls)) {
+      error(cls.parseNode(compiler),
             MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [classElement.name]);
-      classElement.allSupertypes = const EmptyLink<Type>();
+            [cls.name]);
+      cls.allSupertypes = const EmptyLink<Type>();
     } else {
-      classElement.ensureResolved(compiler);
-      calculateAllSupertypes(classElement, seen);
+      cls.ensureResolved(compiler);
+      calculateAllSupertypes(cls, seen);
     }
-    return classElement.allSupertypes;
+    return cls.allSupertypes;
   }
 
-  void calculateAllSupertypes(ClassElement classElement,
-                              Set<ClassElement> seen) {
+  void calculateAllSupertypes(ClassElement cls, Set<ClassElement> seen) {
     // TODO(karlklose): substitute type variables.
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
-    if (classElement.allSupertypes !== null) return;
-    final Type supertype = classElement.supertype;
-    if (seen.contains(classElement)) {
-      error(classElement.parseNode(compiler),
+    if (cls.allSupertypes !== null) return;
+    final Type supertype = cls.supertype;
+    if (seen.contains(cls)) {
+      error(cls.parseNode(compiler),
             MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [classElement.name]);
-      classElement.allSupertypes = const EmptyLink<Type>();
+            [cls.name]);
+      cls.allSupertypes = const EmptyLink<Type>();
     } else if (supertype != null) {
-      seen.add(classElement);
+      seen.add(cls);
       Link<Type> superSupertypes =
           getOrCalculateAllSupertypes(supertype.element, seen);
       Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
-      for (Link<Type> interfaces = classElement.interfaces;
+      for (Link<Type> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
         Element element = interfaces.head.element;
@@ -1417,10 +1524,10 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
         supertypes = supertypes.prepend(interfaces.head);
       }
-      seen.remove(classElement);
-      classElement.allSupertypes = supertypes;
+      seen.remove(cls);
+      cls.allSupertypes = supertypes;
     } else {
-      classElement.allSupertypes = const EmptyLink<Type>();
+      cls.allSupertypes = const EmptyLink<Type>();
     }
   }
 
@@ -1634,7 +1741,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   void resolveType(Node node) {
     if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement));
+    // Find the correct member context to perform the lookup in.
+    Element outer = enclosingElement;
+    Element context = outer;
+    while (outer !== null) {
+      if (outer.isMember()) {
+        context = outer;
+        break;
+      }
+      outer = outer.enclosingElement;
+    }
+    node.accept(new ResolverVisitor(compiler, context));
   }
 
   // TODO(ahe): This is temporary.
@@ -1735,7 +1852,7 @@ class Scope {
 
 class TypeVariablesScope extends Scope {
   TypeVariablesScope(parent, ClassElement element) : super(parent, element);
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add element to TypeVariableScope";
   }
   Element lookup(SourceString name) {
@@ -1753,15 +1870,17 @@ class MethodScope extends Scope {
     : super(parent, element), this.elements = new Map<SourceString, Element>();
 
   Element lookup(SourceString name) {
-    Element element = elements[name];
-    if (element !== null) return element;
+    Element found = elements[name];
+    if (found !== null) return found;
     return parent.lookup(name);
   }
 
-  Element add(Element element) {
-    if (elements.containsKey(element.name)) return elements[element.name];
-    elements[element.name] = element;
-    return element;
+  Element add(Element newElement) {
+    if (elements.containsKey(newElement.name)) {
+      return elements[newElement.name];
+    }
+    elements[newElement.name] = newElement;
+    return newElement;
   }
 }
 
@@ -1784,7 +1903,7 @@ class ClassScope extends Scope {
     return cls.lookupSuperMember(name);
   }
 
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add an element in a class scope";
   }
 }
@@ -1797,7 +1916,7 @@ class TopScope extends Scope {
     return library.find(name);
   }
 
-  Element add(Element element) {
+  Element add(Element newElement) {
     throw "Cannot add an element in the top scope";
   }
 }

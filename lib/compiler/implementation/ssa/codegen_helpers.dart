@@ -24,7 +24,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   bool usedOnlyByPhis(instruction) {
     for (HInstruction user in instruction.usedBy) {
-      if (user is !HPhi) return false;
+      if (user is! HPhi) return false;
     }
     return true;
   }
@@ -35,7 +35,8 @@ class SsaInstructionMerger extends HBaseVisitor {
     for (HInstruction input in instruction.inputs) {
       if (!generateAtUseSite.contains(input)
           && !input.isCodeMotionInvariant()
-          && input.usedBy.length == 1) {
+          && input.usedBy.length == 1
+          && input is! HPhi) {
         expectedInputs.add(input);
       }
     }
@@ -91,16 +92,35 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
-    bool findInInputs(HInstruction instruction) {
+    bool findInInputsAndPopNonMatching(HInstruction instruction) {
       while (!expectedInputs.isEmpty()) {
         HInstruction nextInput = expectedInputs.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
-        if (nextInput == instruction) {
+        if (nextInput === instruction) {
           return true;
         }
       }
       return false;
+    }
+
+    for (HBasicBlock successor in block.successors) {
+      // Only add the input of the first phi. Making inputs of
+      // later phis generate-at-use-site would make them move
+      // accross the assignment of the first phi, and we need
+      // more analysis before we can do that.
+      HPhi phi = successor.phis.first;
+      if (phi != null) {
+        int index = successor.predecessors.indexOf(block);
+        HInstruction input = phi.inputs[index];
+        if (!generateAtUseSite.contains(input)
+            && !input.isCodeMotionInvariant()
+            && input.usedBy.length == 1
+            && input is! HPhi) {
+          expectedInputs.add(input);
+        }
+        break;
+      }
     }
 
     block.last.accept(this);
@@ -114,24 +134,19 @@ class SsaInstructionMerger extends HBaseVisitor {
         generateAtUseSite.add(instruction);
         continue;
       }
-      bool foundInInputs = false;
       // See if the current instruction is the next non-trivial
-      // expected input. If not, drop the expectedInputs and
-      // start over.
-      if (findInInputs(instruction)) {
-        foundInInputs = true;
+      // expected input.
+      if (findInInputsAndPopNonMatching(instruction)) {
         tryGenerateAtUseSite(instruction);
       } else {
         assert(expectedInputs.isEmpty());
       }
-      if (foundInInputs || usedOnlyByPhis(instruction)) {
-        // Try merging all non-trivial inputs.
-        instruction.accept(this);
-      }
+      instruction.accept(this);
     }
 
     if (block.predecessors.length === 1
         && isBlockSinglePredecessor(block.predecessors[0])) {
+      assert(block.phis.isEmpty());
       tryMergingExpressions(block.predecessors[0]);
     } else {
       expectedInputs = null;

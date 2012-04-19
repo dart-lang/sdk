@@ -161,6 +161,15 @@ def GetBuildRoot(target_os, mode=None, arch=None):
 def GetBaseDir():
   return BASE_DIR
 
+def GetSVNRevision():
+  p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
+      stderr = subprocess.STDOUT, shell=IsWindows())
+  output, not_used = p.communicate()
+  for line in output.split('\n'):
+    if 'Revision' in line:
+      return (line.strip().split())[1]
+  return None
+
 def RewritePathSeparator(path, workspace):
   # Paths in test files are always specified using '/'
   # as the path separator. Replace with the actual

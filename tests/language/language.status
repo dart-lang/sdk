@@ -17,7 +17,6 @@
 
 [ $compiler == none ]
 GCTest: Crash # Issue 1487
-ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Fail # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
@@ -28,11 +27,6 @@ PseudoKWIllegalTest/08: Fail  # Issue 356
 PseudoKWIllegalTest/10: Fail  # Issue 356
 PseudoKWIllegalTest/14: Fail  # Issue 356
 
-ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
-ImplicitThisTest/02: Fail # Issue 374
-ImplicitThisTest/03: Fail # Issue 374
-ImplicitThisTest/04: Fail # Issue 374
-ImplicitThisTest/none: Fail # Issue 374
 
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)
@@ -98,6 +92,8 @@ CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
 ClosureCallWrongArgumentCountNegativeTest: Fail
 CompileTimeConstant3Test: Fail # Issue 1780
+CompileTimeConstantOTest: Fail # Issue 2126
+CompileTimeConstantPTest/01: Fail # Issue 2580
 ConstConstructorSyntaxTest/05: Fail
 ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
@@ -201,6 +197,7 @@ IntrinsifiedMethodsTest: Fail # Issue 1470
 [ ($compiler == frog || $compiler == frogsh) && $unchecked ]
 BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
+Operator4Test: Fail
 
 [ $compiler == frog  || $compiler == frogsh ]
 StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
@@ -213,6 +210,9 @@ CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of 
 CompileTimeConstantETest: Fail
 CompileTimeConstantGTest: Fail # compile time constants with super calls to optional arguments.
 CompileTimeConstantKTest: Fail # Constant maps are not canonicalized correctly if the same key appears multiple times.
+CompileTimeConstantLTest: Fail # final instance fields with default values are not initialized correctly.
+CompileTimeConstantOTest: Fail # String constants with string-interpolation.
+CompileTimeConstantPTest/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
 DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
 DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 # Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to

@@ -24,11 +24,17 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 void FlowGraphCompiler::CompileGraph() {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::graphcompiler_timer);
   Bailout("CompileGraph");
 }
 
 
 void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
+  UNIMPLEMENTED();
+}
+
+
+void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
   UNIMPLEMENTED();
 }
 

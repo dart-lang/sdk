@@ -1024,8 +1024,7 @@ public class ResolverTest extends ResolverTestCase {
         "  MyClass() : super() {",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE,
-        ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR);
+        ResolverErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_shadowType_withVariable() throws Exception {

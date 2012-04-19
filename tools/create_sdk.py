@@ -425,6 +425,13 @@ def Main(argv):
     import_dst = join(LIB, 'config', 'import_' + platform + '.config')
     copyfile(import_src, import_dst);
 
+  # Write the 'revision' file
+  revision = utils.GetSVNRevision()
+  if revision is not None:
+    with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:
+      f.write(revision + '\n')
+      f.close()
+
   move(SDK_tmp, SDK)
 
 if __name__ == '__main__':

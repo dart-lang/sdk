@@ -2684,8 +2684,20 @@ void OptimizingCodeGenerator::GenerateInlineCacheCall(
     const Array& optional_arguments_names) {
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, optional_arguments_names));
-  ExternalLabel target_label(
-      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
+
+  uword label_address = 0;
+  switch (ic_data.num_args_tested()) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+
+  ExternalLabel target_label("InlineCache", label_address);
 
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,

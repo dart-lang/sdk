@@ -248,9 +248,13 @@ final PrecedenceInfo PERIOD_PERIOD_PERIOD_INFO =
   const PrecedenceInfo(const SourceString('...'), 0,
                        PERIOD_PERIOD_PERIOD_TOKEN);
 
-// TODO(ahe): This might become a token.
+/**
+ * The cascade operator has the lowest precedence of any operator.
+ */
+final int CASCADE_PRECEDENCE = 1;
 final PrecedenceInfo PERIOD_PERIOD_INFO =
-  const PrecedenceInfo(const SourceString('..'), 0, PERIOD_PERIOD_TOKEN);
+  const PrecedenceInfo(const SourceString('..'), CASCADE_PRECEDENCE,
+                       PERIOD_PERIOD_TOKEN);
 
 final PrecedenceInfo BANG_INFO =
   const PrecedenceInfo(const SourceString('!'), 0, BANG_TOKEN);

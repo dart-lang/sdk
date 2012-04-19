@@ -127,6 +127,7 @@ def parse_args(args=None):
       help = 'The type of test we are running',
       action = 'store', default='correctness')
   args, _ = parser.parse_args(args=args)
+  args.out = args.out.strip('"')
   if args.executable and args.browser != 'dartium':
     print 'Executable path only supported when browser=dartium.'
     sys.exit(1)

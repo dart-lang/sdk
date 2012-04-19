@@ -1535,48 +1535,47 @@ bool Class::IsSubtypeOf(
                            other_type_arguments,
                            malformed_error);
   }
-  // Check for 'direct super type' in the case of an interface and check for
-  // transitivity at the same time.
-  if (other.is_interface()) {
-    Array& interfaces = Array::Handle(this->interfaces());
-    AbstractType& interface = AbstractType::Handle();
-    Class& interface_class = Class::Handle();
-    AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
-    for (intptr_t i = 0; i < interfaces.Length(); i++) {
-      interface ^= interfaces.At(i);
-      interface_class = interface.type_class();
-      interface_args = interface.arguments();
-      if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
-        // This type class implements an interface that is parameterized with
-        // generic type(s), e.g. it implements List<T>.
-        // The uninstantiated type T must be instantiated using the type
-        // parameters of this type before performing the type test.
-        // The type arguments of this type that are referred to by the type
-        // parameters of the interface are at the end of the type vector,
-        // after the type arguments of the super type of this type.
-        // The index of the type parameters is adjusted upon finalization.
-        ASSERT(interface.IsFinalized());
-        interface_args = interface_args.InstantiateFrom(type_arguments);
-        // In checked mode, verify that the instantiated interface type
-        // arguments are within the bounds specified by the interface class.
-        // Note that the additional bounds check in checked mode may lead to a
-        // dynamic type error, but it will never change the result of the type
-        // check from true in production mode to false in checked mode.
-        if (FLAG_enable_type_checks && !interface_args.IsNull()) {
-          // Pass type_arguments as bounds instantiator.
-          if (!interface_args.IsWithinBoundsOf(interface_class,
-                                               type_arguments,
-                                               malformed_error)) {
-            continue;
-          }
+  // Check for 'direct super type' in the case of an interface
+  // (i.e. other.is_interface()) or implicit interface (i.e.
+  // !other.is_interface()) and check for transitivity at the same time.
+  Array& interfaces = Array::Handle(this->interfaces());
+  AbstractType& interface = AbstractType::Handle();
+  Class& interface_class = Class::Handle();
+  AbstractTypeArguments& interface_args = AbstractTypeArguments::Handle();
+  for (intptr_t i = 0; i < interfaces.Length(); i++) {
+    interface ^= interfaces.At(i);
+    interface_class = interface.type_class();
+    interface_args = interface.arguments();
+    if (!interface_args.IsNull() && !interface_args.IsInstantiated()) {
+      // This type class implements an interface that is parameterized with
+      // generic type(s), e.g. it implements List<T>.
+      // The uninstantiated type T must be instantiated using the type
+      // parameters of this type before performing the type test.
+      // The type arguments of this type that are referred to by the type
+      // parameters of the interface are at the end of the type vector,
+      // after the type arguments of the super type of this type.
+      // The index of the type parameters is adjusted upon finalization.
+      ASSERT(interface.IsFinalized());
+      interface_args = interface_args.InstantiateFrom(type_arguments);
+      // In checked mode, verify that the instantiated interface type
+      // arguments are within the bounds specified by the interface class.
+      // Note that the additional bounds check in checked mode may lead to a
+      // dynamic type error, but it will never change the result of the type
+      // check from true in production mode to false in checked mode.
+      if (FLAG_enable_type_checks && !interface_args.IsNull()) {
+        // Pass type_arguments as bounds instantiator.
+        if (!interface_args.IsWithinBoundsOf(interface_class,
+                                             type_arguments,
+                                             malformed_error)) {
+          continue;
         }
       }
-      if (interface_class.IsSubtypeOf(interface_args,
-                                      other,
-                                      other_type_arguments,
-                                      malformed_error)) {
-        return true;
-      }
+    }
+    if (interface_class.IsSubtypeOf(interface_args,
+                                    other,
+                                    other_type_arguments,
+                                    malformed_error)) {
+      return true;
     }
   }
   // Check the interface case.
@@ -6127,12 +6126,12 @@ const char* ICData::ToCString() const {
 
 
 void ICData::set_function(const Function& value) const {
-  raw_ptr()->function_ = value.raw();
+  StorePointer(&raw_ptr()->function_, value.raw());
 }
 
 
 void ICData::set_target_name(const String& value) const {
-  raw_ptr()->target_name_ = value.raw();
+  StorePointer(&raw_ptr()->target_name_, value.raw());
 }
 
 
@@ -6147,7 +6146,7 @@ void ICData::set_num_args_tested(intptr_t value) const {
 
 
 void ICData::set_ic_data(const Array& value) const {
-  raw_ptr()->ic_data_ = value.raw();
+  StorePointer(&raw_ptr()->ic_data_, value.raw());
 }
 
 
@@ -6696,16 +6695,6 @@ bool Smi::Equals(const Instance& other) const {
   Smi& other_smi = Smi::Handle();
   other_smi ^= other.raw();
   return (this->Value() == other_smi.Value());
-}
-
-
-bool Smi::IsValid(intptr_t value) {
-  return (value >= kMinValue) && (value <= kMaxValue);
-}
-
-
-bool Smi::IsValid64(int64_t value) {
-  return (value >= kMinValue) && (value <= kMaxValue);
 }
 
 
@@ -8552,6 +8541,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       // space as an Array object.
       RawArray* raw = reinterpret_cast<RawArray*>(RawObject::FromAddr(addr));
       raw->ptr()->class_ = isolate->object_store()->array_class();
+      tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       raw->ptr()->tags_ = tags;
       intptr_t leftover_len =
@@ -8563,6 +8553,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
       raw->ptr()->class_ = isolate->object_store()->object_class();
+      tags = 0;
       tags = RawObject::SizeTag::update(leftover_size, tags);
       raw->ptr()->tags_ = tags;
     }

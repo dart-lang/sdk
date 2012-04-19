@@ -439,13 +439,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     return False
 
   def AddAttribute(self, getter, setter):
-    # FIXME: Dartium does not support attribute event listeners. However, JS
-    # implementation falls back to them when addEventListener is not available.
-    # Make sure addEventListener is available in all EventTargets and remove
-    # this check.
-    if (getter or setter).type.id == 'EventListener':
-      return
-
     if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
       # FIXME: exclude from interface as well.
       return
@@ -574,7 +567,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
       dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
-      argument_count = 1 + len(info.arg_infos)
+      argument_count = 1 + len(info.param_infos)
       self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
           'Callback', True)
       return
@@ -611,7 +604,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     native_name = info.name
     if self._native_version > 1:
       native_name = '%s_%s' % (native_name, self._native_version)
-    argument_list = ', '.join([info.arg_infos[i][0]
+    argument_list = ', '.join([info.param_infos[i].name
                                for (i, arg) in enumerate(operation.arguments)])
 
     # Generate dispatcher.
@@ -843,9 +836,15 @@ def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in includes])
 
 def _DOMWrapperType(database, interface):
+  if interface.id == 'MessagePort':
+    return 'MessagePort'
+
+  type = 'Object'
   if _InstanceOfNode(database, interface):
-    return 'DOMNode'
-  return 'DOMObject'
+    type = 'Node'
+  if 'ActiveDOMObject' in interface.ext_attrs:
+    type = 'Active%s' % type
+  return type
 
 def _InstanceOfNode(database, interface):
   if interface.id == 'Node':

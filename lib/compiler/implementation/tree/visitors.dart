@@ -9,6 +9,8 @@ class AbstractVisitor<R> implements Visitor<R> {
 
   R visitBlock(Block node) => visitStatement(node);
   R visitBreakStatement(BreakStatement node) => visitGotoStatement(node);
+  R visitCascade(Cascade node) => visitExpression(node);
+  R visitCascadeReceiver(CascadeReceiver node) => visitExpression(node);
   R visitCatchBlock(CatchBlock node) => visitNode(node);
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);

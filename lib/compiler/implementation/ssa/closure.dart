@@ -21,6 +21,18 @@ class ClosureClassElement extends ClassElement {
   }
 }
 
+class BoxElement extends Element {
+  BoxElement(SourceString name, Element enclosingElement)
+      : super(name, ElementKind.VARIABLE, enclosingElement);
+}
+
+class ThisElement extends Element {
+  ThisElement(Element enclosing)
+      : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
+
+  bool isAssignable() => false;
+}
+
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
 class ClosureScope {
@@ -47,7 +59,7 @@ class ClosureData {
   final FunctionElement callElement;
   // The [thisElement] makes handling 'this' easier by treating it like any
   // other argument. It is only set for instance-members.
-  final Element thisElement;
+  final ThisElement thisElement;
 
   // Maps free locals, arguments and function elements to their captured
   // copies.
@@ -82,7 +94,7 @@ class ClosureData {
 class ClosureTranslator extends AbstractVisitor {
   final Compiler compiler;
   final TreeElements elements;
-  int boxCounter = 0;
+  int closureFieldCounter = 0;
   bool inTryCatchOrFinally = false;
   final Map<Node, ClosureData> closureDataCache;
 
@@ -156,13 +168,20 @@ class ClosureTranslator extends AbstractVisitor {
       });
       ClassElement closureElement = data.closureClassElement;
       assert(closureElement != null || fieldCaptures.isEmpty());
-      for (Element boxElement in fieldCaptures) {
-        Element fieldElement =
-            new ClosureFieldElement(boxElement.name, closureElement);
+      for (Element capturedElement in fieldCaptures) {
+        SourceString name;
+        if (capturedElement is BoxElement) {
+          // The name is already mangled.
+          name = capturedElement.name;
+        } else {
+          int id = closureFieldCounter++;
+          name = new SourceString("${capturedElement.name.slowToString()}_$id");
+        }
+        Element fieldElement = new ClosureFieldElement(name, closureElement);
         closureElement.backendMembers =
             closureElement.backendMembers.prepend(fieldElement);
-        data.capturedFieldMapping[fieldElement] = boxElement;
-        freeVariableMapping[boxElement] = fieldElement;
+        data.capturedFieldMapping[fieldElement] = capturedElement;
+        freeVariableMapping[capturedElement] = fieldElement;
       }
     }
   }
@@ -240,20 +259,22 @@ class ClosureTranslator extends AbstractVisitor {
     Element box = null;
     Map<Element, Element> scopeMapping = new Map<Element, Element>();
     for (Element element in scopeVariables) {
+      // No need to box non-assignable elements.
+      if (!element.isAssignable()) continue;
       if (capturedVariableMapping.containsKey(element)) {
         if (box == null) {
           // TODO(floitsch): construct better box names.
-          SourceString boxName = new SourceString("box${boxCounter++}");
-          box = new Element(boxName,
-                            ElementKind.VARIABLE,
-                            currentFunctionElement);
+          SourceString boxName =
+              new SourceString("box_${closureFieldCounter++}");
+          box = new BoxElement(boxName, currentFunctionElement);
         }
         // TODO(floitsch): construct better boxed names.
         String elementName = element.name.slowToString();
         // We are currently using the name in an HForeign which could replace
         // "$X" with something else.
         String escaped = elementName.replaceAll("\$", "_");
-        SourceString boxedName = new SourceString("${escaped}_${boxCounter++}");
+        SourceString boxedName =
+            new SourceString("${escaped}_${closureFieldCounter++}");
         Element boxed = new Element(boxedName, ElementKind.FIELD, box);
         scopeMapping[element] = boxed;
         capturedVariableMapping[element] = boxed;
@@ -346,16 +367,11 @@ class ClosureTranslator extends AbstractVisitor {
           ConstructorBodyElement body = element;
           thisEnclosingElement = body.constructor;
         }
-        thisElement = new Element(const SourceString("this"),
-                                  ElementKind.PARAMETER,
-                                  thisEnclosingElement);
+        thisElement = new ThisElement(thisEnclosingElement);
       }
       closureData = new ClosureData(null, null, null, thisElement);
     }
     scopeVariables = new List<Element>();
-
-    // TODO(floitsch): a named function is visible from inside itself. Add
-    // the element to the block.
 
     // We have to declare the implicit 'this' parameter.
     if (!insideClosure && closureData.thisElement !== null) {

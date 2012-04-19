@@ -13,17 +13,11 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.bin',
     'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
-    'cygwin_dir': '../../third_party/cygwin',
   },
   'targets': [
     {
       'target_name': 'generate_builtin_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         'builtin_sources.gypi',
       ],
@@ -54,11 +48,6 @@
     {
       'target_name': 'generate_io_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         'io_sources.gypi',
       ],
@@ -89,11 +78,6 @@
     {
       'target_name': 'generate_json_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         'json_sources.gypi',
       ],
@@ -124,11 +108,6 @@
     {
       'target_name': 'generate_uri_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         'uri_sources.gypi',
       ],
@@ -159,11 +138,6 @@
     {
       'target_name': 'generate_utf_cc_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'includes': [
         'utf_sources.gypi',
       ],
@@ -293,11 +267,6 @@
       # Generate snapshot file.
       'target_name': 'generate_snapshot_file',
       'type': 'none',
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
-        }],
-      ],
       'dependencies': [
         'gen_snapshot',
       ],

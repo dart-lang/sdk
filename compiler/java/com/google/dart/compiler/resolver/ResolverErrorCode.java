@@ -132,6 +132,8 @@ public enum ResolverErrorCode implements ErrorCode {
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
   REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
+  SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(
+      "Super method invocation is not allowed in constructor initializer"),
   PARAMETER_INIT_STATIC_FIELD(
       "Parameter initializer cannot be use to initialize a static field '%s'"),
   PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR(

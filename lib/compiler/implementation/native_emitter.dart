@@ -14,8 +14,11 @@ class NativeEmitter {
   // Native classes found in the application.
   Set<ClassElement> nativeClasses;
 
-  // Caches the direct native subtypes of a native class.
+  // Caches the native subtypes of a native class.
   Map<ClassElement, List<ClassElement>> subtypes;
+
+  // Caches the direct native subtypes of a native class.
+  Map<ClassElement, List<ClassElement>> directSubtypes;
 
   // Caches the native methods that are overridden by a native class.
   // Note that the method that overrides does not have to be native:
@@ -27,6 +30,7 @@ class NativeEmitter {
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
+        directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
         buffer = new StringBuffer();
 
@@ -73,8 +77,7 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(
-            member, attachTo, buffer, isNative: true);
+        compiler.emitter.addInstanceMember(member, attachTo, buffer);
       }
     }
   }
@@ -119,8 +122,7 @@ class NativeEmitter {
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        compiler.emitter.addInstanceMember(
-            member, attachTo, buffer, isNative: true);
+        compiler.emitter.addInstanceMember(member, attachTo, buffer);
       }
     }
 
@@ -134,9 +136,23 @@ class NativeEmitter {
   }
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
-    List<ClassElement> result = subtypes[cls];
-    if (result === null) result = const<ClassElement>[];
-    return result;
+    List<ClassElement> result = directSubtypes[cls];
+    return result === null ? const<ClassElement>[] : result;
+  }
+
+  void potentiallyConvertDartClosuresToJs(StringBuffer code,
+                                          FunctionElement member) {
+    FunctionParameters parameters = member.computeParameters(compiler);
+    Element converter =
+        compiler.findHelper(const SourceString('convertDartClosureToJS'));
+    String closureConverter = compiler.namer.isolateAccess(converter);
+    parameters.forEachParameter((Element parameter) {
+      Type type = parameter.computeType(compiler);
+      if (type is FunctionType) {
+        String name = parameter.name.slowToString();
+        code.add('  $name = $closureConverter($name);\n');
+      }
+    });
   }
 
   void emitParameterStub(Element member,
@@ -160,28 +176,19 @@ class NativeEmitter {
     String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
+    StringBuffer code = new StringBuffer();
+    potentiallyConvertDartClosuresToJs(code, member);
+
+    String name = member.name.slowToString();
+    code.add('  return this.$name($nativeArguments);');
+
     if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
       // Call the method directly.
-      buffer.add('    return this.${member.name.slowToString()}');
-      buffer.add('($nativeArguments)');
-      return;
+      buffer.add(code.toString());
+    } else {
+      native.generateMethodWithPrototypeCheck(
+          compiler, buffer, invocationName, code.toString(), stubParameters);
     }
-
-    // If the method is overridden, we must check if the prototype of
-    // 'this' has the method available. Otherwise, we may end up
-    // calling the method from the super class. If the method is not
-    // available, we make a direct call to
-    // Object.prototype.$invocationName. This method will patch the
-    // prototype of 'this' to the real method.
-
-    buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
-    buffer.add("'$invocationName')) {\n");
-    buffer.add('    return this.${member.name.slowToString()}');
-    buffer.add('($nativeArguments)');
-    buffer.add('\n  }\n');
-    buffer.add('  return Object.prototype.$invocationName.call(this');
-    buffer.add(stubParameters == '' ? '' : ', $stubParameters');
-    buffer.add(');');
   }
 
   void emitDynamicDispatchMetadata() {
@@ -199,8 +206,8 @@ class NativeEmitter {
       }
       classes.add(cls);
     }
-    for (final ClassElement cls in classesWithDynamicDispatch) {
-      visit(cls);
+    for (final ClassElement classElement in classesWithDynamicDispatch) {
+      visit(classElement);
     }
 
     Collection<ClassElement> dispatchClasses = classes.filter(
@@ -232,11 +239,11 @@ class NativeEmitter {
     // tag -> expression (a string or a variable)
     Map<ClassElement, String> tagDefns = new Map<ClassElement, String>();
 
-    String makeExpression(ClassElement cls) {
+    String makeExpression(ClassElement classElement) {
       // Expression fragments for this set of cls keys.
       List<String> expressions = <String>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = [toNativeName(cls)];
+      List<String> subtags = [toNativeName(classElement)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
@@ -257,7 +264,7 @@ class NativeEmitter {
           }
         }
       }
-      walk(cls);
+      walk(classElement);
       String constantPart = "'${Strings.join(subtags, '|')}'";
       if (constantPart != "''") expressions.add(constantPart);
       String expression;
@@ -269,8 +276,8 @@ class NativeEmitter {
       return expression;
     }
 
-    for (final ClassElement cls in dispatchClasses) {
-      tagDefns[cls] = makeExpression(cls);
+    for (final ClassElement classElement in dispatchClasses) {
+      tagDefns[classElement] = makeExpression(classElement);
     }
 
     // Write out a thunk that builds the metadata.

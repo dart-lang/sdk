@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -47,10 +47,9 @@ import java.util.List;
 public class ResolverCompilerTest extends CompilerTestCase {
 
   public void test_parameters_withFunctionAlias() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            "typedef List<T> TypeAlias<T, U extends List<T>>(List<T> arg, U u);");
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        "typedef List<T> TypeAlias<T, U extends List<T>>(List<T> arg, U u);");
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartFunctionTypeAlias typeAlias = findTypedef(unit, "TypeAlias");
@@ -76,18 +75,17 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * This is useful to the editor and other consumers of the AST.
    */
   public void test_resolution_on_class_decls() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "class A {}",
-                "interface B<T> default C {}",
-                "class C<T> extends A implements B<T> {}",
-                "class D extends C<int> {}",
-                "class E implements C<int> {}",
-                "class F<T extends A> {}",
-                "class G extends F<C<int>> {}",
-                "interface H<T> default C<T> {}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "class A {}",
+            "interface B<T> default C {}",
+            "class C<T> extends A implements B<T> {}",
+            "class D extends C<int> {}",
+            "class E implements C<int> {}",
+            "class F<T extends A> {}",
+            "class G extends F<C<int>> {}",
+            "interface H<T> default C<T> {}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     List<DartNode> nodes = unit.getTopLevelNodes();
@@ -208,17 +206,16 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * We should be able to resolve implicit default constructor.
    */
   public void test_resolveConstructor_implicit() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "class F {",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new F();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "class F {",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new F();",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new F()");
@@ -228,17 +225,16 @@ public class ResolverCompilerTest extends CompilerTestCase {
   }
 
   public void test_resolveConstructor_noSuchConstructor() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "class A {",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new A.foo();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new A.foo();",
+            "  }",
+            "}"));
     assertErrors(
         libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 5));
@@ -248,24 +244,55 @@ public class ResolverCompilerTest extends CompilerTestCase {
     assertNull(constructorElement);
   }
 
+  public void test_resolveConstructor_super_implicitDefault() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "}",
+            "class B extends A {",
+            "  B() : super() {}",
+            "}",
+            ""));
+    assertErrors(libraryResult.getErrors());
+  }
+
+  public void test_superMethodInvocation_inConstructorInitializer() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {}",
+            "}",
+            "class B extends A {",
+            "  var x;",
+            "  B() : x = super.foo() {}",
+            "}",
+            ""));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER, 7, 13, 11));
+  }
+
   /**
    * We should be able to resolve implicit default constructor.
    */
   public void test_resolveInterfaceConstructor_implicitDefault_noInterface_noFactory()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "}",
-                "class F implements I {",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "}",
+            "class F implements I {",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I();",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
@@ -279,19 +306,18 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_implicitDefault_hasInterface_noFactory()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "}",
-                "class F implements I {",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "}",
+            "class F implements I {",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I();",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
@@ -305,20 +331,19 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_implicitDefault_noInterface_hasFactory()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "}",
-                "class F implements I {",
-                "  F();",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "}",
+            "class F implements I {",
+            "  F();",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I();",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I()");
@@ -330,21 +355,20 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * If "const I()" is used, then constructor should be "const".
    */
   public void test_resolveInterfaceConstructor_const() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I(int x);",
-                "}",
-                "class F implements I {",
-                "  F(int y) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    const I(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I(int x);",
+            "}",
+            "class F implements I {",
+            "  F(int y) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    const I(0);",
+            "  }",
+            "}"));
     assertErrors(
         libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.CONST_AND_NONCONST_CONSTRUCTOR, 9, 5, 10));
@@ -367,22 +391,21 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_nameIsIdentifier()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I(int x);",
-                "}",
-                "class F implements I {",
-                "  F(int y) {}",
-                "  factory I(int y) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I(int x);",
+            "}",
+            "class F implements I {",
+            "  F(int y) {}",
+            "  factory I(int y) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I(0);",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new I(0)");
@@ -407,22 +430,21 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_nameIsQualified()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I.foo(int x);",
-                "}",
-                "class F implements I {",
-                "  F.foo(int y) {}",
-                "  factory I.foo(int y) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I.foo(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I.foo(int x);",
+            "}",
+            "class F implements I {",
+            "  F.foo(int y) {}",
+            "  factory I.foo(int y) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I.foo(0);",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // "new I.foo()" - good
@@ -450,23 +472,22 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_whenFactoryImplementsInterface_negative()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I(int x);",
-                "  I.foo(int x);",
-                "}",
-                "class F implements I {",
-                "  factory I.foo(int x) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I(0);",
-                "    new I.foo(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I(int x);",
+            "  I.foo(int x);",
+            "}",
+            "class F implements I {",
+            "  factory I.foo(int x) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I(0);",
+            "    new I.foo(0);",
+            "  }",
+            "}"));
     // Check errors.
     {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
@@ -516,25 +537,24 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=521
    */
   public void test_resolveInterfaceConstructor_noFactoryImplementsInterface() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I(int x);",
-                "  I.foo(int x);",
-                "}",
-                "class F {",
-                "  F.foo(int y) {}",
-                "  factory I(int y) {}",
-                "  factory I.foo(int y) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I(0);",
-                "    new I.foo(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I(int x);",
+            "  I.foo(int x);",
+            "}",
+            "class F {",
+            "  F.foo(int y) {}",
+            "  factory I(int y) {}",
+            "  factory I.foo(int y) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I(0);",
+            "    new I.foo(0);",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getCompilationErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // "new I()"
@@ -568,20 +588,19 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_noFactoryImplementsInterface_negative()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I.foo(int x);",
-                "}",
-                "class F {",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I.foo(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I.foo(int x);",
+            "}",
+            "class F {",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I.foo(0);",
+            "  }",
+            "}"));
     // Check errors.
     {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
@@ -612,21 +631,20 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_hasByName_negative_notSameNumberOfRequiredParameters()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I.foo(int x);",
-                "}",
-                "class F implements I {",
-                "  factory F.foo() {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I.foo();",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I.foo(int x);",
+            "}",
+            "class F implements I {",
+            "  factory F.foo() {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I.foo();",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getTypeErrors());
     // Check errors.
     {
@@ -662,27 +680,26 @@ public class ResolverCompilerTest extends CompilerTestCase {
    */
   public void test_resolveInterfaceConstructor_hasByName_negative_notSameNamedParameters()
       throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "interface I factory F {",
-                "  I.foo(int a, [int b, int c]);",
-                "  I.bar(int a, [int b, int c]);",
-                "  I.baz(int a, [int b]);",
-                "}",
-                "class F implements I {",
-                "  factory F.foo(int any, [int b = 1]) {}",
-                "  factory F.bar(int any, [int c = 1, int b = 2]) {}",
-                "  factory F.baz(int any, [int c = 1]) {}",
-                "}",
-                "class Test {",
-                "  foo() {",
-                "    new I.foo(0);",
-                "    new I.bar(0);",
-                "    new I.baz(0);",
-                "  }",
-                "}"));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "interface I factory F {",
+            "  I.foo(int a, [int b, int c]);",
+            "  I.bar(int a, [int b, int c]);",
+            "  I.baz(int a, [int b]);",
+            "}",
+            "class F implements I {",
+            "  factory F.foo(int any, [int b = 1]) {}",
+            "  factory F.bar(int any, [int c = 1, int b = 2]) {}",
+            "  factory F.baz(int any, [int c = 1]) {}",
+            "}",
+            "class Test {",
+            "  foo() {",
+            "    new I.foo(0);",
+            "    new I.bar(0);",
+            "    new I.baz(0);",
+            "  }",
+            "}"));
     assertErrors(libraryResult.getTypeErrors());
     // Check errors.
     {
@@ -760,25 +777,24 @@ public class ResolverCompilerTest extends CompilerTestCase {
    * {@link Element} as the {@link Element} of enclosing {@link DartNode}.
    */
   public void test_setElement_forName_inDeclarations() throws Exception {
-    AnalyzeLibraryResult libraryResult =
-        analyzeLibrary(
-            "Test.dart",
-            Joiner.on("\n").join(
-                "// filler filler filler filler filler filler filler filler filler filler",
-                "class A<B extends A> {",
-                "  var a1;",
-                "  get a2() {}",
-                "  A() {}",
-                "}",
-                "var c;",
-                "d(e) {",
-                "  var f;",
-                "  g() {};",
-                "  () {} ();",
-                "  h: d(0);",
-                "}",
-                "typedef i();",
-                ""));
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "Test.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A<B extends A> {",
+            "  var a1;",
+            "  get a2() {}",
+            "  A() {}",
+            "}",
+            "var c;",
+            "d(e) {",
+            "  var f;",
+            "  g() {};",
+            "  () {} ();",
+            "  h: d(0);",
+            "}",
+            "typedef i();",
+            ""));
     assertErrors(libraryResult.getErrors());
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     // in class A
@@ -818,8 +834,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
       {
         List<DartStatement> statements = method.getFunction().getBody().getStatements();
         {
-        DartVariableStatement variableStatement = (DartVariableStatement) statements.get(0);
-        assertDeclarationNameElement(variableStatement.getVariables().get(0), "f");
+          DartVariableStatement variableStatement = (DartVariableStatement) statements.get(0);
+          assertDeclarationNameElement(variableStatement.getVariables().get(0), "f");
         }
         {
           DartExprStmt statement = (DartExprStmt) statements.get(1);
@@ -866,10 +882,12 @@ public class ResolverCompilerTest extends CompilerTestCase {
   /**
    * Asserts that given nodes have same not <code>null</code> {@link Element}.
    */
-  private static void assertDeclarationNameElement(DartDeclaration<? extends DartExpression> declaration, String name) {
+  private static void assertDeclarationNameElement(
+      DartDeclaration<? extends DartExpression> declaration,
+      String name) {
     assertNameHasSameElement(declaration, declaration.getName(), name);
   }
-  
+
   /**
    * Asserts that given nodes have same not <code>null</code> {@link Element}.
    */

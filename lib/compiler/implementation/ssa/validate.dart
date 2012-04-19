@@ -6,9 +6,9 @@ class HValidator extends HInstructionVisitor {
   bool isValid = true;
   HGraph graph;
 
-  void visitGraph(HGraph graph) {
-    this.graph = graph;
-    visitDominatorTree(graph);
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    visitDominatorTree(visitee);
   }
 
   void markInvalid(String reason) {
@@ -121,7 +121,7 @@ class HValidator extends HInstructionVisitor {
 
   void visitInstruction(HInstruction instruction) {
     // Verifies that we are in the use list of our inputs.
-    bool hasCorrectInputs(instruction) {
+    bool hasCorrectInputs() {
       bool inBasicBlock = instruction.isInBasicBlock();
       return everyInstruction(instruction.inputs, (input, count) {
         if (inBasicBlock) {
@@ -133,7 +133,7 @@ class HValidator extends HInstructionVisitor {
     }
 
     // Verifies that all our uses have us in their inputs.
-    bool hasCorrectUses(instruction) {
+    bool hasCorrectUses() {
       if (!instruction.isInBasicBlock()) return true;
       return everyInstruction(instruction.usedBy, (use, count) {
         return countInstruction(use.inputs, instruction) == count;
@@ -143,10 +143,10 @@ class HValidator extends HInstructionVisitor {
     if (instruction.block !== currentBlock) {
       markInvalid("Instruction in wrong block");
     }
-    if (!hasCorrectInputs(instruction)) {
+    if (!hasCorrectInputs()) {
       markInvalid("Incorrect inputs");
     }
-    if (!hasCorrectUses(instruction)) {
+    if (!hasCorrectUses()) {
       markInvalid("Incorrect uses");
     }
   }

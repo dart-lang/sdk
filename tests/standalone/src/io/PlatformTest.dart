@@ -1,16 +1,17 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
 
 main() {
-  var p = new Platform();
-  Expect.isTrue(p.numberOfProcessors() > 0);
-  var os = p.operatingSystem();
+  Expect.isTrue(Platform.numberOfProcessors() > 0);
+  var os = Platform.operatingSystem();
   Expect.isTrue(os == "linux" || os == "macos" || os == "windows");
-  var sep = p.pathSeparator();
+  var sep = Platform.pathSeparator();
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
-  var hostname = p.localHostname();
+  var hostname = Platform.localHostname();
   Expect.isTrue(hostname is String && hostname != "");
+  var environment = Platform.environment();
+  Expect.isTrue(environment is Map<String, String>);
 }

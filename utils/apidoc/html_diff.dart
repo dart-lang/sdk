@@ -51,6 +51,9 @@ class HtmlDiff {
 
   final CommentMap comments;
 
+  /** If true, then print warning messages. */
+  final bool _printWarnings;
+
   static Library dom;
 
   /**
@@ -65,12 +68,19 @@ class HtmlDiff {
     dom = world.libraries['dart:dom'];
   }
 
-  HtmlDiff() :
+  HtmlDiff([bool printWarnings = false]) : 
+    _printWarnings = printWarnings, 
     domToHtml = new Map<Member, Set<Member>>(),
     htmlToDom = new Map<Member, Set<Member>>(),
     domTypesToHtml = new Map<Type, Set<Type>>(),
     htmlTypesToDom = new Map<Type, Set<Type>>(),
     comments = new CommentMap();
+
+  void warn(String s) {
+    if (_printWarnings) {
+      print('Warning: ' + s);
+    }
+  }
 
   /**
    * Computes the `dart:dom` to `dart:html` mapping, and places it in
@@ -109,7 +119,7 @@ class HtmlDiff {
 
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
-      print('Warning: dart:html member ${htmlMember.declaringType.name}.' +
+      warn('dart:html member ${htmlMember.declaringType.name}.' +
           '${htmlMember.name} has no corresponding dart:html member.');
     }
 
@@ -132,7 +142,7 @@ class HtmlDiff {
       if (domNames.length == 1 && domNames[0] == 'none') return [];
       return map(domNames, (domName) {
         final domType = dom.types[domName];
-        if (domType == null) print('Warning: no dart:dom type named $domName');
+        if (domType == null) warn('no dart:dom type named $domName');
         return domType;
       });
     }
@@ -156,11 +166,11 @@ class HtmlDiff {
         var nameMembers = _membersFromName(name, domTypes);
         if (nameMembers.isEmpty()) {
           if (name.contains('.')) {
-            print('Warning: no member $name');
+            warn('no member $name');
           } else {
             final options = Strings.join(
                 map(domTypes, (t) => "${t.name}.$name"), ' or ');
-            print('Warning: no member $options');
+            warn('no member $options');
           }
         }
         members.addAll(nameMembers);
@@ -181,7 +191,7 @@ class HtmlDiff {
   Set<Member> _membersFromName(String name, List<Type> defaultTypes) {
     if (!name.contains('.', 0)) {
       if (defaultTypes.isEmpty()) {
-        print('Warning: no default type for ${name}');
+        warn('no default type for ${name}');
         return new Set();
       }
       final members = new Set<Member>();
@@ -193,7 +203,7 @@ class HtmlDiff {
 
     final splitName = name.split('.');
     if (splitName.length != 2) {
-      print('Warning: invalid member name ${name}');
+      warn('invalid member name ${name}');
       return new Set();
     }
 

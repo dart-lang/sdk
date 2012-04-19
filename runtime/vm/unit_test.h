@@ -278,11 +278,29 @@ class CompilerTest : public AllStatic {
   static bool TestCompileFunction(const Function& function);
 };
 
-#define EXPECT_VALID(handle)                                                  \
-  if (Dart_IsError((handle))) {                                               \
-    dart::Expect(__FILE__, __LINE__).Fail("invalid handle '%s':\n    '%s'\n", \
-                                          #handle, Dart_GetError(handle));    \
-  }
+#define EXPECT_VALID(handle)                                                   \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsError(tmp_handle)) {                                            \
+      dart::Expect(__FILE__, __LINE__).Fail(                                   \
+          "expected '%s' to be a valid handle but found an error handle:\n"    \
+          "    '%s'\n",                                                        \
+          #handle, Dart_GetError(tmp_handle));                                 \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_ERROR(handle, substring)                                        \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsError(tmp_handle)) {                                            \
+      dart::Expect(__FILE__, __LINE__).IsSubstring((substring),                \
+                                                   Dart_GetError(tmp_handle)); \
+    } else {                                                                   \
+      dart::Expect(__FILE__, __LINE__).Fail(                                   \
+          "expected '%s' to be an error handle but found a valid handle.\n",   \
+          #handle);                                                            \
+    }                                                                          \
+  } while (0)
 
 }  // namespace dart
 

@@ -6,9 +6,10 @@ class Server {
     HttpServer server = new HttpServer();
     server.listen("127.0.0.1", 0);
     port = server.port;
-    server.onRequest = (HttpRequest request, HttpResponse response) {
-      new Timer(0, (timer) => server.close());
-    };
+    server.defaultRequestHandler =
+        (HttpRequest request, HttpResponse response) {
+          new Timer(0, (timer) => server.close());
+        };
     server.onError = (e) {
       Expect.fail("No server errors expected: $e");
     };

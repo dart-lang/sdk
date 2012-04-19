@@ -29,6 +29,9 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
 
   @Override
   public DartSource getSourceFor(final String relPath) {
+    if (relPath == null || relPath.isEmpty()) {
+      return null;
+    }
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
       URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();
@@ -40,6 +43,9 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
 
   @Override
   public LibrarySource getImportFor(String relPath) {
+    if (relPath == null || relPath.isEmpty()) {
+      return null;
+    }
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
       URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();

@@ -86,8 +86,8 @@ class ProgressIndicator {
     exit(_failedTests > 0 ? 1 : 0);
   }
 
-  abstract _printStartProgress(TestCase test);
-  abstract _printDoneProgress(TestCase test);
+  void _printStartProgress(TestCase test) {}
+  void _printDoneProgress(TestCase test) {}
 
   String _pad(String s, int length) {
     StringBuffer buffer = new StringBuffer();

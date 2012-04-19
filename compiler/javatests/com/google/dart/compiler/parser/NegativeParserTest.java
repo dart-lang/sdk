@@ -767,4 +767,14 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 3, 15, 6));
   }
+  
+  public void test_qualifiedType_inForIn() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {",
+        "  for (pref.A a in elements) {",
+        "  }",
+        "}",
+        ""));
+  }
 }

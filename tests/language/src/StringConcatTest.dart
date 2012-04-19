@@ -32,7 +32,7 @@ class StringConcatTest {
     // Adding a number to a string value creates a new, concatenated
     // string.
     s1 = "Grandmaster Flash and the Furious ";
-    s1 = s1 + (4 + 1);
+    s1 = "$s1${4 + 1}";
     Expect.equals(true, s1.endsWith("Furious 5"));
 
     // Adding a string to a number is not supported.

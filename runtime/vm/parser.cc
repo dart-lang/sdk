@@ -112,6 +112,23 @@ static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
 }
 
 
+void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
+  ASSERT(node_sequence_ == NULL);
+  ASSERT(node_sequence != NULL);
+  node_sequence_ = node_sequence;
+  const int num_fixed_params = function().num_fixed_parameters();
+  const int num_opt_params = function().num_optional_parameters();
+  // Allocated ids for parameters.
+  intptr_t parameter_id = AstNode::kNoId;
+  for (intptr_t i = 0; i < num_fixed_params + num_opt_params; i++) {
+    parameter_id = AstNode::GetNextId();
+    if (i == 0) {
+      node_sequence_->set_first_parameter_id(parameter_id);
+    }
+  }
+  node_sequence_->set_last_parameter_id(parameter_id);
+}
+
 void ParsedFunction::AllocateVariables() {
   LocalScope* scope = node_sequence()->scope();
   const int fixed_parameter_count = function().num_fixed_parameters();
@@ -666,7 +683,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(parser.token_index_));
   }
-  parsed_function->set_node_sequence(node_sequence);
+  parsed_function->SetNodeSequence(node_sequence);
 
   // The instantiator may be required at run time for generic type checks or
   // allocation of generic types.
@@ -3643,11 +3660,15 @@ void Parser::ParseTopLevel() {
       ParseFunctionTypeAlias(pending_classes);
     } else if (CurrentToken() == Token::kINTERFACE) {
       ParseInterfaceDefinition(pending_classes);
+    } else if ((CurrentToken() == Token::kABSTRACT) &&
+        (LookaheadToken(1) == Token::kCLASS)) {
+      ConsumeToken();  // Consume and ignore 'abstract'.
+      ParseClassDefinition(pending_classes);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
         ParseTopLevelVariable(&top_level);
-      } else if (IsTopLevelFunction()) {
+      } else if (IsFunctionDeclaration()) {
         ParseTopLevelFunction(&top_level);
       } else if (IsTopLevelAccessor()) {
         ParseTopLevelAccessor(&top_level);
@@ -4273,18 +4294,35 @@ bool Parser::IsVariableDeclaration() {
 }
 
 
+// Look ahead to detect whether the next tokens should be parsed as
+// a function declaration. Token position remains unchanged.
 bool Parser::IsFunctionDeclaration() {
-  // A function declaration is like a function literal but it must have
-  // a name.
-  return (CurrentToken() != Token::kLPAREN) && IsFunctionLiteral();
-}
-
-
-bool Parser::IsTopLevelFunction() {
-  // Top-level function declarations can omit the return type. Check for
-  // that case separately.
-  return (IsIdentifier() &&
-      (LookaheadToken(1) == Token::kLPAREN)) || IsFunctionDeclaration();
+  const intptr_t saved_pos = token_index_;
+  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
+    // Possibly a function without explicit return type.
+    ConsumeToken();  // Consume function identifier.
+  } else if (TryParseReturnType()) {
+    if (!IsIdentifier()) {
+      SetPosition(saved_pos);
+      return false;
+    }
+    ConsumeToken();  // Consume function identifier.
+  } else {
+    SetPosition(saved_pos);
+    return false;
+  }
+  // Check parameter list and the following token.
+  if (CurrentToken() == Token::kLPAREN) {
+    SkipToMatchingParenthesis();
+    if ((CurrentToken() == Token::kLBRACE) ||
+        (CurrentToken() == Token::kARROW) ||
+        (is_top_level_ && IsLiteral("native"))) {
+      SetPosition(saved_pos);
+      return true;
+    }
+  }
+  SetPosition(saved_pos);
+  return false;
 }
 
 
@@ -6880,86 +6918,85 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     return true;
   }
 
-  // Try to find the identifier in the class scope.
+  // Try to find the identifier in the class scope of the current class.
   Class& cls = Class::Handle(isolate, current_class().raw());
   Function& func = Function::Handle(isolate, Function::null());
   Field& field = Field::Handle(isolate, Field::null());
-  while (!cls.IsNull()) {
-    // First check if a field exists.
-    field = cls.LookupField(ident);
-    if (!field.IsNull()) {
-      if (node != NULL) {
-        if (!field.is_static()) {
-          CheckInstanceFieldAccess(ident_pos, ident);
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        } else {
-          *node = GenerateStaticFieldLookup(field, ident_pos);
-        }
-      }
-      return true;
-    }
 
-    // Check if an instance/static function exists.
-    func = cls.LookupFunction(ident);
-    if (!func.IsNull() &&
-        (func.IsDynamicFunction() || func.IsStaticFunction())) {
-      if (node != NULL) {
-        *node = new PrimaryNode(ident_pos,
-                                Function::ZoneHandle(isolate, func.raw()));
-      }
-      return true;
-    }
-
-    // Now check if a getter/setter method exists for it in which case
-    // it is still a field.
-    func = cls.LookupGetterFunction(ident);
-    if (!func.IsNull()) {
-      if (func.IsDynamicFunction()) {
-        if (node != NULL) {
-          CheckInstanceFieldAccess(ident_pos, ident);
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        }
-        return true;
-      } else if (func.IsStaticFunction()) {
-        if (node != NULL) {
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = new StaticGetterNode(ident_pos,
-                                       Class::ZoneHandle(isolate, cls.raw()),
-                                       ident);
-        }
-        return true;
+  // First check if a field exists.
+  field = cls.LookupField(ident);
+  if (!field.IsNull()) {
+    if (node != NULL) {
+      if (!field.is_static()) {
+        CheckInstanceFieldAccess(ident_pos, ident);
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      } else {
+        *node = GenerateStaticFieldLookup(field, ident_pos);
       }
     }
-    func = cls.LookupSetterFunction(ident);
-    if (!func.IsNull()) {
-      if (func.IsDynamicFunction()) {
-        if (node != NULL) {
-          // We create a getter node even though a getter doesn't exist as
-          // it could be followed by an assignment which will convert it to
-          // a setter node. If there is no assignment we will get an error
-          // when we try to invoke the getter.
-          CheckInstanceFieldAccess(ident_pos, ident);
-          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-        }
-        return true;
-      } else if (func.IsStaticFunction()) {
-        if (node != NULL) {
-          // We create a getter node even though a getter doesn't exist as
-          // it could be followed by an assignment which will convert it to
-          // a setter node. If there is no assignment we will get an error
-          // when we try to invoke the getter.
-          *node = new StaticGetterNode(ident_pos,
-                                       Class::ZoneHandle(isolate, cls.raw()),
-                                       ident);
-        }
-        return true;
-      }
-    }
-
-    cls = cls.SuperClass();
+    return true;
   }
+
+  // Check if an instance/static function exists.
+  func = cls.LookupFunction(ident);
+  if (!func.IsNull() &&
+      (func.IsDynamicFunction() || func.IsStaticFunction())) {
+    if (node != NULL) {
+      *node = new PrimaryNode(ident_pos,
+                              Function::ZoneHandle(isolate, func.raw()));
+    }
+    return true;
+  }
+
+  // Now check if a getter/setter method exists for it in which case
+  // it is still a field.
+  func = cls.LookupGetterFunction(ident);
+  if (!func.IsNull()) {
+    if (func.IsDynamicFunction()) {
+      if (node != NULL) {
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      }
+      return true;
+    } else if (func.IsStaticFunction()) {
+      if (node != NULL) {
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+      }
+      return true;
+    }
+  }
+  func = cls.LookupSetterFunction(ident);
+  if (!func.IsNull()) {
+    if (func.IsDynamicFunction()) {
+      if (node != NULL) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+      }
+      return true;
+    } else if (func.IsStaticFunction()) {
+      if (node != NULL) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+      }
+      return true;
+    }
+  }
+
+  // Nothing found in scope of current class.
   if (node != NULL) {
     *node = NULL;
   }
@@ -7073,8 +7110,21 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
   AstNode* var_or_field = NULL;
   ResolveIdentInLocalScope(ident_pos, ident, &var_or_field);
   if (var_or_field == NULL) {
-    // Not found in the local scope, so try finding the variable in the
-    // library scope (current library and all libraries imported by it).
+    // Check whether the identifier is a type parameter. Type parameters
+    // can never be used in primary expressions.
+    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+    if (!scope_class.IsNull()) {
+      TypeParameter& type_param = TypeParameter::Handle(
+          scope_class.LookupTypeParameter(ident, ident_pos));
+      if (!type_param.IsNull()) {
+        String& type_param_name = String::Handle(type_param.Name());
+        ErrorMsg(ident_pos, "illegal use of type parameter %s",
+                 type_param_name.ToCString());
+      }
+    }
+    // Not found in the local scope, and the name is not a type parameter.
+    // Try finding the variable in the library scope (current library
+    // and all libraries imported by it).
     QualIdent qual_ident;
     qual_ident.lib_prefix = NULL;
     qual_ident.ident_pos = ident_pos;

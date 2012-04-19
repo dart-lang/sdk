@@ -173,6 +173,8 @@ NODE_LIST(AST_TYPE_CHECK)
   virtual const Instance* EvalConstExpr() const { return NULL; }
 
  protected:
+  friend class ParsedFunction;
+
   const ICData& ic_data() const { return ic_data_; }
   void set_ic_data(const ICData& value) {
     ic_data_ = value.raw();
@@ -203,7 +205,9 @@ class SequenceNode : public AstNode {
     : AstNode(token_index),
       scope_(scope),
       nodes_(4),
-      label_(NULL)  {
+      label_(NULL),
+      first_parameter_id_(AstNode::kNoId),
+      last_parameter_id_(AstNode::kNoId) {
   }
 
   LocalScope* scope() const { return scope_; }
@@ -217,6 +221,15 @@ class SequenceNode : public AstNode {
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
 
+  void set_first_parameter_id(intptr_t value) { first_parameter_id_ = value; }
+  void set_last_parameter_id(intptr_t value) { last_parameter_id_ = value; }
+  intptr_t ParameterIdAt(intptr_t param_pos) const {
+    ASSERT(first_parameter_id_ != AstNode::kNoId);
+    ASSERT(last_parameter_id_ != AstNode::kNoId);
+    ASSERT(param_pos <= (last_parameter_id_ - first_parameter_id_));
+    return first_parameter_id_ + param_pos;
+  }
+
   DECLARE_COMMON_NODE_FUNCTIONS(SequenceNode);
 
   // Collects all nodes accessible from this sequence node into array 'nodes'.
@@ -226,6 +239,8 @@ class SequenceNode : public AstNode {
   LocalScope* scope_;
   GrowableArray<AstNode*> nodes_;
   SourceLabel* label_;
+  intptr_t first_parameter_id_;
+  intptr_t last_parameter_id_;
 
   DISALLOW_COPY_AND_ASSIGN(SequenceNode);
 };

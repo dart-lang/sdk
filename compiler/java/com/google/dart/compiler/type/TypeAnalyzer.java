@@ -1218,21 +1218,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
       } else {
         ClassElement cls = (ClassElement) constructorElement.getEnclosingElement();
         // Add warning for instantiating abstract class.
-        if (cls.isAbstract()) {
-          ErrorCode errorCode =
-              constructorElement.getModifiers().isFactory()
-                  ? TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY
-                  : TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS;
-          typeError(typeName, errorCode, cls.getName());
-        } else {
-          List<Element> unimplementedMembers = findUnimplementedMembers(cls);
-          if (unimplementedMembers.size() > 0) {
-            StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
-            typeError(
-                typeName,
-                TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
-                cls.getName(),
-                sb);
+        if (!constructorElement.getModifiers().isFactory()) {
+          if (cls.isAbstract()) {
+            typeError(typeName, TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS, cls.getName());
+          } else {
+            List<Element> unimplementedMembers = findUnimplementedMembers(cls);
+            if (unimplementedMembers.size() > 0) {
+              StringBuilder sb = getUnimplementedMembersMessage(cls, unimplementedMembers);
+              typeError(
+                  typeName,
+                  TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS,
+                  cls.getName(),
+                  sb);
+            }
           }
         }
         // Check type arguments.

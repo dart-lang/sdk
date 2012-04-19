@@ -3197,6 +3197,9 @@ TEST_CASE(Invoke) {
   EXPECT_VALID(instance);
   Dart_Handle args[1];
   args[0] = Dart_NewString("!!!");
+  Dart_Handle bad_args[2];
+  bad_args[0] = Dart_NewString("bad1");
+  bad_args[1] = Dart_NewString("bad2");
   Dart_Handle result;
   Dart_Handle name;
   const char* str;
@@ -3209,6 +3212,10 @@ TEST_CASE(Invoke) {
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("instance !!!", str);
+
+  // Instance method, wrong arg count.
+  EXPECT_ERROR(Dart_Invoke(instance, name, 2, bad_args),
+               "did not find instance method 'Methods.instanceMethod'");
 
   // Hidden instance method.
   name = Dart_NewString("_instanceMethod");
@@ -3237,6 +3244,10 @@ TEST_CASE(Invoke) {
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("static !!!", str);
 
+  // Static method, wrong arg count.
+  EXPECT_ERROR(Dart_Invoke(cls, name, 2, bad_args),
+               "did not find static method 'Methods.staticMethod'");
+
   // Hidden static method.
   name = Dart_NewString("_staticMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
@@ -3260,6 +3271,10 @@ TEST_CASE(Invoke) {
   EXPECT_VALID(result);
   result = Dart_StringToCString(result, &str);
   EXPECT_STREQ("top !!!", str);
+
+  // Top-level method, wrong arg count.
+  EXPECT_ERROR(Dart_Invoke(lib, name, 2, bad_args),
+               "did not find top-level function 'topMethod'");
 
   // Hidden top-level method.
   name = Dart_NewString("_topMethod");

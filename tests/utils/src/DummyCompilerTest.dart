@@ -5,15 +5,32 @@
 // Smoke test of the dart2js compiler API.
 
 #import('../../../lib/compiler/compiler.dart');
-#import('../../../lib/uri/uri.dart');
+#import('dart:uri');
 
 Future<String> provider(Uri uri) {
   Completer<String> completer = new Completer<String>();
   String source;
   if (uri.scheme == "main") {
     source = "main() {}";
+  } else if (uri.scheme == "lib") {
+    if (uri.path.endsWith("/core.dart")) {
+      source = """#library('core');
+                  class Object{}
+                  class bool {}
+                  class num {}
+                  class int {}
+                  class double{}
+                  class String{}
+                  class Function{}
+                  class List {}
+                  class Closure {}
+                  class Dynamic {}
+                  class Null {}""";
+    } else {
+      source = "#library('lib');";
+    }
   } else {
-    source = "#library('lib');";
+   throw "unexpected URI $uri";
   }
   completer.complete(source);
   return completer.future;

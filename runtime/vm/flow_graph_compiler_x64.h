@@ -33,6 +33,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   // Infrastructure copied from class CodeGenerator or stubbed out.
   void FinalizePcDescriptors(const Code& code);
+  void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeExceptionHandlers(const Code& code);
 
@@ -98,21 +99,30 @@ class FlowGraphCompiler : public FlowGraphVisitor {
                             intptr_t token_index,
                             intptr_t try_index);
 
+  void GenerateInlineInstanceof(const AbstractType& type,
+                                Label* is_instance,
+                                Label* is_not_instance);
+
   void GenerateAssertAssignable(intptr_t node_id,
                                 intptr_t token_index,
+                                intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
 
   void GenerateInstanceOf(intptr_t node_id,
                           intptr_t token_index,
                           intptr_t try_index,
-                          Value* value,
                           const AbstractType& type,
                           bool negate_result);
 
   void CopyParameters();
 
   intptr_t StackSize() const;
+
+  bool TryIntrinsify();
+  void IntrinsifyGetter();
+  void IntrinsifySetter();
+  static bool CanOptimize();
 
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

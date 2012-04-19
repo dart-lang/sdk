@@ -165,9 +165,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    switch (instruction.type) {
-      case HType.MUTABLE_ARRAY: prefix = 'a'; break;
-      case HType.READABLE_ARRAY: prefix = 'roa'; break;
+    HType type = instruction.propagatedType;
+    switch (type) {
+      case HType.MUTABLE_ARRAY: prefix = 'm'; break;
+      case HType.READABLE_ARRAY: prefix = 'a'; break;
       case HType.BOOLEAN: prefix = 'b'; break;
       case HType.INTEGER: prefix = 'i'; break;
       case HType.DOUBLE: prefix = 'd'; break;
@@ -175,7 +176,7 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.STRING: prefix = 's'; break;
       case HType.UNKNOWN: prefix = 'v'; break;
       case HType.CONFLICTING: prefix = 'c'; break;
-      case HType.STRING_OR_ARRAY: prefix = 'sa'; break;
+      case HType.STRING_OR_ARRAY: prefix = 'r'; break;
       default: unreachable();
     }
     return "$prefix${instruction.id}";
@@ -402,7 +403,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitTypeGuard(HTypeGuard node) {
     String type;
-    switch (node.type) {
+    switch (node.guardedType) {
       case HType.MUTABLE_ARRAY: type = "mutable_array"; break;
       case HType.READABLE_ARRAY: type = "readable_array"; break;
       case HType.BOOLEAN: type = "bool"; break;
@@ -414,11 +415,12 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.UNKNOWN: type = 'unknown'; break;
       default: unreachable();
     }
-    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
+    String onString = node.isOn ? "on" : "off";
+    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type ($onString)";
   }
 
   String visitIs(HIs node) {
-    String type = node.typeExpression.toString();
+    String type = node.typeName.toString();
     return "TypeTest: ${temporaryId(node.expression)} is $type";
   }
 }

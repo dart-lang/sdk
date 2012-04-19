@@ -53,6 +53,15 @@ interface HttpStatus {
 
 
 /**
+ * Interface to implement by HTTP request handler classes.
+ */
+
+interface RequestHandler {
+  void onRequest(HttpRequest request, HttpResponse response);
+}
+
+
+/**
  * HTTP server.
  */
 interface HttpServer default _HttpServer {
@@ -76,6 +85,24 @@ interface HttpServer default _HttpServer {
   void listenOn(ServerSocket serverSocket);
 
   /**
+   * Adds a request handler to the list of request handlers. The
+   * function [matcher] is called with the request and must return
+   * [:true:] if the [handler] should handle the request. The first
+   * handler for which [matcher] returns [:true:] will be handed the
+   * request. The [handler] can be either an object implementing the
+   * [RequestHandler] interface or a function taking two arguments.
+   */
+  addRequestHandler(bool matcher(HttpRequest request), Object handler);
+
+  /**
+   * Sets the request handler. This request handler will be called if
+   * none of the request handlers registered by [addRequestHandler]
+   * matches the current request. If no default request handler is set
+   * the server will just respond with status code [:NOT_FOUND:] (404).
+   */
+  void set defaultRequestHandler(Object handler);
+
+  /**
    * Stop server listening.
    */
   void close();
@@ -88,14 +115,184 @@ interface HttpServer default _HttpServer {
   int get port();
 
   /**
-   * Sets the handler that gets called when a new HTTP request is received.
-   */
-  void set onRequest(void callback(HttpRequest, HttpResponse));
-
-  /**
    * Sets the error handler that is called when a connection error occurs.
    */
   void set onError(void callback(Exception e));
+}
+
+
+/**
+ * Access to the HTTP headers for requests and responses. In some
+ * situations the headers will be imutable and the mutating methods
+ * will then throw exceptions.
+ *
+ * For all operation on HTTP headers the header name is
+ * case-insensitive.
+ */
+interface HttpHeaders default _HttpHeaders {
+  static final ACCEPT = "Accept";
+  static final ACCEPT_CHARSET = "Accept-Charset";
+  static final ACCEPT_ENCODING = "Accept-Encoding";
+  static final ACCEPT_LANGUAGE = "Accept-Language";
+  static final ACCEPT_RANGES = "Accept-Ranges";
+  static final AGE = "Age";
+  static final ALLOW = "Allow";
+  static final AUTHORIZATION = "Authorization";
+  static final CACHE_CONTROL = "Cache-Control";
+  static final CONNECTION = "Connection";
+  static final CONTENT_ENCODING = "Content-Encoding";
+  static final CONTENT_LANGUAGE = "Content-Language";
+  static final CONTENT_LENGTH = "Content-Length";
+  static final CONTENT_LOCATION = "Content-Location";
+  static final CONTENT_MD5 = "Content-MD5";
+  static final CONTENT_RANGE = "Content-Range";
+  static final CONTENT_TYPE = "Content-Type";
+  static final DATE = "Date";
+  static final ETAG = "ETag";
+  static final EXPECT = "Expect";
+  static final EXPIRES = "Expires";
+  static final FROM = "From";
+  static final HOST = "Host";
+  static final IF_MATCH = "If-Match";
+  static final IF_MODIFIED_SINCE = "If-Modified-Since";
+  static final IF_NONE_MATCH = "If-None-Match";
+  static final IF_RANGE = "If-Range";
+  static final IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
+  static final LAST_MODIFIED = "Last-Modified";
+  static final LOCATION = "Location";
+  static final MAX_FORWARDS = "Max-Forwards";
+  static final PRAGMA = "Pragma";
+  static final PROXY_AUTHENTICATE = "Proxy-Authenticate";
+  static final PROXY_AUTHORIZATION = "Proxy-Authorization";
+  static final RANGE = "Range";
+  static final REFERER = "Referer";
+  static final RETRY_AFTER = "Retry-After";
+  static final SERVER = "Server";
+  static final TE = "TE";
+  static final TRAILER = "Trailer";
+  static final TRANSFER_ENCODING = "Transfer-Encoding";
+  static final UPGRADE = "Upgrade";
+  static final USER_AGENT = "User-Agent";
+  static final VARY = "Vary";
+  static final VIA = "Via";
+  static final WARNING = "Warning";
+  static final WWW_AUTHENTICATE = "WWW-Authenticate";
+
+  static final GENERAL_HEADERS = const [CACHE_CONTROL,
+                                        CONNECTION,
+                                        DATE,
+                                        PRAGMA,
+                                        TRAILER,
+                                        TRANSFER_ENCODING,
+                                        UPGRADE,
+                                        VIA,
+                                        WARNING];
+
+  static final ENTITY_HEADERS = const [ALLOW,
+                                       CONTENT-ENCODING,
+                                       CONTENT-LANGUAGE,
+                                       CONTENT-LENGTH,
+                                       CONTENT-LOCATION,
+                                       CONTENT-MD5,
+                                       CONTENT-RANGE,
+                                       CONTENT-TYPE,
+                                       EXPIRES,
+                                       LAST-MODIFIED];
+
+
+  static final RESPONSE_HEADERS = const [ACCEPT-RANGES,
+                                         AGE,
+                                         ETAG,
+                                         LOCATION,
+                                         PROXY-AUTHENTICATE,
+                                         RETRY-AFTER,
+                                         SERVER,
+                                         VARY,
+                                         WWW-AUTHENTICATE];
+
+  static final REQUEST_HEADERS = const [ACCEPT,
+                                        ACCEPT-CHARSET,
+                                        ACCEPT-ENCODING,
+                                        ACCEPT-LANGUAGE,
+                                        AUTHORIZATION,
+                                        EXPECT,
+                                        FROM,
+                                        HOST,
+                                        IF-MATCH,
+                                        IF-MODIFIED-SINCE,
+                                        IF-NONE-MATCH,
+                                        IF-RANGE,
+                                        IF-UNMODIFIED-SINCE,
+                                        MAX-FORWARDS,
+                                        PROXY-AUTHORIZATION,
+                                        RANGE,
+                                        REFERER,
+                                        TE,
+                                        USER-AGENT];
+
+  /**
+   * Returns the list of values for the header named [name]. If there
+   * is no headers with the provided name null will be returned.
+   */
+  List<String> operator[](String name);
+
+  /**
+   * Convenience method for the value for a single values header. If
+   * there is no header with the provided name null will be
+   * returned. If the header has more than one value an exception is
+   * thrown.
+   */
+  String value(String name);
+
+  /**
+   * Adds a header value. The header named [name] will have the value
+   * [value] added to its list of values. Some headers are single
+   * values and for these adding a value will replace the previous
+   * value. If the value is of type Date a HTTP date format will be
+   * applied. If the value is a [:List:] each element of the list will
+   * be added separately. For all other types the default [:toString:]
+   * method will be used.
+   */
+  void add(String name, Object value);
+
+  /**
+   * Sets a header. The header named [name] will have all its values
+   * cleared before the value [value] is added as its value.
+   */
+  void set(String name, Object value);
+
+  /**
+   * Removes a specific value for a header name. Some headers have
+   * system supplied values and for these the system supplied values
+   * will still be added to the collection of values for the header.
+   */
+  void remove(String name, Object value);
+
+  /**
+   * Remove all values for the specified header name. Some headers
+   * have system supplied values and for these the system supplied
+   * values will still be added to the collection of values for the
+   * header.
+   */
+  void removeAll(String name);
+
+  /**
+   * Gets and sets the expiry date. The value of this property will
+   * reflect the "Expires" header
+   */
+  Date expires;
+
+  /**
+   * Gets and sets the host part of the "Host" header for the
+   * connection.
+   */
+  String host;
+
+  /**
+   * Gets and sets the port part of the "Host" header for the
+   * connection.
+   */
+  int port;
 }
 
 
@@ -137,7 +334,7 @@ interface HttpRequest default _HttpRequest {
   /**
    * Returns the request headers.
    */
-  Map<String, String> get headers();
+  HttpHeaders get headers();
 
   /**
    * Returns the input stream for the request. This is used to read
@@ -172,22 +369,9 @@ interface HttpResponse default _HttpResponse {
   String reasonPhrase;
 
   /**
-   * Gets and sets the expiry date. The value of this property will
-   * reflect the "Expires" header
-   */
-  Date expires;
-
-  /**
-   * Sets a header on the response. NOTE: If the same header name is
-   * set more than once only the last value will be part of the
-   * response.
-   */
-  void setHeader(String name, String value);
-
-  /**
    * Returns the response headers.
    */
-  Map<String, String> get headers();
+  HttpHeaders get headers();
 
   /**
    * Returns the output stream for the response. This is used to write
@@ -303,30 +487,9 @@ interface HttpClientRequest default _HttpClientRequest {
   int contentLength;
 
   /**
-   * Gets and sets the " host part of the "Host" header for the
-   * connection. By default this will be set to the value of the host
-   * used when initiating the connection.
-   */
-  String host;
-
-  /**
-   * Gets and sets the port part of the "Host" header for the
-   * connection. By default this will be set to the value of the port
-   * used when initiating the connection.
-   */
-  int port;
-
-  /**
-   * Sets a header on the request. NOTE: If the same header name is
-   * set more than once only the last value set will be part of the
-   * request.
-   */
-  void setHeader(String name, String value);
-
-  /**
    * Returns the request headers.
    */
-  Map<String, String> get headers();
+  HttpHeaders get headers();
 
   /**
    * Returns the output stream for the request. This is used to write
@@ -362,17 +525,9 @@ interface HttpClientResponse default _HttpClientResponse {
   int get contentLength();
 
   /**
-   * Returns the date value for the "Expires" header. Returns null if
-   * the response has no "Expires" header. Throws a HttpException if
-   * the response has an "Expires" header which is not formatted as a
-   * valid HTTP date.
-   */
-  Date get expires();
-
-  /**
    * Returns the response headers.
    */
-  Map<String, String> get headers();
+  HttpHeaders get headers();
 
   /**
    * Returns the input stream for the response. This is used to read

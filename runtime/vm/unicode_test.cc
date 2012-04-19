@@ -979,7 +979,7 @@ TEST_CASE(Utf8Decode) {
 
   // 5.2.7 - U+DBFF U+DC00 = ed af bf ed b0 80 = "\xED\xAF\xBF\xED\xB0\x80"
   {
-    const char* src = "\xED\xAF\xBF\ED\xB0\x80";
+    const char* src = "\xED\xAF\xBF\xED\xB0\x80";
     uint32_t expected[] = { 0xDBFF, 0xDC00 };
     uint32_t dst[ARRAY_SIZE(expected)];
     memset(dst, 0, sizeof(dst));

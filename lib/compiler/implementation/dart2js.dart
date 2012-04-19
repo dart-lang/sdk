@@ -5,9 +5,9 @@
 #library('dart2js');
 
 #import('dart:io');
+#import('dart:uri');
 #import('dart:utf');
 
-#import('../../uri/uri.dart');
 #import('../compiler.dart', prefix: 'api');
 #import('colors.dart');
 #import('source_file.dart');
@@ -143,7 +143,7 @@ void writeString(Uri uri, String text) {
 }
 
 String readAll(String filename) {
-  var file = (new File(filename)).openSync();
+  var file = (new File(filename)).openSync(FileMode.READ);
   var length = file.lengthSync();
   var buffer = new List<int>(length);
   var bytes = file.readListSync(buffer, 0, length);

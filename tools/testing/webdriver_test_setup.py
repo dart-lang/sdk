@@ -20,6 +20,7 @@ import subprocess
 import sys
 import urllib
 import urllib2
+import zipfile
 
 def run_cmd(cmd, stdin=None):
   """Run the command on the command line in the shell. We print the output of
@@ -28,9 +29,11 @@ def run_cmd(cmd, stdin=None):
   print cmd
   p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
       stdin=subprocess.PIPE, shell=True)
-  output, not_used = p.communicate(input=stdin)
+  output, stderr = p.communicate(input=stdin)
   if output:
     print output
+  if stderr:
+    print stderr
 
 def parse_args():
   parser = optparse.OptionParser()
@@ -57,7 +60,6 @@ def find_depot_tools_location(is_buildbot):
     depot_tools = os.path.join('b', 'depot_tools')
     if 'win32' in sys.platform or 'cygwin' in sys.platform:
       depot_tools = os.path.join('e:', depot_tools)
-    depot_tools = '/Users/efortuna'
     return depot_tools
   else:
     path = os.environ['PATH'].split(os.pathsep)
@@ -132,8 +134,9 @@ class GoogleCodeInstaller(object):
     urllib.urlretrieve(self.google_code_download() + '/' + download_name,
         os.path.join(self.download_location, download_name))
     if download_name.endswith('.zip'):
-      run_cmd('unzip -u %s -d %s' % (os.path.join(self.download_location,
-          download_name), self.download_location))
+      z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
+      z.extractall(self.download_location)
+      z.close()
       os.remove(os.path.join(self.download_location, download_name))
 
   @property
@@ -157,6 +160,7 @@ class FirefoxInstaller(object):
     return 'http://releases.mozilla.org/pub/mozilla.org/firefox/releases/' + \
         'latest/%s/en-US/' % os_name
 
+  @property
   def get_os_str(self):
     """Returns the string that Mozilla uses to denote which operating system a
     Firefox binary is for."""
@@ -209,18 +213,27 @@ class SeleniumBindingsInstaller(object):
     print 'Installing Selenium Python Bindings'
     admin_keyword = ''
     python_cmd = 'python'
+    pip_cmd = 'pip'
     if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
       admin_keyword = 'sudo'
     else:
       # The python installation is "special" on Windows buildbots.
       if self.is_buildbot:
-        python_cmd = os.path.join(find_depot_tools_location(self.is_buildbot),
-            'python-bin', 'python')
+        python_loc = os.path.join(
+            find_depot_tools_location(self.is_buildbot), 'python-bin')
+        python_cmd = os.path.join(python_loc, 'python')
+        pip_cmd = os.path.join(python_loc, 'Scripts', pip_cmd)
+      else:
+        path = os.environ['PATH'].split(os.pathsep)
+        for loc in path:
+          if 'python' in loc or 'Python' in loc:
+            pip_cmd = os.path.join(loc, 'Scripts', pip_cmd)
+            break
     page = urllib2.urlopen(self.SETUPTOOLS_SITE)
     run_cmd('%s %s' % (admin_keyword, python_cmd), page.read())
     page = urllib2.urlopen(self.PIP_SITE)
     run_cmd('%s %s' % (admin_keyword, python_cmd), page.read())
-    run_cmd('%s pip install -U selenium' % admin_keyword)
+    run_cmd('%s %s install -U selenium' % (admin_keyword, pip_cmd))
 
 def main():
   args = parse_args()
@@ -230,7 +243,7 @@ def main():
     chromedriver_loc = args.path
   GoogleCodeInstaller('chromedriver', chromedriver_loc,
       lambda x: 'chromedriver_%(os)s_%(version)s.zip' % x).run()
-  if 'darwin' in sys.platform:
+  if 'win32' not in sys.platform and 'cygwin' not in sys.platform:
     GoogleCodeInstaller('selenium', os.path.dirname(os.path.abspath(__file__)),
         lambda x: 'selenium-server-standalone-%(version)s.jar' % x).run()
 

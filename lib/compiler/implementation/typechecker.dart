@@ -33,6 +33,8 @@ class TypeVariableType implements Type {
   final SourceString name;
   Element element;
   TypeVariableType(this.name, [this.element]);
+
+  toString() => name.toString();
 }
 
 /**
@@ -58,13 +60,24 @@ class StatementType implements Type {
   String toString() => stringName;
 }
 
-class SimpleType implements Type {
+class InterfaceType implements Type {
   final SourceString name;
   final Element element;
+  final Link<Type> arguments;
 
-  const SimpleType(SourceString this.name, Element this.element);
+  const InterfaceType(this.name, this.element,
+                      [this.arguments = const EmptyLink<Type>()]);
 
-  String toString() => name.slowToString();
+  toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.add(name.slowToString());
+    if (!arguments.isEmpty()) {
+      sb.add('<');
+      arguments.printOn(sb);
+      sb.add('>');
+    }
+    return sb.toString();
+  }
 }
 
 class FunctionType implements Type {
@@ -97,13 +110,16 @@ class Types {
   static final OBJECT = const SourceString('Object');
   static final LIST = const SourceString('List');
 
-  final SimpleType voidType;
-  final SimpleType dynamicType;
+  final InterfaceType voidType;
+  final InterfaceType dynamicType;
 
-  Types() : this.with(new LibraryElement(new Script(null, null)));
-  Types.with(LibraryElement library)
-    : voidType = new SimpleType(VOID, new ClassElement(VOID, library)),
-      dynamicType = new SimpleType(DYNAMIC, new ClassElement(DYNAMIC, library));
+  Types(Element dynamicElement)
+    : this.with(dynamicElement, new LibraryElement(new Script(null, null)));
+
+  // TODO(karlklose): should we have a class Void?
+  Types.with(Element dynamicElement, LibraryElement library)
+    : voidType = new InterfaceType(VOID, new ClassElement(VOID, library)),
+      dynamicType = new InterfaceType(DYNAMIC, dynamicElement);
 
   Type lookup(SourceString s) {
     if (VOID == s) {
@@ -118,9 +134,10 @@ class Types {
   bool isSubtype(Type t, Type s) {
     if (t === s || t === dynamicType || s === dynamicType ||
         s.name == OBJECT) return true;
-    if (t is SimpleType) {
-      if (s is !SimpleType) return false;
+    if (t is InterfaceType) {
+      if (s is !InterfaceType) return false;
       ClassElement tc = t.element;
+      if (tc === s.element) return true;
       for (Link<Type> supertypes = tc.allSupertypes;
            supertypes != null && !supertypes.isEmpty();
            supertypes = supertypes.tail) {
@@ -142,6 +159,9 @@ class Types {
       if (!tps.isEmpty() || !sps.isEmpty()) return false;
       if (!isAssignable(sf.returnType, tf.returnType)) return false;
       return true;
+    } else if (t is TypeVariableType) {
+      if (s is !TypeVariableType) return false;
+      return (t.element === s.element);
     } else {
       throw 'internal error: unknown type kind';
     }
@@ -159,24 +179,16 @@ class CancelTypeCheckException {
   CancelTypeCheckException(this.node, this.reason);
 }
 
-Type lookupType(SourceString name, Compiler compiler, types) {
-  Type t = types.lookup(name);
-  if (t !== null) return t;
-  Element element = compiler.coreLibrary.find(name);
-  if (element !== null && element.kind === ElementKind.CLASS) {
-    return element.computeType(compiler);
-  }
-  return null;
-}
-
 class TypeCheckerVisitor implements Visitor<Type> {
   final Compiler compiler;
   final TreeElements elements;
-  Node lastSeenNode;
   final Types types;
 
+  Node lastSeenNode;
   Type expectedReturnType;
   ClassElement currentClass;
+
+  Link<Type> cascadeTypes = const EmptyLink<Type>();
 
   Type intType;
   Type doubleType;
@@ -185,14 +197,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type objectType;
   Type listType;
 
-  TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
-                     Types this.types) {
-    intType = lookupType(Types.INT, compiler, types);
-    doubleType = lookupType(Types.DOUBLE, compiler, types);
-    boolType = lookupType(Types.BOOL, compiler, types);
-    stringType = lookupType(Types.STRING, compiler, types);
-    objectType = lookupType(Types.OBJECT, compiler, types);
-    listType = lookupType(Types.LIST, compiler, types);
+  TypeCheckerVisitor(this.compiler, this.elements, this.types) {
+    intType = compiler.intClass.computeType(compiler);
+    doubleType = compiler.doubleClass.computeType(compiler);
+    boolType = compiler.boolClass.computeType(compiler);
+    stringType = compiler.stringClass.computeType(compiler);
+    objectType = compiler.objectClass.computeType(compiler);
+    listType = compiler.listClass.computeType(compiler);
   }
 
   Type fail(node, [reason]) {
@@ -252,8 +263,29 @@ class TypeCheckerVisitor implements Visitor<Type> {
     checkAssignable(condition, boolType, analyze(condition));
   }
 
+  void pushCascadeType(Type type) {
+    cascadeTypes = cascadeTypes.prepend(type);
+  }
+
+  Type popCascadeType() {
+    Type type = cascadeTypes.head;
+    cascadeTypes = cascadeTypes.tail;
+    return type;
+  }
+
   Type visitBlock(Block node) {
     return analyze(node.statements);
+  }
+
+  Type visitCascade(Cascade node) {
+    analyze(node.expression);
+    return popCascadeType();
+  }
+
+  Type visitCascadeReceiver(CascadeReceiver node) {
+    Type type = analyze(node.expression);
+    pushCascadeType(type);
+    return type;
   }
 
   Type visitClassNode(ClassNode node) {
@@ -433,19 +465,19 @@ class TypeCheckerVisitor implements Visitor<Type> {
       FunctionType computeFunType() {
         if (node.receiver !== null) {
           Type receiverType = analyze(node.receiver);
-          if (receiverType === types.dynamicType) return null;
-            if (receiverType === null) {
-              fail(node.receiver, 'receivertype is null');
-            }
-            if (receiverType.element.kind !== ElementKind.CLASS) {
-              fail(node.receiver, 'receivertype is not a class');
-            }
-            ClassElement classElement = receiverType.element;
-            // TODO(karlklose): substitute type arguments.
-            Type memberType =
-              lookupMethodType(selector, classElement, selector.source);
-            if (memberType === types.dynamicType) return null;
-            return memberType;
+          if (receiverType.element == compiler.dynamicClass) return null;
+          if (receiverType === null) {
+            fail(node.receiver, 'receivertype is null');
+          }
+          if (receiverType.element.kind !== ElementKind.CLASS) {
+            fail(node.receiver, 'receivertype is not a class');
+          }
+          ClassElement classElement = receiverType.element;
+          // TODO(karlklose): substitute type arguments.
+          Type memberType =
+            lookupMethodType(selector, classElement, selector.source);
+          if (memberType.element === compiler.dynamicClass) return null;
+          return memberType;
         } else {
           Element element = elements[node];
           if (element === null) {
@@ -583,19 +615,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
-    if (node.typeName === null) return types.dynamicType;
-    Identifier identifier = node.typeName.asIdentifier();
-    if (identifier === null) {
-      fail(node.typeName, 'library prefix not implemented');
-    }
-    // TODO(ahe): Why wasn't this resolved by the resolver?
-    Type type = lookupType(identifier.source, compiler, types);
-    if (type === null) {
-      // The type name cannot be resolved, but the resolver
-      // already gave a warning, so we continue checking.
-      return types.dynamicType;
-    }
-    return type;
+    return elements.getType(node);
   }
 
   visitTypeVariable(TypeVariable node) {

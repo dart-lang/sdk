@@ -391,11 +391,11 @@ class WrappingInterfaceGenerator(object):
       # TODO: Type specific unwrapping.
       return '__dom_unwrap(%s)' % (name)
 
-    def ArgNameAndUnwrapper(arg_info, overload_arg):
-      (name, type, value) = arg_info
-      return (name, UnwrapArgExpression(name, type))
+    def ArgNameAndUnwrapper(param_info, overload_arg):
+      return (param_info.name,
+              UnwrapArgExpression(param_info.name, param_info.dart_type))
 
-    names_and_unwrappers = [ArgNameAndUnwrapper(info.arg_infos[i], arg)
+    names_and_unwrappers = [ArgNameAndUnwrapper(info.param_infos[i], arg)
                             for (i, arg) in enumerate(operation.arguments)]
     unwrap_args = [unwrap_arg for (_, unwrap_arg) in names_and_unwrappers]
     arg_names = [name for (name, _) in names_and_unwrappers]
@@ -445,7 +445,7 @@ class WrappingInterfaceGenerator(object):
       return '%s is %s' % (name, type)
 
     def ShouldGenerateSingleOperation():
-      if position == len(info.arg_infos):
+      if position == len(info.param_infos):
         if len(overloads) > 1:
           raise Exception('Duplicate operations ' + str(overloads))
         return True
@@ -480,7 +480,7 @@ class WrappingInterfaceGenerator(object):
     positive = []
     negative = []
     first_overload = overloads[0]
-    (param_name, param_type, param_default) = info.arg_infos[position]
+    param = info.param_infos[position]
 
     if position < len(first_overload.arguments):
       # FIXME: This will not work if the second overload has a more
@@ -488,11 +488,11 @@ class WrappingInterfaceGenerator(object):
       # void foo(Node x);
       # void foo(Element x);
       type = DartType(first_overload.arguments[position].type.id)
-      test = TypeCheck(param_name, type)
+      test = TypeCheck(param.name, type)
       pred = lambda op: len(op.arguments) > position and DartType(op.arguments[position].type.id) == type
     else:
       type = None
-      test = NullCheck(param_name)
+      test = NullCheck(param.name)
       pred = lambda op: position >= len(op.arguments)
 
     for overload in overloads:
@@ -524,11 +524,11 @@ class WrappingInterfaceGenerator(object):
     # will have done the test already. (It could be null too but we ignore that
     # case since all the overload behave the same and we don't know which types
     # in the IDL are not nullable.)
-    if type == param_type:
+    if type == param.dart_type:
       return self.GenerateDispatch(
           emitter, info, indent, position + 1, positive)
 
-    # Otherwise the overloads have the same type but the type is a substype of
+    # Otherwise the overloads have the same type but the type is a subtype of
     # the method's synthesized formal parameter. e.g we have overloads f(X) and
     # f(Y), implemented by the synthesized method f(Z) where X<Z and Y<Z. The
     # dispatch has removed f(X), leaving only f(Y), but there is no guarantee

@@ -32,6 +32,14 @@ class Unparser implements Visitor {
     visit(node.statements);
   }
 
+  visitCascade(Cascade node) {
+    visit(node.expression);
+  }
+
+  visitCascadeReceiver(CascadeReceiver node) {
+    visit(node.expression);
+  }
+
   visitClassNode(ClassNode node) {
     node.beginToken.value.printOn(sb);
     sb.add(' ');
@@ -119,7 +127,7 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
-  visitStringJuxtaposition(LiteralStringJuxtaposition node) {
+  visitStringJuxtaposition(StringJuxtaposition node) {
     visit(node.first);
     sb.add(" ");
     visit(node.second);

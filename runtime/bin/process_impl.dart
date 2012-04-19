@@ -55,7 +55,7 @@ class _InteractiveProcess implements Process {
         throw new IllegalArgumentException("Non-string argument: $arg");
       }
       _arguments[i] = arguments[i];
-      if (new Platform().operatingSystem() == 'windows') {
+      if (Platform.operatingSystem() == 'windows') {
         _arguments[i] = _windowsArgumentEscape(_arguments[i]);
       }
     }

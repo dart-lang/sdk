@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing setting/getting/initializing static fields.
@@ -15,13 +15,6 @@ class First {
   }
 }
 
-class Second extends First {
-  static void testUnqualifiedStatic() {
-    setValues();           // static function in superclass.
-    Expect.equals(24, a);  // static field in superclass.
-    Expect.equals(24, First.a);  // same field as above.
-  }
-}
 
 class InitializerTest {
   static var one;
@@ -65,7 +58,6 @@ class StaticFieldTest {
     Expect.equals(35, First.setValues());
     Expect.equals(24, First.a);
     Expect.equals(10, First.b);
-    Second.testUnqualifiedStatic();
   }
 }
 

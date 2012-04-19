@@ -18,14 +18,13 @@ bool checkCreateInNonExistentFileException(e) {
   Expect.isTrue(e is DirectoryIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Creation failed") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
+  if (Platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "macos") {
+  } else if (Platform.operatingSystem() == "macos") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "windows") {
+  } else if (Platform.operatingSystem() == "windows") {
     Expect.isTrue(
         e.toString().indexOf(
             "The system cannot find the path specified") != -1);
@@ -54,14 +53,13 @@ bool checkCreateTempInNonExistentFileException(e) {
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(
       "Creation of temporary directory failed") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
+  if (Platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "macos") {
+  } else if (Platform.operatingSystem() == "macos") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "windows") {
+  } else if (Platform.operatingSystem() == "windows") {
     Expect.isTrue(
         e.toString().indexOf(
             "The system cannot find the path specified") != -1);
@@ -89,12 +87,11 @@ bool checkDeleteNonExistentFileException(e) {
   Expect.isTrue(e is DirectoryIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
+  if (Platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (platform.operatingSystem() == "macos") {
+  } else if (Platform.operatingSystem() == "macos") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
-  } else if (platform.operatingSystem() == "windows") {
+  } else if (Platform.operatingSystem() == "windows") {
     Expect.isTrue(
         e.toString().indexOf(
             "The system cannot find the file specified") != -1);
@@ -123,14 +120,13 @@ bool checkDeleteRecursivelyNonExistentFileException(e) {
   Expect.isTrue(e is DirectoryIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
+  if (Platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "macos") {
+  } else if (Platform.operatingSystem() == "macos") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "windows") {
+  } else if (Platform.operatingSystem() == "windows") {
     Expect.isTrue(
         e.toString().indexOf(
             "The system cannot find the path specified") != -1);
@@ -158,14 +154,13 @@ bool checkListNonExistentFileException(e) {
   Expect.isTrue(e is DirectoryIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Directory listing failed") != -1);
-  Platform platform = new Platform();
-  if (platform.operatingSystem() == "linux") {
+  if (Platform.operatingSystem() == "linux") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "macos") {
+  } else if (Platform.operatingSystem() == "macos") {
     Expect.isTrue(e.toString().indexOf("No such file or directory") != -1);
     Expect.equals(2, e.osError.errorCode);
-  } else if (platform.operatingSystem() == "windows") {
+  } else if (Platform.operatingSystem() == "windows") {
     Expect.isTrue(
         e.toString().indexOf(
             "The system cannot find the path specified") != -1);

@@ -62,8 +62,7 @@ function(child, parent) {
   void addParameterStub(FunctionElement member,
                         String attachTo(String invocationName),
                         StringBuffer buffer,
-                        Selector selector,
-                        bool isNative) {
+                        Selector selector) {
     FunctionParameters parameters = member.computeParameters(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -153,7 +152,7 @@ function(child, parent) {
     String parametersString = Strings.join(parametersBuffer, ",");
     buffer.add('$parametersString) {\n');
 
-    if (isNative) {
+    if (member.isNative()) {
       nativeEmitter.emitParameterStub(
           member, invocationName, parametersString, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
@@ -166,21 +165,19 @@ function(child, parent) {
 
   void addParameterStubs(FunctionElement member,
                          String attachTo(String invocationName),
-                         StringBuffer buffer,
-                         [bool isNative = false]) {
+                         StringBuffer buffer) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
     FunctionParameters parameters = member.computeParameters(compiler);
     for (Selector selector in selectors) {
       if (!selector.applies(parameters)) continue;
-      addParameterStub(member, attachTo, buffer, selector, isNative);
+      addParameterStub(member, attachTo, buffer, selector);
     }
   }
 
   void addInstanceMember(Element member,
                          String attachTo(String name),
-                         StringBuffer buffer,
-                         [bool isNative = false]) {
+                         StringBuffer buffer) {
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
 
@@ -200,7 +197,7 @@ function(child, parent) {
       FunctionElement function = member;
       FunctionParameters parameters = function.computeParameters(compiler);
       if (!parameters.optionalParameters.isEmpty()) {
-        addParameterStubs(member, attachTo, buffer, isNative: isNative);
+        addParameterStubs(member, attachTo, buffer);
       }
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
@@ -208,15 +205,17 @@ function(child, parent) {
       if ((member.modifiers === null || !member.modifiers.isFinal()) &&
           compiler.universe.invokedSetters.contains(member.name)) {
         String setterName = namer.setterName(member.getLibrary(), member.name);
-        String name =
-            isNative ? member.name.slowToString() : namer.getName(member);
+        String name = member.isNative()
+            ? member.name.slowToString()
+            : namer.getName(member);
         buffer.add('${attachTo(setterName)} = function(v){\n');
         buffer.add('  this.$name = v;\n};\n');
       }
       if (compiler.universe.invokedGetters.contains(member.name)) {
         String getterName = namer.getterName(member.getLibrary(), member.name);
-        String name =
-            isNative ? member.name.slowToString() : namer.getName(member);
+        String name = member.isNative()
+            ? member.name.slowToString()
+            : namer.getName(member);
         buffer.add('${attachTo(getterName)} = function(){\n');
         buffer.add('  return this.$name;\n};\n');
       }

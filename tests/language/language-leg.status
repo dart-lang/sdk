@@ -38,7 +38,6 @@ LabelTest: Fail # switch cases are not implemented
 LibraryPrefixesTest: Fail # other is not a type
 LocalFunctionTest: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
 ManyGenericInstanceofTest: Fail # cannot resolve type T
-MapLiteral2Test: Fail # expected a constant string
 MethodBindingTest: Fail # internal error: super property read not implemented.
 MethodNameTest: Fail # Parsing of pseudo keywords.
 MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
@@ -48,7 +47,6 @@ NamedParameters4Test: Fail # Unimplemented non-matching static call
 NamingTest: Fail # Broken because operator negate is not accessible as if it was a method.
 ParameterInitializerTest: Fail # internal error: super property read not implemented
 PseudoKWTest: Fail # Unexpected token '('
-SuperAllNamedConstructorTest: Fail # internal error: Cannot find value parameter(v).
 SuperFieldAccessTest: Fail # internal error: super property read not implemented
 SuperFieldTest: Fail # internal error: super property read not implemented
 SuperImplicitClosureTest: Fail # internal error: super property read not implemented
@@ -63,6 +61,8 @@ GenericDeepTest: Fail # Expect.isTrue(false) fails.
 GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
 GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+LibraryPrivateInConstructorTest: Fail # Issue 2620.
+ListDoubleIndexInLoop2Test: Fail # Issue 2564.
 ListLiteral4Test: Fail # Illegal argument(s): 0 -- checked mode test.
 MapLiteral4Test: Fail # Attempt to modify an immutable object -- checked mode test.
 NamedParametersTypeTest: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
@@ -150,7 +150,6 @@ Prefix16NegativeTest: Fail, OK # Negative language test.
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
-Prefix9NegativeTest: Fail, OK # Negative language test.
 PseudoKWIllegalTest/01: Fail, OK # Negative language test.
 PseudoKWIllegalTest/03: Fail, OK # Negative language test.
 PseudoKWIllegalTest/05: Fail, OK # Negative language test.
@@ -181,15 +180,12 @@ SyntaxTest/47: Fail, OK # No error on body in const constructor.
 Throw7NegativeTest: Fail, OK # Negative language test.
 TryCatchSyntaxTest/08: Fail, OK # Negative language test.
 TypeVariableBoundsTest/00: Fail, OK # Negative language test.
-TypeVariableBoundsTest/07: Fail, OK # Negative language test.
-TypeVariableBoundsTest/08: Fail, OK # Negative language test.
 TypeVariableScopeTest/00: Fail, OK # Negative language test.
 TypeVariableScopeTest/01: Fail, OK # Negative language test.
 TypeVariableScopeTest/02: Fail, OK # Negative language test.
 TypeVariableScopeTest/03: Fail, OK # Negative language test.
 TypeVariableScopeTest/04: Fail, OK # Negative language test.
 TypeVariableScopeTest/05: Fail, OK # Negative language test.
-WrongNumberTypeArgumentsTest/01: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.

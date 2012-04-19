@@ -7,7 +7,7 @@
 
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
-  const char* strings[5] = { library_path, "/lib",
+  const char* strings[] = { library_path, "/lib",
                              extension_name, ".dylib", NULL };
   char* library_file = Concatenate(strings);
   void* lib_handle = dlopen(library_file, RTLD_LAZY);

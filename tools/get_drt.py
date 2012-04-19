@@ -98,7 +98,7 @@ def ensure_config():
     sys.exit(1)
 
 
-def get_latest(directory, version_file, latest_pattern, permanent_prefix):
+def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
   """Get the latest DumpRenderTree or Dartium binary depending on arguments.
 
   Args:
@@ -114,7 +114,7 @@ def get_latest(directory, version_file, latest_pattern, permanent_prefix):
     osname = 'lucid64'
   else:
     print >>sys.stderr, ('WARNING: platform "%s" does not support'
-        'DumpRenderTree for tests') % system
+        '%s for tests') % (system, name)
     return 0
 
   ensure_config()
@@ -129,9 +129,9 @@ def get_latest(directory, version_file, latest_pattern, permanent_prefix):
     latest = (permanent_prefix % { 'osname' : osname }
               + latest[latest.rindex('/'):])
   else: # e.g. no access
-    print "Couldn't download DumpRenderTree: %s\n%s" % (pattern, out)
+    print "Couldn't download %s: %s\n%s" % (name, pattern, out)
     if not os.path.exists(version_file):
-      print "Tests using DumpRenderTree will not work. Please try again later."
+      print "Tests using %s will not work. Please try again later." % name
     return 0
 
   # Check if we need to update the file
@@ -139,11 +139,11 @@ def get_latest(directory, version_file, latest_pattern, permanent_prefix):
     v = open(version_file, 'r').read()
     if v == latest:
       if not in_runhooks():
-        print 'DumpRenderTree is up to date.\nVersion: ' + latest
+        print name + ' is up to date.\nVersion: ' + latest
       return 0 # up to date
 
   if os.path.exists(directory):
-    print 'Removing old DumpRenderTree tree %s' % directory
+    print 'Removing old %s tree %s' % (name, directory)
     shutil.rmtree(directory)
 
   # download the zip file to a temporary path, and unzip to the target location
@@ -179,10 +179,11 @@ def main():
   args, _ = parser.parse_args()
 
   if args.dartium:
-    get_latest(DARTIUM_DIR, DARTIUM_VERSION,
+    get_latest('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
                DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PREFIX)
   else:
-    get_latest(DRT_DIR, DRT_VERSION, DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)
+    get_latest('DumpRenderTree', DRT_DIR, DRT_VERSION,
+               DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)
 
 if __name__ == '__main__':
   sys.exit(main())

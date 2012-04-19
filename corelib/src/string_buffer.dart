@@ -24,9 +24,15 @@ interface StringBuffer default StringBufferImpl {
   bool isEmpty();
 
   /**
-   * Adds [obj] to the buffer. Returns [:this:].
+   * Converts [obj] to a string and adds it to the buffer. Returns [:this:].
    */
   StringBuffer add(Object obj);
+
+  /**
+   * Adds the string representation of [charCode] to the buffer.
+   * Returns [this].
+   */
+  StringBuffer addCharCode(int charCode);
 
   /**
    * Adds all items in [objects] to the buffer. Returns [:this:].
