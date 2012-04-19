@@ -73,7 +73,6 @@ ConstructorRedirectTest/01: Fail # Issue 2103.
 
 [ $compiler == none && $unchecked ]
 
-IsNotClass3NegativeTest: Fail  # Spec unclear.
 Prefix16NegativeTest: Fail    # Bug 5532534
 
 [ $compiler == none && $mode == debug ]
@@ -108,6 +107,7 @@ FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GettersSettersType3Test: Fail # Issue 2351
 InstanceCallWrongArgumentCountNegativeTest: Fail
+Instanceof3Test: Fail # Issue 2571
 Label2NegativeTest: Fail    # issue 1658
 Library4NegativeTest: Fail   # Bug 5406175
 ListLiteral4Test: Fail       # Issue 1343
@@ -308,6 +308,7 @@ GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is r
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 Instanceof2Test: Fail
+Instanceof3Test: Fail # Issue 2571
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail

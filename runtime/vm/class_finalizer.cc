@@ -1270,7 +1270,9 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   va_list args;
   va_start(args, format);
   LanguageError& error = LanguageError::Handle();
-  if ((finalization == kFinalizeWellFormed) || FLAG_enable_type_checks) {
+  if (FLAG_enable_type_checks ||
+      !type.HasResolvedTypeClass() ||
+      (finalization == kFinalizeWellFormed)) {
     const Script& script = Script::Handle(cls.script());
     if (prev_error.IsNull()) {
       error ^= Parser::FormatError(
@@ -1283,12 +1285,15 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
       ReportError(error);
     }
   }
-  if (FLAG_enable_type_checks) {
-    // In checked mode, mark type as malformed.
+  if (FLAG_enable_type_checks || !type.HasResolvedTypeClass()) {
+    // In check mode, always mark the type as malformed.
+    // In production mode, mark the type as malformed only if its type class is
+    // not resolved.
     type.set_malformed_error(error);
   } else {
-     // In production mode, replace malformed type with Dynamic type.
-    type.set_type_class(Class::Handle(Object::dynamic_class()));
+     // In production mode, do not mark the type with a resolved type class as
+     // malformed, but make it raw.
+    ASSERT(type.HasResolvedTypeClass());
     type.set_arguments(AbstractTypeArguments::Handle());
   }
   if (!type.IsFinalized()) {
