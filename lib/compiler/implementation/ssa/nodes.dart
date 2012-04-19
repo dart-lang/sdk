@@ -734,6 +734,8 @@ class HType {
 }
 
 class HInstruction implements Hashable {
+  Element sourceElement;
+
   final int id;
   static int idCounter;
 
@@ -1781,8 +1783,6 @@ class HThis extends HParameterValue {
 }
 
 class HPhi extends HInstruction {
-  final Element element;
-
   static final IS_NOT_LOGICAL_OPERATOR = 0;
   static final IS_AND = 1;
   static final IS_OR = 2;
@@ -1792,7 +1792,9 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(this.element, List<HInstruction> inputs) : super(inputs);
+  HPhi(Element element, List<HInstruction> inputs) : super(inputs) {
+    sourceElement = element;
+  }
   HPhi.noInputs(Element element) : this(element, <HInstruction>[]);
   HPhi.singleInput(Element element, HInstruction input)
       : this(element, <HInstruction>[input]);

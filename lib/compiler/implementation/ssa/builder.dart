@@ -529,7 +529,7 @@ class LocalsHandler {
 
   void endLoop(HBasicBlock loopEntry) {
     loopEntry.forEachPhi((HPhi phi) {
-      Element element = phi.element;
+      Element element = phi.sourceElement;
       HInstruction postLoopDefinition = directLocals[element];
       phi.addInput(postLoopDefinition);
     });
@@ -1736,6 +1736,10 @@ class SsaBuilder implements Visitor {
     } else {
       localsHandler.updateLocal(element, value);
       stack.add(value);
+      // If the value does not already have a name, give it here.
+      if (value.sourceElement === null) {
+        value.sourceElement = element;
+      }
     }
   }
 

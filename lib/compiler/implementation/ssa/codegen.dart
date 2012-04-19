@@ -272,9 +272,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    if (instruction is HPhi) {
-      HPhi phi = instruction;
-      Element element = phi.element;
+    if (instruction.sourceElement !== null) {
+      Element element = instruction.sourceElement;
       String prefix;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
