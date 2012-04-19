@@ -6,7 +6,7 @@
 #import("dart:isolate");
 
 void testEmptyListOutputStream1() {
-  OutputStream stream = new ListOutputStream();
+  ListOutputStream stream = new ListOutputStream();
   Expect.equals(null, stream.contents());
   stream.close();
   Expect.equals(null, stream.contents());
@@ -15,7 +15,7 @@ void testEmptyListOutputStream1() {
 
 
 void testEmptyListOutputStream2() {
-  OutputStream stream = new ListOutputStream();
+  ListOutputStream stream = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
 
   void onNoPendingWrites() {
@@ -35,7 +35,7 @@ void testEmptyListOutputStream2() {
 
 
 void testListOutputStream1() {
-  OutputStream stream = new ListOutputStream();
+  ListOutputStream stream = new ListOutputStream();
   Expect.equals(null, stream.contents());
   stream.write([1, 2]);
   stream.writeFrom([1, 2, 3, 4, 5], 2, 2);
@@ -49,7 +49,7 @@ void testListOutputStream1() {
 
 
 void testListOutputStream2() {
-  OutputStream stream = new ListOutputStream();
+  ListOutputStream stream = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
   int stage = 0;
   void onNoPendingWrites() {
@@ -86,7 +86,7 @@ void testListOutputStream2() {
 }
 
 void testListOutputStream3() {
-  OutputStream stream = new ListOutputStream();
+  ListOutputStream stream = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
   void onNoPendingWrites() {
     stream.writeString("abcdABCD");

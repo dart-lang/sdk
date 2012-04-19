@@ -194,6 +194,8 @@ interface TestOutput default TestOutputImpl {
 
   Duration get time();
 
+  int get exitCode();
+
   List<String> get stdout();
 
   List<String> get stderr();
