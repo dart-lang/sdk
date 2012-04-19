@@ -10402,41 +10402,6 @@ class _IDBKeyRangeImpl extends _DOMTypeBase implements IDBKeyRange {
   Dynamic get upper() => _wrap(_ptr.upper);
 
   bool get upperOpen() => _wrap(_ptr.upperOpen);
-
-  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen = null, bool upperOpen = null]) {
-    if (lowerOpen === null) {
-      if (upperOpen === null) {
-        return _wrap(_ptr.bound(_unwrap(lower), _unwrap(upper)));
-      }
-    } else {
-      if (upperOpen === null) {
-        return _wrap(_ptr.bound(_unwrap(lower), _unwrap(upper), _unwrap(lowerOpen)));
-      } else {
-        return _wrap(_ptr.bound(_unwrap(lower), _unwrap(upper), _unwrap(lowerOpen), _unwrap(upperOpen)));
-      }
-    }
-    throw "Incorrect number or type of arguments";
-  }
-
-  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open = null]) {
-    if (open === null) {
-      return _wrap(_ptr.lowerBound(_unwrap(bound)));
-    } else {
-      return _wrap(_ptr.lowerBound(_unwrap(bound), _unwrap(open)));
-    }
-  }
-
-  IDBKeyRange only(/*IDBKey*/ value) {
-    return _wrap(_ptr.only(_unwrap(value)));
-  }
-
-  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open = null]) {
-    if (open === null) {
-      return _wrap(_ptr.upperBound(_unwrap(bound)));
-    } else {
-      return _wrap(_ptr.upperBound(_unwrap(bound), _unwrap(open)));
-    }
-  }
 }
 
 class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
@@ -29814,18 +29779,6 @@ interface IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   final bool upperOpen;
-
-  /** @domName IDBKeyRange.bound */
-  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
-
-  /** @domName IDBKeyRange.lowerBound */
-  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
-
-  /** @domName IDBKeyRange.only */
-  IDBKeyRange only(/*IDBKey*/ value);
-
-  /** @domName IDBKeyRange.upperBound */
-  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
