@@ -7,6 +7,7 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 html/html_tests: Pass, Fail   # Issue 1946.
 dom/IndexedDB3Test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
+dom/IndexedDB4Test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
 html/TypedArrays1Test: Fail   # Fails only on checked mode.
@@ -24,6 +25,7 @@ dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
 dom/IndexedDB2Test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+dom/IndexedDB4Test: Fail  # IDBKeyRange constructors not implemented.
 
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
@@ -55,6 +57,7 @@ dom/HiddenDom2Test: Fail
 dom/IndexedDB1Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/IndexedDB2Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/IndexedDB3Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+dom/IndexedDB4Test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 dom/InstanceOfTest: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
 dom/InnerFrameTest: Fail
