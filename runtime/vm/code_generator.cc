@@ -412,20 +412,22 @@ static RawString* GetSimpleTypeName(const Instance& value) {
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
 // Arg0: index of the token of the assignment (source location).
+// Arg1: node-id of the assignemnt.
 // Arg1: instance being assigned.
 // Arg2: type being assigned to.
 // Arg3: type arguments of the instantiator of the type being assigned to.
 // Arg4: name of variable being assigned to.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
   // TODO(regis): Get the token index from the PcDesc (via DartFrame).
   intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
-  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
+  intptr_t node_id = Smi::CheckedHandle(arguments.At(1)).Value();
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(2));
+  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(3));
   const AbstractTypeArguments& dst_type_instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.At(3));
-  const String& dst_name = String::CheckedHandle(arguments.At(4));
+      AbstractTypeArguments::CheckedHandle(arguments.At(4));
+  const String& dst_name = String::CheckedHandle(arguments.At(5));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -481,6 +483,39 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     Exceptions::CreateAndThrowTypeError(location, src_type_name, dst_type_name,
                                         dst_name, malformed_error_message);
     UNREACHABLE();
+  }
+  // Update cache: add class of instance and result.
+  if (dst_type.IsInstantiated() &&
+      !Class::Handle(dst_type.type_class()).HasTypeArguments()) {
+    DartFrameIterator iterator;
+    DartFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const Code& code = Code::Handle(caller_frame->LookupDartCode());
+    ASSERT(!code.IsNull());
+    uword loc = code.GetTypeTestAtNodeId(node_id);
+    if (loc != 0) {
+      // Found type test cache.
+      Array& value = Array::Handle(CodePatcher::GetTypeTestArray(loc));
+      const Class& src_instance_class = Class::Handle(src_instance.clazz());
+
+#if defined(DEBUG)
+      // Check for duplicate entries.
+      Class& last_checked = Class::Handle();
+      for (intptr_t i = 0; i < value.Length(); i += 2) {
+        last_checked ^= value.At(i);
+        ASSERT(last_checked.raw() != src_instance_class.raw());
+      }
+      // Array must be null terminated.
+      ASSERT(last_checked.IsNull());
+#endif
+
+      ASSERT(!value.IsNull());
+      intptr_t old_len = value.Length();
+      value = value.Grow(value, old_len + 2);
+      value.SetAt(old_len - 2, src_instance_class);
+      value.SetAt(old_len - 1, Bool::ZoneHandle(Bool::True()));
+      CodePatcher::SetTypeTestArray(loc, value);
+    }
   }
   arguments.SetReturn(src_instance);
 }

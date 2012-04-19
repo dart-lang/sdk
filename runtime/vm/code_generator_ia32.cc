@@ -1285,6 +1285,65 @@ static const Class* CoreClass(const char* c_name) {
 }
 
 
+// Inline tests according to the 'type' being tested. Jump to labels
+// if we can compute the type-test, otherwise fallthrough.
+// EAX: instance to be tested.
+// Clobbers many registers.
+void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
+                                             intptr_t token_index,
+                                             const AbstractType& type,
+                                             Label* is_instance_lbl,
+                                             Label* is_not_instance_lbl) {
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (type_class.HasTypeArguments()) {
+      GenerateInstantiatedTypeWithArgumentsTest(type,
+                                                is_instance_lbl,
+                                                is_not_instance_lbl);
+      // Fall through to runtime call.
+    } else {
+      GenerateInstantiatedTypeNoArgumentsTest(node_id,
+                                              token_index,
+                                              type,
+                                              is_instance_lbl,
+                                              is_not_instance_lbl);
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+      AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
+      __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
+      __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+      Label loop, found_in_cache, runtime_call;
+      __ Bind(&loop);
+      __ movl(EBX, Address(EDX, 0));
+      __ cmpl(ECX, EBX);
+      __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
+      __ addl(EDX, Immediate(kWordSize * 2));
+      __ cmpl(EBX, raw_null);
+      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+      __ jmp(&runtime_call, Assembler::kNearJump);
+
+      __ Bind(&found_in_cache);
+      __ movl(EDX, Address(EDX, kWordSize));
+      __ CompareObject(EDX, bool_true);
+      __ j(EQUAL, is_instance_lbl);
+      __ jmp(is_not_instance_lbl);
+      __ Bind(&runtime_call);
+    }
+  } else {
+    GenerateUninstantiatedTypeTest(type,
+                                   token_index,
+                                   is_instance_lbl);
+  }
+}
+
+
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
 // - NULL -> return false.
@@ -1341,9 +1400,10 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     return;
   }
 
+  Label is_instance_of, is_not_instance_of;
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, check_negate_done;
+  Label done;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -1358,123 +1418,13 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     __ cmpl(EAX, raw_null);
     __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
     __ PushObject(negate_result ? bool_true : bool_false);
-    __ jmp(&done, Assembler::kNearJump);
-
+    __ jmp(&done);
     __ Bind(&non_null);
-
-    const Class& type_class = Class::ZoneHandle(type.type_class());
-    const bool requires_type_arguments = type_class.HasTypeArguments();
-    // A Smi object cannot be the instance of a parameterized class.
-    // A class equality check is only applicable with a dst type of a
-    // non-parameterized class or with a raw dst type of a parameterized class.
-    if (requires_type_arguments) {
-      const AbstractTypeArguments& type_arguments =
-          AbstractTypeArguments::Handle(type.arguments());
-      const bool is_raw_type = type_arguments.IsNull() ||
-          type_arguments.IsRaw(type_arguments.Length());
-      Label runtime_call;
-      __ testl(EAX, Immediate(kSmiTagMask));
-      __ j(ZERO, &runtime_call, Assembler::kNearJump);
-      // Object not Smi.
-      if (is_raw_type) {
-        if (type.IsListInterface()) {
-          Label push_result;
-          // TODO(srdjan) also accept List<Object>.
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          __ CompareObject(ECX, *CoreClass("ObjectArray"));
-          __ j(EQUAL, &push_result, Assembler::kNearJump);
-          __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
-          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-          __ Bind(&push_result);
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
-        } else if (!type_class.is_interface()) {
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          __ CompareObject(ECX, type_class);
-          __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
-          __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
-        }
-      }
-      __ Bind(&runtime_call);
-      // Fall through to runtime call.
-    } else {
-      ASSERT(!requires_type_arguments);
-      // Test if object is Smi and for a couple known test-classes.
-      Label compare_classes;
-      __ testl(EAX, Immediate(kSmiTagMask));
-      __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
-      // Object is Smi.
-      const Class& smi_class = Class::Handle(Smi::Class());
-      // TODO(regis): We should introduce a SmiType.
-      Error& malformed_error = Error::Handle();
-      if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
-                                type_class,
-                                TypeArguments::Handle(),
-                                &malformed_error)) {
-        __ PushObject(negate_result ? bool_false : bool_true);
-      } else {
-        __ PushObject(negate_result ? bool_true : bool_false);
-      }
-      __ jmp(&done, Assembler::kNearJump);
-
-      // Compare if the classes are equal.
-      __ Bind(&compare_classes);
-      // Note that in instanceof both positive and negative tests must be fast.
-      if (type.IsBoolInterface()) {
-        // Bool interface has only bool class.
-        Label is_bool;
-        const Class & bool_class = Class::ZoneHandle(
-            Isolate::Current()->object_store()->bool_class());
-        __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-        __ CompareObject(ECX, bool_class);
-        __ j(EQUAL, &is_bool, Assembler::kNearJump);
-        __ PushObject(negate_result ? bool_true : bool_false);
-        __ jmp(&done);
-        __ Bind(&is_bool);
-        __ PushObject(negate_result ? bool_false : bool_true);
-        __ Bind(&done);
-        return;
-      }
-
-      // EAX: instance being tested.
-      // Optional quick equality check and then the type test cache test.
-      Label loop, runtime_call, found_in_cache, cache_test;
-      __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-      if (!type_class.is_interface()) {
-        // Class equality test first.
-        __ CompareObject(ECX, type_class);
-        __ j(NOT_EQUAL, &cache_test, Assembler::kNearJump);
-        // Equal!
-        __ PushObject(negate_result ? bool_false : bool_true);
-        __ jmp(&done, Assembler::kNearJump);
-      }
-      __ Bind(&cache_test);
-      // TODO(srdjan): Convert other tests to this simple form.
-      // Class we are testing against has no type arguments.
-      // TODO(srdjan): Canonicalize initial array?
-      // TODO(srdjan): Account for 'negate_result' in cache.
-      // The type test array is null-terminated. Two consecutive
-      // array elements correspond to one test:
-      //   array[i + 0] : class.
-      //   array[i + 1] : result for the class.
-      AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-      __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
-      __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
-      __ Bind(&loop);
-      __ movl(EBX, Address(EDX, 0));
-      __ cmpl(ECX, EBX);
-      __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
-      __ addl(EDX, Immediate(kWordSize * 2));
-      __ cmpl(EBX, raw_null);
-      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-      __ jmp(&runtime_call, Assembler::kNearJump);
-      __ Bind(&found_in_cache);
-      __ pushl(Address(EDX, kWordSize));
-      __ jmp(&check_negate_done);
-      __ Bind(&runtime_call);
-    }
   }
+
+  GenerateInlineInstanceof(node_id, token_index, type,
+                           &is_instance_of, &is_not_instance_of);
+
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
@@ -1493,27 +1443,220 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
   __ addl(ESP, Immediate(5 * kWordSize));
-  __ Bind(&check_negate_done);
-  if (negate_result) {
-    Label negate_done;
-    __ popl(EDX);
-    __ LoadObject(EAX, bool_true);
-    __ cmpl(EDX, EAX);
-    __ j(NOT_EQUAL, &negate_done, Assembler::kNearJump);
-    __ LoadObject(EAX, bool_false);
-    __ Bind(&negate_done);
-    __ pushl(EAX);
-  }
+  __ jmp(&done);
+
+  __ Bind(&is_instance_of);
+  __ PushObject(negate_result ? bool_false: bool_true);
+  __ jmp(&done);
+  __ Bind(&is_not_instance_of);
+  __ PushObject(negate_result ? bool_true: bool_false);
   __ Bind(&done);
 }
 
 
-// Jumps to label if ECX equals the given class.
-// Inputs:
-// - ECX: tested class.
-void CodeGenerator::TestClassAndJump(const Class& cls, Label* label) {
-  __ CompareObject(ECX, cls);
-  __ j(EQUAL, label, Assembler::kNearJump);
+// EAX: instance to test.
+// Clobbers: ECX.
+// Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
+// type test is conclusive, otherwise fallthrough if a type test could not
+// be completed.
+void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::ZoneHandle(type.type_class());
+  ASSERT(type_class.HasTypeArguments());
+  // A Smi object cannot be the instance of a parameterized class.
+  // A class equality check is only applicable with a dst type of a
+  // non-parameterized class or with a raw dst type of a parameterized class.
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, is_not_instance_lbl);
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(type.arguments());
+  const bool is_raw_type = type_arguments.IsNull() ||
+      type_arguments.IsRaw(type_arguments.Length());
+  if (is_raw_type) {
+    // Dynamic type argument, check only classes.
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    if (type.IsListInterface()) {
+      // TODO(srdjan) also accept List<Object>.
+      __ CompareObject(ECX, *CoreClass("ObjectArray"));
+      __ j(EQUAL, is_instance_lbl);
+      __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
+      __ j(EQUAL, is_instance_lbl);
+    } else if (!type_class.is_interface()) {
+      __ CompareObject(ECX, type_class);
+      __ j(EQUAL, is_instance_lbl);
+    }
+  } else {
+    // TODO(srdjan): do type test on type arguments.
+  }
+  // Fall through if type test is not conclusive
+}
+
+
+// EAX: instance to test.
+// Clobbers: EBX, ECX, EDX.
+void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
+    intptr_t node_id,
+    intptr_t token_index,
+    const AbstractType& type,
+    Label* is_instance_lbl,
+    Label* is_not_instance_lbl) {
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::ZoneHandle(type.type_class());
+  ASSERT(!type_class.HasTypeArguments());
+
+  Label compare_classes;
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
+  // Instance is Smi, check directly.
+  const Class& smi_class = Class::Handle(Smi::Class());
+  // TODO(regis): We should introduce a SmiType.
+  Error& malformed_error = Error::Handle();
+  if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                            type_class,
+                            TypeArguments::Handle(),
+                            &malformed_error)) {
+    __ jmp(is_instance_lbl);
+  } else {
+    __ jmp(is_not_instance_lbl);
+  }
+  // Compare if the classes are equal.
+  __ Bind(&compare_classes);
+
+  // Checking against interface.
+  // However, for specific core library interfaces, we can check for
+  // specific core library classes.
+  if (type.IsBoolInterface()) {
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    const Class& bool_class = Class::ZoneHandle(
+        Isolate::Current()->object_store()->bool_class());
+    __ CompareObject(ECX, bool_class);
+    __ j(EQUAL, is_instance_lbl);
+    return;
+  }
+  // If type is an interface, we can skip the class equality check,
+  // because instances cannot be of an interface type.
+  if (!type_class.is_interface()) {
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    __ CompareObject(ECX, type_class);
+    __ j(EQUAL, is_instance_lbl);
+  }
+  if (type.IsSubtypeOf(
+        Type::Handle(Type::NumberInterface()), &malformed_error)) {
+    // Custom checking for numbers (Smi, Mint, Bigint and Double)
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    if (type.IsIntInterface() || type.IsNumberInterface()) {
+      // We already checked for Smi above.
+      const Class& mint_class = Class::ZoneHandle(
+          Isolate::Current()->object_store()->mint_class());
+      const Class& bigint_class = Class::ZoneHandle(
+          Isolate::Current()->object_store()->bigint_class());
+      __ CompareObject(ECX, mint_class);
+      __ j(EQUAL, is_instance_lbl);
+      __ CompareObject(ECX, bigint_class);
+      __ j(EQUAL, is_instance_lbl);
+    }
+    if (type.IsDoubleInterface() || type.IsNumberInterface()) {
+      const Class& double_class = Class::ZoneHandle(
+          Isolate::Current()->object_store()->double_class());
+      __ CompareObject(ECX, double_class);
+      __ j(EQUAL, is_instance_lbl);
+    }
+  } else if (type.IsStringInterface()) {
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    const Class& one_byte_string_class = Class::ZoneHandle(
+        Isolate::Current()->object_store()->one_byte_string_class());
+    const Class& two_byte_string_class = Class::ZoneHandle(
+        Isolate::Current()->object_store()->two_byte_string_class());
+    const Class& four_byte_string_class = Class::ZoneHandle(
+        Isolate::Current()->object_store()->four_byte_string_class());
+    __ CompareObject(ECX, one_byte_string_class);
+    __ j(EQUAL, is_instance_lbl);
+    __ CompareObject(ECX, two_byte_string_class);
+    __ j(EQUAL, is_instance_lbl);
+    __ CompareObject(ECX, four_byte_string_class);
+    __ j(EQUAL, is_instance_lbl);
+  } else if (type.IsFunctionInterface()) {
+    // Check if instance is a closure.
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+    __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
+    __ cmpl(ECX, raw_null);
+    __ j(NOT_EQUAL, is_instance_lbl);
+  }
+  // Otherwise fallthrough.
+}
+
+
+// EAX: instance to test.
+// Clobbers: EBX, EDX, ECX.
+void CodeGenerator::GenerateUninstantiatedTypeTest(
+    const AbstractType& type,
+    intptr_t token_index,
+    Label* is_instance_lbl) {
+  ASSERT(!type.IsInstantiated());
+  // Skip check if destination is a dynamic type.
+  if (type.IsTypeParameter()) {
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    // EAX must be preserved!
+    Label fall_through;
+    GenerateInstantiatorTypeArguments(token_index);
+    // Type arguments are on stack.
+    __ popl(EBX);
+    // Check if type argument is dynamic.
+    __ cmpl(EBX, raw_null);
+    __ j(EQUAL, is_instance_lbl);
+
+    // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
+    __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
+    __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
+    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+    // EBX: Instance of TypeArguments.
+    __ movl(EDX,
+        FieldAddress(EBX, TypeArguments::type_at_offset(type.Index())));
+    // EDX: concrete type of type.
+    // Check if type argument is dynamic.
+    __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
+    __ j(EQUAL,  is_instance_lbl);
+
+    // Check if the type has type parameters, if not do the class comparison.
+    Label not_smi;
+    __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
+    __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+    // For Smi check quickly against int and num interfaces.
+    __ CompareObject(EDX, Type::ZoneHandle(Type::IntInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
+    __ j(EQUAL,  is_instance_lbl);
+    __ jmp(&fall_through);
+
+    __ Bind(&not_smi);
+    // The instantiated type parameter may not be a Type, but could be an
+    // InstantiatedType. It is therefore necessary to check its class.
+    __ movl(ECX, FieldAddress(EDX, Object::class_offset()));
+    __ CompareObject(ECX, Object::ZoneHandle(Object::type_class()));
+    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+    __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
+    __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
+    // Check that class of type has no type parameters.
+    __ cmpl(ECX, raw_null);
+    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+    // We have a non-parameterized class in EDX, compare with class of
+    // value in EAX. EAX, EDX are preserved in stub.
+    __ call(&StubCode::IsRawSubTypeLabel());
+    // Result in EBX: 1 is raw subtype.
+    __ cmpl(EBX, Immediate(1));
+    __ j(EQUAL, is_instance_lbl);
+
+    // Test not conclusive.
+    __ Bind(&fall_through);
+  }
 }
 
 
@@ -1602,178 +1745,17 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     return;
   }
 
-  // If dst_type is instantiated and non-parameterized, we can inline code
-  // checking whether the assigned instance is a Smi.
-  if (dst_type.IsInstantiated()) {
-    const Class& dst_type_class = Class::ZoneHandle(dst_type.type_class());
-    const bool dst_class_has_type_arguments = dst_type_class.HasTypeArguments();
-    // A Smi object cannot be the instance of a parameterized class.
-    // A class equality check is only applicable with a dst type of a
-    // non-parameterized class or with a raw dst type of a parameterized class.
-    if (dst_class_has_type_arguments) {
-      const AbstractTypeArguments& dst_type_arguments =
-          AbstractTypeArguments::Handle(dst_type.arguments());
-      const bool is_raw_dst_type = dst_type_arguments.IsNull() ||
-          dst_type_arguments.IsRaw(dst_type_arguments.Length());
-      if (is_raw_dst_type) {
-        // Dynamic type argument, check only classes.
-        if (dst_type.IsListInterface()) {
-          // TODO(srdjan) also accept List<Object>.
-          __ testl(EAX, Immediate(kSmiTagMask));
-          __ j(ZERO, &runtime_call, Assembler::kNearJump);
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          TestClassAndJump(*CoreClass("ObjectArray"), &done);
-          TestClassAndJump(*CoreClass("GrowableObjectArray"), &done);
-        } else if (!dst_type_class.is_interface()) {
-          __ testl(EAX, Immediate(kSmiTagMask));
-          __ j(ZERO, &runtime_call, Assembler::kNearJump);
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          TestClassAndJump(dst_type_class, &done);
-        }
-        // Fall through to runtime class.
-      }
-    } else {  // dst_type has NO type arguments.
-      Label compare_classes;
-      __ testl(EAX, Immediate(kSmiTagMask));
-      __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
-      // Object is Smi.
-      const Class& smi_class = Class::Handle(Smi::Class());
-      // TODO(regis): We should introduce a SmiType.
-      Error& malformed_error = Error::Handle();
-      if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
-                                dst_type_class,
-                                TypeArguments::Handle(),
-                                &malformed_error)) {
-        // Successful assignable type check: return object in EAX.
-        __ jmp(&done, Assembler::kNearJump);
-      } else {
-        // Failed assignable type check: call runtime to throw TypeError.
-        __ jmp(&runtime_call, Assembler::kNearJump);
-      }
-      // Compare if the classes are equal.
-      __ Bind(&compare_classes);
-      // If dst_type is an interface, we can skip the class equality check,
-      // because instances cannot be of an interface type.
-      if (!dst_type_class.is_interface()) {
-        __ LoadObject(EDX, dst_type_class);
-        __ cmpl(EDX, ECX);
-        __ j(EQUAL, &done, Assembler::kNearJump);
-        // EAX, EDX are preserved in stub, result is in EBX.
-        __ call(&StubCode::IsRawSubTypeLabel());
-        // Result in EBX: 1 is raw subtype.
-        __ cmpl(EBX, Immediate(1));
-        __ j(EQUAL, &done, Assembler::kNearJump);
-        // Otherwise fallthrough
-      } else {
-        // However, for specific core library interfaces, we can check for
-        // specific core library classes.
-        Error& malformed_error = Error::Handle();
-        if (dst_type.IsBoolInterface()) {
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          const Class& bool_class = Class::ZoneHandle(
-              Isolate::Current()->object_store()->bool_class());
-          TestClassAndJump(bool_class, &done);
-        } else if (dst_type.IsSubtypeOf(
-              Type::Handle(Type::NumberInterface()), &malformed_error)) {
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          if (dst_type.IsIntInterface() || dst_type.IsNumberInterface()) {
-            // We already checked for Smi above.
-            const Class& mint_class = Class::ZoneHandle(
-                Isolate::Current()->object_store()->mint_class());
-            TestClassAndJump(mint_class, &done);
-            const Class& bigint_class = Class::ZoneHandle(
-                Isolate::Current()->object_store()->bigint_class());
-            TestClassAndJump(bigint_class, &done);
-          }
-          if (dst_type.IsDoubleInterface() || dst_type.IsNumberInterface()) {
-            const Class& double_class = Class::ZoneHandle(
-                Isolate::Current()->object_store()->double_class());
-            TestClassAndJump(double_class, &done);
-          }
-        } else if (dst_type.IsStringInterface()) {
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          const Class& one_byte_string_class = Class::ZoneHandle(
-              Isolate::Current()->object_store()->one_byte_string_class());
-          TestClassAndJump(one_byte_string_class, &done);
-          const Class& two_byte_string_class = Class::ZoneHandle(
-              Isolate::Current()->object_store()->two_byte_string_class());
-          TestClassAndJump(two_byte_string_class, &done);
-          const Class& four_byte_string_class = Class::ZoneHandle(
-              Isolate::Current()->object_store()->four_byte_string_class());
-          TestClassAndJump(four_byte_string_class, &done);
-        } else if (dst_type.IsFunctionInterface()) {
-          __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-          __ movl(ECX, FieldAddress(ECX, Class::signature_function_offset()));
-          __ cmpl(ECX, raw_null);
-          __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-        } else {
-          __ LoadObject(EDX, dst_type_class);
-          // EAX: Instance (preserved).
-          // EDX: test class (preserved).
-          __ call(&StubCode::IsRawSubTypeLabel());
-          // Result in EBX: 1 is raw subtype.
-          __ cmpl(EBX, Immediate(1));
-          __ j(EQUAL, &done, Assembler::kNearJump);
-          // Otherwise fallthrough
-        }
-      }
-    }
-  } else {
-    ASSERT(!dst_type.IsInstantiated());
-    // Skip check if destination is a dynamic type.
-    if (dst_type.IsTypeParameter()) {
-      // EAX must be preserved!
-      Label fall_through;
-      GenerateInstantiatorTypeArguments(token_index);
-      // Type arguments are on stack
-      __ popl(EBX);
-      // Check if dynamic.
-      __ cmpl(EBX, raw_null);
-      __ j(EQUAL, &done, Assembler::kNearJump);
+  GenerateInlineInstanceof(node_id, token_index, dst_type,
+                           &done, &runtime_call);
 
-      // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
-      __ movl(EDX, FieldAddress(EBX, Object::class_offset()));
-      __ CompareObject(EDX, Object::ZoneHandle(Object::type_arguments_class()));
-      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-      // EBX: Instance of TypeArguments.
-      __ movl(EDX,
-          FieldAddress(EBX, TypeArguments::type_at_offset(dst_type.Index())));
-      // EDX: concrete type of dst_type.
-      __ CompareObject(EDX, Type::ZoneHandle(Type::DynamicType()));
-      __ j(EQUAL,  &done, Assembler::kNearJump);
-      // Check if the type has type parameters, if not do the class comparison.
-      Label not_smi;
-      __ testl(EAX, Immediate(kSmiTagMask));  // Value is Smi?
-      __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-      __ CompareObject(EDX, Type::ZoneHandle(Type::IntInterface()));
-      __ j(EQUAL,  &done, Assembler::kNearJump);
-      __ CompareObject(EDX, Type::ZoneHandle(Type::NumberInterface()));
-      __ j(EQUAL,  &done, Assembler::kNearJump);
-      __ Bind(&not_smi);
-      // The instantiated type parameter may not be a Type, but could be an
-      // InstantiatedType. It is therefore necessary to check its class.
-      __ movl(ECX, FieldAddress(EDX, Object::class_offset()));
-      __ CompareObject(ECX, Object::ZoneHandle(Object::type_class()));
-      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-      __ movl(EDX, FieldAddress(EDX, Type::type_class_offset()));
-      __ movl(ECX, FieldAddress(EDX, Class::type_parameters_offset()));
-      // Check that class of dst_type has no type parameters.
-      __ cmpl(ECX, raw_null);
-      __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-      // We have a non-parameterized class in EDX, compare with class of
-      // value in EAX. EAX, EDX are preserved in stub.
-      __ call(&StubCode::IsRawSubTypeLabel());
-      // Result in EBX: 1 is raw subtype.
-      __ cmpl(EBX, Immediate(1));
-      __ j(EQUAL, &done, Assembler::kNearJump);
-      __ Bind(&fall_through);
-    }
-  }
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int32_t>(Smi::New(token_index)));
+  const Immediate node_id_as_smi =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(node_id)));
   __ pushl(location);  // Push the source location.
+  __ pushl(node_id_as_smi);  // node-id.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (dst_type.IsInstantiated()) {
@@ -1785,7 +1767,7 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addl(ESP, Immediate(5 * kWordSize));
+  __ addl(ESP, Immediate(6 * kWordSize));
   __ popl(EAX);
 
   // EAX: value.

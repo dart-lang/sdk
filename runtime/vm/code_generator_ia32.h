@@ -184,8 +184,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateTypeArguments(ConstructorCallNode* node,
                              bool is_cls_parameterized);
 
-  void TestClassAndJump(const Class& cls, Label *label);
-
   intptr_t locals_space_size() const { return locals_space_size_; }
   void set_locals_space_size(intptr_t value) { locals_space_size_ = value; }
 
@@ -199,6 +197,24 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                            const RuntimeEntry& entry);
 
   void GenerateInlinedFinallyBlocks(SourceLabel* label);
+
+  void GenerateInlineInstanceof(intptr_t node_id,
+                                intptr_t token_index,
+                                const AbstractType& type,
+                                Label* is_instance_lbl,
+                                Label* is_not_instance_lbl);
+
+  void GenerateInstantiatedTypeWithArgumentsTest(const AbstractType& dst_type,
+                                                 Label* is_instance_lbl,
+                                                 Label* is_not_instance_lbl);
+  void GenerateInstantiatedTypeNoArgumentsTest(intptr_t node_id,
+                                               intptr_t token_index,
+                                               const AbstractType& dst_type,
+                                               Label* is_instance_lbl,
+                                               Label* is_not_instance_lbl);
+  void GenerateUninstantiatedTypeTest(const AbstractType& dst_type,
+                                      intptr_t token_index,
+                                      Label* is_instance_lbl);
 
   void HandleBackwardBranch(intptr_t loop_id, intptr_t token_index);
 
