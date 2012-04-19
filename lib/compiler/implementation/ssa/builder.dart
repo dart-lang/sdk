@@ -2153,13 +2153,12 @@ class SsaBuilder implements Visitor {
       }
       HType type = HType.UNKNOWN;
       Element originalElement = elements[node];
-      if (originalElement.isGenerativeConstructor()) {
-        ClassElement cls = originalElement.enclosingElement;
-        if (cls === compiler.listClass) {
-          type = HType.MUTABLE_ARRAY;
-        } else {
-          type = new HNonPrimitiveType(cls.type);
-        }
+      if (originalElement.isGenerativeConstructor()
+          && originalElement.enclosingElement === compiler.listClass) {
+        type = HType.MUTABLE_ARRAY;
+      } else if (element.isGenerativeConstructor()) {
+        ClassElement cls = element.enclosingElement;
+        type = new HNonPrimitiveType(cls.type);
       }
       push(new HInvokeStatic(selector, inputs, type));
     } else {
