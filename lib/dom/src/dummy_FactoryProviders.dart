@@ -12,15 +12,6 @@ class _AudioContextFactoryProvider {
   factory AudioContext() => _dummy();
 }
 
-class _IDBKeyRangeFactoryProvider {
-
-  factory IDBKeyRange.only(/*IDBKey*/ value) => _dummy();
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) => _dummy();
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) => _dummy();
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen, bool upperOpen]) => _dummy();
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _dummy();
