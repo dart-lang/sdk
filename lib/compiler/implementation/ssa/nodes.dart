@@ -755,7 +755,10 @@ class HNonPrimitiveType extends HType {
   }
 
   String toString() => type.toString();
-  Element lookupMember(SourceString name) => type.element.lookupMember(name);
+  Element lookupMember(SourceString name) {
+    ClassElement classElement = type.element;
+    classElement.lookupMember(name);
+  }
 }
 
 class HInstruction implements Hashable {

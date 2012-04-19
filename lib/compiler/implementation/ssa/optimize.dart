@@ -154,13 +154,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (node.isLengthGetter()) {
       HInstruction input = node.inputs[1];
       if (input.isConstantString()) {
-        StringConstant constant = input.constant;
+        HConstant constantInput = input;
+        StringConstant constant = constantInput.constant;
         return graph.addConstantInt(constant.length);
       } else if (input.isConstantList()) {
-        ListConstant constant = input.constant;
+        HConstant constantInput = input;
+        ListConstant constant = constantInput.constant;
         return graph.addConstantInt(constant.length);
       } else if (input.isConstantMap()) {
-        MapConstant constant = input.constant;
+        HConstant constantInput = input;
+        MapConstant constant = constantInput.constant;
         return graph.addConstantInt(constant.length);
       }
     }
