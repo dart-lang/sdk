@@ -61,12 +61,12 @@ main() {
     expectValueEquals(
         {'x':3, 'y':-4.5, 'z':'hi', 'w':null, 'u':true, 'v':false},
         JSON.parse(' {"x":3, "y": -4.5,  "z" : "hi",'
-                   + '"w":null, "u" : true, "v": false } '));
+                   '"w":null, "u" : true, "v": false } '));
     expectValueEquals(
         {'x':{'a':3, 'b':-4.5}, 'y':[{}], 'z':'hi', 'w':{'c':null, 'd':true},
                       'v':null},
         JSON.parse('{"x": {"a":3, "b": -4.5}, "y":[{}], '
-                   + '"z":"hi","w":{"c":null,"d":true}, "v":null}'));
+                   '"z":"hi","w":{"c":null,"d":true}, "v":null}'));
   });
 
   test('stringify', () {

@@ -265,7 +265,7 @@ void callbackDone() {
     final expected = testCase.callbacks;
     testCase.error(
         'More calls to callbackDone() than expected. '
-        + 'Actual: ${_callbacksCalled}, expected: ${expected}', '');
+        'Actual: ${_callbacksCalled}, expected: ${expected}', '');
     _state = _UNCAUGHT_ERROR;
   } else if ((_callbacksCalled == testCase.callbacks) &&
       (_state != _RUNNING_TEST)) {
