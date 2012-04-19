@@ -8601,9 +8601,10 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
 
 void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
   ASSERT(new_capacity > Capacity());
-  Array& contents = Array::Handle(data());
-  StorePointer(&(raw_ptr()->data_),
-               Array::Grow(contents, new_capacity, space));
+  const Array& contents = Array::Handle(data());
+  const Array& new_contents =
+      Array::Handle(Array::Grow(contents, new_capacity, space));
+  StorePointer(&(raw_ptr()->data_), new_contents.raw());
 }
 
 
