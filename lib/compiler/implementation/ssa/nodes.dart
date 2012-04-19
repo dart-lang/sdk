@@ -757,7 +757,7 @@ class HNonPrimitiveType extends HType {
   String toString() => type.toString();
   Element lookupMember(SourceString name) {
     ClassElement classElement = type.element;
-    classElement.lookupMember(name);
+    return classElement.lookupMember(name);
   }
 }
 
