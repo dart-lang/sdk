@@ -5,6 +5,7 @@
 #import("dart:io");
 #import("../../../../tools/testing/dart/test_runner.dart");
 #import("../../../../tools/testing/dart/status_file_parser.dart");
+#import("../../../../tools/testing/dart/test_options.dart");
 #source("ProcessTestUtil.dart");
 
 class TestController {
@@ -42,8 +43,7 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
     test_path = "../tests/standalone/src/${testName}.dart";
   }
 
-  var configuration = { 'timeout': 2,
-                        'special-command': '' };
+  var configuration = new TestOptionsParser().parse(['--timeout', '2'])[0];
   return new TestCase(testName,
                       [new Command(getDartFileName(),
                                    <String>["--ignore-unrecognized-flags",
@@ -56,12 +56,11 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
 
 
 void main() {
-  var configuration = { 'timeout': 2,
-                        'special-command': '' };
   new RunningProcess(MakeTestCase("PassTest", [PASS])).start();
   new RunningProcess(MakeTestCase("FailTest", [FAIL])).start();
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
 
+  var configuration = new TestOptionsParser().parse(['--timeout', '10'])[0];
   new RunningProcess(new TestCase("CrashTest",
                                   [new Command(getProcessTestFileName(),
                                                const ["0", "0", "1", "1"])],
