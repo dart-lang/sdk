@@ -415,8 +415,15 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.UNKNOWN: type = 'unknown'; break;
       default: unreachable();
     }
-    String onString = node.isOn ? "on" : "off";
-    return "TypeGuard: ${temporaryId(node.inputs[0])} is $type ($onString)";
+    StringBuffer envBuffer = new StringBuffer();
+    List<HInstruction> inputs = node.inputs;
+    // The last input is the guarded expression.
+    for (int i = 0; i < inputs.length - 1; i++) {
+      envBuffer.add(" ${temporaryId(inputs[i])}");
+    }
+    String on = node.isOn ? "on" : "off";
+    String id = temporaryId(node.guarded);
+    return "TypeGuard($on): $id is $type env: $envBuffer";
   }
 
   String visitIs(HIs node) {
