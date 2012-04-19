@@ -3,10 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
-  'variables': {
-    # These variables are used in the creation of the .vcproj file on
-    # Windows.
-  },
   'targets': [
     {
       'target_name': 'compiler',
