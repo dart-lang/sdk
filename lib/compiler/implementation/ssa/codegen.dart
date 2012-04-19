@@ -100,6 +100,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
+  final Set<String> usedNames;
   final Map<String, int> prefixes;
   final Set<HInstruction> generateAtUseSite;
   final Map<HPhi, String> logicalOperations;
@@ -142,6 +143,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.parameterNames)
     : names = new Map<int, String>(),
       prefixes = new Map<String, int>(),
+      usedNames = new Set<String>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       logicalOperations = new Map<HPhi, String>(),
@@ -272,24 +274,31 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name = names[id];
     if (name !== null) return name;
 
+    String prefix;
     if (instruction.sourceElement !== null) {
       Element element = instruction.sourceElement;
-      String prefix;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
       } else {
         prefix = 'v';
       }
-      if (!prefixes.containsKey(prefix)) {
-        prefixes[prefix] = 0;
-        return newName(id, prefix);
-      } else {
-        return newName(id, '${prefix}_${prefixes[prefix]++}');
-      }
     } else {
-      String prefix = 't';
-      if (!prefixes.containsKey(prefix)) prefixes[prefix] = 0;
-      return newName(id, '${prefix}${prefixes[prefix]++}');
+      prefix = 't';
+    }
+    
+    while (usedNames.contains(prefix)) {
+      prefix = '${prefix}_';
+    }
+
+    if (!prefixes.containsKey(prefix)) {
+      prefixes[prefix] = 0;
+      return newName(id, prefix);
+    } else {
+      name = '${prefix}${prefixes[prefix]++}';
+      while (usedNames.contains(name)) {
+        name = '${prefix}${prefixes[prefix]++}';
+      }
+      return newName(id, name);
     }
   }
 
@@ -300,6 +309,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   String newName(int id, String name) {
     String result = JsNames.getValid(name);
     names[id] = result;
+    usedNames.add(result);
     return result;
   }
 
