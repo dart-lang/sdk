@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js ]
 dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
-dom/IndexedDB4Test: Fail  # error: cannot instantiate interface 'IDBKeyRange'
 
 [ $compiler == dart2js && $runtime == drt ]
 
