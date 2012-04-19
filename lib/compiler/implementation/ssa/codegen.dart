@@ -93,6 +93,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int STATE_EXPRESSION = 3;
   static final int STATE_DECLARATION = 4;
 
+  static final String TEMPORARY_PREFIX = 't';
+
   final Compiler compiler;
   final WorkItem work;
   final StringBuffer buffer;
@@ -156,7 +158,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     // Create a namespace for temporaries.
-    prefixes['t'] = 0;
+    prefixes[TEMPORARY_PREFIX] = 0;
 
     equalsNullElement =
         compiler.builder.interceptors.getEqualsNullInterceptor();
@@ -277,11 +279,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    String prefix = 't';
+    String prefix = TEMPORARY_PREFIX;
     if (instruction.sourceElement !== null) {
       Element element = instruction.sourceElement;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
+        // Special case the variable named [TEMPORARY_PREFIX] to allow keeping its
+        // name.
+        if (prefix == TEMPORARY_PREFIX && !usedNames.contains(prefix)) {
+          return newName(id, prefix);
+        }
         // If we've never seen that prefix before, try to use it
         // directly.
         if (!prefixes.containsKey(prefix)) {
