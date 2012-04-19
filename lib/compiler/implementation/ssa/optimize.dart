@@ -261,6 +261,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // TODO(floitsch): cache interceptors.
         HStatic target = new HStatic(
             compiler.builder.interceptors.getTripleEqualsInterceptor());
+        node.block.addBefore(node, target);
         return new HIdentity(target, left, right);
       }
     }
@@ -273,7 +274,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // TODO(floitsch): cache interceptors.
         HStatic target = new HStatic(
             compiler.builder.interceptors.getEqualsNullInterceptor());
-        node.block.addBefore(node,target);
+        node.block.addBefore(node, target);
         return new HEquals(target, node.left, node.right);
       }
     }
