@@ -1140,13 +1140,15 @@ class HtmlFrogSystem(HtmlSystem):
 
 class HtmlDartiumSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir, generator):
+  def __init__(self, templates, database, emitters, auxiliary_dir, output_dir,
+               generator):
     """Prepared for generating wrapping implementation.
 
     - Creates emitter for Dart code.
     """
     super(HtmlDartiumSystem, self).__init__(
         templates, database, emitters, output_dir, generator)
+    self._auxiliary_dir = auxiliary_dir
     self._shared = HtmlSystemShared(database, generator)
     self._dart_dartium_file_paths = []
     self._wrap_cases = []
@@ -1179,6 +1181,8 @@ class HtmlDartiumSystem(HtmlSystem):
 
   def GenerateLibraries(self, lib_dir):
     # Library generated for implementation.
+    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
+
     self._GenerateLibFile(
         'html_dartium.darttemplate',
         os.path.join(lib_dir, 'html_dartium.dart'),
@@ -1186,6 +1190,7 @@ class HtmlDartiumSystem(HtmlSystem):
          self._interface_system._dart_callback_file_paths +
          self._dart_dartium_file_paths
          ),
+        AUXILIARY_DIR=MassagePath(auxiliary_dir),
         WRAPCASES='\n'.join(self._wrap_cases))
 
   def Finish(self):

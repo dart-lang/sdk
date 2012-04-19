@@ -301,7 +301,8 @@ class DartGenerator(object):
           TemplateLoader(self._template_dir,
                          ['html/dartium', 'html/impl', 'html', ''],
                          {'DARTIUM': True, 'FROG': False}),
-          self._database, self._emitters, self._output_dir, self)
+          self._database, self._emitters, self._auxiliary_dir,
+          self._output_dir, self)
 
       html_system._interface_system = html_interface_system
       self._systems.append(html_system)
