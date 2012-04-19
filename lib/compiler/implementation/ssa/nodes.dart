@@ -1173,8 +1173,6 @@ class HInvokeStatic extends HInvoke {
   HType computeDesiredTypeForNonTargetInput(HInstruction input) {
     return HType.UNKNOWN;
   }
-
-  bool get builtin() => isArrayConstructor();
 }
 
 class HInvokeSuper extends HInvokeStatic {
