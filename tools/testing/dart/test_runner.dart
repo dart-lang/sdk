@@ -548,7 +548,9 @@ class RunningProcess {
     new TestOutput.fromCase(testCase, exitCode, timedOut, stdout,
                             stderr, new Date.now().difference(startTime));
     timeoutTimer.cancel();
-    if (testCase.output.unexpectedOutput && processQueue._verbose) {
+    if (testCase.output.unexpectedOutput
+        && testCase.configuration['verbose'] != null
+        && testCase.configuration['verbose']) {
       print(testCase.displayName);
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
