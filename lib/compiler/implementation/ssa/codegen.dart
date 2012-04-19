@@ -155,6 +155,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       prefixes[name] = 0;
     }
 
+    // Create a namespace for temporaries.
+    prefixes['t'] = 0;
+
     equalsNullElement =
         compiler.builder.interceptors.getEqualsNullInterceptor();
   }
@@ -274,32 +277,29 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    String prefix;
+    String prefix = 't';
     if (instruction.sourceElement !== null) {
       Element element = instruction.sourceElement;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
-      } else {
-        prefix = 'v';
+        // If we've never seen that prefix before, try to use it
+        // directly.
+        if (!prefixes.containsKey(prefix)) {
+          // Make sure the variable name does not conflict with our mangling.
+          while (usedNames.contains(prefix)) {
+            prefix = '${prefix}_';
+          }
+          prefixes[prefix] = 0;
+          return newName(id, prefix);
+        }
       }
-    } else {
-      prefix = 't';
-    }
-    
-    while (usedNames.contains(prefix)) {
-      prefix = '${prefix}_';
     }
 
-    if (!prefixes.containsKey(prefix)) {
-      prefixes[prefix] = 0;
-      return newName(id, prefix);
-    } else {
+    name = '${prefix}${prefixes[prefix]++}';
+    while (usedNames.contains(name)) {
       name = '${prefix}${prefixes[prefix]++}';
-      while (usedNames.contains(name)) {
-        name = '${prefix}${prefixes[prefix]++}';
-      }
-      return newName(id, name);
     }
+    return newName(id, name);
   }
 
   bool temporaryExists(HInstruction instruction) {
