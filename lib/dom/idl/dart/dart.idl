@@ -219,17 +219,6 @@ module storage {
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
   };
-
-  interface IDBKeyRange {
-    [Suppressed] static IDBKeyRange only(in IDBKey value)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange lowerBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange upperBound(in IDBKey bound, in optional boolean open)
-        raises (IDBDatabaseException);
-    [Suppressed] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, in optional boolean lowerOpen, optional boolean upperOpen)
-        raises (IDBDatabaseException);
-  };
 };
 
 module html {

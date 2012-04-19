@@ -59,20 +59,3 @@ class _WebKitPointFactoryProvider {
 class _WebSocketFactoryProvider {
   factory WebSocket(String url) => FactoryProviderImplementation.createWebSocket(url);
 }
-
-class _IDBKeyRangeFactoryProvider {
-
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      FactoryProviderImplementation.IDBKeyRange_only(value);
-
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      FactoryProviderImplementation.IDBKeyRange_lowerBound(bound, open);
-
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      FactoryProviderImplementation.IDBKeyRange_upperBound(bound, open);
-
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
-      FactoryProviderImplementation.IDBKeyRange_bound(lower, upper,
-                                                      lowerOpen, upperOpen);
-}

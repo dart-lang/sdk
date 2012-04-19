@@ -4253,6 +4253,14 @@ class _IDBKeyRangeJs extends _DOMTypeJs implements IDBKeyRange native "*IDBKeyRa
   final upper;
 
   final bool upperOpen;
+
+  _IDBKeyRangeJs bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) native;
+
+  _IDBKeyRangeJs lowerBound(bound, [bool open = null]) native;
+
+  _IDBKeyRangeJs only(value) native;
+
+  _IDBKeyRangeJs upperBound(bound, [bool open = null]) native;
 }
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
@@ -17144,17 +17152,7 @@ interface IDBKey {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
-
-  IDBKeyRange.only(/*IDBKey*/ value);
-
-  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
-
-  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
-
-  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                    [bool lowerOpen, bool upperOpen]);
-
+interface IDBKeyRange {
 
   final /*IDBKey*/ lower;
 
@@ -17163,6 +17161,14 @@ interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
   final /*IDBKey*/ upper;
 
   final bool upperOpen;
+
+  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
+
+  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
+
+  IDBKeyRange only(/*IDBKey*/ value);
+
+  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24788,6 +24794,58 @@ interface ReadyState {
    */
   static final String COMPLETE = "complete";
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * The [Collections] class implements static methods useful when
+ * writing a class that implements [Collection] and the [iterator]
+ * method.
+ */
+class _Collections {
+  static void forEach(Iterable<Object> iterable, void f(Object o)) {
+    for (final e in iterable) {
+      f(e);
+    }
+  }
+
+  static List map(Iterable<Object> source,
+                  List<Object> destination,
+                  f(o)) {
+    for (final e in source) {
+      destination.add(f(e));
+    }
+    return destination;
+  }
+
+  static bool some(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (f(e)) return true;
+    }
+    return false;
+  }
+
+  static bool every(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (!f(e)) return false;
+    }
+    return true;
+  }
+
+  static List filter(Iterable<Object> source,
+                     List<Object> destination,
+                     bool f(o)) {
+    for (final e in source) {
+      if (f(e)) destination.add(e);
+    }
+    return destination;
+  }
+
+  static bool isEmpty(Iterable<Object> iterable) {
+    return !iterable.iterator().hasNext();
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24879,53 +24937,6 @@ class _WebKitPointFactoryProvider {
 class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) native '''return new WebSocket(url);''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _IDBKeyRangeFactoryProvider {
-
-  factory IDBKeyRange.only(/*IDBKey*/ value) =>
-      _only(_class(), _translateKey(value));
-
-  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _lowerBound(_class(), _translateKey(bound), open);
-
-  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open = false]) =>
-      _upperBound(_class(), _translateKey(bound), open);
-
-  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
-                            [bool lowerOpen = false, bool upperOpen = false]) =>
-      _bound(_class(), _translateKey(lower), _translateKey(upper),
-             lowerOpen, upperOpen);
-
-  static var _cachedClass;
-
-  static _class() {
-    if (_cachedClass != null) return _cachedClass;
-    return _cachedClass = _uncachedClass();
-  }
-
-  static _uncachedClass() native '''
-      return window.webkitIDBKeyRange || window.mozIDBKeyRange ||
-             window.msIDBKeyRange || window.IDBKeyRange;
-  ''';
-
-  static _translateKey(idbkey) => idbkey;  // TODO: fixme.
-
-  static _IDBKeyRangeJs _only(cls, value) native
-      '''return cls.only(value);''';
-
-  static _IDBKeyRangeJs _lowerBound(cls, bound, open) native
-      '''return cls.lowerBound(bound, open);''';
-
-  static _IDBKeyRangeJs _upperBound(cls, bound, open) native
-      '''return cls.upperBound(bound, open);''';
-
-  static _IDBKeyRangeJs _bound(cls, lower, upper, lowerOpen, upperOpen) native
-      '''return cls.bound(lower, upper, lowerOpen, upperOpen);''';
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25039,58 +25050,6 @@ class _TypedArrayFactoryProvider {
   // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
   // copies the list.
   static ensureNative(List list) => list;  // TODO: make sure.
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static List map(Iterable<Object> source,
-                  List<Object> destination,
-                  f(o)) {
-    for (final e in source) {
-      destination.add(f(e));
-    }
-    return destination;
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

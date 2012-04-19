@@ -12,13 +12,12 @@ $!GENERATED_DART_FILES
 #source('../src/KeyLocation.dart');
 #source('../src/KeyName.dart');
 #source('../src/ReadyState.dart');
+#source('../src/_Collections.dart');
 #source('../src/frog_DOMImplementation.dart');
 #source('../src/frog_DOMType.dart');
 #source('../src/frog_DOMTypeJs.dart');
 #source('../src/frog_FactoryProviders.dart');
-#source('../src/frog_IDBKeyRangeFactoryProvider.dart');
 #source('../src/frog_TypedArrayFactoryProvider.dart');
-#source('../src/_Collections.dart');
 #source('../src/_ListIterators.dart');
 #source('../src/_Lists.dart');
 

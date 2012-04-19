@@ -28,6 +28,7 @@ html/html_tests: Skip   # Issue 2657
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
 dom/IndexedDB2Test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+dom/IndexedDB4Test: Fail  # IDBKeyRange constructors not implemented.
 
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
