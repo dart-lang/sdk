@@ -750,6 +750,10 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   }
   ResolveType(cls, type, result_finalization);
   type = FinalizeType(cls, type, result_finalization);
+  // In production mode, a malformed result type is mapped to Dynamic.
+  if (!FLAG_enable_type_checks && type.IsMalformed()) {
+    type = Type::DynamicType();
+  }
   function.set_result_type(type);
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumberOfParameters();
@@ -757,6 +761,10 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     type = function.ParameterTypeAt(i);
     ResolveType(cls, type, kFinalize);
     type = FinalizeType(cls, type, kFinalize);
+    // In production mode, a malformed parameter type is mapped to Dynamic.
+    if (!FLAG_enable_type_checks && type.IsMalformed()) {
+      type = Type::DynamicType();
+    }
     function.SetParameterTypeAt(i, type);
   }
 }

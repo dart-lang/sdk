@@ -71,10 +71,6 @@ ConstructorRedirectTest/01: Fail # Issue 2103.
 *FrogTest: Skip
 *FrogNegativeTest: Skip
 
-[ $compiler == none && $unchecked ]
-
-Prefix16NegativeTest: Fail    # Bug 5532534
-
 [ $compiler == none && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
@@ -126,7 +122,6 @@ OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
 Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix11NegativeTest: Fail             # Issue 2383, Bug 5406175
 Prefix12NegativeTest: Fail             # Issue 2383, Bug 5406175
-Prefix16NegativeTest: Fail             # Issue 2383, Bug 5532534
 Prefix3NegativeTest: Fail              # Issue 2383, Bug 5406175
 Prefix6NegativeTest: Fail	       # Issue 2383
 PrivateFactoryResolutionNegativeTest: Fail # Issue 2275
@@ -337,7 +332,7 @@ Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix8NegativeTest: Fail
 Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
-Prefix16NegativeTest: Fail
+Prefix16Test: Fail
 Prefix20NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateMember1NegativeTest: Fail

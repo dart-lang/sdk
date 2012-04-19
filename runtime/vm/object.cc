@@ -2156,6 +2156,25 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
                                Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
+  // In case the type checked in a type test is malformed, the code generator
+  // may compile a throw instead of a run time call performing the type check.
+  // However, in checked mode, a function type may include malformed result type
+  // and/or malformed parameter types, which will then be encountered here at
+  // run time.
+  if (IsMalformed()) {
+    ASSERT(FLAG_enable_type_checks);
+    if (malformed_error->IsNull()) {
+      *malformed_error = this->malformed_error();
+    }
+    return false;
+  }
+  if (other.IsMalformed()) {
+    ASSERT(FLAG_enable_type_checks);
+    if (malformed_error->IsNull()) {
+      *malformed_error = other.malformed_error();
+    }
+    return false;
+  }
   // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     // An uninstantiated type parameter is equivalent to Dynamic.
@@ -6563,6 +6582,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
+  ASSERT(!other.IsMalformed());
   if (IsNull()) {
     Class& other_class = Class::Handle();
     if (other.IsTypeParameter()) {

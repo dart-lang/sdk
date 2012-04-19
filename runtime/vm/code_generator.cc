@@ -351,7 +351,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
   if (!result.value() && !malformed_error.IsNull()) {
-    ASSERT(FLAG_enable_type_checks);
     // Throw a dynamic type error only if the instanceof test fails.
     String& malformed_error_message =  String::Handle(
         String::New(malformed_error.ToErrorCString()));

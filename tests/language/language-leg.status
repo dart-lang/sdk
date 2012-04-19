@@ -147,7 +147,7 @@ OverrideFieldMethod6NegativeTest: Fail, OK # Negative language test.
 OverrideFieldTest/01: Fail, OK # Negative language test.
 OverrideFieldTest/04: Fail, OK # Negative language test.
 OverrideMethodWithFieldTest/01: Fail, OK # Negative language test.
-Prefix16NegativeTest: Fail, OK # Negative language test.
+Prefix16Test: Fail
 Prefix18NegativeTest: Fail, OK # Negative language test.
 Prefix20NegativeTest: Fail, OK # Negative language test.
 Prefix23NegativeTest: Fail, OK # Negative language test.
