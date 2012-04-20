@@ -11,9 +11,9 @@
 
 main() {
   group('running pub with no command', () {
-    testOutput('displays usage',
-      [],
-      '''
+    testPub('displays usage',
+      args: [],
+      output: '''
       Pub is a package manager for Dart.
 
       Usage:
@@ -22,22 +22,45 @@ main() {
 
       The commands are:
 
+        list      print the contents of repositories
         version   print Pub version
 
       Use "pub help [command]" for more information about a command.''');
   });
 
-  group('the version command', () {
-    testOutput('displays the current version',
-      ['version'], 'Pub 0.0.0');
-  });
-
   group('an unknown command', () {
-    testOutput('displays an error message',
-      ['quylthulg'],
-      '''
+    testPub('displays an error message',
+      args: ['quylthulg'],
+      output: '''
       Unknown command "quylthulg".
       Run "pub help" to see available commands.''',
       exitCode: 64);
+  });
+
+  listCommand();
+  versionCommand();
+}
+
+listCommand() {
+  group('list cache', () {
+    testPub('treats an empty directory as a package',
+      cache: [
+        dir('apple'),
+        dir('banana'),
+        dir('cherry')
+      ],
+      args: ['list', 'cache'],
+      output: '''
+      apple
+      banana
+      cherry''');
+  });
+}
+
+versionCommand() {
+  group('the version command', () {
+    testPub('displays the current version',
+      args: ['version'],
+      output: 'Pub 0.0.0');
   });
 }

@@ -7,9 +7,15 @@
  */
 #library('pub');
 
+#import('io.dart');
 #import('utils.dart');
 
-List<String, PubCommand> commands;
+#source('cache.dart');
+#source('command_list.dart');
+#source('command_update.dart');
+#source('package.dart');
+
+Map<String, PubCommand> commands;
 
 main() {
   final args = new Options().arguments;
@@ -18,7 +24,8 @@ main() {
   // should also add special-case support for --help and --version arguments to
   // be consistent with other Unix apps.
   commands = {
-    'version': new PubCommand('print Pub version', showVersion)
+    'list': new PubCommand('print the contents of repositories', commandList),
+    'version': new PubCommand('print Pub version', commandVersion)
   };
 
   if (args.length == 0) {
@@ -26,17 +33,31 @@ main() {
     return;
   }
 
+  // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
+  // pass in relevant paths. Eventually these should be either environment
+  // variables or at least a cleaner arg parser.
+  var cacheDir;
+  for (var i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--cachedir=')) {
+      cacheDir = args[i].substring('--cachedir='.length);
+      args.removeRange(i, 1);
+      break;
+    }
+  }
+
+  var options = new PubOptions(cacheDir);
+
   // Select the command.
   final command = commands[args[0]];
   if (command == null) {
     print('Unknown command "${args[0]}".');
     print('Run "pub help" to see available commands.');
-    exit(64); // see http://www.freebsd.org/cgi/man.cgi?query=sysexits.
+    exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     return;
   }
 
   args.removeRange(0, 1);
-  command.function(args);
+  command.function(options, args);
 }
 
 /** Displays usage information for the app. */
@@ -70,16 +91,22 @@ void showUsage() {
 }
 
 /** Displays pub version information. */
-void showVersion(List<String> args) {
+void commandVersion(PubOptions options, List<String> args) {
   // TODO(rnystrom): Store some place central.
   print('Pub 0.0.0');
 }
 
-typedef void CommandFunction(List<String> args);
+typedef void CommandFunction(PubOptions options, List<String> args);
 
 class PubCommand {
   final String description;
   final CommandFunction function;
 
   PubCommand(this.description, this.function);
+}
+
+class PubOptions {
+  final String cacheDir;
+
+  PubOptions(this.cacheDir);
 }
