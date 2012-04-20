@@ -1778,12 +1778,20 @@ class SsaBuilder implements Visitor {
         isNot = true;
       }
       Type type = elements.getType(typeAnnotation);
-      HInstruction instruction = new HIs(type, expression);
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
+      if (type.element.kind === ElementKind.TYPE_VARIABLE) {
+        // TODO(karlklose): We emulate the frog behavior and answer
+        // true to any is check involving a type variable -- both is T
+        // and is !T -- until we have a proper implementation of
+        // reified generics.
+        stack.add(graph.addConstantBool(true));
+      } else {
+        HInstruction instruction = new HIs(type, expression);
+        if (isNot) {
+          add(instruction);
+          instruction = new HNot(instruction);
+        }
+        push(instruction);
       }
-      push(instruction);
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);
