@@ -1318,6 +1318,7 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get right() => inputs[2];
 
   abstract BinaryOperation get operation();
+  abstract get builtin();
 }
 
 class HBinaryArithmetic extends HInvokeBinary {
