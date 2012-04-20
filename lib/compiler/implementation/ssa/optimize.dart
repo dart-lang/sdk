@@ -38,7 +38,8 @@ class SsaOptimizerTask extends CompilerTask {
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
           new SsaSpeculativeTypePropagator(compiler),
-          new SsaTypeGuardBuilder(compiler, work),
+          new SsaTypeGuardInserter(work),
+          new SsaEnvironmentBuilder(compiler),
           // Change the propagated types back to what they were before we
           // speculatively propagated, so that we can generate the bailout
           // version.
@@ -288,7 +289,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.guarded;
-    HType combinedType = value.propagatedType.combine(node.propagatedType);
+    HType combinedType = value.propagatedType.combine(node.guardedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
 
