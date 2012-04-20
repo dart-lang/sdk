@@ -1,5 +1,5 @@
 " Vim syntax file " Language: Dart
-" Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+" Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 " for details. All rights reserved. Use of this source code is governed by a
 " BSD-style license that can be found in the LICENSE file.
 
@@ -17,12 +17,12 @@ endif
 
 " keyword definitions
 syn keyword dartConditional    if else switch
-syn keyword dartRepeat         while for
+syn keyword dartRepeat         do while for
 syn keyword dartBoolean        true false
 syn keyword dartConstant       null
 syn keyword dartTypedef        this super class typedef
 syn keyword dartOperator       new is in factory
-syn match   dartOperator       "+\|-\|*\|[~]\=/\|%\|||\|&&\|\(!\|=\)=[=]\=\|=>\|[<>]=\|=\|!"
+syn match   dartOperator       "+=\=\|-=\=\|*=\=\|/=\=\|%=\=\|\~/=\=\|<<=\=\|>>=\=\|[<>]=\=\|===\=\|\!==\=\|&=\=\|\^=\=\||=\=\|||\|&&\|\[\]=\=\|=>\|!\|\~"
 syn keyword dartType           void var const bool int double num
 syn keyword dartStatement      return
 syn keyword dartStorageClass   static final abstract
@@ -31,7 +31,7 @@ syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
 " TODO(antonm): check if labels on break and continue are supported.
 syn keyword dartBranch         break continue nextgroup=dartUserLabelRef skipwhite
-syn keyword dartKeyword        function get set operator
+syn keyword dartKeyword        get set operator call equals negate
 syn match   dartUserLabelRef   "\k\+" contained
 syn match   dartVarArg         "\.\.\."
 
@@ -44,6 +44,7 @@ syn keyword dartLabel         default
 syn keyword dartTodo          contained TODO FIXME XXX
 syn region  dartComment       start="/\*"  end="\*/" contains=dartTodo,dartDocLink,@Spell
 syn match   dartLineComment   "//.*" contains=dartTodo,@Spell
+syn match   dartLineDocComment "///.*" contains=dartTodo,dartDocLink,@Spell
 syn region  dartDocLink       contained start=+\[+ end=+\]+
 
 " Strings
@@ -76,6 +77,7 @@ HiLink dartStatement       Statement
 HiLink dartOperator        Operator
 HiLink dartComment         Comment
 HiLink dartLineComment     Comment
+HiLink dartLineDocComment  Comment
 HiLink dartConstant        Constant
 HiLink dartTypedef         Typedef
 HiLink dartTodo            Todo
@@ -93,3 +95,9 @@ if main_syntax == 'dart'
 endif
 
 let b:spell_options="contained"
+
+" Enable automatic indentation (2 spaces)
+set expandtab
+set shiftwidth=2
+set softtabstop=2
+set cindent
