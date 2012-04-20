@@ -47,7 +47,6 @@
 #import("../frog/tests/await/test_config.dart");
 #import("../utils/tests/css/test_config.dart");
 #import("../utils/tests/import_mapper/test_config.dart");
-#import("../utils/tests/peg/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -56,7 +55,8 @@
  * basically add the directory here and you're done.)
 */
 final TEST_SUITE_DIRECTORIES = const [
-  'utils/tests/pub'
+  'utils/tests/peg',
+  'utils/tests/pub',
 ];
 
 main() {
@@ -144,9 +144,6 @@ main() {
     }
     if (selectors.containsKey('import_mapper')) {
       queue.addTestSuite(new ImportMapperTestSuite(conf));
-    }
-    if (selectors.containsKey('peg')) {
-      queue.addTestSuite(new PegTestSuite(conf));
     }
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));

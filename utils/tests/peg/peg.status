@@ -2,8 +2,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartc ]
-PegTest: Skip  # Undiagnosed error on "a ? b ? c : d : e ? f : g"
+[ $runtime == opera ]
+peg_tests: Skip
 
-[ $compiler == frog || $compiler == dart2js || $runtime == drt ]
-PegTest: Skip  # #-directives not supported by browser test architecture
+[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == chrome || $runtime == safari) ]
+peg_tests: Skip # TODO(ahe): Triage
+
+[ $arch == x64 ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == arm ]
+*: Skip
