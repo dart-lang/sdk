@@ -141,16 +141,6 @@ class ProcessOptions {
    * The default stderrEncoding is UTF_8.
    */
   Encoding stderrEncoding;
-
-  /**
-   * Provides the environment variables for the process. If not set
-   * the environment of the parent process is inherited.
-   *
-   * Currently, only ASCII environment variables are supported and
-   * errors are likely to occur if an environment variables with
-   * code-points outside the ASCII range is passed in.
-   */
-  Map<String, String> environment;
 }
 
 

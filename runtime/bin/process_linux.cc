@@ -307,8 +307,6 @@ int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
-                   char* environment[],
-                   intptr_t environment_length,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -392,20 +390,11 @@ int Process::Start(const char* path,
   }
 
   char** program_arguments = new char*[arguments_length + 2];
-  program_arguments[0] = const_cast<char*>(path);
+  program_arguments[0] = const_cast<char *>(path);
   for (int i = 0; i < arguments_length; i++) {
     program_arguments[i + 1] = arguments[i];
   }
   program_arguments[arguments_length + 1] = NULL;
-
-  char** program_environment = NULL;
-  if (environment != NULL) {
-    program_environment = new char*[environment_length + 1];
-    for (int i = 0; i < environment_length; i++) {
-      program_environment[i] = environment[i];
-    }
-    program_environment[environment_length] = NULL;
-  }
 
   struct sigaction act;
   bzero(&act, sizeof(act));
@@ -461,22 +450,13 @@ int Process::Start(const char* path,
       ReportChildError(exec_control[1]);
     }
 
-    if (environment != NULL) {
-      TEMP_FAILURE_RETRY(
-          execve(path,
-                 const_cast<char* const*>(program_arguments),
-                 program_environment));
-    } else {
-      TEMP_FAILURE_RETRY(
-          execvp(path, const_cast<char* const*>(program_arguments)));
-    }
+    TEMP_FAILURE_RETRY(
+        execvp(path, const_cast<char* const*>(program_arguments)));
     ReportChildError(exec_control[1]);
   }
 
-  // The arguments and environment for the spawned process are not needed
-  // any longer.
+  // The arguments for the spawned process are not needed any longer.
   delete[] program_arguments;
-  delete[] program_environment;
 
   int event_fds[2];
   result = TEMP_FAILURE_RETRY(pipe(event_fds));

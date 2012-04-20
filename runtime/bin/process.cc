@@ -7,37 +7,6 @@
 
 #include "include/dart_api.h"
 
-// Extract an array of C strings from a list of Dart strings.
-static char** ExtractCStringList(Dart_Handle strings,
-                                 Dart_Handle status_handle,
-                                 const char* error_msg,
-                                 intptr_t* length) {
-  ASSERT(Dart_IsList(strings));
-  intptr_t len = 0;
-  Dart_Handle result = Dart_ListLength(strings, &len);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-  *length = len;
-  char** string_args = new char*[len];
-  for (int i = 0; i < len; i++) {
-    Dart_Handle arg = Dart_ListGetAt(strings, i);
-    if (Dart_IsError(arg)) {
-      delete[] string_args;
-      Dart_PropagateError(arg);
-    }
-    if (!Dart_IsString(arg)) {
-      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-      DartUtils::SetStringField(
-          status_handle, "_errorMessage", error_msg);
-      delete[] string_args;
-      return NULL;
-    }
-    string_args[i] = const_cast<char *>(DartUtils::GetStringValue(arg));
-  }
-  return string_args;
-}
-
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle process =  Dart_GetNativeArgument(args, 0);
@@ -45,7 +14,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t out;
   intptr_t err;
   intptr_t exit_event;
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 9);
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 8);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   // The Dart code verifies that the path implements the String
   // interface. However, only builtin Strings are handled by
@@ -60,16 +29,34 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   }
   const char* path = DartUtils::GetStringValue(path_handle);
   Dart_Handle arguments = Dart_GetNativeArgument(args, 2);
-  intptr_t args_length = 0;
-  char** string_args =
-      ExtractCStringList(arguments,
-                         status_handle,
-                         "Arguments must be builtin strings",
-                         &args_length);
-  if (string_args == NULL) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(false));
-    Dart_ExitScope();
-    return;
+  // The arguments are copied into a non-extensible array in the
+  // dart code so this should not fail.
+  ASSERT(Dart_IsList(arguments));
+  intptr_t length = 0;
+  Dart_Handle result = Dart_ListLength(arguments, &length);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  char** string_args = new char*[length];
+  for (int i = 0; i < length; i++) {
+    Dart_Handle arg = Dart_ListGetAt(arguments, i);
+    if (Dart_IsError(arg)) {
+      delete[] string_args;
+      Dart_PropagateError(arg);
+    }
+    // The Dart code verifies that the arguments implement the String
+    // interface. However, only builtin Strings are handled by
+    // GetStringValue.
+    if (!Dart_IsString(arg)) {
+      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+      DartUtils::SetStringField(
+          status_handle, "_errorMessage", "Arguments must be builtin strings");
+      delete[] string_args;
+      Dart_SetReturnValue(args, Dart_NewBoolean(false));
+      Dart_ExitScope();
+      return;
+    }
+    string_args[i] = const_cast<char *>(DartUtils::GetStringValue(arg));
   }
   Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 3);
   // Defaults to the current working directoy.
@@ -86,35 +73,18 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     Dart_ExitScope();
     return;
   }
-  Dart_Handle environment = Dart_GetNativeArgument(args, 4);
-  intptr_t environment_length = 0;
-  char** string_environment = NULL;
-  if (!Dart_IsNull(environment)) {
-    string_environment =
-        ExtractCStringList(environment,
-                           status_handle,
-                           "Environment values must be builtin strings",
-                           &environment_length);
-    if (string_environment == NULL) {
-      Dart_SetReturnValue(args, Dart_NewBoolean(false));
-      Dart_ExitScope();
-      return;
-    }
-  }
-  Dart_Handle in_handle = Dart_GetNativeArgument(args, 5);
-  Dart_Handle out_handle = Dart_GetNativeArgument(args, 6);
-  Dart_Handle err_handle = Dart_GetNativeArgument(args, 7);
-  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 8);
+  Dart_Handle in_handle = Dart_GetNativeArgument(args, 4);
+  Dart_Handle out_handle = Dart_GetNativeArgument(args, 5);
+  Dart_Handle err_handle = Dart_GetNativeArgument(args, 6);
+  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 7);
   intptr_t pid = -1;
   static const int kMaxChildOsErrorMessageLength = 256;
   char os_error_message[kMaxChildOsErrorMessageLength];
 
   int error_code = Process::Start(path,
                                   string_args,
-                                  args_length,
+                                  length,
                                   working_directory,
-                                  string_environment,
-                                  environment_length,
                                   &in,
                                   &out,
                                   &err,
@@ -137,7 +107,6 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
         status_handle, "_errorMessage", os_error_message);
   }
   delete[] string_args;
-  delete[] string_environment;
   Dart_SetReturnValue(args, Dart_NewBoolean(error_code == 0));
   Dart_ExitScope();
 }

@@ -17,8 +17,6 @@ class Process {
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
-                   char* environment[],
-                   intptr_t environment_length,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
