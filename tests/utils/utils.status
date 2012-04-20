@@ -13,6 +13,12 @@ MarkdownTest: Skip
 [ $compiler == frog || $compiler == frogsh ]
 DummyCompilerTest: Fail
 
+[ $compiler == frog ]
+Utf8Test: Crash
+
+[ $compiler == dart2js ]
+Utf8Test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
+
 [ $runtime == vm || $compiler == dartc || ($compiler == none && $runtime == drt) ]
 # TODO(rnystrom): Right now, the VM tests can't access frog/ and client/ which
 # dartdoc uses, so disable for now. Once the deps files are unified this should
