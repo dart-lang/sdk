@@ -68,11 +68,11 @@ class NativeImplementationSystem(System):
     class_name = 'Dart%s' % self._interface.id
     for operation in interface.operations:
       if operation.type.id == 'void':
-        return_type = 'void'
         return_prefix = ''
+        error_return = ''
       else:
-        return_type = 'bool'
         return_prefix = 'return '
+        error_return = ' false'
 
       parameters = []
       arguments = []
@@ -80,25 +80,33 @@ class NativeImplementationSystem(System):
         argument_type_info = GetIDLTypeInfo(argument.type.id)
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
-        arguments.append(argument.id)
+        arguments.append(argument_type_info.to_dart_conversion(argument.id))
         cpp_impl_includes |= set(argument_type_info.conversion_includes())
 
+      native_return_type = GetIDLTypeInfo(operation.type.id).native_type()
       cpp_header_handlers_emitter.Emit(
           '\n'
           '    virtual $TYPE handleEvent($PARAMETERS);\n',
-          TYPE=return_type, PARAMETERS=', '.join(parameters))
+          TYPE=native_return_type, PARAMETERS=', '.join(parameters))
 
       cpp_impl_handlers_emitter.Emit(
           '\n'
           '$TYPE $CLASS_NAME::handleEvent($PARAMETERS)\n'
           '{\n'
-          '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENTS);\n'
+          '    if (!m_callback.isolate()->isAlive())\n'
+          '        return$ERROR_RETURN;\n'
+          '    DartIsolate::Scope scope(m_callback.isolate());\n'
+          '    DartApiScope apiScope;\n'
+          '    Dart_Handle arguments[] = { $ARGUMENTS };\n'
+          '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
-          TYPE=return_type,
+          TYPE=native_return_type,
           CLASS_NAME=class_name,
           PARAMETERS=', '.join(parameters),
+          ERROR_RETURN=error_return,
           RETURN_PREFIX=return_prefix,
-          ARGUMENTS=', '.join(arguments))
+          ARGUMENTS=', '.join(arguments),
+          ARGUMENT_COUNT=len(arguments))
 
     cpp_header_path = self._FilePathForCppHeader(self._interface.id)
     cpp_header_emitter = self._emitters.FileEmitter(cpp_header_path)

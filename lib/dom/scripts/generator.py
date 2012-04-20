@@ -7,6 +7,7 @@
 Dart APIs from the IDL database."""
 
 import re
+import string
 
 _pure_interfaces = set([
     'DOMStringList',
@@ -493,7 +494,7 @@ class IDLTypeInfo(object):
   def conversion_includes(self):
     return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
-  def to_dart_conversion(self, value, interface_name, attributes):
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
     return 'toDartValue(%s)' % value
 
   def custom_to_dart(self):
@@ -514,12 +515,10 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, dart_type, native_type=None, ref_counted=False,
-               needs_static_cast=False,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute'):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
         native_type=native_type, ref_counted=ref_counted)
-    self._needs_static_cast = needs_static_cast
     self._webcore_getter_name = webcore_getter_name
     self._webcore_setter_name = webcore_setter_name
 
@@ -537,13 +536,18 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def conversion_includes(self):
     return []
 
-  def to_dart_conversion(self, value, interface_name, attributes):
-    if self._needs_static_cast:
-      value = 'static_cast<%s>(%s)' % (self.native_type(), value)
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
     conversion_arguments = [value]
-    if 'TreatReturnedNullStringAs' in attributes:
-        conversion_arguments.append('ConvertDefaultToNull')
-    return 'toDartValue(%s)' % ', '.join(conversion_arguments)
+    if attributes and 'TreatReturnedNullStringAs' in attributes:
+      conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
+    function_name = 'toDartValue'
+    # FIXME: implement DartUtilities::toDart for other primitive types and
+    # remove this list.
+    if self.native_type() in ['String', 'bool', 'int', 'unsigned', 'long long', 'unsigned long long', 'double']:
+      function_name = string.capwords(self.native_type()).replace(' ', '')
+      function_name = function_name[0].lower() + function_name[1:]
+      function_name = 'DartUtilities::%sToDart' % function_name
+    return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
 
   def webcore_getter_name(self):
     return self._webcore_getter_name
@@ -588,17 +592,12 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
     return 'toDartValue(%s)' %  conversion_cast
 
 _idl_type_registry = {
-    # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
-                                    needs_static_cast=True,
                                     webcore_getter_name='hasAttribute',
                                     webcore_setter_name='setBooleanAttribute'),
-    # Some IDL's unsigned shorts/shorts are mapped to WebCore C++ enums, so we
-    # use a static_cast<int> here not to provide overloads for all enums.
-    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int',
-        needs_static_cast=True),
+    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int'),
     'unsigned short': PrimitiveIDLTypeInfo('unsigned short', dart_type='int',
-        native_type='int', needs_static_cast=True,),
+        native_type='int'),
     'int': PrimitiveIDLTypeInfo('int', dart_type='int'),
     'unsigned int': PrimitiveIDLTypeInfo('unsigned int', dart_type='int',
         native_type='unsigned'),
@@ -624,7 +623,7 @@ _idl_type_registry = {
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
-    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
+    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int', native_type='unsigned long long'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
