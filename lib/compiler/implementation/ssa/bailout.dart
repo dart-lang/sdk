@@ -111,27 +111,6 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
-  bool typeGuardWouldBeValuable(HInstruction instruction,
-                                HType speculativeType) {
-    bool isNested(HBasicBlock inner, HBasicBlock outer) {
-      if (inner === outer) return false;
-      if (outer === null) return true;
-      while (inner !== null) {
-        if (inner === outer) return true;
-        inner = inner.parentLoopHeader;
-      }
-      return false;
-    }
-
-    // If the instruction is not in a loop then the header will be null.
-    HBasicBlock currentLoopHeader = instruction.block.enclosingLoopHeader;
-    for (HInstruction user in instruction.usedBy) {
-      HBasicBlock userLoopHeader = user.block.enclosingLoopHeader;
-      if (isNested(userLoopHeader, currentLoopHeader)) return true;
-    }
-    return false;
-  }
-
   bool shouldInsertTypeGuard(HInstruction instruction) {
     HType speculativeType = instruction.propagatedType;
     HType computedType = instruction.computeTypeFromInputTypes();
@@ -149,9 +128,8 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     if (!speculativeType.isUseful()) return false;
     // If the types agree we don't need to check.
     if (speculativeType == computedType) return false;
-    // If a bailout check is more expensive than doing the actual operation
-    // don't do it either.
-    return typeGuardWouldBeValuable(instruction, speculativeType);
+    // TODO(floitsch): Make the creation of type guards more conditional.
+    return true;
   }
 
   void visitInstruction(HInstruction instruction) {
