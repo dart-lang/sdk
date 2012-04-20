@@ -28,6 +28,7 @@ MarkdownTest: Skip
 
 [ $compiler == none && $runtime == drt ]
 DummyCompilerTest: Fail # Issue 2264.
+Utf8Test: Fail # Issue 2661.
 
 [ $compiler == dartc ]
 DummyCompilerTest: Fail # Issue 2263.
