@@ -23,9 +23,11 @@ foo(a) {
   } else {
     i = 0;
   }
-  // The phi, combining the two 'i's must reach the conclusion that i is of
-  // type num and therefore needs a check before accessing the array.
-  a[i];
+  for (int j = 0; j < 1; j++) {
+    // The phi, combining the two 'i's must reach the conclusion that i is of
+    // type num and therefore needs a check before accessing the array.
+    a[i];
+  }
 }
 
 main() {
