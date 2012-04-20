@@ -51,7 +51,7 @@
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_Environment, 0)                                                   \
-  V(Process_Start, 9)                                                          \
+  V(Process_Start, 10)                                                         \
   V(Process_Kill, 2)                                                           \
   V(ServerSocket_CreateBindListen, 4)                                          \
   V(ServerSocket_Accept, 2)                                                    \
