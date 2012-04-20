@@ -445,6 +445,11 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isLoopHeader() => blockInformation is HLoopInformation;
   bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
 
+  HBasicBlock get enclosingLoopHeader() {
+    if (isLoopHeader()) return this;
+    return parentLoopHeader;
+  }
+
   bool hasGuards() => !guards.isEmpty();
 
   void open() {
