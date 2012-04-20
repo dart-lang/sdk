@@ -2,20 +2,21 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $system == macos ]
+[ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
 
-[ $compiler == dart2js ]
 # These classes have been removed, co19 issue 79.
+[ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/Dispatcher/*: Fail, OK
+LibTest/core/Proxy/*: Fail, OK
+[ $compiler == dart2js ]
 LibTest/core/List/every_A03_t01: Fail, OK
 LibTest/core/List/filter_A03_t01: Fail, OK
 LibTest/core/List/some_A03_t01: Fail, OK
 LibTest/core/Promise/*: Fail, OK
-LibTest/core/Proxy/*: Fail, OK
 
 
 # missing #import("dart:isolate"), co19 issue 80
@@ -33,22 +34,17 @@ LibTest/core/ReceivePort/*: Fail, OK
 *: Skip
 
 
-[ $compiler == dart2js ]
-
 #
 # Issues with co19 test suite.
 #
 # If you add anything here, either file a bug against the Dart
-# langauge specification, co19 test suite, or add a comment that ahe
+# langauge specification, co19 test suite, or add a comment that ahe@
 # can understand so he can file a bug later.
 #
+[ $compiler == dart2js ]
 Language/10_Expressions/01_Constants_A15_t01: Fail, OK # Assumes interpolations can't be constant.
-Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
-Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
-Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
-Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail, OK # Assumes super scope comes before library scope.
 Language/10_Expressions/19_Bitwise_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/20_Equality_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail, OK # Function declaration takes precedence over function expression.
@@ -61,6 +57,15 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail, OK # D
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail, OK # Dart issue 2259.
 Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail, OK # Dart issue 2259.
+LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
+
+[ $compiler == dart2js && $runtime == d8 ]
+Language/10_Expressions/03_Numbers_A01_t06: Fail, OK # Requires bigint.
+Language/10_Expressions/03_Numbers_A01_t09: Fail, OK # Requires bigint.
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK # cannot resolve type Isolate
+Language/10_Expressions/13_Function_Invocation/3_Unqualified_Invocation_A01_t09: Fail, OK # Assumes super scope comes before library scope.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
 LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
@@ -89,9 +94,6 @@ LibTest/core/RegExp/RegExp_A01_t03: Fail, OK # Expects exception from const cons
 LibTest/core/RegExp/RegExp_A01_t04: Fail, OK # Expects exception from const constructor.
 LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
-LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
-LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
 LibTest/core/double/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/double/toInt_A01_t02: Fail, OK # Requires big int.
@@ -121,16 +123,11 @@ Language/13_Types/4_Interface_Types_A12_t10: Fail, OK # Type test assuming int !
 
 
 #
-# The following tests may be broken, but require further review.
-#
-LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
-
-
-#
 # The following tests are failing. Please add the error message
 # (either a compiler error or exception message). The error messages
 # may sometime be out of date.
 #
+[ $compiler == dart2js ]
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # compiler cancelled: internal error: expected expected optional parameters
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # compiler cancelled: unexpected token 'call'
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # compiler cancelled: unexpected token 'call'
@@ -147,8 +144,6 @@ Language/13_Types/4_Interface_Types_A05_t04: Fail # compiler cancelled: cannot r
 Language/13_Types/4_Interface_Types_A08_t01: Fail # compiler cancelled: cannot resolve type S
 Language/13_Types/5_Function_Types_A02_t01: Fail # compiler cancelled: unexpected token 'call'
 Language/13_Types/6_Type_Dynamic_A02_t01: Fail # compiler cancelled: cannot resolve type S
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t01: Pass # internal error: visitIs for typedefs not implemented
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t02: Pass # internal error: visitIs for typedefs not implemented
 Language/13_Types/3_Type_Declarations/1_Typedef_A06_t03: Pass # internal error: visitIs for typedefs not implemented
@@ -161,11 +156,7 @@ Language/03_Overview/1_Scoping_A02_t13: Fail # duplicate definition of x=0
 Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessibleFuncType
 Language/03_Overview/2_Privacy_A01_t11: Fail # internal error: super property read not implemented
 Language/03_Overview/2_Privacy_A01_t14: Fail # duplicate definition of _(var _)=> _
-Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
-Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/11_Statements/11_Labels_A03_t04: Fail # continue not implemented
-Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
-Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t02: Fail # operator-is with typedef.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail # Expect.isTrue(false) fails.
@@ -174,11 +165,6 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail # Expect.isTrue(fa
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A10_t04: Fail # visitIdentifier for typedefs not implemented
-Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 Language/13_Types/5_Function_Types_A01_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A01_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A01_t03: Fail # Expect.isTrue(false) fails.
@@ -200,6 +186,36 @@ Language/13_Types/5_Function_Types_A01_t20: Fail # is-check on typedefs.
 Language/13_Types/5_Function_Types_A01_t21: Fail # is-check on typedefs.
 Language/13_Types/5_Function_Types_A01_t22: Fail # is-check on typedefs.
 Language/13_Types/5_Function_Types_A01_t23: Fail # is-check on typedefs.
+
+
+Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
+Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 2277
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # Unimplemented non-matching static call
+Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # Unimplemented non-matching static call
+Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # internal error: super property store not implemented
+Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
+Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
+Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
+Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # internal error: super property store not implemented
+Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
+Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
+Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # internal error: super property read not implemented
+Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
+
+[ $compiler == dart2js && $runtime == d8 ]
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # compiler cancelled: internal error: fall-through not implemented
+Language/03_Overview/2_Privacy_A01_t16: Fail # Expect.equals(expected: <1>, actual: <54>) fails.
+Language/11_Statements/09_Try_A05_t03: Fail # Expect.isTrue(false) fails.
+Language/11_Statements/14_Throw_A03_t02: Fail # Expect.isTrue(false) fails.
+Language/11_Statements/14_Throw_A03_t03: Fail # Expect.isTrue(false) fails.
+Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/toString_A02_t01: Fail # Expect.equals(expected: <1-01-01 00:00:00.000>, actual: <0001-01-01 00:00:00.000>) fails.
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
@@ -209,38 +225,33 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-
-
 Language/10_Expressions/01_Constants_A10_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
-Language/10_Expressions/01_Constants_A15_t24: Fail # test will change: issue 2277
 Language/10_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t01: Fail # Unimplemented non-matching static call
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t04: Fail # Unimplemented non-matching static call
-Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A01_t05: Fail # Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
-Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04: Fail # internal error: super property store not implemented
 Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A07_t01: Fail # Should throw ObjectNotClosure, not NoSuchMethodException.
 Language/10_Expressions/16_Assignment_A05_t06: Fail # Wrong name passed to noSuchMethod.
-Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
-Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
-Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
-Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
-Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # internal error: super property store not implemented
 Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # NoSuchMethodException : method not found: '-'
-Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
-Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
-Language/10_Expressions/27_Assignable_Expressions_A05_t01: Fail # internal error: super property read not implemented
-Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
+
+[ $compiler == dart2js && $runtime == none ]
+Language/12_Libraries_and_Scripts/3_Scripts_A03_t01: Fail # TODO(ahe): Please triage
+Language/12_Libraries_and_Scripts/3_Scripts_A03_t03: Fail # TODO(ahe): Please triage
+
+
+#
+# The following tests may be broken, but require further review.
+#
+[ $compiler == dart2js && $runtime == d8 ]
+LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
 
 
 #
 # The following tests are all semantic tests that we can rely on dartc
 # catching for now.
 #
+[ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A01_t19: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t20: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t21: Fail, OK # @compile-error
