@@ -33,6 +33,9 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
+[ $compiler == frog && $runtime == drt ]
+ListSortTest: Fail, Pass # Issue 2667
+
 [ $compiler == frogsh ]
 DoubleCompareTest: Fail
 
