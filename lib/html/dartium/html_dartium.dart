@@ -21314,6 +21314,9 @@ class _WindowImpl extends _EventTargetImpl implements Window {
     _addMeasurementFrameCallback(callback);
   }
 
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
+      webkitRequestAnimationFrame(callback);
+
   _WindowImpl._wrap(ptr) : super._wrap(ptr);
 
   _WindowEventsImpl get on() {
@@ -39780,6 +39783,10 @@ interface Window extends EventTarget {
    * had been scheduled.
    */
   void requestLayoutFrame(TimeoutHandler callback);
+
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
 
   /**
