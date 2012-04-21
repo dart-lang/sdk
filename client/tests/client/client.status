@@ -8,6 +8,8 @@ dom/WebGL1Test: Skip  # Issue 1495
 html/html_tests: Pass, Fail   # Issue 1946.
 dom/IndexedDB3Test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 dom/IndexedDB4Test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
+dom/RequestAnimationFrameTest: Skip    # drt hangs; requestAnimationFrame not implemented
+html/RequestAnimationFrameTest: Skip   # drt hangs; requestAnimationFrame not implemented
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 dom/NativeGCTest: Skip  # Issue 2538.
@@ -20,6 +22,8 @@ dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global
 
 [ $compiler == frog && $runtime == drt ]
 html/html_tests: Skip   # Issue 2657
+dom/RequestAnimationFrameTest: Skip   # drt hangs
+html/RequestAnimationFrameTest: Skip   # drt hangs
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.

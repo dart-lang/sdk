@@ -1237,6 +1237,29 @@ class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
 
 class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
 
+  Window get _top() native "return this.top;";
+
+  // Override top to return secure wrapper.
+  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
+
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native '''
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame =
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          function (callback) {
+            window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
+          };
+    }
+    return window.requestAnimationFrame(callback);
+''';
+
+  // Protect member 'requestAnimationFrame'.
+  _requestAnimationFrame() native 'requestAnimationFrame';
+
+
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
@@ -1423,11 +1446,6 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-
-  Window get _top() native "return this.top;";
-
-  // Override top to return secure wrapper.
-  Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 }
 
 class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native "*DataTransferItem" {
