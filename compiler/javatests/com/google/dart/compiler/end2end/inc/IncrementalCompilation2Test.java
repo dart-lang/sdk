@@ -559,6 +559,78 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
+   * Test that same prefix can be used to import several libraries.
+   */
+  public void test_samePrefix_severalLibraries() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'p');",
+            "#import('B.dart', prefix: 'p');",
+            "f() {",
+            "  p.a = 1;",
+            "  p.b = 2;",
+            "}",
+            ""));
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "var a;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('B');",
+            "var b;",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+  }
+
+  /**
+   * Test that when same prefix is used to import several libraries, we still report error for
+   * duplicate names.
+   */
+  public void test_samePrefix_severalLibraries_duplicateTopLevelNames() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'p');",
+            "#import('B.dart', prefix: 'p');",
+//            "#import('A.dart');",
+//            "#import('B.dart');",
+            ""));
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "var someVar;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('B');",
+            "var someVar;",
+            ""));
+    // do compile
+    compile();
+    assertErrors(
+        errors,
+        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7),
+        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7));
+  }
+
+  /**
    * Test that invalid "#source" is reported as any other error between "unitAboutToCompile" and
    * "unitCompiled".
    */

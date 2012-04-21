@@ -320,7 +320,7 @@ public class CompileTimeConstantAnalyzer {
       switch (ElementKind.of(element)) {
         case CLASS:
         case PARAMETER:
-        case LIBRARY:
+        case LIBRARY_PREFIX:
           break;
 
         case FIELD:
@@ -432,7 +432,7 @@ public class CompileTimeConstantAnalyzer {
       x.visitChildren(this);
       switch (ElementKind.of(x.getQualifier().getElement())) {
         case CLASS:
-        case LIBRARY:
+        case LIBRARY_PREFIX:
         case NONE:
           // OK.
           break;

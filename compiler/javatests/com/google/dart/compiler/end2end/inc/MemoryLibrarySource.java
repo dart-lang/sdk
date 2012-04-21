@@ -8,6 +8,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlDartSource;
+import com.google.dart.compiler.UrlLibrarySource;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -60,9 +61,31 @@ public class MemoryLibrarySource implements LibrarySource {
   }
 
   @Override
-  public LibrarySource getImportFor(String relPath) throws IOException {
-    // Not implemented for now, tests which use it don't work with imports.
-    return null;
+  public LibrarySource getImportFor(final String relPath) throws IOException {
+    final String content = sourceContentMap.get(relPath);
+    final Long sourceLastModified = sourceLastModifiedMap.get(relPath);
+    URI uri = URI.create(relPath);
+    return new UrlLibrarySource(uri) {
+      @Override
+      public boolean exists() {
+        return content != null;
+      }
+
+      @Override
+      public long getLastModified() {
+        return sourceLastModified.longValue();
+      }
+
+      @Override
+      public Reader getSourceReader() throws IOException {
+        return new StringReader(content);
+      }
+
+      @Override
+      public DartSource getSourceFor(String relPath) {
+        return MemoryLibrarySource.this.getSourceFor(relPath);
+      }
+    };
   }
 
   @Override

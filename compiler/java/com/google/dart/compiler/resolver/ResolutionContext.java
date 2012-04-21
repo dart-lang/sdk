@@ -385,8 +385,8 @@ public class ResolutionContext implements ResolutionErrorListener {
       Element element = node.getQualifier().accept(this);
       if (element != null) {
         switch (element.getKind()) {
-          case LIBRARY :
-            Scope elementScope = ((LibraryElement) element).getScope();
+          case LIBRARY_PREFIX :
+            Scope elementScope = ((LibraryPrefixElement) element).getScope();
             return elementScope.findElement(scope.getLibrary(), node.getPropertyName());
           case CLASS :
             return Elements.findElement((ClassElement) element, node.getPropertyName());

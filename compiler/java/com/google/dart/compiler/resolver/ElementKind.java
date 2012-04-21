@@ -22,6 +22,7 @@ public enum ElementKind {
   FUNCTION_TYPE_ALIAS,
   DYNAMIC,
   LIBRARY,
+  LIBRARY_PREFIX,
   SUPER,
   NONE,
   VOID;
