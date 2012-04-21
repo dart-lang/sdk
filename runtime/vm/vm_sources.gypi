@@ -31,6 +31,8 @@
     'ast_printer.cc',
     'ast_printer_test.cc',
     'base_isolate.h',
+    'benchmark_test.cc',
+    'benchmark_test.h',
     'bigint_operations.cc',
     'bigint_operations.h',
     'bigint_operations_test.cc',
