@@ -9,7 +9,7 @@ class _AudioContextFactoryProvider {
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
+  factory Float32Array.fromList(List<num> list) => _F32_1(ensureNative(list));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) {
     if (length == null) return _F32_2(buffer, byteOffset);
@@ -17,7 +17,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
+  factory Float64Array.fromList(List<num> list) => _F64_1(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) {
     if (length == null) return _F64_2(buffer, byteOffset);
@@ -25,7 +25,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
+  factory Int8Array.fromList(List<num> list) => _I8_1(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) {
     if (length == null) return _I8_2(buffer, byteOffset);
@@ -33,7 +33,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
+  factory Int16Array.fromList(List<num> list) => _I16_1(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _I16_2(buffer, byteOffset);
@@ -41,7 +41,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
+  factory Int32Array.fromList(List<num> list) => _I32_1(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _I32_2(buffer, byteOffset);
@@ -49,7 +49,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
+  factory Uint8Array.fromList(List<num> list) => _U8_1(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _U8_2(buffer, byteOffset);
@@ -57,7 +57,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
+  factory Uint16Array.fromList(List<num> list) => _U16_1(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) {
     if (length == null) return _U16_2(buffer, byteOffset);
@@ -65,7 +65,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
+  factory Uint32Array.fromList(List<num> list) => _U32_1(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) {
     if (length == null) return _U32_2(buffer, byteOffset);
@@ -73,7 +73,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C_1(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) {
     if (length == null) return _U8C_2(buffer, byteOffset);
@@ -89,6 +89,16 @@ class _TypedArrayFactoryProvider {
   static Uint16Array _U16(arg) => _wrap(new dom.Uint16Array(arg));
   static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
   static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
+
+  static Float32Array _F32_1(arg) => _wrap(new dom.Float32Array.fromList(arg));
+  static Float64Array _F64_1(arg) => _wrap(new dom.Float64Array.fromList(arg));
+  static Int8Array _I8_1(arg) => _wrap(new dom.Int8Array.fromList(arg));
+  static Int16Array _I16_1(arg) => _wrap(new dom.Int16Array.fromList(arg));
+  static Int32Array _I32_1(arg) => _wrap(new dom.Int32Array.fromList(arg));
+  static Uint8Array _U8_1(arg) => _wrap(new dom.Uint8Array.fromList(arg));
+  static Uint16Array _U16_1(arg) => _wrap(new dom.Uint16Array.fromList(arg));
+  static Uint32Array _U32_1(arg) => _wrap(new dom.Uint32Array.fromList(arg));
+  static Uint8ClampedArray _U8C_1(arg) => _wrap(new dom.Uint8ClampedArray.fromList(arg));
 
   static Float32Array _F32_2(buffer, byteOffset) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset));
   static Float64Array _F64_2(buffer, byteOffset) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset));
