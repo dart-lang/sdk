@@ -10,8 +10,5 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     _addMeasurementFrameCallback(callback);
   }
 
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) =>
-      webkitRequestAnimationFrame(callback);
-
 $!MEMBERS
 }

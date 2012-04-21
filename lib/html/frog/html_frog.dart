@@ -16256,24 +16256,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     _addMeasurementFrameCallback(callback);
   }
 
-  /** @domName DOMWindow.requestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) native '''
-    if (!window.requestAnimationFrame) {
-      window.requestAnimationFrame =
-          window.webkitRequestAnimationFrame ||
-          window.mozRequestAnimationFrame ||
-          window.msRequestAnimationFrame ||
-          window.oRequestAnimationFrame ||
-          function (callback) {
-            window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
-          };
-    }
-    return window.requestAnimationFrame(callback);
-''';
-
-  // Protect member 'requestAnimationFrame'.
-  _requestAnimationFrame() native 'requestAnimationFrame';
-
 
   _WindowEventsImpl get on() =>
     new _WindowEventsImpl(this);
@@ -34344,10 +34326,6 @@ interface Window extends EventTarget {
    * had been scheduled.
    */
   void requestLayoutFrame(TimeoutHandler callback);
-
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
 
   /**

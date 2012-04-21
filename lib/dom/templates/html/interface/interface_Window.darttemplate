@@ -14,9 +14,5 @@ interface $ID$EXTENDS {
    */
   void requestLayoutFrame(TimeoutHandler callback);
 
-
-  /** @domName DOMWindow.webkitRequestAnimationFrame */
-  int requestAnimationFrame(RequestAnimationFrameCallback callback);
-
 $!MEMBERS
 }

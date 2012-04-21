@@ -4,8 +4,6 @@
 
 [ $compiler == dart2js ]
 dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
-dom/RequestAnimationFrameTest: Skip  # Async test hangs.
-html/RequestAnimationFrameTest: Skip # Async test hangs.
 
 [ $compiler == dart2js && $runtime == drt ]
 
