@@ -1033,13 +1033,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // earlier phases instead of just checking if the receiver is 'this'.
         ClassElement cls = work.element.enclosingElement;
         Element method = cls.lookupMember(node.name);
+        print(method);
         if (method !== null) {
-          // Make sure the method (whether in this class or in a
-          // superclass) is compiled.
-          // TODO(ngeoffray): Note that we could not emit this method
-          // if it is always being overridden and its holder is not
-          // instantiated.
-          compiler.registerDynamicInvocationOf(method);
+          if (method.isFunction()) {
+            if (!method.modifiers.isAbstract()) {
+              // Make sure the method (whether in this class or in a
+              // superclass) is compiled.
+              // TODO(ngeoffray): Note that we could not emit this method
+              // if it is always being overridden and its holder is not
+              // instantiated.
+              compiler.registerDynamicInvocationOf(method);
+            }
+          } else {
+            // TODO(ngeoffray): better tree shaking on getters.
+            compiler.registerDynamicInvocation(node.name, node.selector);
+          }
         }
         Type type = cls.computeType(compiler);
         compiler.registerDynamicInvocation(
