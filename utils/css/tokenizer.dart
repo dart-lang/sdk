@@ -158,7 +158,7 @@ class Tokenizer extends CSSTokenizerBase {
       default:
         if (TokenizerHelpers.isIdentifierStart(ch)) {
           return this.finishIdentifier(ch);
-        } else if (isDigit(ch)) {
+        } else if (TokenizerHelpers.isDigit(ch)) {
           return this.finishNumber();
         } else {
           return _errorToken();
@@ -177,7 +177,8 @@ class Tokenizer extends CSSTokenizerBase {
     int tokId = TokenKind.matchUnits(_text, _startIndex, _index - _startIndex);
     if (tokId == -1) {
       // No, is it a directive?
-      tokId = TokenKind.matchDirectives(_text, _startIndex, _index - _startIndex);
+      tokId = TokenKind.matchDirectives(
+          _text, _startIndex, _index - _startIndex);
     }
     if (tokId == -1) {
       tokId = (_text.substring(_startIndex, _index) == '!important') ?
@@ -219,7 +220,7 @@ class Tokenizer extends CSSTokenizerBase {
     if (_peekChar() == 46/*.*/) {
       // Handle the case of 1.toString().
       _nextChar();
-      if (isDigit(_peekChar())) {
+      if (TokenizerHelpers.isDigit(_peekChar())) {
         eatDigits();
         return _finishToken(TokenKind.DOUBLE);
       } else {
@@ -231,7 +232,8 @@ class Tokenizer extends CSSTokenizerBase {
   }
 
   bool maybeEatDigit() {
-    if (_index < _text.length && isDigit(_text.charCodeAt(_index))) {
+    if (_index < _text.length
+        && TokenizerHelpers.isDigit(_text.charCodeAt(_index))) {
       _index += 1;
       return true;
     }
@@ -240,7 +242,7 @@ class Tokenizer extends CSSTokenizerBase {
 
   void eatHexDigits() {
     while (_index < _text.length) {
-     if (isHexDigit(_text.charCodeAt(_index))) {
+     if (TokenizerHelpers.isHexDigit(_text.charCodeAt(_index))) {
        _index += 1;
      } else {
        return;
@@ -249,7 +251,8 @@ class Tokenizer extends CSSTokenizerBase {
   }
 
   bool maybeEatHexDigit() {
-    if (_index < _text.length && isHexDigit(_text.charCodeAt(_index))) {
+    if (_index < _text.length
+        && TokenizerHelpers.isHexDigit(_text.charCodeAt(_index))) {
       _index += 1;
       return true;
     }
@@ -301,19 +304,12 @@ class TokenizerHelpers {
   }
 
   static bool isHexDigit(int c) {
-    return (isDigit(c) || (c >= 97/*a*/ && c <= 102/*f*/) || (c >= 65/*A*/ && c <= 70/*F*/));
-  }
-
-  static bool isWhitespace(int c) {
-    return (c == 32/*' '*/ || c == 9/*'\t'*/ || c == 10/*'\n'*/ || c == 13/*'\r'*/);
+    return (isDigit(c) || (c >= 97/*a*/ && c <= 102/*f*/)
+        || (c >= 65/*A*/ && c <= 70/*F*/));
   }
 
   static bool isIdentifierPart(int c) {
     return (isIdentifierStart(c) || isDigit(c) || c == 45 /*-*/);
-  }
-
-  static bool isInterpIdentifierPart(int c) {
-    return (isIdentifierStart(c) || isDigit(c));
   }
 }
 

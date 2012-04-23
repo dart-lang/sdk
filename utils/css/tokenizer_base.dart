@@ -31,7 +31,7 @@ class InterpStack {
  * The base class for our tokenizer. The hand coded parts are in this file, with
  * the generated parts in the subclass Tokenizer.
  */
-class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
+class CSSTokenizerBase implements TokenSource {
   final SourceFile _source;
   final bool _skipWhitespace;
   String _text;
@@ -158,7 +158,7 @@ class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
 
   void eatDigits() {
     while (_index < _text.length) {
-      if (isDigit(_text.charCodeAt(_index))) {
+      if (TokenizerHelpers.isDigit(_text.charCodeAt(_index))) {
         _index++;
       } else {
         return;
@@ -215,7 +215,7 @@ class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
     if (_peekChar() == 46/*.*/) {
       // Handle the case of 1.toString().
       _nextChar();
-      if (isDigit(_peekChar())) {
+      if (TokenizerHelpers.isDigit(_peekChar())) {
         eatDigits();
         return finishNumberExtra(TokenKind.DOUBLE);
       } else {
@@ -233,7 +233,7 @@ class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
       _maybeEatChar(43/*+*/);
       eatDigits();
     }
-    if (_peekChar() != 0 && isIdentifierStart(_peekChar())) {
+    if (_peekChar() != 0 && TokenizerHelpers.isIdentifierStart(_peekChar())) {
       _nextChar();
       return _errorToken("illegal character in number");
     }
@@ -428,7 +428,7 @@ class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
   }
 
   Token finishDot() {
-    if (isDigit(_peekChar())) {
+    if (TokenizerHelpers.isDigit(_peekChar())) {
       eatDigits();
       return finishNumberExtra(TokenKind.DOUBLE);
     } else {
@@ -438,7 +438,7 @@ class CSSTokenizerBase extends TokenizerHelpers implements TokenSource {
 
   Token finishIdentifier(int ch) {
     while (_index < _text.length) {
-      if (!isIdentifierPart(_text.charCodeAt(_index++))) {
+      if (!TokenizerHelpers.isIdentifierPart(_text.charCodeAt(_index++))) {
         _index--;
         break;
       }
