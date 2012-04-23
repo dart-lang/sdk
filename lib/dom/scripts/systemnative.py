@@ -89,6 +89,9 @@ class NativeImplementationSystem(System):
           '    virtual $TYPE handleEvent($PARAMETERS);\n',
           TYPE=native_return_type, PARAMETERS=', '.join(parameters))
 
+      arguments_declaration = 'Dart_Handle arguments[] = { %s }' % ', '.join(arguments)
+      if not len(arguments):
+        arguments_declaration = 'Dart_Handle* arguments = 0'
       cpp_impl_handlers_emitter.Emit(
           '\n'
           '$TYPE $CLASS_NAME::handleEvent($PARAMETERS)\n'
@@ -97,7 +100,7 @@ class NativeImplementationSystem(System):
           '        return$ERROR_RETURN;\n'
           '    DartIsolate::Scope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
-          '    Dart_Handle arguments[] = { $ARGUMENTS };\n'
+          '    $ARGUMENTS_DECLARATION;\n'
           '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
           TYPE=native_return_type,
@@ -105,7 +108,7 @@ class NativeImplementationSystem(System):
           PARAMETERS=', '.join(parameters),
           ERROR_RETURN=error_return,
           RETURN_PREFIX=return_prefix,
-          ARGUMENTS=', '.join(arguments),
+          ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
 
     cpp_header_path = self._FilePathForCppHeader(self._interface.id)
