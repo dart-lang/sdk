@@ -7,8 +7,8 @@
 bar() => 'foo';
 
 main() {
-  Expect.throws(foo1, (e) => e is IllegalArgumentException);
-  Expect.throws(foo2, (e) => e is IllegalArgumentException);
+  Expect.throws(foo1);
+  Expect.throws(foo2);
 }
 
 foo1() {
