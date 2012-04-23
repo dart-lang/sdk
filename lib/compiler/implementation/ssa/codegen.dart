@@ -1276,14 +1276,31 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitBoundsCheck(HBoundsCheck node) {
-    buffer.add('if (');
-    use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
-    buffer.add(' < 0 || ');
-    use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
+    HInstruction index = node.index;
+    if (index.isConstant()) {
+      HConstant constantInstruction = index;
+      Constant constant = constantInstruction.constant;
+      if (!constant.isInt()) {
+        compiler.internalError(
+          'String or List index not a number',
+          instruction: index);
+      }
+      IntConstant intConstant = constant;
+      if (intConstant.value < 0) {
+        generateThrowWithHelper('ioore', index);
+        return;
+      }
+      buffer.add('if (');
+    } else {
+      buffer.add('if (');
+      use(index, JSPrecedence.RELATIONAL_PRECEDENCE);
+      buffer.add(' < 0 || ');
+    }
+    use(index, JSPrecedence.RELATIONAL_PRECEDENCE);
     buffer.add(' >= ');
     use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
     buffer.add(") ");
-    generateThrowWithHelper('ioore', node.index);
+    generateThrowWithHelper('ioore', index);
   }
 
   visitIntegerCheck(HIntegerCheck node) {
