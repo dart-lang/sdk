@@ -48,7 +48,7 @@ UNIT_TEST_CASE(Monitor) {
     EXPECT_EQ(Monitor::kTimedOut, wait_result);
     const int kAcceptableTimeJitter = 20;  // Measured in milliseconds.
     EXPECT_LE(wait_time - kAcceptableTimeJitter, stop - start);
-    const int kAcceptableWakeupDelay = 120;  // Measured in milliseconds.
+    const int kAcceptableWakeupDelay = 150;  // Measured in milliseconds.
     EXPECT_GE(wait_time + kAcceptableWakeupDelay, stop - start);
   }
   // The isolate shutdown and the destruction of the mutex are out-of-order on
