@@ -1698,7 +1698,29 @@ DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
 // DEPRECATED: The API below is a temporary hack.
 DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
 
-// --- Methods and Fields ---
+// --- Constructors, Methods, and Fields ---
+
+/**
+ * Invokes a constructor, creating a new object.
+ *
+ * This function allows hidden constructors (constructors with leading
+ * underscores) to be called.
+ *
+ * \param clazz A class or an interface.
+ * \param constructor_name The name of the constructor to invoke.  Use
+ *   Dart_Null() to invoke the unnamed constructor.  This name should
+ *   not include the name of the class.
+ * \param number_of_arguments Size of the arguments array.
+ * \param arguments An array of arguments to the constructor.
+ *
+ * \return If the constructor is called and completes successfully,
+ *   then the new object. If an error occurs during execution, then an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
+                                 Dart_Handle constructor_name,
+                                 int number_of_arguments,
+                                 Dart_Handle* arguments);
 
 /**
  * Invokes a method or function.

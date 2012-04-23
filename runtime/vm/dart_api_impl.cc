@@ -1041,11 +1041,20 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           bool* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Class::CheckedHandle(isolate, Api::UnwrapHandle(clazz));
+
+  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
   if (cls.IsNull()) {
-    return Api::NewError("instanceof check against null class");
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsError()) {
+    return object;
+  } else if (!obj.IsNull() && !obj.IsInstance()) {
+    return Api::NewError(
+        "%s expects argument 'object' to be an instance of Object.",
+        CURRENT_FUNC);
+  }
+
   Instance& instance = Instance::Handle(isolate);
   instance ^= obj.raw();
   // Finalize all classes.
@@ -2255,7 +2264,147 @@ DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value) {
 }
 
 
-// --- Methods and Fields ---
+// --- Constructors, Methods, and Fields ---
+
+
+static RawObject* ResolveConstructor(const char* current_func,
+                                     Class& cls,
+                                     String& dotted_name,
+                                     int num_args) {
+  // The constructor must be present in the interface.
+  const String& class_name = String::Handle(cls.Name());
+  String& constr_name = String::Handle(String::Concat(class_name, dotted_name));
+  const Function& constructor =
+      Function::Handle(cls.LookupFunction(constr_name));
+  if (constructor.IsNull() ||
+      (!constructor.IsConstructor() && !constructor.IsFactory())) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: could not find constructor '%s'.",
+                             current_func, constr_name.ToCString()));
+    return ApiError::New(message);
+  }
+  int extra_args = (constructor.IsConstructor() ? 2 : 1);
+  if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0)) {
+    const String& message = String::Handle(
+        String::NewFormatted("%s: wrong argument count for constructor '%s': "
+                             "expected %d but saw %d.",
+                             current_func,
+                             constr_name.ToCString(),
+                             constructor.num_fixed_parameters() - extra_args,
+                             num_args));
+    return ApiError::New(message);
+  }
+  return constructor.raw();
+}
+
+
+DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
+                                 Dart_Handle constructor_name,
+                                 int number_of_arguments,
+                                 Dart_Handle* arguments) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Object& result = Object::Handle(isolate);
+
+  if (number_of_arguments < 0) {
+    return Api::NewError(
+        "%s expects argument 'number_of_arguments' to be non-negative.",
+        CURRENT_FUNC);
+  }
+
+  // Get the class to instantiate.
+  Class& cls = Class::Handle(isolate);
+  cls ^= Api::UnwrapClassHandle(isolate, clazz).raw();
+  if (cls.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  }
+
+  // And get the name of the constructor to invoke.
+  String& dot_name = String::Handle(isolate);
+  const Object& name_obj =
+      Object::Handle(isolate, Api::UnwrapHandle(constructor_name));
+  if (name_obj.IsNull()) {
+    dot_name = String::NewSymbol(".");
+  } else if (name_obj.IsString()) {
+    const String& dot = String::Handle(isolate, String::NewSymbol("."));
+    String& name_str = String::Handle(isolate);
+    name_str ^= name_obj.raw();
+    dot_name ^= String::Concat(dot, name_str);
+  } else {
+    return Api::NewError(
+        "%s expects argument 'constructor_name' to be of type String.",
+        CURRENT_FUNC);
+  }
+
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::NewError(msg);
+  }
+
+  // Check for interfaces with default implementations.
+  if (cls.is_interface()) {
+    // Make sure that the constructor is found in the interface.
+    result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+    if (result.IsError()) {
+      return Api::NewHandle(isolate, result.raw());
+    }
+
+    ASSERT(cls.HasResolvedFactoryClass());
+    cls ^= cls.FactoryClass();
+  }
+
+  // Resolve the constructor.
+  result = ResolveConstructor("Dart_New", cls, dot_name, number_of_arguments);
+  if (result.IsError()) {
+    return Api::NewHandle(isolate, result.raw());
+  }
+  ASSERT(result.IsFunction());
+  Function& constructor = Function::Handle(isolate);
+  constructor ^= result.raw();
+
+  Instance& new_object = Instance::Handle(isolate);
+  if (constructor.IsConstructor()) {
+    // Create the new object.
+    new_object = Instance::New(cls);
+  }
+
+  // Create the argument list.
+  int extra_args = (constructor.IsConstructor() ? 2 : 1);
+  GrowableArray<const Object*> args(number_of_arguments + extra_args);
+  if (constructor.IsConstructor()) {
+    // Constructors get the uninitialized object as an extra arg.
+    args.Add(&new_object);
+  }
+  args.Add(&Smi::Handle(isolate, Smi::New(Function::kCtorPhaseAll)));
+  for (int i = 0; i < number_of_arguments; i++) {
+    const Object& arg =
+        Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));
+    if (!arg.IsNull() && !arg.IsInstance()) {
+      if (arg.IsError()) {
+        return Api::NewHandle(isolate, arg.raw());
+      } else {
+        return Api::NewError(
+            "%s expects argument %d to be an instance of Object.",
+            CURRENT_FUNC, i);
+      }
+    }
+    args.Add(&arg);
+  }
+
+  // Invoke the constructor and return the new object.
+  const Array& kNoArgNames = Array::Handle(isolate);
+  result = DartEntry::InvokeStatic(constructor, args, kNoArgNames);
+  if (result.IsError()) {
+    return Api::NewHandle(isolate, result.raw());
+  }
+  if (constructor.IsConstructor()) {
+    ASSERT(result.IsNull());
+  } else {
+    ASSERT(result.IsNull() || result.IsInstance());
+    new_object ^= result.raw();
+  }
+  return Api::NewHandle(isolate, new_object.raw());
+}
 
 
 DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
@@ -2276,7 +2425,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
 
   // Check for malformed arguments in the arguments list.
-  GrowableArray<const Object*> dart_args(number_of_arguments);
+  GrowableArray<const Object*> args(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg =
         Object::Handle(isolate, Api::UnwrapHandle(arguments[i]));
@@ -2289,7 +2438,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
             CURRENT_FUNC, i);
       }
     }
-    dart_args.Add(&arg);
+    args.Add(&arg);
   }
 
   const Array& kNoArgNames = Array::Handle(isolate);
@@ -2314,7 +2463,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
     return Api::NewHandle(
         isolate,
-        DartEntry::InvokeDynamic(instance, function, dart_args, kNoArgNames));
+        DartEntry::InvokeDynamic(instance, function, args, kNoArgNames));
 
   } else if (obj.IsClass()) {
     // Finalize all classes.
@@ -2341,7 +2490,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
     return Api::NewHandle(
         isolate,
-        DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
+        DartEntry::InvokeStatic(function, args, kNoArgNames));
 
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
@@ -2379,7 +2528,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            function_name.ToCString());
     }
     return Api::NewHandle(
-        isolate, DartEntry::InvokeStatic(function, dart_args, kNoArgNames));
+        isolate, DartEntry::InvokeStatic(function, args, kNoArgNames));
 
   } else {
     return Api::NewError(

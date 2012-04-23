@@ -2938,6 +2938,169 @@ TEST_CASE(GetStaticField_RunsInitializer) {
 }
 
 
+TEST_CASE(New) {
+  const char* kScriptChars =
+      "class Test implements TestInterface {\n"
+      "  Test() : foo = 7 {}\n"
+      "  Test.named(value) : foo = value {}\n"
+      "  Test._hidden(value) : foo = -value {}\n"
+      "  Test.exception(value) : foo = value {\n"
+      "    throw 'ConstructorDeath';\n"
+      "  }\n"
+      "  factory Test.multiply(value) {\n"
+      "    return new Test.named(value * 100);\n"
+      "  }\n"
+      "  factory Test.nullo() {\n"
+      "    return null;\n"
+      "  }\n"
+      "  var foo;\n"
+      "}\n"
+      "\n"
+      "interface TestInterface default Test {\n"
+      "  TestInterface.named(value);\n"
+      "  TestInterface.multiply(value);\n"
+      "  TestInterface.notfound(value);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("Test"));
+  EXPECT_VALID(cls);
+  Dart_Handle intf = Dart_GetClass(lib, Dart_NewString("TestInterface"));
+  EXPECT_VALID(intf);
+  Dart_Handle args[1];
+  args[0] = Dart_NewInteger(11);
+  Dart_Handle bad_args[1];
+  bad_args[0] = Dart_Error("myerror");
+
+  // Invoke the unnamed constructor.
+  Dart_Handle result = Dart_New(cls, Dart_Null(), 0, NULL);
+  EXPECT_VALID(result);
+  bool instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int64_t int_value = 0;
+  Dart_Handle foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+
+  // Invoke the unnamed constructor with an empty string.
+  result = Dart_New(cls, Dart_NewString(""), 0, NULL);
+  EXPECT_VALID(result);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+
+  // Invoke a named constructor.
+  result = Dart_New(cls, Dart_NewString("named"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(11, int_value);
+
+  // Invoke a hidden named constructor.
+  result = Dart_New(cls, Dart_NewString("_hidden"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(-11, int_value);
+
+  // Invoke a factory constructor.
+  result = Dart_New(cls, Dart_NewString("multiply"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(1100, int_value);
+
+  // Invoke a factory constructor which returns null.
+  result = Dart_New(cls, Dart_NewString("nullo"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNull(result));
+
+  // Pass an error class object.  Error is passed through.
+  result = Dart_New(Dart_Error("myerror"), Dart_NewString("named"), 1, args);
+  EXPECT_ERROR(result, "myerror");
+
+  // Pass a bad class object.
+  result = Dart_New(Dart_Null(), Dart_NewString("named"), 1, args);
+  EXPECT_ERROR(result, "Dart_New expects argument 'clazz' to be non-null.");
+
+  // Pass a negative arg count.
+  result = Dart_New(cls, Dart_NewString("named"), -1, args);
+  EXPECT_ERROR(
+      result,
+      "Dart_New expects argument 'number_of_arguments' to be non-negative.");
+
+  // Pass the wrong arg count.
+  result = Dart_New(cls, Dart_NewString("named"), 0, NULL);
+  EXPECT_ERROR(result,
+               "Dart_New: wrong argument count for constructor 'Test.named': "
+               "expected 1 but saw 0.");
+
+  // Pass a bad argument.  Error is passed through.
+  result = Dart_New(cls, Dart_NewString("named"), 1, bad_args);
+  EXPECT_ERROR(result, "myerror");
+
+  // Pass a bad constructor name.
+  result = Dart_New(cls, Dart_NewInteger(55), 1, args);
+  EXPECT_ERROR(
+      result,
+      "Dart_New expects argument 'constructor_name' to be of type String.");
+
+  // Invoke a missing constructor.
+  result = Dart_New(cls, Dart_NewString("missing"), 1, args);
+  EXPECT_ERROR(result, "Dart_New: could not find constructor 'Test.missing'.");
+
+  // Invoke a constructor which throws an exception.
+  result = Dart_New(cls, Dart_NewString("exception"), 1, args);
+  EXPECT_ERROR(result, "ConstructorDeath");
+
+  // Invoke an interface constructor.
+  result = Dart_New(intf, Dart_NewString("named"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(11, int_value);
+
+  // Invoke an interface constructor which in turn calls a factory
+  // constructor.  Why not?
+  result = Dart_New(intf, Dart_NewString("multiply"), 1, args);
+  EXPECT_VALID(result);
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  int_value = 0;
+  foo = Dart_GetField(result, Dart_NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(1100, int_value);
+
+  // Invoke a constructor that is missing in the interface but present
+  // in the default class.
+  result = Dart_New(intf, Dart_Null(), 0, NULL);
+  EXPECT_ERROR(result,
+               "Dart_New: could not find constructor 'TestInterface.'.");
+
+  // Invoke a constructor that is present in the interface but missing
+  // in the default class.
+  result = Dart_New(intf, Dart_NewString("notfound"), 1, args);
+  EXPECT_ERROR(result, "Dart_New: could not find constructor 'Test.notfound'.");
+}
+
+
 TEST_CASE(Invoke) {
   const char* kScriptChars =
       "class BaseMethods {\n"
