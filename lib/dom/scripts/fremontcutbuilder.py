@@ -86,7 +86,7 @@ DEFAULT_FEATURE_DEFINES = [
 ]
 
 # TODO(antonm): Remove this filter.
-UNSUPPORTED_FEATURES = [ 'ENABLE_WEB_INTENTS' ]
+UNSUPPORTED_FEATURES = [ 'ENABLE_WEB_INTENTS', 'ENABLE_NOTIFICATIONS' ]
 
 def build_database(idl_files, database_dir, feature_defines = None):
   """This code reconstructs the FremontCut IDL database from W3C,
