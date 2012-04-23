@@ -181,91 +181,99 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
   final String name = 'SsaEnvironmentBuilder';
-  Environment environment;
-  SubGraph subGraph;
 
   final Map<HInstruction, Environment> capturedEnvironments;
+  final Map<HBasicBlock, Environment> liveInstructions;
+  Environment environment;
 
   SsaEnvironmentBuilder(Compiler this.compiler)
-    : capturedEnvironments = new Map<HInstruction, Environment>();
+    : capturedEnvironments = new Map<HInstruction, Environment>(),
+      liveInstructions = new Map<HBasicBlock, Environment>();
 
 
   void visitGraph(HGraph graph) {
-    subGraph = new SubGraph(graph.entry, graph.exit);
-    environment = new Environment();
-    visitBasicBlock(graph.entry);
-    if (!environment.isEmpty()) {
+    visitPostDominatorTree(graph);
+    if (!liveInstructions[graph.entry].isEmpty()) {
       compiler.internalError('Bailout environment computation',
           node: compiler.currentElement.parseNode(compiler));
     }
+    updateLoopMarkers();
     insertCapturedEnvironments();
   }
 
-  void visitSubGraph(SubGraph newSubGraph) {
-    SubGraph oldSubGraph = subGraph;
-    subGraph = newSubGraph;
-    visitBasicBlock(subGraph.start);
-    subGraph = oldSubGraph;
+  void updateLoopMarkers() {
+    // If the block is a loop header, we need to merge the loop
+    // header's live instructions into every environment that contains
+    // the loop marker.
+    // For example with the following loop (read the example in
+    // reverse):
+    //
+    // while (true) { <-- (4) update the marker with the environment
+    //   use(x);      <-- (3) environment = {x}
+    //   bailout;     <-- (2) has the marker when computed
+    // }              <-- (1) create a loop marker
+    //
+    // The bailout instruction first captures the marker, but it
+    // will be replaced by the live environment at the loop entry,
+    // in this case {x}.
+    capturedEnvironments.forEach((ignoredInstruction, env) {
+      env.loopMarkers.forEach((HBasicBlock header) {
+        env.removeLoopMarker(header);
+        env.addAll(liveInstructions[header]);
+      });
+    });
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    if (!subGraph.contains(block)) return;
-    block.last.accept(this);
+    environment = new Environment();
 
-    HInstruction instruction = block.last.previous;
+    // Add to the environment the live instructions of its successor, as well as
+    // the inputs of the phis of the successor that flow from this block.
+    for (int i = 0; i < block.successors.length; i++) {
+      HBasicBlock successor = block.successors[i];
+      Environment successorEnv = liveInstructions[successor];
+      if (successorEnv !== null) {
+        environment.addAll(successorEnv);
+      } else {
+        // If we haven't computed the liveInstructions of that successor, we
+        // know it must be a loop header.
+        assert(successor.isLoopHeader());
+        environment.addLoopMarker(successor);
+      }
+
+      int index = successor.predecessors.indexOf(block);
+      for (HPhi phi = successor.phis.first; phi != null; phi = phi.next) {
+        environment.add(phi.inputs[index]);
+      }
+    }
+
+    // Iterate over all instructions to remove an instruction from the
+    // environment and add its inputs.
+    HInstruction instruction = block.last;
     while (instruction != null) {
-      HInstruction previous = instruction.previous;
       instruction.accept(this);
-      instruction = previous;
+      instruction = instruction.previous;
     }
 
+    // We just remove the phis from the environment. The inputs of the
+    // phis will be put in the environment of the predecessors.
     for (HPhi phi = block.phis.first; phi != null; phi = phi.next) {
-      phi.accept(this);
+      environment.remove(phi);
     }
 
+    // If the block is a loop header, we can remove the loop marker,
+    // because it will just recompute the loop phis.
     if (block.isLoopHeader()) {
-      // If the block is a loop header, we need to change every uses
-      // of its loop marker to the current set of live instructions.
-      // For example with the following loop (read the example in
-      // reverse):
-      //
-      // while (true) { <-- (4) update the marker with the environment
-      //   use(x);      <-- (3) environment = {x}
-      //   bailout;     <-- (2) has the marker when computed
-      // }              <-- (1) create a loop marker
-      //
-      // The bailout instruction first captures the marker, but it
-      // will be replaced by the live environment at the loop entry,
-      // in this case {x}.
       environment.removeLoopMarker(block);
-      capturedEnvironments.forEach((ignoredInstruction, env) {
-        if (env.containsLoopMarker(block)) {
-          env.removeLoopMarker(block);
-          env.addAll(environment);
-        }
-      });
     }
+
+    // Finally save the liveInstructions of that block.
+    liveInstructions[block] = environment;
   }
 
   void visitTypeGuard(HTypeGuard guard) {
-    environment.remove(guard);
-    assert(guard.inputs.length == 1);
-    environment.add(guard.guarded);
+    visitInstruction(guard);
     capturedEnvironments[guard] = new Environment.from(environment);
-  }
-
-  void visitPhi(HPhi phi) {
-    environment.remove(phi);
-    // If the block is a loop header, we insert the incoming values of
-    // the phis, and remove the loop values.
-    // If the block is not a loop header, the phi will be handled by
-    // the control flow instruction.
-    if (phi.block.isLoopHeader()) {
-      environment.add(phi.inputs[0]);
-      for (int i = 1, len = phi.inputs.length; i < len; i++) {
-        environment.remove(phi.inputs[i]);
-      }
-    }
   }
 
   void visitInstruction(HInstruction instruction) {
@@ -273,108 +281,6 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
     for (int i = 0, len = instruction.inputs.length; i < len; i++) {
       environment.add(instruction.inputs[i]);
     }
-  }
-
-  void visitIf(HIf instruction) {
-    HIfBlockInformation info = instruction.blockInformation;
-    HBasicBlock joinBlock = info.joinBlock;
-
-    if (joinBlock != null) {
-      visitBasicBlock(joinBlock);
-    }
-    Environment thenEnvironment = new Environment.from(environment);
-    Environment elseEnvironment = environment;
-
-    if (joinBlock != null) {
-      for (HPhi phi = joinBlock.phis.first; phi != null; phi = phi.next) {
-        if (joinBlock.predecessors[0] == instruction.block) {
-          // We're dealing with an 'if' without an else branch.
-          thenEnvironment.add(phi.inputs[1]);
-          elseEnvironment.add(phi.inputs[0]);
-        } else {
-          thenEnvironment.add(phi.inputs[0]);
-          elseEnvironment.add(phi.inputs[1]);
-        }
-      }
-    }
-
-    if (instruction.hasElse) {
-      environment = elseEnvironment;
-      visitSubGraph(info.elseGraph);
-      elseEnvironment = environment;
-    }
-
-    environment = thenEnvironment;
-    visitSubGraph(info.thenGraph);
-    environment.addAll(elseEnvironment);
-    visitInstruction(instruction);
-  }
-
-  void visitGoto(HGoto goto) {
-    HBasicBlock block = goto.block;
-    if (block.successors[0].dominator != block) return;
-    visitBasicBlock(block.successors[0]);
-  }
-
-  void visitBreak(HBreak breakInstruction) {
-    compiler.unimplemented("SsaEnvironmentBuilder.visitBreak");
-  }
-
-  void visitLoopBranch(HLoopBranch branch) {
-    HBasicBlock block = branch.block;
-
-    // Visit the code after the loop.
-    visitBasicBlock(block.successors[1]);
-
-    Environment joinEnvironment = environment;
-
-    // When visiting the loop body, we don't require the live
-    // instructions after the loop body to be in the environment. They
-    // will be either recomputed in the loop header, or inserted
-    // with the loop marker. We still need to transfer existing loop
-    // markers from the current environment, because they must be live
-    // for this loop body.
-    environment = new Environment.forLoopBody(environment);
-
-    // Put the loop phis in the environment.
-    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
-    for (HPhi phi = header.phis.first; phi != null; phi = phi.next) {
-      for (int i = 1, len = phi.inputs.length; i < len; i++) {
-        environment.add(phi.inputs[i]);
-      }
-    }
-
-    // Add the loop marker
-    environment.addLoopMarker(header);
-
-    if (!branch.isDoWhile()) {
-      assert(block.successors[0] == block.dominatedBlocks[0]);
-      visitBasicBlock(block.successors[0]);
-    }
-
-    // We merge the environment required by the code after the loop,
-    // and the code inside the loop.
-    environment.addAll(joinEnvironment);
-    visitInstruction(branch);
-  }
-
-  // Deal with all kinds of control flow instructions. In case we add
-  // a new one, we will hit an internal error.
-  void visitExit(HExit exit) {}
-
-  void visitReturn(HReturn instruction) {
-    environment.clear();
-    visitInstruction(instruction);
-  }
-
-  void visitThrow(HThrow instruction) {
-    environment.clear();
-    visitInstruction(instruction);
-  }
-
-  void visitControlFlow(HControlFlow instruction) {
-    compiler.internalError('Control flow instructions already dealt with.',
-                           instruction: instruction);
   }
 
   void insertCapturedEnvironments() {
