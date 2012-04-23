@@ -166,18 +166,22 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.propagatedType;
-    switch (type) {
-      case HType.MUTABLE_ARRAY: prefix = 'm'; break;
-      case HType.READABLE_ARRAY: prefix = 'a'; break;
-      case HType.BOOLEAN: prefix = 'b'; break;
-      case HType.INTEGER: prefix = 'i'; break;
-      case HType.DOUBLE: prefix = 'd'; break;
-      case HType.NUMBER: prefix = 'n'; break;
-      case HType.STRING: prefix = 's'; break;
-      case HType.UNKNOWN: prefix = 'v'; break;
-      case HType.CONFLICTING: prefix = 'c'; break;
-      case HType.STRING_OR_ARRAY: prefix = 'r'; break;
-      default: unreachable();
+    if (type.isNonPrimitive()) {
+      prefix = 'U';
+    } else {
+      switch (type) {
+        case HType.MUTABLE_ARRAY: prefix = 'm'; break;
+        case HType.READABLE_ARRAY: prefix = 'a'; break;
+        case HType.BOOLEAN: prefix = 'b'; break;
+        case HType.INTEGER: prefix = 'i'; break;
+        case HType.DOUBLE: prefix = 'd'; break;
+        case HType.NUMBER: prefix = 'n'; break;
+        case HType.STRING: prefix = 's'; break;
+        case HType.UNKNOWN: prefix = 'v'; break;
+        case HType.CONFLICTING: prefix = 'c'; break;
+        case HType.STRING_OR_ARRAY: prefix = 'r'; break;
+        default: unreachable();
+      }
     }
     return "$prefix${instruction.id}";
   }
