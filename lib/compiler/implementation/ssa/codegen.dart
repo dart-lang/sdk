@@ -1033,7 +1033,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // earlier phases instead of just checking if the receiver is 'this'.
         ClassElement cls = work.element.enclosingElement;
         Element method = cls.lookupMember(node.name);
-        print(method);
         if (method !== null) {
           if (method.isFunction()) {
             if (!method.modifiers.isAbstract()) {
