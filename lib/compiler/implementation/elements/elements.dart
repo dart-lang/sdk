@@ -494,8 +494,10 @@ Type getType(TypeAnnotation typeAnnotation,
   }
   Identifier identifier = typeAnnotation.typeName.asIdentifier();
   if (identifier === null) {
-    compiler.reportWarning(typeAnnotation.typeName,
-                           'library prefixes not handled');
+    compiler.reportWarning(
+      typeAnnotation.typeName,
+      new ResolutionWarning(MessageKind.GENERIC,
+                            ['library prefixes not handled']));
     return compiler.types.dynamicType;
   }
   SourceString name = identifier.source;
@@ -619,21 +621,23 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    FunctionParameters parameters = computeParameters(compiler);
-    Types types = compiler.types;
-    FunctionExpression node =
-        compiler.parser.measure(() => parseNode(compiler));
-    Type returnType = getType(node.returnType, compiler, getLibrary());
-    if (returnType === null) returnType = types.dynamicType;
+    return compiler.withCurrentElement(this, () {
+      FunctionParameters parameters = computeParameters(compiler);
+      Types types = compiler.types;
+      FunctionExpression node =
+          compiler.parser.measure(() => parseNode(compiler));
+      Type returnType = getType(node.returnType, compiler, getLibrary());
+      if (returnType === null) returnType = types.dynamicType;
 
-    LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-    for (Link<Element> link = parameters.requiredParameters;
-         !link.isEmpty();
-         link = link.tail) {
-      parameterTypes.addLast(link.head.computeType(compiler));
-    }
-    type = new FunctionType(returnType, parameterTypes.toLink(), this);
-    return type;
+      LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
+      for (Link<Element> link = parameters.requiredParameters;
+           !link.isEmpty();
+           link = link.tail) {
+        parameterTypes.addLast(link.head.computeType(compiler));
+      }
+      type = new FunctionType(returnType, parameterTypes.toLink(), this);
+      return type;
+    });
   }
 
   Node parseNode(DiagnosticListener listener) => cachedNode;
