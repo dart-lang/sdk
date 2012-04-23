@@ -641,6 +641,7 @@ _idl_type_registry = {
     'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
+    'Dictionary': IDLTypeInfo('Dictionary', has_dart_wrapper=False, ref_counted=False),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
     'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
     'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
@@ -648,7 +649,6 @@ _idl_type_registry = {
     'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', has_dart_wrapper=False),
     'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', has_dart_wrapper=False),
     'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
-    'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
     'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
 
