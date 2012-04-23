@@ -26,7 +26,6 @@
 #import('dart:json');
 #import('html_diff.dart');
 #import('../../frog/lang.dart');
-#import('../../frog/file_system_node.dart');
 
 HtmlDiff diff;
 

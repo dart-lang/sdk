@@ -68,22 +68,17 @@ is 'dart file.dart' and you specify special command
    none: Do not compile the Dart code (run native Dart code on the VM).
          (only valid with the following runtimes: vm, drt)
 
-   frog: Compile dart code to JavaScript by running the frog compiler.
-         (only valid with the following runtimes: d8, drt, chrome, safari, ie,
-         firefox, opera, none (compile only))
-
    dart2js: Compile dart code to JavaScript by running dart2js (leg).
             (only valid with the following runtimes: same as frog)
 
    dartc: Perform static analysis on Dart code by running dartc.
           (only valid with the following runtimes: none)
 
-   frogsh: Compile dart code to JavaScript by running the frog compiler on
-           node.js, and run the resulting JavaScript on the same instance of
-           node.js.
-           (only valid with the following runtimes: same as frog)''',
+   frog: (DEPRECATED) Compile dart code to JavaScript by running the
+         frog compiler. (only valid with the following runtimes: d8,
+         drt, chrome, safari, ie, firefox, opera, none (compile only))''',
               ['-c', '--compiler'],
-              ['none', 'frog', 'dart2js', 'dartc', 'frogsh'],
+              ['none', 'frog', 'dart2js', 'dartc'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -384,7 +379,6 @@ is 'dart file.dart' and you specify special command
       switch (config['compiler']) {
         case 'frog':
         case 'dart2js':
-        case 'frogsh':
           // Note: by adding 'none' as a configuration, if the user
           // runs test.py -c dart2js -r drt,none the dart2js_none and
           // dart2js_drt will be duplicating work. If later we don't need 'none'

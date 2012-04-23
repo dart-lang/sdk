@@ -122,8 +122,6 @@ def ProcessFrog(name):
   print 'ProcessFrog'
   has_shell=False
   if 'windows' in name:
-    os.environ['PATH'] = (os.path.join('C:', 'Program Files (x86)', 'nodejs') +
-        os.pathsep + os.environ['PATH'])
     # In Windows we need to run in the shell, so that we have all the
     # environment variables available.
     has_shell=True

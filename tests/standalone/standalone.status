@@ -37,7 +37,7 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == dartc]
 *: Skip
 
-[ $compiler == frog || $compiler == frogsh || ($compiler == dart2js && $runtime == drt) ]
+[ $compiler == frog || ($compiler == dart2js && $runtime == drt) ]
 *: Skip
 
 [ $arch == x64 ]

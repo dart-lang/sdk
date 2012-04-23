@@ -12,7 +12,7 @@ UnicodeTest: Fail        # Bug 5163868
 [ $compiler == dartc ]
 *VMTest: Skip
 
-[ $compiler == frog || $compiler == frogsh ]
+[ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -36,10 +36,7 @@ StringTest: Fail  # Needs index out of range checks.
 [ $compiler == frog && $runtime == drt ]
 ListSortTest: Fail, Pass # Issue 2667
 
-[ $compiler == frogsh ]
-DoubleCompareTest: Fail
-
-[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+[ $compiler == frog && $runtime == none ]
 *: Skip
 
 [ $runtime == ff || $runtime == ie ]

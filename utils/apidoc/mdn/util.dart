@@ -1,6 +1,5 @@
 #library("util");
 
-#import("../../../frog/lib/node/node.dart");
 #import("dart:json");
 
 Map<String, Map> _allProps;

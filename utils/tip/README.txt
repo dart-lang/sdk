@@ -11,11 +11,11 @@ not been hardened for launch from other locations.
 
 First, you need to build tip.js by hand - bootstrapping, ya'know.
 
-> ./frogsh --out=tip/tip.js --compile-only tip/tip.dart
+> ./frog.py --out=tip/tip.js --compile-only tip/tip.dart
 
 Then you need to start the local server:
 
-> ./frogsh tip/toss.dart
+> ./frog.py tip/toss.dart
 
 Finally, navigate to the appropriate page in chrome:
 

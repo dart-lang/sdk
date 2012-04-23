@@ -15,7 +15,6 @@
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......frogc.dart
-# ......frogsh (coming later)
 # ....lib/
 # ......builtin/
 # ........builtin_runtime.dart

@@ -83,11 +83,10 @@
       'dependencies': [
         'utils/compiler/compiler.gyp:dart2js',
 
-        # TODO(ahe): Remove dependencies on frog and frogsh, they are
-        # just here to simplify
-        # frog/scripts/buildbot_annotated_steps.py temporarily.
+        # TODO(ahe): Remove dependency on frog, it is just here to
+        # simplify frog/scripts/buildbot_annotated_steps.py
+        # temporarily.
         'frog/dart-frog.gyp:frog',
-        'frog/dart-frog.gyp:frogsh',
       ],
     },
     {

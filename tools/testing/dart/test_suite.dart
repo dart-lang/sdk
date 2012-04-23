@@ -652,7 +652,6 @@ class StandardTestSuite implements TestSuite {
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
       case 'frog':
-      case 'frogsh':
       case 'dart2js':
         String libdir = configuration['froglib'];
         if (libdir == '') {
@@ -745,7 +744,6 @@ class StandardTestSuite implements TestSuite {
       case 'none':
         return 'application/dart';
       case 'frog':
-      case 'frogsh':
       case 'dart2js':
       case 'dartc':
         return 'text/javascript';
@@ -755,7 +753,7 @@ class StandardTestSuite implements TestSuite {
         return null;
     }
   }
-  
+
   bool get hasRuntime() {
     switch(configuration['runtime']) {
       case null:
@@ -825,7 +823,6 @@ class StandardTestSuite implements TestSuite {
       args.add('machine');
     }
     if ((configuration['compiler'] == 'frog'
-          || configuration['compiler'] == 'frogsh'
           || configuration['compiler'] == 'dart2js')
         && (configuration['runtime'] == 'none')) {
       args.add('--compile-only');
@@ -1241,8 +1238,6 @@ class TestUtils {
       case 'frog':
       case 'dart2js':
         return 'frog/bin/frog$suffix';
-      case 'frogsh':
-        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }

@@ -109,22 +109,6 @@ def ListDartArgCallback(option, opt_str, value, parser):
    setattr(parser.values, option.dest, value)
 
 
-# Returns the path to the Dart test runner (executes the .dart file).
-def GetDartRunner(mode, arch, component):
-  build_root = GetBuildRoot(GuessOS(), mode, arch)
-  if component == 'dartc':
-    return os.path.join(build_root, 'compiler', 'bin', 'dartc_test')
-  elif component == 'frog':
-    return os.path.join(build_root, 'frog', 'bin', 'frog')
-  elif component == 'frogsh':
-    return os.path.join(build_root, 'frog', 'bin', 'frogsh')
-  else:
-    suffix = ''
-    if IsWindows():
-      suffix = '.exe'
-    return os.path.join(build_root, 'dart') + suffix
-
-
 # Mapping table between build mode and build configuration.
 BUILD_MODES = {
   'debug': 'Debug',

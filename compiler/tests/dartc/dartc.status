@@ -16,5 +16,5 @@ compiler/vm/*: Skip
 # Already tested through test.py.
 corelib/SharedTests: Skip
 
-[ $compiler == frog || $compiler == frogsh || $compiler == dart2js || $compiler == none ]
+[ $compiler == frog || $compiler == dart2js || $compiler == none ]
 *: Skip

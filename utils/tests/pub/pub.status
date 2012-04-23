@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == frog || $compiler == dart2js || $compiler == dartc || $compiler == frogsh ]
+[ $compiler == frog || $compiler == dart2js || $compiler == dartc ]
 *: Skip # Pub only runs on the VM, so just rule out all compilers.
 
 [ $runtime == drt ]
