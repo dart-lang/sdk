@@ -1842,8 +1842,8 @@ class HPhi extends HInstruction {
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
   HType computeInputsType(bool unknownWins) {
-    bool seenUnknown = false;
     HType candidateType = inputs[0].propagatedType;
+    bool seenUnknown = candidateType.isUnknown();
     for (int i = 1, length = inputs.length; i < length; i++) {
       HType inputType = inputs[i].propagatedType;
       if (inputType.isUnknown()) {
