@@ -1103,15 +1103,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name = JsNames.getValid(node.element.name.slowToString());
     if (node.receiver !== null) {
+      String name =
+          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(name);
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
-      buffer.add(name);
+      buffer.add(JsNames.getValid(node.element.name.slowToString()));
     }
   }
 
@@ -1120,8 +1121,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // If we are generating an expression, those variable declarations
     // must be delayed until later.
     bool delayDeclaration = false;
-    String name = JsNames.getValid(node.element.name.slowToString());
+    String name;
     if (node.receiver !== null) {
+      name =
+          compiler.namer.instanceFieldName(currentLibrary, node.element.name);
       beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
@@ -1129,6 +1132,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
       // variables used in a try/catch.
+      name = JsNames.getValid(node.element.name.slowToString());
       declareVariable(name);
     }
     if (delayDeclaration) delayedVarDecl = delayedVarDecl.prepend(name);
