@@ -469,6 +469,8 @@ int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
+                   char* environment[],
+                   intptr_t environment_length,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -585,6 +587,32 @@ int Process::Start(const char* path,
     ASSERT(remaining >= 0);
   }
 
+  // Create environment block if an environment is supplied.
+  char* environment_block = NULL;
+  if (environment != NULL) {
+    // An environment block is a sequence of zero-terminated strings
+    // followed by a block-terminating zero char.
+    intptr_t block_size = 1;
+    for (intptr_t i = 0; i < environment_length; i++) {
+      block_size += strlen(environment[i]) + 1;
+    }
+    environment_block = new char[block_size];
+    intptr_t block_index = 0;
+    for (intptr_t i = 0; i < environment_length; i++) {
+      intptr_t len = strlen(environment[i]);
+      intptr_t result = snprintf(environment_block + block_index,
+                                 len,
+                                 "%s",
+                                 environment[i]);
+      ASSERT(result == len);
+      block_index += len;
+      environment_block[block_index++] = '\0';
+    }
+    // Block-terminating zero char.
+    environment_block[block_index++] = '\0';
+    ASSERT(block_index == block_size);
+  }
+
   // Create process.
   BOOL result = CreateProcess(NULL,   // ApplicationName
                               command_line,
@@ -592,13 +620,14 @@ int Process::Start(const char* path,
                               NULL,   // ThreadAttributes
                               TRUE,   // InheritHandles
                               0,      // CreationFlags
-                              NULL,   // Environment
+                              environment_block,
                               working_directory,
                               &startup_info,
                               &process_info);
 
-  // Deallocate command-line string.
+  // Deallocate command-line and environment block strings.
   delete[] command_line;
+  delete[] environment_block;
 
   if (result == 0) {
     int error_code = SetOsErrorMessage(os_error_message, os_error_message_len);
