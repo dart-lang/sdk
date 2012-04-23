@@ -1853,9 +1853,12 @@ class SsaBuilder implements Visitor {
       return graph.addConstant(constant);
     }
 
-    FunctionParameters parameters = element.computeParameters(compiler);
-    return selector.addArgumentsToList(arguments, list, parameters,
-                                       compileArgument, compileConstant);
+    return selector.addArgumentsToList(arguments,
+                                       list,
+                                       element,
+                                       compileArgument,
+                                       compileConstant,
+                                       compiler);
   }
 
   void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {

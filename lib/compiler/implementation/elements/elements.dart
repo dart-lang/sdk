@@ -850,6 +850,20 @@ class ClassElement extends ContainerElement {
     return false;
   }
 
+  /**
+   * Returns true if [this] is a subclass of [cls].
+   *
+   * This method is not to be used for checking type hierarchy and
+   * assignments, because it does not take parameterized types into
+   * account.
+   */
+  bool isSubclassOf(ClassElement cls) {
+    for (ClassElement s = this; s != null; s = s.superclass) {
+      if (s === cls) return true;
+    }
+    return false;
+  }
+
   bool isInterface() => false;
   bool isNative() => nativeName != null;
   SourceString nativeName;

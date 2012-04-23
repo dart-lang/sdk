@@ -957,14 +957,16 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   List<Constant> evaluateArgumentsToConstructor(Selector selector,
                                                 Link<Node> arguments,
                                                 FunctionElement target) {
-    FunctionParameters parameters = target.computeParameters(compiler);
     List<Constant> compiledArguments = <Constant>[];
 
     Function compileArgument = evaluate;
     Function compileConstant = compiler.compileVariable;
-    bool succeeded = selector.addArgumentsToList(arguments, compiledArguments,
-                                                 parameters, compileArgument,
-                                                 compileConstant);
+    bool succeeded = selector.addArgumentsToList(arguments,
+                                                 compiledArguments,
+                                                 target,
+                                                 compileArgument,
+                                                 compileConstant,
+                                                 compiler);
     assert(succeeded);
     return compiledArguments;
   }

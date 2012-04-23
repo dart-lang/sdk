@@ -178,9 +178,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       Element element = type.lookupMember(node.name);
       // TODO(ngeoffray): Also fold if it's a getter or variable.
       if (element != null && element.isFunction()) {
-        FunctionElement method = element;
-        FunctionParameters parameters = method.computeParameters(compiler);
-        if (node.selector.applies(parameters)) {
+        if (node.selector.applies(element, compiler)) {
+          FunctionElement method = element;
+          FunctionParameters parameters = method.computeParameters(compiler);
           if (parameters.optionalParameterCount == 0) {
             node.element = element;
           }

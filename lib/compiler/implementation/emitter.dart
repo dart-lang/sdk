@@ -168,9 +168,8 @@ function(child, parent) {
                          StringBuffer buffer) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
-    FunctionParameters parameters = member.computeParameters(compiler);
     for (Selector selector in selectors) {
-      if (!selector.applies(parameters)) continue;
+      if (!selector.applies(member, compiler)) continue;
       addParameterStub(member, attachTo, buffer, selector);
     }
   }
