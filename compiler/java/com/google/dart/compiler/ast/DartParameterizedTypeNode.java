@@ -37,7 +37,7 @@ public class DartParameterizedTypeNode extends DartExpression {
   }
 
   public void setExpression(DartExpression expression) {
-    this.expression = becomeParentOf(expression);
+    this.expression = expression;
   }
 
   @Override
