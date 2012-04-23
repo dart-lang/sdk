@@ -1039,6 +1039,16 @@ class HTypeGuard extends HInstruction {
 }
 
 class HBoundsCheck extends HCheck {
+  static final int ALWAYS_FALSE = 0;
+  static final int FULL_CHECK = 1;
+  static final int ALWAYS_ABOVE_ZERO = 2;
+  static final int ALWAYS_TRUE = 3;
+  /**
+   * Details which tests have been done statically during compilation.
+   * Default is that all checks must be performed dynamically.
+   */
+  int staticChecks = FULL_CHECK;
+
   HBoundsCheck(length, index) : super(<HInstruction>[length, index]);
 
   HInstruction get length() => inputs[0];
@@ -1058,6 +1068,8 @@ class HBoundsCheck extends HCheck {
 }
 
 class HIntegerCheck extends HCheck {
+  bool alwaysFalse = false;
+
   HIntegerCheck(value) : super(<HInstruction>[value]);
 
   HInstruction get value() => inputs[0];

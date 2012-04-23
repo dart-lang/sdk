@@ -720,7 +720,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return;
       } else if (!isGenerateAtUseSite(instruction)) {
         if (instruction is !HIf && instruction is !HTypeGuard &&
-            instruction is !HBoundsCheck && !isGeneratingExpression()) {
+            !isGeneratingExpression()) {
           addIndentation();
         }
         if (isGeneratingExpression()) {
@@ -736,7 +736,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // Control flow instructions, and some other instructions,
         // know how to handle ';'.
         if (instruction is !HControlFlow && instruction is !HTypeGuard &&
-            instruction is !HBoundsCheck && !isGeneratingExpression()) {
+            !isGeneratingExpression()) {
           buffer.add(';\n');
         }
       } else if (instruction is HIf) {
@@ -1276,74 +1276,36 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(';\n');
   }
 
-
   visitBoundsCheck(HBoundsCheck node) {
     // TODO(ngeoffray): Separate the two checks of the bounds check, so,
     // e.g., the zero checks can be shared if possible.
-    int TryGetIntConstantValue(HInstruction instruction, String errorMessage) {
-      // Tests whether an [HInstruction] is a constant.
-      // If it is a constant, and not an int constant, it fails.
-      // If it's an int constant it returns the value.
-      // Otherwise it's not a constant, and this function returns false.
-      if (!instruction.isConstant()) return null;
-      HConstant constantInstruction = instruction;
-      Constant constant = constantInstruction.constant;
-      if (!constant.isInt()) {
-        compiler.internalError(errorMessage, instruction: instruction);
-      }
-      IntConstant intConstant = constant;
-      return intConstant.value;
-    }
-    int index = TryGetIntConstantValue(node.index,
-                                       'String or List index not a number');
-    if (index !== null) {
-      if (index < 0) {
-        addIndentation();
-        generateThrowWithHelper('ioore', node.index);
-        buffer.add(";\n");
-        return;
-      }
-      int length = TryGetIntConstantValue(node.length,
-                                          'String or List length not a number');
-      if (length !== null) {
-        if (index >= length) {
-          addIndentation();
-          generateThrowWithHelper('ioore', node.index);
-          buffer.add(";\n");
-        }
-        return;
-      }
-      addIndentation();
+
+    // If the checks always succeede, we would have removed the bounds check
+    // completely.
+    assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
+    if (node.staticChecks != HBoundsCheck.ALWAYS_FALSE) {
       buffer.add('if (');
-    } else {
-      addIndentation();
-      buffer.add('if (');
+      if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
+        assert(node.staticChecks == HBoundsCheck.FULL_CHECK);
+        use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
+        buffer.add(' < 0 || ');
+      }
       use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
-      buffer.add(' < 0 || ');
+      buffer.add(' >= ');
+      use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
+      buffer.add(") ");
     }
-    use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
-    buffer.add(' >= ');
-    use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
-    buffer.add(") ");
     generateThrowWithHelper('ioore', node.index);
-    buffer.add(";\n");
   }
 
   visitIntegerCheck(HIntegerCheck node) {
-    HInstruction valueInstruction = node.value;
-    if (valueInstruction.isConstant()) {
-      HConstant valueConstantInstruction = valueInstruction;
-      Constant value = valueConstantInstruction.constant;
-      if (!value.isInt()) {
-        generateThrowWithHelper('iae', valueInstruction);
-      }
-      return;
+    if (!node.alwaysFalse) {
+      buffer.add('if (');
+      use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' !== (');
+      use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
+      buffer.add(" | 0)) ");
     }
-    buffer.add('if (');
-    use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(' !== (');
-    use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
-    buffer.add(" | 0)) ");
     generateThrowWithHelper('iae', node.value);
   }
 

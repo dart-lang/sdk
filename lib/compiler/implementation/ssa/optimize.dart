@@ -204,6 +204,58 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return result;
   }
 
+  HInstruction visitBoundsCheck(HBoundsCheck node) {
+    int tryGetIntConstantValue(HInstruction instruction, String errorMessage) {
+      // Tests whether an [HInstruction] is a constant.
+      // If it is a constant, and not an int constant, it fails.
+      // If it's an int constant it returns the value.
+      // Otherwise it's not a constant, and this function returns null.
+      if (!instruction.isConstant()) return null;
+      HConstant constantInstruction = instruction;
+      Constant constant = constantInstruction.constant;
+      if (!constant.isInt()) {
+        compiler.internalError(errorMessage, instruction: instruction);
+      }
+      IntConstant intConstant = constant;
+      return intConstant.value;
+    }
+    int index = tryGetIntConstantValue(node.index,
+                                       'String or List index not a number');
+    if (index !== null) {
+      if (index < 0) {
+        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+        return node;
+      }
+      int length = tryGetIntConstantValue(node.length,
+                                          'String or List length not a number');
+      if (length !== null) {
+        if (index >= length) {
+          node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
+        } else {
+          // Could have set the staticChecks to ALWAYS_TRUE instead.
+          return node.index;
+        }
+        return node;
+      }
+      node.staticChecks = HBoundsCheck.ALWAYS_ABOVE_ZERO;
+    }
+    return node;
+  }
+
+  HInstruction visitIntegerCheck(HIntegerCheck node) {
+    HInstruction value = node.value;
+    if (value.isInteger()) return value;
+    if (value.isConstant()) {
+      assert((){
+        HConstant constantInstruction = value;
+        return !constantInstruction.constant.isInt();
+      });
+      node.alwaysFalse = true;
+    }
+    return node;
+  }
+
+
   HInstruction visitIndex(HIndex node) {
     if (node.receiver.isNonPrimitive()) {
       SourceString methodName = Elements.constructOperatorName(
@@ -291,11 +343,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction value = node.guarded;
     HType combinedType = value.propagatedType.combine(node.guardedType);
     return (combinedType == value.propagatedType) ? value : node;
-  }
-
-  HInstruction visitIntegerCheck(HIntegerCheck node) {
-    HInstruction value = node.value;
-    return value.isInteger() ? value : node;
   }
 
   HInstruction visitIs(HIs node) {
