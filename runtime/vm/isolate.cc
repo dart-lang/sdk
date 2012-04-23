@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "lib/mirrors.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -98,18 +99,8 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
       Instance::Handle(DeserializeMessage(message->data()));
   if (message->IsOOB()) {
     // For now the only OOB messages are Mirrors messages.
-    const Object& result = Object::Handle(
-        DartLibraryCalls::HandleMirrorsMessage(
-            message->dest_port(), message->reply_port(), msg));
+    HandleMirrorsMessage(isolate_, message->reply_port(), msg);
     delete message;
-    if (result.IsError()) {
-      // TODO(turnidge): Propagating the error is probably wrong here.
-      Error& error = Error::Handle();
-      error ^= result.raw();
-      isolate_->object_store()->set_sticky_error(error);
-      return false;
-    }
-    ASSERT(result.IsNull());
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(

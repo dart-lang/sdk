@@ -10,46 +10,30 @@ class _IsolateMirrorImpl implements IsolateMirror {
   final SendPort port;
   final String debugName;
 
-  static buildCommand(List command) {
-    command.add('isolateMirrorOf');
-  }
-
-  static buildResponse(Map response) native "IsolateMirrorImpl_buildResponse";
-
-  static processResponse(SendPort port, Map response) {
-    if (response['ok']) {
-      return new _IsolateMirrorImpl(port, response['debugName']);
-    }
-    return null;
+  static _make(SendPort port, String debugName) {
+    return new _IsolateMirrorImpl(port, debugName);
   }
 }
 
 class _Mirrors {
   static Future<IsolateMirror> isolateMirrorOf(SendPort port) {
     Completer<IsolateMirror> completer = new Completer<IsolateMirror>();
-    List command = new List();
-    _IsolateMirrorImpl.buildCommand(command);
+    String request = '{ "command": "isolateMirrorOf" }';
     ReceivePort rp = new ReceivePort();
-    if (!send(port, command, rp.toSendPort())) {
+    if (!send(port, request, rp.toSendPort())) {
       throw new Exception("Unable to send mirror request to port $port");
     }
     rp.receive((message, _) {
         rp.close();
-        completer.complete(_IsolateMirrorImpl.processResponse(port, message));
+        completer.complete(_Mirrors.processResponse(
+            port, "isolateMirrorOf", message));
       });
     return completer.future;
   }
 
-  static void processCommand(var message, SendPort replyTo) {
-    Map response = new Map();
-    if (message[0] == 'isolateMirrorOf') {
-      _IsolateMirrorImpl.buildResponse(response);
-    } else {
-      response['ok'] = false;
-    }
-    replyTo.send(response);
-  }
-
-  static bool send(SendPort port, Object message, SendPort replyTo)
+  static bool send(SendPort port, String request, SendPort replyTo)
       native "Mirrors_send";
+
+  static processResponse(SendPort port, String command, String response)
+      native "Mirrors_processResponse";
 }

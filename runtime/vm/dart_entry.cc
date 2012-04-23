@@ -221,48 +221,6 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
 }
 
 
-RawObject* DartLibraryCalls::HandleMirrorsMessage(Dart_Port dest_port_id,
-                                                  Dart_Port reply_port_id,
-                                                  const Instance& message) {
-  Isolate* isolate = Isolate::Current();
-  // Create the reply port.
-  const Object& reply_port = Object::Handle(
-      DartLibraryCalls::NewSendPort(reply_port_id));
-  if (reply_port.IsError()) {
-    return reply_port.raw();
-  }
-
-  // Call _Mirrors.processCommand(message, reply_port).
-  const Library& lib =
-      Library::Handle(isolate->object_store()->mirrors_library());
-  const String& raw_class_name =
-      String::Handle(String::NewSymbol("_Mirrors"));
-  const String& private_key =
-      String::Handle(lib.private_key());
-  const String& class_name =
-      String::Handle(String::Concat(raw_class_name, private_key));
-  const String& function_name =
-      String::Handle(String::NewSymbol("processCommand"));
-  const int kNumArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(lib,
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  ASSERT(!function.IsNull());
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&message);
-  arguments.Add(&reply_port);
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  ASSERT(result.IsNull() || result.IsError());
-  return result.raw();
-}
-
-
 RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
