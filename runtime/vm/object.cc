@@ -8938,7 +8938,17 @@ void Closure::set_function(const Function& value) const {
 
 
 const char* Closure::ToCString() const {
-  return "Closure";
+  const Function& fun = Function::Handle(function());
+  const bool is_implicit_closure = fun.IsImplicitClosureFunction();
+  const char* fun_sig = String::Handle(fun.Signature()).ToCString();
+  const char* from = is_implicit_closure ? " from " : "";
+  const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
+  const char* format = "Closure: %s%s%s";
+  intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
+  return chars;
 }
 
 
