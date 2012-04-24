@@ -21,12 +21,16 @@ syn keyword dartRepeat         do while for
 syn keyword dartBoolean        true false
 syn keyword dartConstant       null
 syn keyword dartTypedef        this super class typedef
-syn keyword dartOperator       new is in factory
+syn keyword dartOperator       new is in factory const
 syn match   dartOperator       "+=\=\|-=\=\|*=\=\|/=\=\|%=\=\|\~/=\=\|<<=\=\|>>=\=\|[<>]=\=\|===\=\|\!==\=\|&=\=\|\^=\=\||=\=\|||\|&&\|\[\]=\=\|=>\|!\|\~"
-syn keyword dartType           void var const bool int double num
+syn keyword dartType           void var final bool int double num
+syn keyword dartCommonInterfaces String Object Math RegExp Date
+syn keyword dartInterfaces       Collection Comparable Completer Duration Dynamic Function Future Hashable HashMap HashSet Iterable Iterator LinkedHashMap List Map Match Options Pattern Queue Set Stopwatch StringBuffer TimeZone
+syn keyword dartErrors         AssertionError TypeError FallThroughError
 syn keyword dartStatement      return
-syn keyword dartStorageClass   static final abstract
+syn keyword dartStorageClass   static abstract
 syn keyword dartExceptions     throw try catch finally
+syn keyword dartExceptions     BadNumberFormatException ClosureArgumentMismatchException EmptyQueueException Exception ExpectException FutureAlreadyCompleteException FutureNotCompleteException IllegalAccessException IllegalArgumentException IllegalJSRegExpException IndexOutOfRangeException IntegerDivisionByZeroException NoMoreElementsException NoSuchMethodException NotImplementedException NullPointerException ObjectNotClosureException OutOfMemoryException StackOverflowException UnsupportedOperationException WrongArgumentCountException
 syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
 " TODO(antonm): check if labels on break and continue are supported.
@@ -55,6 +59,8 @@ syn match   dartSpecialChar   contained "\\\(u\x\{4\}\|u{\x\+}\|x\x\x\|x{\x\+}\|
 
 " Numbers
 syn match dartNumber         "\<\d\+\(\.\d\+\)\=\>"
+
+syn match dartInclude        "^#\(import\|include\|source\|library\)(\(\"[^\"]\+\"\|'[^']\+'\));"
 
 " The default highlighting.
 command! -nargs=+ HiLink hi def link <args>
@@ -86,6 +92,10 @@ HiLink dartType            Type
 HiLink dartInterpolation   PreProc
 HiLink dartDocLink         SpecialComment
 HiLink dartSpecialChar     SpecialChar
+HiLink dartInclude         Include
+HiLink dartErrors          Error
+HiLink dartCommonInterfaces Type
+HiLink dartInterfaces       Type
 delcommand HiLink
 
 let b:current_syntax = "dart"
