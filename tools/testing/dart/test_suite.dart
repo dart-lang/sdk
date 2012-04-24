@@ -666,6 +666,11 @@ class StandardTestSuite implements TestSuite {
       default:
         Expect.fail('unimplemented compiler $compiler');
     }
+    if (executable.endsWith('.dart')) {
+      // Run the compiler script via the Dart VM.
+      args.insertRange(0, 1, executable);
+      executable = TestUtils.dartShellFileName(configuration);
+    }
     return new Command(executable, args);
   }
 
@@ -1257,7 +1262,10 @@ class TestUtils {
   }
 
   static String dartShellFileName(Map configuration) {
-    var name = '${buildDir(configuration)}/${executableName(configuration)}';
+    var name = configuration['dart'];
+    if (name == '') {
+      name = '${buildDir(configuration)}/${executableName(configuration)}';
+    }
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
