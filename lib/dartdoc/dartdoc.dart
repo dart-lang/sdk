@@ -175,27 +175,17 @@ void copyFiles(String from, String to) {
  */
 void compileScript(String compilerPath, String libDir,
     String dartPath, String jsPath) {
-  onExit(int exitCode, String stdout, String stderr) {
-    if (exitCode != 0) {
-      final message = 'Non-zero exit code from $compilerPath';
-      print('$message.');
-      print(stdout);
-      print(stderr);
-      throw message;
-    }
-  }
-
-  onError(error) {
-    final message = 'Error trying to execute $compilerPath. Error: $error';
-    print('$message.');
-    throw message;
-  }
-
-  print('Compiling $dartPath to $jsPath');
-  new Process.run(compilerPath, [
+  final process = new Process.start(compilerPath, [
     '--libdir=$libDir', '--out=$jsPath',
     '--compile-only', '--enable-type-checks', '--warnings-as-errors',
-    dartPath], null, onExit).onError = onError;
+    dartPath]);
+
+  process.stdout.pipe(stdout, close: false);
+
+  process.onError = (error) {
+    print('Failed to compile $dartPath with $compilerPath. Error:');
+    print(error);
+  };
 }
 
 class Dartdoc {

@@ -15,20 +15,17 @@
         {
           'action_name': 'run_apidoc',
           'inputs': [
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/frog/bin/frog',
+            '<(PRODUCT_DIR)/dart',
             '<!@(["python", "scripts/list_files.py"])',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/api_docs/index.html',
-            '<(PRODUCT_DIR)/api_docs/client-live-nav.js',
+            '<(PRODUCT_DIR)/api_docs',
           ],
           'action': [
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/dart',
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
-            '--mode=live-nav',
-            '--compiler=<(PRODUCT_DIR)/frog/bin/frog',
+            '--mode=live-nav'
           ],
         },
       ],

@@ -14,24 +14,22 @@
 import os
 import sys
 
-def handle_walk(root, directories, files, start):
-  for filename in files:
-    if filename.endswith((
-        '.css', '.dart', '.ico', '.js', '.json', '.png', '.sh', '.txt')):
-      print os.path.relpath(os.path.join(root, filename), start=start)
-
-
 def main(argv):
   if len(argv) == 1:
-    dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                       os.pardir, os.pardir, os.pardir)
+    dir = os.curdir
   else:
     dir = argv[1]
-  start = os.path.join(dir, 'utils', 'apidoc')
-  for root, directories, files in os.walk(os.path.join(dir, 'utils', 'apidoc')):
-    handle_walk(root, directories, files, start)
-  for root, directories, files in os.walk(os.path.join(dir, 'lib', 'dartdoc')):
-    handle_walk(root, directories, files, start)
+  for root, directories, files in os.walk(dir):
+    if root == os.curdir:
+      directories[0:] = [
+        os.path.join('utils', 'apidoc'),
+        os.path.join('lib', 'dartdoc')
+      ]
+
+    for filename in files:
+      if filename.endswith((
+          '.css', '.dart', '.ico', '.js', '.json', '.png', '.sh', '.txt')):
+        print os.path.relpath(os.path.join(root, filename))
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))

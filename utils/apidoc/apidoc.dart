@@ -33,7 +33,6 @@ void main() {
 
   int mode = doc.MODE_STATIC;
   String outputDir = 'docs';
-  String compilerPath;
 
   // Parse the command-line arguments.
   for (int i = 0; i < args.length; i++) {
@@ -51,8 +50,6 @@ void main() {
       default:
         if (arg.startsWith('--out=')) {
           outputDir = arg.substring('--out='.length);
-        } else if (arg.startsWith('--compiler=')) {
-          compilerPath = arg.substring('--compiler='.length);
         } else {
           print('Unknown option: $arg');
           return;
@@ -62,11 +59,8 @@ void main() {
   }
 
   final frogPath = joinPaths(doc.scriptDir, '../../frog/');
+  final compilerPath = joinPaths(frogPath, 'minfrog');
   final libDir = joinPaths(frogPath, 'lib');
-
-  if (compilerPath === null) {
-    compilerPath = joinPaths(frogPath, 'frog.py');
-  }
 
   doc.cleanOutputDirectory(outputDir);
 
