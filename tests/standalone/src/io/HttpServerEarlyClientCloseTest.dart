@@ -8,7 +8,7 @@ void sendData(List<int> data, int port) {
       Expect.fail("No data response was expected");
     };
     socket.outputStream.onNoPendingWrites = () {
-      socket.close(false);
+      socket.close(true);
     };
     socket.outputStream.write(data);
   };
