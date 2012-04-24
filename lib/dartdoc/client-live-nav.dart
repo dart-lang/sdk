@@ -21,19 +21,17 @@ String currentType = null;
 String prefix = '';
 
 main() {
-  window.on.contentLoaded.add((e) {
-    // Figure out where we are.
-    final body = document.query('body');
-    currentLibrary = body.dataAttributes['library'];
-    currentType = body.dataAttributes['type'];
-    prefix = (currentType != null) ? '../' : '';
+  // Figure out where we are.
+  final body = document.query('body');
+  currentLibrary = body.dataAttributes['library'];
+  currentType = body.dataAttributes['type'];
+  prefix = (currentType != null) ? '../' : '';
 
-    enableCodeBlocks();
+  enableCodeBlocks();
 
-    // Request the navigation data so we can build the HTML for it.
-    new XMLHttpRequest.getTEMPNAME('${prefix}nav.json', (request) {
-      buildNavigation(JSON.parse(request.responseText));
-    });
+  // Request the navigation data so we can build the HTML for it.
+  new XMLHttpRequest.getTEMPNAME('${prefix}nav.json', (request) {
+    buildNavigation(JSON.parse(request.responseText));
   });
 }
 
