@@ -506,8 +506,6 @@ class RunningProcess {
   /** Which command of [testCase.commands] is currently being executed. */
   int currentStep;
 
-  static final int kErrorStartingProcess = -171717;  // Chosen arbitrarily.
-
   RunningProcess(TestCase this.testCase,
       [this.allowRetries = false, this.processQueue]);
 
@@ -551,11 +549,7 @@ class RunningProcess {
    * the actual test and its output is analyzed in [testComplete].
    */
   void stepExitHandler(int exitCode) {
-    try {
-      process.close();
-    } catch (ProcessException e) {
-      // If the process is already closed, continue.
-    }
+    process.close();
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
     if (currentStep == totalSteps) { // done with test command
@@ -606,7 +600,6 @@ class RunningProcess {
     }
     process = new Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
-    process.onError = (error) { exitHandler(kErrorStartingProcess); };
     startTime = new Date.now();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
