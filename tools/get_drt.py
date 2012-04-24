@@ -22,7 +22,7 @@ def NormJoin(path1, path2):
 dart_src = NormJoin(os.path.dirname(sys.argv[0]), os.pardir)
 os.chdir(dart_src)
 
-GSUTIL_DIR = 'third_party/gsutil/20110627'
+GSUTIL_DIR = 'third_party/gsutil'
 GSUTIL = GSUTIL_DIR + '/gsutil'
 
 DRT_DIR = 'client/tests/drt'
