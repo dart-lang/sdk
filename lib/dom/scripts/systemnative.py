@@ -399,14 +399,13 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         'CPPPureInterface' in self._interface.ext_attrs or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
-          'Dart_Handle toDartValue(Dart$(INTERFACE)::NativeType* value);\n',
-          INTERFACE=self._interface.id)
+          '    static Dart_Handle toDart(NativeType* value);\n')
     else:
       to_dart_emitter.Emit(
-          'inline Dart_Handle toDartValue(Dart$(INTERFACE)::NativeType* value)\n'
-          '{\n'
-          '    return DartDOMWrapper::toDart<Dart$(INTERFACE)>(value);\n'
-          '}\n',
+          '    static Dart_Handle toDart(NativeType* value)\n'
+          '    {\n'
+          '        return DartDOMWrapper::toDart<Dart$(INTERFACE)>(value);\n'
+          '    }\n',
           INTERFACE=self._interface.id)
 
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())

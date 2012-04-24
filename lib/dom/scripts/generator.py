@@ -476,10 +476,10 @@ class IDLTypeInfo(object):
     ]
 
     if self._idl_type in WTF_INCLUDES:
-      return ['<wtf/%s.h>' % self._idl_type]
+      return ['<wtf/%s.h>' % self.native_type()]
 
     if not self._idl_type.startswith('SVG'):
-      return ['"%s.h"' % self._idl_type]
+      return ['"%s.h"' % self.native_type()]
 
     if self._idl_type in ['SVGNumber', 'SVGPoint']:
       return []
@@ -496,7 +496,7 @@ class IDLTypeInfo(object):
     return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'toDartValue(%s)' % value
+    return 'Dart%s::toDart(%s)' % (self._idl_type, value)
 
   def custom_to_dart(self):
     return self._custom_to_dart
@@ -509,6 +509,9 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def dart_type(self):
     return 'List<%s>' % self._item_info.dart_type()
+
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
+    return 'DartDOMWrapper::vectorToDart<Dart%s>(%s)' % (self._item_info.native_type(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()
@@ -590,7 +593,7 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
     else:
       conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
-    return 'toDartValue(%s)' %  conversion_cast
+    return 'Dart%s::toDart(%s)' %  (self._idl_type, conversion_cast)
 
 _idl_type_registry = {
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
@@ -640,7 +643,7 @@ _idl_type_registry = {
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
-    'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
+    'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),

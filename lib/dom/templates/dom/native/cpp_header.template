@@ -19,14 +19,14 @@ struct Dart$INTERFACE {
     typedef $NATIVE_TRAITS_TYPE NativeTraits;
 
 $TO_NATIVE
+$TO_DART
+    static Dart_Handle toDart(PassRefPtr< $WEBCORE_CLASS_NAME > value)
+    {
+        return toDart(value.get());
+    }
+
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);
 };
-
-$TO_DART
-inline Dart_Handle toDartValue(PassRefPtr< $WEBCORE_CLASS_NAME > value)
-{
-    return toDartValue(value.get());
-}
 
 namespace Dart$(INTERFACE)Internal {
 $DECLARATIONS

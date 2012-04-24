@@ -231,6 +231,12 @@ module storage {
     [Suppressed] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, in optional boolean lowerOpen, optional boolean upperOpen)
         raises (IDBDatabaseException);
   };
+
+  interface EntrySync {
+    // Native implementation is declared to return EntrySync.
+    [Suppressed] DirectoryEntrySync getParent();
+    EntrySync getParent();
+  };
 };
 
 module html {
