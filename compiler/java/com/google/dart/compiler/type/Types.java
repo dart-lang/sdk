@@ -259,10 +259,17 @@ public class Types {
    */
   @VisibleForTesting
   public InterfaceType asInstanceOf(Type t, ClassElement element) {
-    return checkedAsInstanceOf(t, element, new HashSet<TypeVariable>());
+    return checkedAsInstanceOf(t, element, new HashSet<TypeVariable>(), new HashSet<Type>());
   }
 
-  private InterfaceType checkedAsInstanceOf(Type t, ClassElement element, Set<TypeVariable> variablesReferenced) {
+  private InterfaceType checkedAsInstanceOf(Type t, ClassElement element,
+      Set<TypeVariable> variablesReferenced, Set<Type> checkedTypes) {
+    // check for recursion
+    if (checkedTypes.contains(t)) {
+      return null;
+    }
+    checkedTypes.add(t);
+    // check current Type
     switch (TypeKind.of(t)) {
       case FUNCTION_ALIAS:
       case INTERFACE: {
@@ -274,14 +281,14 @@ public class Types {
         InterfaceType supertype = tElement.getSupertype();
         if (supertype != null) {
           InterfaceType result = checkedAsInstanceOf(asSupertype(ti, supertype), element,
-                                                     variablesReferenced);
+                                                     variablesReferenced, checkedTypes);
           if (result != null) {
             return result;
           }
         }
         for (InterfaceType intrface : tElement.getInterfaces()) {
           InterfaceType result = checkedAsInstanceOf(asSupertype(ti, intrface), element,
-                                                     variablesReferenced);
+                                                     variablesReferenced, checkedTypes);
           if (result != null) {
             return result;
           }
@@ -295,7 +302,7 @@ public class Types {
             // e should be the interface Function in the core library. See the
             // documentation comment on FunctionType.
             InterfaceType ti = (InterfaceType) e.getType();
-            return checkedAsInstanceOf(ti, element, variablesReferenced);
+            return checkedAsInstanceOf(ti, element, variablesReferenced, checkedTypes);
           default:
             return null;
         }
@@ -311,7 +318,7 @@ public class Types {
           return typeProvider.getObjectType();
         }
         variablesReferenced.add(v);
-        return checkedAsInstanceOf(bound, element, variablesReferenced);
+        return checkedAsInstanceOf(bound, element, variablesReferenced, checkedTypes);
       }
       default:
         return null;
