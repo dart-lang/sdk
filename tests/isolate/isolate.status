@@ -18,7 +18,7 @@ IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
 *APIv2*: Skip # new api for isolates not in corelib yet.
 
-[ ($compiler == frog || $compiler == frogsh) && ($runtime == none || $runtime == d8) ]
+[ $compiler == frog && ($runtime == none || $runtime == d8) ]
 *BrowserTest: Skip
 *BrowserNegativeTest: Skip
 
@@ -33,7 +33,7 @@ NestedSpawnTest: Skip
 IsolateNegativeTest: Skip
 Isolate2NegativeTest: Skip
 
-[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+[ $compiler == frog && $runtime == none ]
 *: Skip
 
 [ $runtime == safari ]

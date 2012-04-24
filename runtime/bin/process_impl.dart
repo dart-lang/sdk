@@ -68,6 +68,25 @@ class _InteractiveProcess implements Process {
       }
     }
 
+    if (options !== null && options.environment !== null) {
+      var env = options.environment;
+      if (env is !Map) {
+        throw new IllegalArgumentException("Environment is not a map: $env");
+      }
+      _environment = [];
+      env.forEach((key, value) {
+        if (key is !String || value is !String) {
+          throw new IllegalArgumentException(
+              "Environment key or value is not a string: ($key, $value)");
+        }
+        if (key.contains('=')) {
+          throw new IllegalArgumentException(
+              "Environment keys may not contain '=': $key");
+        }
+        _environment.add('$key=$value');
+      });
+    }
+
     _in = new _Socket._internalReadOnly();  // stdout coming from process.
     _out = new _Socket._internalWriteOnly();  // stdin going to process.
     _err = new _Socket._internalReadOnly();  // stderr coming from process.
@@ -139,6 +158,7 @@ class _InteractiveProcess implements Process {
     bool success = _start(_path,
                           _arguments,
                           _workingDirectory,
+                          _environment,
                           _in,
                           _out,
                           _err,
@@ -192,6 +212,7 @@ class _InteractiveProcess implements Process {
   bool _start(String path,
               List<String> arguments,
               String workingDirectory,
+              List<String> environment,
               Socket input,
               Socket output,
               Socket error,
@@ -274,6 +295,7 @@ class _InteractiveProcess implements Process {
   String _path;
   ObjectArray<String> _arguments;
   String _workingDirectory;
+  List<String> _environment;
   // Private methods of _Socket are used by _in, _out, and _err.
   _Socket _in;
   _Socket _out;

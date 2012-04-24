@@ -441,7 +441,7 @@ public class DartParser extends CompletionHooksParserBase {
     return new DartLibraryDirective(libname);
   }
 
-  private DartImportDirective parseImportDirective() {
+  protected DartImportDirective parseImportDirective() {
     expect(Token.IMPORT);
     expect(Token.LPAREN);
     beginLiteral();

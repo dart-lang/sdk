@@ -46,7 +46,7 @@ class TemplateOptions {
     childArgs = [];
 
     // Start from 2 to skip arguments representing the compiler command
-    // (node/python followed by frogsh/frog.py).
+    // (python followed by frog.py).
     loop: for (int i = 2; i < args.length; i++) {
       var arg = args[i];
 

@@ -2,5 +2,5 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ($compiler == frog || $compiler == frogsh) && $runtime == d8 ]
+[ $compiler == frog && $runtime == d8 ]
 *: Skip

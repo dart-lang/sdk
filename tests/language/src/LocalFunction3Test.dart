@@ -22,7 +22,7 @@ class LocalFunction3Test {
       exception_caught = true;
     }
     Expect.equals(false, exception_caught);
-    Expect.equals("Closure", f_string);
+    Expect.equals(true, f_string.startsWith("Closure"));
   }
 
   static testMain() {

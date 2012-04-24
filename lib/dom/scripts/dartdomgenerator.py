@@ -118,6 +118,7 @@ def GenerateDOM(systems, generate_html_systems, output_dir,
 
   generator.Flush()
 
+def GenerateSingleFile(systems):
   if 'frog' in systems:
     _logger.info('Copy dom_frog to frog/')
     subprocess.call(['cd ../generated ; '
@@ -177,12 +178,14 @@ def main():
         '../generated')
     GenerateDOM(dom_systems, False, output_dir,
                 database_dir, use_database_cache)
+    GenerateSingleFile(dom_systems)
 
   if html_systems:
     output_dir = options.output_dir or os.path.join(current_dir,
         '../../html/generated')
     GenerateDOM(html_systems, True, output_dir,
                 database_dir, use_database_cache or dom_systems)
+    GenerateSingleFile(html_systems)
 
 if __name__ == '__main__':
   sys.exit(main())

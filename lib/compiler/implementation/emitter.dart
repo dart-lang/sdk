@@ -168,9 +168,8 @@ function(child, parent) {
                          StringBuffer buffer) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
-    FunctionParameters parameters = member.computeParameters(compiler);
     for (Selector selector in selectors) {
-      if (!selector.applies(parameters)) continue;
+      if (!selector.applies(member, compiler)) continue;
       addParameterStub(member, attachTo, buffer, selector);
     }
   }
@@ -237,8 +236,14 @@ function(child, parent) {
       isFirst = false;
       String memberName = namer.instanceFieldName(member.getLibrary(),
                                                   member.name);
-      argumentsBuffer.add('${className}_$memberName');
-      bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
+      String parameter;
+      if (classElement === enclosingClass) {
+        parameter = memberName;
+      } else {
+        parameter = '${className}_$memberName';
+      }
+      argumentsBuffer.add(parameter);
+      bodyBuffer.add('  this.$memberName = $parameter;\n');
     }
 
     classElement.forEachInstanceField(generateFieldInit,
@@ -293,7 +298,7 @@ function(child, parent) {
     emitInherits(classElement, buffer);
 
     String attachTo(String name) => '$className.prototype.$name';
-    
+
     classElement.forEachMember(includeBackendMembers: true,
                                f: (ClassElement enclosing, Element member) {
       if (member.isInstanceMember()) {
@@ -658,8 +663,8 @@ function(child, parent) {
     });
   }
 
-  String buildIsolateSetup(StringBuffer buffer, 
-                           Element appMain, 
+  String buildIsolateSetup(StringBuffer buffer,
+                           Element appMain,
                            Element isolateMain) {
     String mainAccess = "${namer.isolateAccess(appMain)}";
     String currentIsolate = "${namer.CURRENT_ISOLATE}";

@@ -1698,7 +1698,29 @@ DART_EXPORT int64_t Dart_ClosureSmrck(Dart_Handle object);
 // DEPRECATED: The API below is a temporary hack.
 DART_EXPORT void Dart_ClosureSetSmrck(Dart_Handle object, int64_t value);
 
-// --- Methods and Fields ---
+// --- Constructors, Methods, and Fields ---
+
+/**
+ * Invokes a constructor, creating a new object.
+ *
+ * This function allows hidden constructors (constructors with leading
+ * underscores) to be called.
+ *
+ * \param clazz A class or an interface.
+ * \param constructor_name The name of the constructor to invoke.  Use
+ *   Dart_Null() to invoke the unnamed constructor.  This name should
+ *   not include the name of the class.
+ * \param number_of_arguments Size of the arguments array.
+ * \param arguments An array of arguments to the constructor.
+ *
+ * \return If the constructor is called and completes successfully,
+ *   then the new object. If an error occurs during execution, then an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
+                                 Dart_Handle constructor_name,
+                                 int number_of_arguments,
+                                 Dart_Handle* arguments);
 
 /**
  * Invokes a method or function.
@@ -1726,38 +1748,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle name,
                                     int number_of_arguments,
                                     Dart_Handle* arguments);
-/**
- * DEPRECATED: Use Dart_Invoke instead.
- *
- * Invokes a static method with the given arguments.
- *
- * May generate an unhandled exception error.
- *
- * \return If no error occurs during execution, then the result of
- *   invoking the method is returned. If an error occurs during
- *   execution, then an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library,
-                                          Dart_Handle class_name,
-                                          Dart_Handle function_name,
-                                          int number_of_arguments,
-                                          Dart_Handle* arguments);
-
-/**
- * DEPRECATED: Use Dart_Invoke instead.
- *
- * Invokes an instance method with the given arguments.
- *
- * May generate an unhandled exception error.
- *
- * \return If no error occurs during execution, then the result of
- *   invoking the method is returned. If an error occurs during
- *   execution, then an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle receiver,
-                                           Dart_Handle function_name,
-                                           int number_of_arguments,
-                                           Dart_Handle* arguments);
 
 /**
  * Gets the value of a field.
@@ -1803,56 +1793,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container,
 DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                                       Dart_Handle name,
                                       Dart_Handle value);
-
-/**
- * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
- *
- * Gets the value of a static field.
- *
- * May generate an unhandled exception error.
- *
- * \return If no error occurs, then the value of the field is
- *   returned. Otherwise an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_GetStaticField(Dart_Handle cls,
-                                            Dart_Handle name);
-/**
- * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
- *
- * Sets the value of a static field.
- *
- * May generate an unhandled exception error.
- *
- * \return A valid handle if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_SetStaticField(Dart_Handle cls,
-                                            Dart_Handle name,
-                                            Dart_Handle value);
-
-/**
- * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
- *
- * Gets the value of an instance field.
- *
- * May generate an unhandled exception error.
- *
- * \return If no error occurs, then the value of the field is
- *   returned. Otherwise an error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_GetInstanceField(Dart_Handle obj,
-                                              Dart_Handle name);
-/**
- * DEPRECATED: Use Dart_SetField/Dart_GetField instead.
- *
- * Sets the value of an instance field.
- *
- * May generate an unhandled exception error.
- *
- * \return A valid handle if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_SetInstanceField(Dart_Handle obj,
-                                              Dart_Handle name,
-                                              Dart_Handle value);
 
 /**
  * Creates a native wrapper class.

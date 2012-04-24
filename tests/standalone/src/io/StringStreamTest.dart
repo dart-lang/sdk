@@ -11,7 +11,7 @@ void testUtf8() {
                     0xdf, 0xbf,
                     0xe0, 0xa0, 0x80,
                     0xef, 0xbf, 0xbf];
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s);
@@ -34,7 +34,7 @@ void testLatin1() {
                     0x44, 0x61, 0x72, 0x74,
                     0x80,
                     0xff];
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s, Encoding.ISO_8859_1);
@@ -54,7 +54,7 @@ void testAscii() {
   List<int> data = [0x01,
                     0x44, 0x61, 0x72, 0x74,
                     0x7f];
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   s.write(data);
   s.markEndOfStream();
   StringInputStream stream =
@@ -70,7 +70,7 @@ void testAscii() {
 }
 
 void testReadLine1() {
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   StringInputStream stream = new StringInputStream(s);
   var stage = 0;
 
@@ -101,7 +101,7 @@ void testReadLine1() {
 }
 
 void testReadLine2() {
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   StringInputStream stream = new StringInputStream(s);
   var stage = 0;
 
@@ -165,7 +165,7 @@ void testReadLine2() {
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
 }
 
-class TestException {
+class TestException implements Exception {
   TestException();
 }
 

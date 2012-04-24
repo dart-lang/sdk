@@ -8,6 +8,7 @@
   'sources': [
     '../../lib/mirrors/mirrors.dart',
     'mirrors.cc',
+    'mirrors.h',
     'mirrors_impl.dart',
   ],
 }

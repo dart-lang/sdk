@@ -61,9 +61,9 @@ public class CompileTimeConstantResolver {
                   .getPropertyName());
               break;
 
-            case LIBRARY:
+            case LIBRARY_PREFIX:
               // Library prefix, lookup the element in the reference library.
-              Scope scope = ((LibraryElement) qualifier).getScope();
+              Scope scope = ((LibraryPrefixElement) qualifier).getScope();
               element = scope
                   .findElement(scope.getLibrary(), x.getPropertyName());
               break;

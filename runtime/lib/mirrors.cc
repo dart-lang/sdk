@@ -6,8 +6,10 @@
 
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/json.h"
 #include "vm/message.h"
 #include "vm/port.h"
+#include "vm/resolver.h"
 
 namespace dart {
 
@@ -55,25 +57,104 @@ DEFINE_NATIVE_ENTRY(Mirrors_send, 3) {
 }
 
 
-DEFINE_NATIVE_ENTRY(IsolateMirrorImpl_buildResponse, 1) {
-  GET_NATIVE_ARGUMENT(Instance, map, arguments->At(0));
-  String& key = String::Handle();
-  Instance& value = Instance::Handle();
-  Object& result = Object::Handle();
+static bool JSONGetString(JSONReader* reader,
+                          const char** value_chars,
+                          int* value_len) {
+  if (reader->Type() != JSONReader::kString) {
+    return false;
+  }
+  *value_chars = reader->ValueChars();
+  *value_len = reader->ValueLen();
+  return true;
+}
 
-  key = String::New("debugName");
-  value = String::New(isolate->name());
-  result = DartLibraryCalls::MapSetAt(map, key, value);
-  if (result.IsError()) {
-    // TODO(turnidge): Prevent mirror operations from crashing other isolates?
-    Exceptions::PropagateError(result);
+
+DEFINE_NATIVE_ENTRY(Mirrors_processResponse, 3) {
+  GET_NATIVE_ARGUMENT(Instance, port, arguments->At(0));
+  GET_NATIVE_ARGUMENT(String, command, arguments->At(1));
+  GET_NATIVE_ARGUMENT(String, response, arguments->At(2));
+
+  const char* json_text = response.ToCString();
+  if (command.Equals("isolateMirrorOf")) {
+    JSONReader reader(json_text);
+    const char* debug_name = "";
+    int debug_name_len = 0;
+    if (!reader.Seek("ok") || !reader.IsTrue() ||
+        !reader.Seek("debugName") ||
+        !JSONGetString(&reader, &debug_name, &debug_name_len)) {
+      // TODO(turnidge): Use an exception class instead of a String.
+      Exceptions::Throw(Instance::Handle(String::NewFormatted(
+          "Error while processing mirror request.")));
+      UNREACHABLE();
+    }
+
+    // Create and return a new instance of _IsolateMirrorImpl.
+    Library& lib = Library::Handle(Library::MirrorsLibrary());
+    const String& public_class_name =
+        String::Handle(String::NewSymbol("_IsolateMirrorImpl"));
+    const String& class_name =
+        String::Handle(lib.PrivateName(public_class_name));
+    const String& function_name =
+        String::Handle(String::NewSymbol("_make"));
+    const int kNumArgs = 2;
+    const Array& kNoArgNames = Array::Handle();
+    const Function& function = Function::Handle(
+        Resolver::ResolveStatic(lib,
+                                class_name,
+                                function_name,
+                                kNumArgs,
+                                kNoArgNames,
+                                Resolver::kIsQualified));
+    ASSERT(!function.IsNull());
+    GrowableArray<const Object*> args(kNumArgs);
+    args.Add(&port);
+    const String& debug_name_str = String::Handle(
+        String::NewFormatted("%.*s", debug_name_len, debug_name));
+    args.Add(&debug_name_str);
+    const Object& result = Object::Handle(
+        DartEntry::InvokeStatic(function, args, kNoArgNames));
+    arguments->SetReturn(result);
+  }
+}
+
+
+void HandleMirrorsMessage(Isolate* isolate,
+                          Dart_Port reply_port,
+                          const Instance& message) {
+  TextBuffer buffer(64);
+  if (!message.IsString()) {
+    buffer.Printf(
+        "{ \"ok\": false, \"error\": \"Malformed mirrors request\" }");
+  } else {
+    String& json_string = String::Handle();
+    json_string ^= message.raw();
+    const char* json_text = json_string.ToCString();
+    JSONReader reader(json_text);
+
+    if (reader.Seek("command")) {
+      if (reader.IsStringLiteral("isolateMirrorOf")) {
+        buffer.Printf("{ \"ok\": true, \"debugName\": \"%s\" }",
+                      isolate->name());
+      } else {
+        const char* command = "";
+        int command_len = 0;
+        JSONGetString(&reader, &command, &command_len);
+        buffer.Printf(
+            "{ \"ok\": false, \"error\": \"Command '%.*s' not recognized\" }",
+            command_len, command);
+      }
+    } else {
+      buffer.Printf(
+          "{ \"ok\": false, \"error\": \"Field 'command' not found\" }");
+    }
   }
 
-  key = String::New("ok");
-  value = Bool::True();
-  result = DartLibraryCalls::MapSetAt(map, key, value);
-  if (result.IsError()) {
-    Exceptions::PropagateError(result);
+  Dart_CObject reply;
+  reply.type = Dart_CObject::kString;
+  reply.value.as_string = buffer.buf();
+  if (!Dart_PostCObject(reply_port, &reply)) {
+    OS::PrintErr("Unable to post mirrors reply");
+    return;
   }
 }
 

@@ -754,7 +754,7 @@ class FileTest {
     RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.readListSync(buffer, 0, 12);
+      openedFile.readListSync(buffer, 0, 12);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -765,7 +765,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.readListSync(buffer, 6, 6);
+      openedFile.readListSync(buffer, 6, 6);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -776,7 +776,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.readListSync(buffer, -1, 1);
+      openedFile.readListSync(buffer, -1, 1);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -787,7 +787,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.readListSync(buffer, 0, -1);
+      openedFile.readListSync(buffer, 0, -1);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -798,7 +798,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.writeListSync(buffer, 0, 12);
+      openedFile.writeListSync(buffer, 0, 12);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -809,7 +809,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.writeListSync(buffer, 6, 6);
+      openedFile.writeListSync(buffer, 6, 6);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -820,7 +820,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.writeListSync(buffer, -1, 1);
+      openedFile.writeListSync(buffer, -1, 1);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {
@@ -831,7 +831,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      bool readDone = openedFile.writeListSync(buffer, 0, -1);
+      openedFile.writeListSync(buffer, 0, -1);
     } catch (IndexOutOfRangeException ex) {
       exceptionCaught = true;
     } catch (Exception ex) {

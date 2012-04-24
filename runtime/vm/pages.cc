@@ -68,6 +68,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
     : freelist_(),
       heap_(heap),
       pages_(NULL),
+      pages_tail_(NULL),
       large_pages_(NULL),
       bump_page_(NULL),
       max_capacity_(max_capacity),
@@ -93,8 +94,12 @@ intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
 
 void PageSpace::AllocatePage() {
   HeapPage* page = HeapPage::Allocate(kPageSize, is_executable_);
-  page->set_next(pages_);
-  pages_ = page;
+  if (pages_ == NULL) {
+    pages_ = page;
+  } else {
+    pages_tail_->set_next(page);
+  }
+  pages_tail_ = page;
   bump_page_ = NULL;  // Reenable scanning of pages for bump allocation.
   capacity_ += kPageSize;
 }
@@ -107,19 +112,6 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
   large_pages_ = page;
   capacity_ += page_size;
   return page;
-}
-
-
-void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
-  capacity_ -= page->memory_->size();
-  // Remove the page from the list.
-  if (previous_page != NULL) {
-    previous_page->set_next(page->next());
-  } else {
-    pages_ = page->next();
-  }
-  // TODO(iposva): Consider adding to a pool of empty pages.
-  page->Deallocate();
 }
 
 
@@ -146,12 +138,21 @@ void PageSpace::FreePages(HeapPage* pages) {
 
 
 uword PageSpace::TryBumpAllocate(intptr_t size) {
+  if (pages_tail_ == NULL) {
+    return 0;
+  }
+  uword result = pages_tail_->TryBumpAllocate(size);
+  if (result != 0) {
+    return result;
+  }
   if (bump_page_ == NULL) {
     // The bump page has not yet been used: Start at the beginning of the list.
     bump_page_ = pages_;
   }
-  while (bump_page_ != NULL) {
-    uword result = bump_page_->TryBumpAllocate(size);
+  // The last page has already been attempted above.
+  while (bump_page_ != pages_tail_) {
+    ASSERT(bump_page_->next() != NULL);
+    result = bump_page_->TryBumpAllocate(size);
     if (result != 0) {
       return result;
     }
@@ -283,22 +284,14 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   GCSweeper sweeper(heap_);
   intptr_t in_use = 0;
 
-  HeapPage* prev_page = NULL;
   HeapPage* page = pages_;
   while (page != NULL) {
     intptr_t page_in_use = sweeper.SweepPage(page, &freelist_);
-    HeapPage* next_page = page->next();
-    if (page_in_use == 0) {
-      FreePage(page, prev_page);
-    } else {
-      in_use += page_in_use;
-      prev_page = page;
-    }
-    // Advance to the next page.
-    page = next_page;
+    in_use += page_in_use;
+    page = page->next();
   }
 
-  prev_page = NULL;
+  HeapPage* prev_page = NULL;
   page = large_pages_;
   while (page != NULL) {
     intptr_t page_in_use = sweeper.SweepLargePage(page);

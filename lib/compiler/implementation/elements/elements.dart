@@ -494,8 +494,10 @@ Type getType(TypeAnnotation typeAnnotation,
   }
   Identifier identifier = typeAnnotation.typeName.asIdentifier();
   if (identifier === null) {
-    compiler.reportWarning(typeAnnotation.typeName,
-                           'library prefixes not handled');
+    compiler.reportWarning(
+      typeAnnotation.typeName,
+      new ResolutionWarning(MessageKind.GENERIC,
+                            ['library prefixes not handled']));
     return compiler.types.dynamicType;
   }
   SourceString name = identifier.source;
@@ -619,21 +621,23 @@ class FunctionElement extends Element {
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    FunctionParameters parameters = computeParameters(compiler);
-    Types types = compiler.types;
-    FunctionExpression node =
-        compiler.parser.measure(() => parseNode(compiler));
-    Type returnType = getType(node.returnType, compiler, getLibrary());
-    if (returnType === null) returnType = types.dynamicType;
+    return compiler.withCurrentElement(this, () {
+      FunctionParameters parameters = computeParameters(compiler);
+      Types types = compiler.types;
+      FunctionExpression node =
+          compiler.parser.measure(() => parseNode(compiler));
+      Type returnType = getType(node.returnType, compiler, getLibrary());
+      if (returnType === null) returnType = types.dynamicType;
 
-    LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-    for (Link<Element> link = parameters.requiredParameters;
-         !link.isEmpty();
-         link = link.tail) {
-      parameterTypes.addLast(link.head.computeType(compiler));
-    }
-    type = new FunctionType(returnType, parameterTypes.toLink(), this);
-    return type;
+      LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
+      for (Link<Element> link = parameters.requiredParameters;
+           !link.isEmpty();
+           link = link.tail) {
+        parameterTypes.addLast(link.head.computeType(compiler));
+      }
+      type = new FunctionType(returnType, parameterTypes.toLink(), this);
+      return type;
+    });
   }
 
   Node parseNode(DiagnosticListener listener) => cachedNode;
@@ -749,6 +753,17 @@ class ClassElement extends ContainerElement {
     return null;
   }
 
+  /**
+   * Find the first member in the class chain with the given
+   * [memberName]. This method is NOT to be used for resolving
+   * unqualified sends because it does not implement the scoping
+   * rules, where library scope comes before superclass scope.
+   */
+  Element lookupMember(SourceString memberName) {
+    Element localMember = localMembers[memberName];
+    return localMember === null ? lookupSuperMember(memberName) : localMember;
+  }
+
   Element lookupConstructor(SourceString className,
                             [SourceString constructorName =
                                  const SourceString(''),
@@ -831,6 +846,20 @@ class ClassElement extends ContainerElement {
       if (implementedInterface === intrface) {
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if [this] is a subclass of [cls].
+   *
+   * This method is not to be used for checking type hierarchy and
+   * assignments, because it does not take parameterized types into
+   * account.
+   */
+  bool isSubclassOf(ClassElement cls) {
+    for (ClassElement s = this; s != null; s = s.superclass) {
+      if (s === cls) return true;
     }
     return false;
   }

@@ -7,7 +7,7 @@
 
 void test1() {
   void testWithChunkSize(var data, int chunkSize, Function testDone) {
-    InputStream list_input_stream = new ListInputStream();
+    ListInputStream list_input_stream = new ListInputStream();
     list_input_stream.write(data);
     list_input_stream.markEndOfStream();
     ChunkedInputStream stream = new ChunkedInputStream(list_input_stream);
@@ -68,7 +68,7 @@ void test1() {
 
 
 void test2() {
-  InputStream s = new ListInputStream();
+  ListInputStream s = new ListInputStream();
   ChunkedInputStream stream = new ChunkedInputStream(s);
   stream.chunkSize = 5;
   ReceivePort donePort = new ReceivePort();

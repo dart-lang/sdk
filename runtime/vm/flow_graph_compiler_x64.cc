@@ -342,7 +342,10 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   const Immediate location =
       Immediate(reinterpret_cast<int64_t>(Smi::New(token_index)));
+  const Immediate node_id_as_smi =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(node_id)));
   __ pushq(location);  // Push the source location.
+  __ pushq(node_id_as_smi);  // node-id.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   if (!dst_type.IsInstantiated()) {
@@ -357,7 +360,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t node_id,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ addq(RSP, Immediate(5 * kWordSize));
+  __ addq(RSP, Immediate(6 * kWordSize));
   __ popq(RAX);
 
   __ Bind(&is_assignable);

@@ -184,10 +184,13 @@ void JSONScanner::Scan() {
     default:
       if (IsLiteral("true")) {
         token_ = TokenTrue;
+        token_length_ = 4;
       } else if (IsLiteral("false")) {
         token_ = TokenFalse;
+        token_length_ = 5;
       } else if (IsLiteral("null")) {
         token_ = TokenNull;
+        token_length_ = 4;
       } else {
         token_length_ = 0;
         token_ = TokenIllegal;

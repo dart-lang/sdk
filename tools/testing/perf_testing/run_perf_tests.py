@@ -5,13 +5,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import datetime
-import getpass
-import math
-try:
-  from matplotlib.font_manager import FontProperties
-  import matplotlib.pyplot as plt
-except ImportError:
-  pass # Only needed if we want to make graphs.
 import optparse
 import os
 from os.path import dirname, abspath
@@ -22,12 +15,13 @@ import stat
 import subprocess
 import sys
 import time
-import traceback
 
 TOOLS_PATH = os.path.join(dirname(dirname(dirname(abspath(__file__)))))
 DART_INSTALL_LOCATION = abspath(os.path.join(dirname(abspath(__file__)),
                                              '..', '..', '..'))
 sys.path.append(TOOLS_PATH)
+sys.path.append(os.path.join(DART_INSTALL_LOCATION, 'internal', 'tests'))
+import post_results
 import utils
 
 """This script runs to track performance and size progress of
@@ -115,7 +109,7 @@ class TestRunner(object):
       if os.path.exists(path):
         os.chmod(path, stat.S_IWRITE)
         os.unlink(path)
-    # TODO(efortuna): building the sdk locally is a band-aid until all build
+    # TODO(efortuna): building the sdk locally is a band-aid until all build XXX
     # platform SDKs are hosted in Google storage. Pull from https://sandbox.
     # google.com/storage/?arg=dart-dump-render-tree#dart-dump-render-tree%2Fsdk
     # eventually.
@@ -171,56 +165,6 @@ class TestRunner(object):
     else:
       return 'linux'
 
-  def upload_to_app_engine(self, suite_names):
-    """Upload our results to our appengine server.
-    Arguments:
-      suite_names: Directories to upload data from (should match directory 
-        names)."""
-    # TODO(efortuna): This is the most basic way to get the data up
-    # for others to view. Revisit this once we're serving nicer graphs (Google
-    # Chart Tools) and from multiple perfbots and once we're in a position to
-    # organize the data in a useful manner(!!).
-    os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
-                          'perf_testing'))
-    for data in suite_names:
-      path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
-      shutil.rmtree(path, ignore_errors=True)
-      os.makedirs(path)
-      files = []
-      # Copy the 1000 most recent trace files to be uploaded.
-      for f in os.listdir(data):
-        files += [(os.path.getmtime(os.path.join(data, f)), f)]
-      files.sort()
-      for f in files[-1000:]:
-        shutil.copyfile(os.path.join(data, f[1]), 
-                        os.path.join(path, f[1]+'.txt'))
-    # Generate directory listing.
-    for data in suite_names:
-      path = os.path.join('appengine', 'static', 'data', data, utils.GuessOS())
-      out = open(os.path.join('appengine', 'static',
-                 '%s-%s.html' % (data, utils.GuessOS())), 'w')
-      out.write('<html>\n  <body>\n    <ul>\n')
-      for f in os.listdir(path):
-        if not f.startswith('.'):
-          out.write('      <li><a href=data' + \
-                    '''/%(data)s/%(os)s/%(file)s>%(file)s</a></li>\n''' % \
-                    {'data': data, 'os': utils.GuessOS(), 'file': f})
-      out.write('    </ul>\n  </body>\n</html>')
-      out.close()
-
-    shutil.rmtree(os.path.join('appengine', 'static', 'graphs'),
-                  ignore_errors=True)
-    shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
-    shutil.copyfile('index.html', os.path.join('appengine', 'static',
-                    'index.html'))
-    shutil.copyfile('dromaeo.html', os.path.join('appengine', 'static',
-                    'dromaeo.html'))
-    shutil.copyfile('data.html', os.path.join('appengine', 'static',
-                    'data.html'))
-    self.run_cmd([os.path.join('..', '..', '..', 'third_party',
-                               'appengine-python', 'appcfg.py'), '--oauth2', 
-                               'update', 'appengine/'])
-
   def parse_args(self):
     parser = optparse.OptionParser()
     parser.add_option('--suites', '-s', dest='suites', help='Run the specified '
@@ -230,15 +174,9 @@ class TestRunner(object):
     parser.add_option('--forever', '-f', dest='continuous', help='Run this scri'
                       'pt forever, always checking for the next svn checkin',
                       action='store_true', default=False)
-    parser.add_option('--graph-only', '-g', dest='graph_only', default=False,
-                      help='Do not run tests, only regenerate graphs', 
-                      action='store_true')
     parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
                       help='Do not sync with the repository and do not '
                       'rebuild.', default=False)
-    parser.add_option('--upload', '-u', dest='upload', help='Upload data to '
-                      'app engine (will require authentication).', 
-                      action='store_true', default=False)
     parser.add_option('--verbose', '-v', dest='verbose', help='Print extra '
                       'debug output', action='store_true', default=False)
 
@@ -258,8 +196,6 @@ class TestRunner(object):
           sys.exit(1)
     self.suite_names = suites
     self.no_build = args.no_build
-    self.graph_only = args.graph_only
-    self.upload = args.upload
     self.verbose = args.verbose
     return args.continuous
 
@@ -272,8 +208,7 @@ class TestRunner(object):
           benchmark(s) to run.
       no_build: True if we should not check the repository and build the latest
           version.
-      graph_only: True if we should not run the tests, just (re)generate graphs.
-      upload: True if we should upload our results to appengine."""
+    """
     suites = []
     for name in self.suite_names:
       suites += [TestBuilder.make_test(name, self)]
@@ -282,21 +217,17 @@ class TestRunner(object):
       return # The build is broken.
 
     for test in suites:
-      test.run(self.graph_only)
-
-    if self.upload:
-      self.upload_to_app_engine(TestBuilder.available_suite_names())
+      test.run()
 
 
 class Test(object):
   """The base class to provide shared code for different tests we will run and
   graph. At a high level, each test has three visitors (the tester, the
-  file_processor, and the grapher) that perform operations on the test 
-  object."""
+  file_processor that perform operations on the test object."""
 
   def __init__(self, result_folder_name, platform_list, variants,
-               values_list, test_runner, tester, file_processor, grapher,
-               extra_metrics=['Geo-Mean'], build_targets=['create_sdk']):
+               values_list, test_runner, tester, file_processor,
+               build_targets=['create_sdk']):
     """Args:
          result_folder_name: The name of the folder where a tracefile of
              performance results will be stored.
@@ -312,9 +243,6 @@ class Test(object):
          tester: The visitor that actually performs the test running mechanics.
          file_processor: The visitor that processes files in the format
              appropriate for this test.
-         grapher: The visitor that generates graphs given our test result data.
-         extra_metrics: A list of any additional measurements we wish to keep
-             track of (such as the geometric mean of a set, the sum, etc).
          build_targets: The targets necessary to build to run these tests
              (default target is create_sdk)."""
     self.result_folder_name = result_folder_name
@@ -322,27 +250,10 @@ class Test(object):
     self.cur_time = str(time.mktime(datetime.datetime.now().timetuple()))
     self.values_list = values_list
     self.platform_list = platform_list
-    self.revision_dict = dict()
-    self.values_dict = dict()
     self.test_runner = test_runner
     self.tester = tester
     self.file_processor = file_processor
-    self.grapher = grapher
-    self.extra_metrics = extra_metrics
     self.build_targets = build_targets
-    # Initialize our values store.
-    for platform in platform_list:
-      self.revision_dict[platform] = dict()
-      self.values_dict[platform] = dict()
-      for f in variants:
-        self.revision_dict[platform][f] = dict()
-        self.values_dict[platform][f] = dict()
-        for val in values_list:
-          self.revision_dict[platform][f][val] = []
-          self.values_dict[platform][f][val] = []
-        for extra_metric in extra_metrics:
-          self.revision_dict[platform][f][extra_metric] = []
-          self.values_dict[platform][f][extra_metric] = []
 
   def is_valid_combination(self, platform, variant):
     """Check whether data should be captured for this platform/variant
@@ -350,34 +261,25 @@ class Test(object):
     """
     return True
 
-  def run(self, graph_only):
+  def run(self):
     """Run the benchmarks/tests from the command line and plot the
     results.
-    
-    Args:
-      graph_only: True if we should just graph the results instead of also
-          running tests."""
-    for visitor in [self.tester, self.file_processor, self.grapher]:
+    """
+    for visitor in [self.tester, self.file_processor]:
       visitor.prepare()
     
     os.chdir(DART_INSTALL_LOCATION)
     self.test_runner.ensure_output_directory(self.result_folder_name)
-    if not graph_only:
-      self.tester.run_tests()
+    self.tester.run_tests()
 
     os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
 
-    # TODO(efortuna): You will want to make this only use a subset of the files
-    # eventually.
+    # TODO(efortuna): Remove trace files once uploaded. This will happen in a
+    # future CL.
     files = os.listdir(self.result_folder_name)
-
     for afile in files:
       if not afile.startswith('.'):
         self.file_processor.process_file(afile)
-
-    if 'plt' in globals():
-      # Only run Matplotlib if it is installed.
-      self.grapher.plot_results('%s.png' % self.result_folder_name)
 
 
 class Tester(object):
@@ -433,101 +335,21 @@ class Processor(object):
     """Perform any initial setup required before the test is run."""
     pass
 
-  def calculate_geometric_mean(self, platform, variant, svn_revision):
-    """Calculate the aggregate geometric mean for JS and frog benchmark sets,
-    given two benchmark dictionaries."""
-    geo_mean = 0
-    # TODO(vsm): Suppress graphing this combination altogether.  For
-    # now, we feed a geomean of 0.
-    if self.test.is_valid_combination(platform, variant):
-      for benchmark in self.test.values_list:
-        geo_mean += math.log(
-            self.test.values_dict[platform][variant][benchmark][
-                len(self.test.values_dict[platform][variant][benchmark]) - 1])
-
-    self.test.values_dict[platform][variant]['Geo-Mean'] += \
-        [math.pow(math.e, geo_mean / len(self.test.values_list))]
-    self.test.revision_dict[platform][variant]['Geo-Mean'] += [svn_revision]
-
-
-class Grapher(object):
-  """The base level visitor class that generates graphs for data. It contains 
-  convenience methods that many Grapher objects use. Any class that would like
-  to be a GrapherVisitor must implement the plot_results() method."""
-  
-  graph_out_dir = 'graphs'
-  
-  def __init__(self, test):
-    self.color_index = 0
-    self.test = test
-  
-  def prepare(self):
-    """Perform any initial setup required before the test is run."""
-    if 'plt' in globals():
-      plt.cla() # cla = clear current axes
-    else:
-      print 'Unable to import Matplotlib and therefore unable to generate ' + \
-          'graphs. Please install it for this version of Python.'
-    self.test.test_runner.ensure_output_directory(Grapher.graph_out_dir)
-
-  def style_and_save_perf_plot(self, chart_title, y_axis_label, size_x, size_y,
-                               legend_loc, filename, platform_list, variants, 
-                               values_list, should_clear_axes=True):
-    """Sets style preferences for chart boilerplate that is consistent across
-    all charts, and saves the chart as a png.
-
+  def report_results(self, benchmark_name, score, platform, variant, 
+                     revision_number):
+    """Store the results of the benchmark run.
     Args:
-      size_x: the size of the printed chart, in inches, in the horizontal
-        direction
-      size_y: the size of the printed chart, in inches in the vertical direction
-      legend_loc: the location of the legend in on the chart. See suitable
-        arguments for the loc argument in matplotlib
-      filename: the filename that we want to save the resulting chart as
-      platform_list: a list containing the platform(s) that our data has been
-        run on. (command line, firefox, chrome, etc)
-      values_list: a list containing the type of data we will be graphing
-        (performance, percentage passing, etc)
-      should_clear_axes: True if we want to create a fresh graph, instead of
-        plotting additional lines on the current graph."""
-    if should_clear_axes:
-      plt.cla() # cla = clear current axes
-    for platform in platform_list:
-      for f in variants:
-        for val in values_list:
-          plt.plot(self.test.revision_dict[platform][f][val],
-              self.test.values_dict[platform][f][val],
-              color=self.get_color(), label='%s-%s-%s' % (platform, f, val))
-
-    plt.xlabel('Revision Number')
-    plt.ylabel(y_axis_label)
-    plt.title(chart_title)
-    fontP = FontProperties()
-    fontP.set_size('small')
-    plt.legend(loc=legend_loc, prop = fontP)
-
-    fig = plt.gcf()
-    fig.set_size_inches(size_x, size_y)
-    fig.savefig(os.path.join(Grapher.graph_out_dir, filename))
+      benchmark_name: The name of the individual benchmark.
+      score: The numerical value of this benchmark.
+      platform: The platform the test was run on (firefox, command line, etc).
+      variant: Specifies whether the data was about generated Frog, js, a
+          combination of both, or Dart depending on the test.
+      revision_number: The revision of the code (and sometimes the revision of
+          dartium).
   
-  def get_color(self):
-    # Just a bunch of distinct colors for a potentially large number of values
-    # we wish to graph.
-    colors = [
-        'blue', 'green', 'red', 'cyan', 'magenta', 'black', '#3366CC',
-        '#DC3912', '#FF9900', '#109618', '#990099', '#0099C6', '#DD4477',
-        '#66AA00', '#B82E2E', '#316395', '#994499', '#22AA99', '#AAAA11',
-        '#6633CC', '#E67300', '#8B0707', '#651067', '#329262', '#5574A6',
-        '#3B3EAC', '#B77322', '#16D620', '#B91383', '#F4359E', '#9C5935',
-        '#A9C413', '#2A778D', '#668D1C', '#BEA413', '#0C5922', '#743411',
-        '#45AFE2', '#FF3300', '#FFCC00', '#14C21D', '#DF51FD', '#15CBFF',
-        '#FF97D2', '#97FB00', '#DB6651', '#518BC6', '#BD6CBD', '#35D7C2',
-        '#E9E91F', '#9877DD', '#FF8F20', '#D20B0B', '#B61DBA', '#40BD7E',
-        '#6AA7C4', '#6D70CD', '#DA9136', '#2DEA36', '#E81EA6', '#F558AE',
-        '#C07145', '#D7EE53', '#3EA7C6', '#97D129', '#E9CA1D', '#149638',
-        '#C5571D']
-    color = colors[self.color_index]
-    self.color_index = (self.color_index + 1) % len(colors)
-    return color
+    Returns: True if the post was successful."""
+    return post_results.report_results(benchmark_name, score, platform, variant,
+                                revision_number)
 
 
 class RuntimePerformanceTest(Test):
@@ -551,131 +373,16 @@ class RuntimePerformanceTest(Test):
         tester: The visitor that actually performs the test running mechanics.
         file_processor: The visitor that processes files in the format
             appropriate for this test.
-        grapher: The visitor that generates graphs given our test result data.
-        extra_metrics: A list of any additional measurements we wish to keep
-            track of (such as the geometric mean of a set, the sum, etc).
         build_targets: The targets necessary to build to run these tests
             (default target is create_sdk)."""
     super(RuntimePerformanceTest, self).__init__(result_folder_name,
           platform_list, versions, benchmarks, test_runner, tester,
-          file_processor, self.RuntimePerfGrapher(self),
-          build_targets=build_targets)
+          file_processor, build_targets=build_targets)
     self.platform_list = platform_list
     self.platform_type = platform_type
     self.versions = versions
     self.benchmarks = benchmarks 
  
-  class RuntimePerfGrapher(Grapher):
-    def plot_all_perf(self, png_filename):
-      """Create a plot that shows the performance changes of individual
-      benchmarks run by JS and generated by frog, over svn history."""
-      for benchmark in self.test.benchmarks:
-        self.style_and_save_perf_plot(
-            'Performance of %s over time on the %s on %s' % (benchmark,
-            self.test.platform_type, utils.GuessOS()), 
-            'Speed (bigger = better)', 16, 14, 'lower left',
-            benchmark + png_filename, self.test.platform_list,
-            self.test.versions, [benchmark])
-
-    def plot_avg_perf(self, png_filename):
-      """Generate a plot that shows the performance changes of the geomentric
-      mean of JS and frog benchmark performance over svn history."""
-      (title, y_axis, size_x, size_y, loc, filename) = \
-          ('Geometric Mean of benchmark %s performance on %s ' %
-          (self.test.platform_type, utils.GuessOS()), 'Speed (bigger = better)',
-          16, 5, 'lower left', 'avg'+png_filename)
-      clear_axis = True
-      for platform in self.test.platform_list:
-        for version in self.test.versions:
-          if self.test.is_valid_combination(platform, version):
-            for metric in self.test.extra_metrics:
-              self.style_and_save_perf_plot(title, y_axis, size_x, size_y, loc,
-                                            filename, [platform], [version],
-                                            [metric], clear_axis)
-              clear_axis = False
-
-    def plot_results(self, png_filename):
-      self.plot_all_perf(png_filename)
-      self.plot_avg_perf('2' + png_filename)
-
-
-class CommonCommandLineTest(RuntimePerformanceTest):
-  """Run the basic performance tests (Benchpress, some V8 benchmarks) from the
-  command line."""
-
-  def __init__(self, test_runner):
-    """Args:
-      test_runner: Reference to the object that notfies this test when to
-          run."""
-    super(CommonCommandLineTest, self).__init__(
-          self.name(), ['commandline'], 
-          'command line', ['js', 'frog'], self.get_standalone_benchmarks(), 
-          test_runner, self.CommonCommandLineTester(self),
-          self.CommonCommandLineFileProcessor(self),
-          build_targets=['create_sdk', 'dart2js'])
-
-  @staticmethod
-  def name():
-    return 'cl-perf'
-
-  @staticmethod
-  def get_standalone_benchmarks():
-    return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
-    'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
-    'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
-    'TreeSort']
-
-  class CommonCommandLineTester(Tester):
-    def run_tests(self):
-      """Run a performance test on our updated system."""
-      os.chdir('frog')
-      self.test.trace_file = os.path.join(
-          '..', 'tools', 'testing', 'perf_testing', 
-          self.test.result_folder_name, 'result' + self.test.cur_time)
-      self.test.test_runner.run_cmd(['python', os.path.join('benchmarks', 
-                                     'perf_tests.py')], self.test.trace_file)
-      os.chdir('..')
-
-  class CommonCommandLineFileProcessor(Processor):
-    def process_file(self, afile):
-      """Pull all the relevant information out of a given tracefile.
-
-      Args:
-        afile: The filename string we will be processing."""
-      os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
-          'testing', 'perf_testing'))
-      f = open(os.path.join(self.test.result_folder_name, afile))
-      tabulate_data = False
-      revision_num = 0
-      for line in f.readlines():
-        if 'Revision' in line:
-          revision_num = int(line.split()[1])
-        elif 'Benchmark' in line:
-          tabulate_data = True
-        elif tabulate_data:
-          tokens = line.split()
-          if len(tokens) < 4 or tokens[0] not in self.test.benchmarks:
-            #Done tabulating data.
-            break
-          js_value = float(tokens[1])
-          frog_value = float(tokens[3])
-          if js_value == 0 or frog_value == 0:
-            #Then there was an error when this performance test was run. Do not
-            #count it in our numbers.
-            return
-          benchmark = tokens[0]
-          self.test.revision_dict['commandline']['js'][benchmark] += \
-              [revision_num]
-          self.test.values_dict['commandline']['js'][benchmark] += [js_value]
-          self.test.revision_dict['commandline']['frog'][benchmark] += \
-              [revision_num]
-          self.test.values_dict['commandline']['frog'][benchmark] += \
-              [frog_value]
-      f.close()
-
-      self.calculate_geometric_mean('commandline', 'frog', revision_num)
-      self.calculate_geometric_mean('commandline', 'js', revision_num)
-
 
 class BrowserTester(Tester):
   @staticmethod
@@ -786,14 +493,10 @@ class CommonBrowserTest(RuntimePerformanceTest):
         score = name_and_score[1].strip()
         if version == 'js' or version == 'v8':
           version = 'js'
-          bench_dict = self.test.values_dict[browser]['js']
-        else:
-          bench_dict = self.test.values_dict[browser]['frog']
-        bench_dict[name] += [float(score)]
-        self.test.revision_dict[browser][version][name] += [revision_num]
+        self.report_results(name, score, browser, version, revision_num)
 
       f.close()
-      self.calculate_geometric_mean(browser, version, revision_num)
+
 
 class DromaeoTester(Tester):
   DROMAEO_BENCHMARKS = {
@@ -827,18 +530,18 @@ class DromaeoTester(Tester):
           'childNodes'])
   }
 
-  # Use legal appengine filenames for benchmark names.
-  @staticmethod
-  def legalize_filename(str):
-    remap = {
-        ' ': '_',
-        '(': '_',
-        ')': '_',
-        '*': 'ALL',
-        '=': 'ASSIGN',
-        }
-    for (old, new) in remap.iteritems():
-      str = str.replace(old, new)
+  # Use filenames that don't have unusual characters for benchmark names.	
+  @staticmethod	
+  def legalize_filename(str):	
+    remap = {	
+        ' ': '_',	
+        '(': '_',	
+        ')': '_',	
+        '*': 'ALL',	
+        '=': 'ASSIGN',	
+        }	
+    for (old, new) in remap.iteritems():	
+      str = str.replace(old, new)	
     return str
 
   # TODO(vsm): This is a hack to skip breaking tests.  Triage this
@@ -901,7 +604,7 @@ class DromaeoTest(RuntimePerformanceTest):
 
       for browser in BrowserTester.get_browsers():
         for version_name in versions:
-          if not self.test.is_valid_combination(browser, version):
+          if not self.test.is_valid_combination(browser, version_name):
             continue
           version = DromaeoTest.DromaeoPerfTester.get_dromaeo_url_query(
               browser, version_name)
@@ -933,8 +636,6 @@ class DromaeoTest(RuntimePerformanceTest):
       browser = parts[2]
       version = parts[3]
 
-      bench_dict = self.test.values_dict[browser][version]
-
       f = open(os.path.join(self.test.result_folder_name, afile))
       lines = f.readlines()
       i = 0
@@ -956,15 +657,11 @@ class DromaeoTest(RuntimePerformanceTest):
             if results:
               for result in results:
                 r = re.match(result_pattern, result)
-                name = DromaeoTester.legalize_filename(
-                    r.group(1).strip(':'))
+                name = DromaeoTester.legalize_filename(r.group(1).strip(':'))
                 score = float(r.group(2))
-                bench_dict[name] += [float(score)]
-                self.test.revision_dict[browser][version][name] += \
-                    [revision_num]
+                self.report_results(name, score, browser, version, revision_num)
 
       f.close()
-      self.calculate_geometric_mean(browser, version, revision_num)
 
 
 class DromaeoSizeTest(Test):
@@ -975,8 +672,7 @@ class DromaeoSizeTest(Test):
         ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
         DromaeoTester.DROMAEO_BENCHMARKS.keys(), test_runner, 
         self.DromaeoSizeTester(self),
-        self.DromaeoSizeProcessor(self),
-        self.DromaeoSizeGrapher(self), extra_metrics=['sum'])
+        self.DromaeoSizeProcessor(self))
   
   @staticmethod
   def name():
@@ -1037,14 +733,14 @@ class DromaeoSizeTest(Test):
               self.test.trace_file, append=True)
 
       self.test.test_runner.run_cmd(
-          ['echo', 'Size (dart, %s): %s' % (total_dart_size, 
-                                            self.test.extra_metrics[0])],
+          ['echo', 'Size (dart, %s): %s' % (total_dart_size, 'sum')],
           self.test.trace_file, append=True)
       for (variant, _) in variants:
         self.test.test_runner.run_cmd(
-            ['echo', 'Size (%s, %s): %s' % (variant, self.test.extra_metrics[0],
+            ['echo', 'Size (%s, %s): %s' % (variant, 'sum',
                                             total_size[variant])],
             self.test.trace_file, append=True)
+
 
   class DromaeoSizeProcessor(Processor):
     def process_file(self, afile):
@@ -1075,23 +771,9 @@ class DromaeoSizeTest(Test):
             num = int(num)
           else:
             num = float(num)
-          self.test.values_dict['browser'][variant][metric] += [num]
-          self.test.revision_dict['browser'][variant][metric] += [revision_num]
+          self.report_results(metric, num, 'browser', variant, revision_num)
 
       f.close()
-  class DromaeoSizeGrapher(Grapher):
-    def plot_results(self, png_filename):
-      self.style_and_save_perf_plot(
-          'Compiled Dromaeo Sizes',
-          'Size (in bytes)', 10, 10, 'lower left', png_filename,
-          ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
-          DromaeoTester.DROMAEO_BENCHMARKS.keys())
-
-      self.style_and_save_perf_plot(
-          'Compiled Dromaeo Sizes',
-          'Size (in bytes)', 10, 10, 'lower left', '2' + png_filename,
-          ['browser'], ['dart', 'frog_dom', 'frog_html', 'frog_htmlidiomatic'],
-          [self.test.extra_metrics[0]])
   
 
 class CompileTimeAndSizeTest(Test):
@@ -1104,7 +786,7 @@ class CompileTimeAndSizeTest(Test):
         self.name(), ['commandline'], ['frog'], 
         ['Compiling on Dart VM', 'Bootstrapping', 'minfrog', 'swarm', 'total'],
         test_runner, self.CompileTester(self),
-        self.CompileProcessor(self), self.CompileGrapher(self))
+        self.CompileProcessor(self))
     self.dart_compiler = os.path.join(
         DART_INSTALL_LOCATION, utils.GetBuildRoot(utils.GuessOS(),
         'release', 'ia32'), 'dart-sdk', 'bin', 'frogc')
@@ -1184,11 +866,12 @@ class CompileTimeAndSizeTest(Test):
     
       #Revert our newly built minfrog to prevent conflicts when we update
       self.test.test_runner.run_cmd(
-          ['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
-    
+          ['svn', 'revert',  os.path.join(os.getcwd(), 'minfrog')])
       os.chdir('..')
 
+
   class CompileProcessor(Processor):
+
     def process_file(self, afile):
       """Pull all the relevant information out of a given tracefile.
 
@@ -1211,43 +894,16 @@ class CompileTimeAndSizeTest(Test):
                 num = int(num)
               else:
                 num = float(num)
-              self.test.values_dict['commandline']['frog'][metric] += [num]
-              self.test.revision_dict['commandline']['frog'][metric] += \
-                  [revision_num]
-
-      if revision_num != 0:
-        for metric in self.test.values_list:
-          self.test.revision_dict['commandline']['frog'][metric].pop()
-          self.test.revision_dict['commandline']['frog'][metric] += \
-              [revision_num]
-          # Fill in 0 if compilation failed.
-          if self.test.values_dict['commandline']['frog'][metric][-1] < \
-              self.test.failure_threshold[metric]:
-            self.test.values_dict['commandline']['frog'][metric] += [0]
-            self.test.revision_dict['commandline']['frog'][metric] += \
-                [revision_num]
+              self.report_results(metric, num, 'commandline', 'frog', 
+                                 revision_num)
 
       f.close()
-
-  class CompileGrapher(Grapher):
-
-    def plot_results(self, png_filename):
-      self.style_and_save_perf_plot(
-          'Compiled minfrog Sizes', 'Size (in bytes)', 10, 10, 'lower left',
-          png_filename, ['commandline'], ['frog'], 
-          ['swarm', 'total', 'minfrog'])
-
-      self.style_and_save_perf_plot(
-          'Time to compile and bootstrap',
-          'Seconds', 10, 10, 'lower left', '2' + png_filename, ['commandline'],
-          ['frog'], ['Bootstrapping', 'Compiling on Dart VM'])
 
 
 class TestBuilder(object):
   """Construct the desired test object."""
   available_suites = dict((suite.name(), suite) for suite in [
-      CommonCommandLineTest, CompileTimeAndSizeTest,
-      CommonBrowserTest, DromaeoTest, DromaeoSizeTest])
+      CompileTimeAndSizeTest, CommonBrowserTest, DromaeoTest, DromaeoSizeTest])
 
   @staticmethod
   def make_test(test_name, test_runner):

@@ -348,9 +348,7 @@ class InitializerResolver {
                          : MessageKind.CANNOT_RESOLVE_CONSTRUCTOR;
       error(diagnosticNode, kind, [name]);
     } else {
-      final Compiler compiler = visitor.compiler;
-      FunctionParameters parameters = result.computeParameters(compiler);
-      if (!selector.applies(parameters)) {
+      if (!selector.applies(result, visitor.compiler)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;

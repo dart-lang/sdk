@@ -41,47 +41,24 @@ static uint8_t* zone_allocator(
 }
 
 
-static void RunWorker(uword parameter) {
-  NativeMessageHandler* handler =
-      reinterpret_cast<NativeMessageHandler*>(parameter);
-#if defined(DEBUG)
-    handler->CheckAccess();
-#endif
-
-  while (handler->HasLivePorts()) {
-    Message* message = handler->queue()->Dequeue(0);
-    if (message != NULL) {
-      if (message->priority() >= Message::kOOBPriority) {
-        // TODO(turnidge): Out of band messages will not go through
-        // the regular message handler.  Instead they will be
-        // dispatched to special vm code.  Implement.
-        UNIMPLEMENTED();
-      }
-      // Enter a native scope for handling the message. This will create a
-      // zone for allocating the objects for decoding the message.
-      ApiNativeScope scope;
-
-      int32_t length = reinterpret_cast<int32_t*>(
-          message->data())[Snapshot::kLengthIndex];
-      ApiMessageReader reader(message->data() + Snapshot::kHeaderSize,
-                              length,
-                              zone_allocator);
-      Dart_CObject* object = reader.ReadMessage();
-      (*handler->func())(message->dest_port(),
-                         message->reply_port(),
-                         object);
-      delete message;
-    }
+bool NativeMessageHandler::HandleMessage(Message* message) {
+  if (message->IsOOB()) {
+    // We currently do not use OOB messages for native ports.
+    UNREACHABLE();
   }
+  // Enter a native scope for handling the message. This will create a
+  // zone for allocating the objects for decoding the message.
+  ApiNativeScope scope;
+
+  int32_t length = reinterpret_cast<int32_t*>(
+      message->data())[Snapshot::kLengthIndex];
+  ApiMessageReader reader(message->data() + Snapshot::kHeaderSize,
+                          length,
+                          zone_allocator);
+  Dart_CObject* object = reader.ReadMessage();
+  (*func())(message->dest_port(), message->reply_port(), object);
+  delete message;
+  return true;
 }
-
-
-void NativeMessageHandler::StartWorker() {
-  int result = Thread::Start(RunWorker, reinterpret_cast<uword>(this));
-  if (result != 0) {
-    FATAL1("Failed to start native message handler worker thread %d", result);
-  }
-}
-
 
 }  // namespace dart

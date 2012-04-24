@@ -15,6 +15,7 @@
 #include "vm/port.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
+#include "vm/thread_pool.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -23,8 +24,10 @@ namespace dart {
 DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
+ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
+// TODO(turnidge): We should add a corresponding Dart::Cleanup.
 bool Dart::InitOnce(Dart_IsolateCreateCallback create,
                     Dart_IsolateInterruptCallback interrupt) {
   // TODO(iposva): Fix race condition here.
@@ -38,6 +41,8 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   // Create the VM isolate and finish the VM initialization.
+  ASSERT(thread_pool_ == NULL);
+  thread_pool_ = new ThreadPool();
   {
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());

@@ -2156,6 +2156,25 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
                                Error* malformed_error) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
+  // In case the type checked in a type test is malformed, the code generator
+  // may compile a throw instead of a run time call performing the type check.
+  // However, in checked mode, a function type may include malformed result type
+  // and/or malformed parameter types, which will then be encountered here at
+  // run time.
+  if (IsMalformed()) {
+    ASSERT(FLAG_enable_type_checks);
+    if (malformed_error->IsNull()) {
+      *malformed_error = this->malformed_error();
+    }
+    return false;
+  }
+  if (other.IsMalformed()) {
+    ASSERT(FLAG_enable_type_checks);
+    if (malformed_error->IsNull()) {
+      *malformed_error = other.malformed_error();
+    }
+    return false;
+  }
   // AbstractType parameters cannot be handled by Class::IsSubtypeOf().
   if (IsTypeParameter() || other.IsTypeParameter()) {
     // An uninstantiated type parameter is equivalent to Dynamic.
@@ -4687,6 +4706,35 @@ static bool ShouldBePrivate(const String& name) {
 }
 
 
+RawField* Library::LookupFieldAllowPrivate(const String& name) const {
+  // First check if name is found in the local scope of the library.
+  Field& field = Field::Handle(LookupLocalField(name));
+  if (!field.IsNull()) {
+    return field.raw();
+  }
+
+  // Do not look up private names in imported libraries.
+  if (ShouldBePrivate(name)) {
+    return Field::null();
+  }
+
+  // Now check if name is found in the top level scope of any imported
+  // libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+
+
+    field = import_lib.LookupLocalField(name);
+    if (!field.IsNull()) {
+      return field.raw();
+    }
+  }
+  return Field::null();
+}
+
+
 RawField* Library::LookupLocalField(const String& name) const {
   Isolate* isolate = Isolate::Current();
   Field& field = Field::Handle(isolate, Field::null());
@@ -4705,6 +4753,35 @@ RawField* Library::LookupLocalField(const String& name) const {
 
   // No field found.
   return Field::null();
+}
+
+
+RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
+  // First check if name is found in the local scope of the library.
+  Function& function = Function::Handle(LookupLocalFunction(name));
+  if (!function.IsNull()) {
+    return function.raw();
+  }
+
+  // Do not look up private names in imported libraries.
+  if (ShouldBePrivate(name)) {
+    return Function::null();
+  }
+
+  // Now check if name is found in the top level scope of any imported
+  // libs.
+  const Array& imports = Array::Handle(this->imports());
+  Library& import_lib = Library::Handle();
+  for (intptr_t j = 0; j < this->num_imports(); j++) {
+    import_lib ^= imports.At(j);
+
+
+    function = import_lib.LookupLocalFunction(name);
+    if (!function.IsNull()) {
+      return function.raw();
+    }
+  }
+  return Function::null();
 }
 
 
@@ -6505,6 +6582,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsVoidType());
+  ASSERT(!other.IsMalformed());
   if (IsNull()) {
     Class& other_class = Class::Handle();
     if (other.IsTypeParameter()) {
@@ -8601,9 +8679,10 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
 
 void GrowableObjectArray::Grow(intptr_t new_capacity, Heap::Space space) const {
   ASSERT(new_capacity > Capacity());
-  Array& contents = Array::Handle(data());
-  StorePointer(&(raw_ptr()->data_),
-               Array::Grow(contents, new_capacity, space));
+  const Array& contents = Array::Handle(data());
+  const Array& new_contents =
+      Array::Handle(Array::Grow(contents, new_capacity, space));
+  StorePointer(&(raw_ptr()->data_), new_contents.raw());
 }
 
 
@@ -8859,7 +8938,17 @@ void Closure::set_function(const Function& value) const {
 
 
 const char* Closure::ToCString() const {
-  return "Closure";
+  const Function& fun = Function::Handle(function());
+  const bool is_implicit_closure = fun.IsImplicitClosureFunction();
+  const char* fun_sig = String::Handle(fun.Signature()).ToCString();
+  const char* from = is_implicit_closure ? " from " : "";
+  const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
+  const char* format = "Closure: %s%s%s";
+  intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
+  return chars;
 }
 
 

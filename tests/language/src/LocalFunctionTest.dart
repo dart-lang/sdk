@@ -138,7 +138,7 @@ class LocalFunctionTest {
     Expect.equals(2, f(1));
     Expect.equals(true, f is Function);
     Expect.equals(true, f is Object);
-    Expect.equals("Closure", f.toString());
+    Expect.equals(true, f.toString().startsWith("Closure"));
     bool exception_caught = false;
     try {
       f(1, 2);

@@ -77,7 +77,7 @@ public class LibraryDepsVisitor extends ASTVisitor<Void> {
     if (node.getQualifier() instanceof DartIdentifier) {
       DartIdentifier qualifier = (DartIdentifier) node.getQualifier();
       Element target = qualifier.getElement();
-      if (target != null && target.getKind() == ElementKind.LIBRARY) {
+      if (target != null && target.getKind() == ElementKind.LIBRARY_PREFIX) {
         // Handle library prefixes normally.
         // The prefix part of the qualifier doesn't contain any resolvable library source info.
         return super.visitPropertyAccess(node);

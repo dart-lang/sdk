@@ -78,7 +78,8 @@ class Selector implements Hashable {
   static final Selector INVOCATION_2 =
       const Selector(SelectorKind.INVOCATION, 2);
 
-  bool applies(FunctionParameters parameters) {
+  bool applies(FunctionElement element, Compiler compiler) {
+    FunctionParameters parameters = element.computeParameters(compiler);
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -121,13 +122,15 @@ class Selector implements Hashable {
    */
   bool addArgumentsToList(Link<Node> arguments,
                           List list,
-                          FunctionParameters parameters,
+                          FunctionElement element,
                           compileArgument(Node argument),
-                          compileConstant(Element element)) {
-    void addMatchingArgumentsToList(Link<Node> link) {
-    }
+                          compileConstant(Element element),
+                          Compiler compiler) {
+    if (!this.applies(element, compiler)) return false;
 
-    if (!this.applies(parameters)) return false;
+    void addMatchingArgumentsToList(Link<Node> link) {}
+
+    FunctionParameters parameters = element.computeParameters(compiler);
     if (this.positionalArgumentCount == parameters.parameterCount) {
       for (Link<Node> link = arguments; !link.isEmpty(); link = link.tail) {
         list.add(compileArgument(link.head));
@@ -228,5 +231,36 @@ class Invocation extends Selector {
     });
     orderedNamedArguments = list;
     return orderedNamedArguments;
+  }
+}
+
+/**
+ * A [TypedInvocation] is an invocation where we have information on
+ * the type of the receiver.
+ */
+class TypedInvocation extends Invocation {
+  /**
+   * The type of the receiver. Any subtype of that type can be the
+   * target of the invocation.
+   */
+  final Type receiverType;
+
+  TypedInvocation(this.receiverType, Selector selector)
+      : super(selector.argumentCount, selector.namedArguments);
+
+  bool applies(FunctionElement element, Compiler compiler) {
+    if (!element.enclosingElement.isClass()) return false;
+
+    ClassElement other = element.enclosingElement;
+    ClassElement self = receiverType.element;
+    if (!other.isSubclassOf(self)) return false;
+    return super.applies(element, compiler);
+    return false;
+  }
+
+  bool operator ==(other) {
+    if (other is !TypedInvocation) return false;
+    if (other.receiverType !== receiverType) return false;
+    return super == other;
   }
 }

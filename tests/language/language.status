@@ -71,11 +71,6 @@ ConstructorRedirectTest/01: Fail # Issue 2103.
 *FrogTest: Skip
 *FrogNegativeTest: Skip
 
-[ $compiler == none && $unchecked ]
-
-IsNotClass3NegativeTest: Fail  # Spec unclear.
-Prefix16NegativeTest: Fail    # Bug 5532534
-
 [ $compiler == none && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
@@ -108,6 +103,7 @@ FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GettersSettersType3Test: Fail # Issue 2351
 InstanceCallWrongArgumentCountNegativeTest: Fail
+Instanceof3Test: Fail # Issue 2571
 Label2NegativeTest: Fail    # issue 1658
 Library4NegativeTest: Fail   # Bug 5406175
 ListLiteral4Test: Fail       # Issue 1343
@@ -123,11 +119,6 @@ OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 OverrideFieldTest/04: Fail             # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-Prefix101Test: Fail # Allow multiple imports with same prefix.
-Prefix11NegativeTest: Fail             # Issue 2383, Bug 5406175
-Prefix12NegativeTest: Fail             # Issue 2383, Bug 5406175
-Prefix16NegativeTest: Fail             # Issue 2383, Bug 5532534
-Prefix3NegativeTest: Fail              # Issue 2383, Bug 5406175
 Prefix6NegativeTest: Fail	       # Issue 2383
 PrivateFactoryResolutionNegativeTest: Fail # Issue 2275
 PrivateMember3NegativeTest: Fail       # Issue 2383
@@ -190,16 +181,12 @@ RichardsTest: Fail
 StringEscape1NegativeTest: Skip
 GCTest: Skip # Issue 1487
 
-[ $compiler == frogsh ]
-ArithmeticTest: Fail # Issue 1470
-IntrinsifiedMethodsTest: Fail # Issue 1470
-
-[ ($compiler == frog || $compiler == frogsh) && $unchecked ]
+[ $compiler == frog && $unchecked ]
 BoolTest: Fail # Issue 2092
 CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
 Operator4Test: Fail
 
-[ $compiler == frog  || $compiler == frogsh ]
+[ $compiler == frog ]
 StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
@@ -308,6 +295,7 @@ GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is r
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 Instanceof2Test: Fail
+Instanceof3Test: Fail # Issue 2571
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
@@ -320,7 +308,6 @@ ManyGenericInstanceofTest: Fail
 MapLiteral4Test: Fail # missing checks on map index operations
 MathTest: Fail
 MethodOverrideTest: Fail # checking on precise type rules for methods
-NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NonConstSuperNegativeTest: Fail
@@ -336,7 +323,7 @@ Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix8NegativeTest: Fail
 Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
-Prefix16NegativeTest: Fail
+Prefix16Test: Fail
 Prefix20NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateMember1NegativeTest: Fail
@@ -417,13 +404,13 @@ NumberSyntaxTest: Fail
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ ($compiler == frog || $compiler == frogsh) && $unchecked ]
+[ $compiler == frog && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
 PrivateMemberTest/02: Fail # test seems bad - see issue #353
 PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
-[ ($compiler == frog || $compiler == frogsh) && $checked ]
+[ $compiler == frog && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
 AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
@@ -436,8 +423,8 @@ TypeVariableBounds2Test/00: Fail # Issue 2135
 TypeVariableBounds2Test/03: Fail # Issue 2135
 TypeVariableBounds2Test/05: Fail # Issue 2135
 
-[ ($compiler == frog || $compiler == frogsh) && $runtime == d8 ]
-# these tests are inconsistent in frogium and frogsh-node, investigate
+[ $compiler == frog && $runtime == d8 ]
+# these tests are inconsistent in frogium, investigate
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
 SyntaxTest/28: Fail # Issue 1109
@@ -447,11 +434,11 @@ SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
 LiteralUnaryPlusTest/01: Fail # Issue 1400
 
-[ $compiler == frog || $compiler == frogsh ]
+[ $compiler == frog ]
 StringEscape3NegativeTest: Fail # Issue 1352
 
 [ $compiler == frog && $runtime == drt ]
-# these tests are inconsistent in frogium and frogsh-node, investigate
+# these tests are inconsistent in frogium, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 
@@ -459,7 +446,7 @@ StaticField2RunNegativeTest: Pass # but error is not correct
 ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
 ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
 
-[ ($compiler == frog || $compiler == frogsh) && $runtime == none ]
+[ $compiler == frog && $runtime == none ]
 *: Skip
 
 [ $arch == simarm ]

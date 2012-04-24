@@ -72,11 +72,8 @@ class EnqueueTask extends CompilerTask {
       }
       Set<Selector> selectors = compiler.universe.invokedNames[member.name];
       if (selectors != null) {
-        FunctionElement functionMember = member;
-        FunctionParameters parameters =
-            functionMember.computeParameters(compiler);
         for (Selector selector in selectors) {
-          if (selector.applies(parameters)) {
+          if (selector.applies(member, compiler)) {
             return compiler.addToWorkList(member);
           }
         }
@@ -174,10 +171,7 @@ class EnqueueTask extends CompilerTask {
         compiler.addToWorkList(member);
         return true;
       } else if (member.isFunction()) {
-        FunctionElement functionMember = member;
-        FunctionParameters parameters =
-          functionMember.computeParameters(compiler);
-        if (selector.applies(parameters)) {
+        if (selector.applies(member, compiler)) {
           compiler.addToWorkList(member);
           return true;
         }

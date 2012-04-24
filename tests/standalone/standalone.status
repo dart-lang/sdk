@@ -28,7 +28,7 @@ io/HttpServerHandlerTest: Skip # Issue 2637
 [ $runtime == vm && $system == windows]
 io/TestExtensionTest: Skip  # Extensions not implemented on Windows
 io/HttpShutdownTest: Skip  # Currently times out on windows
-io/HttpServerEarlyClientCloseTest: Pass,Fail # Issue 2551
+io/HttpServerEarlyClientCloseTest: Skip # Issue 2551
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
@@ -37,7 +37,7 @@ package/*: Skip # Do not run those in Dartium.
 [ $compiler == dartc]
 *: Skip
 
-[ $compiler == frog || $compiler == frogsh || ($compiler == dart2js && $runtime == drt) ]
+[ $compiler == frog || ($compiler == dart2js && $runtime == drt) ]
 *: Skip
 
 [ $arch == x64 ]

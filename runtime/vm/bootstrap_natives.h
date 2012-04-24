@@ -25,7 +25,6 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
-  V(IsolateMirrorImpl_buildResponse, 1)                                        \
   V(IsolateNatives_start, 2)                                                   \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
@@ -152,6 +151,7 @@ namespace dart {
   V(ExternalByteArray_setFloat64, 3)                                           \
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 1)                                                  \
+  V(Mirrors_processResponse, 3)                                                \
   V(Mirrors_send, 3)                                                           \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \

@@ -90,6 +90,9 @@ public abstract class AbstractParserTest extends CompilerTestCase {
 
   public void testDirectives() {
     DartUnit unit = parseUnit("Directives.dart");
+    if (unit == null) {
+      return;
+    }
     Iterator<DartDirective> iter = unit.getDirectives().iterator();
 
     DartDirective directive = iter.next();
@@ -112,6 +115,9 @@ public abstract class AbstractParserTest extends CompilerTestCase {
 
   public void testDirectives2() {
     DartUnit unit = parseUnit("Directives2.dart");
+    if (unit == null) {
+      return;
+    }
     Iterator<DartDirective> iter = unit.getDirectives().iterator();
 
     DartDirective directive = iter.next();

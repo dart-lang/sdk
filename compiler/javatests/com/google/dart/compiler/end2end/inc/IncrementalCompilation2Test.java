@@ -559,6 +559,78 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
+   * Test that same prefix can be used to import several libraries.
+   */
+  public void test_samePrefix_severalLibraries() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'p');",
+            "#import('B.dart', prefix: 'p');",
+            "f() {",
+            "  p.a = 1;",
+            "  p.b = 2;",
+            "}",
+            ""));
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "var a;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('B');",
+            "var b;",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+  }
+
+  /**
+   * Test that when same prefix is used to import several libraries, we still report error for
+   * duplicate names.
+   */
+  public void test_samePrefix_severalLibraries_duplicateTopLevelNames() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'p');",
+            "#import('B.dart', prefix: 'p');",
+//            "#import('A.dart');",
+//            "#import('B.dart');",
+            ""));
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "var someVar;",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('B');",
+            "var someVar;",
+            ""));
+    // do compile
+    compile();
+    assertErrors(
+        errors,
+        errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7),
+        errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 7));
+  }
+
+  /**
    * Test that invalid "#source" is reported as any other error between "unitAboutToCompile" and
    * "unitCompiled".
    */
@@ -595,6 +667,32 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     DartCompiler.compileLib(appSource, config, provider, listener);
     // Check that errors where reported (and in correct time).
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 27));
+  }
+
+  /**
+   * There was bug that we added <code>null</code> into {@link LibraryUnit#getImports()}. Here trick
+   * is that we reference "existing" {@link Source}, which can not be read.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2693
+   */
+  public void test_ignoreNullLibrary() throws Exception {
+    appSource.setContent("canNotRead.dart", MemoryLibrarySource.IO_EXCEPTION_CONTENT);
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('app');",
+            "#import('canNotRead.dart');",
+            ""));
+    // use same config as Editor - resolve despite of errors
+    config = new DefaultCompilerConfiguration() {
+      @Override
+      public boolean resolveDespiteParseErrors() {
+        return true;
+      }
+    };
+    // Ignore errors, but we should not get exceptions.
+    compile();
   }
 
   private void assertAppBuilt() {

@@ -47,6 +47,8 @@ class Message {
   uint8_t* data() const { return data_; }
   Priority priority() const { return priority_; }
 
+  bool IsOOB() const { return priority_ == Message::kOOBPriority; }
+
  private:
   friend class MessageQueue;
 
@@ -67,20 +69,9 @@ class MessageQueue {
 
   void Enqueue(Message* msg);
 
-  // Gets the next message from the message queue, possibly blocking
-  // if no message is available. 'millis' is a timeout in
-  // milliseconds. If 'millis' is 0, then this means to block
-  // indefinitely. May block if no message is available. May return
-  // NULL even if 'millis' is 0 due to spurious wakeups.
-  Message* Dequeue(int64_t millis);
-
-  // Gets the next message from the message queue if available.  Will
-  // not block.
-  Message* DequeueNoWait();
-
-  // Gets the next message of the specified priority or greater from
-  // the message queue if available.  Will not block.
-  Message* DequeueNoWaitWithPriority(Message::Priority min_priority);
+  // Gets the next message from the message queue or NULL if no
+  // message is available.  This function will not block.
+  Message* Dequeue();
 
   void Flush(Dart_Port port);
   void FlushAll();
@@ -88,67 +79,10 @@ class MessageQueue {
  private:
   friend class MessageQueueTestPeer;
 
-  Message* DequeueNoWaitHoldsLock(Message::Priority min_priority);
-
-  Monitor monitor_;
-  Message* head_[Message::kNumPriorities];
-  Message* tail_[Message::kNumPriorities];
+  Message* head_;
+  Message* tail_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageQueue);
-};
-
-// A MessageHandler is an entity capable of accepting messages.
-class MessageHandler {
- protected:
-  MessageHandler();
-
-  // Allows subclasses to provide custom message notification.
-  virtual void MessageNotify(Message::Priority priority);
-
- public:
-  virtual ~MessageHandler();
-
-  // Allow subclasses to provide a handler name.
-  virtual const char* name() const;
-
-#if defined(DEBUG)
-  // Check that it is safe to access this message handler.
-  //
-  // For example, if this MessageHandler is an isolate, then it is
-  // only safe to access it when the MessageHandler is the current
-  // isolate.
-  virtual void CheckAccess();
-#endif
-
-  void PostMessage(Message* message);
-  void ClosePort(Dart_Port port);
-  void CloseAllPorts();
-
-  // A message handler tracks how many live ports it has.
-  bool HasLivePorts() const { return live_ports_ > 0; }
-  void increment_live_ports() {
-#if defined(DEBUG)
-    CheckAccess();
-#endif
-    live_ports_++;
-  }
-  void decrement_live_ports() {
-#if defined(DEBUG)
-    CheckAccess();
-#endif
-    live_ports_--;
-  }
-
-  // Returns true if the handler is owned by the PortMap.
-  //
-  // This is used to delete handlers when their last live port is closed.
-  virtual bool OwnedByPortMap() const { return false; }
-
-  MessageQueue* queue() const { return queue_; }
-
- private:
-  intptr_t live_ports_;
-  MessageQueue* queue_;
 };
 
 }  // namespace dart

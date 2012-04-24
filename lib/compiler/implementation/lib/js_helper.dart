@@ -912,8 +912,7 @@ builtin$round$0(receiver) {
 builtin$toDouble$0(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
 
-  // TODO(ahe): Just return receiver?
-  return JS('double', @'# + 0', receiver);
+  return receiver;
 }
 
 builtin$truncate$0(receiver) {

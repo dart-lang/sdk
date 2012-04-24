@@ -48,11 +48,7 @@ static Dart_Handle Invoke(const char* func_name) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
-  return  Dart_InvokeStatic(script_lib,
-                            Dart_NewString(""),
-                            Dart_NewString(func_name),
-                            0,
-                            NULL);
+  return Dart_Invoke(script_lib, Dart_NewString(func_name), 0, NULL);
 }
 
 

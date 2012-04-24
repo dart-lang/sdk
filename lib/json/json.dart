@@ -143,7 +143,7 @@ class JsonTokenizer {
   static final int LBRACE = 123;  // '{'.charCodeAt(0)
   static final int RBRACE = 125;  // '}'.charCodeAt(0)
 
-  JsonTokenizer(String s) : _s = s + ' ', _pos = 0, _len = s.length + 1 {}
+  JsonTokenizer(String s) : _s = '${s} ', _pos = 0, _len = s.length + 1;
 
   /**
    * Fetches next token or [:null:] if the stream has been exhausted.
@@ -199,11 +199,11 @@ class JsonTokenizer {
                 break;
               case 'u':
                 if (_pos + 5 > _len) {
-                  throw 'Invalid unicode esacape sequence: \\' +
-                      _s.substring(_pos, _len);
+                  throw 'Invalid unicode esacape sequence:'
+                      '\\${_s.substring(_pos, _len)}';
                 }
                 final codeString = _s.substring(_pos + 1, _pos + 5);
-                c = Math.parseInt('0x' + codeString);
+                c = Math.parseInt('0x${codeString}');
                 if (c >= 128) {
                   // TODO(jmessery): the VM doesn't support 2-byte strings yet
                   // see runtime/lib/string.cc:49
@@ -213,7 +213,7 @@ class JsonTokenizer {
                 _pos += 4;
                 break;
               default:
-                throw 'Invalid esacape sequence: \\' + _s[_pos];
+                throw 'Invalid esacape sequence: \\${_s[_pos]}';
             }
           }
           charCodes.add(c);

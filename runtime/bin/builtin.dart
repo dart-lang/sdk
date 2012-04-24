@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("builtin");
+#import("dart:uri");
 
 void print(arg) {
   _Logger._printString(arg.toString());

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
@@ -13,19 +13,27 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
  * {@link LibrarySource} which provides content for all {@link Source}s from memory.
  */
 public class MemoryLibrarySource implements LibrarySource {
+  public static final String IO_EXCEPTION_CONTENT = "simulate-IOException";
   private final String libName;
-  private final Map<String, String> sourceContentMap = Maps.newHashMap();
-  private final Map<String, Long> sourceLastModifiedMap = Maps.newHashMap();
+  private final Map<String, String> sourceContentMap;
+  private final Map<String, Long> sourceLastModifiedMap;
 
-  public MemoryLibrarySource(String libName) throws URISyntaxException {
+  public MemoryLibrarySource(String libName) {
     this.libName = libName;
+    sourceContentMap = Maps.newHashMap();
+    sourceLastModifiedMap = Maps.newHashMap();
+  }
+
+  private MemoryLibrarySource(String libName, MemoryLibrarySource parent) {
+    this.libName = libName;
+    sourceContentMap = parent.sourceContentMap;
+    sourceLastModifiedMap = parent.sourceLastModifiedMap;
   }
 
   @Override
@@ -56,13 +64,15 @@ public class MemoryLibrarySource implements LibrarySource {
   @Override
   public Reader getSourceReader() throws IOException {
     String content = sourceContentMap.get(libName);
+    if (IO_EXCEPTION_CONTENT.equals(content)) {
+      throw new IOException("simulated");
+    }
     return new StringReader(content);
   }
 
   @Override
-  public LibrarySource getImportFor(String relPath) throws IOException {
-    // Not implemented for now, tests which use it don't work with imports.
-    return null;
+  public LibrarySource getImportFor(final String relPath) throws IOException {
+    return new MemoryLibrarySource(relPath, this);
   }
 
   @Override

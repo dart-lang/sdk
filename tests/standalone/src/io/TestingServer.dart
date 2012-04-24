@@ -8,7 +8,7 @@ class TestingServer extends Isolate {
   static final INIT = 0;
   static final SHUTDOWN = -1;
 
-  abstract void onConnection();
+  abstract void onConnection(Socket connection);
 
   void main() {
     void errorHandlerServer(Exception e) {

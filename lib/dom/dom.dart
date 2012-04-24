@@ -5192,7 +5192,17 @@ interface IDBKey {
 
 // WARNING: Do not edit - generated code.
 
-interface IDBKeyRange {
+interface IDBKeyRange default _IDBKeyRangeFactoryProvider {
+
+  IDBKeyRange.only(/*IDBKey*/ value);
+
+  IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]);
+
+  IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]);
+
+  IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                    [bool lowerOpen, bool upperOpen]);
+
 
   final /*IDBKey*/ lower;
 
@@ -5201,14 +5211,6 @@ interface IDBKeyRange {
   final /*IDBKey*/ upper;
 
   final bool upperOpen;
-
-  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
-
-  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
-
-  IDBKeyRange only(/*IDBKey*/ value);
-
-  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12856,6 +12858,15 @@ _dummy() {
 class _AudioContextFactoryProvider {
 
   factory AudioContext() => _dummy();
+}
+
+class _IDBKeyRangeFactoryProvider {
+
+  factory IDBKeyRange.only(/*IDBKey*/ value) => _dummy();
+  factory IDBKeyRange.lowerBound(/*IDBKey*/ bound, [bool open]) => _dummy();
+  factory IDBKeyRange.upperBound(/*IDBKey*/ bound, [bool open]) => _dummy();
+  factory IDBKeyRange.bound(/*IDBKey*/ lower, /*IDBKey*/ upper,
+                            [bool lowerOpen, bool upperOpen]) => _dummy();
 }
 
 class _TypedArrayFactoryProvider {

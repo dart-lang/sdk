@@ -147,7 +147,7 @@ class ServerSocketMock implements ServerSocket {
     _onConnection = callback;
   }
 
-  void set onError(void callback()) {
+  void set onError(void callback(Exception)) {
     _onError = callback;
   }
 

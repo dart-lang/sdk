@@ -134,7 +134,6 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # Issue 2383
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t04: Fail # Issue 2383
 Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
-Language/12_Libraries_and_Scripts/1_Imports_A03_t04: Fail # Issue 2385
 Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
 Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405

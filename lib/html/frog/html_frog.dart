@@ -7534,14 +7534,6 @@ class _IDBKeyRangeImpl implements IDBKeyRange native "*IDBKeyRange" {
   final Dynamic upper;
 
   final bool upperOpen;
-
-  _IDBKeyRangeImpl bound(lower, upper, [bool lowerOpen = null, bool upperOpen = null]) native;
-
-  _IDBKeyRangeImpl lowerBound(bound, [bool open = null]) native;
-
-  _IDBKeyRangeImpl only(value) native;
-
-  _IDBKeyRangeImpl upperBound(bound, [bool open = null]) native;
 }
 
 class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
@@ -16264,6 +16256,24 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
     _addMeasurementFrameCallback(callback);
   }
 
+  /** @domName DOMWindow.requestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback) native '''
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame =
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          function (callback) {
+            window.setTimeout(callback, 16 /* 16ms ~= 60fps */);
+          };
+    }
+    return window.requestAnimationFrame(callback);
+''';
+
+  // Protect member 'requestAnimationFrame'.
+  _requestAnimationFrame() native 'requestAnimationFrame';
+
 
   _WindowEventsImpl get on() =>
     new _WindowEventsImpl(this);
@@ -24333,18 +24343,6 @@ interface IDBKeyRange {
 
   /** @domName IDBKeyRange.upperOpen */
   final bool upperOpen;
-
-  /** @domName IDBKeyRange.bound */
-  IDBKeyRange bound(/*IDBKey*/ lower, /*IDBKey*/ upper, [bool lowerOpen, bool upperOpen]);
-
-  /** @domName IDBKeyRange.lowerBound */
-  IDBKeyRange lowerBound(/*IDBKey*/ bound, [bool open]);
-
-  /** @domName IDBKeyRange.only */
-  IDBKeyRange only(/*IDBKey*/ value);
-
-  /** @domName IDBKeyRange.upperBound */
-  IDBKeyRange upperBound(/*IDBKey*/ bound, [bool open]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34346,6 +34344,10 @@ interface Window extends EventTarget {
    * had been scheduled.
    */
   void requestLayoutFrame(TimeoutHandler callback);
+
+
+  /** @domName DOMWindow.webkitRequestAnimationFrame */
+  int requestAnimationFrame(RequestAnimationFrameCallback callback);
 
 
   /**

@@ -124,6 +124,9 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
 
   @Override
   protected DartUnit parseUnit(String srcName, String srcCode, Object... errors) {
+    if ("true".equals(System.getProperty("analysis_skip_TruncatedSourceParserTest"))) {
+      return null;
+    }
     if (errors.length > 0) {
       throw new RuntimeException("Expected errors not implemented");
     }

@@ -826,11 +826,9 @@ UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("From Snapshot: %dus\n", timer2.TotalElapsedTime());
 
     // Invoke a function which returns an object.
-    result = Dart_InvokeStatic(TestCase::lib(),
-                               Dart_NewString("FieldsTest"),
-                               Dart_NewString("testMain"),
-                               0,
-                               NULL);
+    Dart_Handle cls =
+        Dart_GetClass(TestCase::lib(), Dart_NewString("FieldsTest"));
+    result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
     Dart_ExitScope();
   }
@@ -871,11 +869,8 @@ UNIT_TEST_CASE(FullSnapshot1) {
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
-    Dart_Handle result = Dart_InvokeStatic(lib,
-                               Dart_NewString("FieldsTest"),
-                               Dart_NewString("testMain"),
-                               0,
-                               NULL);
+    Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("FieldsTest"));
+    Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
   }
 
@@ -890,11 +885,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("From Snapshot: %dus\n", timer2.TotalElapsedTime());
 
     // Invoke a function which returns an object.
-    Dart_Handle result = Dart_InvokeStatic(TestCase::lib(),
-                               Dart_NewString("FieldsTest"),
-                               Dart_NewString("testMain"),
-                               0,
-                               NULL);
+    Dart_Handle cls = Dart_GetClass(TestCase::lib(),
+                                    Dart_NewString("FieldsTest"));
+    Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
     if (Dart_IsError(result)) {
       // Print the error.  It is probably an unhandled exception.
       fprintf(stderr, "%s\n", Dart_GetError(result));
@@ -1018,11 +1011,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_EQ(expected_num_libs, actual_num_libs);
 
     // Invoke a function which returns an object.
-    result = Dart_InvokeStatic(result,
-                               Dart_NewString("FieldsTest"),
-                               Dart_NewString("testMain"),
-                               0,
-                               NULL);
+    Dart_Handle cls = Dart_GetClass(result, Dart_NewString("FieldsTest"));
+    result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
     EXPECT_VALID(result);
     Dart_ExitScope();
   }
@@ -1063,11 +1053,7 @@ TEST_CASE(IntArrayMessage) {
 static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
                                                 const char* dart_function) {
   Dart_Handle result;
-  result = Dart_InvokeStatic(lib,
-                             Dart_NewString(""),
-                             Dart_NewString(dart_function),
-                             0,
-                             NULL);
+  result = Dart_Invoke(lib, Dart_NewString(dart_function), 0, NULL);
   EXPECT_VALID(result);
 
   // Serialize the list into a message.
@@ -1108,25 +1094,13 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                                              NULL);
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
-  smi_result = Dart_InvokeStatic(lib,
-                                 Dart_NewString(""),
-                                 Dart_NewString("getSmi"),
-                                 0,
-                                 NULL);
+  smi_result = Dart_Invoke(lib, Dart_NewString("getSmi"), 0, NULL);
   EXPECT_VALID(smi_result);
   Dart_Handle bigint_result;
-  bigint_result = Dart_InvokeStatic(lib,
-                                    Dart_NewString(""),
-                                    Dart_NewString("getBigint"),
-                                    0,
-                                    NULL);
+  bigint_result = Dart_Invoke(lib, Dart_NewString("getBigint"), 0, NULL);
   EXPECT_VALID(bigint_result);
   Dart_Handle string_result;
-  string_result = Dart_InvokeStatic(lib,
-                                    Dart_NewString(""),
-                                    Dart_NewString("getString"),
-                                    0,
-                                    NULL);
+  string_result = Dart_Invoke(lib, Dart_NewString("getString"), 0, NULL);
   EXPECT_VALID(string_result);
   EXPECT(Dart_IsString(string_result));
 
@@ -1495,11 +1469,7 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_EnterScope();
 
   // xxx
-  Dart_Handle send_port = Dart_InvokeStatic(lib,
-                                            Dart_NewString(""),
-                                            Dart_NewString("main"),
-                                            0,
-                                            NULL);
+  Dart_Handle send_port = Dart_Invoke(lib, Dart_NewString("main"), 0, NULL);
   EXPECT_VALID(send_port);
   Dart_Handle result = Dart_GetField(send_port, Dart_NewString("_id"));
   ASSERT(!Dart_IsError(result));

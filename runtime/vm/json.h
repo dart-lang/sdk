@@ -87,6 +87,15 @@ class JSONReader : ValueObject {
   bool IsStringLiteral(const char* literal) const {
     return scanner_.IsStringLiteral(literal);
   }
+  bool IsTrue() const {
+    return scanner_.CurrentToken() == JSONScanner::TokenTrue;
+  }
+  bool IsFalse() const {
+    return scanner_.CurrentToken() == JSONScanner::TokenFalse;
+  }
+  bool IsNull() const {
+    return scanner_.CurrentToken() == JSONScanner::TokenNull;
+  }
 
  private:
   JSONScanner scanner_;

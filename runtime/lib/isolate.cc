@@ -10,7 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/longjump.h"
-#include "vm/message.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -22,16 +22,13 @@ namespace dart {
 
 class IsolateStartData {
  public:
-  IsolateStartData(Isolate* isolate,
-                   char* library_url,
+  IsolateStartData(char* library_url,
                    char* class_name,
                    intptr_t port_id)
-      : isolate_(isolate),
-        library_url_(library_url),
+      : library_url_(library_url),
         class_name_(class_name),
         port_id_(port_id) {}
 
-  Isolate* isolate_;
   char* library_url_;
   char* class_name_;
   intptr_t port_id_;
@@ -53,14 +50,11 @@ static uint8_t* SerializeObject(const Instance& obj) {
 }
 
 
-// TODO(turnidge): Taking down the whole vm when an isolate fails is
-// bad.  Change this.
-static void ProcessError(const Object& obj) {
+static void StoreError(Isolate* isolate, const Object& obj) {
   ASSERT(obj.IsError());
   Error& error = Error::Handle();
   error ^= obj.raw();
-  OS::PrintErr("%s\n", error.ToErrorCString());
-  exit(255);
+  isolate->object_store()->set_sticky_error(error);
 }
 
 
@@ -113,31 +107,29 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
 }
 
 
-static void RunIsolate(uword parameter) {
-  IsolateStartData* data = reinterpret_cast<IsolateStartData*>(parameter);
-  Isolate* isolate = data->isolate_;
+static bool RunIsolate(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  IsolateStartData* data =
+      reinterpret_cast<IsolateStartData*>(isolate->spawn_data());
+  isolate->set_spawn_data(NULL);
   char* library_url = data->library_url_;
   char* class_name = data->class_name_;
   intptr_t port_id = data->port_id_;
   delete data;
 
-  Isolate::SetCurrent(isolate);
-  // Intialize stack limit in case we are running isolate in a
-  // different thread than in which it was initialized.
-  isolate->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&isolate));
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
+  {
+    StartIsolateScope start_scope(isolate);
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
     ASSERT(ClassFinalizer::FinalizePendingClasses());
     // Lookup the target class by name, create an instance and call the run
     // method.
     const String& lib_name = String::Handle(String::NewSymbol(library_url));
+    free(library_url);
     const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
     ASSERT(!lib.IsNull());
     const String& cls_name = String::Handle(String::NewSymbol(class_name));
+    free(class_name);
     const Class& target_class = Class::Handle(lib.LookupClass(cls_name));
     // TODO(iposva): Deserialize or call the constructor after allocating.
     // For now, we only support a non-parameterized or raw target class.
@@ -158,7 +150,8 @@ static void RunIsolate(uword parameter) {
                                        arguments,
                                        kNoArgumentNames);
       if (result.IsError()) {
-        ProcessError(result);
+        StoreError(isolate, result);
+        return false;
       }
       ASSERT(result.IsNull());
     }
@@ -171,7 +164,8 @@ static void RunIsolate(uword parameter) {
     // TODO(iposva): Allocate the proper port number here.
     const Object& local_port = Object::Handle(ReceivePortCreate(port_id));
     if (local_port.IsError()) {
-      ProcessError(local_port);
+      StoreError(isolate, local_port);
+      return false;
     }
     GrowableArray<const Object*> arguments(1);
     arguments.Add(&local_port);
@@ -181,28 +175,35 @@ static void RunIsolate(uword parameter) {
                                       arguments,
                                       kNoArgumentNames);
     if (result.IsError()) {
-      ProcessError(result);
+      StoreError(isolate, result);
+      return false;
     }
     ASSERT(result.IsNull());
-    free(class_name);
-    free(library_url);
-    result = isolate->StandardRunLoop();
-    if (result.IsError()) {
-      ProcessError(result);
-    }
-    ASSERT(result.IsNull());
+  }
+  return true;
+}
 
-  } else {
+
+static void ShutdownIsolate(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  {
+    // Print the error if there is one.  This may execute dart code to
+    // print the exception object, so we need to use a StartIsolateScope.
+    StartIsolateScope start_scope(isolate);
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
-    const Error& error = Error::Handle(
-        Isolate::Current()->object_store()->sticky_error());
-    const char* errmsg = error.ToErrorCString();
-    OS::PrintErr("%s\n", errmsg);
-    exit(255);
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    if (!error.IsNull()) {
+      OS::PrintErr("%s\n", error.ToErrorCString());
+      exit(255);
+    }
   }
-  isolate->set_long_jump_base(base);
-  Dart::ShutdownIsolate();
+  {
+    // Shut the isolate down.
+    SwitchIsolateScope switch_scope(isolate);
+    Dart::ShutdownIsolate();
+  }
 }
 
 
@@ -292,15 +293,15 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
     // loaded, this check will throw an exception if they are not loaded.
     if (init_successful && CheckArguments(library_url, class_name)) {
       port_id = spawned_isolate->main_port();
-      uword data = reinterpret_cast<uword>(
-          new IsolateStartData(spawned_isolate,
-                               strdup(library_url),
-                               strdup(class_name),
-                               port_id));
-      int result = Thread::Start(RunIsolate, data);
-      if (result != 0) {
-        FATAL1("Failed to start isolate thread %d", result);
-      }
+      spawned_isolate->set_spawn_data(
+          reinterpret_cast<uword>(
+              new IsolateStartData(strdup(library_url),
+                                   strdup(class_name),
+                                   port_id)));
+      Isolate::SetCurrent(NULL);
+      spawned_isolate->message_handler()->Run(
+          Dart::thread_pool(), RunIsolate, ShutdownIsolate,
+          reinterpret_cast<uword>(spawned_isolate));
     } else {
       // Error spawning the isolate, maybe due to initialization errors or
       // errors while loading the application into spawned isolate, shut
@@ -425,10 +426,8 @@ class SpawnState {
   }
 
   void Cleanup() {
-    Isolate* saved = Isolate::Current();
-    Isolate::SetCurrent(isolate());
+    SwitchIsolateScope switch_scope(isolate());
     Dart::ShutdownIsolate();
-    Isolate::SetCurrent(saved);
   }
 
  private:
@@ -479,16 +478,12 @@ static bool CreateIsolate(SpawnState* state, char** error) {
 }
 
 
-static void RunIsolate2(uword parameter) {
-  SpawnState* state = reinterpret_cast<SpawnState*>(parameter);
-  Isolate* isolate = state->isolate();
-
-  Isolate::SetCurrent(isolate);
-  // Intialize stack limit in case we are running isolate in a
-  // different thread than in which it was initialized.
-  isolate->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&isolate));
-
+static bool RunIsolate2(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  SpawnState* state = reinterpret_cast<SpawnState*>(isolate->spawn_data());
+  isolate->set_spawn_data(NULL);
   {
+    StartIsolateScope start_scope(isolate);
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
     ASSERT(ClassFinalizer::FinalizePendingClasses());
@@ -503,16 +498,11 @@ static void RunIsolate2(uword parameter) {
     const Array& kNoArgNames = Array::Handle();
     result = DartEntry::InvokeStatic(func, args, kNoArgNames);
     if (result.IsError()) {
-      ProcessError(result);
+      StoreError(isolate, result);
+      return false;
     }
-
-    result = isolate->StandardRunLoop();
-    if (result.IsError()) {
-      ProcessError(result);
-    }
-    ASSERT(result.IsNull());
   }
-  Dart::ShutdownIsolate();
+  return true;
 }
 
 
@@ -551,15 +541,10 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
   }
 
   // Start the new isolate.
-  int result = Thread::Start(RunIsolate2, reinterpret_cast<uword>(state));
-  if (result != 0) {
-    const String& msg = String::Handle(String::NewFormatted(
-        "Failed to start thread for isolate '%s'.  Error code '%d'.",
-        state->isolate()->name(), result));
-    state->Cleanup();
-    delete state;
-    ThrowIsolateSpawnException(msg);
-  }
+  state->isolate()->set_spawn_data(reinterpret_cast<uword>(state));
+  state->isolate()->message_handler()->Run(
+      Dart::thread_pool(), RunIsolate2, ShutdownIsolate,
+      reinterpret_cast<uword>(state->isolate()));
 
   arguments->SetReturn(port);
 }

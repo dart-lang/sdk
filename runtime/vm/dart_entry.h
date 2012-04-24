@@ -78,11 +78,6 @@ class DartLibraryCalls : public AllStatic {
                                   Dart_Port reply_port_id,
                                   const Instance& dart_message);
 
-  // Returns null on success, a RawError on failure.
-  static RawObject* HandleMirrorsMessage(Dart_Port dest_port_id,
-                                         Dart_Port reply_port_id,
-                                         const Instance& dart_message);
-
   // On success returns new SendPort, on failure returns a RawError.
   static RawObject* NewSendPort(intptr_t port_id);
 

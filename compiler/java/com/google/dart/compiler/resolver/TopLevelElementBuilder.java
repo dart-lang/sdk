@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
@@ -27,6 +28,7 @@ import com.google.dart.compiler.type.Types;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Builds all class elements and types of a library. Once all libraries
@@ -60,11 +62,22 @@ public class TopLevelElementBuilder {
     Scope scope = library.getElement().getScope();
     assert scope.getElements().isEmpty();
 
+    Map<String, LibraryPrefixElement> libraryPrefixElements = Maps.newHashMap();
     for (LibraryUnit lib : library.getImports()) {
       String prefix = library.getPrefixOf(lib);
       if (prefix != null) {
         // Put the prefix in the scope.
-        scope.declareElement(prefix, lib.getElement());
+        LibraryPrefixElement libraryPrefixElement = libraryPrefixElements.get(prefix);
+        if (libraryPrefixElement == null) {
+          libraryPrefixElement = new LibraryPrefixElementImplementation(prefix, scope);
+          libraryPrefixElements.put(prefix, libraryPrefixElement);
+          scope.declareElement(prefix, libraryPrefixElement);
+        }
+        libraryPrefixElement.addLibrary(lib.getElement());
+        // Fill library prefix scope.
+        for (DartUnit unit : lib.getUnits()) {
+          fillInUnitScope(unit, listener, libraryPrefixElement.getScope());
+        }
       } else {
         // Put the elements of the library in the scope.
         for (DartUnit unit : lib.getUnits()) {

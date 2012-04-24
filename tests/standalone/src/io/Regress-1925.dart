@@ -13,12 +13,10 @@
 #import("dart:isolate");
 #source("TestingServer.dart");
 
-final CONNECTIONS = 200;
-
 class Regress1925TestServer extends TestingServer {
 
   void onConnection(Socket socket) {
-    socket.onError = () => Expect.fail("Server socket error");
+    socket.onError = (e) => Expect.fail("Server socket error $e");
     socket.inputStream.onClosed = () => socket.outputStream.close();
     socket.inputStream.onData = () {
       var buffer = new List(1);
@@ -37,16 +35,6 @@ class Regress1925Test extends TestingServerTest {
 
   void run() {
 
-    void onConnect() {
-      _connections++;
-      if (_connections == CONNECTIONS) {
-        for (int i = 0; i < CONNECTIONS; i++) {
-          _sockets[i].close();
-        }
-        shutdown();
-      }
-    }
-
     var count = 0;
     var buffer = new List(5);
     Socket socket = new Socket(TestingServer.HOST, _port);
@@ -60,7 +48,7 @@ class Regress1925Test extends TestingServerTest {
         Expect.equals(5, count);
         shutdown();
       };
-      socket.inputStream.onError = () => Expect.fail("Socket error");
+      socket.inputStream.onError = (e) => Expect.fail("Socket error $e");
     };
   }
 }

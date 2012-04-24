@@ -3166,11 +3166,16 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
     do {
       ConsumeToken();
       type = ParseType(finalization);
-      types.Add(type);
       // Only keep the error for the first malformed type argument.
       if (malformed_error->IsNull() && type.IsMalformed()) {
         *malformed_error = type.malformed_error();
       }
+      // Map a malformed type argument to Dynamic, so that malformed types with
+      // a resolved type class are handled properly in production mode.
+      if (type.IsMalformed()) {
+        type = Type::DynamicType();
+      }
+      types.Add(type);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
@@ -7217,7 +7222,9 @@ RawAbstractType* Parser::ParseType(
   }
   AbstractType& type = AbstractType::Handle(
       Type::New(type_class, type_arguments, type_name.ident_pos));
-  if (!malformed_error.IsNull()) {
+  // In production mode, malformed type arguments are mapped to Dynamic.
+  // In checked mode, a type with malformed type arguments is malformed.
+  if (FLAG_enable_type_checks && !malformed_error.IsNull()) {
     Type& parameterized_type = Type::Handle();
     parameterized_type ^= type.raw();
     parameterized_type.set_type_class(Class::Handle(Object::dynamic_class()));

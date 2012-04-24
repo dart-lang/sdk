@@ -1127,9 +1127,9 @@ public class Resolver {
           }
           break;
 
-        case LIBRARY:
-          // Library prefix, lookup the element in the reference library.
-          Scope scope = ((LibraryElement) qualifier).getScope();
+        case LIBRARY_PREFIX:
+          // Library prefix, lookup the element in the referenced library.
+          Scope scope = ((LibraryPrefixElement) qualifier).getScope();
           element = scope.findElement(scope.getLibrary(), x.getPropertyName());
           if (element == null) {
             onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
@@ -1187,9 +1187,9 @@ public class Resolver {
           break;
         }
 
-        case LIBRARY:
+        case LIBRARY_PREFIX:
           // Library prefix, lookup the element in the reference library.
-          LibraryElement library = ((LibraryElement) target);
+          LibraryPrefixElement library = ((LibraryPrefixElement) target);
           element = library.getScope().findElement(context.getScope().getLibrary(),
                                                    x.getFunctionNameString());
           if (element == null) {

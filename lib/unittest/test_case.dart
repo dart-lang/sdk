@@ -7,6 +7,7 @@
  * and assumes unittest defines the type [TestFunction].
  */
 
+
 /** Summarizes information about a single test case. */
 class TestCase {
   /** Identifier for this test. */
@@ -32,11 +33,15 @@ class TestCase {
   /** Stack trace associated with this test, or null if it succeeded. */
   String stackTrace;
 
+  /** The group (or groups) under which this test is running. */
+  final String currentGroup;
+ 
   Date startTime;
 
   Duration runningTime;
 
-  TestCase(this.id, this.description, this.test, this.callbacks);
+  TestCase(this.id, this.description, this.test, this.callbacks)
+  : currentGroup = _currentGroup;
 
   bool get isComplete() => result != null;
 
@@ -56,5 +61,3 @@ class TestCase {
     this.stackTrace = stackTrace;
   }
 }
-
-

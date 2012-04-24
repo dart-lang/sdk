@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include <stdio.h>
 
+#include "vm/benchmark_test.h"
 #include "vm/dart.h"
 #include "vm/unit_test.h"
 
@@ -12,12 +13,14 @@ namespace dart {
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
-static const char* const kNoTests = "No Test";
+static const char* const kNone = "No Test or Benchmarks";
+static const char* const kAll = "All";
+static const char* const kList = "List all Tests and Benchmarks";
 static const char* const kAllTests = "All Tests";
-static const char* const kListTests = "List Tests";
-static const char* test_filter = kNoTests;
+static const char* const kAllBenchmarks = "All Benchmarks";
+static const char* run_filter = kNone;
 
-static int test_matches = 0;
+static int run_matches = 0;
 
 
 void TestCase::Run() {
@@ -28,19 +31,37 @@ void TestCase::Run() {
 
 
 void TestCaseBase::RunTest() {
-  if ((test_filter == kAllTests) || (strcmp(test_filter, this->name()) == 0)) {
+  if ((run_filter == kAll) ||
+      (run_filter == kAllTests) ||
+      (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    test_matches++;
-  } else if (test_filter == kListTests) {
+    run_matches++;
+  } else if (run_filter == kList) {
     fprintf(stdout, "%s\n", this->name());
-    test_matches++;
+    run_matches++;
+  }
+}
+
+
+void Benchmark::RunBenchmark() {
+  if ((run_filter == kAll) ||
+      (run_filter == kAllBenchmarks) ||
+      (strcmp(run_filter, this->name()) == 0)) {
+    this->Run();
+    OS::Print("%s : %ld\n", this->name(), this->score());
+    run_matches++;
+  } else if (run_filter == kList) {
+    fprintf(stdout, "%s\n", this->name());
+    run_matches++;
   }
 }
 
 
 static void PrintUsage() {
-  fprintf(stderr, "run_vm_tests [--list | --all | <test name>]\n");
+  fprintf(stderr, "run_vm_tests [--list | --benchmarks | "
+                  "--tests | --all | <test name> | <benchmark name>]\n");
   fprintf(stderr, "run_vm_tests  <test name> [vm-flags ...]\n");
+  fprintf(stderr, "run_vm_tests  <benchmark name> [flags ...]\n");
 }
 
 
@@ -55,18 +76,23 @@ static int Main(int argc, const char** argv) {
     return 1;
   } else if (argc == 2) {
     if (strcmp(argv[1], "--list") == 0) {
-      test_filter = kListTests;
-      // List all the tests and exit without initializing the VM at all.
+      run_filter = kList;
+      // List all tests and benchmarks and exit without initializing the VM.
       TestCaseBase::RunAll();
+      Benchmark::RunAll();
       return 0;
     } else if (strcmp(argv[1], "--all") == 0) {
-      test_filter = kAllTests;
+      run_filter = kAll;
+    } else if (strcmp(argv[1], "--tests") == 0) {
+      run_filter = kAllTests;
+    } else if (strcmp(argv[1], "--benchmarks") == 0) {
+      run_filter = kAllBenchmarks;
     } else {
-      test_filter = argv[1];
+      run_filter = argv[1];
     }
   } else {
     // First argument is the test name, the rest are vm flags.
-    test_filter = argv[1];
+    run_filter = argv[1];
     // Remove the first two values from the arguments.
     dart_argc = argc - 2;
     dart_argv = &argv[2];
@@ -76,11 +102,13 @@ static int Main(int argc, const char** argv) {
   ASSERT(set_vm_flags_success);
   bool init_success = Dart::InitOnce(NULL, NULL);
   ASSERT(init_success);
-  // Apply the test filter to all registered tests.
+  // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
-  // Print a warning message if no tests were matched.
-  if (test_matches == 0) {
-    fprintf(stderr, "No tests matched: %s\n", test_filter);
+  // Apply the filter to all registered benchmarks.
+  Benchmark::RunAll();
+  // Print a warning message if no tests or benchmarks were matched.
+  if (run_matches == 0) {
+    fprintf(stderr, "No tests matched: %s\n", run_filter);
     return 1;
   }
   return 0;

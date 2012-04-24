@@ -154,6 +154,10 @@ class HGraph {
     if (constant.isDouble()) return HType.DOUBLE;
     if (constant.isString()) return HType.STRING;
     if (constant.isList()) return HType.READABLE_ARRAY;
+    if (constant.isMap()) {
+      MapConstant map = constant;
+      return new HNonPrimitiveType(map.type);
+    }
     return HType.UNKNOWN;
   }
 
@@ -441,6 +445,11 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isLoopHeader() => blockInformation is HLoopInformation;
   bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
 
+  HBasicBlock get enclosingLoopHeader() {
+    if (isLoopHeader()) return this;
+    return parentLoopHeader;
+  }
+
   bool hasGuards() => !guards.isEmpty();
 
   void open() {
@@ -670,6 +679,7 @@ class HType {
   // FLAG_WRITABLE_ARRAY implies FLAG_READABLE_ARRAY.
   static final int FLAG_WRITEABLE_ARRAY = FLAG_READABLE_ARRAY << 1;
   static final int FLAG_DOUBLE = FLAG_WRITEABLE_ARRAY << 1;
+  static final int FLAG_NON_PRIMITIVE = FLAG_DOUBLE << 1;
 
   static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
   static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
@@ -695,6 +705,7 @@ class HType {
   bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
   bool isStringOrArray() =>
       (this.flag & (FLAG_STRING | FLAG_READABLE_ARRAY)) != 0;
+  bool isNonPrimitive() => this.flag === FLAG_NON_PRIMITIVE;
   /** A type is useful it is not unknown and not conflicting. */
   bool isUseful() => this !== UNKNOWN && this !== CONFLICTING;
 
@@ -709,7 +720,7 @@ class HType {
     if (flag === MUTABLE_ARRAY.flag) return MUTABLE_ARRAY;
     if (flag === NUMBER.flag) return NUMBER;
     if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
-    assert(false);
+    unreachable();
   }
 
   String toString() {
@@ -733,7 +744,31 @@ class HType {
   }
 }
 
+class HNonPrimitiveType extends HType {
+  final Type type;
+
+  // TODO(ngeoffray): Add a HPrimitiveType to get rid of the flag.
+  const HNonPrimitiveType(Type this.type) : super(HType.FLAG_NON_PRIMITIVE);
+
+  HType combine(HType other) {
+    if (other.isNonPrimitive()) {
+      HNonPrimitiveType temp = other;
+      if (this.type === temp.type) return this;
+    }
+    if (other.isUnknown()) return this;
+    return HType.CONFLICTING;
+  }
+
+  String toString() => type.toString();
+  Element lookupMember(SourceString name) {
+    ClassElement classElement = type.element;
+    return classElement.lookupMember(name);
+  }
+}
+
 class HInstruction implements Hashable {
+  Element sourceElement;
+
   final int id;
   static int idCounter;
 
@@ -791,6 +826,7 @@ class HInstruction implements Hashable {
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
   bool isStringOrArray() => propagatedType.isStringOrArray();
+  bool isNonPrimitive() => propagatedType.isNonPrimitive();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
@@ -933,6 +969,8 @@ class HInstruction implements Hashable {
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
   bool isConstantString() => false;
+  bool isConstantList() => false;
+  bool isConstantMap() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1001,6 +1039,16 @@ class HTypeGuard extends HInstruction {
 }
 
 class HBoundsCheck extends HCheck {
+  static final int ALWAYS_FALSE = 0;
+  static final int FULL_CHECK = 1;
+  static final int ALWAYS_ABOVE_ZERO = 2;
+  static final int ALWAYS_TRUE = 3;
+  /**
+   * Details which tests have been done statically during compilation.
+   * Default is that all checks must be performed dynamically.
+   */
+  int staticChecks = FULL_CHECK;
+
   HBoundsCheck(length, index) : super(<HInstruction>[length, index]);
 
   HInstruction get length() => inputs[0];
@@ -1020,6 +1068,8 @@ class HBoundsCheck extends HCheck {
 }
 
 class HIntegerCheck extends HCheck {
+  bool alwaysFalse = false;
+
   HIntegerCheck(value) : super(<HInstruction>[value]);
 
   HInstruction get value() => inputs[0];
@@ -1066,9 +1116,11 @@ class HInvoke extends HInstruction {
 }
 
 class HInvokeDynamic extends HInvoke {
+  Element element;
   SourceString name;
-  HInvokeDynamic(Selector selector, this.name, List<HInstruction> inputs)
-      : super(selector, inputs);
+  HInvokeDynamic(
+      Selector selector, this.element, this.name, List<HInstruction> inputs)
+    : super(selector, inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
 
@@ -1077,9 +1129,8 @@ class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  Element element;
   HInvokeClosure(Selector selector, List<HInstruction> inputs)
-    : super(selector, const SourceString('call'), inputs);
+    : super(selector, null, const SourceString('call'), inputs);
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
@@ -1087,18 +1138,17 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector,
                        SourceString methodName,
                        List<HInstruction> inputs)
-    : super(selector, methodName, inputs);
+    : super(selector, null, methodName, inputs);
   toString() => 'invoke dynamic method: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 class HInvokeDynamicField extends HInvokeDynamic {
-  Element element;
   HInvokeDynamicField(Selector selector,
-                      Element this.element,
+                      Element element,
                       SourceString name,
                       List<HInstruction>inputs)
-      : super(selector, name, inputs);
+      : super(selector, element, name, inputs);
   toString() => 'invoke dynamic field: $name';
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1120,26 +1170,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  final HType concreteType;
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs) : super(selector, inputs);
+  HInvokeStatic(selector, inputs, [this.concreteType = HType.UNKNOWN])
+      : super(selector, inputs);
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
-  bool isArrayConstructor() {
-    // TODO(ngeoffray): This is not the right way to do the check,
-    // nor the right place. We need to move it to a phase.
-    return (element.isFactoryConstructor()
-        && element.enclosingElement.name.slowToString() == 'List');
-  }
-
-  HType get guaranteedType() {
-    if (isArrayConstructor()) {
-      return HType.MUTABLE_ARRAY;
-    }
-    return HType.UNKNOWN;
-  }
+  HType get guaranteedType() => concreteType;
 
   HType computeDesiredTypeForInput(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1150,8 +1190,6 @@ class HInvokeStatic extends HInvoke {
   HType computeDesiredTypeForNonTargetInput(HInstruction input) {
     return HType.UNKNOWN;
   }
-
-  bool get builtin() => isArrayConstructor();
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1172,9 +1210,12 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
+  bool isLengthGetter() {
+    return getter && name == const SourceString('length');
+  }
+
   bool isLengthGetterOnStringOrArray() {
-    return getter
-        && name == const SourceString('length')
+    return isLengthGetter()
         && inputs[1].isStringOrArray();
   }
 
@@ -1294,6 +1335,7 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get right() => inputs[2];
 
   abstract BinaryOperation get operation();
+  abstract get builtin();
 }
 
 class HBinaryArithmetic extends HInvokeBinary {
@@ -1738,6 +1780,8 @@ class HConstant extends HInstruction {
   bool isConstantNull() => constant.isNull();
   bool isConstantNumber() => constant.isNum();
   bool isConstantString() => constant.isString();
+  bool isConstantList() => constant.isList();
+  bool isConstantMap() => constant.isMap();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -1781,8 +1825,6 @@ class HThis extends HParameterValue {
 }
 
 class HPhi extends HInstruction {
-  final Element element;
-
   static final IS_NOT_LOGICAL_OPERATOR = 0;
   static final IS_AND = 1;
   static final IS_OR = 2;
@@ -1792,7 +1834,9 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(this.element, List<HInstruction> inputs) : super(inputs);
+  HPhi(Element element, List<HInstruction> inputs) : super(inputs) {
+    sourceElement = element;
+  }
   HPhi.noInputs(Element element) : this(element, <HInstruction>[]);
   HPhi.singleInput(Element element, HInstruction input)
       : this(element, <HInstruction>[input]);
@@ -1810,8 +1854,8 @@ class HPhi extends HInstruction {
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
   HType computeInputsType(bool unknownWins) {
-    bool seenUnknown = false;
     HType candidateType = inputs[0].propagatedType;
+    bool seenUnknown = candidateType.isUnknown();
     for (int i = 1, length = inputs.length; i < length; i++) {
       HType inputType = inputs[i].propagatedType;
       if (inputType.isUnknown()) {

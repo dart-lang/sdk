@@ -106,6 +106,10 @@ class Interceptors {
     return compiler.findHelper(const SourceString('eq'));
   }
 
+  Element getTripleEqualsInterceptor() {
+    return compiler.findHelper(const SourceString('eqq'));
+  }
+
   Element getMapMaker() {
     return compiler.findHelper(const SourceString('makeLiteralMap'));
   }
@@ -529,7 +533,7 @@ class LocalsHandler {
 
   void endLoop(HBasicBlock loopEntry) {
     loopEntry.forEachPhi((HPhi phi) {
-      Element element = phi.element;
+      Element element = phi.sourceElement;
       HInstruction postLoopDefinition = directLocals[element];
       phi.addInput(postLoopDefinition);
     });
@@ -1736,6 +1740,10 @@ class SsaBuilder implements Visitor {
     } else {
       localsHandler.updateLocal(element, value);
       stack.add(value);
+      // If the value does not already have a name, give it here.
+      if (value.sourceElement === null) {
+        value.sourceElement = element;
+      }
     }
   }
 
@@ -1770,12 +1778,20 @@ class SsaBuilder implements Visitor {
         isNot = true;
       }
       Type type = elements.getType(typeAnnotation);
-      HInstruction instruction = new HIs(type, expression);
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
+      if (type.element.kind === ElementKind.TYPE_VARIABLE) {
+        // TODO(karlklose): We emulate the frog behavior and answer
+        // true to any is check involving a type variable -- both is T
+        // and is !T -- until we have a proper implementation of
+        // reified generics.
+        stack.add(graph.addConstantBool(true));
+      } else {
+        HInstruction instruction = new HIs(type, expression);
+        if (isNot) {
+          add(instruction);
+          instruction = new HNot(instruction);
+        }
+        push(instruction);
       }
-      push(instruction);
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);
@@ -1837,9 +1853,12 @@ class SsaBuilder implements Visitor {
       return graph.addConstant(constant);
     }
 
-    FunctionParameters parameters = element.computeParameters(compiler);
-    return selector.addArgumentsToList(arguments, list, parameters,
-                                       compileArgument, compileConstant);
+    return selector.addArgumentsToList(arguments,
+                                       list,
+                                       element,
+                                       compileArgument,
+                                       compileConstant,
+                                       compiler);
   }
 
   void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
@@ -2143,7 +2162,20 @@ class SsaBuilder implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      push(new HInvokeStatic(selector, inputs));
+      HType type = HType.UNKNOWN;
+      Element originalElement = elements[node];
+      if (originalElement.isGenerativeConstructor()
+          && originalElement.enclosingElement === compiler.listClass) {
+        if (node.arguments.isEmpty()) {
+          type = HType.MUTABLE_ARRAY;
+        } else {
+          type = HType.READABLE_ARRAY;
+        }
+      } else if (element.isGenerativeConstructor()) {
+        ClassElement cls = element.enclosingElement;
+        type = new HNonPrimitiveType(cls.type);
+      }
+      push(new HInvokeStatic(selector, inputs, type));
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(Selector.GETTER, inputs);
@@ -2652,7 +2684,8 @@ class SsaBuilder implements Visitor {
     add(keyValuePairs);
     add(mapMaker);
     inputs = <HInstruction>[mapMaker, keyValuePairs];
-    push(new HInvokeStatic(Selector.INVOCATION_1, inputs));
+    // TODO(ngeoffray): give the concrete type of our map literal.
+    push(new HInvokeStatic(Selector.INVOCATION_1, inputs, HType.UNKNOWN));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {

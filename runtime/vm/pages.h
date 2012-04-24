@@ -112,7 +112,6 @@ class PageSpace {
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
   void AllocatePage();
-  void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
@@ -130,6 +129,7 @@ class PageSpace {
   Heap* heap_;
 
   HeapPage* pages_;
+  HeapPage* pages_tail_;
   HeapPage* large_pages_;
 
   // Page being used for bump allocation.

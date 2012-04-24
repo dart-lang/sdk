@@ -7,6 +7,7 @@
 Dart APIs from the IDL database."""
 
 import re
+import string
 
 _pure_interfaces = set([
     'DOMStringList',
@@ -426,34 +427,24 @@ def TypeName(type_ids, interface):
 class IDLTypeInfo(object):
   def __init__(self, idl_type, dart_type=None,
                native_type=None, ref_counted=True,
-               has_dart_wrapper=True, conversion_template=None,
+               has_dart_wrapper=True,
                custom_to_dart=False, conversion_includes=[]):
     self._idl_type = idl_type
     self._dart_type = dart_type
     self._native_type = native_type
     self._ref_counted = ref_counted
     self._has_dart_wrapper = has_dart_wrapper
-    self._conversion_template = conversion_template
     self._custom_to_dart = custom_to_dart
-    self._conversion_includes = conversion_includes
+    self._conversion_includes = conversion_includes + [idl_type]
 
   def idl_type(self):
     return self._idl_type
 
   def dart_type(self):
-    if self._dart_type:
-      return self._dart_type
-
-    match = re.match(r'sequence<(\w*)>$', self._idl_type)
-    if match:
-      return 'List<%s>' % DartType(match.group(1))
-
-    return self._idl_type
+    return self._dart_type or self._idl_type
 
   def native_type(self):
-    if self._native_type:
-      return self._native_type
-    return self._idl_type
+    return self._native_type or self._idl_type
 
   def parameter_adapter_info(self):
     native_type = self.native_type()
@@ -501,34 +492,33 @@ class IDLTypeInfo(object):
     return 'receiver->'
 
   def conversion_includes(self):
-    def NeededDartTypes(type_name):
-      if re.match(r'Dynamic(\/.*)?$', type_name): return []
-      match = re.match(r'List<(\w*)>$', type_name)
-      if match:
-        return NeededDartTypes(match.group(1))
-      return [type_name]
+    return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
-    return ['"Dart%s.h"' % include
-            for include in
-            NeededDartTypes(self.dart_type()) + self._conversion_includes]
-
-  def conversion_cast(self, expression):
-    if self._conversion_template:
-      return self._conversion_template % expression
-    return expression
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
+    return 'toDartValue(%s)' % value
 
   def custom_to_dart(self):
     return self._custom_to_dart
 
+
+class SequenceIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, item_info):
+    super(SequenceIDLTypeInfo, self).__init__(idl_type)
+    self._item_info = item_info
+
+  def dart_type(self):
+    return 'List<%s>' % self._item_info.dart_type()
+
+  def conversion_includes(self):
+    return self._item_info.conversion_includes()
+
+
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, dart_type, native_type=None, ref_counted=False,
-               conversion_template=None, conversion_includes=[],
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute'):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
-        native_type=native_type, ref_counted=ref_counted,
-        conversion_template=conversion_template,
-        conversion_includes=conversion_includes)
+        native_type=native_type, ref_counted=ref_counted)
     self._webcore_getter_name = webcore_getter_name
     self._webcore_setter_name = webcore_setter_name
 
@@ -544,7 +534,20 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return self.native_type()
 
   def conversion_includes(self):
-    return ['"Dart%s.h"' % include for include in self._conversion_includes]
+    return []
+
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
+    conversion_arguments = [value]
+    if attributes and 'TreatReturnedNullStringAs' in attributes:
+      conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
+    function_name = 'toDartValue'
+    # FIXME: implement DartUtilities::toDart for other primitive types and
+    # remove this list.
+    if self.native_type() in ['String', 'bool', 'int', 'unsigned', 'long long', 'unsigned long long', 'double']:
+      function_name = string.capwords(self.native_type()).replace(' ', '')
+      function_name = function_name[0].lower() + function_name[1:]
+      function_name = 'DartUtilities::%sToDart' % function_name
+    return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
 
   def webcore_getter_name(self):
     return self._webcore_getter_name
@@ -571,19 +574,30 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
       return 'receiver->'
     return 'receiver->propertyReference().'
 
+  def to_dart_conversion(self, value, interface_name, attributes):
+    svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
+        'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
+    conversion_cast = '%s::create(%s)'
+    if interface_name.startswith('SVGAnimated'):
+      conversion_cast = 'static_cast<%s*>(%s)'
+    elif self.idl_type() == 'SVGStringList':
+      conversion_cast = '%s::create(receiver, %s)'
+    elif interface_name.endswith('List'):
+      conversion_cast = 'static_cast<%s*>(%s.get())'
+    elif self.idl_type() in svg_primitive_types:
+      conversion_cast = '%s::create(%s)'
+    else:
+      conversion_cast = 'static_cast<%s*>(%s)'
+    conversion_cast = conversion_cast % (self.native_type(), value)
+    return 'toDartValue(%s)' %  conversion_cast
 
 _idl_type_registry = {
-    # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
-                                    conversion_template='static_cast<bool>(%s)',
                                     webcore_getter_name='hasAttribute',
                                     webcore_setter_name='setBooleanAttribute'),
-    # Some IDL's unsigned shorts/shorts are mapped to WebCore C++ enums, so we
-    # use a static_cast<int> here not to provide overloads for all enums.
-    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int',
-        conversion_template='static_cast<int>(%s)'),
+    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int'),
     'unsigned short': PrimitiveIDLTypeInfo('unsigned short', dart_type='int',
-        native_type='int', conversion_template='static_cast<int>(%s)'),
+        native_type='int'),
     'int': PrimitiveIDLTypeInfo('int', dart_type='int'),
     'unsigned int': PrimitiveIDLTypeInfo('unsigned int', dart_type='int',
         native_type='unsigned'),
@@ -609,7 +623,7 @@ _idl_type_registry = {
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
-    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
+    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int', native_type='unsigned long long'),
     'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
@@ -620,28 +634,21 @@ _idl_type_registry = {
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
     'DOMStringList': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
-    'DOMStringMap': PrimitiveIDLTypeInfo('DOMStringMap', dart_type='Map<String, String>',
-        conversion_includes=['DOMStringMap']),
     'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
+    'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
+    'Dictionary': IDLTypeInfo('Dictionary', has_dart_wrapper=False, ref_counted=False),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
     'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
     'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
-    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic',
-                          native_type='IDBAny',
-                          has_dart_wrapper=False,
-                          conversion_includes=['IDBAny']),
-    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic',
-                          native_type='IDBKey',
-                          has_dart_wrapper=False,
-                          conversion_includes=['IDBKey']),
+    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', has_dart_wrapper=False),
+    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', has_dart_wrapper=False),
     'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
-    'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
     'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
 
@@ -671,4 +678,7 @@ _svg_supplemental_includes = [
 ]
 
 def GetIDLTypeInfo(idl_type_name):
+  match = re.match(r'sequence<(\w+)>$', idl_type_name)
+  if match:
+    return SequenceIDLTypeInfo(idl_type_name, GetIDLTypeInfo(match.group(1)))
   return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))

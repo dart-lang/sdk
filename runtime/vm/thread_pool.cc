@@ -228,7 +228,10 @@ void ThreadPool::Worker::StartThread() {
     ASSERT(task_ != NULL);
   }
 #endif
-  Thread::Start(&Worker::Main, reinterpret_cast<uword>(this));
+  int result = Thread::Start(&Worker::Main, reinterpret_cast<uword>(this));
+  if (result != 0) {
+    FATAL1("Could not start worker thread: result = %d.", result);
+  }
 }
 
 

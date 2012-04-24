@@ -119,9 +119,11 @@ interface File default _File {
    * can be performed. Opened RandomAccessFiles must be closed using
    * the [close] method.
    *
-   * See [open] for information on the [:mode:] argument.
+   * The default value for [mode] is [:FileMode.READ:].
+   *
+   * See [open] for information on the [mode] argument.
    */
-  RandomAccessFile openSync(FileMode mode);
+  RandomAccessFile openSync([FileMode mode]);
 
   /**
    * Get the canonical full path corresponding to the file name.  The

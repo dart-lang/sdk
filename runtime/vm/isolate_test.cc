@@ -29,22 +29,18 @@ TEST_CASE(IsolateSpawn) {
       "  SpawnNewIsolate() : super() { }\n"
       "  void main() {\n"
       "  }\n"
-      "  static int testMain() {\n"
-      "    try {\n"
-      "      new SpawnNewIsolate().spawn().then(function(SendPort port) {\n"
-      "      });\n"
-      "    } catch (var e) {\n"
-      "      throw;\n"
-      "    }\n"
-      "    return 0;\n"
+      "}\n"
+      "int testMain() {\n"
+      "  try {\n"
+      "    new SpawnNewIsolate().spawn().then(function(SendPort port) {\n"
+      "    });\n"
+      "  } catch (var e) {\n"
+      "    throw;\n"
       "  }\n"
+      "  return 0;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_InvokeStatic(lib,
-                                         Dart_NewString("SpawnNewIsolate"),
-                                         Dart_NewString("testMain"),
-                                         0,
-                                         NULL);
+  Dart_Handle result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
