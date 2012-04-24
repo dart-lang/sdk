@@ -669,6 +669,32 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 27));
   }
 
+  /**
+   * There was bug that we added <code>null</code> into {@link LibraryUnit#getImports()}. Here trick
+   * is that we reference "existing" {@link Source}, which can not be read.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2693
+   */
+  public void test_ignoreNullLibrary() throws Exception {
+    appSource.setContent("canNotRead.dart", MemoryLibrarySource.IO_EXCEPTION_CONTENT);
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('app');",
+            "#import('canNotRead.dart');",
+            ""));
+    // use same config as Editor - resolve despite of errors
+    config = new DefaultCompilerConfiguration() {
+      @Override
+      public boolean resolveDespiteParseErrors() {
+        return true;
+      }
+    };
+    // Ignore errors, but we should not get exceptions.
+    compile();
+  }
+
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);
   }
