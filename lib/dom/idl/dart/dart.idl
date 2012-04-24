@@ -218,6 +218,7 @@ module storage {
   [Supplemental]
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
+    [DartName=getObject] IDBRequest get(in IDBKeyRange key);
   };
 
   interface IDBKeyRange {
