@@ -196,6 +196,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   abstract startElse(HIf node);
   abstract endElse(HIf node);
 
+  abstract preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+  abstract startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+  abstract endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
+
   void beginExpression(int precedence) {
     if (precedence < expectedPrecedence) {
       buffer.add('(');
@@ -338,8 +342,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Element element = instruction.sourceElement;
       if (element !== null && !element.name.isEmpty()) {
         prefix = element.name.slowToString();
-        // Special case the variable named [TEMPORARY_PREFIX] to allow keeping its
-        // name.
+        // Special case the variable named [TEMPORARY_PREFIX] to allow
+        // keeping its name.
         if (prefix == TEMPORARY_PREFIX && !usedNames.contains(prefix)) {
           return newName(id, prefix);
         }
@@ -596,6 +600,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
+    preLabeledBlock(labeledBlockInfo);
     addIndentation();
     Link<Element> continueOverrides = const EmptyLink<Element>();
     // If [labeledBlockInfo.isContinue], the block is an artificial
@@ -639,7 +644,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('{\n');
     indent++;
 
+    startLabeledBlock(labeledBlockInfo);
     visitSubGraph(labeledBlockInfo.body);
+    endLabeledBlock(labeledBlockInfo);
 
     indent--;
     addIndentation();
@@ -1818,6 +1825,15 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endElse(HIf node) {
   }
+
+  void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+  }
+
+  void startLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+  }
+
+  void endLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+  }
 }
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
@@ -1958,6 +1974,12 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
     if (block.hasGuards()) {
       startBailoutSwitch();
+      if (loopInformation.target !== null) {
+        breakAction[loopInformation.target] = (TargetElement target) {
+          addIndentation();
+          buffer.add("break $newLabel;\n");
+        };
+      }
     }
   }
 
@@ -1966,6 +1988,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
     if (header.hasGuards()) {
       endBailoutSwitch();
+      HLoopInformation info = header.blockInformation;
+      if (info.target != null) breakAction.remove(info.target);
     }
     indent--;
     addIndentation();
@@ -2038,6 +2062,26 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endElse(HIf node) {
     if (node.elseBlock.hasGuards()) {
+      endBailoutSwitch();
+    }
+  }
+
+  void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+    if (labeledBlockInfo.body.start.hasGuards()) {
+      indent--;
+      handleBailoutCase(labeledBlockInfo.body.start.guards);
+      indent++;
+    }
+  }
+
+  void startLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+    if (labeledBlockInfo.body.start.hasGuards()) {
+      startBailoutSwitch();
+    }
+  }
+
+  void endLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+    if (labeledBlockInfo.body.start.hasGuards()) {
       endBailoutSwitch();
     }
   }

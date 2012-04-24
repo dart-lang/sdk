@@ -21,10 +21,6 @@ class Environment {
     : lives = new Set<HInstruction>.from(other.lives),
       loopMarkers = new Set<HBasicBlock>.from(other.loopMarkers);
 
-  Environment.forLoopBody(Environment other)
-    : lives = new Set<HInstruction>(),
-      loopMarkers = new Set<HBasicBlock>.from(other.loopMarkers);
-
   void remove(HInstruction instruction) {
     lives.remove(instruction);
   }
@@ -73,10 +69,7 @@ class Environment {
     }
   }
 
-  bool isEmpty() => lives.isEmpty();
-  bool contains(HInstruction instruction) => lives.contains(instruction);
-  bool containsLoopMarker(HBasicBlock block) => loopMarkers.contains(block);
-  void clear() => lives.clear();
+  bool isEmpty() => lives.isEmpty() && loopMarkers.isEmpty();
 }
 
 
@@ -298,8 +291,11 @@ class SsaEnvironmentBuilder extends HBaseVisitor implements OptimizationPhase {
 class SsaBailoutPropagator extends HBaseVisitor {
   final Compiler compiler;
   final List<HBasicBlock> blocks;
+  final List<HLabeledBlockInformation> labeledBlockInformations;
 
-  SsaBailoutPropagator(Compiler this.compiler) : blocks = <HBasicBlock>[];
+  SsaBailoutPropagator(Compiler this.compiler)
+      : blocks = <HBasicBlock>[],
+        labeledBlockInformations = <HLabeledBlockInformation>[];
 
   void visitGraph(HGraph graph) {
     blocks.addLast(graph.entry);
@@ -308,6 +304,12 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
   void visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) blocks.addLast(block);
+    if (block.isLabeledBlock()) {
+      // If we're starting visiting a labeled block, we make sure that
+      // the block knows whether its successors have bailouts.
+      blocks.addLast(block);
+      labeledBlockInformations.addLast(block.blockInformation);
+    }
     HInstruction instruction = block.first;
     while (instruction != null) {
       instruction.accept(this);
@@ -330,8 +332,16 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
   void visitGoto(HGoto goto) {
     HBasicBlock block = goto.block;
-    if (block.successors[0].dominator != block) return;
-    visitBasicBlock(block.successors[0]);
+    HBasicBlock successor = block.successors[0];
+    if (!labeledBlockInformations.isEmpty()
+        && successor === labeledBlockInformations.last().joinBlock) {
+      labeledBlockInformations.removeLast();
+      blocks.removeLast();
+    }
+
+    if (successor.dominator === block) {
+      visitBasicBlock(block.successors[0]);
+    }
   }
 
   void visitLoopBranch(HLoopBranch branch) {
@@ -342,17 +352,6 @@ class SsaBailoutPropagator extends HBaseVisitor {
     }
     blocks.removeLast();
     visitBasicBlock(branchBlock.successors[1]);
-  }
-
-  // Deal with all kinds of control flow instructions. In case we add
-  // a new one, we will hit an internal error.
-  void visitExit(HExit exit) {}
-  void visitReturn(HReturn instruction) {}
-  void visitThrow(HThrow instruction) {}
-
-  void visitControlFlow(HControlFlow instruction) {
-    compiler.internalError('Control flow instructions already dealt with.',
-                           instruction: instruction);
   }
 
   visitTypeGuard(HTypeGuard guard) {

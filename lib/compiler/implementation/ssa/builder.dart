@@ -2528,7 +2528,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    work.allowSpeculativeOptimization = false;
     assert(!isAborted());
     TargetElement target = elements[node];
     assert(target !== null);
