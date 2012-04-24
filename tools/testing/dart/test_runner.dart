@@ -551,7 +551,11 @@ class RunningProcess {
    * the actual test and its output is analyzed in [testComplete].
    */
   void stepExitHandler(int exitCode) {
-    process.close();
+    try {
+      process.close();
+    } catch (ProcessException e) {
+      // If the process is already closed, continue.
+    }
     int totalSteps = testCase.commands.length;
     String suffix =' (step $currentStep of $totalSteps)';
     if (currentStep == totalSteps) { // done with test command
