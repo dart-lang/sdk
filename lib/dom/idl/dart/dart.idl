@@ -91,7 +91,7 @@ module html {
 
   [Supplemental]
   interface ImageData {
-    readonly attribute CanvasPixelArray data;
+    readonly attribute Uint8ClampedArray data;
   };
 
   [Supplemental]
