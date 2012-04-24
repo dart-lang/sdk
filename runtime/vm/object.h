@@ -885,9 +885,12 @@ class Type : public AbstractType {
     return OFFSET_OF(RawType, type_class_);
   }
   virtual bool IsFinalized() const {
-    return raw_ptr()->type_state_ == RawType::kFinalized;
+    return
+        (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+        (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
-  void set_is_finalized() const;
+  void set_is_finalized_instantiated() const;
+  void set_is_finalized_uninstantiated() const;
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
@@ -976,7 +979,8 @@ class Type : public AbstractType {
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
-    return raw_ptr()->type_state_ == RawTypeParameter::kFinalized;
+    ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
+    return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
   }
   void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
