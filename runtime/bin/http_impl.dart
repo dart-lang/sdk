@@ -1347,6 +1347,9 @@ class _HttpClient implements HttpClient {
   }
 
   void _returnSocketConnection(_SocketConnection socketConn) {
+    // Mark socket as returned to unregister from the old connection.
+    socketConn._markReturned();
+
     // If the HTTP client is beeing shutdown don't return the connection.
     if (_shutdown) {
       socketConn._socket.close();
@@ -1388,7 +1391,6 @@ class _HttpClient implements HttpClient {
     // Return connection.
     _activeSockets.remove(socketConn);
     sockets.addFirst(socketConn);
-    socketConn._markReturned();
   }
 
   Function _onOpen;
