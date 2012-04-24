@@ -111,7 +111,7 @@ class TestRunner(object):
         os.unlink(path)
     # TODO(efortuna): building the sdk locally is a band-aid until all build XXX
     # platform SDKs are hosted in Google storage. Pull from https://sandbox.
-    # google.com/storage/?arg=dart-dump-render-tree#dart-dump-render-tree%2Fsdk
+    # google.com/storage/?arg=dart-dump-render-tree/sdk/#dart-dump-render-tree%2Fsdk
     # eventually.
     # TODO(efortuna): Currently always building ia32 architecture because we 
     # don't have test statistics for what's passing on x64. Eliminate arch 
@@ -177,6 +177,8 @@ class TestRunner(object):
     parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
                       help='Do not sync with the repository and do not '
                       'rebuild.', default=False)
+    parser.add_option('--upload', '-u', dest='upload', action='store_true',
+                      help='Post the results of the run.', default=False)
     parser.add_option('--verbose', '-v', dest='verbose', help='Print extra '
                       'debug output', action='store_true', default=False)
 
@@ -196,6 +198,7 @@ class TestRunner(object):
           sys.exit(1)
     self.suite_names = suites
     self.no_build = args.no_build
+    self.upload = args.upload
     self.verbose = args.verbose
     return args.continuous
 
@@ -328,6 +331,10 @@ class Processor(object):
   methods that many File Processor objects use. Any class that would like to be
   a ProcessorVisitor must implement the process_file() method."""
 
+  SCORE = 'Score'
+  COMPILE_TIME = 'CompileTime'
+  CODE_SIZE = 'CodeSize'
+
   def __init__(self, test):
     self.test = test
 
@@ -336,7 +343,7 @@ class Processor(object):
     pass
 
   def report_results(self, benchmark_name, score, platform, variant, 
-                     revision_number):
+                     revision_number, metric):
     """Store the results of the benchmark run.
     Args:
       benchmark_name: The name of the individual benchmark.
@@ -348,8 +355,9 @@ class Processor(object):
           dartium).
   
     Returns: True if the post was successful."""
+    # TODO(efortuna): delete results file if returns True.
     return post_results.report_results(benchmark_name, score, platform, variant,
-                                revision_number)
+                                revision_number, metric)
 
 
 class RuntimePerformanceTest(Test):
@@ -493,7 +501,9 @@ class CommonBrowserTest(RuntimePerformanceTest):
         score = name_and_score[1].strip()
         if version == 'js' or version == 'v8':
           version = 'js'
-        self.report_results(name, score, browser, version, revision_num)
+        if self.test.test_runner.upload:
+          self.report_results(name, score, browser, version, revision_num,
+                              self.SCORE)
 
       f.close()
 
@@ -659,7 +669,9 @@ class DromaeoTest(RuntimePerformanceTest):
                 r = re.match(result_pattern, result)
                 name = DromaeoTester.legalize_filename(r.group(1).strip(':'))
                 score = float(r.group(2))
-                self.report_results(name, score, browser, version, revision_num)
+                if self.test.test_runner.upload:
+                  self.report_results(name, score, browser, version, 
+                                      revision_num, self.SCORE)
 
       f.close()
 
@@ -771,20 +783,21 @@ class DromaeoSizeTest(Test):
             num = int(num)
           else:
             num = float(num)
-          self.report_results(metric, num, 'browser', variant, revision_num)
+          if self.test.test_runner.upload:
+            self.report_results(metric, num, 'browser', variant, revision_num,
+                                self.CODE_SIZE)
 
       f.close()
   
 
 class CompileTimeAndSizeTest(Test):
-  """Run tests to determine how long minfrog takes to compile, and the compiled
+  """Run tests to determine how long frogc takes to compile, and the compiled
   file output size of some benchmarking files."""
   def __init__(self, test_runner):
     """Reference to the test_runner object that notifies us when to begin
     testing."""
     super(CompileTimeAndSizeTest, self).__init__(
-        self.name(), ['commandline'], ['frog'], 
-        ['Compiling on Dart VM', 'Bootstrapping', 'minfrog', 'swarm', 'total'],
+        self.name(), ['commandline'], ['frog'], ['swarm', 'total'],
         test_runner, self.CompileTester(self),
         self.CompileProcessor(self))
     self.dart_compiler = os.path.join(
@@ -796,9 +809,7 @@ class CompileTimeAndSizeTest(Test):
     self.dart_vm = os.path.join(
         DART_INSTALL_LOCATION, utils.GetBuildRoot(utils.GuessOS(), 
         'release', 'ia32'), 'dart-sdk', 'bin','dart' + _suffix)
-    self.failure_threshold = {
-        'Compiling on Dart VM' : 1, 'Bootstrapping' : .5, 'minfrog' : 100, 
-        'swarm' : 100, 'total' : 100}
+    self.failure_threshold = {'swarm' : 100, 'total' : 100}
 
   @staticmethod
   def name():
@@ -814,29 +825,8 @@ class CompileTimeAndSizeTest(Test):
 
       self.add_svn_revision_to_trace(self.test.trace_file)
 
-      elapsed = self.test.test_runner.time_cmd(
-          [self.test.dart_vm, os.path.join('.', 'minfrogc.dart'),
-          '--out=minfrog', 'minfrog.dart'])
       self.test.test_runner.run_cmd(
-          ['echo', '%f Compiling on Dart VM in production mode in seconds'
-          % elapsed], self.test.trace_file, append=True)
-      elapsed = self.test.test_runner.time_cmd(
-          [os.path.join('.', 'minfrog'), '--out=minfrog', 'minfrog.dart', 
-          os.path.join('tests', 'hello.dart')])
-      if elapsed < self.test.failure_threshold['Bootstrapping']:
-        #minfrog didn't compile correctly. Stop testing now, because subsequent
-        #numbers will be meaningless.
-        return
-      size = os.path.getsize('minfrog')
-      self.test.test_runner.run_cmd(
-          ['echo', '%f Bootstrapping time in seconds in production mode' %
-          elapsed], self.test.trace_file, append=True)
-      self.test.test_runner.run_cmd(
-          ['echo', '%d Generated checked minfrog size' % size],
-          self.test.trace_file, append=True)
-
-      self.test.test_runner.run_cmd(
-          [self.test.dart_compiler, '--out=swarm-result',
+          [self.test.dart_vm, 'frogc.dart', '--out=swarm-result',
           os.path.join('..', 'samples', 'swarm',
           'swarm.dart')])
 
@@ -847,7 +837,7 @@ class CompileTimeAndSizeTest(Test):
         pass #If compilation failed, continue on running other tests.
 
       self.test.test_runner.run_cmd(
-          [self.test.dart_compiler, '--out=total-result',
+          [self.test.dart_vm, 'frogc.dart', '--out=total-result',
           os.path.join('..', 'samples', 'total',
           'client', 'Total.dart')])
       total_size = 0
@@ -864,9 +854,6 @@ class CompileTimeAndSizeTest(Test):
           ['echo', '%d Generated checked total size' % total_size],
           self.test.trace_file, append=True)
     
-      #Revert our newly built minfrog to prevent conflicts when we update
-      self.test.test_runner.run_cmd(
-          ['svn', 'revert',  os.path.join(os.getcwd(), 'minfrog')])
       os.chdir('..')
 
 
@@ -894,8 +881,12 @@ class CompileTimeAndSizeTest(Test):
                 num = int(num)
               else:
                 num = float(num)
-              self.report_results(metric, num, 'commandline', 'frog', 
-                                 revision_num)
+              score_type = self.CODE_SIZE
+              if 'Compiling' in metric or 'Bootstrapping' in metric:
+                score_type = self.COMPILE_TIME
+              if self.test.test_runner.upload:
+                self.report_results(metric, num, 'commandline', 'frog', 
+                                   revision_num, score_type)
 
       f.close()
 
