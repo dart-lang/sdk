@@ -624,7 +624,9 @@ _idl_type_registry = {
     'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
     'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object', native_type='ScriptValue'),
     'DOMString': PrimitiveIDLTypeInfo('DOMString', dart_type='String', native_type='String'),
-    'Dictionary': PrimitiveIDLTypeInfo('Dictionary', dart_type='Dictionary'),
+    # TODO(vsm): This won't actually work until we convert the Map to
+    # a native JS Map for JS DOM.
+    'Dictionary': PrimitiveIDLTypeInfo('Dictionary', dart_type='Map'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),

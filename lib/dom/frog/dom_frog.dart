@@ -1813,11 +1813,15 @@ class _DocumentTypeJs extends _NodeJs implements DocumentType native "*DocumentT
 
 class _DynamicsCompressorNodeJs extends _AudioNodeJs implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
 
+  final _AudioParamJs attack;
+
   final _AudioParamJs knee;
 
   final _AudioParamJs ratio;
 
   final _AudioParamJs reduction;
+
+  final _AudioParamJs release;
 
   final _AudioParamJs threshold;
 }
@@ -2027,7 +2031,7 @@ class _EntrySyncJs extends _DOMTypeJs implements EntrySync native "*EntrySync" {
 
   _MetadataJs getMetadata() native;
 
-  _DirectoryEntrySyncJs getParent() native;
+  _EntrySyncJs getParent() native;
 
   _EntrySyncJs moveTo(_DirectoryEntrySyncJs parent, String name) native;
 
@@ -4175,7 +4179,7 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
   void close() native;
 
-  _IDBObjectStoreJs createObjectStore(String name) native;
+  _IDBObjectStoreJs createObjectStore(String name, [Map options = null]) native;
 
   void deleteObjectStore(String name) native;
 
@@ -4250,7 +4254,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestJs count([key_OR_range = null]) native;
 
-  _IDBRequestJs getObject(key) native 'get';
+  _IDBRequestJs get(key) native;
 
   _IDBRequestJs getKey(key) native;
 
@@ -4289,7 +4293,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBRequestJs count([key_OR_range = null]) native;
 
-  _IDBIndexJs createIndex(String name, String keyPath) native;
+  _IDBIndexJs createIndex(String name, String keyPath, [Map options = null]) native;
 
   _IDBRequestJs delete(key_OR_keyRange) native;
 
@@ -12039,6 +12043,14 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _NotificationFactoryProvider {
+  factory Notification(String title, [Map options = null]) native
+      '''return new Notification(title, options);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _PeerConnection00FactoryProvider {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) native
       '''return new PeerConnection00(serverConfiguration, iceCallback);''';
@@ -14340,11 +14352,15 @@ interface DocumentType extends Node {
 
 interface DynamicsCompressorNode extends AudioNode {
 
+  final AudioParam attack;
+
   final AudioParam knee;
 
   final AudioParam ratio;
 
   final AudioParam reduction;
+
+  final AudioParam release;
 
   final AudioParam threshold;
 }
@@ -14618,7 +14634,7 @@ interface EntrySync {
 
   Metadata getMetadata();
 
-  DirectoryEntrySync getParent();
+  EntrySync getParent();
 
   EntrySync moveTo(DirectoryEntrySync parent, String name);
 
@@ -17050,7 +17066,7 @@ interface IDBDatabase extends EventTarget {
 
   void close();
 
-  IDBObjectStore createObjectStore(String name);
+  IDBObjectStore createObjectStore(String name, [Map options]);
 
   void deleteObjectStore(String name);
 
@@ -17140,9 +17156,9 @@ interface IDBIndex {
 
   IDBRequest count([key_OR_range]);
 
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest get(key);
 
-  IDBRequest getKey(/*IDBKey*/ key);
+  IDBRequest getKey(key);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
@@ -17204,7 +17220,7 @@ interface IDBObjectStore {
 
   IDBRequest count([key_OR_range]);
 
-  IDBIndex createIndex(String name, String keyPath);
+  IDBIndex createIndex(String name, String keyPath, [Map options]);
 
   IDBRequest delete(key_OR_keyRange);
 
@@ -18272,7 +18288,9 @@ interface Notation extends Node {
 
 // WARNING: Do not edit - generated code.
 
-interface Notification extends EventTarget {
+interface Notification extends EventTarget default _NotificationFactoryProvider {
+
+  Notification(String title, [Map options]);
 
   String dir;
 

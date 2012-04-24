@@ -7579,11 +7579,15 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode {
   _DynamicsCompressorNodeImpl._wrap(ptr) : super._wrap(ptr);
 
+  AudioParam get attack() => _wrap(_ptr.attack);
+
   AudioParam get knee() => _wrap(_ptr.knee);
 
   AudioParam get ratio() => _wrap(_ptr.ratio);
 
   AudioParam get reduction() => _wrap(_ptr.reduction);
+
+  AudioParam get release() => _wrap(_ptr.release);
 
   AudioParam get threshold() => _wrap(_ptr.threshold);
 }
@@ -8915,7 +8919,7 @@ class _EntrySyncImpl extends _DOMTypeBase implements EntrySync {
     return _wrap(_ptr.getMetadata());
   }
 
-  DirectoryEntrySync getParent() {
+  EntrySync getParent() {
     return _wrap(_ptr.getParent());
   }
 
@@ -10233,8 +10237,12 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
     return;
   }
 
-  IDBObjectStore createObjectStore(String name) {
-    return _wrap(_ptr.createObjectStore(_unwrap(name)));
+  IDBObjectStore createObjectStore(String name, [Map options = null]) {
+    if (options === null) {
+      return _wrap(_ptr.createObjectStore(_unwrap(name)));
+    } else {
+      return _wrap(_ptr.createObjectStore(_unwrap(name), _unwrap(options)));
+    }
   }
 
   void deleteObjectStore(String name) {
@@ -10349,12 +10357,20 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
     }
   }
 
-  IDBRequest getObject(/*IDBKey*/ key) {
-    return _wrap(_ptr.getObject(_unwrap(key)));
+  IDBRequest get(key) {
+    if (key is IDBKeyRange) {
+      return _wrap(_ptr.get(_unwrap(key)));
+    } else {
+      return _wrap(_ptr.get(_unwrap(key)));
+    }
   }
 
-  IDBRequest getKey(/*IDBKey*/ key) {
-    return _wrap(_ptr.getKey(_unwrap(key)));
+  IDBRequest getKey(key) {
+    if (key is IDBKeyRange) {
+      return _wrap(_ptr.getKey(_unwrap(key)));
+    } else {
+      return _wrap(_ptr.getKey(_unwrap(key)));
+    }
   }
 
   IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
@@ -10439,8 +10455,12 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     }
   }
 
-  IDBIndex createIndex(String name, String keyPath) {
-    return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
+  IDBIndex createIndex(String name, String keyPath, [Map options = null]) {
+    if (options === null) {
+      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
+    } else {
+      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath), _unwrap(options)));
+    }
   }
 
   IDBRequest delete(key_OR_keyRange) {
@@ -10457,14 +10477,11 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
   }
 
   IDBRequest getObject(key) {
-    if (key is Dynamic) {
+    if (key is IDBKeyRange) {
       return _wrap(_ptr.getObject(_unwrap(key)));
     } else {
-      if (key is IDBKeyRange) {
-        return _wrap(_ptr.getObject(_unwrap(key)));
-      }
+      return _wrap(_ptr.getObject(_unwrap(key)));
     }
-    throw "Incorrect number or type of arguments";
   }
 
   IDBIndex index(String name) {
@@ -22523,6 +22540,14 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _NotificationFactoryProvider {
+  factory Notification(String title, [Map options = null]) =>
+      _wrap(new dom.Notification(_unwrap(title), _unwrap(options)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _OptionElementFactoryProvider {
   factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
       _wrap(new dom.HTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
@@ -27875,6 +27900,9 @@ interface DocumentType extends Node {
 /// @domName DynamicsCompressorNode
 interface DynamicsCompressorNode extends AudioNode {
 
+  /** @domName DynamicsCompressorNode.attack */
+  final AudioParam attack;
+
   /** @domName DynamicsCompressorNode.knee */
   final AudioParam knee;
 
@@ -27883,6 +27911,9 @@ interface DynamicsCompressorNode extends AudioNode {
 
   /** @domName DynamicsCompressorNode.reduction */
   final AudioParam reduction;
+
+  /** @domName DynamicsCompressorNode.release */
+  final AudioParam release;
 
   /** @domName DynamicsCompressorNode.threshold */
   final AudioParam threshold;
@@ -28492,7 +28523,7 @@ interface EntrySync {
   Metadata getMetadata();
 
   /** @domName EntrySync.getParent */
-  DirectoryEntrySync getParent();
+  EntrySync getParent();
 
   /** @domName EntrySync.moveTo */
   EntrySync moveTo(DirectoryEntrySync parent, String name);
@@ -29627,7 +29658,7 @@ interface IDBDatabase extends EventTarget {
   void close();
 
   /** @domName IDBDatabase.createObjectStore */
-  IDBObjectStore createObjectStore(String name);
+  IDBObjectStore createObjectStore(String name, [Map options]);
 
   /** @domName IDBDatabase.deleteObjectStore */
   void deleteObjectStore(String name);
@@ -29748,11 +29779,11 @@ interface IDBIndex {
   /** @domName IDBIndex.count */
   IDBRequest count([key_OR_range]);
 
-  /** @domName IDBIndex.getObject */
-  IDBRequest getObject(/*IDBKey*/ key);
+  /** @domName IDBIndex.get */
+  IDBRequest get(key);
 
   /** @domName IDBIndex.getKey */
-  IDBRequest getKey(/*IDBKey*/ key);
+  IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
   IDBRequest openCursor([IDBKeyRange range, int direction]);
@@ -29821,7 +29852,7 @@ interface IDBObjectStore {
   IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, String keyPath);
+  IDBIndex createIndex(String name, String keyPath, [Map options]);
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange);
@@ -32000,7 +32031,9 @@ interface Notation extends Node {
 // WARNING: Do not edit - generated code.
 
 /// @domName Notification
-interface Notification extends EventTarget {
+interface Notification extends EventTarget default _NotificationFactoryProvider {
+
+  Notification(String title, [Map options]);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
