@@ -93,6 +93,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int STATE_EXPRESSION = 3;
   static final int STATE_DECLARATION = 4;
 
+  /**
+   * Returned by [expressionType] to tell how code can be generated for
+   * a subgraph.
+   * - [TYPE_STATEMENT] means that the graph must be generated as a statement,
+   * which is always possible.
+   * - [TYPE_EXPRESSION] means that the graph can be generated as an expression,
+   * or possibly several comma-separated expressions.
+   * - [TYPE_DECLARATION] means that the graph can be generated as an
+   * expression, and that it only generates expressions of the form
+   *   variable = expression
+   * which are also valid as parts of a "var" declaration.
+   */
+  static final int TYPE_STATEMENT = 0;
+  static final int TYPE_EXPRESSION = 1;
+  static final int TYPE_DECLARATION = 2;
+
   static final String TEMPORARY_PREFIX = 't';
 
   final Compiler compiler;
@@ -227,14 +243,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     subGraph = oldSubGraph;
   }
 
-  bool isExpression(SubGraph limits) {
+  /**
+   * Check whether a sub-graph can be generated as an expression, or even
+   * as a declaration, or if it has to fall back to being generated as
+   * a statement.
+   * Expressions are anything that doesn't generate control flow constructs.
+   * Declarations must only generate assignments on the form "id = expression",
+   * and not, e.g., expressions where the value isn't assigned, or where it's
+   * assigned to something that's not a simple variable.
+   */
+  int expressionType(SubGraph limits) {
+    // Start assuming that we can generate declarations. If we find a
+    // counter-example, we degrade our assumption to either expression or
+    // statement, and in the latter case, we can return immediately since
+    // it can't get any worse. E.g., a function call where the return value
+    // isn't used can't be in a declaration. A bailout can't be in an
+    // expression.
+    int result = TYPE_DECLARATION;
     HBasicBlock basicBlock = limits.start;
     do {
       HInstruction current = basicBlock.first;
       while (current != basicBlock.last) {
         // E.g, type guards.
         if (current.isControlFlow()) {
-          return false;
+          return TYPE_STATEMENT;
+        }
+        // HFieldSet generates code on the form x.y = ..., which isn't
+        // valid in a declaration, but it also always have no uses, so
+        // it's caught by that test too.
+        assert(current is! HFieldSet || current.usedBy.isEmpty());
+        if (current.usedBy.isEmpty()) {
+          result = TYPE_EXPRESSION;
         }
         current = current.next;
       }
@@ -249,14 +288,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           basicBlock = basicBlock.successors[0];
         } else {
           // We allow an expression to end on an HIf (a condition expression).
-          return basicBlock === limits.end;
+          return basicBlock === limits.end ? result : TYPE_STATEMENT;
         }
       } else {
         // Expression-incompatible control flow.
-        return false;
+        return TYPE_STATEMENT;
       }
     } while (limits.contains(basicBlock));
-    return true;
+    return result;
+  }
+
+  bool isExpression(SubGraph limits) {
+    return expressionType(limits) != TYPE_STATEMENT;
+  }
+
+  bool isDeclaration(SubGraph limits) {
+    return expressionType(limits) == TYPE_DECLARATION;
   }
 
   bool isCondition(SubGraph limits) {
@@ -266,6 +313,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitExpressionGraph(SubGraph expressionSubGraph) {
     int oldState = generationState;
     generationState = STATE_FIRST_EXPRESSION;
+    visitSubGraph(expressionSubGraph);
+    generationState = oldState;
+  }
+
+  void visitDeclarationGraph(SubGraph expressionSubGraph) {
+    int oldState = generationState;
+    generationState = STATE_FIRST_DECLARATION;
     visitSubGraph(expressionSubGraph);
     generationState = oldState;
   }
@@ -333,8 +387,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(')');
   }
 
-
-
   /**
    * Whether we are currently generating expressions instead of statements.
    * This includes declarations, which are generated as expressions.
@@ -357,6 +409,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   void addExpressionSeparator() {
     if (generationState == STATE_FIRST_DECLARATION) {
+      buffer.add("var ");
       generationState = STATE_DECLARATION;
     } else if (generationState == STATE_FIRST_EXPRESSION) {
       generationState = STATE_EXPRESSION;
@@ -438,7 +491,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitLoopInfo(HLoopInformation info) {
+    // We must look at the loop information only once, when visiting the
+    // initializer. After that, the initializer has been generated.
+    // The same block information is also put on the condition-block for
+    // the traditional code generation.
+    bool isInitializerBlock = (currentBlock !== info.header);
+    if (!isInitializerBlock) return false;
+
     SubExpression condition = info.condition;
+    if (!isCondition(condition)) {
+      // TODO(lrn): Handle this case here too, so we can remove the
+      // original loop code.
+      return false;
+    }
+
     void visitBodyIgnoreLabels() {
       if (info.body.start.isLabeledBlock()) {
         HBlockInformation oldInfo = currentBlockInformation;
@@ -450,21 +516,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    if (!isCondition(condition)) {
-      return false;
-    }
+    SubGraph initialization = info.initializer;
     switch (info.kind) {
+      // Treate all three "test-first" loops the same way.
+      case HLoopInformation.FOR_LOOP:
       case HLoopInformation.WHILE_LOOP:
       case HLoopInformation.FOR_IN_LOOP: {
+        int initializationType = TYPE_STATEMENT;
+        if (initialization !== null) {
+          initializationType = expressionType(initialization);
+          if (initializationType == TYPE_STATEMENT) {
+            visitSubGraph(initialization);
+            initialization = null;
+          }
+        }
         addIndentation();
         for (LabelElement label in info.labels) {
-          writeLabel(label);
-          buffer.add(":");
+          if (label.isTarget) {
+            writeLabel(label);
+            buffer.add(":");
+          }
         }
-        bool inlineUpdates =
-            info.updates !== null && isExpression(info.updates);
-        if (inlineUpdates) {
-          buffer.add("for (; ");
+        if (info.updates !== null && isExpression(info.updates)) {
+          // If we have an updates graph, and it's expressible as an
+          // expression, generate a for-loop.
+          buffer.add("for (");
+          if (initialization !== null) {
+            if (initializationType != TYPE_DECLARATION) {
+              visitExpressionGraph(initialization);
+            } else {
+              visitDeclarationGraph(initialization);
+            }
+          }
+          buffer.add("; ");
           visitConditionGraph(condition);
           buffer.add("; ");
           visitExpressionGraph(info.updates);
@@ -478,50 +562,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
           indent--;
         } else {
+          // We have either no update graph, or it's too complex to
+          // put in an expression.
+          if (initialization !== null) {
+            visitSubGraph(initialization);
+          }
           buffer.add("while (");
           visitConditionGraph(condition);
           buffer.add(") {\n");
           indent++;
-          wrapLoopBodyForContinue(info);
-          if (info.updates !== null) visitSubGraph(info.updates);
+          if (info.updates !== null) {
+            wrapLoopBodyForContinue(info);
+            visitSubGraph(info.updates);
+          } else {
+            visitBodyIgnoreLabels(info.body);
+          }
           indent--;
         }
         addIndentation();
         buffer.add("}\n");
-        break;
-      }
-      case HLoopInformation.FOR_LOOP: {
-        // TODO(lrn): Find a way to put initialization into the for.
-        // It's currently handled before we reach the [HLoopInformation].
-        addIndentation();
-        for (LabelElement label in info.labels) {
-          if (label.isTarget) {
-            writeLabel(label);
-            buffer.add(":");
-          }
-        }
-        buffer.add("for(;");
-        visitConditionGraph(info.condition);
-        buffer.add(";");
-        if (isExpression(info.updates)) {
-          visitExpressionGraph(info.updates);
-          buffer.add(") {\n");
-          indent++;
-
-          visitBodyIgnoreLabels();
-
-          indent--;
-          addIndentation();
-          buffer.add("}\n");
-        } else {
-          addIndentation();
-          buffer.add(") {\n");
-          indent++;
-          wrapLoopBodyForContinue(info);
-          visitSubGraph(info.updates);
-          indent--;
-          buffer.add("}\n");
-        }
         break;
       }
       case HLoopInformation.DO_WHILE_LOOP:
@@ -647,6 +706,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
+    currentBlock = node;
     // If this node has special behavior attached, handle it.
     // If we reach here again while handling the attached information,
     // e.g., because we call visitSubGraph on a subgraph starting here,
@@ -669,7 +729,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void iterateBasicBlock(HBasicBlock node) {
-    currentBlock = node;
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction === node.last) {

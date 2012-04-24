@@ -442,7 +442,13 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isOpen() => status == STATUS_OPEN;
   bool isClosed() => status == STATUS_CLOSED;
 
-  bool isLoopHeader() => blockInformation is HLoopInformation;
+  bool isLoopHeader() {
+    if (blockInformation is HLoopInformation) {
+      HLoopInformation info = blockInformation;
+      return (this === info.header);
+    }
+    return false;
+  }
   bool isLabeledBlock() => blockInformation is HLabeledBlockInformation;
 
   HBasicBlock get enclosingLoopHeader() {

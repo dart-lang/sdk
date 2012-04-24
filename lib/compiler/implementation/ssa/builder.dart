@@ -1241,6 +1241,7 @@ class SsaBuilder implements Visitor {
 
     endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
     loopInfo.joinBlock = current;
+    initializerBlock.blockInformation = loopInfo;
   }
 
   visitFor(For node) {
