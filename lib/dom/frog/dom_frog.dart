@@ -4377,7 +4377,7 @@ class _IceCandidateJs extends _DOMTypeJs implements IceCandidate native "*IceCan
 
 class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
 
-  final _CanvasPixelArrayJs data;
+  final _Uint8ClampedArrayJs data;
 
   final int height;
 
@@ -17210,7 +17210,7 @@ interface IDBObjectStore {
 
   void deleteIndex(String name);
 
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest getObject(key);
 
   IDBIndex index(String name);
 
@@ -17323,7 +17323,7 @@ interface IceCandidate default _IceCandidateFactoryProvider {
 
 interface ImageData {
 
-  final CanvasPixelArray data;
+  final Uint8ClampedArray data;
 
   final int height;
 

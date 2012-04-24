@@ -7706,7 +7706,7 @@ class _IceCandidateImpl implements IceCandidate native "*IceCandidate" {
 
 class _ImageDataImpl implements ImageData native "*ImageData" {
 
-  final _CanvasPixelArrayImpl data;
+  final _Uint8ClampedArrayImpl data;
 
   final int height;
 
@@ -24384,7 +24384,7 @@ interface IDBObjectStore {
   void deleteIndex(String name);
 
   /** @domName IDBObjectStore.getObject */
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest getObject(key);
 
   /** @domName IDBObjectStore.index */
   IDBIndex index(String name);
@@ -24616,7 +24616,7 @@ interface IceCandidate default _IceCandidateFactoryProvider {
 interface ImageData {
 
   /** @domName ImageData.data */
-  final CanvasPixelArray data;
+  final Uint8ClampedArray data;
 
   /** @domName ImageData.height */
   final int height;
