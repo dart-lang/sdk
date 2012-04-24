@@ -380,37 +380,46 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         RESOLVER=self._cpp_resolver_emitter.Fragments())
 
   def _GenerateCppHeader(self):
-    webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
+    to_native_emitter = emitter.Emitter()
+    if self._interface_type_info.custom_to_native():
+      to_native_emitter.Emit(
+          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception);\n')
+    else:
+      to_native_emitter.Emit(
+          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception)\n'
+          '    {\n'
+          '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
+          '    }\n',
+          INTERFACE=self._interface.id)
 
+    to_dart_emitter = emitter.Emitter()
     if ('CustomToJS' in self._interface.ext_attrs or
         'CustomToJSObject' in self._interface.ext_attrs or
         'PureInterface' in self._interface.ext_attrs or
         'CPPPureInterface' in self._interface.ext_attrs or
         self._interface_type_info.custom_to_dart()):
-      to_dart_value_template = (
-          'Dart_Handle toDartValue($(WEBCORE_CLASS_NAME)* value);\n')
+      to_dart_emitter.Emit(
+          'Dart_Handle toDartValue(Dart$(INTERFACE)::NativeType* value);\n',
+          INTERFACE=self._interface.id)
     else:
-      to_dart_value_template = (
-          'inline Dart_Handle toDartValue($(WEBCORE_CLASS_NAME)* value)\n'
+      to_dart_emitter.Emit(
+          'inline Dart_Handle toDartValue(Dart$(INTERFACE)::NativeType* value)\n'
           '{\n'
           '    return DartDOMWrapper::toDart<Dart$(INTERFACE)>(value);\n'
-          '}\n')
-    to_dart_value_emitter = emitter.Emitter()
-    to_dart_value_emitter.Emit(
-        to_dart_value_template,
-        INTERFACE=self._interface.id,
-        WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
+          '}\n',
+          INTERFACE=self._interface.id)
 
-
+    webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
     wrapper_type = _DOMWrapperType(self._system._database, self._interface)
     self._cpp_header_emitter.Emit(
         self._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
-        TO_DART_VALUE=to_dart_value_emitter.Fragments(),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments(),
-        NATIVE_TRAITS_TYPE='DartDOMWrapper::%sTraits' % wrapper_type)
+        NATIVE_TRAITS_TYPE='DartDOMWrapper::%sTraits' % wrapper_type,
+        TO_NATIVE=to_native_emitter.Fragments(),
+        TO_DART=to_dart_emitter.Fragments())
 
   def _GenerateCallWithHandling(self, node, parameter_definitions_emitter, arguments):
     if 'CallWith' not in node.ext_attrs:

@@ -18,15 +18,11 @@ struct Dart$INTERFACE {
     typedef $WEBCORE_CLASS_NAME NativeType;
     typedef $NATIVE_TRAITS_TYPE NativeTraits;
 
-    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception)
-    {
-        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);
-    }
-
+$TO_NATIVE
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);
 };
 
-$TO_DART_VALUE
+$TO_DART
 inline Dart_Handle toDartValue(PassRefPtr< $WEBCORE_CLASS_NAME > value)
 {
     return toDartValue(value.get());
