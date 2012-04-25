@@ -112,10 +112,3 @@ class DOMStringMapImplementation extends DOMWrapperBase implements DOMStringMap 
   int get length() => Maps.length(this);
   bool isEmpty() => Maps.isEmpty(this);
 }
-
-class DOMStringListImplementation extends DOMWrapperBase implements DOMStringList {
-  static DOMStringListImplementation _createDOMStringListImplementation() => new DOMStringListImplementation._createDOMStringListImplementation();
-  DOMStringListImplementation._createDOMStringListImplementation();
-
-  // FIXME: provide implementation.
-}

@@ -29,6 +29,8 @@ module core {
     [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
     CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
   };
+
+  DOMStringList implements sequence<DOMString>;
 };
 
 module dom {

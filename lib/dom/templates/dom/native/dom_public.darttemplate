@@ -9,7 +9,6 @@
 #import("dart:domimpl");
 #import("dart:isolate");
 
-#source('$AUXILIARY_DIR/DOMStringList.dart');
 #source('$AUXILIARY_DIR/DOMStringMap.dart');
 #source('$AUXILIARY_DIR/DOMType.dart');
 #source('$AUXILIARY_DIR/EventListener.dart');

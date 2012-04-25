@@ -10,7 +10,6 @@ import re
 import string
 
 _pure_interfaces = set([
-    'DOMStringList',
     'DOMStringMap',
     'ElementTimeControl',
     'ElementTraversal',
@@ -640,12 +639,12 @@ _idl_type_registry = {
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
-    'DOMStringList': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
     'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
+    'DOMStringList': IDLTypeInfo('DOMStringList', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
