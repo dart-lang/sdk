@@ -465,7 +465,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     # FIXME: these should go away.
     classes_with_unsupported_custom_getters = [
         'Coordinates',
-        'FileReader',
         'HTMLOutputElement',
         'ScriptProfileNode',
         'WebKitAnimation' ]
