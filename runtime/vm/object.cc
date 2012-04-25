@@ -2739,6 +2739,32 @@ RawInstantiatedType* InstantiatedType::New(
 }
 
 
+bool InstantiatedType::Equals(const AbstractType& other) const {
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (!other.IsInstantiatedType()) {
+    return false;
+  }
+  InstantiatedType& other_instantiated = InstantiatedType::Handle();
+  other_instantiated ^= other.raw();
+  if (IsFinalized() != other_instantiated.IsFinalized()) {
+    return false;
+  }
+  const AbstractType& this_type = AbstractType::Handle(uninstantiated_type());
+  const AbstractType& other_type =
+      AbstractType::Handle(other_instantiated.uninstantiated_type());
+  if (!this_type.Equals(other_type)) {
+    return false;
+  }
+  if (instantiator_type_arguments() !=
+      other_instantiated.instantiator_type_arguments()) {
+    return false;
+  }
+  return true;
+}
+
+
 const char* InstantiatedType::ToCString() const {
   return "InstantiatedType";
 }
