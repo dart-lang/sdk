@@ -4,15 +4,14 @@
 
 #library("SpawnTest");
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import("TestFramework.dart");
 
-main() {
-  test("spawn a new isolate", () {
-    SpawnedIsolate isolate = new SpawnedIsolate();
-    isolate.spawn().then(expectAsync1((SendPort port) {
-      port.call(42).then(expectAsync1((message) {
-        Expect.equals(42, message);
-      }));
+void test(TestExpectation expect) {
+  SpawnedIsolate isolate = new SpawnedIsolate();
+  expect.completes(isolate.spawn()).then((SendPort port) {
+    port.call(42).then(expect.runs1((message) {
+      Expect.equals(42, message);
+      expect.succeeded();
     }));
   });
 }
@@ -29,4 +28,8 @@ class SpawnedIsolate extends Isolate {
     });
   }
 
+}
+
+main() {
+  runTests([test]);
 }

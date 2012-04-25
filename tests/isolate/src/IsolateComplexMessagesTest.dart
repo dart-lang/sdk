@@ -7,22 +7,22 @@
 
 #library('IsolateComplexMessagesTest');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('TestFramework.dart');
 
-main() {
-  test("complex messages are serialized correctly", () {
-    new LogIsolate().spawn().then(expectAsync1((SendPort remote) {
 
-      remote.send(1, null);
-      remote.send("Hello", null);
-      remote.send("World", null);
-      remote.send(const [null, 1, 2, 3, 4], null);
-      remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
-      remote.send(const ["Hello", "World", 0xffffffffff], null);
-      // Shutdown the LogRunner.
-      remote.call(-1).then(expectAsync1((int message) {
-        Expect.equals(6, message);
-      }));
+void test(TestExpectation expect) {
+  expect.completes(new LogIsolate().spawn()).then((SendPort remote) {
+
+    remote.send(1, null);
+    remote.send("Hello", null);
+    remote.send("World", null);
+    remote.send(const [null, 1, 2, 3, 4], null);
+    remote.send(const [1, 2.0, true, false, 0xffffffffff], null);
+    remote.send(const ["Hello", "World", 0xffffffffff], null);
+    // Shutdown the LogRunner.
+    remote.call(-1).then(expect.runs1((int message) {
+      Expect.equals(6, message);
+      expect.succeeded();
     }));
   });
 }
@@ -76,4 +76,8 @@ class LogIsolate extends Isolate {
       }
     });
   }
+}
+
+main() {
+  runTests([test]);
 }

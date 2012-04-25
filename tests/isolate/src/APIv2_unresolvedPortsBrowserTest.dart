@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// negative test to ensure that APIv2_unresolvedPortsTest works.
+// spawns multiple isolates and sends unresolved ports between them.
 #library('unresolved_ports');
+#import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
 #import('../../../lib/unittest/unittest.dart');
+#import('../../../lib/unittest/dom_config.dart');
+
+// This is similar to APIv2_unresolvedPortsStandaloneTest but using
+// 'unittest.dart' so it can run to completion in browsers.
 
 bethIsolate() {
   port.receive((msg, reply) => msg[1].send(
@@ -24,15 +29,17 @@ bobIsolate() {
 }
 
 main() {
-  test('Message chain with unresolved ports', () {
+  useDomConfiguration();
+  asyncTest('Message chain with unresolved ports', 1, () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
+    port.receive((msg, _) {
       expect(msg).equals('main says: Beth, find out if Tim is coming.'
         + '\nBeth says: Tim are you coming? And Bob?'
         + '\nTim says: Can you tell "main" that we are all coming?'
-        + '\nBob says: we are NOT coming!'); // should be 'all', not 'NOT'
+        + '\nBob says: we are all coming!');
       port.close();
-    }));
+      callbackDone();
+    });
 
     SendPort tim = spawnFunction(timIsolate);
     SendPort beth = spawnFunction(bethIsolate);

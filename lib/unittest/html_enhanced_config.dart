@@ -38,7 +38,7 @@ class HtmlEnhancedConfiguration extends Configuration {
     _onErrorClosure = (e) {
       // TODO(vsm): figure out how to expose the stack trace here
       // Currently e.message works in dartium, but not in dartc.
-      reportTestError('(DOM callback has errors) Caught ${e}', '');
+      notifyError('(DOM callback has errors) Caught ${e}', '');
     };
   }
 
@@ -50,18 +50,17 @@ class HtmlEnhancedConfiguration extends Configuration {
 
   void onTestResult(TestCase testCase) {}
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
-      String uncaughtError) {
+  void onDone(int passed, int failed, int errors, List<TestCase> results) {
     window.on.error.remove(_onErrorClosure);
 
     _showInteractiveResultsInPage(passed, failed, errors, results,
-        _isLayoutTest, uncaughtError);
+        _isLayoutTest);
 
     window.postMessage('unittest-suite-done', '*');
   }
 
   void _showInteractiveResultsInPage(int passed, int failed, int errors,
-      List<TestCase> results, bool isLayoutTest, String uncaughtError) {
+      List<TestCase> results, bool isLayoutTest){
     if (isLayoutTest && passed == results.length) {
       document.body.innerHTML = "PASS";
     } else {
@@ -74,25 +73,17 @@ class HtmlEnhancedConfiguration extends Configuration {
 
       // moved summary to the top since web browsers
       // don't auto-scroll to the bottom like consoles typically do.
-      if (passed == results.length && uncaughtError == null) {
+      if (passed == results.length) {
         te.elements.add(new Element.html("""
           <div class='unittest-pass'>All ${passed} tests passed</div>"""));
       } else {
 
-        if (uncaughtError != null) {
-          te.elements.add(new Element.html("""
-            <div class='unittest-summary'>
-              <span class='unittest-error'>Uncaught error: $uncaughtError</span>
-            </div>"""));
-        }
-
         te.elements.add(new Element.html("""
-          <div class='unittest-summary'>
-            <span class='unittest-pass'>Total ${passed} passed</span>,
-            <span class='unittest-fail'>${failed} failed</span>,
-            <span class='unittest-error'>
-            ${errors + (uncaughtError == null ? 0 : 1)} errors</span>
-          </div>"""));
+        <div class='unittest-summary'>
+          <span class='unittest-pass'>Total ${passed} passed</span>,
+          <span class='unittest-fail'>${failed} failed</span>,
+          <span class='unittest-error'>${errors} errors</span>
+        </div>"""));
       }
 
       te.elements.add(new Element.html("""

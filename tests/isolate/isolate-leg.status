@@ -3,10 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-APIv2_spawnFunctionTest: Fail, OK # Leg does not support APIv2
-APIv2_spawnUriTest: Fail, OK # Leg does not support APIv2
-APIv2_unresolvedPortsTest: Fail, OK # Leg does not support APIv2
+APIv2_spawnStandaloneTest: Fail, OK # Leg does not support APIv2
+APIv2_unresolvedPortsStandaloneTest: Fail, OK # Leg does not support APIv2
 ConstructorTest: Fail, OK # Leg does not support subclassing Isolate
+
+[ $compiler == dart2js && $runtime == d8]
+# Browser tests only supported on browser components.
+*BrowserNegativeTest: Fail, OK
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

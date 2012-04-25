@@ -5,7 +5,6 @@
 // spawns multiple isolates and sends unresolved ports between them.
 #library('unresolved_ports');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
 
 // This test does the following:
 //  - main spawns two isolates: 'tim' and 'beth'
@@ -31,23 +30,21 @@ bobIsolate() {
 }
 
 main() {
-  test('Message chain with unresolved ports', () {
-    ReceivePort port = new ReceivePort();
-    port.receive(expectAsync2((msg, _) {
-      expect(msg).equals('main says: Beth, find out if Tim is coming.'
-        + '\nBeth says: Tim are you coming? And Bob?'
-        + '\nTim says: Can you tell "main" that we are all coming?'
-        + '\nBob says: we are all coming!');
-      port.close();
-    }));
-
-    SendPort tim = spawnFunction(timIsolate);
-    SendPort beth = spawnFunction(bethIsolate);
-
-    beth.send(
-        // because tim is created asynchronously, here we are sending an
-        // unresolved port:
-        ['main says: Beth, find out if Tim is coming.', tim],
-        port.toSendPort());
+  ReceivePort port = new ReceivePort();
+  port.receive((msg, _) {
+    Expect.equals('main says: Beth, find out if Tim is coming.'
+      + '\nBeth says: Tim are you coming? And Bob?'
+      + '\nTim says: Can you tell "main" that we are all coming?'
+      + '\nBob says: we are all coming!', msg);
+    port.close();
   });
+
+  SendPort tim = spawnFunction(timIsolate);
+  SendPort beth = spawnFunction(bethIsolate);
+
+  beth.send(
+      // because tim is created asynchronously, here we are sending an
+      // unresolved port:
+      ['main says: Beth, find out if Tim is coming.', tim],
+      port.toSendPort());
 }

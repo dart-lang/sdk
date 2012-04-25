@@ -7,7 +7,7 @@
 
 #library('CrossIsolateMessageTest');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('TestFramework.dart');
 
 class CrossIsolate1 extends Isolate {
   CrossIsolate1() : super.heavy();
@@ -45,26 +45,29 @@ class CrossIsolate2 extends Isolate {
   }
 }
 
-main() {
-  test("share port, and send message cross isolates ", () {
-    // Create CrossIsolate1 and CrossIsolate2.
-    new CrossIsolate1().spawn().then(expectAsync1((SendPort port1) {
-      new CrossIsolate2().spawn().then(expectAsync1((SendPort port2) {
-        // Create a new receive port and send it to isolate2.
-        ReceivePort myPort = new ReceivePort();
-        port2.call(myPort.toSendPort()).then(expectAsync1((msg) {
+test(TestExpectation expect) {
+  // Create CrossIsolate1 and CrossIsolate2.
+  expect.completes(new CrossIsolate1().spawn()).then((SendPort port1) {
+    expect.completes(new CrossIsolate2().spawn()).then((SendPort port2) {
+      // Create a new receive port and send it to isolate2.
+      ReceivePort myPort = new ReceivePort();
+      port2.call(myPort.toSendPort()).then(expect.runs1((msg) {
+        Expect.equals("ready", msg[0]);
+        // Send port of isolate2 to isolate1.
+        port1.call(msg[1]).then(expect.runs1((msg) {
           Expect.equals("ready", msg[0]);
-          // Send port of isolate2 to isolate1.
-          port1.call(msg[1]).then(expectAsync1((msg) {
-            Expect.equals("ready", msg[0]);
-            myPort.receive(expectAsync2((msg, replyTo) {
-              Expect.equals(499, msg);
-              myPort.close();
-            }));
-            msg[1].send(42, null);
+          myPort.receive(expect.runs2((msg, replyTo) {
+            Expect.equals(499, msg);
+            expect.succeeded();
+            myPort.close();
           }));
+          msg[1].send(42, null);
         }));
       }));
-    }));
+    });
   });
+}
+
+main() {
+  runTests([test]);
 }

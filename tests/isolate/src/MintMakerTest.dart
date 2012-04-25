@@ -7,7 +7,7 @@
 
 #library("MintMakerTest");
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+
 
 class Mint {
   Mint() : registry_ = new Map<SendPort, Purse>() {
@@ -189,33 +189,37 @@ class MintMakerWrapper {
   Future<SendPort> port_;
 }
 
-_checkBalance(PurseWrapper wrapper, expected) {
-  wrapper.queryBalance(expectAsync1((int balance) {
-    expect(balance).equals(expected);
-  }));
-}
 
-main() {
-  test("creating purse, deposit, and query balance", () {
+class MintMakerTest {
+  static void testMain() {
     MintMakerWrapper mintMaker = new MintMakerWrapper();
-    mintMaker.makeMint(expectAsync1((MintWrapper mint) {
-      mint.createPurse(100, expectAsync1((PurseWrapper purse) {
-        _checkBalance(purse, 100);
-        purse.sproutPurse(expectAsync1((PurseWrapper sprouted) {
-          _checkBalance(sprouted, 0);
-          _checkBalance(purse, 100);
-
+    mintMaker.makeMint((MintWrapper mint) {
+      mint.createPurse(100, (PurseWrapper purse) {
+        purse.queryBalance((int balance) {
+          Expect.equals(100, balance);
+        });
+        purse.sproutPurse((PurseWrapper sprouted) {
+          sprouted.queryBalance((int balance) {
+            Expect.equals(0, balance);
+          });
           sprouted.deposit(purse, 5);
-          _checkBalance(sprouted, 0 + 5);
-          _checkBalance(purse, 100 - 5);
-
+          sprouted.queryBalance((int balance) {
+            Expect.equals(0 + 5, balance);
+          });
+          purse.queryBalance((int balance) {
+            Expect.equals(100 - 5, balance);
+          });
           sprouted.deposit(purse, 42);
-          _checkBalance(sprouted, 0 + 5 + 42);
-          _checkBalance(purse, 100 - 5 - 42);
-        }));
-      }));
-    }));
-  });
+          sprouted.queryBalance((int balance) {
+            Expect.equals(0 + 5 + 42, balance);
+          });
+          purse.queryBalance((int balance) {
+            Expect.equals(100 - 5 - 42, balance);
+          });
+        });
+      });
+    });
+  }
 
   /* This is an attempt to show how the above code could look like if we had
    * better language support for asynchronous messages (deferred/asynccall).
@@ -263,4 +267,9 @@ main() {
     Expect.equals(100 - 5 - 42, purse.queryBalance());
   }
   */
+
+}
+
+main() {
+  MintMakerTest.testMain();
 }

@@ -5,22 +5,26 @@
 [ $runtime == vm ]
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 SerializationTest: Skip  # tests frog-specific serialization code
-APIv2_spawnUriTest: Fail # not implemented
-APIv2_computeThisScriptBrowserTest: Skip # browser specific test
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip
 
 [ ($compiler == none || $compiler == dart2js) && $runtime == drt ]
 SerializationTest: Skip  # tests frog-specific serialization code
-APIv2*: Skip # new api for isolates not implemented in the VM yet.
-
-[ $compiler == frog && $runtime == d8 ]
-APIv2_spawnUriTest: Fail # not implemented for d8
-APIv2_computeThisScriptBrowserTest: Skip # browser specific test
+*APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
 [ $compiler == dartc ]
 SerializationTest: Skip  # tests frog-specific serialization code
 IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
-APIv2*NegativeTest: Fail, OK # fails only at runtime
+*APIv2*: Skip # new api for isolates not in corelib yet.
+
+[ $compiler == frog && ($runtime == none || $runtime == d8) ]
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip
+
+[ $runtime == drt && ($compiler == frog || $compiler == dart2js) || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
+*StandaloneTest: Skip
+*StandaloneNegativeTest: Skip
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $compiler == frog && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera) ]

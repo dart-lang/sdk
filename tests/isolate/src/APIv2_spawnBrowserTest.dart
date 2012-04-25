@@ -4,19 +4,23 @@
 
 // Example of spawning an isolate from a function.
 #library('spawn_tests');
-#import('dart:isolate');
 #import('../../../lib/unittest/unittest.dart');
+#import('../../../lib/unittest/dom_config.dart');
+#import('dart:dom'); // import added so test.dart can treat this as a webtest.
+#import('dart:isolate');
 
 child() {
   port.receive((msg, reply) => reply.send('re: $msg'));
 }
 
 main() {
-  test('message - reply chain', () {
+  useDomConfiguration();
+  asyncTest('message - reply chain', 1, () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync(msg, _) {
-      port.close();
+    port.receive((msg, _) {
       expect(msg).equals('re: hi');
+      port.close();
+      callbackDone();
     });
 
     SendPort s = spawnFunction(child);

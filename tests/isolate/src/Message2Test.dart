@@ -7,8 +7,7 @@
 
 #library('Message2Test');
 #import("dart:isolate");
-
-#import('../../../lib/unittest/unittest.dart');
+#import("TestFramework.dart");
 
 // ---------------------------------------------------------------------------
 // Message passing test 2.
@@ -58,18 +57,21 @@ class PingPongServer extends Isolate {
   }
 }
 
-main() {
-  test("map is equal after it is sent back and forth", () {
-    new PingPongServer().spawn().then(expectAsync1((SendPort remote) {
-      Map m = new Map();
-      m[1] = "eins";
-      m[2] = "deux";
-      m[3] = "tre";
-      m[4] = "four";
-      remote.call(m).then(expectAsync1((var received) {
-        MessageTest.mapEqualsDeep(m, received);
-        remote.send(-1, null);
-      }));
+void test(TestExpectation expect) {
+  expect.completes(new PingPongServer().spawn()).then((SendPort remote) {
+    Map m = new Map();
+    m[1] = "eins";
+    m[2] = "deux";
+    m[3] = "tre";
+    m[4] = "four";
+    remote.call(m).then(expect.runs1((var received) {
+      MessageTest.mapEqualsDeep(m, received);
+      remote.send(-1, null);
+      expect.succeeded();
     }));
   });
+}
+
+main() {
+  runTests([test]);
 }

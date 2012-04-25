@@ -4,7 +4,7 @@
 
 #library("CountTest");
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import("TestFramework.dart");
 
 class TestIsolate extends Isolate {
 
@@ -27,27 +27,33 @@ class TestIsolate extends Isolate {
   }
 }
 
-void main() {
-  test("count 10 consecutive messages", () {
-    int count = 0;
-    new TestIsolate().spawn().then(expectAsync1((SendPort remote) {
-      ReceivePort local = new ReceivePort();
-      SendPort reply = local.toSendPort();
+void test(TestExpectation expect) {
+  int count = 0;
+  expect.completes(new TestIsolate().spawn()).then((SendPort remote) {
+    ReceivePort local = new ReceivePort();
+    SendPort reply = local.toSendPort();
 
-      local.receive(expectAsync2((int message, SendPort replyTo) {
-        if (message == -1) {
-          Expect.equals(11, count);
-          local.close();
-          return;
-        }
+    local.receive(expect.runs2((int message, SendPort replyTo) {
+      if (message == -1) {
+        Expect.equals(11, count);
+        local.close();
+        expect.succeeded();
+        return;
+      }
 
-        Expect.equals((count - 1) * 2, message);
-        remote.send(count++, reply);
-        if (count == 10) {
-          remote.send(-1, reply);
-        }
-      }, count: 11));
+      Expect.equals((count - 1) * 2, message);
       remote.send(count++, reply);
+      if (count == 10) {
+        remote.send(-1, reply);
+      }
     }));
+    remote.send(count++, reply);
   });
 }
+
+void main() {
+  runTests([test]);
+}
+
+
+

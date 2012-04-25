@@ -24,7 +24,7 @@ class HtmlConfiguration extends Configuration {
     _onErrorClosure = (e) {
       // TODO(vsm): figure out how to expose the stack trace here
       // Currently e.message works in dartium, but not in dartc.
-      reportTestError('(DOM callback has errors) Caught ${e}', '');
+      notifyError('(DOM callback has errors) Caught ${e}', '');
     };
   }
 
@@ -36,11 +36,9 @@ class HtmlConfiguration extends Configuration {
 
   void onTestResult(TestCase testCase) {}
 
-  void onDone(int passed, int failed, int errors, List<TestCase> results,
-      String uncaughtError) {
+  void onDone(int passed, int failed, int errors, List<TestCase> results) {
     window.on.error.remove(_onErrorClosure);
-    _showResultsInPage(passed, failed, errors, results, _isLayoutTest,
-        uncaughtError);
+    _showResultsInPage(passed, failed, errors, results, _isLayoutTest);
     window.postMessage('unittest-suite-done', '*');
   }
 }
