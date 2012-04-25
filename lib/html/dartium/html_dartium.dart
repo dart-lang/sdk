@@ -162,6 +162,7 @@ _wrap(raw) {
     case 'DOMSelection': return new _DOMSelectionImpl._wrap(domObject);
     case 'DOMTokenList': return new _DOMTokenListImpl._wrap(domObject);
     case 'DOMSettableTokenList': return new _DOMSettableTokenListImpl._wrap(domObject);
+    case 'DOMStringList': return new _DOMStringListImpl._wrap(domObject);
     case 'DOMURL': return new _DOMURLImpl._wrap(domObject);
     case 'DataTransferItem': return new _DataTransferItemImpl._wrap(domObject);
     case 'DataTransferItemList': return new _DataTransferItemListImpl._wrap(domObject);
@@ -6261,6 +6262,102 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
   String get value() => _wrap(_ptr.value);
 
   void set value(String value) { _ptr.value = _unwrap(value); }
+}
+
+class _DOMStringListImpl extends _DOMTypeBase implements DOMStringList {
+  _DOMStringListImpl._wrap(ptr) : super._wrap(ptr);
+
+  int get length() => _wrap(_ptr.length);
+
+  String operator[](int index) => _wrap(_ptr[index]);
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
+  void sort(int compare(String a, String b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start]) {
+    if (start === null) start = length - 1;
+    return _Lists.lastIndexOf(this, element, start);
+  }
+
+  String last() => this[length - 1];
+
+  String removeLast() {
+    throw new UnsupportedOperationException("Cannot removeLast on immutable List.");
+  }
+
+  // FIXME: implement these.
+  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int rangeLength) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+
+  void insertRange(int start, int rangeLength, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+
+  List<String> getRange(int start, int rangeLength) =>
+      _Lists.getRange(this, start, rangeLength, <String>[]);
+
+  // -- end List<String> mixins.
+
+  bool contains(String string) {
+    return _wrap(_ptr.contains(_unwrap(string)));
+  }
+
+  String item(int index) {
+    return _wrap(_ptr.item(_unwrap(index)));
+  }
 }
 
 class _DOMTokenListImpl extends _DOMTypeBase implements DOMTokenList {
@@ -27125,6 +27222,24 @@ interface DOMSettableTokenList extends DOMTokenList {
 
   /** @domName DOMSettableTokenList.value */
   String value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName DOMStringList
+interface DOMStringList extends List<String> {
+
+  /** @domName DOMStringList.length */
+  final int length;
+
+  /** @domName DOMStringList.contains */
+  bool contains(String string);
+
+  /** @domName DOMStringList.item */
+  String item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
