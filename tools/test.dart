@@ -46,7 +46,6 @@
 #import("../frog/tests/leg_only/test_config.dart");
 #import("../frog/tests/native/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
-#import("../utils/tests/css/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -56,6 +55,7 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'utils/tests/css',
   'utils/tests/peg',
   'utils/tests/pub',
 ];
@@ -142,9 +142,6 @@ main() {
     }
     if (conf['compiler'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new JUnitDartcTestSuite(conf));
-    }
-    if (selectors.containsKey('css')) {
-      queue.addTestSuite(new CssTestSuite(conf));
     }
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));
