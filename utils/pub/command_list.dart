@@ -6,7 +6,6 @@
 void commandList(PubOptions options, List<String> args) {
   // TODO(rnystrom): Validate args. Right now, this just lists the packages in
   // your cache.
-  final cache = new PackageCache(options.cacheDir);
   cache.listAll().then((packages) {
     packages.sort((a, b) => a.name.compareTo(b.name));
     for (final package in packages) {

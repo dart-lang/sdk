@@ -16,6 +16,7 @@
 #source('package.dart');
 
 Map<String, PubCommand> commands;
+PackageCache cache;
 
 main() {
   final args = new Options().arguments;
@@ -25,6 +26,7 @@ main() {
   // be consistent with other Unix apps.
   commands = {
     'list': new PubCommand('print the contents of repositories', commandList),
+    'update': new PubCommand("update a package's dependencies", commandUpdate),
     'version': new PubCommand('print Pub version', commandVersion)
   };
 
@@ -44,6 +46,9 @@ main() {
       break;
     }
   }
+
+  // TODO(rnystrom): Do we want this to be global?
+  cache = new PackageCache(cacheDir);
 
   var options = new PubOptions(cacheDir);
 
@@ -94,6 +99,17 @@ void showUsage() {
 void commandVersion(PubOptions options, List<String> args) {
   // TODO(rnystrom): Store some place central.
   print('Pub 0.0.0');
+}
+
+/**
+ * Gets the package that contains the current working directory. In other words,
+ * finds the package that the user is currently "in".
+ */
+Future<Package> getWorkingPackage() {
+  // TODO(rnystrom): Will eventually need better logic to walk up
+  // subdirectories until we hit one that looks package-like. For now, just
+  // assume the cwd is it.
+  return Package.load(workingDir);
 }
 
 typedef void CommandFunction(PubOptions options, List<String> args);

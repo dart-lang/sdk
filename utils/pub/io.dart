@@ -11,6 +11,9 @@
 
 #import('../lib/file_system.dart', prefix: 'fs');
 
+/** Gets the current working directory. */
+String get workingDir() => new File('.').fullPathSync();
+
 /**
  * Joins a number of path string parts into a single path. Handles
  * platform-specific path separators. Parts can be [String], [Directory], or
@@ -44,6 +47,21 @@ String join(part1, [part2, part3, part4]) {
  */
 String basename(file) {
   return fs.basename(_getPath(file));
+}
+
+/**
+ * Asynchronously determines if [file], which can be a [String] file path or a
+ * [File], exists on the file system. Returns a [Future] that completes with
+ * the result.
+ */
+Future<bool> fileExists(file) {
+  final completer = new Completer<bool>();
+
+  file = new File(_getPath(file));
+  file.onError = (error) => completer.completeException(error);
+  file.exists((exists) => completer.complete(exists));
+
+  return completer.future;
 }
 
 /**
@@ -110,12 +128,31 @@ Future<Directory> createTempDir(dir) {
  * [Directory]. Returns a [Future] that completes when the deletion is done.
  */
 Future<Directory> deleteDir(dir) {
+  // TODO(rnystrom): Hack! Temporary! Right now, dart:io's Directory delete
+  // method can't handle directories with symlinks, which is exactly what pub
+  // creates and deletes. Instead, we'll just shell out to 'rm'. Remove this
+  // when dartbug.com/2646 is fixed.
+  dir = _getDirectory(dir);
+
+  // Sanity check!
+  if (dir.path == '/' ||
+      dir.path == '.' ||
+      dir.path == '..' ||
+      dir.path == '~' ||
+      dir.path == '*') throw "(O.o) I don't think you want to do that!";
+
+  return runProcess('rm', ['-rf', dir.path]).transform((_) => dir);
+  // End hack!
+
+  // Real code:
+  /*
   final completer = new Completer<Directory>();
   dir = _getDirectory(dir);
   dir.onError = (error) => completer.completeException(error);
   dir.deleteRecursively(() => completer.complete(dir));
 
   return completer.future;
+  */
 }
 
 /**
@@ -153,14 +190,73 @@ Future<List<String>> listDir(dir,
 }
 
 /**
+ * Asynchronously determines if [dir], which can be a [String] directory path
+ * or a [Directory], exists on the file system. Returns a [Future] that
+ * completes with the result.
+ */
+Future<bool> dirExists(dir) {
+  final completer = new Completer<bool>();
+
+  dir = _getDirectory(dir);
+  dir.onError = (error) => completer.completeException(error);
+  dir.exists((exists) => completer.complete(exists));
+
+  return completer.future;
+}
+
+/**
+ * "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
+ * new empty directory will be created. Returns a [Future] that completes when
+ * the new clean directory is created.
+ */
+Future<Directory> cleanDir(dir) {
+  return dirExists(dir).chain((exists) {
+    if (exists) {
+      // Delete it first.
+      return deleteDir(dir).chain((_) => createDir(dir));
+    } else {
+      // Just create it.
+      return createDir(dir);
+    }
+  });
+}
+
+/**
+ * Creates a new symlink that creates an alias from [from] to [to], both of
+ * which can be a [String], [File], or [Directory]. Returns a [Future] which
+ * completes to the symlink file (i.e. [to]).
+ */
+Future<File> createSymlink(from, to) {
+  // TODO(rnystrom): What should this do on Windows?
+  from = _getPath(from);
+  to = _getPath(to);
+
+  return runProcess('ln', ['-s', from, to]).transform((result) {
+    // TODO(rnystrom): Check exit code and output?
+    return new File(to);
+  });
+}
+
+/**
+ * Given [entry] which may be a [String], [File], or [Directory] relative to
+ * the current working directory, returns its full canonicalized path.
+ */
+// TODO(rnystrom): Should this be async?
+String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
+
+/**
  * Spawns and runs the process located at [executable], passing in [args].
  * Returns a [Future] that will complete the results of the process after it
  * has ended.
  */
-Future<ProcessResult> runProcess(String executable, List<String> args) {
+Future<ProcessResult> runProcess(String executable, List<String> args,
+    [String workingDir]) {
   int exitCode;
 
-  final process = new Process.start(executable, args);
+  final options = new ProcessOptions();
+  if (workingDir != null) options.workingDirectory = workingDir;
+
+  final process = new Process.start(executable, args, options);
 
   final outStream = new StringInputStream(process.stdout);
   final processStdout = <String>[];

@@ -13,7 +13,7 @@ main() {
   group('running pub with no command', () {
     testPub('displays usage',
       args: [],
-      output: '''
+      output: """
       Pub is a package manager for Dart.
 
       Usage:
@@ -23,9 +23,11 @@ main() {
       The commands are:
 
         list      print the contents of repositories
+        update    update a package's dependencies
         version   print Pub version
 
-      Use "pub help [command]" for more information about a command.''');
+      Use "pub help [command]" for more information about a command.
+      """);
   });
 
   group('an unknown command', () {
@@ -33,16 +35,18 @@ main() {
       args: ['quylthulg'],
       output: '''
       Unknown command "quylthulg".
-      Run "pub help" to see available commands.''',
+      Run "pub help" to see available commands.
+      ''',
       exitCode: 64);
   });
 
-  listCommand();
-  versionCommand();
+  group('pub list', listCommand);
+  group('pub update', updateCommand);
+  group('pub version', versionCommand);
 }
 
 listCommand() {
-  group('list cache', () {
+  group('cache', () {
     testPub('treats an empty directory as a package',
       cache: [
         dir('apple'),
@@ -53,14 +57,58 @@ listCommand() {
       output: '''
       apple
       banana
-      cherry''');
+      cherry
+      ''');
   });
 }
 
+updateCommand() {
+  testPub('adds a dependent package',
+    cache: [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ],
+    app: dir('myapp', [
+      file('pubspec', 'foo')
+    ]),
+    args: ['update'],
+    expectedPackageDir: [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ],
+    output: '');
+
+  testPub('adds a transitively dependent package',
+    cache: [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";'),
+        file('pubspec', 'bar')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";'),
+      ])
+    ],
+    app: dir('myapp', [
+      file('pubspec', 'foo')
+    ]),
+    args: ['update'],
+    expectedPackageDir: [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";'),
+      ])
+    ],
+    output: '');
+}
+
 versionCommand() {
-  group('the version command', () {
-    testPub('displays the current version',
-      args: ['version'],
-      output: 'Pub 0.0.0');
-  });
+  testPub('displays the current version',
+    args: ['version'],
+    output: '''
+    Pub 0.0.0
+    ''');
 }
