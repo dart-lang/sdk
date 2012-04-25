@@ -49,6 +49,34 @@ void testMultiValue() {
   Expect.isNull(headers[HttpHeaders.PRAGMA]);
 }
 
+void testDate() {
+  Date date1 = new Date.withTimeZone(
+      1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());
+  String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
+  Date date2 = new Date.withTimeZone(
+      2000, Date.AUG, 16, 12, 34, 56, 0, new TimeZone.utc());
+  String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
+
+  _HttpHeaders headers = new _HttpHeaders();
+  Expect.isNull(headers.date);
+  headers.date = date1;
+  Expect.equals(date1, headers.date);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.DATE));
+  Expect.equals(1, headers[HttpHeaders.DATE].length);
+  headers.add(HttpHeaders.DATE, httpDate2);
+  Expect.equals(1, headers[HttpHeaders.DATE].length);
+  Expect.equals(date2, headers.date);
+  Expect.equals(httpDate2, headers.value(HttpHeaders.DATE));
+  headers.set(HttpHeaders.DATE, httpDate1);
+  Expect.equals(1, headers[HttpHeaders.DATE].length);
+  Expect.equals(date1, headers.date);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.DATE));
+
+  headers.set(HttpHeaders.DATE, "xxx");
+  Expect.equals("xxx", headers.value(HttpHeaders.DATE));
+  Expect.equals(null, headers.date);
+}
+
 void testExpires() {
   Date date1 = new Date.withTimeZone(
       1999, Date.JUN, 11, 18, 46, 53, 0, new TimeZone.utc());

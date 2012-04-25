@@ -86,7 +86,7 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
   int frame_index = frame_index_smi.Value();
   int count = 0;
   DartFrameIterator frames;
-  DartFrame* frame = frames.NextFrame();
+  StackFrame* frame = frames.NextFrame();
   while (frame != NULL) {
     if (count == frame_index) {
       // Find the function corresponding to this frame and check if it

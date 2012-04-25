@@ -18,14 +18,6 @@ class ObjectPointerVisitor;
 // Generic stack frame.
 class StackFrame : public ValueObject {
  public:
-  enum FrameType {
-    kDartFrame,
-    kStubFrame,
-    kEntryFrame,
-    kExitFrame,
-    kInvalidFrame,
-  };
-
   virtual ~StackFrame() { }
 
   // Accessors to get the pc, sp and fp of a frame.
@@ -40,29 +32,33 @@ class StackFrame : public ValueObject {
   }
 
   // Visit objects in the frame.
-  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor) = 0;
+  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Print a frame.
   virtual void Print() const;
 
   // Check validity of a frame, used for assertion purposes.
-  virtual bool IsValid() const { return false; }
+  virtual bool IsValid() const;
 
   // Frame type.
-  virtual bool IsDartFrame() const { return false; }
-  virtual bool IsStubFrame() const { return false; }
+  virtual bool IsDartFrame() const { return LookupDartCode() != Code::null(); }
+  virtual bool IsStubFrame() const;
   virtual bool IsEntryFrame() const { return false; }
   virtual bool IsExitFrame() const { return false; }
 
-  // Find code object corresponding to pc (valid only for DartFrame and
-  // StubFrame.
+  RawFunction* LookupDartFunction() const;
+  RawCode* LookupDartCode() const;
+  bool FindExceptionHandler(uword* handler_pc) const;
+
+  // Find code object corresponding to pc (only frames running dart code or
+  // stub code will have a code object associated with them).
   static RawCode* LookupCode(Isolate* isolate, uword pc);
 
  protected:
   StackFrame() : fp_(0), sp_(0) { }
 
   // Name of the frame, used for generic frame printing functionality.
-  virtual const char* GetName() const = 0;
+  virtual const char* GetName() const { return IsStubFrame()? "stub" : "dart"; }
 
  private:
   // An object finder visitor interface.
@@ -101,6 +97,8 @@ class StackFrame : public ValueObject {
 class ExitFrame : public StackFrame {
  public:
   bool IsValid() const { return sp() == 0; }
+  bool IsDartFrame() const { return false; }
+  bool IsStubFrame() const { return false; }
   bool IsExitFrame() const { return true; }
 
   // Visit objects in the frame.
@@ -122,6 +120,8 @@ class ExitFrame : public StackFrame {
 class EntryFrame : public StackFrame {
  public:
   bool IsValid() const { return StubCode::InInvocationStub(pc()); }
+  bool IsDartFrame() const { return false; }
+  bool IsStubFrame() const { return false; }
   bool IsEntryFrame() const { return true; }
 
   // Visit objects in the frame.
@@ -136,55 +136,6 @@ class EntryFrame : public StackFrame {
 
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(EntryFrame);
-};
-
-
-// Regular dart frames, these exist between an EntryFrame and an ExitFrame.
-class DartFrame : public StackFrame {
- public:
-  bool IsValid() const { return (LookupDartFunction() != Function::null()); }
-  bool IsDartFrame() const { return true; }
-
-  // Visit objects in the frame.
-  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
-  // Get function object corresponding to pc for the frame.
-  RawFunction* LookupDartFunction() const;
-
-  // Get code object corresponding to pc for the frame.
-  RawCode* LookupDartCode() const;
-
-  // Find exception handler pc in frame if one exists.
-  bool FindExceptionHandler(uword* handler_pc) const;
-
- protected:
-  virtual const char* GetName() const { return "dart"; }
-
- private:
-  DartFrame() { }
-
-  friend class StackFrameIterator;
-  DISALLOW_COPY_AND_ASSIGN(DartFrame);
-};
-
-
-// Stub frames.
-class StubFrame : public StackFrame {
- public:
-  bool IsValid() const;
-  bool IsStubFrame() const { return true; }
-
-  // Visit objects in the frame.
-  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
- protected:
-  virtual const char* GetName() const { return "stub"; }
-
- private:
-  StubFrame() { }
-
-  friend class StackFrameIterator;
-  DISALLOW_COPY_AND_ASSIGN(StubFrame);
 };
 
 
@@ -222,14 +173,11 @@ class StackFrameIterator : public ValueObject {
     StackFrame* NextFrame(bool validate);
 
    private:
-    FrameSetIterator() : fp_(0), sp_(0), from_stub_exitframe_(false),
-                         dart_frame_(), stub_frame_() { }
+    FrameSetIterator() : fp_(0), sp_(0), stack_frame_() { }
 
     uword fp_;
     uword sp_;
-    bool from_stub_exitframe_;  // Indicates if runtime called from stub frame.
-    DartFrame dart_frame_;  // Singleton dart frame returned by NextFrame().
-    StubFrame stub_frame_;  // Singleton stub frame returned by NextFrame().
+    StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -267,12 +215,12 @@ class DartFrameIterator : public ValueObject {
   DartFrameIterator() : frames_(StackFrameIterator::kDontValidateFrames) { }
 
   // Get next dart frame.
-  DartFrame* NextFrame() {
+  StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();
     while (frame != NULL && !frame->IsDartFrame()) {
       frame = frames_.NextFrame();
     }
-    return reinterpret_cast<DartFrame*>(frame);
+    return frame;
   }
 
  private:

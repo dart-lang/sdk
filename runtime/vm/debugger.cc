@@ -867,8 +867,8 @@ void Debugger::BreakpointCallback() {
     return;
   }
   DartFrameIterator iterator;
-  DartFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != NULL && frame->IsDartFrame());
   CodeBreakpoint* bpt = GetCodeBreakpoint(frame->pc());
   ASSERT(bpt != NULL);
   if (verbose) {

@@ -28,8 +28,7 @@ static bool FindExceptionHandler(uword* handler_pc,
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
       stack_frame_pcs->Add(frame->pc());
-      DartFrame* dart_frame = reinterpret_cast<DartFrame*>(frame);
-      if (dart_frame->FindExceptionHandler(handler_pc)) {
+      if (frame->FindExceptionHandler(handler_pc)) {
         *handler_sp = frame->sp();
         *handler_fp = frame->fp();
         return true;
@@ -123,8 +122,8 @@ static void ThrowExceptionHelper(const Instance& exception,
 // Return the script of the Dart function that called the native entry or the
 // runtime entry. The frame iterator points to the callee.
 RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
-  DartFrame* caller_frame = iterator->NextFrame();
-  ASSERT(caller_frame != NULL);
+  StackFrame* caller_frame = iterator->NextFrame();
+  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
   ASSERT(!caller.IsNull());
   const Class& caller_class = Class::Handle(caller.owner());

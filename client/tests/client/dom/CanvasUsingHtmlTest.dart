@@ -47,7 +47,7 @@ main() {
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,
                                               canvas.height);
-    CanvasPixelArray bytes = image.data;
+    Uint8ClampedArray bytes = image.data;
 
     // FIXME: uncomment when numeric index getters are supported.
     //var byte = bytes[0];

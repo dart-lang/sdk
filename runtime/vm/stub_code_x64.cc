@@ -30,7 +30,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 //   RBX : address of the runtime function to call.
 //   R10 : number of arguments to the call.
 // Must preserve callee saved registers R12 and R13.
-static void GenerateCallRuntimeStub(Assembler* assembler) {
+void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   ASSERT((R12 != CTX) && (R13 != CTX));
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_offset = NativeArguments::argc_offset();
@@ -83,32 +83,6 @@ static void GenerateCallRuntimeStub(Assembler* assembler) {
 
   __ LeaveFrame();
   __ ret();
-}
-
-
-// Input parameters:
-//   RSP : points to return address.
-//   RSP + 8 : address of last argument in argument array.
-//   RSP + 8*R10 : address of first argument in argument array.
-//   RSP + 8*R10 + 8 : address of return value.
-//   RBX : address of the runtime function to call.
-//   R10 : number of arguments to the call.
-// Must preserve callee saved registers R12 and R13.
-void StubCode::GenerateDartCallToRuntimeStub(Assembler* assembler) {
-  GenerateCallRuntimeStub(assembler);
-}
-
-
-// Input parameters:
-//   RSP : points to return address.
-//   RSP + 8 : address of last argument in argument array.
-//   RSP + 8*R10 : address of first argument in argument array.
-//   RSP + 8*R10 + 8 : address of return value.
-//   RBX : address of the runtime function to call.
-//   R10 : number of arguments to the call.
-// Must preserve callee saved registers R12 and R13.
-void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
-  GenerateCallRuntimeStub(assembler);
 }
 
 
@@ -245,7 +219,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);
-  __ CallRuntimeFromStub(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
   __ popq(RBX);  // Restore read-only function object argument in RBX.
   __ popq(R10);  // Restore arguments descriptor array.
   // Restore RAX.
@@ -260,7 +234,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve function object.
-  __ CallRuntimeFromStub(kPatchStaticCallRuntimeEntry);
+  __ CallRuntime(kPatchStaticCallRuntimeEntry);
   __ popq(RBX);  // Restore function object argument in RBX.
   __ popq(R10);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
@@ -283,7 +257,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve target function.
   __ pushq(RBX);  // Target function.
-  __ CallRuntimeFromStub(kFixCallersTargetRuntimeEntry);
+  __ CallRuntime(kFixCallersTargetRuntimeEntry);
   __ popq(RAX);  // discard argument.
   __ popq(RAX);  // Restore function.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -442,7 +416,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
-  __ CallRuntimeFromStub(kResolveCompileInstanceFunctionRuntimeEntry);
+  __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
   __ popq(RAX);  // Remove receiver pushed earlier.
   __ popq(RBX);  // Pop returned code object into RBX.
   // Pop preserved values
@@ -478,7 +452,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
-  __ CallRuntimeFromStub(kResolveImplicitClosureFunctionRuntimeEntry);
+  __ CallRuntime(kResolveImplicitClosureFunctionRuntimeEntry);
   __ popq(RAX);
   __ popq(RAX);
   __ popq(RBX);  // Get return value into RBX, might be Closure object.
@@ -513,7 +487,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
-  __ CallRuntimeFromStub(kResolveImplicitClosureThroughGetterRuntimeEntry);
+  __ CallRuntime(kResolveImplicitClosureThroughGetterRuntimeEntry);
   __ popq(R10);  // Pop argument.
   __ popq(RAX);  // Pop argument.
   __ popq(RBX);  // get return value into RBX, might be Closure object.
@@ -546,7 +520,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // TOS + 6: Last argument of caller.
   // ....
 
-  __ CallRuntimeFromStub(kInvokeImplicitClosureFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeImplicitClosureFunctionRuntimeEntry);
   // Remove arguments.
   __ popq(RAX);
   __ popq(RAX);
@@ -586,7 +560,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // TOS + 7: Last argument of caller.
   // ....
 
-  __ CallRuntimeFromStub(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
   __ popq(RAX);
   __ popq(RAX);
@@ -609,7 +583,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   // TOS + 1: Deoptimization point (return address), will be patched.
   // TOS + 2: top-of-stack at deoptimization point (all arguments on stack).
   __ pushq(RAX);
-  __ CallRuntimeFromStub(kDeoptimizeRuntimeEntry);
+  __ CallRuntime(kDeoptimizeRuntimeEntry);
   __ popq(RAX);
   __ LeaveFrame();
   __ ret();
@@ -738,7 +712,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
-  __ CallRuntimeFromStub(kAllocateArrayRuntimeEntry);
+  __ CallRuntime(kAllocateArrayRuntimeEntry);
   __ popq(RAX);  // Pop element type argument.
   __ popq(R10);  // Pop array length argument.
   __ popq(RAX);  // Pop return value from return slot.
@@ -795,7 +769,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve read-only function object argument.
-  __ CallRuntimeFromStub(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
   __ popq(RBX);  // Restore read-only function object argument in RBX.
   __ popq(R10);  // Restore arguments descriptor array.
   // Restore RAX.
@@ -840,7 +814,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // TOS + 4: Dart code return address
   // TOS + 5: Last argument of caller.
   // ....
-  __ CallRuntimeFromStub(kReportObjectNotClosureRuntimeEntry);
+  __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
   __ Stop("runtime call throws an exception");
 }
 
@@ -1078,7 +1052,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ SmiTag(R10);
   __ pushq(R10);  // Push number of context variables.
-  __ CallRuntimeFromStub(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
   __ popq(RAX);  // Pop number of context variables argument.
   __ popq(RAX);  // Pop the new context object.
   // RAX: new object
@@ -1271,7 +1245,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ pushq(raw_null);  // Push null type arguments.
     __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntimeFromStub(kAllocateObjectRuntimeEntry);  // Allocate object.
+  __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
   __ popq(RAX);  // Pop argument (instantiator).
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
@@ -1419,7 +1393,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ pushq(raw_null);  // Setup space on stack for the return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
-    __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
+    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
   } else {
     if (is_implicit_instance_closure) {
       __ pushq(RAX);  // Receiver.
@@ -1430,12 +1404,12 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ pushq(raw_null);  // Push null type arguments.
     }
     if (is_implicit_instance_closure) {
-      __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
       __ popq(RAX);  // Pop type arguments.
       __ popq(RAX);  // Pop receiver.
     } else {
       ASSERT(func.IsNonImplicitClosureFunction());
-      __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+      __ CallRuntime(kAllocateClosureRuntimeEntry);
       __ popq(RAX);  // Pop type arguments.
     }
   }
@@ -1495,7 +1469,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // TOS + 8: Dart caller code return address
   // TOS + 9: Last argument of caller.
   // ....
-  __ CallRuntimeFromStub(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
   __ popq(RAX);
   __ popq(RAX);
@@ -1604,9 +1578,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ pushq(R10);
   }
   if (num_args == 1) {
-    __ CallRuntimeFromStub(kInlineCacheMissHandlerOneArgRuntimeEntry);
+    __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
-    __ CallRuntimeFromStub(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+    __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
   } else {
     UNIMPLEMENTED();
   }
@@ -1679,7 +1653,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushq(R10);
   __ pushq(RBX);
-  __ CallRuntimeFromStub(kBreakpointStaticHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   __ popq(RBX);
   __ popq(R10);
   __ LeaveFrame();
@@ -1697,7 +1671,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushq(RAX);
-  __ CallRuntimeFromStub(kBreakpointReturnHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popq(RAX);
   __ LeaveFrame();
 
@@ -1714,7 +1688,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushq(RBX);
   __ pushq(R10);
-  __ CallRuntimeFromStub(kBreakpointDynamicHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
   __ popq(R10);
   __ popq(RBX);
   __ LeaveFrame();

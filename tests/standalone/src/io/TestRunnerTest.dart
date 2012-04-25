@@ -60,7 +60,11 @@ void main() {
   new RunningProcess(MakeTestCase("FailTest", [FAIL])).start();
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
 
-  var configuration = new TestOptionsParser().parse(['--timeout', '10'])[0];
+  // The crash test sometimes times out.  Run it with a large timeout to help
+  // diagnose the delay.
+  // The test loads a new executable, which may sometimes take a long time.
+  // It involves a wait on the VM event loop, and possible system delays.
+  var configuration = new TestOptionsParser().parse(['--timeout', '60'])[0];
   new RunningProcess(new TestCase("CrashTest",
                                   [new Command(getProcessTestFileName(),
                                                const ["0", "0", "1", "1"])],

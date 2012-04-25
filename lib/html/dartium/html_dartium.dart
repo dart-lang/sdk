@@ -7579,11 +7579,15 @@ class _DocumentTypeImpl extends _NodeImpl implements DocumentType {
 class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsCompressorNode {
   _DynamicsCompressorNodeImpl._wrap(ptr) : super._wrap(ptr);
 
+  AudioParam get attack() => _wrap(_ptr.attack);
+
   AudioParam get knee() => _wrap(_ptr.knee);
 
   AudioParam get ratio() => _wrap(_ptr.ratio);
 
   AudioParam get reduction() => _wrap(_ptr.reduction);
+
+  AudioParam get release() => _wrap(_ptr.release);
 
   AudioParam get threshold() => _wrap(_ptr.threshold);
 }
@@ -8915,7 +8919,7 @@ class _EntrySyncImpl extends _DOMTypeBase implements EntrySync {
     return _wrap(_ptr.getMetadata());
   }
 
-  DirectoryEntrySync getParent() {
+  EntrySync getParent() {
     return _wrap(_ptr.getParent());
   }
 
@@ -10233,8 +10237,12 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
     return;
   }
 
-  IDBObjectStore createObjectStore(String name) {
-    return _wrap(_ptr.createObjectStore(_unwrap(name)));
+  IDBObjectStore createObjectStore(String name, [Map options = null]) {
+    if (options === null) {
+      return _wrap(_ptr.createObjectStore(_unwrap(name)));
+    } else {
+      return _wrap(_ptr.createObjectStore(_unwrap(name), _unwrap(options)));
+    }
   }
 
   void deleteObjectStore(String name) {
@@ -10349,12 +10357,20 @@ class _IDBIndexImpl extends _DOMTypeBase implements IDBIndex {
     }
   }
 
-  IDBRequest getObject(/*IDBKey*/ key) {
-    return _wrap(_ptr.getObject(_unwrap(key)));
+  IDBRequest get(key) {
+    if (key is IDBKeyRange) {
+      return _wrap(_ptr.get(_unwrap(key)));
+    } else {
+      return _wrap(_ptr.get(_unwrap(key)));
+    }
   }
 
-  IDBRequest getKey(/*IDBKey*/ key) {
-    return _wrap(_ptr.getKey(_unwrap(key)));
+  IDBRequest getKey(key) {
+    if (key is IDBKeyRange) {
+      return _wrap(_ptr.getKey(_unwrap(key)));
+    } else {
+      return _wrap(_ptr.getKey(_unwrap(key)));
+    }
   }
 
   IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
@@ -10439,8 +10455,12 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     }
   }
 
-  IDBIndex createIndex(String name, String keyPath) {
-    return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
+  IDBIndex createIndex(String name, String keyPath, [Map options = null]) {
+    if (options === null) {
+      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath)));
+    } else {
+      return _wrap(_ptr.createIndex(_unwrap(name), _unwrap(keyPath), _unwrap(options)));
+    }
   }
 
   IDBRequest delete(key_OR_keyRange) {
@@ -10456,8 +10476,12 @@ class _IDBObjectStoreImpl extends _DOMTypeBase implements IDBObjectStore {
     return;
   }
 
-  IDBRequest getObject(/*IDBKey*/ key) {
-    return _wrap(_ptr.getObject(_unwrap(key)));
+  IDBRequest getObject(key) {
+    if (key is IDBKeyRange) {
+      return _wrap(_ptr.getObject(_unwrap(key)));
+    } else {
+      return _wrap(_ptr.getObject(_unwrap(key)));
+    }
   }
 
   IDBIndex index(String name) {
@@ -10717,7 +10741,7 @@ class _IceCandidateImpl extends _DOMTypeBase implements IceCandidate {
 class _ImageDataImpl extends _DOMTypeBase implements ImageData {
   _ImageDataImpl._wrap(ptr) : super._wrap(ptr);
 
-  CanvasPixelArray get data() => _wrap(_ptr.data);
+  Uint8ClampedArray get data() => _wrap(_ptr.data);
 
   int get height() => _wrap(_ptr.height);
 
@@ -22516,6 +22540,14 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _NotificationFactoryProvider {
+  factory Notification(String title, [Map options = null]) =>
+      _wrap(new dom.Notification(_unwrap(title), _unwrap(options)));
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _OptionElementFactoryProvider {
   factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) =>
       _wrap(new dom.HTMLOptionElement(_unwrap(data), _unwrap(value), _unwrap(defaultSelected), _unwrap(selected)));
@@ -27868,6 +27900,9 @@ interface DocumentType extends Node {
 /// @domName DynamicsCompressorNode
 interface DynamicsCompressorNode extends AudioNode {
 
+  /** @domName DynamicsCompressorNode.attack */
+  final AudioParam attack;
+
   /** @domName DynamicsCompressorNode.knee */
   final AudioParam knee;
 
@@ -27876,6 +27911,9 @@ interface DynamicsCompressorNode extends AudioNode {
 
   /** @domName DynamicsCompressorNode.reduction */
   final AudioParam reduction;
+
+  /** @domName DynamicsCompressorNode.release */
+  final AudioParam release;
 
   /** @domName DynamicsCompressorNode.threshold */
   final AudioParam threshold;
@@ -28485,7 +28523,7 @@ interface EntrySync {
   Metadata getMetadata();
 
   /** @domName EntrySync.getParent */
-  DirectoryEntrySync getParent();
+  EntrySync getParent();
 
   /** @domName EntrySync.moveTo */
   EntrySync moveTo(DirectoryEntrySync parent, String name);
@@ -29620,7 +29658,7 @@ interface IDBDatabase extends EventTarget {
   void close();
 
   /** @domName IDBDatabase.createObjectStore */
-  IDBObjectStore createObjectStore(String name);
+  IDBObjectStore createObjectStore(String name, [Map options]);
 
   /** @domName IDBDatabase.deleteObjectStore */
   void deleteObjectStore(String name);
@@ -29741,11 +29779,11 @@ interface IDBIndex {
   /** @domName IDBIndex.count */
   IDBRequest count([key_OR_range]);
 
-  /** @domName IDBIndex.getObject */
-  IDBRequest getObject(/*IDBKey*/ key);
+  /** @domName IDBIndex.get */
+  IDBRequest get(key);
 
   /** @domName IDBIndex.getKey */
-  IDBRequest getKey(/*IDBKey*/ key);
+  IDBRequest getKey(key);
 
   /** @domName IDBIndex.openCursor */
   IDBRequest openCursor([IDBKeyRange range, int direction]);
@@ -29814,7 +29852,7 @@ interface IDBObjectStore {
   IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, String keyPath);
+  IDBIndex createIndex(String name, String keyPath, [Map options]);
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange);
@@ -29823,7 +29861,7 @@ interface IDBObjectStore {
   void deleteIndex(String name);
 
   /** @domName IDBObjectStore.getObject */
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest getObject(key);
 
   /** @domName IDBObjectStore.index */
   IDBIndex index(String name);
@@ -30055,7 +30093,7 @@ interface IceCandidate default _IceCandidateFactoryProvider {
 interface ImageData {
 
   /** @domName ImageData.data */
-  final CanvasPixelArray data;
+  final Uint8ClampedArray data;
 
   /** @domName ImageData.height */
   final int height;
@@ -31993,7 +32031,9 @@ interface Notation extends Node {
 // WARNING: Do not edit - generated code.
 
 /// @domName Notification
-interface Notification extends EventTarget {
+interface Notification extends EventTarget default _NotificationFactoryProvider {
+
+  Notification(String title, [Map options]);
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -41524,7 +41564,7 @@ class _AudioContextFactoryProvider {
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
-  factory Float32Array.fromList(List<num> list) => _F32(ensureNative(list));
+  factory Float32Array.fromList(List<num> list) => _F32_1(ensureNative(list));
   factory Float32Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) {
     if (length == null) return _F32_2(buffer, byteOffset);
@@ -41532,7 +41572,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Float64Array(int length) => _F64(length);
-  factory Float64Array.fromList(List<num> list) => _F64(ensureNative(list));
+  factory Float64Array.fromList(List<num> list) => _F64_1(ensureNative(list));
   factory Float64Array.fromBuffer(ArrayBuffer buffer,
                                   [int byteOffset = 0, int length]) {
     if (length == null) return _F64_2(buffer, byteOffset);
@@ -41540,7 +41580,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int8Array(int length) => _I8(length);
-  factory Int8Array.fromList(List<num> list) => _I8(ensureNative(list));
+  factory Int8Array.fromList(List<num> list) => _I8_1(ensureNative(list));
   factory Int8Array.fromBuffer(ArrayBuffer buffer,
                                [int byteOffset = 0, int length]) {
     if (length == null) return _I8_2(buffer, byteOffset);
@@ -41548,7 +41588,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int16Array(int length) => _I16(length);
-  factory Int16Array.fromList(List<num> list) => _I16(ensureNative(list));
+  factory Int16Array.fromList(List<num> list) => _I16_1(ensureNative(list));
   factory Int16Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _I16_2(buffer, byteOffset);
@@ -41556,7 +41596,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Int32Array(int length) => _I32(length);
-  factory Int32Array.fromList(List<num> list) => _I32(ensureNative(list));
+  factory Int32Array.fromList(List<num> list) => _I32_1(ensureNative(list));
   factory Int32Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _I32_2(buffer, byteOffset);
@@ -41564,7 +41604,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint8Array(int length) => _U8(length);
-  factory Uint8Array.fromList(List<num> list) => _U8(ensureNative(list));
+  factory Uint8Array.fromList(List<num> list) => _U8_1(ensureNative(list));
   factory Uint8Array.fromBuffer(ArrayBuffer buffer,
                                 [int byteOffset = 0, int length]) {
     if (length == null) return _U8_2(buffer, byteOffset);
@@ -41572,7 +41612,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint16Array(int length) => _U16(length);
-  factory Uint16Array.fromList(List<num> list) => _U16(ensureNative(list));
+  factory Uint16Array.fromList(List<num> list) => _U16_1(ensureNative(list));
   factory Uint16Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) {
     if (length == null) return _U16_2(buffer, byteOffset);
@@ -41580,7 +41620,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint32Array(int length) => _U32(length);
-  factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
+  factory Uint32Array.fromList(List<num> list) => _U32_1(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer,
                                  [int byteOffset = 0, int length]) {
     if (length == null) return _U32_2(buffer, byteOffset);
@@ -41588,7 +41628,7 @@ class _TypedArrayFactoryProvider {
   }
 
   factory Uint8ClampedArray(int length) => _U8C(length);
-  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C_1(ensureNative(list));
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer,
                                        [int byteOffset = 0, int length]) {
     if (length == null) return _U8C_2(buffer, byteOffset);
@@ -41604,6 +41644,16 @@ class _TypedArrayFactoryProvider {
   static Uint16Array _U16(arg) => _wrap(new dom.Uint16Array(arg));
   static Uint32Array _U32(arg) => _wrap(new dom.Uint32Array(arg));
   static Uint8ClampedArray _U8C(arg) => _wrap(new dom.Uint8ClampedArray(arg));
+
+  static Float32Array _F32_1(arg) => _wrap(new dom.Float32Array.fromList(arg));
+  static Float64Array _F64_1(arg) => _wrap(new dom.Float64Array.fromList(arg));
+  static Int8Array _I8_1(arg) => _wrap(new dom.Int8Array.fromList(arg));
+  static Int16Array _I16_1(arg) => _wrap(new dom.Int16Array.fromList(arg));
+  static Int32Array _I32_1(arg) => _wrap(new dom.Int32Array.fromList(arg));
+  static Uint8Array _U8_1(arg) => _wrap(new dom.Uint8Array.fromList(arg));
+  static Uint16Array _U16_1(arg) => _wrap(new dom.Uint16Array.fromList(arg));
+  static Uint32Array _U32_1(arg) => _wrap(new dom.Uint32Array.fromList(arg));
+  static Uint8ClampedArray _U8C_1(arg) => _wrap(new dom.Uint8ClampedArray.fromList(arg));
 
   static Float32Array _F32_2(buffer, byteOffset) => _wrap(new dom.Float32Array.fromBuffer(_unwrap(buffer), byteOffset));
   static Float64Array _F64_2(buffer, byteOffset) => _wrap(new dom.Float64Array.fromBuffer(_unwrap(buffer), byteOffset));

@@ -526,8 +526,7 @@ class Assembler : public ValueObject {
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
 
-  void CallRuntimeFromDart(const RuntimeEntry& entry);
-  void CallRuntimeFromStub(const RuntimeEntry& entry);
+  void CallRuntime(const RuntimeEntry& entry);
 
   /*
    * Misc. functionality

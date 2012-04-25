@@ -1241,6 +1241,7 @@ class SsaBuilder implements Visitor {
 
     endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
     loopInfo.joinBlock = current;
+    initializerBlock.blockInformation = loopInfo;
   }
 
   visitFor(For node) {
@@ -2527,7 +2528,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    work.allowSpeculativeOptimization = false;
     assert(!isAborted());
     TargetElement target = elements[node];
     assert(target !== null);

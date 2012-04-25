@@ -700,7 +700,11 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       ASSERT(full_arguments.IsNull());  // Use null vector for raw type.
     }
     // Mark the type as finalized.
-    parameterized_type.set_is_finalized();
+    if (parameterized_type.IsInstantiated()) {
+      parameterized_type.set_is_finalized_instantiated();
+    } else {
+      parameterized_type.set_is_finalized_uninstantiated();
+    }
 
     // Upper bounds of the finalized type arguments are only verified in checked
     // mode, since bound errors are never reported by the vm in production mode.
@@ -729,7 +733,12 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       }
     }
   } else {
-    parameterized_type.set_is_finalized();
+    // Mark the type as finalized.
+    if (parameterized_type.IsInstantiated()) {
+      parameterized_type.set_is_finalized_instantiated();
+    } else {
+      parameterized_type.set_is_finalized_uninstantiated();
+    }
   }
   return parameterized_type.Canonicalize();
 }
@@ -1305,7 +1314,7 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
     type.set_arguments(AbstractTypeArguments::Handle());
   }
   if (!type.IsFinalized()) {
-    type.set_is_finalized();
+    type.set_is_finalized_instantiated();
     // Do not canonicalize malformed types, since they may not be resolved.
   } else {
     // The only case where the malformed type was already finalized is when its

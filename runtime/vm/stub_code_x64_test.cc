@@ -36,7 +36,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   __ PushObject(smi1);  // Push argument 1 smi1.
   __ PushObject(smi2);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
-  __ CallRuntimeFromStub(kTestSmiSubRuntimeEntry);  // Call SmiSub runtime func.
+  __ CallRuntime(kTestSmiSubRuntimeEntry);  // Call SmiSub runtime func.
   __ AddImmediate(RSP, Immediate(argc * kWordSize));
   __ popq(RAX);  // Pop return value from return slot.
   __ leave();

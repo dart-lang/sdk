@@ -344,8 +344,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
                 String::Handle(type.Name()).ToCString());
     }
     DartFrameIterator iterator;
-    DartFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
     const Function& function = Function::Handle(
         caller_frame->LookupDartFunction());
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
@@ -363,8 +363,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   if (type.IsInstantiated() &&
       !Class::Handle(type.type_class()).HasTypeArguments()) {
     DartFrameIterator iterator;
-    DartFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
     const Code& code = Code::Handle(caller_frame->LookupDartCode());
     ASSERT(!code.IsNull());
     uword loc = code.GetTypeTestAtNodeId(node_id);
@@ -457,8 +457,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
                 String::Handle(dst_type.Name()).ToCString());
     }
     DartFrameIterator iterator;
-    DartFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
     const Function& function = Function::Handle(
         caller_frame->LookupDartFunction());
     OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
@@ -487,8 +487,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   if (dst_type.IsInstantiated() &&
       !Class::Handle(dst_type.type_class()).HasTypeArguments()) {
     DartFrameIterator iterator;
-    DartFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame != NULL);
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
     const Code& code = Code::Handle(caller_frame->LookupDartCode());
     ASSERT(!code.IsNull());
     uword loc = code.GetTypeTestAtNodeId(node_id);
@@ -648,8 +648,8 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // the target method.
   ASSERT(arguments.Count() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
-  DartFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   uword target = 0;
   Function& target_function = Function::Handle();
   CodePatcher::GetStaticCallAt(caller_frame->pc(), &target_function, &target);
@@ -673,8 +673,8 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver) {
   DartFrameIterator iterator;
-  DartFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   int num_arguments = -1;
   int num_named_arguments = -1;
   uword target = 0;
@@ -817,7 +817,8 @@ static RawFunction* InlineCacheMissHandler(
     return target_function.raw();
   }
   DartFrameIterator iterator;
-  DartFrame* caller_frame = iterator.NextFrame();
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   ICData& ic_data = ICData::Handle(
       CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
 #if defined(DEBUG)
@@ -1284,8 +1285,8 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   ASSERT(arguments.Count() == kDeoptimizeRuntimeEntry.argument_count());
   const Smi& deoptimization_reason_id = Smi::CheckedHandle(arguments.At(0));
   DartFrameIterator iterator;
-  DartFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   const Function& function = Function::Handle(optimized_code.function());
   ASSERT(!function.IsNull());

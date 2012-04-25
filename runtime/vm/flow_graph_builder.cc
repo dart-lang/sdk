@@ -135,39 +135,39 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 
 
 // Stores current context into the 'variable'
-void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable,
-                                           intptr_t start_index) {
-  AddInstruction(new BindInstr(start_index, new CurrentContextComp()));
-  StoreLocalComp* store_context = new StoreLocalComp(
-      variable,
-      new TempVal(start_index),
-      owner()->context_level());
+void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
+  BindInstr* context = new BindInstr(temp_index(), new CurrentContextComp());
+  AddInstruction(context);
+  StoreLocalComp* store_context =
+      new StoreLocalComp(variable, new UseVal(context),
+                         owner()->context_level());
   AddInstruction(new DoInstr(store_context));
 }
 
 
 // Loads context saved in 'context_variable' into the current context.
-void EffectGraphVisitor::BuildLoadContext(
-    const LocalVariable& variable, intptr_t start_index) {
-  LoadLocalComp* load_saved_context =
-      new LoadLocalComp(variable, owner()->context_level());
-  AddInstruction(new BindInstr(start_index, load_saved_context));
-  StoreContextComp* store_context =
-      new StoreContextComp(new TempVal(start_index));
-  AddInstruction(new DoInstr(store_context));
+void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
+  BindInstr* load_saved_context =
+      new BindInstr(temp_index(),
+                    new LoadLocalComp(variable, owner()->context_level()));
+  AddInstruction(load_saved_context);
+  DoInstr* store_context =
+      new DoInstr(new StoreContextComp(new UseVal(load_saved_context)));
+  AddInstruction(store_context);
 }
 
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
-    AssertBooleanComp* assert_boolean =
-        new AssertBooleanComp(condition_node_id(),
-                              condition_token_index(),
-                              owner()->try_index(),
-                              value);
-    AddInstruction(new BindInstr(temp_index(), assert_boolean));
-    value = new TempVal(temp_index());
+    BindInstr* assert_boolean =
+        new BindInstr(temp_index(),
+                      new AssertBooleanComp(condition_node_id(),
+                                            condition_token_index(),
+                                            owner()->try_index(),
+                                            value));
+    AddInstruction(assert_boolean);
+    value = new UseVal(assert_boolean);
   }
   BranchInstr* branch = new BranchInstr(value);
   AddInstruction(branch);
@@ -180,8 +180,10 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 void ArgumentGraphVisitor::ReturnValue(Value* value) {
   value_ = value;
   if (value->IsConstant()) {
-    AddInstruction(new BindInstr(temp_index(), value));
-    value_ = new TempVal(AllocateTempIndex());
+    BindInstr* defn = new BindInstr(temp_index(), value);
+    AddInstruction(defn);
+    value_ = new UseVal(defn);
+    AllocateTempIndex();
   }
 }
 
@@ -233,13 +235,12 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   ASSERT(current_context_level >= 0);
   if (owner()->parsed_function().saved_context_var() != NULL) {
     // CTX on entry was saved, but not linked as context parent.
-    BuildLoadContext(*owner()->parsed_function().saved_context_var(), 0);
+    BuildLoadContext(*owner()->parsed_function().saved_context_var());
   } else {
     while (current_context_level-- > 0) {
       UnchainContext();
     }
   }
-
 
   AddInstruction(
       new ReturnInstr(node->id(), node->token_index(), return_value));
@@ -558,16 +559,17 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t node_id,
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_index, start_index + 1);
   }
-  AssertAssignableComp* assert_assignable =
-      new AssertAssignableComp(node_id,
-                               token_index,
-                               owner()->try_index(),
-                               value,
-                               instantiator_type_arguments,
-                               dst_type,
-                               dst_name);
-  AddInstruction(new BindInstr(start_index, assert_assignable));
-  return new TempVal(start_index);
+  BindInstr* assert_assignable =
+      new BindInstr(start_index,
+                    new AssertAssignableComp(node_id,
+                                             token_index,
+                                             owner()->try_index(),
+                                             value,
+                                             instantiator_type_arguments,
+                                             dst_type,
+                                             dst_name));
+  AddInstruction(assert_assignable);
+  return new UseVal(assert_assignable);
 }
 
 
@@ -684,18 +686,18 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     if (node->kind() == Token::kEQ) {
       ReturnComputation(comp);
     } else {
-      AddInstruction(new BindInstr(temp_index(), comp));
-      Value* eq_result = new TempVal(temp_index());
+      Definition* eq_result = new BindInstr(temp_index(), comp);
+      AddInstruction(eq_result);
       if (FLAG_enable_type_checks) {
-        AssertBooleanComp* assert_boolean =
-            new AssertBooleanComp(node->id(),
-                                  node->token_index(),
-                                  owner()->try_index(),
-                                  eq_result);
-        AddInstruction(new BindInstr(temp_index(), assert_boolean));
-        eq_result = new TempVal(temp_index());
+        eq_result =
+            new BindInstr(temp_index(),
+                          new AssertBooleanComp(node->id(),
+                                                node->token_index(),
+                                                owner()->try_index(),
+                                                new UseVal(eq_result)));
+        AddInstruction(eq_result);
       }
-      BooleanNegateComp* negate = new BooleanNegateComp(eq_result);
+      BooleanNegateComp* negate = new BooleanNegateComp(new UseVal(eq_result));
       ReturnComputation(negate);
     }
     return;
@@ -726,13 +728,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Append(for_value);
     Value* value = for_value.value();
     if (FLAG_enable_type_checks) {
-      AssertBooleanComp* assert_boolean =
-          new AssertBooleanComp(node->operand()->id(),
-                                node->operand()->token_index(),
-                                owner()->try_index(),
-                                value);
-      AddInstruction(new BindInstr(temp_index(), assert_boolean));
-      value = new TempVal(temp_index());
+      BindInstr* assert_boolean =
+          new BindInstr(temp_index(),
+                        new AssertBooleanComp(node->operand()->id(),
+                                              node->operand()->token_index(),
+                                              owner()->try_index(),
+                                              value));
+      AddInstruction(assert_boolean);
+      value = new UseVal(assert_boolean);
     }
     BooleanNegateComp* negate = new BooleanNegateComp(value);
     ReturnComputation(negate);
@@ -1668,8 +1671,10 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
     type_arguments = type.arguments();
-    AddInstruction(new BindInstr(start_index, new ConstantVal(type_arguments)));
-    return new TempVal(start_index);
+    BindInstr* args =
+        new BindInstr(temp_index(), new ConstantVal(type_arguments));
+    AddInstruction(args);
+    return new UseVal(args);
   }
   ASSERT(owner()->parsed_function().instantiator() != NULL);
   ValueGraphVisitor for_instantiator(owner(), start_index);
@@ -2148,7 +2153,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
       ASSERT(num_context_variables > 0);
-      BuildLoadContext(*owner()->parsed_function().saved_context_var(), 0);
+      BuildLoadContext(*owner()->parsed_function().saved_context_var());
     } else if (num_context_variables > 0) {
       UnchainContext();
     }
@@ -2182,7 +2187,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   CatchEntryComp* catch_entry = new CatchEntryComp(node->exception_var(),
                                                    node->stacktrace_var());
   AddInstruction(new DoInstr(catch_entry));
-  BuildLoadContext(node->context_var(), temp_index());
+  BuildLoadContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner(), temp_index());
   node->VisitChildren(&for_catch);
@@ -2196,7 +2201,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   owner()->set_try_index(try_index);
 
   // Preserve CTX into local variable '%saved_context'.
-  BuildStoreContext(node->context_var(), temp_index());
+  BuildStoreContext(node->context_var());
 
   EffectGraphVisitor for_try_block(owner(), temp_index());
   node->try_block()->Visit(&for_try_block);
@@ -2282,7 +2287,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
     // thrown not from the current try block but the outer try block if any.
     owner()->set_try_index((try_index - 1));
   }
-  BuildLoadContext(node->context_var(), temp_index());
+  BuildLoadContext(node->context_var());
   EffectGraphVisitor for_finally_block(owner(), temp_index());
   node->finally_block()->Visit(&for_finally_block);
   Append(for_finally_block);
@@ -2355,6 +2360,11 @@ void FlowGraphPrinter::VisitBlocks() {
 
 void FlowGraphPrinter::VisitTemp(TempVal* val) {
   OS::Print("t%d", val->index());
+}
+
+
+void FlowGraphPrinter::VisitUse(UseVal* val) {
+  OS::Print("s%d", val->definition()->temp_index());
 }
 
 
@@ -2645,16 +2655,6 @@ void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
 }
 
 
-void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
-  OS::Print("    t%d <- Pick(t%d)", instr->destination(), instr->source());
-}
-
-
-void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
-  OS::Print("    t%d := t%d", instr->destination(), instr->source());
-}
-
-
 void FlowGraphPrinter::VisitDo(DoInstr* instr) {
   OS::Print("    ");
   instr->computation()->Accept(this);
@@ -2664,6 +2664,16 @@ void FlowGraphPrinter::VisitDo(DoInstr* instr) {
 void FlowGraphPrinter::VisitBind(BindInstr* instr) {
   OS::Print("    t%d <- ", instr->temp_index());
   instr->computation()->Accept(this);
+}
+
+
+void FlowGraphPrinter::VisitPickTemp(PickTempInstr* instr) {
+  OS::Print("    t%d <- Pick(t%d)", instr->temp_index(), instr->source());
+}
+
+
+void FlowGraphPrinter::VisitTuckTemp(TuckTempInstr* instr) {
+  OS::Print("    t%d := t%d", instr->destination(), instr->source());
 }
 
 

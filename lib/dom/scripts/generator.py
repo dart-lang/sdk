@@ -427,13 +427,13 @@ def TypeName(type_ids, interface):
 class IDLTypeInfo(object):
   def __init__(self, idl_type, dart_type=None,
                native_type=None, ref_counted=True,
-               has_dart_wrapper=True,
+               custom_to_native=False,
                custom_to_dart=False, conversion_includes=[]):
     self._idl_type = idl_type
     self._dart_type = dart_type
     self._native_type = native_type
     self._ref_counted = ref_counted
-    self._has_dart_wrapper = has_dart_wrapper
+    self._custom_to_native = custom_to_native
     self._custom_to_dart = custom_to_dart
     self._conversion_includes = conversion_includes + [idl_type]
 
@@ -450,11 +450,12 @@ class IDLTypeInfo(object):
     native_type = self.native_type()
     if self._ref_counted:
       native_type = 'RefPtr< %s >' % native_type
-    if self._has_dart_wrapper:
-      wrapper_type = 'Dart%s' % self.idl_type()
-      adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
-      return (adapter_type, '"%s.h"' % wrapper_type)
-    return ('ParameterAdapter< %s >' % native_type, '"%s.h"' % self._idl_type)
+    wrapper_type = 'Dart%s' % self.idl_type()
+    adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
+    return (adapter_type, '"%s.h"' % wrapper_type)
+
+  def custom_to_native(self):
+    return self._custom_to_native
 
   def parameter_type(self):
     return '%s*' % self.native_type()
@@ -475,10 +476,10 @@ class IDLTypeInfo(object):
     ]
 
     if self._idl_type in WTF_INCLUDES:
-      return ['<wtf/%s.h>' % self._idl_type]
+      return ['<wtf/%s.h>' % self.native_type()]
 
     if not self._idl_type.startswith('SVG'):
-      return ['"%s.h"' % self._idl_type]
+      return ['"%s.h"' % self.native_type()]
 
     if self._idl_type in ['SVGNumber', 'SVGPoint']:
       return []
@@ -495,7 +496,7 @@ class IDLTypeInfo(object):
     return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    return 'toDartValue(%s)' % value
+    return 'Dart%s::toDart(%s)' % (self._idl_type, value)
 
   def custom_to_dart(self):
     return self._custom_to_dart
@@ -508,6 +509,9 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def dart_type(self):
     return 'List<%s>' % self._item_info.dart_type()
+
+  def to_dart_conversion(self, value, interface_name=None, attributes=None):
+    return 'DartDOMWrapper::vectorToDart<Dart%s>(%s)' % (self._item_info.native_type(), value)
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()
@@ -589,7 +593,7 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
     else:
       conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
-    return 'toDartValue(%s)' %  conversion_cast
+    return 'Dart%s::toDart(%s)' %  (self._idl_type, conversion_cast)
 
 _idl_type_registry = {
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
@@ -620,6 +624,9 @@ _idl_type_registry = {
     'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
     'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object', native_type='ScriptValue'),
     'DOMString': PrimitiveIDLTypeInfo('DOMString', dart_type='String', native_type='String'),
+    # TODO(vsm): This won't actually work until we convert the Map to
+    # a native JS Map for JS DOM.
+    'Dictionary': PrimitiveIDLTypeInfo('Dictionary', dart_type='Map'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
@@ -638,17 +645,16 @@ _idl_type_registry = {
     'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
-    'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
+    'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
-    'Dictionary': IDLTypeInfo('Dictionary', has_dart_wrapper=False, ref_counted=False),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
-    'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
-    'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
+    'EventListener': IDLTypeInfo('EventListener', custom_to_native=True),
+    'EventTarget': IDLTypeInfo('EventTarget', custom_to_native=True),
     'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
-    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', has_dart_wrapper=False),
-    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', has_dart_wrapper=False),
-    'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
+    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', custom_to_native=True),
+    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', custom_to_native=True),
+    'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', custom_to_native=True),
     'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
     'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
 

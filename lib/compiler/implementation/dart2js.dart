@@ -11,44 +11,17 @@
 #import('../compiler.dart', prefix: 'api');
 #import('colors.dart');
 #import('source_file.dart');
-
-String relativize(Uri base, Uri uri) {
-  if (base.scheme == 'file' &&
-      base.scheme == uri.scheme &&
-      base.userInfo == uri.userInfo &&
-      base.domain == uri.domain &&
-      base.port == uri.port &&
-      uri.query == "" && uri.fragment == "") {
-    if (uri.path.startsWith(base.path)) {
-      return uri.path.substring(base.path.length);
-    }
-    List<String> uriParts = uri.path.split('/');
-    List<String> baseParts = base.path.split('/');
-    int common = 0;
-    int length = Math.min(uriParts.length, baseParts.length);
-    while (common < length && uriParts[common] == baseParts[common]) {
-      common++;
-    }
-    StringBuffer sb = new StringBuffer();
-    for (int i = common + 1; i < baseParts.length; i++) {
-      sb.add('../');
-    }
-    for (int i = common; i < uriParts.length - 1; i++) {
-      sb.add('${uriParts[i]}/');
-    }
-    sb.add('${uriParts.last()}');
-    return sb.toString();
-  }
-  return uri.toString();
-}
+#import('filenames.dart');
+#import('util/uri_extras.dart');
 
 void compile(List<String> argv) {
-  Uri cwd = new Uri(scheme: 'file', path: getCurrentDirectory());
+  Uri cwd = getCurrentDirectory();
   bool throwOnError = false;
   bool showWarnings = true;
   bool verbose = false;
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
+  List<String> options = new List<String>();
 
   List<String> arguments = <String>[];
   for (String argument in argv) {
@@ -59,24 +32,28 @@ void compile(List<String> argv) {
     } else if ('--verbose' == argument) {
       verbose = true;
     } else if (argument.startsWith('--library-root=')) {
-      String path = argument.substring(argument.indexOf('=') + 1);
+      String path =
+          nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
       if (!path.endsWith("/")) path = "$path/";
       libraryRoot = cwd.resolve(path);
     } else if (argument.startsWith('--out=')) {
-      String path = argument.substring(argument.indexOf('=') + 1);
+      String path =
+          nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
       out = cwd.resolve(path);
+    } else if (argument == '--allow-mock-compilation') {
+      options.add(argument);
     } else if (argument.startsWith('-')) {
-      throw new AbortLeg('unknown option $argument');
+      fail('Unknown option $argument.');
     } else {
-      arguments.add(argument);
+      arguments.add(nativeToUriPath(argument));
     }
   }
   if (arguments.isEmpty()) {
-    throw new AbortLeg('no files to compile');
+    fail('No files to compile.');
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
-    throw new AbortLeg('extra arguments: $extra');
+    fail('Extra arguments: $extra.');
   }
 
   Map<String, SourceFile> sourceFiles = <SourceFile>{};
@@ -86,7 +63,7 @@ void compile(List<String> argv) {
     if (uri.scheme != 'file') {
       throw new IllegalArgumentException(uri);
     }
-    String source = readAll(uri.path);
+    String source = readAll(uriPathToNative(uri.path));
     dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
       new SourceFile(relativize(cwd, uri), source);
@@ -119,8 +96,10 @@ void compile(List<String> argv) {
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, provider, handler).value;
-  if (code === null) throw new AbortLeg('compilation failed');
+  String code = api.compile(uri, libraryRoot, provider, handler, options).value;
+  if (code === null) {
+    fail('Compilation failed.');
+  }
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
@@ -135,9 +114,9 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
-    throw new AbortLeg('unhandled scheme ${uri.scheme}');
+    fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uri.path).openSync(FileMode.WRITE);
+  var file = new File(uriPathToNative(uri.path)).openSync(FileMode.WRITE);
   file.writeStringSync(text);
   file.closeSync();
 }
@@ -151,8 +130,7 @@ String readAll(String filename) {
   return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
 }
 
-String getCurrentDirectory() {
-  String dir = new File(".").fullPathSync();
-  if (dir.endsWith("/")) return dir;
-  return "$dir/";
+void fail(String message) {
+  print(message);
+  exit(1);
 }

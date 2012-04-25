@@ -97,6 +97,13 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _NotificationFactoryProvider {
+  factory Notification(String title, [Map options = null]) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _PeerConnection00FactoryProvider {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _dummy();
 }
@@ -2370,11 +2377,15 @@ interface DocumentType extends Node {
 
 interface DynamicsCompressorNode extends AudioNode {
 
+  final AudioParam attack;
+
   final AudioParam knee;
 
   final AudioParam ratio;
 
   final AudioParam reduction;
+
+  final AudioParam release;
 
   final AudioParam threshold;
 }
@@ -2648,7 +2659,7 @@ interface EntrySync {
 
   Metadata getMetadata();
 
-  DirectoryEntrySync getParent();
+  EntrySync getParent();
 
   EntrySync moveTo(DirectoryEntrySync parent, String name);
 
@@ -5080,7 +5091,7 @@ interface IDBDatabase extends EventTarget {
 
   void close();
 
-  IDBObjectStore createObjectStore(String name);
+  IDBObjectStore createObjectStore(String name, [Map options]);
 
   void deleteObjectStore(String name);
 
@@ -5170,9 +5181,9 @@ interface IDBIndex {
 
   IDBRequest count([key_OR_range]);
 
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest get(key);
 
-  IDBRequest getKey(/*IDBKey*/ key);
+  IDBRequest getKey(key);
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
@@ -5234,13 +5245,13 @@ interface IDBObjectStore {
 
   IDBRequest count([key_OR_range]);
 
-  IDBIndex createIndex(String name, String keyPath);
+  IDBIndex createIndex(String name, String keyPath, [Map options]);
 
   IDBRequest delete(key_OR_keyRange);
 
   void deleteIndex(String name);
 
-  IDBRequest getObject(/*IDBKey*/ key);
+  IDBRequest getObject(key);
 
   IDBIndex index(String name);
 
@@ -5353,7 +5364,7 @@ interface IceCandidate default _IceCandidateFactoryProvider {
 
 interface ImageData {
 
-  final CanvasPixelArray data;
+  final Uint8ClampedArray data;
 
   final int height;
 
@@ -6302,7 +6313,9 @@ interface Notation extends Node {
 
 // WARNING: Do not edit - generated code.
 
-interface Notification extends EventTarget {
+interface Notification extends EventTarget default _NotificationFactoryProvider {
+
+  Notification(String title, [Map options]);
 
   String dir;
 

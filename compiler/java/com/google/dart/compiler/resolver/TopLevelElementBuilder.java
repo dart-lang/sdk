@@ -15,6 +15,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -76,30 +77,36 @@ public class TopLevelElementBuilder {
         libraryPrefixElement.addLibrary(lib.getElement());
         // Fill library prefix scope.
         for (DartUnit unit : lib.getUnits()) {
-          fillInUnitScope(unit, listener, libraryPrefixElement.getScope());
+          fillInUnitScope(unit, listener, libraryPrefixElement.getScope(), false);
         }
       } else {
         // Put the elements of the library in the scope.
         for (DartUnit unit : lib.getUnits()) {
-          fillInUnitScope(unit, listener, scope);
+          fillInUnitScope(unit, listener, scope, false);
         }
       }
     }
 
     for (DartUnit unit : library.getUnits()) {
-      fillInUnitScope(unit, listener, scope);
+      fillInUnitScope(unit, listener, scope, true);
     }
   }
 
   @VisibleForTesting
-  void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope) {
+  void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope, boolean includePrivate) {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          declare(field.getElement(), listener, scope);
+          Element element = field.getElement();
+          if (includePrivate || !DartIdentifier.isPrivateName(element.getName())) {
+            declare(element, listener, scope);
+          }
         }
       } else {
-        declare((Element) node.getElement(), listener, scope);
+        Element element = node.getElement();
+        if (includePrivate || !DartIdentifier.isPrivateName(element.getName())) {
+          declare(element, listener, scope);
+        }
       }
     }
   }

@@ -241,7 +241,7 @@ class StandardTestSuite implements TestSuite {
    *
    * If you follow that convention, then you can construct one of these like:
    *
-   *     new DirectoryTestSuite(configuration, 'path/to/mytestsuite');
+   * new StandardTestSuite.forDirectory(configuration, 'path/to/mytestsuite');
    *
    * instead of having to create a custom [StandardTestSuite] subclass. In
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
@@ -425,12 +425,31 @@ class StandardTestSuite implements TestSuite {
 
     for (var args in argumentLists) {
       doTest(new TestCase('$suiteName/$testName',
-                          [new Command(shellPath(), args)],
+                          makeCommands(info, args),
                           configuration,
                           completeHandler,
                           expectations,
                           isNegative,
                           info));
+    }
+  }
+
+  List<Command> makeCommands(TestInformation info, var args) {
+    if (configuration['compiler'] == 'dart2js') {
+      args = new List.from(args);
+      String testPath =
+          new File(info.filename).fullPathSync().replaceAll('\\', '/');
+      Directory tempDir = createOutputDirectory(testPath, '');
+      args.add('--out=${tempDir.path}/out.js');
+      List<Command> commands = <Command>[new Command(shellPath(), args)];
+      if (configuration['runtime'] == 'd8') {
+        var d8 = '${TestUtils.buildDir(configuration)}/'
+                 'd8${TestUtils.executableSuffix("d8")}';
+        commands.add(new Command(d8, ['${tempDir.path}/out.js']));
+      }
+      return commands;
+    } else {
+      return <Command>[new Command(shellPath(), args)];
     }
   }
 
@@ -652,19 +671,27 @@ class StandardTestSuite implements TestSuite {
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
       case 'frog':
-      case 'dart2js':
         String libdir = configuration['froglib'];
         if (libdir == '') {
           libdir = '$dartDir/frog/lib';
         }
         args.addAll(['--libdir=$libdir',
-                             '--compile-only',
-                             '--out=$outputFile']);
+                     '--compile-only',
+                     '--out=$outputFile']);
         args.addAll(vmOptions);
+        args.add(inputFile);
+        break;
+      case 'dart2js':
+        args.add('--out=$outputFile');
         args.add(inputFile);
         break;
       default:
         Expect.fail('unimplemented compiler $compiler');
+    }
+    if (executable.endsWith('.dart')) {
+      // Run the compiler script via the Dart VM.
+      args.insertRange(0, 1, executable);
+      executable = TestUtils.dartShellFileName(configuration);
     }
     return new Command(executable, args);
   }
@@ -695,10 +722,12 @@ class StandardTestSuite implements TestSuite {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
-    testUniqueName += '-$optionsName';
+    if (!optionsName.isEmpty()) {
+      testUniqueName += '-$optionsName';
+    }
 
     // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
-      // including any intermediate directories that don't exist.
+    // including any intermediate directories that don't exist.
     var generatedTestPath = ['generated_tests',
                              configuration['compiler'] + '-' +
                              configuration['runtime'],
@@ -822,8 +851,7 @@ class StandardTestSuite implements TestSuite {
       args.add('--error_format');
       args.add('machine');
     }
-    if ((configuration['compiler'] == 'frog'
-          || configuration['compiler'] == 'dart2js')
+    if ((configuration['compiler'] == 'frog')
         && (configuration['runtime'] == 'none')) {
       args.add('--compile-only');
     }
@@ -831,6 +859,9 @@ class StandardTestSuite implements TestSuite {
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
     List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
+    if (configuration['compiler'] == 'dart2js') {
+      vmOptionsList = [[]];
+    }
     Expect.isTrue(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filename);
@@ -929,7 +960,7 @@ class StandardTestSuite implements TestSuite {
     if (contents.contains("@compile-error")) {
       isNegative = true;
     }
-    
+
     if (contents.contains("@runtime-error") && hasRuntime) {
       isNegative = true;
     }
@@ -1014,52 +1045,6 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     // Completed the enqueueing of listers.
     activityCompleted();
   }
-}
-
-
-/**
- * A standard test suite whose file organization matches an expected structure.
- * To use this, your suite should look like:
- *
- *     dart/
- *       path/
- *         to/
- *           mytestsuite/
- *             mytestsuite.status
- *             example1_tests.dart
- *             example2_tests.dart
- *             example3_tests.dart
- *
- * The important parts:
- *
- * * The leaf directory name is the name of your test suite.
- * * The status file uses the same name.
- * * Test files are directly in that directory and end in "_tests.dart".
- *
- * If you follow that convention, then you can construct one of these like:
- *
- *     new DirectoryTestSuite(configuration, 'path/to/mytestsuite');
- *
- * instead of having to create a custom [StandardTestSuite] subclass. In
- * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES] in
- * test.dart, this will all be set up for you.
- */
-class DirectoryTestSuite extends StandardTestSuite {
-  factory DirectoryTestSuite(Map configuration, String directory) {
-    final name = directory.substring(directory.lastIndexOf('/') + 1);
-    print(name);
-
-    return new DirectoryTestSuite._internal(configuration,
-      name, directory, ['$directory/$name.status']);
-  }
-
-  DirectoryTestSuite._internal(Map configuration,
-                               String suiteName,
-                               String directoryPath,
-                               List<String> statusFilePaths)
-    : super(configuration, suiteName, directoryPath, statusFilePaths);
-
-  bool isTestFile(String filename) => filename.endsWith('_tests.dart');
 }
 
 
@@ -1235,8 +1220,13 @@ class TestUtils {
         return 'dart$suffix';
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
-      case 'frog':
       case 'dart2js':
+        if (configuration['host_checked']) {
+          return 'dart2js_developer$suffix';
+        } else {
+          return 'dart2js$suffix';
+        }
+      case 'frog':
         return 'frog/bin/frog$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
@@ -1248,8 +1238,13 @@ class TestUtils {
     switch (configuration['compiler']) {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
-      case 'frog':
       case 'dart2js':
+        if (configuration['host_checked']) {
+          return 'dart2js_developer$suffix';
+        } else {
+          return 'dart2js$suffix';
+        }
+      case 'frog':
         return 'frog/bin/frog$suffix';
       default:
         throw "Unknown compiler for: ${configuration['compiler']}";
@@ -1257,7 +1252,10 @@ class TestUtils {
   }
 
   static String dartShellFileName(Map configuration) {
-    var name = '${buildDir(configuration)}/${executableName(configuration)}';
+    var name = configuration['dart'];
+    if (name == '') {
+      name = '${buildDir(configuration)}/${executableName(configuration)}';
+    }
     if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
@@ -1309,12 +1307,9 @@ class TestUtils {
       args.add("--enable_type_checks");
     }
     if (configuration["compiler"] == "dart2js") {
+      args = [];
       args.add("--verbose");
-      args.add("--leg");
-      if (configuration["host_checked"]) {
-        args.add("--vm_flags=--enable_asserts --enable_type_checks");
-      }
-      if (configuration['runtime'] != 'drt') {
+      if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");
       }
     }

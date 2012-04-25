@@ -378,7 +378,8 @@ class RawAbstractType : public RawObject {
   enum TypeState {
     kAllocated,  // Initial state.
     kBeingFinalized,  // In the process of being finalized.
-    kFinalized,  // Type ready for use.
+    kFinalizedInstantiated,  // Instantiated type ready for use.
+    kFinalizedUninstantiated,  // Uninstantiated type ready for use.
   };
 
  private:
@@ -674,8 +675,7 @@ class RawCode : public RawObject {
   // Variable length data follows here.
   int32_t data_[0];
 
-  friend class DartFrame;
-  friend class StubFrame;
+  friend class StackFrame;
 };
 
 

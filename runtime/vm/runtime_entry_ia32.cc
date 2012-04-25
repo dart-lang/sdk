@@ -20,22 +20,10 @@ namespace dart {
 //   ESP : points to the arguments and return value array.
 //   ECX : address of the runtime function to call.
 //   EDX : number of arguments to the call.
-void RuntimeEntry::CallFromDart(Assembler* assembler) const {
+void RuntimeEntry::Call(Assembler* assembler) const {
   __ movl(ECX, Immediate(GetEntryPoint()));
   __ movl(EDX, Immediate(argument_count()));
-  __ call(&StubCode::DartCallToRuntimeLabel());
-}
-
-
-// Generate code to call into the stub which will call the runtime
-// function. Input for the stub is as follows:
-//   ESP : points to the arguments and return value array.
-//   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call.
-void RuntimeEntry::CallFromStub(Assembler* assembler) const {
-  __ movl(ECX, Immediate(GetEntryPoint()));
-  __ movl(EDX, Immediate(argument_count()));
-  __ call(&StubCode::StubCallToRuntimeLabel());
+  __ call(&StubCode::CallToRuntimeLabel());
 }
 
 }  // namespace dart

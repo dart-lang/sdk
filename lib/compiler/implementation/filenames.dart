@@ -5,6 +5,7 @@
 #library('filenames');
 
 #import('dart:io');
+#import('dart:uri');
 
 // TODO(ahe): This library should be replaced by a general
 // path-munging library.
@@ -14,6 +15,7 @@
 
 String nativeToUriPath(String filename) {
   if (Platform.operatingSystem() != 'windows') return filename;
+  filename = filename.toLowerCase();
   filename = filename.replaceAll('\\', '/');
   if (filename.length > 2 && filename[1] == ':') {
     filename = "/$filename";
@@ -23,9 +25,17 @@ String nativeToUriPath(String filename) {
 
 String uriPathToNative(String path) {
   if (Platform.operatingSystem() != 'windows') return path;
+  path = path.toLowerCase();
   if (path.length > 3 && path[0] == '/' && path[2] == ':') {
     return path.substring(1);
   } else {
     return path;
   }
 }
+
+Uri getCurrentDirectory() {
+  final String dir = nativeToUriPath(new File('.').fullPathSync());
+  return new Uri(scheme: 'file', path: appendSlash(dir));
+}
+
+String appendSlash(String path) => path.endsWith('/') ? path : '$path/';

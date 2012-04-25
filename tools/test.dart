@@ -33,6 +33,7 @@
 #import("../tests/corelib/test_config.dart");
 #import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
+#import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
@@ -50,9 +51,10 @@
 
 /**
  * The directories that contain test suites which follow the conventions
- * required by [DirectoryTestSuite]. Ideally, we'd move more suites to this
- * convention because it makes it much simpler to add them to test.dart. (You
- * basically add the directory here and you're done.)
+ * required by [StandardTestSuite]'s forDirectory constructor.
+ * New test suites should follow this convention because it makes it much
+ * simpler to add them to test.dart.  Existing test suites should be
+ * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
   'utils/tests/peg',
@@ -110,6 +112,9 @@ main() {
     }
     if (selectors.containsKey('language')) {
       queue.addTestSuite(new LanguageTestSuite(conf));
+    }
+    if (selectors.containsKey('lib')) {
+      queue.addTestSuite(new LibTestSuite(conf));
     }
     if (selectors.containsKey('isolate')) {
       queue.addTestSuite(new IsolateTestSuite(conf));

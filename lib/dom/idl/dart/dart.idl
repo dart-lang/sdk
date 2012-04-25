@@ -91,7 +91,7 @@ module html {
 
   [Supplemental]
   interface ImageData {
-    readonly attribute CanvasPixelArray data;
+    readonly attribute Uint8ClampedArray data;
   };
 
   [Supplemental]
@@ -218,6 +218,7 @@ module storage {
   [Supplemental]
   interface IDBObjectStore {
     [DartName=getObject] IDBRequest get(in IDBKey key);
+    [DartName=getObject] IDBRequest get(in IDBKeyRange key);
   };
 
   interface IDBKeyRange {
@@ -229,6 +230,12 @@ module storage {
         raises (IDBDatabaseException);
     [Suppressed] static IDBKeyRange bound(in IDBKey lower, in IDBKey upper, in optional boolean lowerOpen, optional boolean upperOpen)
         raises (IDBDatabaseException);
+  };
+
+  interface EntrySync {
+    // Native implementation is declared to return EntrySync.
+    [Suppressed] DirectoryEntrySync getParent();
+    EntrySync getParent();
   };
 };
 

@@ -219,8 +219,14 @@ is 'dart file.dart' and you specify special command
               'bool'),
           new _TestOptionSpecification(
               'frog',
-              'Path to frog executable',
+              'Path to frog script or executable',
               ['--frog'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'dart',
+              'Path to dart executable',
+              ['--dart'],
               [],
               ''),
           new _TestOptionSpecification(

@@ -609,7 +609,10 @@ class RunningProcess {
         makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.onLine =
         makeReadHandler(stderrStringStream, stderr);
-    timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+    if (timeoutTimer == null) {
+      // Create one timeout timer when starting test case, remove it at end.
+      timeoutTimer = new Timer(1000 * testCase.timeout, timeoutHandler);
+    }
   }
 
   void timeoutHandler(Timer unusedTimer) {
@@ -1101,8 +1104,9 @@ class ProcessQueue {
       }
       if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable) {
         // The server is not ready to run Selenium tests. Put the test back in
-        // the queue.
-        _tests.addFirst(test);
+        // the queue.  Avoid spin-polling by using a timeout.
+        _tests.add(test);
+        new Timer(1000, (timer) {_tryRunTest();});  // Don't lose a process.
         return;
       }
       if (_verbose) {

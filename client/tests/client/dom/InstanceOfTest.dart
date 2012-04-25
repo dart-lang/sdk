@@ -45,7 +45,7 @@ main() {
     Expect.isFalse(bytes is HTMLElement);
     Expect.isFalse(bytes is HTMLCanvasElement);
     Expect.isFalse(bytes is ImageData);
-    Expect.isTrue(bytes is CanvasPixelArray);
+    Expect.isTrue(bytes is Uint8ClampedArray);
 
     // FIXME: Ensure this is an HTMLSpanElement when we next update
     // WebKit IDL.

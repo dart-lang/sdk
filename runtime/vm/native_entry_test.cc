@@ -76,7 +76,7 @@ DEFINE_NATIVE_ENTRY(TestStaticCallPatching, 0) {
   Function& target_function = Function::Handle();
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
-  DartFrame* static_caller_frame = iterator.NextFrame();
+  StackFrame* static_caller_frame = iterator.NextFrame();
   CodePatcher::GetStaticCallAt(static_caller_frame->pc(),
                                &target_function,
                                &target_address);

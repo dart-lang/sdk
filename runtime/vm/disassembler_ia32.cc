@@ -1013,7 +1013,7 @@ bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
     }
 
     case CALL_JUMP_INSTR: {
-      uword addr = reinterpret_cast<uword>(data) +
+      uword addr = reinterpret_cast<uword>(*data) +
                    *reinterpret_cast<uword*>(*data+1) + 5;
       Print(idesc.mnem);
       Print(" ");

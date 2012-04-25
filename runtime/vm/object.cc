@@ -998,9 +998,9 @@ void Class::set_signature_function(const Function& value) const {
 
 
 void Class::set_class_state(int8_t state) const {
-  ASSERT(state == RawClass::kAllocated ||
-         state == RawClass::kPreFinalized ||
-         state == RawClass::kFinalized);
+  ASSERT((state == RawClass::kAllocated) ||
+         (state == RawClass::kPreFinalized) ||
+         (state == RawClass::kFinalized));
   raw_ptr()->class_state_ = state;
 }
 
@@ -2273,15 +2273,21 @@ RawType* Type::NewNonParameterizedType(
   type ^= Type::New(Object::Handle(type_class.raw()),
                     no_type_arguments,
                     Scanner::kDummyTokenIndex);
-  type.set_is_finalized();
+  type.set_is_finalized_instantiated();
   type ^= type.Canonicalize();
   return type.raw();
 }
 
 
-void Type::set_is_finalized() const {
+void Type::set_is_finalized_instantiated() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawType::kFinalized);
+  set_type_state(RawType::kFinalizedInstantiated);
+}
+
+
+void Type::set_is_finalized_uninstantiated() const {
+  ASSERT(!IsFinalized());
+  set_type_state(RawType::kFinalizedUninstantiated);
 }
 
 
@@ -2360,6 +2366,12 @@ RawAbstractTypeArguments* Type::arguments() const {
 
 
 bool Type::IsInstantiated() const {
+  if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
+    return true;
+  }
+  if (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated) {
+    return false;
+  }
   const AbstractTypeArguments& args =
       AbstractTypeArguments::Handle(arguments());
   return args.IsNull() || args.IsInstantiated();
@@ -2379,7 +2391,7 @@ RawAbstractType* Type::InstantiateFrom(
       Type::New(cls, type_arguments, token_index()));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
-  instantiated_type.set_is_finalized();
+  instantiated_type.set_is_finalized_instantiated();
   return instantiated_type.raw();
 }
 
@@ -2511,9 +2523,10 @@ void Type::set_token_index(intptr_t token_index) const {
 
 
 void Type::set_type_state(int8_t state) const {
-  ASSERT(state == RawType::kAllocated ||
-         state == RawType::kBeingFinalized ||
-         state == RawType::kFinalized);
+  ASSERT((state == RawType::kAllocated) ||
+         (state == RawType::kBeingFinalized) ||
+         (state == RawType::kFinalizedInstantiated) ||
+         (state == RawType::kFinalizedUninstantiated));
   raw_ptr()->type_state_ = state;
 }
 
@@ -2551,7 +2564,7 @@ const char* Type::ToCString() const {
 
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
-  set_type_state(RawTypeParameter::kFinalized);
+  set_type_state(RawTypeParameter::kFinalizedUninstantiated);
   // Field parameterized_class_ is not needed after finalization anymore.
   set_parameterized_class(Class::Handle());
 }
@@ -2657,9 +2670,9 @@ void TypeParameter::set_token_index(intptr_t token_index) const {
 
 
 void TypeParameter::set_type_state(int8_t state) const {
-  ASSERT(state == RawTypeParameter::kAllocated ||
-         state == RawTypeParameter::kBeingFinalized ||
-         state == RawTypeParameter::kFinalized);
+  ASSERT((state == RawTypeParameter::kAllocated) ||
+         (state == RawTypeParameter::kBeingFinalized) ||
+         (state == RawTypeParameter::kFinalizedUninstantiated));
   raw_ptr()->type_state_ = state;
 }
 
@@ -6553,7 +6566,7 @@ RawType* Instance::GetType() const {
   }
   const Type& type = Type::Handle(
       Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-  type.set_is_finalized();
+  type.set_is_finalized_instantiated();
   return type.raw();
 }
 

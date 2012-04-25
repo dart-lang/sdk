@@ -1366,13 +1366,8 @@ void Assembler::LeaveFrame() {
 }
 
 
-void Assembler::CallRuntimeFromDart(const RuntimeEntry& entry) {
-  entry.CallFromDart(this);
-}
-
-
-void Assembler::CallRuntimeFromStub(const RuntimeEntry& entry) {
-  entry.CallFromStub(this);
+void Assembler::CallRuntime(const RuntimeEntry& entry) {
+  entry.Call(this);
 }
 
 

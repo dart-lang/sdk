@@ -19,6 +19,21 @@ bool StackFrame::FindRawCodeVisitor::FindObject(RawObject* obj) {
 }
 
 
+bool StackFrame::IsStubFrame() const {
+  if (Dart::vm_isolate()->heap()->CodeContains(pc())) {
+    return true;  // Common stub code is generated in the VM heap.
+  }
+  // We add a no gc scope to ensure that the code below does not trigger
+  // a GC as we are handling raw object references here. It is possible
+  // that the code is called while a GC is in progress, that is ok.
+  NoGCScope no_gc;
+  Isolate* isolate = Isolate::Current();
+  RawCode* code = StackFrame::LookupCode(isolate, pc());
+  return ((code != Code::null()) &&
+          (code->ptr()->function_ == Function::null()));
+}
+
+
 void StackFrame::Print() const {
   OS::Print("[%-8s : sp(%p) ]\n", GetName(), sp());
 }
@@ -57,7 +72,7 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void DartFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
   // Scope handles. We use direct stack handles, the raw pointers in
@@ -67,36 +82,37 @@ void DartFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   NoGCScope no_gc;
   Code code;
   code = LookupDartCode();
-  ASSERT(!code.IsNull());
-  Array maps;
-  maps = Array::null();
-  Stackmap map;
-  map = code.GetStackmap(pc(), &maps, &map);
-  if (map.IsNull()) {
-    // No stack maps are present in the code object which means this
-    // frame relies on tagged pointers and hence we visit each entry
-    // on the frame between SP and FP.
-    ASSERT(visitor != NULL);
-    visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
-                           reinterpret_cast<RawObject**>(fp() - kWordSize));
-    return;
-  }
-  // A stack map is present in the code object, use the stack map to visit
-  // frame slots which are marked as having objects.
-  intptr_t bit_offset = map.MinimumBitOffset();
-  intptr_t end_bit_offset = map.MaximumBitOffset();
-  while (bit_offset <= end_bit_offset) {
-    uword addr = (fp() - ((bit_offset + 1) * kWordSize));
-    ASSERT(addr >= sp());
-    if (map.IsObject(bit_offset)) {
-      visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
+  if (!code.IsNull()) {
+    Array maps;
+    maps = Array::null();
+    Stackmap map;
+    map = code.GetStackmap(pc(), &maps, &map);
+    if (!map.IsNull()) {
+      // A stack map is present in the code object, use the stack map to visit
+      // frame slots which are marked as having objects.
+      intptr_t bit_offset = map.MinimumBitOffset();
+      intptr_t end_bit_offset = map.MaximumBitOffset();
+      while (bit_offset <= end_bit_offset) {
+        uword addr = (fp() - ((bit_offset + 1) * kWordSize));
+        ASSERT(addr >= sp());
+        if (map.IsObject(bit_offset)) {
+          visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
+        }
+        bit_offset += 1;
+      }
+      return;
     }
-    bit_offset += 1;
   }
+  // No stack maps are present in the code object which means this
+  // frame relies on tagged pointers and hence we visit each entry
+  // on the frame between SP and FP.
+  ASSERT(visitor != NULL);
+  visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
+                         reinterpret_cast<RawObject**>(fp() - kWordSize));
 }
 
 
-RawFunction* DartFrame::LookupDartFunction() const {
+RawFunction* StackFrame::LookupDartFunction() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
     return code.function();
@@ -105,21 +121,25 @@ RawFunction* DartFrame::LookupDartFunction() const {
 }
 
 
-RawCode* DartFrame::LookupDartCode() const {
+RawCode* StackFrame::LookupDartCode() const {
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
   NoGCScope no_gc;
   Isolate* isolate = Isolate::Current();
   RawCode* code = StackFrame::LookupCode(isolate, pc());
-  ASSERT(code != Code::null() && code->ptr()->function_ != Function::null());
-  return code;
+  if ((code != Code::null()) && (code->ptr()->function_ != Function::null())) {
+    return code;
+  }
+  return Code::null();
 }
 
 
-bool DartFrame::FindExceptionHandler(uword* handler_pc) const {
+bool StackFrame::FindExceptionHandler(uword* handler_pc) const {
   const Code& code = Code::Handle(LookupDartCode());
-  ASSERT(!code.IsNull());
+  if (code.IsNull()) {
+    return false;  // Stub frames do not have exception handlers.
+  }
 
   // First try to find pc descriptor for the current pc.
   intptr_t try_index = -1;
@@ -148,25 +168,14 @@ bool DartFrame::FindExceptionHandler(uword* handler_pc) const {
 }
 
 
-bool StubFrame::IsValid() const {
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
-  NoGCScope no_gc;
-  Isolate* isolate = Isolate::Current();
+bool StackFrame::IsValid() const {
+  if (IsEntryFrame() || IsExitFrame()) {
+    return true;
+  }
   if (Dart::vm_isolate()->heap()->CodeContains(pc())) {
     return true;  // Common stub code is generated in the VM heap.
   }
-  RawCode* code = StackFrame::LookupCode(isolate, pc());
-  return (code != Code::null() && code->ptr()->function_ == Function::null());
-}
-
-
-void StubFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects between SP and FP.
-  ASSERT(visitor != NULL);
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(sp()),
-                         reinterpret_cast<RawObject**>(fp() - kWordSize));
+  return (StackFrame::LookupCode(Isolate::Current(), pc()) != Code::null());
 }
 
 
@@ -220,16 +229,11 @@ StackFrame* StackFrameIterator::NextFrame() {
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   StackFrame* frame;
   ASSERT(HasNext());
-  if (from_stub_exitframe_) {
-    frame = &stub_frame_;
-  } else {
-    frame = &dart_frame_;
-  }
+  frame = &stack_frame_;
   frame->sp_ = sp_;
   frame->fp_ = fp_;
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
-  from_stub_exitframe_ = false;
   ASSERT((validate == kDontValidateFrames) || frame->IsValid());
   return frame;
 }

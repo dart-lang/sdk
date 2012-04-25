@@ -191,8 +191,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                             int start_index,
                             Value* alloc_value);
 
-  void BuildStoreContext(const LocalVariable& variable, intptr_t start_index);
-  void BuildLoadContext(const LocalVariable& variable, intptr_t start_index);
+  void BuildStoreContext(const LocalVariable& variable);
+  void BuildLoadContext(const LocalVariable& variable);
 
   void BuildThrowNode(ThrowNode* node);
 

@@ -4,6 +4,10 @@
 
 final bool VERBOSE = false;
 
+/**
+ * A parser event listener that does nothing except throw exceptions
+ * on parser errors.
+ */
 class Listener {
   void beginArguments(Token token) {
   }
@@ -490,7 +494,10 @@ class ParserError {
 }
 
 /**
- * A listener for parser events.
+ * A parser event listener designed to work with [PartialParser]. It
+ * builds elements representing the top-level declarations found in
+ * the parsed compilation unit and records them in
+ * [compilationUnitElement].
  */
 class ElementListener extends Listener {
   final DiagnosticListener listener;

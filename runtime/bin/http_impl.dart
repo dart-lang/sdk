@@ -63,6 +63,25 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
+  Date get date() {
+    List<String> values = _headers["date"];
+    if (values != null) {
+      try {
+        return _HttpUtils.parseDate(values[0]);
+      } catch (Exception e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  void set date(Date date) {
+    // Format "Date" header with date in Greenwich Mean Time (GMT).
+    String formatted =
+        _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
+    _set("date", formatted);
+  }
+
   Date get expires() {
     List<String> values = _headers["expires"];
     if (values != null) {
@@ -72,6 +91,7 @@ class _HttpHeaders implements HttpHeaders {
         return null;
       }
     }
+    return null;
   }
 
   void set expires(Date expires) {
@@ -83,7 +103,15 @@ class _HttpHeaders implements HttpHeaders {
 
   void _add(String name, Object value) {
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (name.toLowerCase() == "expires") {
+    if (name.toLowerCase() == "date") {
+      if (value is Date) {
+        date = value;
+      } else if (value is String) {
+        _set("date", value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
+      }
+    } else if (name.toLowerCase() == "expires") {
       if (value is Date) {
         expires = value;
       } else if (value is String) {
@@ -794,16 +822,8 @@ class _HttpConnection extends _HttpConnectionBase {
 
 
 class _RequestHandlerRegistration {
-  _RequestHandlerRegistration(Function this._matcher, Object this._handler);
+  _RequestHandlerRegistration(Function this._matcher, Function this._handler);
   Function _matcher;
-  RequestHandler _handler;
-}
-
-
-class _RequestHandlerImpl implements RequestHandler {
-  _RequestHandlerImpl(Function this._handler);
-  void onRequest(HttpRequest request, HttpResponse response) =>
-    _handler(request, response);
   Function _handler;
 }
 
@@ -838,14 +858,13 @@ class _HttpServer implements HttpServer {
     _closeServer = false;
   }
 
-  addRequestHandler(bool matcher(String path), Object handler) {
-    if (handler is Function) {
-      handler = new _RequestHandlerImpl(handler);
-    }
+  addRequestHandler(bool matcher(String path),
+                    void handler(HttpRequest request, HttpResponse response)) {
     _handlers.add(new _RequestHandlerRegistration(matcher, handler));
   }
 
-  void set defaultRequestHandler(Object handler) {
+  void set defaultRequestHandler(
+      void handler(HttpRequest request, HttpResponse response)) {
     _defaultHandler = handler;
   }
 
@@ -874,9 +893,9 @@ class _HttpServer implements HttpServer {
   void _handleRequest(HttpRequest request, HttpResponse response) {
     for (int i = 0; i < _handlers.length; i++) {
       if (_handlers[i]._matcher(request)) {
-        var handler = _handlers[i]._handler;
+        Function handler = _handlers[i]._handler;
         try {
-          handler.onRequest(request, response);
+          handler(request, response);
         } catch (var e) {
           if (_onError != null) {
             _onError(e);
@@ -887,11 +906,7 @@ class _HttpServer implements HttpServer {
     }
 
     if (_defaultHandler != null) {
-      if (_defaultHandler is Function) {
-        _defaultHandler(request, response);
-      } else {
-        _defaultHandler.onRequest(request, response);
-      }
+      _defaultHandler(request, response);
     } else {
       response.statusCode = HttpStatus.NOT_FOUND;
       response.outputStream.close();
@@ -1347,6 +1362,9 @@ class _HttpClient implements HttpClient {
   }
 
   void _returnSocketConnection(_SocketConnection socketConn) {
+    // Mark socket as returned to unregister from the old connection.
+    socketConn._markReturned();
+
     // If the HTTP client is beeing shutdown don't return the connection.
     if (_shutdown) {
       socketConn._socket.close();
@@ -1388,7 +1406,6 @@ class _HttpClient implements HttpClient {
     // Return connection.
     _activeSockets.remove(socketConn);
     sockets.addFirst(socketConn);
-    socketConn._markReturned();
   }
 
   Function _onOpen;

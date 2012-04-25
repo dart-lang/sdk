@@ -101,15 +101,6 @@ bool StubCode::InInvocationStub(uword pc) {
 }
 
 
-bool StubCode::InStubCallToRuntimeStubCode(uword pc) {
-  if ((pc >= StubCallToRuntimeEntryPoint()) &&
-      (pc < (StubCallToRuntimeEntryPoint() + StubCallToRuntimeSize()))) {
-    return true;
-  }
-  return false;
-}
-
-
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Code& stub = Code::Handle(cls.allocation_stub());
   if (stub.IsNull()) {

@@ -4,7 +4,12 @@
 
 /**
  * An event generating parser of Dart programs. This parser expects
- * all tokens in a linked list.
+ * all tokens in a linked list (aka a token stream).
+ *
+ * The class [Scanner] is used to generate a token stream. See the
+ * file scanner.dart.
+ *
+ * Subclasses of the class [Listener] are used to listen to events.
  */
 class Parser {
   final Listener listener;

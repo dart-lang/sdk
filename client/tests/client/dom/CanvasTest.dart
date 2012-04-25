@@ -21,7 +21,7 @@ main() {
     context.fillStyle = "red";
     context.fillRect(10, 10, 20, 20);
 
-    CanvasPixelArray data = context.getImageData(0, 0, width, height).data;
+    Uint8ClampedArray data = context.getImageData(0, 0, width, height).data;
     checkPixel(data, 0, [0, 0, 0, 0]);
     checkPixel(data, 9 + width * 10, [0, 0, 0, 0]);
     checkPixel(data, 10 + width * 10, [255, 0, 0, 255]);
@@ -60,7 +60,7 @@ main() {
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,
                                               canvas.height);
-    CanvasPixelArray data = image.data;
+    Uint8ClampedArray data = image.data;
 
     Expect.equals(40000, data.length);
     checkPixel(data, 0, [0, 0, 0, 0]);
@@ -81,7 +81,7 @@ main() {
   });
 }
 
-void checkPixel(CanvasPixelArray data, int offset, List<int> rgba)
+void checkPixel(Uint8ClampedArray data, int offset, List<int> rgba)
 {
   offset *= 4;
   for (var i = 0; i < 4; ++i) {
