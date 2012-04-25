@@ -7,7 +7,6 @@
 Dart APIs from the IDL database."""
 
 import re
-import string
 
 _pure_interfaces = set([
     'DOMStringMap',
@@ -543,13 +542,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     conversion_arguments = [value]
     if attributes and 'TreatReturnedNullStringAs' in attributes:
       conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
-    function_name = 'toDartValue'
-    # FIXME: implement DartUtilities::toDart for other primitive types and
-    # remove this list.
-    if self.native_type() in ['String', 'bool', 'int', 'unsigned', 'long long', 'unsigned long long', 'double']:
-      function_name = string.capwords(self.native_type()).replace(' ', '')
-      function_name = function_name[0].lower() + function_name[1:]
-      function_name = 'DartUtilities::%sToDart' % function_name
+    function_name = re.sub(r' [a-z]', lambda x: x.group(0)[1:].upper(), self.native_type())
+    function_name = function_name[0].lower() + function_name[1:]
+    function_name = 'DartUtilities::%sToDart' % function_name
     return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
 
   def webcore_getter_name(self):
