@@ -51,9 +51,10 @@
 
 /**
  * The directories that contain test suites which follow the conventions
- * required by [DirectoryTestSuite]. Ideally, we'd move more suites to this
- * convention because it makes it much simpler to add them to test.dart. (You
- * basically add the directory here and you're done.)
+ * required by [StandardTestSuite]'s forDirectory constructor.
+ * New test suites should follow this convention because it makes it much
+ * simpler to add them to test.dart.  Existing test suites should be
+ * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
   'utils/tests/peg',
