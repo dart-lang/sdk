@@ -4,7 +4,7 @@
 
 #library("StaticStateTest");
 #import("dart:isolate");
-#import("TestFramework.dart");
+#import('../../../lib/unittest/unittest.dart');
 
 class TestIsolate extends Isolate {
 
@@ -26,26 +26,23 @@ class TestIsolate extends Isolate {
 
 }
 
-void test(TestExpectation expect) {
-  Expect.equals(null, TestIsolate.state);
-  TestIsolate.state = "foo";
-  Expect.equals("foo", TestIsolate.state);
+void main() {
+  test("static state is not shared between isolates", () {
+    Expect.equals(null, TestIsolate.state);
+    TestIsolate.state = "foo";
+    Expect.equals("foo", TestIsolate.state);
 
-  expect.completes(new TestIsolate().spawn()).then((SendPort remote) {
-    remote.call("bar").then(expect.runs1((reply) {
-      Expect.equals("foo", TestIsolate.state);
-      Expect.equals(null, reply);
+    new TestIsolate().spawn().then(expectAsync1((SendPort remote) {
+      remote.call("bar").then(expectAsync1((reply) {
+        Expect.equals("foo", TestIsolate.state);
+        Expect.equals(null, reply);
 
-      TestIsolate.state = "baz";
-      remote.call("exit").then(expect.runs1((reply) {
-        Expect.equals("baz", TestIsolate.state);
-        Expect.equals("bar", reply);
-        expect.succeeded();
+        TestIsolate.state = "baz";
+        remote.call("exit").then(expectAsync1((reply) {
+          Expect.equals("baz", TestIsolate.state);
+          Expect.equals("bar", reply);
+        }));
       }));
     }));
   });
-}
-
-void main() {
-  runTests([test]);
 }

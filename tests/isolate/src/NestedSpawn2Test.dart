@@ -8,7 +8,7 @@
 
 #library('NestedSpawn2Test');
 #import("dart:isolate");
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 class IsolateA extends Isolate {
   IsolateA() : super.heavy();
@@ -63,24 +63,21 @@ class IsolateB extends Isolate {
   }
 }
 
-test(TestExpectation expect) {
-  expect.completes(new IsolateA().spawn()).then((SendPort port) {
-    _call(port, "launch nested!", expect.runs2((msg, replyTo) {
-      Expect.equals("0", msg[0]);
-      _call(replyTo, msg1, expect.runs2((msg, replyTo) {
-        Expect.equals("2", msg[0]);
-        _call(replyTo, msg3, expect.runs2((msg, replyTo) {
-          Expect.equals("4", msg[0]);
-          _call(replyTo, msg5, expect.runs2((msg, replyTo) {
-            Expect.equals("6", msg[0]);
-            expect.succeeded();
+main() {
+  test("spawned isolate can spawn other isolates", () {
+    new IsolateA().spawn().then(expectAsync1((SendPort port) {
+      _call(port, "launch nested!", expectAsync2((msg, replyTo) {
+        Expect.equals("0", msg[0]);
+        _call(replyTo, msg1, expectAsync2((msg, replyTo) {
+          Expect.equals("2", msg[0]);
+          _call(replyTo, msg3, expectAsync2((msg, replyTo) {
+            Expect.equals("4", msg[0]);
+            _call(replyTo, msg5, expectAsync2((msg, replyTo) {
+              Expect.equals("6", msg[0]);
+            }));
           }));
         }));
       }));
     }));
   });
-}
-
-main() {
-  runTests([test]);
 }

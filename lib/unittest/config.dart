@@ -35,8 +35,12 @@ class Configuration {
    * Called with the result of all test cases. The default implementation prints
    * the result summary using the built-in [print] command. Browser tests
    * commonly override this to reformat the output.
+   *
+   * When [uncaughtError] is not null, it contains an error that occured outside
+   * of tests (e.g. setting up the test).
    */
-  void onDone(int passed, int failed, int errors, List<TestCase> results) {
+  void onDone(int passed, int failed, int errors, List<TestCase> results,
+      String uncaughtError) {
     // Print each test's result.
     for (final t in _tests) {
       print('${t.result.toUpperCase()}: ${t.description}');
@@ -54,10 +58,13 @@ class Configuration {
       print('No tests found.');
       // This is considered a failure too: if this happens you probably have a
       // bug in your unit tests.
-    } else if (failed == 0 && errors == 0) {
+    } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       print('All $passed tests passed.');
       success = true;
     } else {
+      if (uncaughtError != null) {
+        print('Top-level uncaught error: $uncaughtError');
+      }
       print('$passed PASSED, $failed FAILED, $errors ERRORS');
     }
 

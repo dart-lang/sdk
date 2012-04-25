@@ -4,7 +4,7 @@
 
 #library("ConstructorTest");
 #import("dart:isolate");
-#import("TestFramework.dart");
+#import('../../../lib/unittest/unittest.dart');
 
 class ConstructorTest extends Isolate {
   final int field;
@@ -18,16 +18,13 @@ class ConstructorTest extends Isolate {
   }
 }
 
-void test(TestExpectation expect) {
-  ConstructorTest test = new ConstructorTest();
-  expect.completes(test.spawn()).then((SendPort port) {
-    port.call("ignored").then(expect.runs1((message) {
-      Expect.equals(499, message);
-      expect.succeeded();
+main() {
+  test("constructor correctly initialized child isolate", () {
+    ConstructorTest test = new ConstructorTest();
+    test.spawn().then(expectAsync1((SendPort port) {
+      port.call("ignored").then(expectAsync1((message) {
+        Expect.equals(499, message);
+      }));
     }));
   });
-}
-
-main() {
-  runTests([test]);
 }
