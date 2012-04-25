@@ -23,24 +23,32 @@ main() {
   Uri dartVmUri = productUri.resolve(dartVmPath);
   Uri productionUri = productUri.resolve(arguments[2]);
   Uri developerUri = productUri.resolve(arguments[3]);
-  String productionScript = buildScript(dartUri, dartVmUri, '');
-  String developerScript = buildScript(dartUri, dartVmUri,
-                                       ' --enable_checked_mode');
+  List<String> productionScript = buildScript(dartUri, dartVmUri, '');
+  List<String> developerScript = buildScript(dartUri, dartVmUri,
+                                             ' --enable_checked_mode');
 
   writeScript(productionUri, productionScript);
   writeScript(developerUri, developerScript);
 }
 
-writeScript(Uri uri, String script) {
+writeScript(Uri uri, List<String> scripts) {
+  String unixScript = scripts[0];
+  String batFile = scripts[1];
   var f = new File(uriPathToNative(uri.path));
   var stream = f.openSync(FileMode.WRITE);
   try {
-    stream.writeStringSync(script);
+    stream.writeStringSync(unixScript);
   } finally {
     stream.closeSync();
   }
 
-  // TODO(ahe): Also make a .bat file for Windows.
+  f = new File('${uriPathToNative(uri.path)}.bat');
+  stream = f.openSync(FileMode.WRITE);
+  try {
+    stream.writeStringSync(batFile);
+  } finally {
+    stream.closeSync();
+  }
 
   if (Platform.operatingSystem() != 'windows') {
     onExit(int exitCode, String stdout, String stderr) {
@@ -54,7 +62,7 @@ writeScript(Uri uri, String script) {
   }
 }
 
-buildScript(Uri dartUri, Uri dartVmLocation, String options) {
+List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   Uri dart2jsUri = dartUri.resolve('lib/compiler/implementation/dart2js.dart');
   String dart2jsPath = relativize(dartVmLocation, dart2jsUri);
   String libraryRoot = relativize(dartVmLocation, dartUri);
@@ -66,7 +74,8 @@ buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   print('dart2jsPath = $dart2jsPath');
   print('libraryRoot = $libraryRoot');
 
-  return """
+  return [
+"""
 #!${dartVmLocation.path}$options
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -96,5 +105,20 @@ void main() {
     }
   }
 }
-""";
+""",
+'''
+@echo off
+REM Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+REM for details. All rights reserved. Use of this source code is governed by a
+REM BSD-style license that can be found in the LICENSE file.
+
+set SCRIPTPATH=%~dp0
+
+REM Does the path have a trailing slash? If so, remove it.
+if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
+
+set arguments=%*
+
+"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%\dart2js" %arguments%
+'''.replaceAll('\n', '\r\n')];
 }

@@ -22,7 +22,9 @@
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart2js',
+            '<(PRODUCT_DIR)/dart2js.bat',
             '<(PRODUCT_DIR)/dart2js_developer',
+            '<(PRODUCT_DIR)/dart2js_developer.bat',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
