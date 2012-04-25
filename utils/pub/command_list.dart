@@ -8,6 +8,7 @@ void commandList(PubOptions options, List<String> args) {
   // your cache.
   final cache = new PackageCache(options.cacheDir);
   cache.listAll().then((packages) {
+    packages.sort((a, b) => a.name.compareTo(b.name));
     for (final package in packages) {
       print(package.name);
     }
