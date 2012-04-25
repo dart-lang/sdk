@@ -3,16 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 dom/WebGL1Test: Skip  # Issue 1495
-html/EventTest: Skip  # Issue 1996
-html/XMLDocumentTest: Skip  # XML in dart:html is incomplete
-html/XMLElementTest: Skip  # XML in dart:html is incomplete
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+html/html_tests: Pass, Fail   # Issue 1946.
 dom/IndexedDB3Test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 dom/IndexedDB4Test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 dom/RequestAnimationFrameTest: Skip    # drt hangs; requestAnimationFrame not implemented
 html/RequestAnimationFrameTest: Skip   # drt hangs; requestAnimationFrame not implemented
-html/MeasurementTest: Fail
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 dom/NativeGCTest: Skip  # Issue 2538.
@@ -24,6 +21,7 @@ dom/AudioContextTest: Skip
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 
 [ $compiler == frog && $runtime == drt ]
+html/html_tests: Skip   # Issue 2657
 dom/RequestAnimationFrameTest: Skip   # drt hangs
 html/RequestAnimationFrameTest: Skip   # drt hangs
 
@@ -31,25 +29,16 @@ html/RequestAnimationFrameTest: Skip   # drt hangs
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
 dom/IndexedDB2Test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
 dom/HTMLElementTest: Fail
 dom/WindowOpenTest: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/HistoryTest: Fail
 
-[ $runtime == chrome ]
+[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
-html/CSSStyleDeclarationTest: Fail
-
-[ $runtime == ff ]
-dom/ImplementationTest: Fail
-html/CSSStyleDeclarationTest: Fail
-html/ElementTest: Fail
-html/DocumentFragmentTest: Fail
-html/XHRTest: Fail
-html/LocalStorageTest: Fail
-html/MeasurementTest: Fail
-html/SVGElementTest: Fail
+html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
 [ $runtime == ie ]
 html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
@@ -57,10 +46,12 @@ html/TypedArrays2Test: Skip
 html/TypedArrays3Test: Skip
 html/TypedArrays4Test: Skip
 html/CanvasPixelArrayTypeAliasTest: Fail  # Verify is CanvasPixelArray.
+html/html_tests: Fail
 # TODO(vsm): Triage DOM failures.
 dom/*: Skip
 
 [ $runtime == safari ]
+html/html_tests: Fail
 html/CanvasPixelArrayTypeAliasTest: Fail # Caught TypeError: 'undefined' is not a function
 # TODO(vsm): Triage DOM failures.
 dom/*: Skip
@@ -97,6 +88,11 @@ dom/WebSocketTest: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
 dom/XHRTest: Fail 
+
+# TODO(nweiz): enable this test again once the functionality being tested
+# is supported.
+[ ($compiler == frog && $runtime == drt) || $runtime == safari || $runtime == ie]
+html/frog_html_tests: Skip # Issue 1884
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip

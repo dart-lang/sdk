@@ -2,15 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('DocumentFragmentTest');
-#import('../../../../lib/unittest/unittest.dart');
-#import('../../../../lib/unittest/html_config.dart');
-#import('dart:html');
-#source('util.dart');
-
-main() {
-  useHtmlConfiguration();
-
+testDocumentFragment() {
   Collection<String> _nodeStrings(Collection<Node> input) {
     var out = new List<String>();
     for (Node n in input) {

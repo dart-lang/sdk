@@ -2,14 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('XMLDocumentTest');
-#import('../../../../lib/unittest/unittest.dart');
-#import('../../../../lib/unittest/html_config.dart');
-#import('dart:html');
-
-main() {
-  useHtmlConfiguration();
-
+void testXMLDocument() {
   XMLDocument makeDocument() => new XMLDocument.xml("<xml><foo/><bar/></xml>");
 
   group('constructor', () {

@@ -2,18 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('NodeTest');
-#import('../../../../lib/unittest/unittest.dart');
-#import('../../../../lib/unittest/html_config.dart');
-#import('dart:html');
 
 Node makeNode() => new Element.tag('div');
 Node makeNodeWithChildren() =>
   new Element.html("<div>Foo<br/><!--baz--></div>");
 
-main() {
-  useHtmlConfiguration();
-
+void testNode() {
   test('replaceWith', () {
     final node = makeNodeWithChildren();
     final subnode = node.nodes[1];
