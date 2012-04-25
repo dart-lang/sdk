@@ -1554,6 +1554,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     endExpression(JSPrecedence.PREFIX_PRECEDENCE);
   }
 
+  void checkExtendableArray(HInstruction input) {
+    compiler.unimplemented("check extendable array");
+  }
+
   void checkNull(HInstruction input) {
     beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     use(input, JSPrecedence.EQUALITY_PRECEDENCE);
@@ -1742,6 +1746,15 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkString(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not a string');
+    } else if (node.isExtendableArray()) {
+      buffer.add('if (');
+      checkObject(input, '!==');
+      buffer.add('||');
+      checkArray(input, '!==');
+      buffer.add('||');
+      checkExtendableArray(input);
+      buffer.add(') ');
+      bailout(node, 'Not an extendable array');
     } else if (node.isMutableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
@@ -1751,14 +1764,14 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkImmutableArray(input);
       buffer.add(') ');
       bailout(node, 'Not a mutable array');
-    } else if (node.isArray()) {
+    } else if (node.isReadableArray()) {
       buffer.add('if (');
       checkObject(input, '!==');
       buffer.add('||');
       checkArray(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not an array');
-    } else if (node.isStringOrArray()) {
+    } else if (node.isIndexablePrimitive()) {
       buffer.add('if (');
       checkString(input, '!==');
       buffer.add(' && (');

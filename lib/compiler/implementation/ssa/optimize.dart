@@ -341,7 +341,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitTypeGuard(HTypeGuard node) {
     HInstruction value = node.guarded;
-    HType combinedType = value.propagatedType.combine(node.guardedType);
+    // If the union of the types is still the guarded type than the incoming
+    // type was a subtype of the guarded type, and no check is required.
+    HType combinedType = value.propagatedType.union(node.guardedType);
     return (combinedType == value.propagatedType) ? value : node;
   }
 
@@ -450,7 +452,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndex(HIndex node) {
-    if (!node.receiver.isStringOrArray()) return;
+    if (!node.receiver.isIndexablePrimitive()) return;
     HInstruction index = node.index;
     if (index is HBoundsCheck) return;
     if (!node.index.isInteger()) {

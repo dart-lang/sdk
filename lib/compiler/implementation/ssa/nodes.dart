@@ -672,106 +672,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
 }
 
 
-class HType {
-  final int flag;
-  const HType(int this.flag);
-
-  static final int FLAG_CONFLICTING = 0;
-  static final int FLAG_UNKNOWN = 1;
-  static final int FLAG_BOOLEAN = FLAG_UNKNOWN << 1;
-  static final int FLAG_INTEGER = FLAG_BOOLEAN << 1;
-  static final int FLAG_STRING = FLAG_INTEGER << 1;
-  static final int FLAG_READABLE_ARRAY = FLAG_STRING << 1;
-  // FLAG_WRITABLE_ARRAY implies FLAG_READABLE_ARRAY.
-  static final int FLAG_WRITEABLE_ARRAY = FLAG_READABLE_ARRAY << 1;
-  static final int FLAG_DOUBLE = FLAG_WRITEABLE_ARRAY << 1;
-  static final int FLAG_NON_PRIMITIVE = FLAG_DOUBLE << 1;
-
-  static final HType CONFLICTING = const HType(FLAG_CONFLICTING);
-  static final HType UNKNOWN = const HType(FLAG_UNKNOWN);
-  static final HType BOOLEAN = const HType(FLAG_BOOLEAN);
-  static final HType STRING = const HType(FLAG_STRING);
-  static final HType READABLE_ARRAY = const HType(FLAG_READABLE_ARRAY);
-  static final HType MUTABLE_ARRAY =
-      const HType(FLAG_READABLE_ARRAY | FLAG_WRITEABLE_ARRAY);
-  static final HType INTEGER = const HType(FLAG_INTEGER);
-  static final HType DOUBLE = const HType(FLAG_DOUBLE);
-  static final HType STRING_OR_ARRAY =
-      const HType(FLAG_STRING | FLAG_READABLE_ARRAY | FLAG_WRITEABLE_ARRAY);
-  static final HType NUMBER = const HType(FLAG_DOUBLE | FLAG_INTEGER);
-
-  bool isConflicting() => this === CONFLICTING;
-  bool isUnknown() => this === UNKNOWN;
-  bool isBoolean() => this === BOOLEAN;
-  bool isInteger() => this === INTEGER;
-  bool isDouble() => this === DOUBLE;
-  bool isString() => this === STRING;
-  bool isArray() => (this.flag & FLAG_READABLE_ARRAY) != 0;
-  bool isMutableArray() => this === MUTABLE_ARRAY;
-  bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
-  bool isStringOrArray() =>
-      (this.flag & (FLAG_STRING | FLAG_READABLE_ARRAY)) != 0;
-  bool isNonPrimitive() => this.flag === FLAG_NON_PRIMITIVE;
-  /** A type is useful it is not unknown and not conflicting. */
-  bool isUseful() => this !== UNKNOWN && this !== CONFLICTING;
-
-  static HType getTypeFromFlag(int flag) {
-    if (flag === CONFLICTING.flag) return CONFLICTING;
-    if (flag === UNKNOWN.flag) return UNKNOWN;
-    if (flag === BOOLEAN.flag) return BOOLEAN;
-    if (flag === INTEGER.flag) return INTEGER;
-    if (flag === DOUBLE.flag) return DOUBLE;
-    if (flag === STRING.flag) return STRING;
-    if (flag === READABLE_ARRAY.flag) return READABLE_ARRAY;
-    if (flag === MUTABLE_ARRAY.flag) return MUTABLE_ARRAY;
-    if (flag === NUMBER.flag) return NUMBER;
-    if (flag === STRING_OR_ARRAY.flag) return STRING_OR_ARRAY;
-    unreachable();
-  }
-
-  String toString() {
-    if (isConflicting()) return 'conflicting';
-    if (isUnknown()) return 'unknown';
-    if (isBoolean()) return 'boolean';
-    if (isInteger()) return 'integer';
-    if (isDouble()) return 'double';
-    if (isString()) return 'string';
-    if (isMutableArray()) return 'mutable array';
-    if (isArray()) return 'array';
-    if (isNumber()) return 'number';
-    if (isStringOrArray()) return 'string or array';
-    unreachable();
-  }
-
-  HType combine(HType other) {
-    if (isUnknown()) return other;
-    if (other.isUnknown()) return this;
-    return getTypeFromFlag(this.flag & other.flag);
-  }
-}
-
-class HNonPrimitiveType extends HType {
-  final Type type;
-
-  // TODO(ngeoffray): Add a HPrimitiveType to get rid of the flag.
-  const HNonPrimitiveType(Type this.type) : super(HType.FLAG_NON_PRIMITIVE);
-
-  HType combine(HType other) {
-    if (other.isNonPrimitive()) {
-      HNonPrimitiveType temp = other;
-      if (this.type === temp.type) return this;
-    }
-    if (other.isUnknown()) return this;
-    return HType.CONFLICTING;
-  }
-
-  String toString() => type.toString();
-  Element lookupMember(SourceString name) {
-    ClassElement classElement = type.element;
-    return classElement.lookupMember(name);
-  }
-}
-
 class HInstruction implements Hashable {
   Element sourceElement;
 
@@ -824,14 +724,16 @@ class HInstruction implements Hashable {
 
   // All isFunctions work on the propagated types.
   bool isArray() => propagatedType.isArray();
+  bool isReadableArray() => propagatedType.isReadableArray();
   bool isMutableArray() => propagatedType.isMutableArray();
+  bool isExtendableArray() => propagatedType.isExtendableArray();
   bool isBoolean() => propagatedType.isBoolean();
   bool isInteger() => propagatedType.isInteger();
   bool isDouble() => propagatedType.isDouble();
   bool isNumber() => propagatedType.isNumber();
   bool isString() => propagatedType.isString();
   bool isTypeUnknown() => propagatedType.isUnknown();
-  bool isStringOrArray() => propagatedType.isStringOrArray();
+  bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
   bool isNonPrimitive() => propagatedType.isNonPrimitive();
 
   /**
@@ -1221,18 +1123,17 @@ class HInvokeInterceptor extends HInvokeStatic {
   }
 
   bool isLengthGetterOnStringOrArray() {
-    return isLengthGetter()
-        && inputs[1].isStringOrArray();
+    return isLengthGetter() && inputs[1].isIndexablePrimitive();
   }
 
   String get builtinJsName() {
     if (isLengthGetterOnStringOrArray()) {
       return 'length';
     } else if (name == const SourceString('add')
-               && inputs[1].isMutableArray()) {
+               && inputs[1].isExtendableArray()) {
       return 'push';
     } else if (name == const SourceString('removeLast')
-               && inputs[1].isMutableArray()) {
+               && inputs[1].isExtendableArray()) {
       return 'pop';
     }
     return null;
@@ -1255,7 +1156,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     // If the first argument is a string or an array and we invoke methods
     // on it that mutate it, then we want to restrict the incoming type to be
     // a mutable array.
-    if (input == inputs[1] && input.isStringOrArray()) {
+    if (input == inputs[1] && input.isIndexablePrimitive()) {
       if (name == const SourceString('add')
           || name == const SourceString('removeLast')) {
         return HType.MUTABLE_ARRAY;
@@ -1317,6 +1218,7 @@ class HForeign extends HInstruction {
   static HType computeTypeFromDeclaredType(DartString declaredType) {
     if (declaredType.slowToString() == 'bool') return HType.BOOLEAN;
     if (declaredType.slowToString() == 'int') return HType.INTEGER;
+    if (declaredType.slowToString() == 'double') return HType.DOUBLE;
     if (declaredType.slowToString() == 'num') return HType.NUMBER;
     if (declaredType.slowToString() == 'String') return HType.STRING;
     return HType.UNKNOWN;
@@ -1867,7 +1769,11 @@ class HPhi extends HInstruction {
       if (inputType.isUnknown()) {
         seenUnknown = true;
       } else {
-        candidateType = candidateType.combine(inputType);
+        // Phis need to combine the incoming types using the union operation.
+        // For example, if one incoming edge has type integer and the other has
+        // type double, then the phi is either an integer or double and thus has
+        // type number.
+        candidateType = candidateType.union(inputType);
         if (candidateType.isConflicting()) return HType.CONFLICTING;
       }
     }
@@ -1942,7 +1848,9 @@ class HRelational extends HInvokeBinary {
     // only. With numbers the outgoing type is a boolean. If something else
     // is desired, then numbers are incorrect, though.
     if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
-      if (left.isTypeUnknown() || left.isNumber()) return HType.NUMBER;
+      if (left.isTypeUnknown() || left.isNumber()) {
+        return HType.NUMBER;
+      }
     }
     return HType.UNKNOWN;
   }
@@ -1977,18 +1885,20 @@ class HEquals extends HRelational {
       // speculatively test for all possible types. Therefore we try to match
       // the two types. That is, if we see x == 3, then we speculatively test
       // if x is a number and bailout if it isn't.
-      if (right.isNumber()) return HType.NUMBER;  // No need to be more precise.
+      // If right is a number we don't need more than a number (no need to match
+      // the exact type of right).
+      if (right.isNumber()) return HType.NUMBER;
       // String equality testing is much more common than array equality
       // testing.
-      if (right.isStringOrArray()) return HType.STRING;
+      if (right.isIndexablePrimitive()) return HType.STRING;
       return right.propagatedType;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == left && left.isStringOrArray()) {
+    if (input == left && left.isIndexablePrimitive()) {
       return HType.READABLE_ARRAY;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == right && right.isStringOrArray()) {
+    if (input == right && right.isIndexablePrimitive()) {
       return HType.STRING;
     }
     return HType.UNKNOWN;
@@ -2137,7 +2047,7 @@ class HIndex extends HInvokeStatic {
 
   HType computeDesiredTypeForNonTargetInput(HInstruction input) {
     if (input == receiver && (index.isTypeUnknown() || index.isNumber())) {
-      return HType.STRING_OR_ARRAY;
+      return HType.INDEXABLE_PRIMITIVE;
     }
     // The index should be an int when the receiver is a string or array.
     // However it turns out that inserting an integer check in the optimized
@@ -2146,7 +2056,7 @@ class HIndex extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isStringOrArray() && index.isInteger();
+  bool get builtin() => receiver.isIndexablePrimitive() && index.isInteger();
 }
 
 class HIndexAssign extends HInvokeStatic {

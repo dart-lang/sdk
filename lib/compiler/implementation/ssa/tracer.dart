@@ -172,6 +172,7 @@ class HInstructionStringifier implements HVisitor<String> {
       switch (type) {
         case HType.MUTABLE_ARRAY: prefix = 'm'; break;
         case HType.READABLE_ARRAY: prefix = 'a'; break;
+        case HType.EXTENDABLE_ARRAY: prefix = 'e'; break;
         case HType.BOOLEAN: prefix = 'b'; break;
         case HType.INTEGER: prefix = 'i'; break;
         case HType.DOUBLE: prefix = 'd'; break;
@@ -179,7 +180,7 @@ class HInstructionStringifier implements HVisitor<String> {
         case HType.STRING: prefix = 's'; break;
         case HType.UNKNOWN: prefix = 'v'; break;
         case HType.CONFLICTING: prefix = 'c'; break;
-        case HType.STRING_OR_ARRAY: prefix = 'r'; break;
+        case HType.INDEXABLE_PRIMITIVE: prefix = 'r'; break;
         default: unreachable();
       }
     }
@@ -410,12 +411,13 @@ class HInstructionStringifier implements HVisitor<String> {
     switch (node.guardedType) {
       case HType.MUTABLE_ARRAY: type = "mutable_array"; break;
       case HType.READABLE_ARRAY: type = "readable_array"; break;
+      case HType.EXTENDABLE_ARRAY: type = "extendable_array"; break;
       case HType.BOOLEAN: type = "bool"; break;
       case HType.INTEGER: type = "integer"; break;
       case HType.DOUBLE: type = "double"; break;
       case HType.NUMBER: type = "number"; break;
       case HType.STRING: type = "string"; break;
-      case HType.STRING_OR_ARRAY: type = "string_or_array"; break;
+      case HType.INDEXABLE_PRIMITIVE: type = "string_or_array"; break;
       case HType.UNKNOWN: type = 'unknown'; break;
       default: unreachable();
     }
