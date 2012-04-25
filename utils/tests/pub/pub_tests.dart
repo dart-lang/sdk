@@ -70,7 +70,7 @@ updateCommand() {
       ])
     ],
     app: dir('myapp', [
-      file('pubspec', 'foo')
+      file('pubspec', 'dependencies:\n- foo')
     ]),
     args: ['update'],
     expectedPackageDir: [
@@ -84,14 +84,14 @@ updateCommand() {
     cache: [
       dir('foo', [
         file('foo.dart', 'main() => "foo";'),
-        file('pubspec', 'bar')
+        file('pubspec', 'dependencies:\n- bar')
       ]),
       dir('bar', [
         file('bar.dart', 'main() => "bar";'),
       ])
     ],
     app: dir('myapp', [
-      file('pubspec', 'foo')
+      file('pubspec', 'dependencies:\n- foo')
     ]),
     args: ['update'],
     expectedPackageDir: [

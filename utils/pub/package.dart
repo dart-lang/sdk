@@ -113,13 +113,28 @@ class Package implements Hashable {
     });
 
     readFuture.then((pubspec) {
-      // TODO(rnystrom): Use YAML parser when ready. For now, it's just a flat
-      // list of newline-separated strings.
-      final dependencyNames = pubspec.split('\n').
-          map((name) => name.trim()).
-          filter((name) => (name != null) && (name != ''));
+      if (pubspec.trim() == '') {
+        completer.complete(<String>[]);
+        return;
+      }
 
-      completer.complete(dependencyNames);
+      var parsedPubspec = loadYaml(pubspec);
+      if (parsedPubspec is! Map) {
+        completer.completeException('The pubspec must be a YAML mapping.');
+      }
+
+      if (!parsedPubspec.containsKey('dependencies')) {
+        completer.complete(<String>[]);
+        return;
+      }
+
+      var dependencies = parsedPubspec['dependencies'];
+      if (dependencies.some((e) => e is! String)) {
+        completer.completeException(
+            'The pubspec dependencies must be a list of package names.');
+      }
+
+      completer.complete(dependencies);
     });
 
     return completer.future;
