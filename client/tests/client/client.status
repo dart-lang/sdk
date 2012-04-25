@@ -35,15 +35,25 @@ dom/WindowOpenTest: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/HistoryTest: Fail
-dom/InstanceOfTest: Skip  # Temporary skipped due to recent changes in IDL.
 
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
 html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
-[ $runtime == safari || $runtime == ie ]
+[ $runtime == ie ]
+html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
+html/TypedArrays2Test: Skip
+html/TypedArrays3Test: Skip
+html/TypedArrays4Test: Skip
+html/CanvasPixelArrayTypeAliasTest: Fail  # Verify is CanvasPixelArray.
 html/html_tests: Fail
-# TODO(vsm): Triage DOM failures on other browsers.
+# TODO(vsm): Triage DOM failures.
+dom/*: Skip
+
+[ $runtime == safari ]
+html/html_tests: Fail
+html/CanvasPixelArrayTypeAliasTest: Fail # Caught TypeError: 'undefined' is not a function
+# TODO(vsm): Triage DOM failures.
 dom/*: Skip
 
 [ $runtime == ff ]
@@ -78,12 +88,6 @@ dom/WebSocketTest: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
 dom/XHRTest: Fail 
-
-[ $runtime == ie ]
-html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
-html/TypedArrays2Test: Skip
-html/TypedArrays3Test: Skip
-html/TypedArrays4Test: Skip
 
 # TODO(nweiz): enable this test again once the functionality being tested
 # is supported.
