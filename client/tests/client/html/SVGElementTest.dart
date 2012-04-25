@@ -2,8 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('SVGElementTest');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
+#import('dart:html');
 
-void testSVGElement() {
+main() {
+  useHtmlConfiguration();
+
   Collection<String> _nodeStrings(Collection<Node> input) {
     final out = new List<String>();
     for (Node n in input) {
