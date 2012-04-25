@@ -6,21 +6,21 @@
 #import("dart:io");
 #import("dart:isolate");
 
-class Handler1 implements RequestHandler {
+class Handler1 {
   void onRequest(HttpRequest request, HttpResponse response) {
     response.outputStream.writeString("Handler 1");
     response.outputStream.close();
   }
 }
 
-class Handler2 implements RequestHandler {
+class Handler2 {
   void onRequest(HttpRequest request, HttpResponse response) {
     response.outputStream.writeString("Handler 2");
     response.outputStream.close();
   }
 }
 
-class French404Handler implements RequestHandler {
+class French404Handler {
   void onRequest(HttpRequest request, HttpResponse response) {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.reasonPhrase = "Non Trouvé";
@@ -39,11 +39,19 @@ class Server {
   }
 
   void addHandler(Function matcher, handler) {
-    server.addRequestHandler(matcher, handler);
+    if (handler is Function) {
+      server.addRequestHandler(matcher, handler);
+    } else {
+      server.addRequestHandler(matcher, handler.onRequest);
+    }
   }
 
   void set defaultHandler(handler) {
-    server.defaultRequestHandler = handler;
+    if (handler is Function) {
+      server.defaultRequestHandler = handler;
+    } else {
+      server.defaultRequestHandler = handler.onRequest;
+    }
   }
 
   void close() {

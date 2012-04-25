@@ -53,15 +53,6 @@ interface HttpStatus {
 
 
 /**
- * Interface to implement by HTTP request handler classes.
- */
-
-interface RequestHandler {
-  void onRequest(HttpRequest request, HttpResponse response);
-}
-
-
-/**
  * HTTP server.
  */
 interface HttpServer default _HttpServer {
@@ -89,18 +80,20 @@ interface HttpServer default _HttpServer {
    * function [matcher] is called with the request and must return
    * [:true:] if the [handler] should handle the request. The first
    * handler for which [matcher] returns [:true:] will be handed the
-   * request. The [handler] can be either an object implementing the
-   * [RequestHandler] interface or a function taking two arguments.
+   * request.
    */
-  addRequestHandler(bool matcher(HttpRequest request), Object handler);
+  addRequestHandler(bool matcher(HttpRequest request),
+                    void handler(HttpRequest request, HttpResponse response));
 
   /**
-   * Sets the request handler. This request handler will be called if
-   * none of the request handlers registered by [addRequestHandler]
-   * matches the current request. If no default request handler is set
-   * the server will just respond with status code [:NOT_FOUND:] (404).
+   * Sets the default request handler. This request handler will be
+   * called if none of the request handlers registered by
+   * [addRequestHandler] matches the current request. If no default
+   * request handler is set the server will just respond with status
+   * code [:NOT_FOUND:] (404).
    */
-  void set defaultRequestHandler(Object handler);
+  void set defaultRequestHandler(
+      void handler(HttpRequest request, HttpResponse response));
 
   /**
    * Stop server listening.
