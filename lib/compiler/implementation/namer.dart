@@ -64,10 +64,7 @@ class Namer {
 
   String instanceFieldName(LibraryElement lib, SourceString name) {
     String proposedName = privateName(lib, name);
-    if (jsReserved.contains(proposedName)) {
-      return '$proposedName\$';
-    }
-    return proposedName;
+    return JsNames.getValid(proposedName);
   }
 
   String setterName(LibraryElement lib, SourceString name) {
