@@ -6,25 +6,19 @@
 dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
 dom/RequestAnimationFrameTest: Skip  # Async test hangs.
 html/RequestAnimationFrameTest: Skip # Async test hangs.
+dom/IndexedDB3Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
+dom/IndexedDB4Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
+dom/IsolatesTest: Skip   # Timeout because leg does not support web workers.
+dom/TypedArrays1Test: Fail # dart2js doesn't support is checks with generic types.
 
 [ $compiler == dart2js && $runtime == drt ]
-
 # Unknown error - should investigate.
 html/html_tests: Fail
 
 # DOM errors.
 dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
 dom/HTMLElementTest: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
-
-
-# We don't support is checks with generic types.
-dom/TypedArrays1Test: Fail # Expect.isTrue(false) fails.
-
-dom/IsolatesTest: Skip # Timeout because leg does not support web workers.
-
 dom/IndexedDB2Test: Fail # Uncaught error
-dom/IndexedDB3Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
-dom/IndexedDB4Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

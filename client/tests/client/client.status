@@ -35,7 +35,6 @@ dom/WindowOpenTest: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/HistoryTest: Fail
-dom/InstanceOfTest: Skip  # Temporary skipped due to recent changes in IDL.
 
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
