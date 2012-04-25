@@ -6585,7 +6585,7 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_instance_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
-  *FieldAddrAtOffset(field_offset) = value.Canonicalize();
+  *FieldAddrAtOffset(field_offset) = value.raw();
 }
 
 
@@ -6619,6 +6619,10 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   const intptr_t num_type_arguments = cls.NumTypeArguments();
   if (num_type_arguments > 0) {
     type_arguments = GetTypeArguments();
+    if (!type_arguments.IsNull() && !type_arguments.IsCanonical()) {
+      type_arguments = type_arguments.Canonicalize();
+      SetTypeArguments(type_arguments);
+    }
     // Verify that the number of type arguments in the instance matches the
     // number of type arguments expected by the instance class.
     // A discrepancy is allowed for closures, which borrow the type argument
