@@ -437,7 +437,8 @@ class StandardTestSuite implements TestSuite {
   List<Command> makeCommands(TestInformation info, var args) {
     if (configuration['compiler'] == 'dart2js') {
       args = new List.from(args);
-      String testPath = info.filename.replaceAll('\\', '/');
+      String testPath =
+          new File(info.filename).fullPathSync().replaceAll('\\', '/');
       Directory tempDir = createOutputDirectory(testPath, '');
       args.add('--out=${tempDir.path}/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
