@@ -63,6 +63,25 @@ class _HttpHeaders implements HttpHeaders {
     _updateHostHeader();
   }
 
+  Date get date() {
+    List<String> values = _headers["date"];
+    if (values != null) {
+      try {
+        return _HttpUtils.parseDate(values[0]);
+      } catch (Exception e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  void set date(Date date) {
+    // Format "Date" header with date in Greenwich Mean Time (GMT).
+    String formatted =
+        _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
+    _set("date", formatted);
+  }
+
   Date get expires() {
     List<String> values = _headers["expires"];
     if (values != null) {
@@ -72,6 +91,7 @@ class _HttpHeaders implements HttpHeaders {
         return null;
       }
     }
+    return null;
   }
 
   void set expires(Date expires) {
@@ -83,7 +103,15 @@ class _HttpHeaders implements HttpHeaders {
 
   void _add(String name, Object value) {
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (name.toLowerCase() == "expires") {
+    if (name.toLowerCase() == "date") {
+      if (value is Date) {
+        date = value;
+      } else if (value is String) {
+        _set("date", value);
+      } else {
+        throw new HttpException("Unexpected type for header named $name");
+      }
+    } else if (name.toLowerCase() == "expires") {
       if (value is Date) {
         expires = value;
       } else if (value is String) {

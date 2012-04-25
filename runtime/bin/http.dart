@@ -277,6 +277,12 @@ interface HttpHeaders default _HttpHeaders {
   void removeAll(String name);
 
   /**
+   * Gets and sets the date. The value of this property will
+   * reflect the "Date" header
+   */
+  Date date;
+
+  /**
    * Gets and sets the expiry date. The value of this property will
    * reflect the "Expires" header
    */
