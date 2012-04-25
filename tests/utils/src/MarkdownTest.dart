@@ -9,6 +9,7 @@
 
 // TODO(rnystrom): Better path to unittest.
 #import('../../../lib/unittest/unittest.dart');
+#import('test_utils.dart');
 
 /// Most of these tests are based on observing how showdown behaves:
 /// http://softwaremaniacs.org/playground/showdown-highlight/
@@ -762,30 +763,6 @@ validate(String description, String markdown, String html) {
 
     expect(passed).isTrue();
   });
-}
-
-/// The tests uses triple-quoted strings, which will include leading indentation
-/// to make them look nice in code. But we don't want the markdown parser to
-/// actually see that, so this cleans it all up.
-///
-/// Note that this is very sensitive to how the literals are styled. They should
-/// be:
-///     '''
-///     Text starts on own line. Lines up with subsequent lines.
-///     Lines are indented exactly 8 characters from the left margin.
-///     Close is on the same line.'''
-///
-cleanUpLiteral(String text) {
-  var lines = text.split('\n');
-  for (var j = 0; j < lines.length; j++) {
-    if (lines[j].length > 8) {
-      lines[j] = lines[j].substring(8, lines[j].length);
-    } else {
-      lines[j] = '';
-    }
-  }
-
-  return Strings.join(lines, '\n');
 }
 
 /// Does a loose comparison of the two strings of HTML. Ignores differences in
