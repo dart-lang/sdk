@@ -1322,7 +1322,7 @@ class TestUtils {
       if (configuration["host_checked"]) {
         args.add("--vm_flags=--enable_asserts --enable_type_checks");
       }
-      if (configuration['runtime'] != 'drt') {
+      if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");
       }
     }
