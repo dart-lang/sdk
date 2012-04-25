@@ -531,9 +531,6 @@ class Class : public Object {
   void set_type_arguments_instance_field_offset(intptr_t value) const {
     raw_ptr()->type_arguments_instance_field_offset_ = value;
   }
-  static intptr_t type_arguments_instance_field_offset_offset() {
-    return OFFSET_OF(RawClass, type_arguments_instance_field_offset_);
-  }
 
   // The super type of this class, Object type if not explicitly specified.
   RawType* super_type() const { return raw_ptr()->super_type_; }
@@ -1045,7 +1042,6 @@ class InstantiatedType : public AbstractType {
   virtual RawAbstractTypeArguments* arguments() const;
   virtual intptr_t token_index() const;
   virtual bool IsInstantiated() const { return true; }
-  virtual bool Equals(const AbstractType& other) const;
 
   RawAbstractType* uninstantiated_type() const {
     return raw_ptr()->uninstantiated_type_;

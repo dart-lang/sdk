@@ -1733,8 +1733,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 // Check if an instance class is a subtype of class/interface using simple
 // superchain and interface array traversal. Does not take type parameters into
 // account.
-// EAX: instance (to be preserved).
-// ECX: class to test.
+// EAX: instance (preserved)
 // EDX: class/interface to test against (is class of instance a subtype of it).
 //      (preserved).
 // Result in EBX: 1 is subtype, 0 maybe not.
@@ -1742,7 +1741,17 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label test_class, not_found, found;
+  Label test_class, not_found, found, class_loaded_in_ECX, smi_value;
+  __ EnterFrame(0);
+  __ testl(EAX, Immediate(kSmiTagMask));
+  __ j(ZERO, &smi_value, Assembler::kNearJump);
+  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  __ jmp(&class_loaded_in_ECX, Assembler::kNearJump);
+  __ Bind(&smi_value);
+  __ movl(ECX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(ECX, Address(ECX, Isolate::object_store_offset()));
+  __ movl(ECX, Address(ECX, ObjectStore::smi_class_offset()));
+  __ Bind(&class_loaded_in_ECX);
 
   __ movzxb(EBX, FieldAddress(EDX, Class::is_interface_offset()));
   // Check if we are comparing against class or interface.
@@ -1760,6 +1769,7 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   Label array_loop;
   __ Bind(&array_loop);
   __ subl(EDI, Immediate(Smi::RawValue(1)));
+  // __ cmpl(EDI, Immediate(0));
   __ j(LESS, &not_found, Assembler::kNearJump);
   // EDI is Smi therefore TIMES_2 instead of TIMES_4.
   // Get type from array.
@@ -1771,10 +1781,12 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
 
   __ Bind(&not_found);
   __ xorl(EBX, EBX);
+  __ LeaveFrame();
   __ ret();
 
   __ Bind(&found);
   __ movl(EBX, Immediate(1));
+  __ LeaveFrame();
   __ ret();
 
   __ Bind(&test_class);

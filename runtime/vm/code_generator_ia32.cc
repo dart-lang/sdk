@@ -1285,55 +1285,6 @@ static const Class* CoreClass(const char* c_name) {
 }
 
 
-// Instance to test is in EAX, test if it is a subtype of type_class.
-// The instance may not be a Smi (test before calling this).
-// The instance may not be NULL (test before calling this).
-// TODO(srdjan): Implement a quicker subtype check, as type test
-// arrays can grow too high, but they may be useful when optimizing
-// code (type-feedback).
-void CodeGenerator::GenerateClassTestCache(intptr_t node_id,
-                                           intptr_t token_index,
-                                           const Class& type_class,
-                                           Label* is_instance_lbl,
-                                           Label* is_not_instance_lbl) {
-  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label loop, found_in_cache, runtime_call;
-  // Check immediate equality.
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-  // ECX: instance class.
-  __ CompareObject(ECX, type_class);
-  __ j(EQUAL, is_instance_lbl);
-
-  // Check immediate superclass equality.
-  __ movl(EDI, FieldAddress(ECX, Class::super_type_offset()));
-  __ movl(EDI, FieldAddress(EDI, Type::type_class_offset()));
-  __ CompareObject(EDI, type_class);
-  __ j(EQUAL, is_instance_lbl);
-
-  // ECX: instance class.
-  AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-  __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
-  __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
-  __ Bind(&loop);
-  __ movl(EBX, Address(EDX, 0));
-  __ cmpl(ECX, EBX);
-  __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
-  __ addl(EDX, Immediate(kWordSize * 2));
-  __ cmpl(EBX, raw_null);
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ jmp(&runtime_call, Assembler::kNearJump);
-
-  __ Bind(&found_in_cache);
-  __ movl(EDX, Address(EDX, kWordSize));
-  __ CompareObject(EDX, bool_true);
-  __ j(EQUAL, is_instance_lbl);
-  __ jmp(is_not_instance_lbl);
-  __ Bind(&runtime_call);
-}
-
-
 // Inline tests according to the 'type' being tested. Jump to labels
 // if we can compute the type-test, otherwise fallthrough.
 // EAX: instance to be tested.
@@ -1349,9 +1300,7 @@ void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (type_class.HasTypeArguments()) {
-      GenerateInstantiatedTypeWithArgumentsTest(node_id,
-                                                token_index,
-                                                type,
+      GenerateInstantiatedTypeWithArgumentsTest(type,
                                                 is_instance_lbl,
                                                 is_not_instance_lbl);
       // Fall through to runtime call.
@@ -1363,8 +1312,29 @@ void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
                                               is_not_instance_lbl);
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
-      GenerateClassTestCache(node_id, token_index, type_class,
-                             is_instance_lbl, is_not_instance_lbl);
+      const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+      const Immediate raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+      AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
+      __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
+      __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+      Label loop, found_in_cache, runtime_call;
+      __ Bind(&loop);
+      __ movl(EBX, Address(EDX, 0));
+      __ cmpl(ECX, EBX);
+      __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
+      __ addl(EDX, Immediate(kWordSize * 2));
+      __ cmpl(EBX, raw_null);
+      __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+      __ jmp(&runtime_call, Assembler::kNearJump);
+
+      __ Bind(&found_in_cache);
+      __ movl(EDX, Address(EDX, kWordSize));
+      __ CompareObject(EDX, bool_true);
+      __ j(EQUAL, is_instance_lbl);
+      __ jmp(is_not_instance_lbl);
+      __ Bind(&runtime_call);
     }
   } else {
     GenerateUninstantiatedTypeTest(type,
@@ -1497,8 +1467,6 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 // type test is conclusive, otherwise fallthrough if a type test could not
 // be completed.
 void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
-    intptr_t node_id,
-    intptr_t token_index,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -1523,11 +1491,13 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       __ j(EQUAL, is_instance_lbl);
       __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
       __ j(EQUAL, is_instance_lbl);
+    } else if (!type_class.is_interface()) {
+      __ CompareObject(ECX, type_class);
+      __ j(EQUAL, is_instance_lbl);
     }
-    GenerateClassTestCache(node_id, token_index, type_class,
-                           is_instance_lbl, is_not_instance_lbl);
+  } else {
+    // TODO(srdjan): do type test on type arguments.
   }
-  // TODO(srdjan): do type test on type arguments.
   // Fall through if type test is not conclusive
 }
 
@@ -1684,16 +1654,8 @@ void CodeGenerator::GenerateUninstantiatedTypeTest(
     // Check that class of type has no type parameters.
     __ cmpl(ECX, raw_null);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
-    // EAX has non-parameterized class.
-    // Check class equality
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    __ movl(ECX, FieldAddress(ECX, Type::Type::type_class_offset()));
-    __ cmpl(ECX, EDX);
-    __ j(EQUAL, is_instance_lbl);
-
     // We have a non-parameterized class in EDX, compare with class of
     // value in EAX. EAX, EDX are preserved in stub.
-    __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
     __ call(&StubCode::IsRawSubTypeLabel());
     // Result in EBX: 1 is raw subtype.
     __ cmpl(EBX, Immediate(1));
