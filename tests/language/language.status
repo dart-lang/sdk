@@ -357,6 +357,9 @@ StringEscape4NegativeTest: Fail # Issue 1352
 
 Issue4515170Test: Fail
 
+[ $compiler == frog && $runtime == d8 ]
+StringEscape1NegativeTest: Fail # TODO(sra): investigate
+
 [ $runtime == chrome ]
 StringEscape1NegativeTest: Skip
 
