@@ -115,6 +115,22 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
 }
 
 
+void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
+  capacity_ -= page->memory_->size();
+  // Remove the page from the list.
+  if (previous_page != NULL) {
+    previous_page->set_next(page->next());
+  } else {
+    pages_ = page->next();
+  }
+  if (page == pages_tail_) {
+    pages_tail_ = previous_page;
+  }
+  // TODO(iposva): Consider adding to a pool of empty pages.
+  page->Deallocate();
+}
+
+
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
   capacity_ -= page->memory_->size();
   // Remove the page from the list.
@@ -284,14 +300,22 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   GCSweeper sweeper(heap_);
   intptr_t in_use = 0;
 
+  HeapPage* prev_page = NULL;
   HeapPage* page = pages_;
   while (page != NULL) {
     intptr_t page_in_use = sweeper.SweepPage(page, &freelist_);
-    in_use += page_in_use;
-    page = page->next();
+    HeapPage* next_page = page->next();
+    if (page_in_use == 0) {
+      FreePage(page, prev_page);
+    } else {
+      in_use += page_in_use;
+      prev_page = page;
+    }
+    // Advance to the next page.
+    page = next_page;
   }
 
-  HeapPage* prev_page = NULL;
+  prev_page = NULL;
   page = large_pages_;
   while (page != NULL) {
     intptr_t page_in_use = sweeper.SweepLargePage(page);
