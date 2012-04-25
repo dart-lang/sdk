@@ -20,6 +20,7 @@ class LocalVariable;
 // typename and classname.
 #define FOR_EACH_VALUE(M)                                                      \
   M(Temp, TempVal)                                                             \
+  M(Use, UseVal)                                                               \
   M(Constant, ConstantVal)                                                     \
 
 
@@ -115,6 +116,24 @@ class TempVal : public Value {
   const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(TempVal);
+};
+
+
+// Definitions and uses are mutually recursive.
+class Definition;
+
+class UseVal : public Value {
+ public:
+  explicit UseVal(Definition* definition) : definition_(definition) { }
+
+  DECLARE_VALUE(Use)
+
+  Definition* definition() const { return definition_; }
+
+ private:
+  Definition* const definition_;
+
+  DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
 
 
@@ -1028,12 +1047,12 @@ class CatchEntryComp : public Computation {
 //
 // <Instruction> ::= JoinEntry <Instruction>
 //                 | TargetEntry <Instruction>
-//                 | PickTemp <int> <int> <Instruction>
-//                 | TuckTemp <int> <int> <Instruction>
 //                 | Do <Computation> <Instruction>
-//                 | Bind <int> <Computation> <Instruction>
 //                 | Return <Value>
 //                 | Branch <Value> <Instruction> <Instruction>
+// <Definition>  ::= PickTemp <int> <int> <Instruction>
+//                 | TuckTemp <int> <int> <Instruction>
+//                 | Bind <int> <Computation> <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -1041,10 +1060,10 @@ class CatchEntryComp : public Computation {
 #define FOR_EACH_INSTRUCTION(M)                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
-  M(PickTemp)                                                                  \
-  M(TuckTemp)                                                                  \
   M(Do)                                                                        \
   M(Bind)                                                                      \
+  M(PickTemp)                                                                  \
+  M(TuckTemp)                                                                  \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1244,76 +1263,6 @@ class TargetEntryInstr : public BlockEntryInstr {
 };
 
 
-// The non-optimizing compiler assumes that there is exactly one use of
-// every temporary so they can be deallocated at their use.  Some AST nodes,
-// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
-// of the values expr0 and expr1).
-//
-// PickTemp is used to name (with 'destination') a copy of a live temporary
-// (named 'source') without counting as the use of the source.
-class PickTempInstr : public Instruction {
- public:
-  PickTempInstr(intptr_t dst, intptr_t src)
-      : destination_(dst), source_(src), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(PickTemp)
-
-  intptr_t destination() const { return destination_; }
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t destination_;
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
-};
-
-
-// The non-optimizing compiler assumes that temporary definitions and uses
-// obey a stack discipline, so they can be allocated and deallocated with
-// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
-// (the value expr+1 is produced after the value of expr, and also consumed
-// after it).
-//
-// We 'preallocate' temporaries (named with 'destination') such as the one
-// for expr+1 and use TuckTemp to mutate them by overwriting them with a
-// copy of a temporary (named with 'source').
-class TuckTempInstr : public Instruction {
- public:
-  TuckTempInstr(intptr_t dst, intptr_t src)
-      : destination_(dst), source_(src), successor_(NULL) { }
-
-  DECLARE_INSTRUCTION(TuckTemp)
-
-  intptr_t destination() const { return destination_; }
-  intptr_t source() const { return source_; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL && instr != NULL);
-    successor_ = instr;
-  }
-
- private:
-  const intptr_t destination_;
-  const intptr_t source_;
-  Instruction* successor_;
-
-  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
-};
-
-
 class DoInstr : public Instruction {
  public:
   explicit DoInstr(Computation* comp)
@@ -1339,14 +1288,26 @@ class DoInstr : public Instruction {
 };
 
 
-class BindInstr : public Instruction {
+class Definition : public Instruction {
+ public:
+  explicit Definition(intptr_t temp_index) : temp_index_(temp_index) { }
+
+  intptr_t temp_index() const { return temp_index_; }
+
+ private:
+  const intptr_t temp_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(Definition);
+};
+
+
+class BindInstr : public Definition {
  public:
   BindInstr(intptr_t temp_index, Computation* computation)
-      : temp_index_(temp_index), computation_(computation), successor_(NULL) { }
+      : Definition(temp_index), computation_(computation), successor_(NULL) { }
 
   DECLARE_INSTRUCTION(Bind)
 
-  intptr_t temp_index() const { return temp_index_; }
   Computation* computation() const { return computation_; }
 
   virtual Instruction* StraightLineSuccessor() const {
@@ -1358,11 +1319,78 @@ class BindInstr : public Instruction {
   }
 
  private:
-  const intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
+};
+
+
+// The non-optimizing compiler assumes that there is exactly one use of
+// every temporary so they can be deallocated at their use.  Some AST nodes,
+// e.g., expr0[expr1]++, violate this assumption (there are two uses of each
+// of the values expr0 and expr1).
+//
+// PickTemp is used to name (with 'destination') a copy of a live temporary
+// (named 'source') without counting as the use of the source.
+class PickTempInstr : public Definition {
+ public:
+  PickTempInstr(intptr_t temp_index, intptr_t source)
+      : Definition(temp_index), source_(source), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(PickTemp)
+
+  intptr_t source() const { return source_; }
+
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+ private:
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(PickTempInstr);
+};
+
+
+// The non-optimizing compiler assumes that temporary definitions and uses
+// obey a stack discipline, so they can be allocated and deallocated with
+// push and pop.  Some Some AST nodes, e.g., expr++, violate this assumption
+// (the value expr+1 is produced after the value of expr, and also consumed
+// after it).
+//
+// We 'preallocate' temporaries (named with 'destination') such as the one
+// for expr+1 and use TuckTemp to mutate them by overwriting them with a
+// copy of a temporary (named with 'source').
+class TuckTempInstr : public Instruction {
+ public:
+  TuckTempInstr(intptr_t destination, intptr_t source)
+      : destination_(destination), source_(source), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(TuckTemp)
+
+  intptr_t destination() const { return destination_; }
+  intptr_t source() const { return source_; }
+
+  virtual Instruction* StraightLineSuccessor() const {
+    return successor_;
+  }
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL && instr != NULL);
+    successor_ = instr;
+  }
+
+ private:
+  const intptr_t destination_;
+  const intptr_t source_;
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(TuckTempInstr);
 };
 
 

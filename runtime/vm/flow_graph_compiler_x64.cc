@@ -377,13 +377,18 @@ void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
       __ LoadObject(dst, value->AsConstant()->value());
     }
   } else {
-    ASSERT(value->IsTemp());
+    ASSERT(value->IsTemp() || value->IsUse());
     __ popq(dst);
   }
 }
 
 
 void FlowGraphCompiler::VisitTemp(TempVal* val) {
+  LoadValue(RAX, val);
+}
+
+
+void FlowGraphCompiler::VisitUse(UseVal* val) {
   LoadValue(RAX, val);
 }
 
@@ -441,11 +446,14 @@ template <typename T> static bool VerifyCallComputation(T* comp) {
   intptr_t previous = -1;
   for (int i = 0; i < comp->ArgumentCount(); ++i) {
     TempVal* temp = comp->ArgumentAt(i)->AsTemp();
-    if (temp == NULL) return false;
+    UseVal* use = comp->ArgumentAt(i)->AsUse();
+    if ((temp == NULL) && (use == NULL)) return false;
+    intptr_t current =
+        (temp != NULL) ? temp->index() : use->definition()->temp_index();
     if (i != 0) {
-      if (temp->index() != previous + 1) return false;
+      if (current != (previous + 1)) return false;
     }
-    previous = temp->index();
+    previous = current;
   }
   return true;
 }
@@ -1187,7 +1195,7 @@ void FlowGraphCompiler::VisitPickTemp(PickTempInstr* instr) {
   // Destination index d is assumed the new top of stack after the
   // operation, so d-1 is the current top of stack and so d-s-1 is the
   // offset to source index s.
-  intptr_t offset = instr->destination() - instr->source() - 1;
+  intptr_t offset = instr->temp_index() - instr->source() - 1;
   ASSERT(offset >= 0);
   __ pushq(Address(RSP, offset * kWordSize));
 }
