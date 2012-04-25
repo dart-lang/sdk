@@ -462,16 +462,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       # FIXME: exclude from interface as well.
       return
 
-    # FIXME: these should go away.
-    classes_with_unsupported_custom_getters = [
-        'Coordinates',
-        'HTMLOutputElement',
-        'ScriptProfileNode',
-        'WebKitAnimation' ]
-    if (self._interface.id in classes_with_unsupported_custom_getters and
-        getter and set(['Custom', 'CustomGetter']) & set(getter.ext_attrs)):
-      return
-
     if getter:
       self._AddGetter(getter)
     if setter:
