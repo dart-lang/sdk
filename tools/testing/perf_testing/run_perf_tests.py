@@ -177,8 +177,10 @@ class TestRunner(object):
     parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
                       help='Do not sync with the repository and do not '
                       'rebuild.', default=False)
-    parser.add_option('--upload', '-u', dest='upload', action='store_true',
-                      help='Post the results of the run.', default=False)
+    parser.add_option('--noupload', '-u', dest='no_upload', action='store_true',
+                      help='Do not post the results of the run.', default=False)
+    parser.add_option('--notest', '-t', dest='no_test', action='store_true',
+                      help='Do not run the tests.', default=False)
     parser.add_option('--verbose', '-v', dest='verbose', help='Print extra '
                       'debug output', action='store_true', default=False)
 
@@ -198,7 +200,8 @@ class TestRunner(object):
           sys.exit(1)
     self.suite_names = suites
     self.no_build = args.no_build
-    self.upload = args.upload
+    self.no_upload = args.no_upload
+    self.no_test = args.no_test
     self.verbose = args.verbose
     return args.continuous
 
@@ -273,16 +276,16 @@ class Test(object):
     
     os.chdir(DART_INSTALL_LOCATION)
     self.test_runner.ensure_output_directory(self.result_folder_name)
-    self.tester.run_tests()
+    if not self.test_runner.no_test:
+      self.tester.run_tests()
 
     os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
 
-    # TODO(efortuna): Remove trace files once uploaded. This will happen in a
-    # future CL.
     files = os.listdir(self.result_folder_name)
     for afile in files:
       if not afile.startswith('.'):
-        self.file_processor.process_file(afile)
+        if self.file_processor.process_file(afile):
+          os.remove(os.path.join(self.result_folder_name, afile))
 
 
 class Tester(object):
@@ -465,9 +468,12 @@ class CommonBrowserTest(RuntimePerformanceTest):
 
   class CommonBrowserFileProcessor(Processor):
     def process_file(self, afile):
-      """Comb through the html to find the performance results."""
+      """Comb through the html to find the performance results.
+      Returns: True if we successfullly posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
                             'testing', 'perf_testing'))
+      if self.test.test_runner.no_upload:
+        return
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
@@ -493,6 +499,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
         results = line.split('<br>')
       else:
         results = line.split('<br />')
+      upload_success = True
       for result in results:
         name_and_score = result.split(':')
         if len(name_and_score) < 2:
@@ -501,11 +508,11 @@ class CommonBrowserTest(RuntimePerformanceTest):
         score = name_and_score[1].strip()
         if version == 'js' or version == 'v8':
           version = 'js'
-        if self.test.test_runner.upload:
-          self.report_results(name, score, browser, version, revision_num,
-                              self.SCORE)
+        upload_success = upload_success and self.report_results(
+            name, score, browser, version, revision_num, self.SCORE)
 
       f.close()
+      return upload_success
 
 
 class DromaeoTester(Tester):
@@ -641,7 +648,10 @@ class DromaeoTest(RuntimePerformanceTest):
 
   class DromaeoFileProcessor(Processor):
     def process_file(self, afile):
-      """Comb through the html to find the performance results."""
+      """Comb through the html to find the performance results.
+      Returns: True if we successfullly posted our data to storage."""
+      if self.test.test_runner.no_upload:
+        return
       parts = afile.split('-')
       browser = parts[2]
       version = parts[3]
@@ -654,6 +664,7 @@ class DromaeoTest(RuntimePerformanceTest):
       suite_pattern = r'<div class="result-item done">(.+?)</ol></div>'
       result_pattern = r'<b>(.+?)</b>(.+?)<small> runs/s(.+)'
 
+      upload_success = True
       for line in lines:
         rev = re.match(revision_pattern, line.strip())
         if rev:
@@ -669,11 +680,11 @@ class DromaeoTest(RuntimePerformanceTest):
                 r = re.match(result_pattern, result)
                 name = DromaeoTester.legalize_filename(r.group(1).strip(':'))
                 score = float(r.group(2))
-                if self.test.test_runner.upload:
-                  self.report_results(name, score, browser, version, 
-                                      revision_num, self.SCORE)
+                upload_success = upload_success and self.report_results(
+                    name, score, browser, version, revision_num, self.SCORE)
 
       f.close()
+      return upload_success
 
 
 class DromaeoSizeTest(Test):
@@ -759,15 +770,19 @@ class DromaeoSizeTest(Test):
       """Pull all the relevant information out of a given tracefile.
 
       Args:
-        afile: is the filename string we will be processing."""
+        afile: is the filename string we will be processing.
+      Returns: True if we successfullly posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
+      if self.test.test_runner.no_upload:
+        return
       f = open(os.path.join(self.test.result_folder_name, afile))
       tabulate_data = False
       revision_num = 0
       revision_pattern = r'Revision: (\d+)'
       result_pattern = r'Size \((\w+), ([a-zA-Z0-9-]+)\): (\d+)'
 
+      upload_success = True
       for line in f.readlines():
         rev = re.match(revision_pattern, line.strip())
         if rev:
@@ -783,11 +798,11 @@ class DromaeoSizeTest(Test):
             num = int(num)
           else:
             num = float(num)
-          if self.test.test_runner.upload:
-            self.report_results(metric, num, 'browser', variant, revision_num,
-                                self.CODE_SIZE)
+          upload_success = upload_success and self.report_results(
+              metric, num, 'browser', variant, revision_num, self.CODE_SIZE)
 
       f.close()
+      return upload_success
   
 
 class CompileTimeAndSizeTest(Test):
@@ -863,12 +878,16 @@ class CompileTimeAndSizeTest(Test):
       """Pull all the relevant information out of a given tracefile.
 
       Args:
-        afile: is the filename string we will be processing."""
+        afile: is the filename string we will be processing.
+      Returns: True if we successfullly posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
+      if self.test.test_runner.no_upload:
+        return
       f = open(os.path.join(self.test.result_folder_name, afile))
       tabulate_data = False
       revision_num = 0
+      upload_success = True
       for line in f.readlines():
         tokens = line.split()
         if 'Revision' in line:
@@ -884,11 +903,11 @@ class CompileTimeAndSizeTest(Test):
               score_type = self.CODE_SIZE
               if 'Compiling' in metric or 'Bootstrapping' in metric:
                 score_type = self.COMPILE_TIME
-              if self.test.test_runner.upload:
-                self.report_results(metric, num, 'commandline', 'frog', 
-                                   revision_num, score_type)
+              upload_success = upload_success and self.report_results(
+                  metric, num, 'commandline', 'frog', revision_num, score_type)
 
       f.close()
+      return upload_success
 
 
 class TestBuilder(object):
