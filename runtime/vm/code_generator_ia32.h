@@ -204,7 +204,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                                 Label* is_instance_lbl,
                                 Label* is_not_instance_lbl);
 
-  void GenerateInstantiatedTypeWithArgumentsTest(const AbstractType& dst_type,
+  void GenerateInstantiatedTypeWithArgumentsTest(intptr_t node_id,
+                                                 intptr_t token_index,
+                                                 const AbstractType& dst_type,
                                                  Label* is_instance_lbl,
                                                  Label* is_not_instance_lbl);
   void GenerateInstantiatedTypeNoArgumentsTest(intptr_t node_id,
@@ -215,6 +217,11 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   void GenerateUninstantiatedTypeTest(const AbstractType& dst_type,
                                       intptr_t token_index,
                                       Label* is_instance_lbl);
+  void GenerateClassTestCache(intptr_t node_id,
+                              intptr_t token_index,
+                              const Class& type_class,
+                              Label* is_instance_lbl,
+                              Label* is_not_instance_lbl);
 
   void HandleBackwardBranch(intptr_t loop_id, intptr_t token_index);
 
