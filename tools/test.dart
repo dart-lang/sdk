@@ -33,6 +33,7 @@
 #import("../tests/corelib/test_config.dart");
 #import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
+#import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
@@ -110,6 +111,9 @@ main() {
     }
     if (selectors.containsKey('language')) {
       queue.addTestSuite(new LanguageTestSuite(conf));
+    }
+    if (selectors.containsKey('lib')) {
+      queue.addTestSuite(new LibTestSuite(conf));
     }
     if (selectors.containsKey('isolate')) {
       queue.addTestSuite(new IsolateTestSuite(conf));
