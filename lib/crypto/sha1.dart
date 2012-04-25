@@ -2,83 +2,68 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class SHA1 {
-  static List<int> digest(List<int> input,
-                          [int offset = 0,
-                           int len = null]) {
-    var input_len = input.length;
-    if ((offset < 0) || (offset > input_len)) {
-      throw new IllegalArgumentException("Invalid offset ($offset).");
-    }
-    if (len == null) {
-      len = input_len - offset;
-    }
-    if ((len < 0) || ((offset + len) > input_len)) {
-      throw new IllegalArgumentException("Invalid length ($len) for "
-          "offset ($offset) and input length (input_len).");
-    }
-
-    // Round up to 512 bit size.
-    var m_len = _roundUp((len * _BITS_PER_BYTE) + 65, _BITS_PER_CHUNK);
-    m_len = m_len ~/ _BITS_PER_WORD;
-    var m = new List<int>(m_len);
-
-    _bytesToWords(input, offset, len, m, 0, m_len);
-
-    var l = len * 8;
-    var w = new List<int>(80);
-    var H0 = 0x67452301;
-    var H1 = 0xEFCDAB89;
-    var H2 = 0x98BADCFE;
-    var H3 = 0x10325476;
-    var H4 = 0xC3D2E1F0;
-
-    // TODO(iposva): Deal with lengths longer than 32-bits once arrays can
-    // grow to this size.
-    m[l >> 5] |= 0x80 << (24 - l % 32);
-    m[(((l + 64) >> 9) << 4) + 15] = l;
-
-    for (var i = 0; i < m_len; i += 16) {
-      var a = H0;
-      var b = H1;
-      var c = H2;
-      var d = H3;
-      var e = H4;
-
-      for (var j = 0; j < 80; j++) {
-        if (j < 16) {
-          w[j] = m[i + j];
-        } else {
-          var n = w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16];
-          w[j] = _rotl32(n, 1);
-        }
-
-        var t = _rotl32(a, 5) + e + w[j];
-        if (j < 20) {
-          t += (((b & c) | (~b & d)) + 0x5A827999);
-        } else if (j < 40) {
-          t += ((b ^ c ^ d) + 0x6ED9EBA1);
-        } else if (j < 60) {
-          t += (((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC);
-        } else {
-          t += ((b ^ c ^ d) + 0xCA62C1D6);
-        }
-
-        e = d;
-        d = c;
-        c = _rotl32(b, 30);
-        b = a;
-        a = t & _MASK_32;
-      }
-      H0 = _add32(H0, a);
-      H1 = _add32(H1, b);
-      H2 = _add32(H2, c);
-      H3 = _add32(H3, d);
-      H4 = _add32(H4, e);
-    }
-    return _wordsToBytes([H0, H1, H2, H3, H4]);
+// The SHA1 hasher is used to compute an SHA1 message digest.
+class _SHA1 extends _SHACryptoHashBase implements SHA1 {
+  // Construct a SHA1 hasher object.
+  _SHA1() : _w = new List(80), super(16, 5) {
+    // Initial value of the hash parts. First 32 bits of the fractional parts
+    // of the square roots of the first 8 prime numbers.
+    _h[0] = 0x67452301;
+    _h[1] = 0xEFCDAB89;
+    _h[2] = 0x98BADCFE;
+    _h[3] = 0x10325476;
+    _h[4] = 0xC3D2E1F0;
   }
 
-  static final int _BITS_PER_CHUNK = 512;
-}
+  // Rotate left limiting to unsigned 32-bit values.
+  int _rotl32(int val, int shift) {
+    var mod_shift = shift & 31;
+    return ((val << mod_shift) & _MASK_32) |
+        ((val & _MASK_32) >> (32 - mod_shift));
+  }
 
+  // Compute one iteration of the SHA1 algorithm with a chunk of
+  // 16 32-bit pieces.
+  void _updateHash(List<int> m) {
+    assert(m.length == 16);
+
+    var a = _h[0];
+    var b = _h[1];
+    var c = _h[2];
+    var d = _h[3];
+    var e = _h[4];
+
+    for (var i = 0; i < 80; i++) {
+      if (i < 16) {
+        _w[i] = m[i];
+      } else {
+        var n = _w[i - 3] ^ _w[i - 8] ^ _w[i - 14] ^ _w[i - 16];
+        _w[i] = _rotl32(n, 1);
+      }
+      var t = _rotl32(a, 5) + e + _w[i];
+      if (i < 20) {
+        t = t + ((b & c) | (~b & d)) + 0x5A827999;
+      } else if (i < 40) {
+        t = t + (b ^ c ^ d) + 0x6ED9EBA1;
+      } else if (i < 60) {
+        t = t + ((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC;
+      } else {
+        t = t + (b ^ c ^ d) + 0xCA62C1D6;
+      }
+
+      e = d;
+      d = c;
+      c = _rotl32(b, 30);
+      b = a;
+      a = t & _MASK_32;
+    }
+
+    _h[0] = _add32(a, _h[0]);
+    _h[1] = _add32(b, _h[1]);
+    _h[2] = _add32(c, _h[2]);
+    _h[3] = _add32(d, _h[3]);
+    _h[4] = _add32(e, _h[4]);
+  }
+
+  List<int> _w;
+}

@@ -21,7 +21,7 @@ String digestToString(List<int> digest) {
   return buf.toString();
 }
 
-void testStatic() {
+void test() {
   final expected_values = const [
     "da39a3ee5e6b4b0d3255bfef95601890afd80709",
     "5ba93c9db0cff93f52b521d7420e43f6eda2784f",
@@ -538,10 +538,20 @@ void testStatic() {
   ];
   for (var i = 0; i < expected_values.length; i++) {
     Expect.equals(expected_values[i],
-                  digestToString(SHA1.digest(createTestArr(i))));
+                  digestToString(new SHA1().update(createTestArr(i)).digest()));
   }
 }
 
+void testInvalidUse() {
+  var sha = new SHA1();
+  sha.digest();
+  Expect.throws(sha.digest,
+                (e) => e is CryptoHashException);
+  Expect.throws(() => sha.update([0]),
+                (e) => e is CryptoHashException);
+}
+
 void main() {
-  testStatic();
+  test();
+  testInvalidUse();
 }
