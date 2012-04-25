@@ -47,7 +47,6 @@
 #import("../frog/tests/native/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
 #import("../utils/tests/css/test_config.dart");
-#import("../utils/tests/import_mapper/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -146,9 +145,6 @@ main() {
     }
     if (selectors.containsKey('css')) {
       queue.addTestSuite(new CssTestSuite(conf));
-    }
-    if (selectors.containsKey('import_mapper')) {
-      queue.addTestSuite(new ImportMapperTestSuite(conf));
     }
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));
