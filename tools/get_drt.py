@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 def NormJoin(path1, path2):
   return os.path.normpath(os.path.join(path1, path2))
@@ -22,22 +23,22 @@ def NormJoin(path1, path2):
 dart_src = NormJoin(os.path.dirname(sys.argv[0]), os.pardir)
 os.chdir(dart_src)
 
-GSUTIL_DIR = 'third_party/gsutil'
+GSUTIL_DIR = os.path.join('third_party', 'gsutil')
 GSUTIL = GSUTIL_DIR + '/gsutil'
 
-DRT_DIR = 'client/tests/drt'
-DRT_VERSION = DRT_DIR + '/LAST_VERSION'
+DRT_DIR = os.path.join('client', 'tests', 'drt')
+DRT_VERSION = os.path.join(DRT_DIR, 'LAST_VERSION')
 DRT_LATEST_PATTERN = (
     'gs://dartium-archive/latest/drt-%(osname)s-inc-*.zip')
 DRT_PERMANENT_PREFIX = 'gs://dartium-archive/drt-%(osname)s-inc'
 
-DARTIUM_DIR = 'client/tests/dartium'
-DARTIUM_VERSION = DARTIUM_DIR + '/LAST_VERSION'
+DARTIUM_DIR = os.path.join('client', 'tests', 'dartium')
+DARTIUM_VERSION = os.path.join(DARTIUM_DIR, 'LAST_VERSION')
 DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DARTIUM_PERMANENT_PREFIX = 'gs://dartium-archive/dartium-%(osname)s-inc'
 
-sys.path.append(GSUTIL_DIR + '/boto')
+sys.path.append(os.path.join(GSUTIL_DIR, 'boto'))
 import boto
 
 
@@ -57,11 +58,11 @@ def execute_command_visible(*cmd):
 
 
 def gsutil(*cmd):
-  return execute_command(GSUTIL, *cmd)
+  return execute_command('python', GSUTIL, *cmd)
 
 
 def gsutil_visible(*cmd):
-  execute_command_visible(GSUTIL, *cmd)
+  execute_command_visible('python', GSUTIL, *cmd)
 
 
 def has_boto_config():
@@ -112,6 +113,8 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
     osname = 'mac'
   elif system == 'Linux':
     osname = 'lucid64'
+  elif system == 'Windows':
+    osname = 'win'
   else:
     print >>sys.stderr, ('WARNING: platform "%s" does not support'
         '%s for tests') % (system, name)
@@ -149,15 +152,16 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
   # download the zip file to a temporary path, and unzip to the target location
   temp_dir = tempfile.mkdtemp()
   try:
-    temp_zip = temp_dir + '/drt.zip'
+    temp_zip = os.path.join(temp_dir, 'drt.zip')
+    temp_zip_url = 'file://' + temp_zip
     # It's nice to show download progress
-    gsutil_visible('cp', latest, temp_zip)
+    gsutil_visible('cp', latest, temp_zip_url)
 
-    result, out = execute_command('unzip', temp_zip, '-d', temp_dir)
-    if result != 0:
-      raise Exception('Execution of "unzip %s -d %s" failed: %s' %
-                      (temp_zip, temp_dir, str(out)))
-    unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] # remove .zip
+    z = zipfile.ZipFile(temp_zip)
+    z.extractall(temp_dir)
+    # remove .zip for dir name
+    unzipped_dir = os.path.join(temp_dir, os.path.basename(latest)[:-4])
+    z.close()
     shutil.move(unzipped_dir, directory)
   finally:
     shutil.rmtree(temp_dir)

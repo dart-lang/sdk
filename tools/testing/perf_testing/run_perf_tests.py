@@ -412,7 +412,8 @@ class BrowserTester(Tester):
                      '--dartium']
       # TODO(vsm): It's inconvenient that run_cmd isn't in scope here.
       # Perhaps there is a better place to put that or this.
-      subprocess.Popen(get_dartium, shell=has_shell)
+      subprocess.call(get_dartium, stdout=sys.stdout, stderr=sys.stderr,
+                      shell=has_shell)
     return browsers
 
 
@@ -634,7 +635,7 @@ class DromaeoTest(RuntimePerformanceTest):
           self.test.test_runner.run_cmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
                '--out', file_path, '--browser', browser,
-               '--timeout', '600', '--mode', 'dromaeo'], self.test.trace_file,
+               '--timeout', '900', '--mode', 'dromaeo'], self.test.trace_file,
                append=True)
 
     @staticmethod
