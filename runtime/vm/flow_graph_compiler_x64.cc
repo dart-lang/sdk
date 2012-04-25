@@ -1670,7 +1670,7 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t node_id,
                                             intptr_t token_index,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry) {
-  __ CallRuntimeFromDart(entry);
+  __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index, try_index);
 }
 

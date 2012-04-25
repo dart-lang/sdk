@@ -20,8 +20,7 @@ class RawCode;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(DartCallToRuntime)                                                         \
-  V(StubCallToRuntime)                                                         \
+  V(CallToRuntime)                                                             \
   V(PrintStopMessage)                                                          \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \
@@ -102,8 +101,6 @@ class StubCode {
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
-  // Check if specified pc is in StubCallToRuntime stub.
-  static bool InStubCallToRuntimeStubCode(uword pc);
 
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);

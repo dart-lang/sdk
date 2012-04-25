@@ -18,17 +18,6 @@ static const int kPcAddressOffsetFromSp = -1 * kWordSize;
 static const int kSpOffsetFromPreviousFp = 2 * kWordSize;
 
 
-static bool ExitedFromStub(uword exit_marker) {
-  if (exit_marker != 0) {
-    uword caller_pc = *reinterpret_cast<uword*>(exit_marker + kWordSize);
-    uword call_instr_pc = caller_pc - CallPattern::InstructionLength();
-    uword call_target = CallPattern(call_instr_pc).TargetAddress();
-    return StubCode::InStubCallToRuntimeStubCode(call_target);
-  }
-  return false;
-}
-
-
 intptr_t StackFrame::PcAddressOffsetFromSp() {
   return kPcAddressOffsetFromSp;
 }
@@ -53,7 +42,6 @@ void StackFrameIterator::SetupLastExitFrameData() {
   Isolate* current = Isolate::Current();
   uword exit_marker = current->top_exit_frame_info();
   frames_.fp_ = exit_marker;
-  frames_.from_stub_exitframe_ = ExitedFromStub(exit_marker);
 }
 
 
@@ -61,7 +49,6 @@ void StackFrameIterator::SetupNextExitFrameData() {
   uword exit_address = entry_.fp() + kExitLinkOffsetInEntryFrame;
   uword exit_marker = *reinterpret_cast<uword*>(exit_address);
   frames_.fp_ = exit_marker;
-  frames_.from_stub_exitframe_ = ExitedFromStub(exit_marker);
   frames_.sp_ = 0;
 }
 

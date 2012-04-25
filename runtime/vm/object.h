@@ -131,7 +131,7 @@ class LocalScope;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
-  friend class DartFrame;                                                      \
+  friend class StackFrame;                                                     \
 
 class Object {
  public:

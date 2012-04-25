@@ -31,7 +31,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 //   ECX : address of the runtime function to call.
 //   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
-static void GenerateCallRuntimeStub(Assembler* assembler) {
+void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_offset = NativeArguments::argc_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
@@ -83,32 +83,6 @@ static void GenerateCallRuntimeStub(Assembler* assembler) {
 
   __ LeaveFrame();
   __ ret();
-}
-
-
-// Input parameters:
-//   ESP : points to return address.
-//   ESP + 4 : address of last argument in argument array.
-//   ESP + 4*EDX : address of first argument in argument array.
-//   ESP + 4*EDX + 4 : address of return value.
-//   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call.
-// Must preserve callee saved registers EDI and EBX.
-void StubCode::GenerateDartCallToRuntimeStub(Assembler* assembler) {
-  GenerateCallRuntimeStub(assembler);
-}
-
-
-// Input parameters:
-//   ESP : points to return address.
-//   ESP + 4 : address of last argument in argument array.
-//   ESP + 4*EDX : address of first argument in argument array.
-//   ESP + 4*EDX + 4 : address of return value.
-//   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call.
-// Must preserve callee saved registers EDI and EBX.
-void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
-  GenerateCallRuntimeStub(assembler);
 }
 
 
@@ -241,7 +215,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);
-  __ CallRuntimeFromStub(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
   __ popl(ECX);  // Restore read-only function object argument in ECX.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Restore EAX.
@@ -256,7 +230,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve function object.
-  __ CallRuntimeFromStub(kPatchStaticCallRuntimeEntry);
+  __ CallRuntime(kPatchStaticCallRuntimeEntry);
   __ popl(ECX);  // Restore function object argument in ECX.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Remove the stub frame as we are about to jump to the dart function.
@@ -278,7 +252,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve target function.
   __ pushl(ECX);  // Target function.
-  __ CallRuntimeFromStub(kFixCallersTargetRuntimeEntry);
+  __ CallRuntime(kFixCallersTargetRuntimeEntry);
   __ popl(EAX);  // discard argument.
   __ popl(EAX);  // Restore function.
   __ popl(EDX);  // Restore arguments descriptor array.
@@ -439,7 +413,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EAX);  // Push receiver.
-  __ CallRuntimeFromStub(kResolveCompileInstanceFunctionRuntimeEntry);
+  __ CallRuntime(kResolveCompileInstanceFunctionRuntimeEntry);
   __ popl(EAX);  // Remove receiver pushed earlier.
   __ popl(ECX);  // Pop returned code object into ECX.
   // Pop preserved values
@@ -475,7 +449,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EAX);  // Push receiver.
   __ pushl(EDX);  // Ic-data.
-  __ CallRuntimeFromStub(kResolveImplicitClosureFunctionRuntimeEntry);
+  __ CallRuntime(kResolveImplicitClosureFunctionRuntimeEntry);
   __ popl(EAX);
   __ popl(EAX);
   __ popl(ECX);  // Get return value into ECX, might be Closure object.
@@ -510,7 +484,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EAX);  // Push receiver.
   __ pushl(EDX);  // Ic-data.
-  __ CallRuntimeFromStub(kResolveImplicitClosureThroughGetterRuntimeEntry);
+  __ CallRuntime(kResolveImplicitClosureThroughGetterRuntimeEntry);
   __ popl(EDX);  // Pop argument.
   __ popl(EAX);  // Pop argument.
   __ popl(ECX);  // get return value into ECX, might be Closure object.
@@ -543,7 +517,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // TOS + 6: Last argument of caller.
   // ....
 
-  __ CallRuntimeFromStub(kInvokeImplicitClosureFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeImplicitClosureFunctionRuntimeEntry);
   // Remove arguments.
   __ popl(EAX);
   __ popl(EAX);
@@ -583,7 +557,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // TOS + 7: Last argument of caller.
   // ....
 
-  __ CallRuntimeFromStub(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
   __ popl(EAX);
   __ popl(EAX);
@@ -605,7 +579,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   // TOS + 1: Deoptimization point (return address), will be patched.
   // TOS + 2: top-of-stack at deoptimization point (all arguments on stack).
   __ pushl(EAX);
-  __ CallRuntimeFromStub(kDeoptimizeRuntimeEntry);
+  __ CallRuntime(kDeoptimizeRuntimeEntry);
   __ popl(EAX);
   __ LeaveFrame();
   __ ret();
@@ -744,7 +718,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
-  __ CallRuntimeFromStub(kAllocateArrayRuntimeEntry);
+  __ CallRuntime(kAllocateArrayRuntimeEntry);
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument.
   __ popl(EAX);  // Pop return value from return slot.
@@ -802,7 +776,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);
-  __ CallRuntimeFromStub(kCompileFunctionRuntimeEntry);
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
   __ popl(ECX);  // Restore read-only function object argument in ECX.
   __ popl(EDX);  // Restore arguments descriptor array.
   // Restore EAX.
@@ -847,7 +821,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // TOS + 4: Dart code return address
   // TOS + 5: Last argument of caller.
   // ....
-  __ CallRuntimeFromStub(kReportObjectNotClosureRuntimeEntry);
+  __ CallRuntime(kReportObjectNotClosureRuntimeEntry);
   __ Stop("runtime call throws an exception");
 }
 
@@ -1082,7 +1056,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ SmiTag(EDX);
   __ pushl(EDX);
-  __ CallRuntimeFromStub(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
   // EAX: new object
@@ -1273,7 +1247,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ pushl(raw_null);  // Push null type arguments.
     __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntimeFromStub(kAllocateObjectRuntimeEntry);  // Allocate object.
+  __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
   __ popl(EAX);  // Pop argument (instantiator).
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
@@ -1419,7 +1393,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
-    __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
+    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
   } else {
     if (is_implicit_instance_closure) {
       __ pushl(EAX);  // Receiver.
@@ -1430,12 +1404,12 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ pushl(raw_null);  // Push null type arguments.
     }
     if (is_implicit_instance_closure) {
-      __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
       __ popl(EAX);  // Pop argument (type arguments of object).
       __ popl(EAX);  // Pop receiver.
     } else {
       ASSERT(func.IsNonImplicitClosureFunction());
-      __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+      __ CallRuntime(kAllocateClosureRuntimeEntry);
       __ popl(EAX);  // Pop argument (type arguments of object).
     }
   }
@@ -1496,7 +1470,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // TOS + 8: Dart caller code return address
   // TOS + 9: Last argument of caller.
   // ....
-  __ CallRuntimeFromStub(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
   // Remove arguments.
   __ popl(EAX);
   __ popl(EAX);
@@ -1535,7 +1509,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ pushl(ECX);  // Preserve inline cache data object.
     __ pushl(EDX);  // Preserve arguments array.
     __ pushl(EBX);  // Argument for runtime: function object.
-    __ CallRuntimeFromStub(kOptimizeInvokedFunctionRuntimeEntry);
+    __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
     __ popl(EBX);  // Remove argument.
     __ popl(EDX);  // Restore arguments array.
     __ popl(ECX);  // Restore inline cache data object.
@@ -1628,9 +1602,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ pushl(EDX);
   }
   if (num_args == 1) {
-    __ CallRuntimeFromStub(kInlineCacheMissHandlerOneArgRuntimeEntry);
+    __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
   } else if (num_args == 2) {
-    __ CallRuntimeFromStub(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+    __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
   } else {
     UNIMPLEMENTED();
   }
@@ -1702,7 +1676,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushl(EDX);
   __ pushl(ECX);
-  __ CallRuntimeFromStub(kBreakpointStaticHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   __ popl(ECX);
   __ popl(EDX);
   __ LeaveFrame();
@@ -1720,7 +1694,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushl(EAX);
-  __ CallRuntimeFromStub(kBreakpointReturnHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
   __ popl(EAX);
   __ LeaveFrame();
 
@@ -1740,7 +1714,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ pushl(ECX);
   __ pushl(EDX);
-  __ CallRuntimeFromStub(kBreakpointDynamicHandlerRuntimeEntry);
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
   __ popl(EDX);
   __ popl(ECX);
   __ LeaveFrame();

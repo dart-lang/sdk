@@ -659,7 +659,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
       __ j(LESS_EQUAL, &not_yet_hot);
       __ pushl(EAX);  // Preserve result.
       __ pushl(EBX);  // Argument for runtime: function to optimize.
-      __ CallRuntimeFromDart(kOptimizeInvokedFunctionRuntimeEntry);
+      __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
       __ popl(EBX);  // Remove argument.
       __ popl(EAX);  // Restore result.
       __ Bind(&not_yet_hot);
@@ -2849,7 +2849,7 @@ void CodeGenerator::GenerateCall(intptr_t token_index,
 void CodeGenerator::GenerateCallRuntime(intptr_t node_id,
                                         intptr_t token_index,
                                         const RuntimeEntry& entry) {
-  __ CallRuntimeFromDart(entry);
+  __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
 }
 

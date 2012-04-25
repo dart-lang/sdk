@@ -34,8 +34,7 @@ class RuntimeEntry : public ValueObject {
   uword GetEntryPoint() const { return reinterpret_cast<uword>(function()); }
 
   // Generate code to call the runtime entry.
-  void CallFromDart(Assembler* assembler) const;
-  void CallFromStub(Assembler* assembler) const;
+  void Call(Assembler* assembler) const;
 
  private:
   const char* name_;

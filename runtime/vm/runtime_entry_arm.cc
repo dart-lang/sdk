@@ -9,11 +9,7 @@
 
 namespace dart {
 
-void RuntimeEntry::CallFromDart(Assembler* assembler) const {
-  UNIMPLEMENTED();
-}
-
-void RuntimeEntry::CallFromStub(Assembler* assembler) const {
+void RuntimeEntry::Call(Assembler* assembler) const {
   UNIMPLEMENTED();
 }
 
