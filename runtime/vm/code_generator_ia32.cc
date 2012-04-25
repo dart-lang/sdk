@@ -1687,7 +1687,7 @@ void CodeGenerator::GenerateUninstantiatedTypeTest(
     // EAX has non-parameterized class.
     // Check class equality
     __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-    __ movl(ECX, FieldAddress(ECX, Type::Type::type_class_offset()));
+    __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
     __ cmpl(ECX, EDX);
     __ j(EQUAL, is_instance_lbl);
 
