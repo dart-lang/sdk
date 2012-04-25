@@ -21,6 +21,7 @@ void compile(List<String> argv) {
   bool verbose = false;
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
+  List<String> options = new List<String>();
 
   List<String> arguments = <String>[];
   for (String argument in argv) {
@@ -39,18 +40,20 @@ void compile(List<String> argv) {
       String path =
           nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
       out = cwd.resolve(path);
+    } else if (argument == '--allow-mock-compilation') {
+      options.add(argument);
     } else if (argument.startsWith('-')) {
-      throw new AbortLeg('unknown option $argument');
+      fail('Unknown option $argument.');
     } else {
       arguments.add(nativeToUriPath(argument));
     }
   }
   if (arguments.isEmpty()) {
-    throw new AbortLeg('no files to compile');
+    fail('No files to compile.');
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
-    throw new AbortLeg('extra arguments: $extra');
+    fail('Extra arguments: $extra.');
   }
 
   Map<String, SourceFile> sourceFiles = <SourceFile>{};
@@ -93,8 +96,10 @@ void compile(List<String> argv) {
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, provider, handler).value;
-  if (code === null) throw new AbortLeg('compilation failed');
+  String code = api.compile(uri, libraryRoot, provider, handler, options).value;
+  if (code === null) {
+    fail('Compilation failed.');
+  }
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
@@ -109,7 +114,7 @@ class AbortLeg {
 
 void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
-    throw new AbortLeg('unhandled scheme ${uri.scheme}');
+    fail('Unhandled scheme ${uri.scheme}.');
   }
   var file = new File(uriPathToNative(uri.path)).openSync(FileMode.WRITE);
   file.writeStringSync(text);
@@ -123,4 +128,9 @@ String readAll(String filename) {
   var bytes = file.readListSync(buffer, 0, length);
   file.closeSync();
   return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
+}
+
+void fail(String message) {
+  print(message);
+  exit(1);
 }

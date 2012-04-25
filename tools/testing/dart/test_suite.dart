@@ -425,12 +425,30 @@ class StandardTestSuite implements TestSuite {
 
     for (var args in argumentLists) {
       doTest(new TestCase('$suiteName/$testName',
-                          [new Command(shellPath(), args)],
+                          makeCommands(info, args),
                           configuration,
                           completeHandler,
                           expectations,
                           isNegative,
                           info));
+    }
+  }
+
+  List<Command> makeCommands(TestInformation info, var args) {
+    if (configuration['compiler'] == 'dart2js') {
+      args = new List.from(args);
+      String testPath = info.filename.replaceAll('\\', '/');
+      Directory tempDir = createOutputDirectory(testPath, '');
+      args.add('--out=${tempDir.path}/out.js');
+      List<Command> commands = <Command>[new Command(shellPath(), args)];
+      if (configuration['runtime'] == 'd8') {
+        var d8 = '${TestUtils.buildDir(configuration)}/'
+                 'd8${TestUtils.executableSuffix("d8")}';
+        commands.add(new Command(d8, ['${tempDir.path}/out.js']));
+      }
+      return commands;
+    } else {
+      return <Command>[new Command(shellPath(), args)];
     }
   }
 
@@ -652,15 +670,18 @@ class StandardTestSuite implements TestSuite {
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
       case 'frog':
-      case 'dart2js':
         String libdir = configuration['froglib'];
         if (libdir == '') {
           libdir = '$dartDir/frog/lib';
         }
         args.addAll(['--libdir=$libdir',
-                             '--compile-only',
-                             '--out=$outputFile']);
+                     '--compile-only',
+                     '--out=$outputFile']);
         args.addAll(vmOptions);
+        args.add(inputFile);
+        break;
+      case 'dart2js':
+        args.add('--out=$outputFile');
         args.add(inputFile);
         break;
       default:
@@ -700,10 +721,12 @@ class StandardTestSuite implements TestSuite {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
-    testUniqueName += '-$optionsName';
+    if (!optionsName.isEmpty()) {
+      testUniqueName += '-$optionsName';
+    }
 
     // Create '[build dir]/generated_tests/$compiler-$runtime/$testUniqueName',
-      // including any intermediate directories that don't exist.
+    // including any intermediate directories that don't exist.
     var generatedTestPath = ['generated_tests',
                              configuration['compiler'] + '-' +
                              configuration['runtime'],
@@ -827,8 +850,7 @@ class StandardTestSuite implements TestSuite {
       args.add('--error_format');
       args.add('machine');
     }
-    if ((configuration['compiler'] == 'frog'
-          || configuration['compiler'] == 'dart2js')
+    if ((configuration['compiler'] == 'frog')
         && (configuration['runtime'] == 'none')) {
       args.add('--compile-only');
     }
@@ -836,6 +858,9 @@ class StandardTestSuite implements TestSuite {
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
     List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
+    if (configuration['compiler'] == 'dart2js') {
+      vmOptionsList = [[]];
+    }
     Expect.isTrue(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filename);
@@ -1194,8 +1219,13 @@ class TestUtils {
         return 'dart$suffix';
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
-      case 'frog':
       case 'dart2js':
+        if (configuration['host_checked']) {
+          return 'dart2js_developer$suffix';
+        } else {
+          return 'dart2js$suffix';
+        }
+      case 'frog':
         return 'frog/bin/frog$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
@@ -1207,8 +1237,13 @@ class TestUtils {
     switch (configuration['compiler']) {
       case 'dartc':
         return 'compiler/bin/dartc$suffix';
-      case 'frog':
       case 'dart2js':
+        if (configuration['host_checked']) {
+          return 'dart2js_developer$suffix';
+        } else {
+          return 'dart2js$suffix';
+        }
+      case 'frog':
         return 'frog/bin/frog$suffix';
       default:
         throw "Unknown compiler for: ${configuration['compiler']}";
@@ -1271,11 +1306,8 @@ class TestUtils {
       args.add("--enable_type_checks");
     }
     if (configuration["compiler"] == "dart2js") {
+      args = [];
       args.add("--verbose");
-      args.add("--leg");
-      if (configuration["host_checked"]) {
-        args.add("--vm_flags=--enable_asserts --enable_type_checks");
-      }
       if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");
       }
