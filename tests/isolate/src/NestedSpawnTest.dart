@@ -6,7 +6,7 @@
 
 #library('NestedSpawnTest');
 #import("dart:isolate");
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 class IsolateA extends Isolate {
   IsolateA() : super.heavy();
@@ -37,15 +37,13 @@ class IsolateB extends Isolate {
   }
 }
 
-test(TestExpectation expect) {
-  expect.completes(new IsolateA().spawn()).then((SendPort port) {
-    port.call("launch nested!").then(expect.runs1((msg) {
-      Expect.equals(499, msg);
-      expect.succeeded();
-    }));
-  });
-}
 
 main() {
-  runTests([test]);
+  test("spawned isolates can spawn nested isolates", () {
+    new IsolateA().spawn().then(expectAsync1((SendPort port) {
+      port.call("launch nested!").then(expectAsync1((msg) {
+        Expect.equals(499, msg);
+      }));
+    }));
+  });
 }

@@ -6,7 +6,7 @@
 
 #library('Mixed2Test');
 #import("dart:isolate");
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 // We want to send a message from the main-isolate to a chain of different
 // isolates and then get a reply back.
@@ -107,29 +107,27 @@ class HeavyIsolate3 extends Isolate {
   }
 }
 
-void test(TestExpectation expect) {
-  Future<SendPort> heavy1 = expect.completes(new HeavyIsolate1().spawn());
-  Future<SendPort> heavy2 = expect.completes(new HeavyIsolate2().spawn());
-  Future<SendPort> heavy3 = expect.completes(new HeavyIsolate3().spawn());
 
-  heavy2.then(expect.runs1((SendPort heavy2Port) {
-    heavy3.then(expect.runs1((SendPort heavy3Port) {
-      heavy2Port.call(heavy3Port).then(expect.runs1((h2l1Port) {
-        heavy1.then(expect.runs1((SendPort heavy1Port) {
-          heavy1Port.send(h2l1Port, null);
-          // ---------------
-          // Setup complete.
-          // Start the chain-message.
-          heavy1Port.call(1).then(expect.runs1((result) {
-            Expect.equals(6531, result);
-            expect.succeeded();
+main() {
+  test("heavy and light isolates can be mixed", () {
+    Future<SendPort> heavy1 = new HeavyIsolate1().spawn();
+    Future<SendPort> heavy2 = new HeavyIsolate2().spawn();
+    Future<SendPort> heavy3 = new HeavyIsolate3().spawn();
+
+    heavy2.then(expectAsync1((SendPort heavy2Port) {
+      heavy3.then(expectAsync1((SendPort heavy3Port) {
+        heavy2Port.call(heavy3Port).then(expectAsync1((h2l1Port) {
+          heavy1.then(expectAsync1((SendPort heavy1Port) {
+            heavy1Port.send(h2l1Port, null);
+            // ---------------
+            // Setup complete.
+            // Start the chain-message.
+            heavy1Port.call(1).then(expectAsync1((result) {
+              Expect.equals(6531, result);
+            }));
           }));
         }));
       }));
     }));
-  }));
-}
-
-main() {
-  runTests([test]);
+  });
 }

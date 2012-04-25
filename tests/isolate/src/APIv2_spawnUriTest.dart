@@ -8,19 +8,15 @@
 // OtherScripts=APIv2_spawnUriChildIsolate.dart
 #library('spawn_tests');
 #import('../../../lib/unittest/unittest.dart');
-#import('../../../lib/unittest/dom_config.dart');
-#import('dart:dom'); // import added so test.dart can treat this as a webtest.
 #import('dart:isolate');
 
 main() {
-  useDomConfiguration();
-  asyncTest('isolate fromUri - send and reply', 1, () {
+  test('isolate fromUri - send and reply', () {
     ReceivePort port = new ReceivePort();
-    port.receive((msg, _) {
+    port.receive(expectAsync2((msg, _) {
       expect(msg).equals('re: hi');
       port.close();
-      callbackDone();
-    });
+    }));
 
     // TODO(eub): make this work for non-JS targets.
     SendPort s = spawnUri('APIv2_spawnUriChildIsolate.js');

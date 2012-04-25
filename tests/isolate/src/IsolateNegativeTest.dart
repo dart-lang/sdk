@@ -6,7 +6,7 @@
 
 #library('IsolateNegativeTest');
 #import('dart:isolate');
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 class IsolateNegativeTest extends Isolate {
   IsolateNegativeTest() : super();
@@ -18,15 +18,12 @@ class IsolateNegativeTest extends Isolate {
   }
 }
 
-void test(TestExpectation expect) {
-  expect.completes(new IsolateNegativeTest().spawn()).then((SendPort port) {
-    port.call("foo").then(expect.runs1((message) {
-      Expect.equals(true, "Expected fail");   // <=-------- Should fail here.
-      expect.succeeded();
+main() {
+  test("ensure isolate code is executed", () {
+    new IsolateNegativeTest().spawn().then(expectAsync1((SendPort port) {
+      port.call("foo").then(expectAsync1((message) {
+        Expect.equals(true, "Expected fail");   // <=-------- Should fail here.
+      }));
     }));
   });
-}
-
-main() {
-  runTests([test]);
 }

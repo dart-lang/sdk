@@ -7,7 +7,7 @@
 
 #library('Isolate2NegativeTest');
 #import('dart:isolate');
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 class Isolate2NegativeTest extends Isolate {
   Isolate2NegativeTest() : super();
@@ -17,11 +17,10 @@ class Isolate2NegativeTest extends Isolate {
   }
 }
 
-void test(TestExpectation expect) {
-  // We will never call 'expect.succeeded'. This test fails with a timeout.
-  expect.completes(new Isolate2NegativeTest().spawn());
-}
-
 main() {
-  runTests([test]);
+  test("catch exception from other isolate", () {
+    // Calling 'then' ensures the test framework is aware that there is a
+    // pending callback, so it can fail quickly.
+    new Isolate2NegativeTest().spawn().then(expectAsync1((a) => null));
+  });
 }

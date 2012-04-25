@@ -7,7 +7,7 @@
 
 #library('Isolate3NegativeTest');
 #import('dart:isolate');
-#import('TestFramework.dart');
+#import('../../../lib/unittest/unittest.dart');
 
 class TestClass {
   TestClass.named(num this.fld1) : fld2=fld1 {
@@ -28,16 +28,14 @@ class Isolate3NegativeTest extends Isolate {
   }
 }
 
-void test(TestExpectation expect) {
-  void msg_callback(var message) {
-    // This test is a negative test and should not complete successfully.
-  }
-  void spawn_callback(SendPort port) {
-    port.call("foo").then(expect.runs1(msg_callback));
-  }
-  expect.completes(new Isolate3NegativeTest().spawn()).then(spawn_callback);
-}
-
 main() {
-  runTests([test]);
+  test("child isolate compilation errors propagate correctly. ", () {
+    void msg_callback(var message) {
+      // This test is a negative test and should not complete successfully.
+    }
+    void spawn_callback(SendPort port) {
+      port.call("foo").then(expectAsync(msg_callback));
+    }
+    new Isolate3NegativeTest().spawn().then(expectAsync(spawn_callback));
+  });
 }

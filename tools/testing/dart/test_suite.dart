@@ -539,7 +539,6 @@ class StandardTestSuite implements TestSuite {
 
       String dartWrapperFilename = '${tempDir.path}/test.dart';
       String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-      String domLibraryImport = 'dart:dom';
 
       String htmlPath = '${tempDir.path}/test.html';
       if (!isWebTest) {
@@ -558,10 +557,8 @@ class StandardTestSuite implements TestSuite {
 
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
-        dartWrapper.writeStringSync(DartTestWrapper(
-            domLibraryImport,
-            '$dartDir/tests/isolate/src/TestFramework.dart',
-            dartLibraryFilename));
+        dartWrapper.writeStringSync(
+            DartTestWrapper(dartDir, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = testPath;

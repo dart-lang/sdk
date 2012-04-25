@@ -5,14 +5,14 @@
 /** This file is sourced by both dom_config.dart and html_config.dart. */
 
 /** Creates a table showing tests results in HTML. */
-void _showResultsInPage(int testsPassed, int testsFailed, int testsErrors,
-    List<TestCase> results, isLayoutTest) {
-  if (isLayoutTest && (testsPassed == results.length)) {
+void _showResultsInPage(int passed, int failed, int errors,
+    List<TestCase> results, bool isLayoutTest, String uncaughtError) {
+  if (isLayoutTest && (passed == results.length) && uncaughtError == null) {
     document.body.innerHTML = "PASS";
   } else {
     var newBody = new StringBuffer();
     newBody.add("<table class='unittest-table'><tbody>");
-    newBody.add(testsPassed == results.length
+    newBody.add(passed == results.length && uncaughtError == null
         ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
         : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
 
@@ -20,17 +20,26 @@ void _showResultsInPage(int testsPassed, int testsFailed, int testsErrors,
       newBody.add(_toHtml(test_));
     }
 
-    if (testsPassed == results.length) {
+    if (uncaughtError != null) {
+        newBody.add('''<tr>
+          <td>--</td>
+          <td class="unittest-error">ERROR</td>
+          <td>Uncaught error: $uncaughtError</td>
+        </tr>''');
+    }
+
+    if (passed == results.length && uncaughtError == null) {
       newBody.add("""
           <tr><td colspan='3' class='unittest-pass'>
-            All ${testsPassed} tests passed
+            All ${passed} tests passed
           </td></tr>""");
     } else {
       newBody.add("""
           <tr><td colspan='3'>Total
-            <span class='unittest-pass'>${testsPassed} passed</span>,
-            <span class='unittest-fail'>${testsFailed} failed</span>
-            <span class='unittest-error'>${testsErrors} errors</span>
+            <span class='unittest-pass'>${passed} passed</span>,
+            <span class='unittest-fail'>${failed} failed</span>
+            <span class='unittest-error'>
+            ${errors + (uncaughtError == null ? 0 : 1)} errors</span>
           </td></tr>""");
     }
     newBody.add("</tbody></table>");
