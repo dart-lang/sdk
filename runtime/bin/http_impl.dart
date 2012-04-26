@@ -389,6 +389,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   static final int START = 0;
   static final int HEADERS_SENT = 1;
   static final int DONE = 2;
+  static final int UPGRADED = 3;
 
   _HttpResponse(_HttpConnection httpConnection)
       : super(httpConnection),
@@ -413,7 +414,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   OutputStream get outputStream() {
-    if (_state == DONE) throw new HttpException("Response closed");
+    if (_state >= DONE) throw new HttpException("Response closed");
     if (_outputStream == null) {
       // Ensure that headers are written.
       if (_state == START) {
@@ -422,6 +423,19 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
       _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
+  }
+
+  Socket detachSocket() {
+    if (_state >= DONE) throw new HttpException("Response closed");
+    // Ensure that headers are written.
+    if (_state == START) {
+      _writeHeader();
+    }
+    _state = UPGRADED;
+    // Ensure that any trailing data is written.
+    _writeDone();
+    // Indicate to the connection that the response handling is done.
+    return _httpConnection._detachSocket();
   }
 
   void _responseEnd() {
@@ -541,7 +555,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     }
     // Determine the value of the "Transfer-Encoding" header based on
     // whether the content length is known.
-    if (_contentLength >= 0) {
+    if (_contentLength > 0) {
       _headers.set("Content-Length", _contentLength.toString());
     } else {
       _headers.set("Transfer-Encoding", "chunked");
@@ -642,7 +656,10 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
 
 class _HttpConnectionBase implements Hashable {
   _HttpConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new _HttpParser();
+                          _httpParser = new _HttpParser() {
+    _hashCode = _nextHashCode;
+    _nextHashCode = (_nextHashCode + 1) & 0xFFFFFFF;
+  }
 
   void _connectionEstablished(Socket socket) {
     _socket = socket;
@@ -682,9 +699,11 @@ class _HttpConnectionBase implements Hashable {
     int bytesRead = _socket.readList(buffer, 0, available);
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
-      if (parsed != bytesRead) {
-        // TODO(sgjesse): Error handling.
-        _close();
+      if (!_httpParser.upgrade) {
+        if (parsed != bytesRead) {
+          // TODO(sgjesse): Error handling.
+          _close();
+        }
       }
     }
   }
@@ -703,6 +722,18 @@ class _HttpConnectionBase implements Hashable {
     _onConnectionClosed(e);
   }
 
+  Socket _detachSocket() {
+    _socket.onData = null;
+    // TODO(sgjesse): Handle getting the write handler when using output stream.
+    //_socket.onWrite = null;
+    _socket.onClosed = null;
+    _socket.onError = null;
+    Socket socket = _socket;
+    _socket = null;
+    if (onDetach) onDetach();
+    return socket;
+  }
+
   abstract void _onConnectionClosed(e);
   abstract void _responseDone();
 
@@ -712,7 +743,7 @@ class _HttpConnectionBase implements Hashable {
     }
   }
 
-  int hashCode() => _socket.hashCode();
+  int hashCode() => _hashCode;
 
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
@@ -720,6 +751,12 @@ class _HttpConnectionBase implements Hashable {
   _HttpParser _httpParser;
 
   Queue _sendBuffers;
+
+  Function onDetach;
+
+  // Hash code for HTTP connection. Currently this is just a counter.
+  int _hashCode;
+  static int _nextHashCode = 0;
 }
 
 
@@ -852,6 +889,7 @@ class _HttpServer implements HttpServer {
       connection._connectionEstablished(socket);
       connection.onRequestReceived = _handleRequest;
       connection.onClosed = () => _connections.remove(connection);
+      connection.onDetach = () => _connections.remove(connection);
       connection.onError = (e) {
         _connections.remove(connection);
         if (_onError != null) {
@@ -1012,10 +1050,11 @@ class _HttpClientRequest
     _writeCRLF();
 
     // Determine the value of the "Transfer-Encoding" header based on
-    // whether the content length is known.
-    if (_contentLength >= 0) {
+    // whether the content length is known. If there is no content
+    // neither "Content-Length" nor "Transfer-Encoding" is set
+    if (_contentLength > 0) {
       _headers.set("Content-Length", _contentLength.toString());
-    } else {
+    } else if (_contentLength < 0) {
       _headers.set("Transfer-Encoding", "chunked");
     }
 

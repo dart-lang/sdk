@@ -382,6 +382,16 @@ interface HttpResponse default _HttpResponse {
    * having retrieved the output stream will throw an exception.
    */
   OutputStream get outputStream();
+
+  /**
+   * Detach the underlying socket from the HTTP server. When the
+   * socket is detached the HTTP server will no longer perform any
+   * operations on it.
+   *
+   * This is normally used when a HTTP upgraded request is received
+   * and the communication should continue with a different protocol.
+   */
+  Socket detachSocket();
 }
 
 
