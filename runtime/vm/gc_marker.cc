@@ -170,12 +170,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
     // TODO(iposva): merge old and code spaces.
-    ASSERT(heap_->Contains(raw_addr));
-    if (!page_space_->Contains(raw_addr)) {
-      // TODO(iposva): Skip code space if marking data space and vice-versa.
-      return;
-    }
-
+    ASSERT(page_space_->Contains(raw_addr));
     MarkAndPush(raw_obj);
   }
 

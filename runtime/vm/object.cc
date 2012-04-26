@@ -5492,6 +5492,8 @@ RawInstructions* Instructions::New(intptr_t size) {
                                       aligned_size,
                                       Heap::kExecutable);
     NoGCScope no_gc;
+    // TODO(iposva): Remove premarking once old and code spaces are merged.
+    raw->SetMarkBit();
     result ^= raw;
     result.set_size(size);
   }
