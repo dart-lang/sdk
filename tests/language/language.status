@@ -182,8 +182,6 @@ StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
-FBoundedQuantificationTest/01: Fail # Issue 439
-FBoundedQuantificationTest/02: Fail # Issue 439
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
 CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
@@ -407,6 +405,8 @@ PrivateMemberTest/03: Fail # test seems bad - see issue #353
 PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
 [ $compiler == frog && $checked ]
+FBoundedQuantificationTest/01: Fail # Issue 439
+FBoundedQuantificationTest/02: Fail # Issue 439
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
 AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
