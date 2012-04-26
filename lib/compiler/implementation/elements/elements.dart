@@ -126,6 +126,7 @@ class Element implements Hashable {
   bool isStatement() => kind === ElementKind.STATEMENT;
   bool isTypedef() => kind === ElementKind.TYPEDEF;
   bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
+  bool isField() => kind === ElementKind.FIELD;
   bool isGetter() => kind === ElementKind.GETTER;
   bool isSetter() => kind === ElementKind.SETTER;
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;

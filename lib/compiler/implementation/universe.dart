@@ -9,8 +9,8 @@ class Universe {
   final Set<SourceString> instantiatedClassInstanceFields;
   final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
-  final Set<SourceString> invokedGetters;
-  final Set<SourceString> invokedSetters;
+  final Map<SourceString, Set<Selector>> invokedGetters;
+  final Map<SourceString, Set<Selector>> invokedSetters;
   final Map<String, LibraryElement> libraries;
   // TODO(ngeoffray): This should be a Set<Type>.
   final Set<Element> isChecks;
@@ -22,8 +22,8 @@ class Universe {
                instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Selector>>(),
-               invokedGetters = new Set<SourceString>(),
-               invokedSetters = new Set<SourceString>(),
+               invokedGetters = new Map<SourceString, Set<Selector>>(),
+               invokedSetters = new Map<SourceString, Set<Selector>>(),
                isChecks = new Set<Element>();
 
   void addGeneratedCode(WorkItem work, String code) {
@@ -33,6 +33,31 @@ class Universe {
   void addBailoutCode(WorkItem work, String code) {
     generatedBailoutCode[work.element] = code;
   }
+
+  bool hasMatchingSelector(Set<Selector> selectors,
+                           Element member,
+                           Compiler compiler) {
+    if (selectors === null) return false;
+    for (Selector selector in selectors) {
+      if (selector.applies(member, compiler)) return true;
+    }
+    return false;
+  }
+
+  bool hasInvocation(Element member, Compiler compiler) {
+    return hasMatchingSelector(
+        compiler.universe.invokedNames[member.name], member, compiler);
+  }
+
+  bool hasGetter(Element member, Compiler compiler) {
+    return hasMatchingSelector(
+        compiler.universe.invokedGetters[member.name], member, compiler);
+  }
+
+  bool hasSetter(Element member, Compiler compiler) {
+    return hasMatchingSelector(
+        compiler.universe.invokedSetters[member.name], member, compiler);
+  }  
 }
 
 class SelectorKind {
@@ -52,34 +77,67 @@ class Selector implements Hashable {
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
   final SelectorKind kind;
-  const Selector(this.kind, this.argumentCount);
+  final List<SourceString> namedArguments = const <SourceString>[];
+  final List<SourceString> orderedNamedArguments = const <SourceString>[];
+
+  // The const constructor.
+  const Selector.constant(this.kind, this.argumentCount);
+
+  Selector(
+      this.kind,
+      this.argumentCount,
+      [List<SourceString> namedArguments = const <SourceString>[]])
+    : this.namedArguments = namedArguments,
+      this.orderedNamedArguments = namedArguments.isEmpty()
+          ? namedArguments
+          : <SourceString>[];
+
+  Selector.invocation(
+      int argumentCount, 
+      [List<SourceString> namedArguments = const <SourceString>[]])
+    : this(SelectorKind.INVOCATION, argumentCount, namedArguments);
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
-  List<SourceString> get namedArguments() => const <SourceString>[];
-  int get namedArgumentCount() => 0;
-  int get positionalArgumentCount() => argumentCount;
+  int get namedArgumentCount() => namedArguments.length;
+  int get positionalArgumentCount() => argumentCount - namedArgumentCount;
 
-  static final Selector GETTER = const Selector(SelectorKind.GETTER, 0);
-  static final Selector SETTER = const Selector(SelectorKind.SETTER, 1);
+  static final Selector GETTER =
+      const Selector.constant(SelectorKind.GETTER, 0);
+  static final Selector SETTER =
+      const Selector.constant(SelectorKind.SETTER, 1);
   static final Selector UNARY_OPERATOR =
-      const Selector(SelectorKind.OPERATOR, 0);
+      const Selector.constant(SelectorKind.OPERATOR, 0);
   static final Selector BINARY_OPERATOR =
-      const Selector(SelectorKind.OPERATOR, 1);
-  static final Selector INDEX = const Selector(SelectorKind.INDEX, 1);
-  static final Selector INDEX_SET = const Selector(SelectorKind.INDEX, 2);
+      const Selector.constant(SelectorKind.OPERATOR, 1);
+  static final Selector INDEX =
+      const Selector.constant(SelectorKind.INDEX, 1);
+  static final Selector INDEX_SET =
+      const Selector.constant(SelectorKind.INDEX, 2);
   static final Selector INDEX_AND_INDEX_SET =
-      const Selector(SelectorKind.INDEX, 2);
+      const Selector.constant(SelectorKind.INDEX, 2);
   static final Selector GETTER_AND_SETTER =
-      const Selector(SelectorKind.SETTER, 1);
+      const Selector.constant(SelectorKind.SETTER, 1);
   static final Selector INVOCATION_0 =
-      const Selector(SelectorKind.INVOCATION, 0);
+      const Selector.constant(SelectorKind.INVOCATION, 0);
   static final Selector INVOCATION_1 =
-      const Selector(SelectorKind.INVOCATION, 1);
+      const Selector.constant(SelectorKind.INVOCATION, 1);
   static final Selector INVOCATION_2 =
-      const Selector(SelectorKind.INVOCATION, 2);
+      const Selector.constant(SelectorKind.INVOCATION, 2);
 
-  bool applies(FunctionElement element, Compiler compiler) {
-    FunctionParameters parameters = element.computeParameters(compiler);
+  bool applies(Element element, Compiler compiler) {
+    if (element.isSetter()) return kind === SelectorKind.SETTER;
+    if (element.isGetter()) {
+      return kind === SelectorKind.GETTER || kind === SelectorKind.INVOCATION;
+    }
+    if (element.isField()) {
+      return kind === SelectorKind.GETTER
+          || kind === SelectorKind.INVOCATION
+          || kind === SelectorKind.SETTER;
+    }
+    if (kind === SelectorKind.GETTER) return true;
+
+    FunctionElement function = element;
+    FunctionParameters parameters = function.computeParameters(compiler);
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -203,63 +261,75 @@ class Selector implements Hashable {
            && sameNames(namedArguments, other.namedArguments);
   }
 
-  List<SourceString> getOrderedNamedArguments() => namedArguments;
+  List<SourceString> getOrderedNamedArguments() {
+    if (namedArguments.isEmpty()) return namedArguments;
+    if (!orderedNamedArguments.isEmpty()) return orderedNamedArguments;
+
+    orderedNamedArguments.addAll(namedArguments);
+    orderedNamedArguments.sort((SourceString first, SourceString second) {
+      return first.slowToString().compareTo(second.slowToString());
+    });
+    return orderedNamedArguments;
+  }
 
   toString() => '$kind $argumentCount';
 }
 
-class Invocation extends Selector {
-  final List<SourceString> namedArguments;
-  List<SourceString> orderedNamedArguments;
-  int get namedArgumentCount() => namedArguments.length;
-  int get positionalArgumentCount() => argumentCount - namedArgumentCount;
-
-  Invocation(int argumentCount,
-             [List<SourceString> names = const <SourceString>[]])
-      : super(SelectorKind.INVOCATION, argumentCount),
-        namedArguments = names,
-        orderedNamedArguments = const <SourceString>[];
-
-  List<SourceString> getOrderedNamedArguments() {
-    if (namedArguments.isEmpty()) return namedArguments;
-    // We use the empty const List as a sentinel.
-    if (!orderedNamedArguments.isEmpty()) return orderedNamedArguments;
-
-    List<SourceString> list = new List<SourceString>.from(namedArguments);
-    list.sort((SourceString first, SourceString second) {
-      return first.slowToString().compareTo(second.slowToString());
-    });
-    orderedNamedArguments = list;
-    return orderedNamedArguments;
-  }
-}
-
-/**
- * A [TypedInvocation] is an invocation where we have information on
- * the type of the receiver.
- */
-class TypedInvocation extends Invocation {
+class TypedSelector extends Selector {
   /**
    * The type of the receiver. Any subtype of that type can be the
    * target of the invocation.
    */
   final Type receiverType;
 
-  TypedInvocation(this.receiverType, Selector selector)
-      : super(selector.argumentCount, selector.namedArguments);
+  TypedSelector(this.receiverType, Selector selector)
+    : super(selector.kind,
+            selector.argumentCount,
+            selector.namedArguments);
 
-  bool applies(FunctionElement element, Compiler compiler) {
+  bool applies(Element element, Compiler compiler) {
     if (!element.enclosingElement.isClass()) return false;
+
+    // A closure can be called through any typed selector:
+    // class A {
+    //   get foo() => () => 42;
+    //   bar() => foo(); // The call to 'foo' is a typed selector.
+    // }
+    if (element.enclosingElement.superclass === compiler.closureClass) {
+      return super.applies(element, compiler);
+    }
 
     ClassElement other = element.enclosingElement;
     ClassElement self = receiverType.element;
-    if (!other.isSubclassOf(self)) return false;
-    return super.applies(element, compiler);
+
+    // If the class of the element is a subclass of this selector's
+    // class, it is a candidate.
+    if (other.isSubclassOf(self)) {
+      return super.applies(element, compiler);
+    }
+
+    if (self.isSubclassOf(other)) {
+      // Resolve an invocation of [element.name] on [self]. If the
+      // found element is [element], or is an abstract field whose
+      // getter or setter is [element], this selector is a candidate.
+      Element resolved = self.lookupMember(element.name);
+      if (resolved === element) {
+        return super.applies(element, compiler);
+      }
+
+      if (resolved !== null && resolved.kind === ElementKind.ABSTRACT_FIELD) {
+        AbstractFieldElement field = resolved;
+        if (element === field.getter || element === field.setter) {
+          return super.applies(element, compiler);
+        }
+      }
+    }
+
     return false;
   }
 
   bool operator ==(other) {
-    if (other is !TypedInvocation) return false;
+    if (other is !TypedSelector) return false;
     if (other.receiverType !== receiverType) return false;
     return super == other;
   }

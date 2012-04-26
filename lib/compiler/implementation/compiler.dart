@@ -185,7 +185,7 @@ class Compiler implements DiagnosticListener {
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
-    enqueuer.registerInvocation(NO_SUCH_METHOD, new Invocation(2));
+    enqueuer.registerInvocation(NO_SUCH_METHOD, new Selector.invocation(2));
   }
 
   void enableIsolateSupport(LibraryElement element) {
@@ -389,12 +389,12 @@ class Compiler implements DiagnosticListener {
     addToWorkList(element);
   }
 
-  void registerDynamicGetter(SourceString methodName) {
-    enqueuer.registerGetter(methodName);
+  void registerDynamicGetter(SourceString methodName, Selector selector) {
+    enqueuer.registerGetter(methodName, selector);
   }
 
-  void registerDynamicSetter(SourceString methodName) {
-    enqueuer.registerSetter(methodName);
+  void registerDynamicSetter(SourceString methodName, Selector selector) {
+    enqueuer.registerSetter(methodName, selector);
   }
 
   void registerInstantiatedClass(ClassElement element) {

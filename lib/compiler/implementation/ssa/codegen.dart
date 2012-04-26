@@ -1098,25 +1098,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // TODO(ngeoffray): We should propagate an union type in
         // earlier phases instead of just checking if the receiver is 'this'.
         ClassElement cls = work.element.enclosingElement;
-        Element method = cls.lookupMember(node.name);
-        if (method !== null) {
-          if (method.isFunction()) {
-            if (!method.modifiers.isAbstract()) {
-              // Make sure the method (whether in this class or in a
-              // superclass) is compiled.
-              // TODO(ngeoffray): Note that we could not emit this method
-              // if it is always being overridden and its holder is not
-              // instantiated.
-              compiler.registerDynamicInvocationOf(method);
-            }
-          } else {
-            // TODO(ngeoffray): better tree shaking on getters.
-            compiler.registerDynamicInvocation(node.name, node.selector);
-          }
-        }
         Type type = cls.computeType(compiler);
         compiler.registerDynamicInvocation(
-            node.name, new TypedInvocation(type, node.selector));
+            node.name, new TypedSelector(type, node.selector));
       } else {
         compiler.registerDynamicInvocation(node.name, node.selector);
       }
@@ -1130,7 +1114,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.setterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    compiler.registerDynamicSetter(node.name);
+    if (node.inputs[0] is HThis) {
+      ClassElement cls = work.element.enclosingElement;
+      Type type = cls.computeType(compiler);
+      compiler.registerDynamicSetter(node.name,
+          new TypedSelector(type, Selector.SETTER));
+    } else {
+      compiler.registerDynamicSetter(node.name, Selector.SETTER);
+    }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1140,7 +1131,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.getterName(currentLibrary, node.name));
     visitArguments(node.inputs);
-    compiler.registerDynamicGetter(node.name);
+    if (node.inputs[0] is HThis) {
+      ClassElement cls = work.element.enclosingElement;
+      Type type = cls.computeType(compiler);
+      compiler.registerDynamicGetter(node.name,
+          new TypedSelector(type, Selector.GETTER));
+    } else {
+      compiler.registerDynamicGetter(node.name, Selector.GETTER);
+    }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
@@ -1170,23 +1168,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolatePropertyAccess(superClass);
-    String methodName;
     if (superMethod.kind == ElementKind.FUNCTION ||
         superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      methodName = compiler.namer.instanceMethodName(
+      String methodName = compiler.namer.instanceMethodName(
           currentLibrary, superMethod.name, argumentCount);
+      buffer.add('$className.prototype.$methodName.call');
+      visitArguments(node.inputs);
+    } else if (superMethod.kind == ElementKind.FIELD) {
+      buffer.add('this.${compiler.namer.getName(superMethod)}');
     } else {
-      methodName = compiler.namer.getterName(currentLibrary, superMethod.name);
-      // We need to register the name to ensure that the emitter
-      // generates the necessary getter.
-      // TODO(ahe): This is not optimal for tree-shaking, but we lack
-      // API to register the precise information. In this case, the
-      // enclosingElement of superMethod needs the getter, no other
-      // class (not even its subclasses).
-      compiler.registerDynamicGetter(superMethod.name);
+      assert(superMethod.kind == ElementKind.GETTER);
+      String methodName =
+          compiler.namer.getterName(currentLibrary, superMethod.name);
+      buffer.add('$className.prototype.$methodName.call()');
     }
-    buffer.add('$className.prototype.$methodName.call');
-    visitArguments(node.inputs);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
     compiler.registerStaticUse(superMethod);
   }

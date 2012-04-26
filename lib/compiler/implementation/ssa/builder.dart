@@ -2115,8 +2115,7 @@ class SsaBuilder implements Visitor {
           self,
           graph.addConstantString(new DartString.literal(name)),
           pop()];
-      push(new HInvokeSuper(const Selector(SelectorKind.INVOCATION, 2),
-                            inputs));
+      push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
       return;
     }
     HInstruction target = new HStatic(element);
