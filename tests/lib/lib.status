@@ -11,3 +11,6 @@
 
 [ $arch == simarm ]
 *: Skip
+
+[ $compiler == none && $runtime == drt ]
+crypto/*: Skip # Don't run tests using crypto in the browser
