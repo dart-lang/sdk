@@ -874,6 +874,7 @@ class HInstruction implements Hashable {
   }
 
   bool isConstant() => false;
+  bool isConstantBoolean() => false;
   bool isConstantNull() => false;
   bool isConstantNumber() => false;
   bool isConstantString() => false;
@@ -1868,10 +1869,10 @@ class HEquals extends HRelational {
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
   bool get builtin() {
-    // All useful types have === semantics.
+    // All primitive types have === semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
-    return left.isConstantNull() || left.propagatedType.isUseful();
+    return left.isConstantNull() || left.propagatedType.isPrimitive();
   }
 
   HType computeTypeFromInputTypes() {

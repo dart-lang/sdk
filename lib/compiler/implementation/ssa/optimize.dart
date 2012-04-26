@@ -293,9 +293,65 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
+  HInstruction handleIdentityCheck(HInvokeBinary node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    HType leftType = left.propagatedType;
+    HType rightType = right.propagatedType;
+    assert(!leftType.isConflicting() && !rightType.isConflicting());
+
+    // We don't optimize on numbers to preserve the runtime semantics.
+    if (!(left.isNumber() && right.isNumber()) &&
+        leftType.intersection(rightType).isConflicting()) {
+      return graph.addConstantBool(false);
+    }
+
+    if (left.isConstantBoolean() && right.isBoolean()) {
+      HConstant constant = left;
+      if (constant.constant.isTrue()) {
+        return right;
+      } else {
+        return new HNot(right);
+      }
+    }
+
+    if (right.isConstantBoolean() && left.isBoolean()) {
+      HConstant constant = right;
+      if (constant.constant.isTrue()) {
+        return left;
+      } else {
+        return new HNot(left);
+      }
+    }
+
+    return null;
+  }
+
+  HInstruction visitIdentity(HIdentity node) {
+    HInstruction newInstruction = handleIdentityCheck(node);
+    return newInstruction === null ? super.visitIdentity(node) : newInstruction;
+  }
+
+  HInstruction foldBuiltinEqualsCheck(HEquals node) {
+    // TODO(floitsch): cache interceptors.
+    HInstruction newInstruction = handleIdentityCheck(node);
+    if (newInstruction === null) {
+      HStatic target = new HStatic(
+          compiler.builder.interceptors.getTripleEqualsInterceptor());
+      node.block.addBefore(node, target);
+      return new HIdentity(target, node.left, node.right);
+    } else {
+      return newInstruction;
+    }
+  }
+
   HInstruction visitEquals(HEquals node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
+
+    if (node.builtin) {
+      return foldBuiltinEqualsCheck(node);
+    }
 
     if (left.isConstant() && right.isConstant()) {
       return visitInvokeBinary(node);
@@ -314,14 +370,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         // We can just emit an identity check because the type does
         // not implement operator=.
-        // TODO(floitsch): cache interceptors.
-        HStatic target = new HStatic(
-            compiler.builder.interceptors.getTripleEqualsInterceptor());
-        node.block.addBefore(node, target);
-        return new HIdentity(target, left, right);
+        return foldBuiltinEqualsCheck(node);
       }
     }
-
 
     if (right.isConstantNull()) {
       if (left.propagatedType.isUseful()) {
