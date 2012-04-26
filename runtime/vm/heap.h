@@ -29,7 +29,8 @@ class Heap {
   enum Space {
     kNew,
     kOld,
-    kExecutable
+    kDartCode,
+    kStubCode,
   };
 
   enum ApiCallbacks {
@@ -40,6 +41,7 @@ class Heap {
   // Default allocation sizes in MB for the old gen and code heaps.
   static const intptr_t kHeapSizeInMB = 512;
   static const intptr_t kCodeHeapSizeInMB = 8;
+  static const intptr_t kStubCodeHeapSizeInKB = 256;
 
   ~Heap();
 
@@ -53,8 +55,10 @@ class Heap {
         return AllocateNew(size);
       case kOld:
         return AllocateOld(size);
-      case kExecutable:
-        return AllocateCode(size);
+      case kDartCode:
+        return AllocateCode(code_space_, size);
+      case kStubCode:
+        return AllocateCode(stub_code_space_, size);
       default:
         UNREACHABLE();
     }
@@ -67,8 +71,10 @@ class Heap {
         return new_space_->TryAllocate(size);
       case kOld:
         return old_space_->TryAllocate(size);
-      case kExecutable:
+      case kDartCode:
         return code_space_->TryAllocate(size);
+      case kStubCode:
+        return stub_code_space_->TryAllocate(size);
       default:
         UNREACHABLE();
     }
@@ -78,11 +84,13 @@ class Heap {
   // Heap contains the specified address.
   bool Contains(uword addr) const;
   bool CodeContains(uword addr) const;
+  bool StubCodeContains(uword addr) const;
 
   // Visit all pointers in the space.
   void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
   void IterateCodePointers(ObjectPointerVisitor* visitor);
+  void IterateStubCodePointers(ObjectPointerVisitor* visitor);
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.
@@ -92,6 +100,7 @@ class Heap {
   // The 'visitor' function should return false if the object is not found,
   // traversal through the heap space continues.
   RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor);
+  RawInstructions* FindObjectInStubCodeSpace(FindObjectVisitor* visitor);
 
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks);
@@ -113,12 +122,13 @@ class Heap {
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size);
-  uword AllocateCode(intptr_t size);
+  uword AllocateCode(PageSpace* space, intptr_t size);
 
   // The different spaces used for allocation.
   Scavenger* new_space_;
   PageSpace* old_space_;
   PageSpace* code_space_;
+  PageSpace* stub_code_space_;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

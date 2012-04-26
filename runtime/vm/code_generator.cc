@@ -33,23 +33,6 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 
 
-static StackFrame* GetTopDartFrame(
-    StackFrameIterator* iterator, bool has_stub_frame) {
-  // When runtime calls are made from dart code we assume that we will
-  // always have an exit frame and an optional stub frame before we hit
-  // the first dart frame.
-  StackFrame* exit_frame = iterator->NextFrame();
-  ASSERT(exit_frame != NULL && exit_frame->IsExitFrame());
-  if (has_stub_frame) {
-    StackFrame* stub_frame = iterator->NextFrame();
-    ASSERT(stub_frame != NULL && stub_frame->IsStubFrame());
-  }
-  StackFrame* caller_frame = iterator->NextFrame();
-  ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
-  return caller_frame;
-}
-
-
 bool CodeGenerator::CanOptimize() {
   return
       !FLAG_report_usage_count &&
@@ -345,8 +328,8 @@ static void PrintTypeCheck(const char* message,
               String::Handle(instantiated_type.Name()).ToCString(),
               String::Handle(type.Name()).ToCString());
   }
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, false);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Function& function = Function::Handle(
       caller_frame->LookupDartFunction());
@@ -414,8 +397,8 @@ static void UpdateTypeTestCache(intptr_t node_id,
       return;
     }
   }
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, false);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(!code.IsNull());
@@ -699,8 +682,9 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // This function is called after successful resolving and compilation of
   // the target method.
   ASSERT(arguments.Count() == kPatchStaticCallRuntimeEntry.argument_count());
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, true);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
   uword target = 0;
   Function& target_function = Function::Handle();
   CodePatcher::GetStaticCallAt(caller_frame->pc(), &target_function, &target);
@@ -727,8 +711,9 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
   int num_named_arguments = -1;
   uword target = 0;
   String& function_name = String::Handle();
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, true);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
   CodePatcher::GetInstanceCallAt(caller_frame->pc(),
                                  &function_name,
                                  &num_arguments,
@@ -866,8 +851,9 @@ static RawFunction* InlineCacheMissHandler(
     }
     return target_function.raw();
   }
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, true);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
   ICData& ic_data = ICData::Handle(
       CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
 #if defined(DEBUG)
@@ -1301,11 +1287,12 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
-  while (frame != NULL && !frame->IsDartFrame() && !frame->IsEntryFrame()) {
+  while (frame != NULL && (frame->IsStubFrame() || frame->IsExitFrame())) {
     frame = iterator.NextFrame();
   }
   ASSERT(frame != NULL);
-  if (frame->IsDartFrame()) {
+  if (!frame->IsEntryFrame()) {
+    ASSERT(frame->IsDartFrame());
     uword target = 0;
     Function& target_function = Function::Handle();
     CodePatcher::GetStaticCallAt(frame->pc(), &target_function, &target);
@@ -1333,8 +1320,9 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 1) {
 DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   ASSERT(arguments.Count() == kDeoptimizeRuntimeEntry.argument_count());
   const Smi& deoptimization_reason_id = Smi::CheckedHandle(arguments.At(0));
-  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
-  StackFrame* caller_frame = GetTopDartFrame(&iterator, true);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   const Function& function = Function::Handle(optimized_code.function());
   ASSERT(!function.IsNull());

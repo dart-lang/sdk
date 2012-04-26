@@ -5483,14 +5483,13 @@ RawError* Library::CompileAll() {
 }
 
 
-RawInstructions* Instructions::New(intptr_t size) {
+RawInstructions* Instructions::New(intptr_t size, Heap::Space space) {
+  ASSERT(space == Heap::kDartCode || space == Heap::kStubCode);
   const Class& instructions_class = Class::Handle(Object::instructions_class());
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    RawObject* raw = Object::Allocate(instructions_class,
-                                      aligned_size,
-                                      Heap::kExecutable);
+    RawObject* raw = Object::Allocate(instructions_class, aligned_size, space);
     NoGCScope no_gc;
     // TODO(iposva): Remove premarking once old and code spaces are merged.
     raw->SetMarkBit();
@@ -5913,12 +5912,14 @@ RawCode* Code::New(int pointer_offsets_length) {
 }
 
 
-RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
+RawCode* Code::FinalizeCode(const char* name,
+                            Assembler* assembler,
+                            Heap::Space space) {
   ASSERT(assembler != NULL);
 
   // Allocate the Instructions object.
   Instructions& instrs =
-      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
+      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize(), space));
 
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
@@ -5977,6 +5978,16 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
     code.set_instructions(instrs.raw());
   }
   return code.raw();
+}
+
+
+RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
+  return FinalizeCode(name, assembler, Heap::kDartCode);
+}
+
+
+RawCode* Code::FinalizeStubCode(const char* name, Assembler* assembler) {
+  return FinalizeCode(name, assembler, Heap::kStubCode);
 }
 
 
