@@ -302,16 +302,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return result;
   }
 
-  bool isExpression(SubGraph limits) {
+  bool isJSExpression(SubGraph limits) {
     return expressionType(limits) != TYPE_STATEMENT;
   }
 
-  bool isDeclaration(SubGraph limits) {
+  bool isJSDeclaration(SubGraph limits) {
     return expressionType(limits) == TYPE_DECLARATION;
   }
 
-  bool isCondition(SubGraph limits) {
-    return isExpression(limits) && (limits.end.last is HConditionalBranch);
+  bool isJSCondition(SubGraph limits) {
+    return isJSExpression(limits) && (limits.end.last is HConditionalBranch);
   }
 
   void visitExpressionGraph(SubGraph expressionSubGraph) {
@@ -503,11 +503,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!isInitializerBlock) return false;
 
     SubExpression condition = info.condition;
-    if (!isCondition(condition)) {
-      // TODO(lrn): Handle this case here too, so we can remove the
-      // original loop code.
-      return false;
-    }
+    bool isConditionExpression = isJSCondition(condition);
 
     void visitBodyIgnoreLabels() {
       if (info.body.start.isLabeledBlock()) {
@@ -534,16 +530,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             initialization = null;
           }
         }
-        addIndentation();
         for (LabelElement label in info.labels) {
           if (label.isTarget) {
             writeLabel(label);
             buffer.add(":");
           }
         }
-        if (info.updates !== null && isExpression(info.updates)) {
+        if (isConditionExpression &&
+            info.updates !== null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
+          addIndentation();
           buffer.add("for (");
           if (initialization !== null) {
             if (initializationType != TYPE_DECLARATION) {
@@ -571,10 +568,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           if (initialization !== null) {
             visitSubGraph(initialization);
           }
+          addIndentation();
           buffer.add("while (");
-          visitConditionGraph(condition);
-          buffer.add(") {\n");
-          indent++;
+          if (isConditionExpression) {
+            visitConditionGraph(condition);
+            buffer.add(") {\n");
+            indent++;
+          } else {
+            buffer.add("true) {\n");
+            indent++;
+            visitSubGraph(condition);
+            addIndentation();
+            buffer.add("if (!");
+            use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+            buffer.add(") break;\n");
+          }
           if (info.updates !== null) {
             wrapLoopBodyForContinue(info);
             visitSubGraph(info.updates);
@@ -786,7 +794,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return;
       } else if (!isGenerateAtUseSite(instruction)) {
         if (instruction is !HIf && instruction is !HTypeGuard &&
-            !isGeneratingExpression()) {
+            instruction is !HLoopBranch && !isGeneratingExpression()) {
           addIndentation();
         }
         if (isGeneratingExpression()) {
@@ -1288,12 +1296,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If doing this as part of a SubGraph traversal, the
       // calling code will handle the control flow logic.
 
-      // Currently we only traverse condition subgraphs as expressions.
-      assert(isGeneratingExpression());
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      // If we are generating the subgraph as an expression, the
+      // condition will be generated as the expression.
+      // Otherwise, we don't generate the expression, and leave that
+      // to the code that called visitSubGraph.
+      if (isGeneratingExpression()) {
+        use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      }
       return;
     }
     HBasicBlock branchBlock = currentBlock;
+    addIndentation();
     handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
     // For a do while loop, the body has already been visited.
