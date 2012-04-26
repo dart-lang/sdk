@@ -29,6 +29,15 @@
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
 
+#import("../client/tests/dartc/test_config.dart");
+#import("../compiler/tests/dartc/test_config.dart");
+#import("../frog/tests/await/test_config.dart");
+#import("../frog/tests/frog/test_config.dart");
+#import("../frog/tests/leg/test_config.dart");
+#import("../frog/tests/leg_only/test_config.dart");
+#import("../frog/tests/native/test_config.dart");
+#import("../runtime/tests/vm/test_config.dart");
+#import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
 #import("../tests/corelib/test_config.dart");
 #import("../tests/isolate/test_config.dart");
@@ -36,16 +45,6 @@
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
-#import("../runtime/tests/vm/test_config.dart");
-#import("../samples/tests/samples/test_config.dart");
-#import("../client/tests/dartc/test_config.dart");
-#import("../compiler/tests/dartc/test_config.dart");
-#import("../client/tests/client/test_config.dart");
-#import("../frog/tests/frog/test_config.dart");
-#import("../frog/tests/leg/test_config.dart");
-#import("../frog/tests/leg_only/test_config.dart");
-#import("../frog/tests/native/test_config.dart");
-#import("../frog/tests/await/test_config.dart");
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -55,6 +54,10 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'tests/benchmark_smoke',
+  'tests/dom',
+  'tests/html',
+  'tests/json',
   'utils/tests/css',
   'utils/tests/peg',
   'utils/tests/pub',
@@ -131,8 +134,6 @@ main() {
         queue.addTestSuite(new JUnitDartcTestSuite(conf));
       } else if (key == 'await') {
         queue.addTestSuite(new AwaitTestSuite(conf));
-      } else if (key == 'client') {
-        queue.addTestSuite(new ClientTestSuite(conf));
       }
     }
 

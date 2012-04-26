@@ -1,0 +1,87 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+event_test: Skip  # Issue 1996
+xmldocument_test: Skip  # XML in dart:html is incomplete
+xmlelement_test: Skip  # XML in dart:html is incomplete
+measurement_test: Pass, Fail  # Issue 1940
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+documentfragment_test: Fail
+
+[ $compiler == frog && $runtime == drt ]
+html_test: Skip   # Issue 2657
+request_animation_frame_test: Skip   # drt hangs
+
+[ $runtime == chrome ]
+cssstyledeclaration_test: Fail
+
+[ $runtime == ie ]
+typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
+typed_arrays_2_test: Skip
+typed_arrays_3_test: Skip
+typed_arrays_4_test: Skip
+canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
+canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
+cssstyledeclaration_test: Fail
+documentfragment_test: Fail
+element_test: Fail
+localstorage_test: Fail
+node_test: Fail
+svgelement_test: Fail
+xhr_test: Fail
+
+[ $runtime == safari ]
+canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
+cssstyledeclaration_test: Fail
+element_test: Fail
+node_test: Fail
+svgelement_test: Fail
+
+[ $runtime == ff ]
+cssstyledeclaration_test: Fail
+documentfragment_test: Fail
+element_test: Fail
+localstorage_test: Fail
+svgelement_test: Fail
+xhr_test: Fail
+
+[ $runtime == ie && ($system == linux || $system == mac) ]
+*: Skip
+
+[ $runtime == safari && ($system == linux || $system == windows) ]
+*: Skip
+
+# 'html' tests import the HTML library, so they only make sense in
+# a browser environment.
+[ $compiler == dartc ]
+*: Skip
+
+[ $runtime == vm ]
+*: Skip
+
+[ $compiler == frog && $runtime == d8 ]
+*: Skip
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $runtime == opera ]
+*: Skip
+
+[ $compiler == frog && $runtime == none ]
+*: Skip
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+request_animation_frame_test: Skip # Async test hangs.
+
+[ $compiler == dart2js && $runtime == drt ]
+# Unknown error - should investigate.
+documentfragment_test: Fail
+element_test: Fail
+measurement_test: Fail
+node_test: Fail
+svgelement_test: Fail
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

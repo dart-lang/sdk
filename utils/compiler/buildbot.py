@@ -52,6 +52,7 @@ def GetBuildInfo():
   option = None
   shard_index = None
   total_shards = None
+  number = None
   if not builder_name:
     # We are not running on a buildbot.
     if args.name:
@@ -100,7 +101,8 @@ def GetBuildInfo():
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     sys.exit(1)
-  return (compiler, runtime, mode, system, option, shard_index, total_shards)
+  return (compiler, runtime, mode, system, option, shard_index, total_shards,
+          number)
 
 
 def NeedsXterm(compiler, runtime):
@@ -169,7 +171,7 @@ def BuildFrog(compiler, mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestFrog(compiler, runtime, mode, system, option, flags):
+def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
   """ test frog.
    Args:
      - compiler: either 'dart2js' or 'frog'
@@ -178,6 +180,8 @@ def TestFrog(compiler, runtime, mode, system, option, flags):
      - system: either 'linux', 'mac', or 'win7'
      - option: 'checked'
      - flags: extra flags to pass to test.dart
+     - bot_number: (optional) Number of the buildbot. Used for dividing test
+       sets between bots.
   """
 
   # Make sure we are in the frog directory
@@ -202,8 +206,9 @@ def TestFrog(compiler, runtime, mode, system, option, flags):
     TestStep("sdk", mode, system, 'none', 'vm', ['dartdoc'], flags)
 
   else:
-    tests = ['client', 'language', 'corelib', 'isolate', 'frog',
-             'frog_native', 'peg', 'css']
+    tests = ['dom', 'html', 'json', 'benchmark_smoke',
+             'isolate', 'frog', 'css', 'corelib', 'language',
+             'frog_native', 'peg']
 
     # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
     # solution for DRT. Right now DRT is flakier than regular Chrome for the
@@ -220,6 +225,12 @@ def TestFrog(compiler, runtime, mode, system, option, flags):
         # running at a time. For details, see
         # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
         additional_flags += ['-j1']
+        # The IE bots are slow lately. Split up the tests they do.
+        if bot_number == '2':
+          tests = ['corelib', 'language']
+        else:
+          tests = ['dom', 'html', 'json', 'benchmark_smoke',
+                   'isolate', 'frog', 'css', 'frog_native', 'peg']
       TestStep(runtime, mode, system, compiler, runtime, tests,
           flags + additional_flags)
 
@@ -265,7 +276,7 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  compiler, runtime, mode, system, option, shard_index, total_shards = (
+  compiler, runtime, mode, system, option, shard_index, total_shards, number = (
       GetBuildInfo())
   shard_description = ""
   if shard_index:
@@ -283,19 +294,21 @@ def main():
   if shard_index:
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
   if compiler == 'dart2js':
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags)
+    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
+                      number)
     if status != 0:
       print '@@@STEP_FAILURE@@@'
     return status # Return unconditionally for dart2js.
 
   if runtime == 'd8' or (system == 'linux' and runtime == 'chrome'):
-    status = TestFrog(compiler, runtime, mode, system, option, test_flags)
+    status = TestFrog(compiler, runtime, mode, system, option, test_flags,
+                      number)
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
   status = TestFrog(compiler, runtime, mode, system, option,
-                    test_flags + ['--checked'])
+                    test_flags + ['--checked'], number)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 

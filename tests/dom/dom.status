@@ -1,0 +1,114 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+webgl_1_test: Skip  # Issue 1495
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
+indexeddb_4_test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
+request_animation_frame_test: Skip    # drt hangs; requestAnimationFrame not implemented
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
+native_gc_test: Skip  # Issue 2538.
+
+[ $compiler == none && $runtime == drt && $system == windows]
+audiocontext_test: Skip
+
+[ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
+window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
+
+[ $compiler == frog && $runtime == drt ]
+request_animation_frame_test: Skip   # drt hangs
+
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
+# TODO(vsm): Triage DOM tests.
+dom_isolates_test: Fail
+indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
+htmlelement_test: Fail
+window_open_test: Fail
+
+[ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+history_test: Fail
+
+[ $runtime == ie ]
+# TODO(vsm): Triage DOM failures.
+*: Skip
+
+[ $runtime == safari ]
+# TODO(vsm): Triage DOM failures.
+*: Skip
+
+[ $runtime == ff ]
+audiocontext_test: Fail      # FF only has Audio element
+css_test: Fail               # No analogue to WebKitCSSMatrix
+callbacks_test: Fail         # (webkit|moz|ms)RequestAnimationFrame
+canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribute instead.
+canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
+dart_object_local_storage_test: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
+# _toDartException fails to translate TypeError for call to x.set$onfocus(null)
+hidden_dom_1_test: Fail
+# _toDartException fails to translate TypeError for call to x.appendChild$_(y)
+hidden_dom_2_test: Fail
+indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
+instance_of_test: Fail     # Issue 2535
+# setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
+inner_frame_test: Fail
+# Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
+svg_3_test: Fail
+# document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
+#   TODO: Make both implement List<Node>, make implementation return List<Node>, not _NodeListJs.
+# Note this test now passes for the wrong reasons. It used to be that the only
+# forEach in this program was in NodeList. Due to dependencies from the unittest
+# framework, frog no longer resolves forEach statically, and instead it
+# dynamically binds forEach on a bunch of classes, including HTMLCollection.
+typing_test: Pass
+websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
+# Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
+#    (NS_ERROR_DOM_BAD_URI) ...
+xhr_test: Fail 
+
+[ $runtime == ie && ($system == linux || $system == mac) ]
+*: Skip
+
+[ $runtime == safari && ($system == linux || $system == windows) ]
+*: Skip
+
+# 'client' tests import the DOM library, so they only make sense in
+# a browser environment.
+[ $compiler == dartc ]
+*: Skip
+
+[ $runtime == vm ]
+*: Skip
+
+[ $compiler == frog && $runtime == d8 ]
+*: Skip
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $runtime == opera ]
+*: Skip
+
+[ $compiler == frog && $runtime == none ]
+*: Skip
+
+[ $compiler == dart2js ]
+dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
+request_animation_frame_test: Skip  # Async test hangs.
+isolates_test: Skip   # Timeout because leg does not support web workers.
+typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
+
+# DOM errors.
+window_open_test: Fail # TypeError: Object [object Window] has no method 'close$0'
+htmlelement_test: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
+indexeddb_2_test: Fail # Uncaught error
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

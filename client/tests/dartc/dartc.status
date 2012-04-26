@@ -9,8 +9,6 @@ dom/frog/dom_frog.dart: Skip            # Frog-only
 dom/wrapping_dom.dart: Skip             # Awaiting ability to suppress shadowing warnings.
 dom/dom.dart: Skip                      # Awaiting ability to suppress shadowing warnings.
 
-tests/client/dom: Skip                  # These have known type errors.
-
 [ $runtime == vm ]
 *: Skip
 
