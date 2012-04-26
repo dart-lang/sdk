@@ -246,6 +246,10 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     }
   }
 
+  if (!hasBody) {
+    compiler.emitter.nativeEmitter.nativeMethods.add(element);
+  }
+
   FunctionParameters parameters = element.computeParameters(builder.compiler);
   if (!hasBody) {
     List<String> arguments = <String>[];

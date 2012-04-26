@@ -8,8 +8,6 @@ dom/DOMIsolatesTest: Fail # error: cannot resolve spawnDomIsolate
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff) ]
 dom/RequestAnimationFrameTest: Skip  # Async test hangs.
 html/RequestAnimationFrameTest: Skip # Async test hangs.
-dom/IndexedDB3Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
-dom/IndexedDB4Test: Fail # Uncaught TypeError: Object #<IDBCursorWithValue> has no method 'continueFunction'
 dom/IsolatesTest: Skip   # Timeout because leg does not support web workers.
 dom/TypedArrays1Test: Fail # dart2js doesn't support is checks with generic types.
 

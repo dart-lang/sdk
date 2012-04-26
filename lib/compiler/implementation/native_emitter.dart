@@ -26,12 +26,17 @@ class NativeEmitter {
   // to its subclass if it sees an instance whose class is a subclass.
   Set<FunctionElement> overriddenMethods;
 
+  // Caches the methods that should just call a native JS
+  // implementation.
+  Set<FunctionElement> nativeMethods;
+
   NativeEmitter(this.compiler)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>(),
+        nativeMethods = new Set<FunctionElement>(),
         buffer = new StringBuffer();
 
   String get dynamicName() {
@@ -179,8 +184,16 @@ class NativeEmitter {
     StringBuffer code = new StringBuffer();
     potentiallyConvertDartClosuresToJs(code, member);
 
-    String name = member.name.slowToString();
-    code.add('  return this.$name($nativeArguments);');
+    if (!nativeMethods.contains(member)) {
+      // When calling a method that has a native body, we call it
+      // with our calling conventions.
+      String arguments = Strings.join(argumentsBuffer, ",");
+      code.add('  return this.${compiler.namer.getName(member)}($arguments)');
+    } else {
+      // When calling a JS method, we call it with the native name.
+      String name = member.name.slowToString();
+      code.add('  return this.$name($nativeArguments);');
+    }
 
     if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
       // Call the method directly.
