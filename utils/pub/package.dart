@@ -46,7 +46,7 @@ class Package implements Hashable {
   /**
    * Reads and returns all of the packages this package immediately depends on.
    */
-  Future<Collection<Package>> loadDependencies() {
+  Future<Collection<Package>> loadDependencies(PackageCache cache) {
     return Futures.wait(dependencies.map((name) => cache.find(name)));
   }
 
@@ -55,7 +55,7 @@ class Package implements Hashable {
    * [Set] of all of the packages dependend on by this one, directly or
    * indirectly. This package is included in the result set.
    */
-  Future<Set<Package>> traverseDependencies() {
+  Future<Set<Package>> traverseDependencies(PackageCache cache) {
     final completer = new Completer<Set<Package>>();
     final packages = new Set<Package>();
 

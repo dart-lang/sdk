@@ -15,10 +15,8 @@
 #source('cache.dart');
 #source('command_list.dart');
 #source('command_update.dart');
+#source('command_version.dart');
 #source('package.dart');
-
-Map<String, PubCommand> commands;
-PackageCache cache;
 
 main() {
   final args = new Options().arguments;
@@ -26,15 +24,29 @@ main() {
   // TODO(rnystrom): In addition to explicit "help" and "version" commands,
   // should also add special-case support for --help and --version arguments to
   // be consistent with other Unix apps.
-  commands = {
-    'list': new PubCommand('print the contents of repositories', commandList),
-    'update': new PubCommand("update a package's dependencies", commandUpdate),
-    'version': new PubCommand('print Pub version', commandVersion)
+  final commands = {
+    'list': new ListCommand(),
+    'update': new UpdateCommand(),
+    'version': new VersionCommand()
   };
 
   if (args.length == 0) {
-    showUsage();
+    printUsage(commands);
     return;
+  }
+
+  // For consistency with expected unix idioms, support --help, -h, and
+  // --version in addition to the regular commands.
+  if (args.length == 1) {
+    if (args[0] == '--help' || args[0] == '-h') {
+      printUsage(commands);
+      return;
+    }
+
+    if (args[0] == '--version') {
+      printVersion();
+      return;
+    }
   }
 
   // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
@@ -50,9 +62,7 @@ main() {
   }
 
   // TODO(rnystrom): Do we want this to be global?
-  cache = new PackageCache(cacheDir);
-
-  var options = new PubOptions(cacheDir);
+  final cache = new PackageCache(cacheDir);
 
   // Select the command.
   final command = commands[args[0]];
@@ -64,11 +74,11 @@ main() {
   }
 
   args.removeRange(0, 1);
-  command.function(options, args);
+  command.run(cache, args);
 }
 
 /** Displays usage information for the app. */
-void showUsage() {
+void printUsage(Map<String, PubCommand> commands) {
   print('Pub is a package manager for Dart.');
   print('');
   print('Usage:');
@@ -97,9 +107,7 @@ void showUsage() {
   print('Use "pub help [command]" for more information about a command.');
 }
 
-/** Displays pub version information. */
-void commandVersion(PubOptions options, List<String> args) {
-  // TODO(rnystrom): Store some place central.
+void printVersion() {
   print('Pub 0.0.0');
 }
 
@@ -114,17 +122,19 @@ Future<Package> getWorkingPackage() {
   return Package.load(workingDir);
 }
 
-typedef void CommandFunction(PubOptions options, List<String> args);
-
 class PubCommand {
-  final String description;
-  final CommandFunction function;
+  PackageCache cache;
 
-  PubCommand(this.description, this.function);
-}
+  abstract String get description();
 
-class PubOptions {
-  final String cacheDir;
+  void run(PackageCache cache_, List<String> args) {
+    cache = cache_;
 
-  PubOptions(this.cacheDir);
+    // TODO(rnystrom): Each command should define the arguments it expects and
+    // we can handle them generically here.
+
+    onRun();
+  }
+
+  abstract void onRun();
 }

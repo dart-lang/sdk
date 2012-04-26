@@ -87,7 +87,7 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
 }
 
 Future<Directory> _setUpSandbox() {
-  return createTempDir('pub-test-sandbox-');
+  return cleanDir('pub-test-sandbox');
 }
 
 Future _setUpCache(Directory sandboxDir, List<Descriptor> cache) {
@@ -192,11 +192,11 @@ class Descriptor {
   abstract Future create(String dir);
 
   /**
-   * Validates that this descriptor correctly matches the actual file system
-   * entry at [path]. Returns a [Future] that completes when the validation is
-   * done.
+   * Validates that this descriptor correctly matches the corresponding file
+   * system entry within [dir]. Returns a [Future] that completes when the
+   * validation is done.
    */
-  abstract Future<bool> validate(String path);
+  abstract Future<bool> validate(String dir);
 }
 
 /**

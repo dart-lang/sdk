@@ -9,26 +9,42 @@
 #import('test_pub.dart');
 #import('../../../lib/unittest/unittest.dart');
 
+final USAGE_STRING = """
+    Pub is a package manager for Dart.
+
+    Usage:
+
+      pub command [arguments]
+
+    The commands are:
+
+      list      print the contents of repositories
+      update    update the current package's dependencies to the latest versions
+      version   print Pub version
+
+    Use "pub help [command]" for more information about a command.
+    """;
+
+final VERSION_STRING = '''
+    Pub 0.0.0
+    ''';
+
 main() {
-  group('running pub with no command', () {
-    testPub('displays usage',
-      args: [],
-      output: """
-      Pub is a package manager for Dart.
+  testPub('running pub with no command displays usage',
+    args: [],
+    output: USAGE_STRING);
 
-      Usage:
+  testPub('running pub with just --help displays usage',
+    args: ['--help'],
+    output: USAGE_STRING);
 
-        pub command [arguments]
+  testPub('running pub with just -h displays usage',
+    args: ['-h'],
+    output: USAGE_STRING);
 
-      The commands are:
-
-        list      print the contents of repositories
-        update    update a package's dependencies
-        version   print Pub version
-
-      Use "pub help [command]" for more information about a command.
-      """);
-  });
+  testPub('running pub with just --version displays version',
+    args: ['--version'],
+    output: VERSION_STRING);
 
   group('an unknown command', () {
     testPub('displays an error message',
@@ -108,7 +124,5 @@ updateCommand() {
 versionCommand() {
   testPub('displays the current version',
     args: ['version'],
-    output: '''
-    Pub 0.0.0
-    ''');
+    output: VERSION_STRING);
 }
