@@ -31,6 +31,7 @@ io/HttpShutdownTest: Skip  # Currently times out on windows
 
 [ $compiler == none && $runtime == drt ]
 io/*: Skip # Don't run tests using dart:io in the browser
+crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 
 [ $compiler == dartc]
