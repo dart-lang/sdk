@@ -208,10 +208,10 @@ class Selector implements Hashable {
     }
 
     // Visit named arguments and add them into a temporary list.
-    List namedArguments = [];
+    List compiledNamedArguments = [];
     for (; !arguments.isEmpty(); arguments = arguments.tail) {
       NamedArgument namedArgument = arguments.head;
-      namedArguments.add(compileArgument(namedArgument.expression));
+      compiledNamedArguments.add(compileArgument(namedArgument.expression));
     }
 
     Link<Element> remainingNamedParameters = parameters.optionalParameters;
@@ -231,15 +231,15 @@ class Selector implements Hashable {
          remainingNamedParameters = remainingNamedParameters.tail) {
       Element parameter = remainingNamedParameters.head;
       int foundIndex = -1;
-      for (int i = 0; i < this.namedArguments.length; i++) {
-        SourceString name = this.namedArguments[i];
+      for (int i = 0; i < namedArguments.length; i++) {
+        SourceString name = namedArguments[i];
         if (name == parameter.name) {
           foundIndex = i;
           break;
         }
       }
       if (foundIndex != -1) {
-        list.add(namedArguments[foundIndex]);
+        list.add(compiledNamedArguments[foundIndex]);
       } else {
         list.add(compileConstant(parameter)); 
       }
@@ -295,15 +295,14 @@ class TypedSelector extends Selector {
     //   get foo() => () => 42;
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
-    if (element.enclosingElement.superclass === compiler.closureClass) {
+    ClassElement other = element.enclosingElement;
+    if (other.superclass === compiler.closureClass) {
       return super.applies(element, compiler);
     }
 
-    ClassElement other = element.enclosingElement;
-    ClassElement self = receiverType.element;
-
     // If the class of the element is a subclass of this selector's
     // class, it is a candidate.
+    ClassElement self = receiverType.element;
     if (other.isSubclassOf(self)) {
       return super.applies(element, compiler);
     }
