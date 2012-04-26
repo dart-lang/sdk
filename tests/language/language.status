@@ -182,6 +182,8 @@ StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
+FBoundedQuantificationTest/01: Fail # Issue 439
+FBoundedQuantificationTest/02: Fail # Issue 439
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
 CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
