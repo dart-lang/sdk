@@ -293,43 +293,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  bool allUsersAreBoolifies(HInstruction instruction) {
-    List<HInstruction> users = instruction.usedBy;
-    int length = users.length;
-    for (int i = 0; i < length; i++) {
-      if (users[i] is! HBoolify) return false;
-    }
-    return true;
-  }
-
-  HInstruction visitRelational(HRelational node) {
-    if (allUsersAreBoolifies(node)) {
-      Interceptors interceptors = compiler.builder.interceptors;
-      HStatic oldTarget = node.target;
-      Element boolifiedInterceptor =
-          interceptors.getBoolifiedVersionOf(oldTarget.element);
-      if (boolifiedInterceptor !== null) {
-        HStatic boolifiedTarget = new HStatic(boolifiedInterceptor);
-        // We don't remove the [oldTarget] in case it is used by other
-        // instructions. If it is unused it will be treated as dead code and
-        // discarded.
-        oldTarget.block.addAfter(oldTarget, boolifiedTarget);
-        // Remove us as user from the [oldTarget].
-        HBasicBlock.removeUser(oldTarget, node);
-        // Replace old target with boolified target.
-        assert(node.target == node.inputs[0]);
-        node.inputs[0] = boolifiedTarget;
-        boolifiedTarget.usedBy.add(node);
-        node.usesBoolifiedInterceptor = true;
-        node.propagatedType = HType.BOOLEAN;
-      }
-      // This node stays the same, but the Boolify node will go away.
-    }
-    // Note that we still have to call [super] to make sure that we end up
-    // in the remaining optimizations.
-    return super.visitRelational(node);
-  }
-
   HInstruction handleIdentityCheck(HInvokeBinary node) {
     HInstruction left = node.left;
     HInstruction right = node.right;
@@ -391,7 +354,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (left.isConstant() && right.isConstant()) {
-      return super.visitEquals(node);
+      return visitInvokeBinary(node);
     }
 
     if (left.isNonPrimitive()) {
@@ -401,7 +364,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // If the left-hand side is guaranteed to be a non-primitive
         // type and and it defines operator==, we emit a call to that
         // operator.
-        return super.visitEquals(node);
+        return visitInvokeBinary(node);
       } else if (right.isConstantNull()) {
         return graph.addConstantBool(false);
       } else {
@@ -416,27 +379,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantBool(false);
       } else {
         // TODO(floitsch): cache interceptors.
-        Interceptors interceptors = compiler.builder.interceptors;
-        Element targetElement = interceptors.getEqualsNullInterceptor();
-        bool onlyUsedInBoolify = allUsersAreBoolifies(node);
-        if (onlyUsedInBoolify) {
-          targetElement = interceptors.getBoolifiedVersionOf(targetElement);
-        }
-        HStatic target = new HStatic(targetElement);
+        HStatic target = new HStatic(
+            compiler.builder.interceptors.getEqualsNullInterceptor());
         node.block.addBefore(node, target);
-        HEquals result = new HEquals(target, node.left, node.right);
-        if (onlyUsedInBoolify) {
-          result.usesBoolifiedInterceptor = true;
-          result.propagatedType = HType.BOOLEAN;
-        }
-        return result;
+        return new HEquals(target, node.left, node.right);
       }
     }
 
-    // All other cases are dealt with by the [visitRelational] and
-    // [visitInvokeBinary], which are visited by invoking the [super]'s
-    // visit method.
-    return super.visitEquals(node);
+    // All other cases are dealt with by the [visitInvokeBinary].
+    return visitInvokeBinary(node);
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {

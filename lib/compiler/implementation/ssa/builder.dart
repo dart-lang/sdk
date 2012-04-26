@@ -45,27 +45,26 @@ class Interceptors {
 
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = "builtin\$${name.slowToString()}\$${parameters}";
-    return compiler.findHelper(new SourceString(mangledName));
+    Element result = compiler.findHelper(new SourceString(mangledName));
+    return result;
   }
 
   Element getStaticGetInterceptor(SourceString name) {
     String mangledName = "builtin\$get\$${name.slowToString()}";
-    return compiler.findHelper(new SourceString(mangledName));
+    Element result = compiler.findHelper(new SourceString(mangledName));
+    return result;
   }
 
   Element getStaticSetInterceptor(SourceString name) {
     String mangledName = "builtin\$set\$${name.slowToString()}";
-    return compiler.findHelper(new SourceString(mangledName));
+    Element result = compiler.findHelper(new SourceString(mangledName));
+    return result;
   }
 
   Element getOperatorInterceptor(Operator op) {
     SourceString name = mapOperatorToMethodName(op);
-    return compiler.findHelper(name);
-  }
-
-  Element getBoolifiedVersionOf(Element interceptor) {
-    String boolifiedName = "${interceptor.name.slowToString()}B";
-    return compiler.findHelper(new SourceString(boolifiedName));
+    Element result = compiler.findHelper(name);
+    return result;
   }
 
   Element getPrefixOperatorInterceptor(Operator op) {
