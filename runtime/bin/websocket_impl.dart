@@ -63,10 +63,10 @@ class _WebSocketProtocolProcessor {
     int index = offset;
     int lastIndex = offset + count;
     try {
-      if (_state == _State.CLOSED) {
+      if (_state == CLOSED) {
         throw new WebSocketException("Data on closed connection");
       }
-      if (_state == _State.FAILURE) {
+      if (_state == FAILURE) {
         throw new WebSocketException("Data on failed connection");
       }
       while ((index < lastIndex) && _state != CLOSED && _state != FAILURE) {
@@ -134,9 +134,11 @@ class _WebSocketProtocolProcessor {
             } else if (_len == 126) {
               _len = 0;
               _remainingLenBytes = 2;
+              _state = LEN_REST;
             } else if (_len == 127) {
               _len = 0;
               _remainingLenBytes = 8;
+              _state = LEN_REST;
             }
             break;
 
@@ -159,7 +161,7 @@ class _WebSocketProtocolProcessor {
           case PAYLOAD:
             // The payload is not handled one byte at a time but in blocks.
             int payload;
-            if (lastIndex - index >= _remainingPayloadBytes) {
+            if (lastIndex - index <= _remainingPayloadBytes) {
               payload = lastIndex - index;
             } else {
               payload = _remainingPayloadBytes;
@@ -186,8 +188,8 @@ class _WebSocketProtocolProcessor {
                 }
                 _remainingPayloadBytes -= payload;
                 index += payload;
-                if (_fin) {
-                  _messageEnd();
+                if (_remainingPayloadBytes == 0) {
+                  _frameEnd();
                 }
                 break;
 
@@ -270,24 +272,27 @@ class _WebSocketProtocolProcessor {
   }
 
   void _startPayload() {
-    // Check whether there is any payload. If not indicate empty message or
+    // Check whether there is any payload. If not indicate empty
+    // message or close without state and reason.
     if (_remainingPayloadBytes == 0) {
       if (_currentMessageType ==_WebSocketMessageType.CLOSE) {
         if (onClosed != null) onClosed(null, null);
       } else {
-        _messageEnd();
+        _frameEnd();
       }
     } else {
       _state = PAYLOAD;
     }
   }
 
-  void _messageEnd() {
+  void _frameEnd() {
     if (_remainingPayloadBytes != 0) {
       throw new WebSocketException("Protocol error");
     }
-    if (onMessageEnd != null) onMessageEnd();
-    _currentMessageType = _WebSocketMessageType.NONE;
+    if (_fin) {
+      if (onMessageEnd != null) onMessageEnd();
+      _currentMessageType = _WebSocketMessageType.NONE;
+    }
     _reset();
   }
 
@@ -309,7 +314,7 @@ class _WebSocketProtocolProcessor {
     // throw the error.
     if (onError != null) {
       onError(e);
-      _state = _State.FAILURE;
+      _state = FAILURE;
     } else {
       throw e;
     }
