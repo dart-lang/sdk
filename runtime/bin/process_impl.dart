@@ -318,20 +318,11 @@ class _InteractiveProcess implements Process {
 // buffers output so it can be delivered to the callback when the
 // process exits.
 class _NonInteractiveProcess implements Process {
-
   _NonInteractiveProcess.start(String path,
                                List<String> arguments,
                                ProcessOptions options,
                                Function this._callback) {
-    _process = new _InteractiveProcess.start(path, arguments, options);
-
-    // Setup process exit handling.
-    _process.onExit = (exitCode) {
-      _exitCode = exitCode;
-      _checkDone();
-    };
-
-    // Extract output encoding options.
+    // Extract output encoding options and verify arguments.
     var stdoutEncoding = Encoding.UTF_8;
     var stderrEncoding = Encoding.UTF_8;
     if (options !== null) {
@@ -350,6 +341,15 @@ class _NonInteractiveProcess implements Process {
         }
       }
     }
+
+    // Start the underlying process.
+    _process = new _InteractiveProcess.start(path, arguments, options);
+
+    // Setup process exit handling.
+    _process.onExit = (exitCode) {
+      _exitCode = exitCode;
+      _checkDone();
+    };
 
     // Setup stdout handling.
     _stdoutBuffer = new StringBuffer();
