@@ -77,7 +77,7 @@ class BinaryIntOperation implements BinaryOperation {
     return null;
   }
 
-  abstract int foldInts(int left, int right); 
+  abstract int foldInts(int left, int right);
 }
 
 class BitOrOperation extends BinaryIntOperation {
@@ -238,7 +238,7 @@ class AddOperation implements BinaryOperation {
       } else {
         DartString concatenated =
             new ConsDartString(leftString.value, rightDartString);
-        return new StringConstant(concatenated);        
+        return new StringConstant(concatenated);
       }
     } else {
       return null;
@@ -312,6 +312,10 @@ class IdentityOperation implements BinaryOperation {
   bool isUserDefinable() => false;
   const IdentityOperation();
   Constant fold(Constant left, Constant right) {
+    // In order to preserve runtime semantics which says that NaN !== NaN don't
+    // constant fold NaN === NaN. Otherwise the output depends on inlined
+    // variables and other optimizations.
+    if (left.isNaN() && right.isNaN()) return null;
     return new BoolConstant(left == right);
   }
 }
