@@ -392,6 +392,10 @@ class StandardTestSuite implements TestSuite {
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
       for (var dummy in optionsFromFile["vmOptions"]) {
+        if (TestUtils.isBrowserRuntime(configuration['runtime']) &&
+            optionsFromFile['isMultitest']) {
+          break;  // Browser tests skip multitests.
+        }
         SummaryReport.add(expectations);
       }
     }
