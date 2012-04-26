@@ -162,6 +162,9 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
       # this does not seem to be a problem for Windows, which does not have a
       # built in zip utility. :-/
       result, out = execute_command('unzip', temp_zip, '-d', temp_dir)
+      if result != 0:
+        raise Exception('Execution of "unzip %s -d %s" failed: %s' %
+                        (temp_zip, temp_dir, str(out)))
       unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] #Remove .zip
     else:
       z = zipfile.ZipFile(temp_zip)
