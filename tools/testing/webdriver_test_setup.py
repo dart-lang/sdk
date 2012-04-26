@@ -134,9 +134,16 @@ class GoogleCodeInstaller(object):
     urllib.urlretrieve(self.google_code_download() + '/' + download_name,
         os.path.join(self.download_location, download_name))
     if download_name.endswith('.zip'):
-      z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
-      z.extractall(self.download_location)
-      z.close()
+      if platform.system() != 'Windows':
+        # The Python zip utility does not preserve executable permissions, but
+        # this does not seem to be a problem for Windows, which does not have a
+        # built in zip utility. :-/
+        run_cmd('unzip -u %s -d %s' % (os.path.join(self.download_location,
+                download_name), self.download_location))
+      else:
+        z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
+        z.extractall(self.download_location)
+        z.close()
       os.remove(os.path.join(self.download_location, download_name))
 
   @property
