@@ -1557,7 +1557,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   // Context is saved around the call, it's treated as an extra operand
   // consumed by the call (but not an argument).
-  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
+  BindInstr* context = new BindInstr(temp_index(), new CurrentContextComp());
+  AddInstruction(context);
 
   ArgumentGraphVisitor for_closure(owner(), temp_index() + 1);
   node->closure()->Visit(&for_closure);
@@ -1570,22 +1571,23 @@ void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   // First operand is the saved context, consumed by the call.
   ClosureCallComp* call =  new ClosureCallComp(node,
                                                owner()->try_index(),
-                                               new TempVal(temp_index()),
+                                               new UseVal(context),
                                                arguments);
   ReturnComputation(call);
 }
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
-  TempVal* ctx = new TempVal(temp_index());
-  AddInstruction(new BindInstr(temp_index(),
-                 new CloneContextComp(node->id(),
-                                      node->token_index(),
-                                      owner()->try_index(),
-                                      ctx)));
-  TempVal* cloned_ctx = new TempVal(temp_index());
-  ReturnComputation(new StoreContextComp(cloned_ctx));
+  BindInstr* context = new BindInstr(temp_index(), new CurrentContextComp());
+  AddInstruction(context);
+  BindInstr* clone =
+      new BindInstr(temp_index(),
+                    new CloneContextComp(node->id(),
+                                         node->token_index(),
+                                         owner()->try_index(),
+                                         new UseVal(context)));
+  AddInstruction(clone);
+  ReturnComputation(new StoreContextComp(new UseVal(clone)));
 }
 
 
@@ -2024,13 +2026,14 @@ bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
 
 
 void EffectGraphVisitor::UnchainContext() {
-  AddInstruction(new BindInstr(temp_index(), new CurrentContextComp()));
-  TempVal* temp_ctx = new TempVal(temp_index());
-  NativeLoadFieldComp* load = new NativeLoadFieldComp(
-      temp_ctx, Context::parent_offset());
-  AddInstruction(new BindInstr(temp_index(), load));
-  TempVal* parent_ctx = new TempVal(temp_index());
-  AddInstruction(new DoInstr(new StoreContextComp(parent_ctx)));
+  BindInstr* context = new BindInstr(temp_index(), new CurrentContextComp());
+  AddInstruction(context);
+  BindInstr* parent =
+      new BindInstr(temp_index(),
+                    new NativeLoadFieldComp(
+                        new UseVal(context), Context::parent_offset()));
+  AddInstruction(parent);
+  AddInstruction(new DoInstr(new StoreContextComp(new UseVal(parent))));
 }
 
 
@@ -2046,22 +2049,24 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
     // Allocate context computation (uses current CTX)
-    AllocateContextComp* comp = new AllocateContextComp(
-        node->token_index(),
-        owner()->try_index(),
-        num_context_variables);
-    AddInstruction(new BindInstr(temp_index(), comp));
-    Value* allocated_context_value = new TempVal(temp_index());
+    BindInstr* allocated_context =
+        new BindInstr(temp_index(),
+                      new AllocateContextComp(node->token_index(),
+                                              owner()->try_index(),
+                                              num_context_variables));
+    AddInstruction(allocated_context);
 
     // If this node_sequence is the body of the function being compiled, and if
     // this function is not a closure, do not link the current context as the
     // parent of the newly allocated context, as it is not accessible. Instead,
     // save it in a pre-allocated variable and restore it on exit.
     if (MustSaveRestoreContext(node)) {
-      AddInstruction(new BindInstr(temp_index() + 1, new CurrentContextComp()));
+      BindInstr* current_context =
+          new BindInstr(temp_index() + 1, new CurrentContextComp());
+      AddInstruction(current_context);
       StoreLocalComp* store_local = new StoreLocalComp(
           *owner()->parsed_function().saved_context_var(),
-          new TempVal(temp_index() + 1),
+          new UseVal(current_context),
           0);
       AddInstruction(new DoInstr(store_local));
       StoreContextComp* store_context =
@@ -2069,8 +2074,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       AddInstruction(new DoInstr(store_context));
     }
 
-    ChainContextComp* chain_context = new ChainContextComp(
-        allocated_context_value);
+    ChainContextComp* chain_context =
+        new ChainContextComp(new UseVal(allocated_context));
     AddInstruction(new DoInstr(chain_context));
     owner()->set_context_level(scope->context_level());
 
@@ -2096,12 +2101,14 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           temp_local->set_index(param_frame_index);
 
           // Copy parameter from local frame to current context.
-          LoadLocalComp* load_comp = new LoadLocalComp(
-              *temp_local, owner()->context_level());
-          AddInstruction(new BindInstr(temp_index(), load_comp));
+          BindInstr* load =
+              new BindInstr(temp_index(),
+                            new LoadLocalComp(*temp_local,
+                                              owner()->context_level()));
+          AddInstruction(load);
           StoreLocalComp* store_local = new StoreLocalComp(
               parameter,
-              new TempVal(temp_index()),
+              new UseVal(load),
               owner()->context_level());
           AddInstruction(new DoInstr(store_local));
           // Write NULL to the source location to detect buggy accesses and
@@ -2125,13 +2132,14 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
       if (!CanSkipTypeCheck(NULL, parameter.type())) {
-        LoadLocalComp* load = new LoadLocalComp(parameter,
-                                                owner()->context_level());
-        AddInstruction(new BindInstr(temp_index(), load));
-        TempVal* argument_value = new TempVal(temp_index());
+        BindInstr* load =
+            new BindInstr(temp_index(),
+                          new LoadLocalComp(parameter,
+                                            owner()->context_level()));
+        AddInstruction(load);
         BuildAssertAssignable(node->ParameterIdAt(pos),
                               parameter.token_index(),
-                              argument_value,
+                              new UseVal(load),
                               parameter.type(),
                               parameter.name(),
                               temp_index());

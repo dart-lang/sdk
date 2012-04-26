@@ -251,8 +251,10 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // the graph and returns its temporary value (i.e., set the output
   // parameters).
   virtual void ReturnComputation(Computation* computation) {
-    AddInstruction(new BindInstr(temp_index(), computation));
-    value_ = new TempVal(AllocateTempIndex());
+    BindInstr* defn = new BindInstr(temp_index(), computation);
+    AddInstruction(defn);
+    AllocateTempIndex();
+    value_ = new UseVal(defn);
   }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
@@ -332,8 +334,9 @@ class TestGraphVisitor : public ValueGraphVisitor {
   // Specify a computation as the final result.  Adds a Bind instruction to
   // the graph and branches on its value.
   virtual void ReturnComputation(Computation* computation) {
-    AddInstruction(new BindInstr(temp_index(), computation));
-    ReturnValue(new TempVal(temp_index()));
+    BindInstr* defn = new BindInstr(temp_index(), computation);
+    AddInstruction(defn);
+    ReturnValue(new UseVal(defn));
   }
 
   // Output parameters.

@@ -272,7 +272,7 @@ class ClosureCallComp : public Computation {
         try_index_(try_index),
         context_(context),
         arguments_(arguments) {
-    ASSERT(context->IsTemp());
+    ASSERT(context->IsTemp() || context->IsUse());
   }
 
   DECLARE_COMPUTATION(ClosureCall)
