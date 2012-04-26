@@ -426,12 +426,16 @@ interface HttpClient default _HttpClient {
   HttpClientConnection openUrl(String method, Uri url);
 
   /**
-   * Opens a HTTP connection using the GET method. See [open] for details.
+   * Opens a HTTP connection using the GET method. See [open] for
+   * details. Using this method to open a HTTP connection will set the
+   * content length to 0.
    */
   HttpClientConnection get(String host, int port, String path);
 
   /**
-   * Opens a HTTP connection using the GET method. See [openUrl] for details.
+   * Opens a HTTP connection using the GET method. See [openUrl] for
+   * details. Using this method to open a HTTP connection will set the
+   * content length to 0.
    */
   HttpClientConnection getUrl(Uri url);
 

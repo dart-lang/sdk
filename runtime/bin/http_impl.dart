@@ -21,6 +21,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void add(String name, Object value) {
+    _checkMutable();
     if (value is List) {
       for (int i = 0; i < value.length; i++) {
         _add(name, value[i]);
@@ -31,11 +32,13 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void set(String name, Object value) {
+    _checkMutable();
     removeAll(name);
     add(name, value);
   }
 
   void remove(String name, Object value) {
+    _checkMutable();
     name = name.toLowerCase();
     List<String> values = _headers[name];
     if (values != null) {
@@ -47,18 +50,23 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void removeAll(String name) {
+    _checkMutable();
     name = name.toLowerCase();
     _headers.remove(name);
   }
 
   String get host() => _host;
+
   void set host(String host) {
+    _checkMutable();
     _host = host;
     _updateHostHeader();
   }
 
   int get port() => _port;
+
   void set port(int port) {
+    _checkMutable();
     _port = port;
     _updateHostHeader();
   }
@@ -76,6 +84,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void set date(Date date) {
+    _checkMutable();
     // Format "Date" header with date in Greenwich Mean Time (GMT).
     String formatted =
         _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
@@ -95,6 +104,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void set expires(Date expires) {
+    _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
     String formatted =
         _HttpUtils.formatDate(expires.changeTimeZone(new TimeZone.utc()));
@@ -159,6 +169,10 @@ class _HttpHeaders implements HttpHeaders {
     values.add(value);
   }
 
+  _checkMutable() {
+    if (!_mutable) throw new HttpException("HTTP headers are not mutable");
+  }
+
   _updateHostHeader() {
     bool defaultPort = _port == null || _port == HttpClient.DEFAULT_HTTP_PORT;
     String portPart = defaultPort ? "" : ":$_port";
@@ -203,6 +217,7 @@ class _HttpHeaders implements HttpHeaders {
     return sb.toString();
   }
 
+  bool _mutable = true;  // Are the headers currently mutable?
   Map<String, List<String>> _headers;
 
   String _host;
@@ -211,14 +226,21 @@ class _HttpHeaders implements HttpHeaders {
 
 
 class _HttpRequestResponseBase {
+  final int START = 0;
+  final int HEADER_SENT = 1;
+  final int DONE = 2;
+  final int UPGRADED = 3;
+
   _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
-      : _contentLength = -1,
-        _headers = new _HttpHeaders();
+      : _headers = new _HttpHeaders() {
+    _state = START;
+  }
 
   int get contentLength() => _contentLength;
   HttpHeaders get headers() => _headers;
 
   bool _write(List<int> data, bool copyBuffer) {
+    _ensureHeadersSent();
     bool allWritten = true;
     if (data.length > 0) {
       if (_contentLength < 0) {
@@ -228,6 +250,7 @@ class _HttpRequestResponseBase {
         _httpConnection._write(data, copyBuffer);
         allWritten = _writeCRLF();
       } else {
+        _updateContentLength(data.length);
         allWritten = _httpConnection._write(data, copyBuffer);
       }
     }
@@ -235,6 +258,7 @@ class _HttpRequestResponseBase {
   }
 
   bool _writeList(List<int> data, int offset, int count) {
+    _ensureHeadersSent();
     bool allWritten = true;
     if (count > 0) {
       if (_contentLength < 0) {
@@ -244,6 +268,7 @@ class _HttpRequestResponseBase {
         _httpConnection._writeFrom(data, offset, count);
         allWritten = _writeCRLF();
       } else {
+        _updateContentLength(count);
         allWritten = _httpConnection._writeFrom(data, offset, count);
       }
     }
@@ -255,11 +280,17 @@ class _HttpRequestResponseBase {
     if (_contentLength < 0) {
       // Terminate the content if transfer encoding is chunked.
       allWritten = _httpConnection._write(_Const.END_CHUNKED);
+    } else {
+      if (_bodyBytesWritten < _contentLength) {
+        throw new HttpException("Sending less than specified content length");
+      }
+      assert(_bodyBytesWritten == _contentLength);
     }
     return allWritten;
   }
 
   bool _writeHeaders() {
+    _headers._mutable = false;
     _headers._write(_httpConnection);
     // Terminate header.
     return _writeCRLF();
@@ -289,13 +320,33 @@ class _HttpRequestResponseBase {
     return _httpConnection._write(SP);
   }
 
+  void _ensureHeadersSent() {
+    // Ensure that headers are written.
+    if (_state == START) {
+      _writeHeader();
+    }
+  }
+
+  void _updateContentLength(int bytes) {
+    if (_bodyBytesWritten + bytes > _contentLength) {
+      throw new HttpException("Writing more than specified content length");
+    }
+    _bodyBytesWritten += bytes;
+  }
+
+  int _state;
+
   _HttpConnectionBase _httpConnection;
   _HttpHeaders _headers;
 
   // Length of the content body. If this is set to -1 (default value)
   // when starting to send data chunked transfer encoding will be
   // used.
-  int _contentLength;
+  int _contentLength = -1;
+  // Number of body bytes written. This is only actual body data not
+  // including headers or chunk information of using chinked transfer
+  // encoding.
+  int _bodyBytesWritten = 0;
 }
 
 
@@ -327,6 +378,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
   }
 
   void _onHeadersComplete() {
+    _headers._mutable = false;
     // Prepare for receiving data.
     _buffer = new _BufferList();
   }
@@ -386,18 +438,12 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
 
 // HTTP response object for sending a HTTP response.
 class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
-  static final int START = 0;
-  static final int HEADERS_SENT = 1;
-  static final int DONE = 2;
-  static final int UPGRADED = 3;
-
   _HttpResponse(_HttpConnection httpConnection)
       : super(httpConnection),
-        _statusCode = HttpStatus.OK,
-        _state = START;
+        _statusCode = HttpStatus.OK;
 
   void set contentLength(int contentLength) {
-    if (_outputStream != null) throw new HttpException("Header already sent");
+    if (_state >= HEADER_SENT) throw new HttpException("Header already sent");
     _contentLength = contentLength;
   }
 
@@ -416,10 +462,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   OutputStream get outputStream() {
     if (_state >= DONE) throw new HttpException("Response closed");
     if (_outputStream == null) {
-      // Ensure that headers are written.
-      if (_state == START) {
-        _writeHeader();
-      }
       _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
@@ -439,6 +481,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   }
 
   void _responseEnd() {
+    _ensureHeadersSent();
     _state = DONE;
     // Stop tracking no pending write events.
     _httpConnection._onNoPendingWrites = null;
@@ -450,10 +493,12 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
+    if (_state == DONE) throw new HttpException("Response closed");
     return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
+    if (_state == DONE) throw new HttpException("Response closed");
     return _writeList(buffer, offset, len);
   }
 
@@ -563,7 +608,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
     // Write headers.
     bool allWritten = _writeHeaders();
-    _state = HEADERS_SENT;
+    _state = HEADER_SENT;
     return allWritten;
   }
 
@@ -573,7 +618,6 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   String _protocolVersion;
   bool _persistentConnection;
   _HttpOutputStream _outputStream;
-  int _state;
   Function _streamErrorHandler;
 }
 
@@ -975,15 +1019,10 @@ class _HttpServer implements HttpServer {
 
 class _HttpClientRequest
     extends _HttpRequestResponseBase implements HttpClientRequest {
-  static final int START = 0;
-  static final int HEADERS_SENT = 1;
-  static final int DONE = 2;
-
   _HttpClientRequest(String this._method,
                      String this._uri,
                      _HttpClientConnection connection)
-      : super(connection),
-        _state = START {
+      : super(connection) {
     _connection = connection;
     // Default GET requests to have no content.
     if (_method == "GET") {
@@ -991,15 +1030,14 @@ class _HttpClientRequest
     }
   }
 
-  void set contentLength(int contentLength) => _contentLength = contentLength;
+  void set contentLength(int contentLength) {
+    if (_state >= HEADER_SENT) throw new HttpException("Header already sent");
+    _contentLength = contentLength;
+  }
 
   OutputStream get outputStream() {
     if (_state == DONE) throw new HttpException("Request closed");
     if (_outputStream == null) {
-      // Ensure that headers are written.
-      if (_state == START) {
-        _writeHeader();
-      }
       _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
@@ -1007,14 +1045,17 @@ class _HttpClientRequest
 
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
+    if (_state == DONE) throw new HttpException("Request closed");
     return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
+    if (_state == DONE) throw new HttpException("Request closed");
     return _writeList(buffer, offset, len);
   }
 
   void _streamClose() {
+    _ensureHeadersSent();
     _state = DONE;
     // Stop tracking no pending write events.
     _httpConnection._onNoPendingWrites = null;
@@ -1060,14 +1101,13 @@ class _HttpClientRequest
 
     // Write headers.
     _writeHeaders();
-    _state = HEADERS_SENT;
+    _state = HEADER_SENT;
   }
 
   String _method;
   String _uri;
   _HttpClientConnection _connection;
   _HttpOutputStream _outputStream;
-  int _state;
   Function _streamErrorHandler;
 }
 
@@ -1103,6 +1143,7 @@ class _HttpClientResponse
   }
 
   void _onHeadersComplete() {
+    _headers._mutable = false;
     _buffer = new _BufferList();
     if (_connection._onResponse != null) {
       _connection._onResponse(this);
