@@ -229,15 +229,15 @@ class StandardTestSuite implements TestSuite {
    *         to/
    *           mytestsuite/
    *             mytestsuite.status
-   *             example1_tests.dart
-   *             example2_tests.dart
-   *             example3_tests.dart
+   *             example1_test.dart
+   *             example2_test.dart
+   *             example3_test.dart
    *
    * The important parts:
    *
    * * The leaf directory name is the name of your test suite.
    * * The status file uses the same name.
-   * * Test files are directly in that directory and end in "_tests.dart".
+   * * Test files are directly in that directory and end in "_test.dart".
    *
    * If you follow that convention, then you can construct one of these like:
    *
@@ -253,7 +253,7 @@ class StandardTestSuite implements TestSuite {
 
     return new StandardTestSuite(configuration,
         name, directory, ['$directory/$name.status'],
-        (filename) => filename.endsWith('_tests.dart'));
+        (filename) => filename.endsWith('_test.dart'));
   }
 
   /**

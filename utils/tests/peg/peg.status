@@ -3,10 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == opera ]
-peg_tests: Skip
+peg_test: Skip
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == chrome || $runtime == safari) ]
-peg_tests: Skip # TODO(ahe): Triage
+peg_test: Skip # TODO(ahe): Triage
 
 [ $arch == x64 ]
 *: Skip

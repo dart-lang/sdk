@@ -5,7 +5,7 @@
 dom/WebGL1Test: Skip  # Issue 1495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-html/html_tests: Pass, Fail   # Issue 1946.
+html/html_test: Pass, Fail   # Issue 1946.
 dom/IndexedDB3Test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 dom/IndexedDB4Test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 dom/RequestAnimationFrameTest: Skip    # drt hangs; requestAnimationFrame not implemented
@@ -21,7 +21,7 @@ dom/AudioContextTest: Skip
 dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
 
 [ $compiler == frog && $runtime == drt ]
-html/html_tests: Skip   # Issue 2657
+html/html_test: Skip   # Issue 2657
 dom/RequestAnimationFrameTest: Skip   # drt hangs
 html/RequestAnimationFrameTest: Skip   # drt hangs
 
@@ -38,7 +38,7 @@ dom/HistoryTest: Fail
 
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 dom/ImplementationTest: Fail
-html/html_tests: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
+html/html_test: Pass, Fail   # "Measurement measurement is async but before" See issue 1946.
 
 [ $runtime == ie ]
 html/TypedArrays1Test: Skip   # ie9 does not have typed arrays.
@@ -46,12 +46,12 @@ html/TypedArrays2Test: Skip
 html/TypedArrays3Test: Skip
 html/TypedArrays4Test: Skip
 html/CanvasPixelArrayTypeAliasTest: Fail  # Verify is CanvasPixelArray.
-html/html_tests: Fail
+html/html_test: Fail
 # TODO(vsm): Triage DOM failures.
 dom/*: Skip
 
 [ $runtime == safari ]
-html/html_tests: Fail
+html/html_test: Fail
 html/CanvasPixelArrayTypeAliasTest: Fail # Caught TypeError: 'undefined' is not a function
 # TODO(vsm): Triage DOM failures.
 dom/*: Skip
@@ -88,11 +88,6 @@ dom/WebSocketTest: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket
 # Exception... "Access to restricted URI denied" code: "1012" nsresult: "0x805303f4
 #    (NS_ERROR_DOM_BAD_URI) ...
 dom/XHRTest: Fail 
-
-# TODO(nweiz): enable this test again once the functionality being tested
-# is supported.
-[ ($compiler == frog && $runtime == drt) || $runtime == safari || $runtime == ie]
-html/frog_html_tests: Skip # Issue 1884
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip

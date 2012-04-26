@@ -5,11 +5,11 @@
 
 #library("string_encoding_run_tests");
 #import("dunit.dart");
-#import("unicode_tests.dart", prefix: "u");
-#import("unicode_core_tests.dart", prefix: "uc");
-#import("utf16_tests.dart", prefix: "utf16");
-#import("utf32_tests.dart", prefix: "utf32");
-#import("utf8_tests.dart", prefix: "utf8");
+#import("unicode_test.dart", prefix: "u");
+#import("unicode_core_test.dart", prefix: "uc");
+#import("utf16_test.dart", prefix: "utf16");
+#import("utf32_test.dart", prefix: "utf32");
+#import("utf8_test.dart", prefix: "utf8");
 
 void main() {
   TestSuite suite = new TestSuite();

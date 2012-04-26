@@ -154,7 +154,7 @@ final List<String> argv = const <String>[
 '../samples/markdown/inline_parser.dart',
 '../samples/markdown/lib.dart',
 '../samples/markdown/markdown.dart',
-'../samples/markdown/test/markdown_tests.dart',
+'../samples/markdown/test/markdown_test.dart',
 '../samples/matrix/float32.dart',
 '../samples/matrix/matrix4.dart',
 '../samples/matrix/matrix_client.dart',
