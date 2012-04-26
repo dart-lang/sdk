@@ -5,6 +5,9 @@
 // TODO(ager): Replace with "dart:crypto" when ready.
 #import("../../../../lib/crypto/crypto.dart");
 
+#source('sha1_long_test_vectors.dart');
+#source('sha1_short_test_vectors.dart');
+
 List<int> createTestArr(int len) {
   var arr = new List<int>(len);
   for (var i = 0; i < len; i++) {
@@ -551,7 +554,16 @@ void testInvalidUse() {
                 (e) => e is CryptoHashException);
 }
 
+void testStandardVectors(inputs, mds) {
+  for (var i = 0; i < inputs.length; i++) {
+    var d = new SHA1().update(inputs[i]).digest();
+    Expect.equals(mds[i], digestToString(d), '$i');
+  }
+}
+
 void main() {
   test();
   testInvalidUse();
+  testStandardVectors(sha1_long_inputs, sha1_long_mds);
+  testStandardVectors(sha1_short_inputs, sha1_short_mds);
 }
