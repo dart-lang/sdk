@@ -119,24 +119,25 @@ class EffectGraphVisitor : public AstNodeVisitor {
                              ZoneGrowableArray<Value*>* values);
 
   // Build the load part of a instance field increment.  Translates the
-  // receiver and loads the value.  The receiver will be named with
-  // start_index, the temporary index of the value is returned (always
-  // start_index+1).
-  int BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node, intptr_t start_index);
+  // receiver and loads the value.  The receiver will be returned in the
+  // output parameter 'receiver'.
+  Definition* BuildIncrOpFieldLoad(IncrOpInstanceFieldNode* node,
+                                   Value** receiver);
 
   // Build the load part of an indexed increment.  Translates the receiver
-  // and index and loads the value.  The receiver will be named with
-  // start_index, the index with start_index+1, and the temporary index of
-  // the value is returned (always start_index+2).
-  int BuildIncrOpIndexedLoad(IncrOpIndexedNode* node, intptr_t start_index);
+  // and index and loads the value.  The receiver will be returned in the
+  // output parameter 'receiver' and the index will be returned in the
+  // output parameter 'index'..
+  Definition* BuildIncrOpIndexedLoad(IncrOpIndexedNode* node,
+                                     Value** receiver,
+                                     Value** index);
 
   // Build the increment part of an increment operation (add or subtract 1).
-  // The original value is expected to be named with start_index-1, and the
-  // result will be named with start_index.
-  void BuildIncrOpIncrement(Token::Kind kind,
-                            intptr_t node_id,
-                            intptr_t token_index,
-                            intptr_t start_index);
+  // Consumes the original value and produces the value +/- 1.
+  Definition* BuildIncrOpIncrement(Token::Kind kind,
+                                   intptr_t node_id,
+                                   intptr_t token_index,
+                                   Value* original);
 
   // Creates an instantiated type argument vector used in preparation of a
   // factory call.
@@ -181,6 +182,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }
+  void DeallocateTempIndex() { --temp_index_; }
 
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
