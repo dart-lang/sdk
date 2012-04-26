@@ -394,7 +394,27 @@ static void UpdateTypeTestCache(intptr_t node_id,
     const bool is_raw_type = type_arguments.IsNull() ||
         type_arguments.IsRaw(type_arguments.Length());
     if (!is_raw_type) {
-      return;
+      // We cannot inline tests for instances with more than one type argument
+      // or if its class has not been resolved (malformed type).
+      if (type_arguments.Length() != 1) {
+        // We can handle only one argument so far.
+        return;
+      }
+      const AbstractType& tp_argument =
+          AbstractType::ZoneHandle(type_arguments.TypeAt(0));
+      if (!tp_argument.IsType()) {
+        // E.g, it is TypeParameter.
+        return;
+      }
+      const Type& list_type =
+          Type::Handle(Isolate::Current()->object_store()->list_interface());
+      Error& malformed_error = Error::Handle();
+      if (!list_type.IsSubtypeOf(type, &malformed_error)) {
+        return;
+      }
+      // The type argument at index 0 must be instantiated and not malformed.
+      // A malformed type would have caused a type error earlier.
+      ASSERT(tp_argument.HasResolvedTypeClass());
     }
   }
   DartFrameIterator iterator;
