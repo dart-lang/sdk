@@ -27,7 +27,7 @@ class Moo<K, V> {
   }
 }
 
-main () {
+testAll () {
   var foo_int_num = new Foo<int, num>();
   Expect.isTrue(foo_int_num is Foo<int, num>);
   Expect.isTrue(foo_int_num is !Foo<int, String>);
@@ -55,4 +55,12 @@ main () {
   // moo_raw.MooString() returns a Moo<Dynamic, String>
   Expect.isTrue(moo_raw.MooString() is !Moo<int, num>);
   Expect.isTrue(moo_raw.MooString() is Moo<int, String>);
+}
+
+
+main() {
+  // Repeat type checks so that inlined tests can be tested as well.
+  for (int i = 0; i < 5; i++) {
+    testAll();
+  }
 }

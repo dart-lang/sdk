@@ -180,5 +180,9 @@ class C implements I, K {C() {}}
 class D extends C {D() : super() {}}
 
 main() {
-  InstanceofTest.testMain();
+  // Repeat type checks so that inlined tests can be tested as well.
+  for (int i = 0; i < 5; i++) {
+    InstanceofTest.testMain();
+  }
 }
+

@@ -16,7 +16,7 @@ isCheckedMode() {
   }
 }
 
-main() {
+testAll() {
   {
     bool got_type_error = false;
     var x = null;
@@ -82,5 +82,12 @@ main() {
     }
     // Type error in checked mode only.
     Expect.isTrue(got_type_error == isCheckedMode());
+  }
+}
+
+main() {
+  // Repeat type checks so that inlined tests can be tested as well.
+  for (int i = 0; i < 5; i++) {
+    testAll();
   }
 }

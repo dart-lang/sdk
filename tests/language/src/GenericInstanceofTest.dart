@@ -7,5 +7,8 @@
 #source("GenericInstanceof.dart");
 
 main() {
-  GenericInstanceof.testMain();
+  // Repeat type checks so that inlined tests can be tested as well.
+  for (int i = 0; i < 5; i++) {
+    GenericInstanceof.testMain();
+  }
 }

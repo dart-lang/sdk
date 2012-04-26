@@ -30,6 +30,7 @@ FunctionTypeParameter2Test: Fail # Internal Error: expected optional parameters
 FunctionTypeParameterTest: Fail # Internal Error: expected optional parameters
 GenericInstanceofTest: Fail # cannot resolve type T
 GenericInstanceof2Test: Fail # fails an instance of test at run time
+GenericInstanceof3Test: Fail # cannot handle generics.
 GenericTest: Fail # cannot resolve type T
 GetSetSyntaxTest/none: Fail # Parsing of pseudo keywords.
 GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
