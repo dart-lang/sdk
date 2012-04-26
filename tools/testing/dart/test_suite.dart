@@ -391,7 +391,7 @@ class StandardTestSuite implements TestSuite {
     Set<String> expectations = testExpectations.expectations(testName);
     if (configuration['report']) {
       // Tests with multiple VMOptions are counted more than once.
-      for (var dummy in optionsFromFile["vmOptions"]) {
+      for (var dummy in getVmOptions(optionsFromFile)) {
         if (TestUtils.isBrowserRuntime(configuration['runtime']) &&
             optionsFromFile['isMultitest']) {
           break;  // Browser tests skip multitests.
@@ -447,8 +447,7 @@ class StandardTestSuite implements TestSuite {
       args.add('--out=${tempDir.path}/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
       if (configuration['runtime'] == 'd8') {
-        var d8 = '${TestUtils.buildDir(configuration)}/'
-                 'd8${TestUtils.executableSuffix("d8")}';
+        var d8 = TestUtils.d8FileName(configuration);
         commands.add(new Command(d8, ['${tempDir.path}/out.js']));
       }
       return commands;
@@ -529,12 +528,12 @@ class StandardTestSuite implements TestSuite {
     final String testPath =
         new File(filename).fullPathSync().replaceAll('\\', '/');
 
-    for (var vmOptions in optionsFromFile['vmOptions']) {
+    for (var vmOptions in getVmOptions(optionsFromFile)) {
       // Create a unique temporary directory for each set of vmOptions.
       // TODO(dart:429): Replace separate replaceAlls with a RegExp when
       // replaceAll(RegExp, String) is implemented.
       String optionsName = '';
-      if (optionsFromFile['vmOptions'].length > 1) {
+      if (getVmOptions(optionsFromFile).length > 1) {
           optionsName = Strings.join(vmOptions, '-').replaceAll('-','')
                                                     .replaceAll('=','')
                                                     .replaceAll('/','');
@@ -859,10 +858,7 @@ class StandardTestSuite implements TestSuite {
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
-    List<List<String>> vmOptionsList = optionsFromFile["vmOptions"];
-    if (configuration['compiler'] == 'dart2js') {
-      vmOptionsList = [[]];
-    }
+    List<List<String>> vmOptionsList = getVmOptions(optionsFromFile);
     Expect.isTrue(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filename);
@@ -995,6 +991,14 @@ class StandardTestSuite implements TestSuite {
              "containsSourceOrImport": containsSourceOrImport,
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
              "numCompileTimeAnnotations": numCompileTimeAnnotations};
+  }
+
+  List<List<String>> getVmOptions(Map optionsFromFile) {
+    if (configuration['compiler'] == 'dart2js') {
+      return [[]];
+    } else {
+      return optionsFromFile['vmOptions'];
+    }
   }
 }
 
@@ -1257,10 +1261,21 @@ class TestUtils {
     if (name == '') {
       name = '${buildDir(configuration)}/${executableName(configuration)}';
     }
-    if (!(new File(name)).existsSync() && !configuration['list']) {
-      throw "Executable '$name' does not exist";
-    }
+    ensureExists(name, configuration);
     return name;
+  }
+
+  static String d8FileName(Map configuration) {
+    var suffix = executableSuffix('d8');
+    var d8 = '${buildDir(configuration)}/d8$suffix';
+    ensureExists(d8, configuration);
+    return d8;
+  }
+
+  static void ensureExists(String filename, Map configuration) {
+    if (!configuration['list'] && !(new File(filename).existsSync())) {
+      throw "Executable '$filename' does not exist";
+    }
   }
 
   static String compilerPath(Map configuration) {

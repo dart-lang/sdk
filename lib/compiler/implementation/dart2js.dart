@@ -40,7 +40,7 @@ void compile(List<String> argv) {
       String path =
           nativeToUriPath(argument.substring(argument.indexOf('=') + 1));
       out = cwd.resolve(path);
-    } else if (argument == '--allow-mock-compilation') {
+    } else if ('--allow-mock-compilation' == argument) {
       options.add(argument);
     } else if (argument.startsWith('-')) {
       fail('Unknown option $argument.');
@@ -49,7 +49,7 @@ void compile(List<String> argv) {
     }
   }
   if (arguments.isEmpty()) {
-    fail('No files to compile.');
+    fail('No file to compile.');
   }
   if (arguments.length > 1) {
     var extra = arguments.getRange(1, arguments.length - 1);
