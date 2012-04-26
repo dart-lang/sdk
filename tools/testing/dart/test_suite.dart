@@ -658,8 +658,9 @@ class StandardTestSuite implements TestSuite {
       commands.add(new Command('python', args));
 
       // Create BrowserTestCase and queue it.
-      var testCase = new BrowserTestCase(testName, commands, configuration,
-          completeHandler, expectations, optionsFromFile['isNegative']);
+      var testCase = new BrowserTestCase('$suiteName/$testName',
+          commands, configuration, completeHandler, expectations,
+          optionsFromFile['isNegative']);
       doTest(testCase);
     }
   }
