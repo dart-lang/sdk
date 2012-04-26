@@ -59,6 +59,10 @@ dom/*: Skip
 
 [ $runtime == safari ]
 html/CanvasPixelArrayTypeAliasTest: Fail # Caught TypeError: 'undefined' is not a function
+html/CSSStyleDeclarationTest: Fail
+html/ElementTest: Fail
+html/NodeTest: Fail
+html/SVGElementTest: Fail
 # TODO(vsm): Triage DOM failures.
 dom/*: Skip
 
