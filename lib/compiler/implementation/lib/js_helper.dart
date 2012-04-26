@@ -96,7 +96,7 @@ tdiv(var a, var b) {
 eq(var a, var b) {
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
-      return UNINTERCEPTED(a == b);
+      return UNINTERCEPTED(a == b) === true;
     } else {
       return JS('bool', @'# === #', a, b);
     }
@@ -105,8 +105,6 @@ eq(var a, var b) {
   return JS('bool', @'# === #', a, b);
 }
 
-bool eqB(var a, var b) => eq(a, b) === true;
-
 eqq(var a, var b) {
   return JS('bool', @'# === #', a, b);
 }
@@ -114,7 +112,7 @@ eqq(var a, var b) {
 eqNull(var a) {
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
-      return UNINTERCEPTED(a == null);
+      return UNINTERCEPTED(a == null) === true;
     } else {
       return false;
     }
@@ -123,16 +121,12 @@ eqNull(var a) {
   }
 }
 
-bool eqNullB(var a) => eqNull(a) === true;
-
 gt(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# > #', a, b);
   }
   return UNINTERCEPTED(a > b);
 }
-
-bool gtB(var a, var b) => gt(a, b) === true;
 
 ge(var a, var b) {
   if (checkNumbers(a, b)) {
@@ -141,8 +135,6 @@ ge(var a, var b) {
   return UNINTERCEPTED(a >= b);
 }
 
-bool geB(var a, var b) => ge(a, b) === true;
-
 lt(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# < #', a, b);
@@ -150,16 +142,12 @@ lt(var a, var b) {
   return UNINTERCEPTED(a < b);
 }
 
-bool ltB(var a, var b) => lt(a, b) === true;
-
 le(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# <= #', a, b);
   }
   return UNINTERCEPTED(a <= b);
 }
-
-bool leB(var a, var b) => le(a, b) === true;
 
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
