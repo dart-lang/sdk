@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('ElementTest');
+#import('../../../../lib/unittest/unittest.dart');
+#import('../../../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 expectLargeRect(ClientRect rect) {
   Expect.equals(rect.top, 0);
@@ -41,7 +45,9 @@ void testConstructorHelper(String tag, String htmlSnippet,
   Expect.equals(elementFromSnippet.text, expectedText);
 }
 
-void testElement() { 
+main() {
+  useHtmlConfiguration();
+
   Element makeElement() => new Element.tag('div');
 
   Element makeElementWithChildren() =>

@@ -15,7 +15,11 @@ dom/TypedArrays1Test: Fail # dart2js doesn't support is checks with generic type
 
 [ $compiler == dart2js && $runtime == drt ]
 # Unknown error - should investigate.
-html/html_test: Fail
+html/DocumentFragmentTest: Fail
+html/ElementTest: Fail
+html/MeasurementTest: Fail
+html/NodeTest: Fail
+html/SVGElementTest: Fail
 
 # DOM errors.
 dom/WindowOpenTest: Fail # TypeError: Object [object Window] has no method 'close$0'
