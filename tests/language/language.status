@@ -17,7 +17,6 @@
 
 [ $compiler == none ]
 GCTest: Crash # Issue 1487
-FBoundedQuantificationTest: Fail # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
 FieldOverrideTest/02: Fail    # Issue 742: field shadowing now allowed
@@ -45,14 +44,6 @@ TypeVariableScopeTest/05: Fail # Issue 2395
 
 ConstInit6NegativeTest: Fail       # Issue 811
 SuperFirstConstructorTest: Fail # Issue 1372.
-
-# Issue 1427
-CyclicTypeVariableTest: Fail
-CyclicTypeVariableTest/01: Fail
-CyclicTypeVariableTest/02: Fail
-CyclicTypeVariableTest/03: Fail
-CyclicTypeVariableTest/04: Fail
-CyclicTypeVariableTest/05: Fail
 
 # Issue 1034
 ConstructorDuplicateInitializersTest/01: Fail

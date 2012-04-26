@@ -518,11 +518,29 @@ void ClassFinalizer::FinalizeTypeArguments(
   }
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type ^= FinalizeType(cls, super_type, finalization);
-    cls.set_super_type(super_type);
     const Class& super_class = Class::Handle(super_type.type_class());
-    const AbstractTypeArguments& super_type_args =
-        AbstractTypeArguments::Handle(super_type.arguments());
+    AbstractTypeArguments& super_type_args = AbstractTypeArguments::Handle();
+    if (super_type.IsBeingFinalized()) {
+      // This type references itself via its type arguments. This is legal, but
+      // we must avoid endless recursion. We therefore map the innermost
+      // super type to Dynamic.
+      // Note that a direct self-reference via the super class chain is illegal
+      // and reported as an error earlier.
+      // Such legal self-references occur with F-bounded quantification.
+      // Example 1: class Derived extends Base<Derived>.
+      // The type 'Derived' forms a cycle by pointing to itself via its
+      // flattened type argument vector: Derived[Base[Derived[Base[...]]]]
+      // We break the cycle as follows: Derived[Base[Derived[Dynamic]]]
+      // Example 2: class Derived extends Base<Middle<Derived>> results in
+      // Derived[Base[Middle[Derived[Dynamic]]]]
+      // Example 3: class Derived<T> extends Base<Derived<T>> results in
+      // Derived[Base[Derived[Dynamic]], T].
+      ASSERT(super_type_args.IsNull());  // Same as a vector of Dynamic.
+    } else {
+      super_type ^= FinalizeType(cls, super_type, finalization);
+      cls.set_super_type(super_type);
+      super_type_args = super_type.arguments();
+    }
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t offset = super_class.NumTypeArguments();
     const intptr_t super_offset = offset - num_super_type_params;
@@ -592,19 +610,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Mark type as being finalized in order to detect illegal self reference.
   parameterized_type.set_is_being_finalized();
 
-  // Finalize the current type arguments of the type, which are still the
-  // parsed type arguments.
-  AbstractTypeArguments& arguments =
-      AbstractTypeArguments::Handle(parameterized_type.arguments());
-  if (!arguments.IsNull()) {
-    intptr_t num_arguments = arguments.Length();
-    for (intptr_t i = 0; i < num_arguments; i++) {
-      AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
-      type_argument = FinalizeType(cls, type_argument, finalization);
-      arguments.SetTypeAt(i, type_argument);
-    }
-  }
-
   // The type class does not need to be finalized in order to finalize the type,
   // however, it must at least be resolved (this was done as part of resolving
   // the type itself, a precondition to calling FinalizeType).
@@ -616,6 +621,19 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
       GrowableObjectArray::Handle(GrowableObjectArray::New());
     ResolveInterfaces(type_class, visited);
     FinalizeTypeParameters(type_class);
+  }
+
+  // Finalize the current type arguments of the type, which are still the
+  // parsed type arguments.
+  AbstractTypeArguments& arguments =
+      AbstractTypeArguments::Handle(parameterized_type.arguments());
+  if (!arguments.IsNull()) {
+    intptr_t num_arguments = arguments.Length();
+    for (intptr_t i = 0; i < num_arguments; i++) {
+      AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
+      type_argument = FinalizeType(cls, type_argument, finalization);
+      arguments.SetTypeAt(i, type_argument);
+    }
   }
 
   // If the type class is a signature class, we are finalizing its signature
