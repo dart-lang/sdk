@@ -24,6 +24,7 @@ io/TestExtensionTest: Fail  # shared library in wrong place (issue 1817)
 io/SocketManyConnectionsTest: Skip
 io/TestExtensionTest: Skip  # Extensions not implemented on MacOS
 io/HttpServerHandlerTest: Skip # Issue 2637
+io/WebSocketProtocolProcessorTest: Skip # Issue 2755
 
 [ $runtime == vm && $system == windows]
 io/TestExtensionTest: Skip  # Extensions not implemented on Windows
