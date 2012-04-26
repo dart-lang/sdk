@@ -564,6 +564,9 @@ class RunningProcess {
           !testCase.configuration['noBatch']) {
         // Note: processQueue will always be non-null for runtime == ie, ff,
         // safari, chrome, opera. (It is only null for runtime == vm)
+        // This RunningProcess object is done, and hands over control to
+        // BatchRunner.startTest(), which handles reporting, etc.
+        timeoutTimer.cancel();
         processQueue._getBatchRunner(testCase).startTest(testCase);
       } else {
         runCommand(testCase.commands[currentStep++], stepExitHandler);
