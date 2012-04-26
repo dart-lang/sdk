@@ -579,7 +579,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             wrapLoopBodyForContinue(info);
             visitSubGraph(info.updates);
           } else {
-            visitBodyIgnoreLabels(info.body);
+            visitBodyIgnoreLabels();
           }
           indent--;
         }
