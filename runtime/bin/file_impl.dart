@@ -100,9 +100,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
       _setupFileHandlers();
       _processPendingOperations();
     });
-    f.onError = (e) {
-      if (_onError != null) _onError(e);
-    };
+    f.onError = (e) => _reportError(e);
   }
 
   _FileOutputStream.fromStdio(int fd) {
@@ -113,9 +111,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
 
   void _setupFileHandlers() {
-    _file.onError = (e) {
-      if (_onError != null) _onError(e);
-    };
+    _file.onError = (e) => _reportError(e);
     _file.onNoPendingWrites = () {
       if (!_streamMarkedClosed && _onNoPendingWrites != null) {
         _onNoPendingWrites();
@@ -169,10 +165,6 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     _onClosed = callback;
   }
 
-  void set onError(void callback(Exception e)) {
-    _onError = callback;
-  }
-
   void _processPendingOperations() {
     _pendingOperations.forEach((buffer) {
       (buffer != null) ? write(buffer) : close();
@@ -200,7 +192,6 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
   Function _onNoPendingWrites;
   Function _onClosed;
-  Function _onError;
 }
 
 
@@ -383,33 +374,39 @@ class _FileUtils {
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {
+  void _reportError(e) {
+    if (_onError != null) {
+      _onError(e);
+    } else {
+      throw e;
+    }
+  }
+
   bool _isErrorResponse(response) {
     return response is List && response[0] != _FileUtils.kSuccessResponse;
   }
 
-  bool _reportError(response, String message) {
+  void _handleErrorResponse(response, String message) {
     assert(_isErrorResponse(response));
-    if (_onError != null) {
-      switch (response[_FileUtils.kErrorResponseErrorType]) {
-        case _FileUtils.kIllegalArgumentResponse:
-          _onError(new IllegalArgumentException());
-          break;
-        case _FileUtils.kOSErrorResponse:
-          var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
-                                response[_FileUtils.kOSErrorResponseErrorCode]);
-          _onError(new FileIOException(message, err));
-          break;
-        case _FileUtils.kFileClosedResponse:
-          _onError(new FileIOException("File closed"));
-          break;
-        default:
-          _onError(new Exception("Unknown error"));
-          break;
-      }
+    switch (response[_FileUtils.kErrorResponseErrorType]) {
+      case _FileUtils.kIllegalArgumentResponse:
+        _reportError(new IllegalArgumentException());
+        break;
+      case _FileUtils.kOSErrorResponse:
+        var err = new OSError(response[_FileUtils.kOSErrorResponseMessage],
+                              response[_FileUtils.kOSErrorResponseErrorCode]);
+        _reportError(new FileIOException(message, err));
+        break;
+      case _FileUtils.kFileClosedResponse:
+        _reportError(new FileIOException("File closed"));
+        break;
+      default:
+        _reportError(new Exception("Unknown error"));
+        break;
     }
   }
 
-  void set onError(void handler(Exception e)) {
+  void set onError(void handler(e)) {
     _onError = handler;
   }
 
@@ -428,7 +425,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot open file");
+        _handleErrorResponse(response, "Cannot open file");
       } else {
         callback(response);
       }
@@ -446,7 +443,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot create file");
+        _handleErrorResponse(response, "Cannot create file");
       } else {
         callback();
       }
@@ -467,7 +464,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot delete file");
+        _handleErrorResponse(response, "Cannot delete file");
       } else {
         callback();
       }
@@ -485,7 +482,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot retrieve directory for file");
+        _handleErrorResponse(response, "Cannot retrieve directory for file");
       } else {
         callback(new Directory(response));
       }
@@ -502,10 +499,8 @@ class _File extends _FileBase implements File {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      if (_onError != null) {
-        _onError(new IllegalArgumentException());
-        return;
-      }
+      _reportError(new IllegalArgumentException());
+      return;
     }
     List request = new List(3);
     request[0] = _FileUtils.kOpenRequest;
@@ -513,7 +508,7 @@ class _File extends _FileBase implements File {
     request[2] = mode._mode;  // Direct int value for serialization.
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot open file");
+        _handleErrorResponse(response, "Cannot open file");
       } else {
         callback(new _RandomAccessFile(response, _name));
       }
@@ -527,7 +522,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot retrieve length of file");
+        _handleErrorResponse(response, "Cannot retrieve length of file");
       } else {
         callback(response);
       }
@@ -569,7 +564,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "Cannot retrieve full path");
+        _handleErrorResponse(response, "Cannot retrieve full path");
       } else {
         callback(response);
       }
@@ -604,11 +599,7 @@ class _File extends _FileBase implements File {
       var chunk = stream.read();
       chunks.add(chunk);
     };
-    stream.onError = (e) {
-      if (_onError != null) {
-        _onError(e);
-      }
-    };
+    stream.onError = (e) => _reportError(e);
   }
 
   List<int> readAsBytesSync() {
@@ -630,10 +621,8 @@ class _File extends _FileBase implements File {
       try {
         decoder.write(bytes);
       } catch (var e) {
-        if (_onError != null) {
-          _onError(e);
-          return;
-        }
+        _reportError(e);
+        return;
       }
       callback(decoder.decoded);
     });
@@ -669,10 +658,8 @@ class _File extends _FileBase implements File {
       try {
         decoder.write(bytes);
       } catch (var e) {
-        if (_onError != null) {
-          _onError(e);
-          return;
-        }
+        _reportError(e);
+        return;
       }
       callback(_getDecodedLines(decoder));
     });
@@ -704,9 +691,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
 
   void close(void callback()) {
     if (_id == 0) {
-      if (_onError != null) {
-        _onError(new FileIOException("Cannot close file: $_name"));
-      }
+      _reportError(new FileIOException("Cannot close file: $_name"));
       return;
     }
     _ensureFileService();
@@ -720,8 +705,8 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       if (result != -1) {
         _id = result;
         callback();
-      } else if (_onError != null) {
-        _onError(new FileIOException("Cannot close file: $_name"));
+      } else {
+        _reportError(new FileIOException("Cannot close file: $_name"));
       }
     });
   }
@@ -741,7 +726,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "readByte failed");
+        _handleErrorResponse(response, "readByte failed");
       } else {
         callback(response);
       }
@@ -761,9 +746,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
                 void callback(int read)) {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
-      if (_onError != null) {
-        _onError(new FileIOException("Invalid arguments to readList"));
-      }
+      _reportError(new FileIOException("Invalid arguments to readList"));
       return;
     };
     List request = new List(3);
@@ -772,7 +755,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = bytes;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "readList failed");
+        _handleErrorResponse(response, "readList failed");
       } else {
         var read = response[1];
         var data = response[2];
@@ -803,9 +786,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   void writeByte(int value) {
     _ensureFileService();
     if (value is !int) {
-      if (_onError != null) {
-        _onError(new FileIOException("Invalid argument to writeByte"));
-      }
+      _reportError(new FileIOException("Invalid argument to writeByte"));
       return;
     }
     List request = new List(3);
@@ -816,7 +797,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _reportError(response, "writeByte failed");
+        _handleErrorResponse(response, "writeByte failed");
       }
     });
   }
@@ -836,9 +817,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   void writeList(List<int> buffer, int offset, int bytes) {
     _ensureFileService();
     if (buffer is !List || offset is !int || bytes is !int) {
-      if (_onError != null) {
-        _onError(new FileIOException("Invalid arguments to writeList"));
-      }
+      _reportError(new FileIOException("Invalid arguments to writeList"));
       return;
     }
 
@@ -857,7 +836,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _reportError(response, "writeList failed");
+        _handleErrorResponse(response, "writeList failed");
       }
     });
   }
@@ -890,7 +869,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     _fileService.call(request).then((response) {
       _writeCompleted();
       if (_isErrorResponse(response)) {
-        _reportError(response, "writeString failed");
+        _handleErrorResponse(response, "writeString failed");
       }
     });
   }
@@ -911,7 +890,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "position failed");
+        _handleErrorResponse(response, "position failed");
       } else {
         callback(response);
       }
@@ -935,7 +914,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = position;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "setPosition failed");
+        _handleErrorResponse(response, "setPosition failed");
       } else {
         callback();
       }
@@ -958,7 +937,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[2] = length;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "truncate failed");
+        _handleErrorResponse(response, "truncate failed");
       } else {
         callback();
       }
@@ -980,7 +959,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "length failed");
+        _handleErrorResponse(response, "length failed");
       } else {
         callback(response);
       }
@@ -1003,7 +982,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     request[1] = _id;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _reportError(response, "flush failed");
+        _handleErrorResponse(response, "flush failed");
       } else {
         callback();
       }

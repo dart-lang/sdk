@@ -18,7 +18,7 @@ interface ServerSocket default _ServerSocket {
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 
   /**
    * Returns the port used by this socket.
@@ -89,7 +89,7 @@ interface Socket extends Hashable default _Socket {
   /**
    * The error handler gets called when a socket error occurs.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 
   /**
    * Returns input stream to the socket.

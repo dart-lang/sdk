@@ -369,7 +369,7 @@ class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
     buffer.setRange(offset, data.length, data);
   }
 
-  void _streamSetErrorHandler(callback(Exception e)) {
+  void _streamSetErrorHandler(callback(e)) {
     _streamErrorHandler = callback;
   }
 
@@ -457,7 +457,7 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
     // TODO(sgjesse): Handle this.
   }
 
-  void _streamSetErrorHandler(callback(Exception e)) {
+  void _streamSetErrorHandler(callback(e)) {
     _streamErrorHandler = callback;
   }
 
@@ -583,7 +583,7 @@ class _HttpInputStream extends _BaseDataInputStream implements InputStream {
     return result;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _requestOrResponse._streamSetErrorHandler(callback);
   }
 
@@ -632,7 +632,7 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
     _requestOrResponse._streamSetCloseHandler(callback);
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _requestOrResponse._streamSetErrorHandler(callback);
   }
 
@@ -650,6 +650,9 @@ class _HttpConnectionBase implements Hashable {
     _socket.onData = _onData;
     _socket.onClosed = _onClosed;
     _socket.onError = _onError;
+    // Ignore errors in the socket output stream as this is getting
+    // the same errors as the socket itself.
+    _socket.outputStream.onError = (e) => null;
   }
 
   bool _write(List<int> data, [bool copyBuffer = false]) {
@@ -691,7 +694,7 @@ class _HttpConnectionBase implements Hashable {
     _onConnectionClosed(null);
   }
 
-  void _onError(Exception e) {
+  void _onError(e) {
     // If an error occurs, make sure to close the socket if one is associated.
     _error = true;
     if (_socket != null) {
@@ -700,7 +703,7 @@ class _HttpConnectionBase implements Hashable {
     _onConnectionClosed(e);
   }
 
-  abstract void _onConnectionClosed(Exception e);
+  abstract void _onConnectionClosed(e);
   abstract void _responseDone();
 
   void set _onNoPendingWrites(void callback()) {
@@ -737,8 +740,11 @@ class _HttpConnection extends _HttpConnectionBase {
     _httpParser.error = (e) => _onError(e);
   }
 
-  void _onConnectionClosed(Exception e) {
-    if (e != null && onError != null) {
+  void _onConnectionClosed(e) {
+    // Don't report errors when HTTP parser is in idle state. Clients
+    // can close the connection and cause a connection reset by peer
+    // error which is OK.
+    if (e != null && onError != null && !_httpParser.isIdle) {
       onError(e);
       // Propagate the error to the streams.
       if (_request != null && _request._streamErrorHandler != null) {
@@ -848,7 +854,11 @@ class _HttpServer implements HttpServer {
       connection.onClosed = () => _connections.remove(connection);
       connection.onError = (e) {
         _connections.remove(connection);
-        if (_onError != null) _onError(e);
+        if (_onError != null) {
+          _onError(e);
+        } else {
+          throw(e);
+        }
       };
       connection._connectionEstablished(socket);
       _connections.add(connection);
@@ -886,7 +896,7 @@ class _HttpServer implements HttpServer {
     return _server.port;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _onError = callback;
   }
 
@@ -899,6 +909,8 @@ class _HttpServer implements HttpServer {
         } catch (var e) {
           if (_onError != null) {
             _onError(e);
+          } else {
+            throw e;
           }
         }
         return;
@@ -982,7 +994,7 @@ class _HttpClientRequest
     // TODO(sgjesse): Handle this.
   }
 
-  void _streamSetErrorHandler(callback(Exception e)) {
+  void _streamSetErrorHandler(callback(e)) {
     _streamErrorHandler = callback;
   }
 
@@ -1083,7 +1095,7 @@ class _HttpClientResponse
     return data.length;
   }
 
-  void _streamSetErrorHandler(callback(Exception e)) {
+  void _streamSetErrorHandler(callback(e)) {
     _streamErrorHandler = callback;
   }
 
@@ -1139,7 +1151,7 @@ class _HttpClientConnection
     return _request;
   }
 
-  void _onConnectionClosed(Exception e) {
+  void _onConnectionClosed(e) {
     // Socket is closed either due to an error or due to normal socket close.
     if (e != null) {
       if (_onErrorCallback != null) {
@@ -1194,7 +1206,7 @@ class _HttpClientConnection
     _onResponse = handler;
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _onErrorCallback = callback;
   }
 
@@ -1330,7 +1342,7 @@ class _HttpClient implements HttpClient {
       // Until the connection is established handle connection errors
       // here as the HttpClientConnection object is not yet associated
       // with the socket.
-      socket.onError = (Exception e) {
+      socket.onError = (e) {
         // Report the error through the HttpClientConnection object to
         // the client.
         connection._onError(e);

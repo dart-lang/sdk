@@ -53,7 +53,7 @@ class _BaseDataInputStream {
     _checkScheduleCallbacks();
   }
 
-  void set onError(void callback(Exception e)) {
+  void set onError(void callback(e)) {
     _clientErrorHandler = callback;
   }
 
@@ -186,4 +186,18 @@ class _BaseOutputStream {
     }
     return true;
   }
+
+  void set onError(void callback(e)) {
+    _onError = callback;
+  }
+
+  void _reportError(e) {
+    if (_onError != null) {
+      _onError(e);
+    } else {
+      throw e;
+    }
+  }
+
+  Function _onError;
 }

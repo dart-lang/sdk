@@ -166,10 +166,8 @@ class _InteractiveProcess implements Process {
                           status);
     if (!success) {
       close();
-      if (_onError !== null) {
-        _onError(new ProcessException(status._errorMessage, status._errorCode));
-        return;
-      }
+      _reportError(new ProcessException(status._errorMessage, status._errorCode));
+      return;
     }
     _started = true;
 
@@ -242,9 +240,7 @@ class _InteractiveProcess implements Process {
 
   void kill() {
     if (_closed && _pid === null) {
-      if (_onError !== null) {
-        _onError(new ProcessException("Process closed"));
-      }
+      _reportError(new ProcessException("Process closed"));
       return;
     }
     if (_killed) {
@@ -255,10 +251,8 @@ class _InteractiveProcess implements Process {
       _killed = true;
       return;
     }
-    if (_onError !== null) {
-      _onError(new ProcessException("Could not kill process"));
-      return;
-    }
+    _reportError(new ProcessException("Could not kill process"));
+    return;
   }
 
   void _kill(int pid) native "Process_Kill";
@@ -284,12 +278,20 @@ class _InteractiveProcess implements Process {
     _onExit = callback;
   }
 
-  void set onError(void callback(ProcessException exception)) {
+  void set onError(void callback(e)) {
     _onError = callback;
   }
 
   void set onStart(void callback()) {
     _onStart = callback;
+  }
+
+  void _reportError(e) {
+    if (_onError != null) {
+      _onError(e);
+    } else {
+      throw e;
+    }
   }
 
   String _path;
@@ -409,7 +411,7 @@ class _NonInteractiveProcess implements Process {
         'be supplied in the callback on completion.');
   }
 
-  void set onError(void callback(ProcessException error)) {
+  void set onError(void callback(e)) {
     _process.onError = callback;
   }
 

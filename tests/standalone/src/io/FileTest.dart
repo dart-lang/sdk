@@ -846,6 +846,7 @@ class FileTest {
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
     f.open(FileMode.READ, (r) => Expect.fail('Directory opened as file'));
+    f.onError = (e) => null;
   }
 
   static void testOpenDirectoryAsFileSync() {

@@ -15,6 +15,10 @@ class ExpectedDataOutputStream implements OutputStream {
     _onNoPendingWrites = callback;
   }
 
+  void set onError(void callback(e)) {
+    _onError = callback;
+  }
+
   bool write(List data, [bool copyBuffer = true]) {
     _onData(data);
     return true;
@@ -45,6 +49,7 @@ class ExpectedDataOutputStream implements OutputStream {
   }
 
   Function _onNoPendingWrites;
+  Function _onError;
   List<int> _data;
   int _written = 0;
   int _cutoff;
@@ -97,7 +102,7 @@ class SocketMock implements Socket {
     _onClosed = callback;
   }
 
-  void set onError(void callback(Exception error)) {
+  void set onError(void callback(e)) {
     _onError = callback;
   }
 
@@ -147,7 +152,7 @@ class ServerSocketMock implements ServerSocket {
     _onConnection = callback;
   }
 
-  void set onError(void callback(Exception)) {
+  void set onError(void callback(e)) {
     _onError = callback;
   }
 

@@ -87,7 +87,7 @@ interface Process default _Process {
    * Set an error handler which gets invoked if an operation on the process
    * fails.
    */
-  void set onError(void callback(ProcessException error));
+  void set onError(void callback(e));
 
   /**
    * Kills the process. When the process terminates as a result of

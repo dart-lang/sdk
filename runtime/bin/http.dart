@@ -110,7 +110,7 @@ interface HttpServer default _HttpServer {
   /**
    * Sets the error handler that is called when a connection error occurs.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 }
 
 
@@ -470,7 +470,7 @@ interface HttpClientConnection {
    * Sets the handler that gets called if an error occurs while
    * connecting or processing the HTTP request.
    */
-  void set onError(void callback(Exception e));
+  void set onError(void callback(e));
 }
 
 
