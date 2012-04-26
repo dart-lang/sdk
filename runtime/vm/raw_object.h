@@ -928,6 +928,8 @@ class RawBigint : public RawInteger {
   // A sequence of Chunks (typedef in Bignum) representing bignum digits.
   // Bignum::Chunk chunks_[Utils::Abs(signed_length_)];
   uint8_t data_[0];
+
+  friend class SnapshotReader;
 };
 
 
