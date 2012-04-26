@@ -127,6 +127,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Equivalence<HPhi> phiEquivalence;
 
   Element equalsNullElement;
+  Element boolifiedEqualsNullElement;
   int indent = 0;
   int expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
   HGraph currentGraph;
@@ -176,8 +177,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Create a namespace for temporaries.
     prefixes[TEMPORARY_PREFIX] = 0;
 
-    equalsNullElement =
-        compiler.builder.interceptors.getEqualsNullInterceptor();
+    Interceptors interceptors = compiler.builder.interceptors;
+    equalsNullElement = interceptors.getEqualsNullInterceptor();
+    boolifiedEqualsNullElement =
+        interceptors.getBoolifiedVersionOf(equalsNullElement);
   }
 
   abstract visitTypeGuard(HTypeGuard node);
@@ -857,7 +860,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add(' === ');
       use(node.right, JSPrecedence.RELATIONAL_PRECEDENCE);
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    } else if (node.element === equalsNullElement) {
+    } else if (node.element === equalsNullElement ||
+               node.element === boolifiedEqualsNullElement) {
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
       use(node.target, JSPrecedence.CALL_PRECEDENCE);
       buffer.add('(');

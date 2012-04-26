@@ -590,6 +590,22 @@ class HBasicBlock extends HInstructionList implements Hashable {
     }
   }
 
+  static void removeUser(HInstruction instruction, HInstruction user) {
+    List<HInstruction> users = instruction.usedBy;
+    int length = users.length;
+    if (length == 1) {
+      users.clear();
+    } else {
+      for (int i = 0; i < length; i++) {
+        if (users[i] === user) {
+          users[i] = users[length - 1];
+          users.length = length - 1;
+          return;
+        }
+      }
+    }
+  }
+
   bool isExitBlock() {
     return first === last && first is HExit;
   }
@@ -1824,6 +1840,7 @@ class HPhi extends HInstruction {
 }
 
 class HRelational extends HInvokeBinary {
+  bool usesBoolifiedInterceptor = false;
   HRelational(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
@@ -1840,7 +1857,12 @@ class HRelational extends HInvokeBinary {
   }
 
   HType computeTypeFromInputTypes() {
-    if (left.isNumber()) return HType.BOOLEAN;
+    if (left.isNumber() || usesBoolifiedInterceptor) return HType.BOOLEAN;
+    return HType.UNKNOWN;
+  }
+
+  HType get guaranteedType() {
+    if (usesBoolifiedInterceptor) return HType.BOOLEAN;
     return HType.UNKNOWN;
   }
 
@@ -1876,7 +1898,7 @@ class HEquals extends HRelational {
   }
 
   HType computeTypeFromInputTypes() {
-    if (builtin) return HType.BOOLEAN;
+    if (builtin || usesBoolifiedInterceptor) return HType.BOOLEAN;
     return HType.UNKNOWN;
   }
 
