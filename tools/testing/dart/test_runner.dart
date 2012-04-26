@@ -189,7 +189,7 @@ interface TestOutput default TestOutputImpl {
   bool get hasTimedOut();
 
   bool get didFail();
-  
+
   bool requestRetry;
 
   Duration get time();
@@ -600,6 +600,11 @@ class RunningProcess {
     }
     process = new Process.start(command.executable, command.arguments);
     process.onExit = exitHandler;
+    process.onError = (e) {
+      print("Error starting process:");
+      print("  Command: $command");
+      print("  Error: $e");
+    };
     startTime = new Date.now();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
@@ -807,6 +812,11 @@ class BatchRunnerProcess {
     _stdoutStream.onLine = _readStdout(_stdoutStream, _testStdout);
     _stderrStream.onLine = _readStderr(_stderrStream, _testStderr);
     _process.onExit = _exitHandler;
+    _process.onError = (e) {
+      print("Error starting process:");
+      print("  Command: $_executable ${Strings.join(_batchArguments, ' ')}");
+      print("  Error: $e");
+    };
     _process.onStart = then;
   }
 }
@@ -986,6 +996,11 @@ class ProcessQueue {
       Process p = new Process.start(cmd, arg);
       final StringInputStream stdoutStringStream =
           new StringInputStream(p.stdout);
+      p.onError = (e) {
+        print("Error starting process:");
+        print("  Command: $cmd ${Strings.join(arg, ' ')}");
+        print("  Error: $e");
+      };
       stdoutStringStream.onLine = () {
         var line = stdoutStringStream.readLine();
         while (null != line) {
@@ -1047,6 +1062,11 @@ class ProcessQueue {
       if (const RegExp(@"selenium-server-standalone-.*\.jar").hasMatch(file)
           && _seleniumServer == null) {
         _seleniumServer = new Process.start('java', ['-jar', file]);
+        _seleniumServer.onError = (e) {
+          print("Error starting process:");
+          print("  Command: java -jar $file");
+          print("  Error: $e");
+        };
         // Heads up: there seems to an obscure data race of some form in
         // the VM between launching the server process and launching the test
         // tasks that disappears when you read IO (which is convenient, since
