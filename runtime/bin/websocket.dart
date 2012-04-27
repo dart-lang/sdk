@@ -6,16 +6,16 @@
  * The web socket protocol is implemented by a HTTP server handler
  * which can be instantiated like this:
  *
- * WebSocketHandler wsHandler = new WebSocketHandler();
+ *     WebSocketHandler wsHandler = new WebSocketHandler();
  *
  * and then its onRequest method can be assigned to the HTTP server, e.g.
  *
- * server.defaultHandler = wsHandler.onRequest;
+ *     server.defaultHandler = wsHandler.onRequest;
  *
  * or
  *
- * server.addRequestHandler((req) => reg.path == "/ws", wsHandler.onRequest);
- *
+ *     server.addRequestHandler((req) => req.path == "/ws",
+ *                              wsHandler.onRequest);
  */
 interface WebSocketHandler default _WebSocketHandler {
   WebSocketHandler();
