@@ -9,7 +9,6 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-documentfragment_test: Fail
 
 [ $compiler == frog && $runtime == drt ]
 html_test: Skip   # Issue 2657

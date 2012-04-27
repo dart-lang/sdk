@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ ($compiler == none || $compiler == dart2js) && $runtime == drt ]
+json_test: Fail # TODO(sigmund,vsm): investigate
+
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
 
