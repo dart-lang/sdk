@@ -8,6 +8,9 @@
 [ $runtime == drt ]
 *: Skip # Pub only runs on the standalone VM, not Dartium.
 
+[ $runtime == vm ]
+pub_test: Fail # issue 2740
+
 [ $system == windows ]
 *: Skip # Right now, Pub update creates symlinks which aren't supported on
         # Windows.
