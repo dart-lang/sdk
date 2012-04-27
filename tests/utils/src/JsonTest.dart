@@ -8,6 +8,56 @@
 
 main() {
   testEscaping();
+  testParse();
+  testParseInvalid();
+}
+
+void testParse() {
+  // Scalars.
+  Expect.equals(5, JSON.parse(' 5 '));
+  Expect.equals(-42, JSON.parse(' -42 '));
+  Expect.equals(3, JSON.parse(' 3e0 '));
+  Expect.equals(3.14, JSON.parse(' 3.14 '));
+  Expect.equals(true, JSON.parse(' true '));
+  Expect.equals(false, JSON.parse(' false'));
+  Expect.equals(null, JSON.parse(' null '));
+  Expect.equals(null, JSON.parse('\n\rnull\t'));
+  Expect.equals('hi there" bob', JSON.parse(' "hi there\\" bob" '));
+  Expect.equals('', JSON.parse(' "" '));
+
+  // Lists.
+  Expect.listEquals([], JSON.parse(' [] '));
+  Expect.listEquals(["entry"], JSON.parse(' ["entry"] '));
+  Expect.listEquals([true, false], JSON.parse(' [true, false] '));
+  Expect.listEquals([1, 2, 3], JSON.parse(' [ 1 , 2 , 3 ] '));
+
+  // Maps.
+  Expect.mapEquals({}, JSON.parse(' {} '));
+  Expect.mapEquals({"key": "value"}, JSON.parse(' {"key": "value" } '));
+  Expect.mapEquals({"key1": 1, "key2": 2},
+                   JSON.parse(' {"key1": 1, "key2": 2} '));
+  Expect.mapEquals({"key1": 1},
+                   JSON.parse(' { "key1" : 1 } '));
+}
+
+void testParseInvalid() {
+  void testString(String s) {
+    Expect.throws(() => JSON.parse(s), (e) => e is JSONParseException);
+  }
+  testString("");
+  testString("3.a");
+  testString("{ key: value }");
+  testString("tru");
+
+  // Lists
+  testString('[, ]');
+  testString('["", ]');
+  testString('["", "]');
+  testString('["" ""]');
+
+  // Maps
+  testString('{"" ""}');
+  testString('{"": "",}');
 }
 
 void testEscaping() {

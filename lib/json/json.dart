@@ -14,7 +14,7 @@ class JSON {
    * Parses [:json:] and build the corresponding object.
    */
   static parse(String json) {
-    return JsonParser.parse(json);
+    return _JsonParser.parse(json);
   }
 
   /**
@@ -27,392 +27,161 @@ class JSON {
 
 //// Implementation ///////////////////////////////////////////////////////////
 
-/**
- * Union-like class for JSON tokens.
- */
-class JsonToken {
-  static final int STRING = 0;
-  static final int NUMBER = 1;
-  static final int NULL = 2;
-  static final int FALSE = 3;
-  static final int TRUE = 4;
-  static final int RBRACKET = 5;
-  static final int LBRACKET = 6;
-  static final int RBRACE = 7;
-  static final int LBRACE = 8;
-  static final int COLON = 9;
-  static final int COMMA = 10;
+class JSONParseException {
+  JSONParseException(int position, String message) :
+      position = position,
+      message = 'JSONParseException: $message, at offset $position';
 
-  final int kind;
-  final String _s;
-  final num _n;
+  String toString() => message;
 
-  String get str() {
-    assert(kind == STRING);
-    return _s;
-  }
-
-  num get number() {
-    assert(kind == NUMBER);
-    return _n;
-  }
-
-  const JsonToken._internal(this.kind, this._s, this._n);
-
-  factory JsonToken.string(String s) {
-    return new JsonToken._internal(STRING, s, 0);
-  }
-  factory JsonToken.number(num n) {
-    return new JsonToken._internal(NUMBER, '', n);
-  }
-  factory JsonToken.atom(int kind) {
-    return new JsonToken._internal(kind, '', 0);
-  }
-
-  String toString() {
-    switch (kind) {
-      case STRING:
-        return 'STRING(${str})';
-
-      case NUMBER:
-        return 'NUMBER(${number})';
-
-      case NULL:
-        return 'ATOM(null)';
-
-      case FALSE:
-        return 'ATOM(false)';
-
-      case TRUE:
-        return 'ATOM(true)';
-
-      case RBRACKET:
-        return 'ATOM(])';
-
-      case LBRACKET:
-        return 'ATOM([)';
-
-      case RBRACE:
-        return 'ATOM(})';
-
-      case LBRACE:
-        return 'ATOM({)';
-
-      case COLON:
-        return 'ATOM(:)';
-
-      case COMMA:
-        return 'ATOM(,)';
-    }
-  }
+  final String message;
+  final int position;
 }
 
-typedef bool Predicate(int c);
+class _JsonParser {
+  static final int BACKSPACE = 8;
+  static final int TAB = 9;
+  static final int NEW_LINE = 10;
+  static final int FORM_FEED = 12;
+  static final int CARRIAGE_RETURN = 13;
+  static final int SPACE = 32;
+  static final int QUOTE = 34;
+  static final int PLUS = 43;
+  static final int COMMA = 44;
+  static final int MINUS = 45;
+  static final int DOT = 46;
+  static final int SLASH = 47;
+  static final int CHAR_0 = 48;
+  static final int CHAR_1 = 49;
+  static final int CHAR_2 = 50;
+  static final int CHAR_3 = 51;
+  static final int CHAR_4 = 52;
+  static final int CHAR_5 = 53;
+  static final int CHAR_6 = 54;
+  static final int CHAR_7 = 55;
+  static final int CHAR_8 = 56;
+  static final int CHAR_9 = 57;
+  static final int COLON = 58;
+  static final int CHAR_CAPITAL_E = 69;
+  static final int LBRACKET = 91;
+  static final int BACKSLASH = 92;
+  static final int RBRACKET = 93;
+  static final int CHAR_B = 98;
+  static final int CHAR_E = 101;
+  static final int CHAR_F = 102;
+  static final int CHAR_N = 110;
+  static final int CHAR_R = 114;
+  static final int CHAR_T = 116;
+  static final int CHAR_U = 117;
+  static final int LBRACE = 123;
+  static final int RBRACE = 125;
 
-class JsonTokenizer {
-  static final int BACKSPACE = 8;  // '\b'.charCodeAt(0)
-  static final int TAB = 9;  // '\t'.charCodeAt(0)
-  static final int NEW_LINE = 10;  // '\n'.charCodeAt(0)
-  static final int FORM_FEED = 12;  // '\f'.charCodeAt(0)
-  static final int CARRIAGE_RETURN = 13;  // '\r'.charCodeAt(0)
-  static final int SPACE = 32;  // ' '.charCodeAt(0)
-  static final int QUOTE = 34;  // '"'.charCodeAt(0)
-  static final int PLUS = 43;  // '+'.charCodeAt(0)
-  static final int COMMA = 44;  // ','.charCodeAt(0)
-  static final int MINUS = 45;  // '-'.charCodeAt(0)
-  static final int DOT = 46;  // '.'.charCodeAt(0)
-  static final int SLASH = 47;  // '/'.charCodeAt(0)
-  static final int ZERO = 48;  // '0'.charCodeAt(0)
-  static final int NINE = 57;  // '9'.charCodeAt(0)
-  static final int COLON = 58;  // ':'.charCodeAt(0)
-  static final int A_BIG = 65;  // 'A'.charCodeAt(0)
-  static final int E_BIG = 69;  // 'E'.charCodeAt(0)
-  static final int Z_BIG = 90;  // 'Z'.charCodeAt(0)
-  static final int LBRACKET = 91;  // '['.charCodeAt(0)
-  static final int BACKSLASH = 92;  // '\\'.charCodeAt(0)
-  static final int RBRACKET = 93;  // ']'.charCodeAt(0)
-  static final int A_SMALL = 97;  // 'a'.charCodeAt(0)
-  static final int B_SMALL = 98;  // 'b'.charCodeAt(0)
-  static final int E_SMALL = 101;  // 'e'.charCodeAt(0)
-  static final int F_SMALL = 102;  // 'f'.charCodeAt(0)
-  static final int N_SMALL = 110;  // 'n'.charCodeAt(0)
-  static final int R_SMALL = 114;  // 'r'.charCodeAt(0)
-  static final int T_SMALL = 116;  // 't'.charCodeAt(0)
-  static final int U_SMALL = 117;  // 'u'.charCodeAt(0)
-  static final int Z_SMALL = 122;  // 'z'.charCodeAt(0)
-  static final int LBRACE = 123;  // '{'.charCodeAt(0)
-  static final int RBRACE = 125;  // '}'.charCodeAt(0)
+  static final int STRING_LITERAL = QUOTE;
+  static final int NUMBER_LITERAL = MINUS;
+  static final int NULL_LITERAL = CHAR_N;
+  static final int FALSE_LITERAL = CHAR_F;
+  static final int TRUE_LITERAL = CHAR_T;
 
-  JsonTokenizer(String s) : _s = '${s} ', _pos = 0, _len = s.length + 1;
+  static final int WHITESPACE = SPACE;
 
-  /**
-   * Fetches next token or [:null:] if the stream has been exhausted.
-   */
-  JsonToken next() {
-    while (_pos < _len && isWhitespace(_s.charCodeAt(_pos))) {
-      _pos++;
-    }
-    if (_pos == _len) {
-      return null;
-    }
+  static final int LAST_ASCII = RBRACE;
 
-    final int cur = _s.charCodeAt(_pos);
-    switch (true) {
-      case cur == QUOTE:
-        _pos++;
-        List<int> charCodes = new List<int>();
-        while (_pos < _len) {
-          int c = _s.charCodeAt(_pos);
-          if (c == QUOTE) {
-            break;
-          }
-          if (c == BACKSLASH) {
-            _pos++;
-            if (_pos == _len) {
-              throw '\\ at the end';
-            }
+  static final String NULL_STRING = "null";
+  static final String TRUE_STRING = "true";
+  static final String FALSE_STRING = "false";
 
-            switch (_s[_pos]) {
-              case '"':
-                c = QUOTE;
-                break;
-              case '\\':
-                c = BACKSLASH;
-                break;
-              case '/':
-                c = SLASH;
-                break;
-              case 'b':
-                c = BACKSPACE;
-                break;
-              case 'n':
-                c = NEW_LINE;
-                break;
-              case 'r':
-                c = CARRIAGE_RETURN;
-                break;
-              case 'f':
-                c = FORM_FEED;
-                break;
-              case 't':
-                c = TAB;
-                break;
-              case 'u':
-                if (_pos + 5 > _len) {
-                  throw 'Invalid unicode esacape sequence:'
-                      '\\${_s.substring(_pos, _len)}';
-                }
-                final codeString = _s.substring(_pos + 1, _pos + 5);
-                c = Math.parseInt('0x${codeString}');
-                if (c >= 128) {
-                  // TODO(jmessery): the VM doesn't support 2-byte strings yet
-                  // see runtime/lib/string.cc:49
-                  // So instead we replace these characters with '?'
-                  c = '?'.charCodeAt(0);
-                }
-                _pos += 4;
-                break;
-              default:
-                throw 'Invalid esacape sequence: \\${_s[_pos]}';
-            }
-          }
-          charCodes.add(c);
-          _pos++;
-        }
-        if (_pos == _len) {
-          throw 'Unmatched quote';
-        }
 
-        final String body = new String.fromCharCodes(charCodes);
-        _pos++;
-        return new JsonToken.string(body);
-
-      case cur == MINUS || isDigit(cur):
-        skipDigits() {
-          _scanWhile((int c) => isDigit(c), 'Invalid number');
-        }
-
-        int c = cur;
-        final int startPos = _pos;
-        int value = 0;
-        bool isNegative = false;
-        if (c == MINUS) {
-          isNegative = true;
-          _pos++;
-          c = _s.charCodeAt(_pos);
-        }
-        while (isDigit(c)) {
-          value = value * 10 + c - ZERO;
-          _pos++;
-          c = _s.charCodeAt(_pos);
-        }
-
-        if (c != DOT) {
-          if (c != E_SMALL && cur != E_BIG) {
-            if (isNegative) value = -value;
-            return new JsonToken.number(value);
-          }
-        } else {
-          _pos++;
-          skipDigits();
-          c = _s.charCodeAt(_pos);
-        }
-
-        if (c == E_SMALL || c == E_BIG) {
-          // TODO: consider keeping E+ as an integer.
-          _pos++;
-          c = _s.charCodeAt(_pos);
-          if (c == PLUS || c == MINUS) {
-            _pos++;
-          }
-          skipDigits();
-        }
-
-        final String body = _s.substring(startPos, _pos);
-        return new JsonToken.number(Math.parseDouble(body));
-        
-      case cur == LBRACE:
-        _pos++;
-        return new JsonToken.atom(JsonToken.LBRACE);
-
-      case cur == RBRACE:
-        _pos++;
-        return new JsonToken.atom(JsonToken.RBRACE);
-
-      case cur == LBRACKET:
-        _pos++;
-        return new JsonToken.atom(JsonToken.LBRACKET);
-
-      case cur == RBRACKET:
-        _pos++;
-        return new JsonToken.atom(JsonToken.RBRACKET);
-
-      case cur == COMMA:
-        _pos++;
-        return new JsonToken.atom(JsonToken.COMMA);
-
-      case cur == COLON:
-        _pos++;
-        return new JsonToken.atom(JsonToken.COLON);
-
-      case isLetter(cur):
-        final int startPos = _pos;
-        _pos++;
-        while (_pos < _len && isLetter(_s.charCodeAt(_pos))) {
-          _pos++;
-        }
-        final String body = _s.substring(startPos, _pos);
-        switch (body) {
-          case 'null':
-            return new JsonToken.atom(JsonToken.NULL);
-
-          case 'false':
-            return new JsonToken.atom(JsonToken.FALSE);
-
-          case 'true':
-            return new JsonToken.atom(JsonToken.TRUE);
-
-          default:
-            throw 'Unexpected sequence ${body}';
-        }
-        // TODO: Bogous, to please DartVM.
-        return null;
-
-      default:
-        throw 'Invalid token';
-    }
-  }
-
-  final String _s;
-  int _pos;
-  final int _len;
-
-  void _scanWhile(Predicate predicate, String errorMsg) {
-    while (_pos < _len && predicate(_s.charCodeAt(_pos))) {
-      _pos++;
-    }
-    if (_pos == _len) {
-      throw errorMsg;
-    }
-  }
-
-  // TODO other kind of whitespace.
-  static bool isWhitespace(int c) {
-    return c == SPACE || c == TAB || c == NEW_LINE || c == CARRIAGE_RETURN;
-  }
-  static bool isDigit(int c) {
-    return (ZERO <= c) && (c <= NINE);
-  }
-  static bool isLetter(int c) {
-     return ((A_SMALL <= c) && (c <= Z_SMALL)) || ((A_BIG <= c) && (c <= Z_BIG));
-  }
-}
-
-class JsonParser {
   static parse(String json) {
-    return new JsonParser._internal(json)._parseToplevel();
+    return new _JsonParser._internal(json)._parseToplevel();
   }
 
-  final JsonTokenizer _tokenizer;
+  _JsonParser._internal(String this.json) {
+    if (tokens !== null) return;
 
-  JsonParser._internal(String json) : _tokenizer = new JsonTokenizer(json) {}
+    // Use a list as jump-table, faster then switch and if.
+    tokens = new List<int>(LAST_ASCII + 1);
+    tokens[TAB] = WHITESPACE;
+    tokens[NEW_LINE] = WHITESPACE;
+    tokens[CARRIAGE_RETURN] = WHITESPACE;
+    tokens[SPACE] = WHITESPACE;
+    tokens[CHAR_0] = NUMBER_LITERAL;
+    tokens[CHAR_1] = NUMBER_LITERAL;
+    tokens[CHAR_2] = NUMBER_LITERAL;
+    tokens[CHAR_3] = NUMBER_LITERAL;
+    tokens[CHAR_4] = NUMBER_LITERAL;
+    tokens[CHAR_5] = NUMBER_LITERAL;
+    tokens[CHAR_6] = NUMBER_LITERAL;
+    tokens[CHAR_7] = NUMBER_LITERAL;
+    tokens[CHAR_8] = NUMBER_LITERAL;
+    tokens[CHAR_9] = NUMBER_LITERAL;
+    tokens[MINUS] = NUMBER_LITERAL;
+    tokens[LBRACE] = LBRACE;
+    tokens[RBRACE] = RBRACE;
+    tokens[LBRACKET] = LBRACKET;
+    tokens[RBRACKET] = RBRACKET;
+    tokens[QUOTE] = STRING_LITERAL;
+    tokens[COLON] = COLON;
+    tokens[COMMA] = COMMA;
+    tokens[CHAR_N] = NULL_LITERAL;
+    tokens[CHAR_T] = TRUE_LITERAL;
+    tokens[CHAR_F] = FALSE_LITERAL;
+  }
 
   _parseToplevel() {
-    JsonToken token = _tokenizer.next();
-    final result = _parseValue(token);
-    token = _tokenizer.next();
-    if (token !== null) {
-      throw 'Junk at the end';
+    final result = _parseValue();
+    if (_token() !== null) {
+      _error('Junk at the end of JSON input');
     }
     return result;
   }
 
-  _parseValue(final JsonToken token) {
+  _parseValue() {
+    final int token = _token();
     if (token === null) {
-      throw 'Nothing to parse';
+      _error('Nothing to parse');
     }
-    switch (token.kind) {
-      case JsonToken.STRING:
-        return token.str;
-
-      case JsonToken.NUMBER:
-        return token.number;
-
-      case JsonToken.NULL:
-        return null;
-
-      case JsonToken.FALSE:
-        return false;
-
-      case JsonToken.TRUE:
-        return true;
-
-      case JsonToken.LBRACE:
-        return _parseObject();
-
-      case JsonToken.LBRACKET:
-        return _parseList();
+    switch (token) {
+      case STRING_LITERAL: return _parseString();
+      case NUMBER_LITERAL: return _parseNumber();
+      case NULL_LITERAL: return _expectKeyword(NULL_STRING, null);
+      case FALSE_LITERAL: return _expectKeyword(FALSE_STRING, false);
+      case TRUE_LITERAL: return _expectKeyword(TRUE_STRING, true);
+      case LBRACE: return _parseObject();
+      case LBRACKET: return _parseList();
 
       default:
-        throw 'Unexpected token: ${token}';
-      }
+        _error('Unexpected token');
+    }
+  }
+
+  Object _expectKeyword(String word, Object value) {
+    for (int i = 0; i < word.length; i++) {
+      // Implicit end check in _char().
+      if (_char() != word.charCodeAt(i)) _error("Expected keyword '$word'");
+      position++;
+    }
+    return value;
   }
 
   _parseObject() {
     final object = {};
 
-    _parseSequence(JsonToken.RBRACE, (JsonToken token) {
-      _assertTokenKind(token, JsonToken.STRING);
-      final String key = token.str;
+    position++;  // Eat '{'.
 
-      token = _tokenizer.next();
-      _assertTokenKind(token, JsonToken.COLON);
+    if (!_isToken(RBRACE)) {
+      while (true) {
+        final String key = _parseString();
+        if (!_isToken(COLON)) _error("Expected ':' when parsing object");
+        position++;
+        object[key] = _parseValue();
 
-      token = _tokenizer.next();
-      final value = _parseValue(token);
+        if (!_isToken(COMMA)) break;
+        position++;  // Skip ','.
+      };
 
-      object[key] = value;
-    });
+      if (!_isToken(RBRACE)) _error("Expected '}' at end of object");
+    }
+    position++;
 
     return object;
   }
@@ -420,47 +189,170 @@ class JsonParser {
   _parseList() {
     final list = [];
 
-    _parseSequence(JsonToken.RBRACKET, (JsonToken token) {
-      final value = _parseValue(token);
-      list.add(value);
-    });
+    position++;  // Eat '['.
+
+    if (!_isToken(RBRACKET)) {
+      while (true) {
+        list.add(_parseValue());
+
+        if (!_isToken(COMMA)) break;
+        position++;
+      };
+
+      if (!_isToken(RBRACKET)) _error("Expected ']' at end of list");
+    }
+    position++;
 
     return list;
   }
 
-  void _parseSequence(int endTokenKind, void parseElement(JsonToken token)) {
-    JsonToken token = _tokenizer.next();
-    if (token === null) {
-      throw 'Unexpected end of stream';
+  String _parseString() {
+    if (!_isToken(STRING_LITERAL)) _error("Expected string literal");
+
+    position++;  // Eat '"'.
+
+    List<int> charCodes = new List<int>();
+    while (true) {
+      int c = _char();
+      if (c == QUOTE) {
+        position++;
+        break;
+      }
+      if (c == BACKSLASH) {
+        position++;
+        if (position == json.length) {
+          _error('\\ at the end of input');
+        }
+
+        switch (_char()) {
+          case QUOTE:
+            c = QUOTE;
+            break;
+          case BACKSLASH:
+            c = BACKSLASH;
+            break;
+          case SLASH:
+            c = SLASH;
+            break;
+          case CHAR_B:
+            c = BACKSPACE;
+            break;
+          case CHAR_N:
+            c = NEW_LINE;
+            break;
+          case CHAR_R:
+            c = CARRIAGE_RETURN;
+            break;
+          case CHAR_F:
+            c = FORM_FEED;
+            break;
+          case CHAR_T:
+            c = TAB;
+            break;
+          case CHAR_U:
+            if (position + 5 > json.length) {
+              _error('Invalid unicode esacape sequence');
+            }
+            final codeString = json.substring(position + 1, position + 5);
+            try {
+              c = Math.parseInt('0x${codeString}');
+            } catch (var e) {
+              _error('Invalid unicode esacape sequence');
+            }
+            position += 4;
+            break;
+          default:
+            _error('Invalid esacape sequence in string literal');
+        }
+      }
+      charCodes.add(c);
+      position++;
     }
-    if (token.kind == endTokenKind) {
-      return;
+
+    return new String.fromCharCodes(charCodes);
+  }
+
+  num _parseNumber() {
+    if (!_isToken(NUMBER_LITERAL)) _error("Expected number literal");
+
+    final int startPos = position;
+    if (_isChar(MINUS)) position++;
+    if (_isChar(CHAR_0)) {
+      position++;
+    } else if (_isDigit()) {
+      position++;
+      while (_isDigit()) position++;
     }
 
-    parseElement(token);
-
-    token = _tokenizer.next();
-    if (token === null) {
-      throw 'Expected either comma or terminator';
+    bool isInt = true;
+    if (_isChar(DOT)) {
+      position++;
+      if (_isDigit()) {
+        isInt = false;
+        while (_isDigit()) position++;
+      } else {
+        position--;  // No digit, backtrack.
+      }
     }
-    while (token.kind != endTokenKind) {
-      _assertTokenKind(token, JsonToken.COMMA);
 
-      token = _tokenizer.next();
-      parseElement(token);
+    if (_isChar(CHAR_E) || _isChar(CHAR_CAPITAL_E)) {
+      int backtrackTo = position;
+      position++;
+      if (_isChar(MINUS) || _isChar(PLUS)) position++;
+      if (_isDigit()) {
+        position++;
+        isInt = false;
+        while (_isDigit()) position++;
+      } else {
+        position = backtrackTo;  // No digit, backtrack.
+      }
+    }
 
-      token = _tokenizer.next();
+    String number = json.substring(startPos, position);
+    if (isInt) {
+      return Math.parseInt(number);
+    } else {
+      return Math.parseDouble(number);
     }
   }
 
-  void _assertTokenKind(JsonToken token, int kind) {
-    if (token === null || token.kind != kind) {
-      throw 'Unexpected token kind: token = ${token}, expected kind = ${kind}';
+  bool _isChar(int char) => _char() == char;
+
+  bool _isDigit() {
+    int char = _char();
+    return char >= CHAR_0 && char <= CHAR_9;
+  }
+
+  bool _isToken(int tokenKind) => _token() == tokenKind;
+
+  int _char() {
+    if (position >= json.length) {
+      _error("Unexpected end of JSON stream");
+    }
+    return json.charCodeAt(position);
+  }
+
+  int _token() {
+    while (true) {
+      if (position >= json.length) return null;
+      int char = json.charCodeAt(position);
+      int token = tokens[char];
+      if (token === WHITESPACE) {
+        position++;
+        continue;
+      }
+      if (token === null) _error("Invalid JSON token");
+      return token;
     }
   }
 
-  // TODO: consider factor out error throwing code and build more complicated
-  // data structure to provide more info for a caller.
+  void _error(String message) {
+    throw new JSONParseException(position, message);
+  }
+
+  final String json;
+  int position = 0;
+  static List<int> tokens;
 }
 
 // TODO: proper base class.
@@ -507,35 +399,35 @@ class JsonStringifier {
       int charCode = s.charCodeAt(i);
       if (charCode < 32) {
         needsEscape = true;
-        charCodes.add(JsonTokenizer.BACKSLASH);
+        charCodes.add(_JsonParser.BACKSLASH);
         switch (charCode) {
-        case JsonTokenizer.BACKSPACE:
-          charCodes.add(JsonTokenizer.B_SMALL);
+        case _JsonParser.BACKSPACE:
+          charCodes.add(_JsonParser.CHAR_B);
           break;
-        case JsonTokenizer.TAB:
-          charCodes.add(JsonTokenizer.T_SMALL);
+        case _JsonParser.TAB:
+          charCodes.add(_JsonParser.CHAR_T);
           break;
-        case JsonTokenizer.NEW_LINE:
-          charCodes.add(JsonTokenizer.N_SMALL);
+        case _JsonParser.NEW_LINE:
+          charCodes.add(_JsonParser.CHAR_N);
           break;
-        case JsonTokenizer.FORM_FEED:
-          charCodes.add(JsonTokenizer.F_SMALL);
+        case _JsonParser.FORM_FEED:
+          charCodes.add(_JsonParser.CHAR_F);
           break;
-        case JsonTokenizer.CARRIAGE_RETURN:
-          charCodes.add(JsonTokenizer.R_SMALL);
+        case _JsonParser.CARRIAGE_RETURN:
+          charCodes.add(_JsonParser.CHAR_R);
           break;
         default:
-          charCodes.add(JsonTokenizer.U_SMALL);
+          charCodes.add(_JsonParser.CHAR_U);
           charCodes.add(_hexDigit((charCode >> 12) & 0xf));
           charCodes.add(_hexDigit((charCode >> 8) & 0xf));
           charCodes.add(_hexDigit((charCode >> 4) & 0xf));
           charCodes.add(_hexDigit(charCode & 0xf));
           break;
         }
-      } else if (charCode == JsonTokenizer.QUOTE ||
-          charCode == JsonTokenizer.BACKSLASH) {
+      } else if (charCode == _JsonParser.QUOTE ||
+          charCode == _JsonParser.BACKSLASH) {
         needsEscape = true;
-        charCodes.add(JsonTokenizer.BACKSLASH);
+        charCodes.add(_JsonParser.BACKSLASH);
         charCodes.add(charCode);
       } else {
         charCodes.add(charCode);
