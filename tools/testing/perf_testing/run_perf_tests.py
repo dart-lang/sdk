@@ -472,7 +472,8 @@ class CommonBrowserTest(RuntimePerformanceTest):
   class CommonBrowserFileProcessor(Processor):
     def process_file(self, afile):
       """Comb through the html to find the performance results.
-      Returns: True if we successfullly posted our data to storage."""
+      Returns: True if we successfully posted our data to storage and/or we can
+          delete the trace file."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
                             'testing', 'perf_testing'))
       if self.test.test_runner.no_upload:
@@ -493,7 +494,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
 
       if i >= len(lines) or revision_num == 0:
         # Then this run did not complete. Ignore this tracefile.
-        return
+        return True
 
       line = lines[i]
       i += 1
@@ -652,7 +653,7 @@ class DromaeoTest(RuntimePerformanceTest):
   class DromaeoFileProcessor(Processor):
     def process_file(self, afile):
       """Comb through the html to find the performance results.
-      Returns: True if we successfullly posted our data to storage."""
+      Returns: True if we successfully posted our data to storage."""
       if self.test.test_runner.no_upload:
         return
       parts = afile.split('-')
@@ -774,7 +775,7 @@ class DromaeoSizeTest(Test):
 
       Args:
         afile: is the filename string we will be processing.
-      Returns: True if we successfullly posted our data to storage."""
+      Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
       if self.test.test_runner.no_upload:
@@ -802,7 +803,7 @@ class DromaeoSizeTest(Test):
           else:
             num = float(num)
           upload_success = upload_success and self.report_results(
-              metric, num, 'browser', variant, revision_num, self.CODE_SIZE)
+              metric, num, 'commandline', variant, revision_num, self.CODE_SIZE)
 
       f.close()
       return upload_success
@@ -845,8 +846,8 @@ class CompileTimeAndSizeTest(Test):
 
       self.test.test_runner.run_cmd(
           [self.test.dart_vm, 'frogc.dart', '--out=swarm-result',
-          os.path.join('..', 'samples', 'swarm',
-          'swarm.dart')])
+          os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
+          'samples-r6461', 'swarm', 'swarm.dart')])
 
       swarm_size = 0
       try:
@@ -856,8 +857,8 @@ class CompileTimeAndSizeTest(Test):
 
       self.test.test_runner.run_cmd(
           [self.test.dart_vm, 'frogc.dart', '--out=total-result',
-          os.path.join('..', 'samples', 'total',
-          'client', 'Total.dart')])
+          os.path.join('..', 'internal', 'golem', 'benchmarks-dart2js', 'tests',
+          'samples-r6461', 'total', 'client', 'Total.dart')])
       total_size = 0
       try:
         total_size = os.path.getsize('total-result')
@@ -882,7 +883,7 @@ class CompileTimeAndSizeTest(Test):
 
       Args:
         afile: is the filename string we will be processing.
-      Returns: True if we successfullly posted our data to storage."""
+      Returns: True if we successfully posted our data to storage."""
       os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
           'testing', 'perf_testing'))
       if self.test.test_runner.no_upload:

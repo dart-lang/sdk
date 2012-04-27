@@ -139,7 +139,7 @@ class GoogleCodeInstaller(object):
         # this does not seem to be a problem for Windows, which does not have a
         # built in zip utility. :-/
         run_cmd('unzip -u %s -d %s' % (os.path.join(self.download_location,
-                download_name), self.download_location))
+                download_name), self.download_location), stdin='y')
       else:
         z = zipfile.ZipFile(os.path.join(self.download_location, download_name))
         z.extractall(self.download_location)
