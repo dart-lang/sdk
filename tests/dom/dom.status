@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 webgl_1_test: Skip  # Issue 1495
-audiocontext_test: Fail  # Issue 2770
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
@@ -30,7 +29,6 @@ request_animation_frame_test: Skip   # drt hangs
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 
-htmlelement_test: Fail
 window_open_test: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]

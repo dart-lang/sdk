@@ -591,6 +591,12 @@ _wrap(raw) {
   }
 }
 
+spawnDomIsolate(Window targetWindow, String entryPoint) =>
+  dom.spawnDomIsolateImpl(_unwrap(targetWindow), entryPoint);
+
+dom.LayoutTestController get layoutTestController() =>
+  dom.layoutTestController;
+
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
   _AbstractWorkerImpl._wrap(ptr) : super._wrap(ptr);
 
@@ -7942,10 +7948,13 @@ class _ElementAttributeMap implements AttributeMap {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
+    return this[key];
   }
 
   String remove(String key) {
+    String value = _element.$dom_getAttribute(key);
     _element.$dom_removeAttribute(key);
+    return value;
   }
 
   void clear() {
@@ -8021,9 +8030,8 @@ class _DataAttributeMap implements AttributeMap {
     $dom_attributes[_attr(key)] = '$value';
   }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String ifAbsent()) =>
     $dom_attributes.putIfAbsent(_attr(key), ifAbsent);
-  }
 
   String remove(String key) => $dom_attributes.remove(_attr(key));
 
@@ -23104,7 +23112,8 @@ interface AudioChannelSplitter extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName AudioContext
-interface AudioContext extends EventTarget {
+interface AudioContext extends EventTarget default _AudioContextFactoryProvider {
+  AudioContext();
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
