@@ -325,7 +325,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // discarded.
         oldTarget.block.addAfter(oldTarget, boolifiedTarget);
         // Remove us as user from the [oldTarget].
-        HBasicBlock.removeUser(oldTarget, node);
+        oldTarget.removeUser(node);
         // Replace old target with boolified target.
         assert(node.target == node.inputs[0]);
         node.inputs[0] = boolifiedTarget;

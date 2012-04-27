@@ -575,35 +575,10 @@ class HBasicBlock extends HInstructionList implements Hashable {
    */
   void rewrite(HInstruction from, HInstruction to) {
     for (HInstruction use in from.usedBy) {
-      rewriteInput(use, from, to);
+      use.rewriteInput(from, to);
     }
     to.usedBy.addAll(from.usedBy);
     from.usedBy.clear();
-  }
-
-  static void rewriteInput(HInstruction instruction,
-                           HInstruction from,
-                           HInstruction to) {
-    List inputs = instruction.inputs;
-    for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i] === from) inputs[i] = to;
-    }
-  }
-
-  static void removeUser(HInstruction instruction, HInstruction user) {
-    List<HInstruction> users = instruction.usedBy;
-    int length = users.length;
-    if (length == 1) {
-      users.clear();
-    } else {
-      for (int i = 0; i < length; i++) {
-        if (users[i] === user) {
-          users[i] = users[length - 1];
-          users.length = length - 1;
-          return;
-        }
-      }
-    }
   }
 
   bool isExitBlock() {
@@ -876,17 +851,29 @@ class HInstruction implements Hashable {
 
     // Remove [this] from the inputs' uses.
     for (int i = 0; i < inputs.length; i++) {
-      List inputUsedBy = inputs[i].usedBy;
-      for (int j = 0; j < inputUsedBy.length; j++) {
-        if (inputUsedBy[j] === this) {
-          inputUsedBy[j] = inputUsedBy[inputUsedBy.length - 1];
-          inputUsedBy.removeLast();
-          break;
-        }
-      }
+      inputs[i].removeUser(this);
     }
     this.block = null;
     assert(isValid());
+  }
+
+  void rewriteInput(HInstruction from, HInstruction to) {
+    for (int i = 0; i < inputs.length; i++) {
+      if (inputs[i] === from) inputs[i] = to;
+    }
+  }
+
+  /** Removes all occurrences of [user] from [usedBy]. */
+  void removeUser(HInstruction user) {
+    List<HInstruction> users = usedBy;
+    int length = users.length;
+    for (int i = 0; i < length; i++) {
+      if (users[i] === user) {
+        users[i] = users[length - 1];
+        length--;
+      }
+    }
+    users.length = length;
   }
 
   bool isConstant() => false;
