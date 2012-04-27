@@ -3,44 +3,44 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == none ]
-UnicodeTest: Fail        # Bug 5163868
-*DartcTest: Skip
+unicode_test: Fail        # Bug 5163868
+*dartc_test: Skip
 
 [ $arch == ia32 ]
 
 
 [ $compiler == dartc ]
-*VMTest: Skip
+*vm_test: Skip
 
 [ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
-*VMTest: Skip
-*VMNegativeTest: Skip
-*DartcTest: Skip
-*DartcNegativeTest: Skip
+*vm_test: Skip
+*vm_negative_test: Skip
+*dartc_test: Skip
+*dartc_negative_test: Skip
 # Note: Correctly skips 4 VMTests that rely on VM internals
 
-ConstList*: Fail # 'const' is not currently checked.
-CoreRuntimeTypesTest: Fail
-ForInTest: Fail
-ListTest: Fail
-MapsTest: Fail
-MathParseDoubleTest: Fail
-RegExpAllMatchesTest: Fail
-RegExp4Test: Fail # New test added on 10/28.
-StopwatchTest: Pass,Fail # Issue 2398
-StringPatternTest: Fail
-StringSubstringTest: Fail
-StringTest: Fail  # Needs index out of range checks.
+const_list_*: Fail # 'const' is not currently checked.
+core_runtime_types_test: Fail
+for_in_test: Fail
+list_test: Fail
+maps_test: Fail
+math_parse_double_test: Fail
+reg_exp_all_matches_test: Fail
+reg_exp4_test: Fail # New test added on 10/28.
+stopwatch_test: Pass,Fail # Issue 2398
+string_pattern_test: Fail
+string_substring_test: Fail
+string_test: Fail  # Needs index out of range checks.
 
 [ $compiler == frog && $runtime == drt ]
-ListSortTest: Fail, Pass # Issue 2667
+list_sort_test: Fail, Pass # Issue 2667
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
 [ $runtime == ff || $runtime == ie ]
-UnicodeTest: Fail
+unicode_test: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
@@ -58,3 +58,24 @@ UnicodeTest: Fail
 [ $arch == arm ]
 *: Skip
 
+[ $compiler == dart2js && $checked ]
+*: Skip
+
+[ $compiler == dart2js ]
+math_parse_double_test: Fail # Expect.equals(expected: <78187493520>, actual: <0>)
+
+# Bad test, assumes RegExp.allMatches returns a Collection.
+reg_exp_all_matches_test: Fail, OK # NoSuchMethodException : method not found: 'forEach'
+
+reg_exp4_test: Fail, OK # Expects exception from const constructor.
+
+big_integer_vm_test: Fail, OK # VM specific test.
+growable_object_array2_vm_test: Fail, OK # VM specific test.
+growable_object_array_vm_test: Fail, OK # VM specific test.
+string_base_vm_test: Fail, OK # VM specific test.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $runtime == drt ]
+list_sort_test: Fail, Pass # Issue 2667

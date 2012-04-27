@@ -12,15 +12,26 @@
 
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
+#import("testing/dart/test_suite.dart");
 
 #import("../tests/co19/test_config.dart");
-#import("../tests/corelib/test_config.dart");
-#import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
+
+/**
+ * The directories that contain test suites which follow the conventions
+ * required by [StandardTestSuite]'s forDirectory constructor.
+ * New test suites should follow this convention because it makes it much
+ * simpler to add them to test.dart.  Existing test suites should be
+ * moved to here, if possible.
+*/
+final TEST_SUITE_DIRECTORIES = const [
+  'tests/corelib',
+  'tests/isolate',
+];
 
 main() {
   var startTime = new Date.now();
@@ -62,9 +73,6 @@ main() {
     if (selectors.containsKey('standalone')) {
       queue.addTestSuite(new StandaloneTestSuite(conf));
     }
-    if (selectors.containsKey('corelib')) {
-      queue.addTestSuite(new CorelibTestSuite(conf));
-    }
     if (selectors.containsKey('co19')) {
       queue.addTestSuite(new Co19TestSuite(conf));
     }
@@ -74,15 +82,20 @@ main() {
     if (selectors.containsKey('lib')) {
       queue.addTestSuite(new LibTestSuite(conf));
     }
-    if (selectors.containsKey('isolate')) {
-      queue.addTestSuite(new IsolateTestSuite(conf));
-    }
     if (selectors.containsKey('utils')) {
       queue.addTestSuite(new UtilsTestSuite(conf));
     }
     if (conf['runtime'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
       queue.addTestSuite(new VMDartTestSuite(conf));
+    }
+
+    for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
+      final name = testSuiteDir.substring(testSuiteDir.lastIndexOf('/') + 1);
+      if (selectors.containsKey(name)) {
+        queue.addTestSuite(
+            new StandardTestSuite.forDirectory(conf, testSuiteDir));
+      }
     }
 
     return true;

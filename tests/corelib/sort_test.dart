@@ -5,7 +5,7 @@
 // Dart test for sort routines.
 #library("SortTest.dart");
 #import("dart:coreimpl");
-#source("SortHelper.dart");
+#source("sort_helper.dart");
 
 main() {
   var compare = (a, b) => a.compareTo(b);

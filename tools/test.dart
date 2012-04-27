@@ -35,7 +35,6 @@
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
-#import("../tests/corelib/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
@@ -54,6 +53,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'frog/tests/leg',
   'frog/tests/leg_only',
   'tests/benchmark_smoke',
+  'tests/corelib',
   'tests/dom',
   'tests/html',
   'tests/isolate',
@@ -105,8 +105,6 @@ main() {
         queue.addTestSuite(new SamplesTestSuite(conf));
       } else if (key == 'standalone') {
         queue.addTestSuite(new StandaloneTestSuite(conf));
-      } else if (key == 'corelib') {
-        queue.addTestSuite(new CorelibTestSuite(conf));
       } else if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
       } else if (key == 'language') {
