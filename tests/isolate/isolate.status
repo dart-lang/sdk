@@ -3,46 +3,46 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == vm ]
-Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
-SerializationTest: Skip  # tests frog-specific serialization code
-APIv2_spawnUriTest: Fail # not implemented
-APIv2_computeThisScriptBrowserTest: Skip # browser specific test
+isolate2_negative_test: Skip  # Need to resolve correct behaviour.
+serialization_test: Skip  # tests frog-specific serialization code
+v2_spawn_uri_test: Fail # not implemented
+v2_compute_this_script_browser_test: Skip # browser specific test
 
 [ ($compiler == none || $compiler == dart2js) && $runtime == drt ]
-SerializationTest: Skip  # tests frog-specific serialization code
-APIv2*: Skip # new api for isolates not implemented in the VM yet.
+serialization_test: Skip  # tests frog-specific serialization code
+v2*: Skip # new api for isolates not implemented in the V_m yet.
 
 [ $compiler == frog && $runtime == d8 ]
-APIv2_spawnUriTest: Fail # not implemented for d8
-APIv2_computeThisScriptBrowserTest: Skip # browser specific test
+v2_spawn_uri_test: Fail # not implemented for d8
+v2_compute_this_script_browser_test: Skip # browser specific test
 
 [ $compiler == dartc ]
-SerializationTest: Skip  # tests frog-specific serialization code
-IsolateNegativeTest: Fail    # status change with --check-only
-Isolate2NegativeTest: Fail   # status change with --check-only
-APIv2*NegativeTest: Fail, OK # fails only at runtime
+serialization_test: Skip  # tests frog-specific serialization code
+isolate_negative_test: Fail    # status change with --check-only
+isolate2_negative_test: Fail   # status change with --check-only
+v2*_negative_test: Fail, OK # fails only at runtime
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $compiler == frog && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera) ]
-NestedSpawn2Test: Skip
-NestedSpawnTest: Skip
-IsolateNegativeTest: Skip
-Isolate2NegativeTest: Skip
+nested_spawn2_test: Skip
+nested_spawn_test: Skip
+isolate_negative_test: Skip
+isolate2_negative_test: Skip
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
 [ $runtime == safari ]
-CrossIsolateMessageTest: Skip      # Depends on 32/64 bit Safari. See Issue 1120
-MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
-Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
-MessageTest: Skip
+cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
+mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
+mixed2_test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
+message_test: Skip
 
 [ $runtime == ie && $system == windows ]
-APIv2*: Skip
+v2*: Skip
 
 [ $runtime == safari && $system == macos ]
-APIv2*: Skip
+v2*: Skip
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
@@ -60,3 +60,11 @@ APIv2*: Skip
 [ $arch == arm ]
 *: Skip
 
+[ $compiler == dart2js ]
+v2_spawn_function_test: Fail, OK # Leg does not support APIv2
+v2_spawn_uri_test: Fail, OK # Leg does not support APIv2
+v2_unresolved_ports_test: Fail, OK # Leg does not support APIv2
+constructor_test: Fail, OK # Leg does not support subclassing Isolate
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

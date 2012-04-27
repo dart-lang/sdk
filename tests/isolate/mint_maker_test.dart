@@ -7,7 +7,7 @@
 
 #library("MintMakerTest");
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class Mint {
   Mint() : registry_ = new Map<SendPort, Purse>() {

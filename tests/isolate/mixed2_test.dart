@@ -6,7 +6,7 @@
 
 #library('Mixed2Test');
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 // We want to send a message from the main-isolate to a chain of different
 // isolates and then get a reply back.

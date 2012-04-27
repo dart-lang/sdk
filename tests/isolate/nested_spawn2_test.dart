@@ -8,7 +8,7 @@
 
 #library('NestedSpawn2Test');
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class IsolateA extends Isolate {
   IsolateA() : super.heavy();

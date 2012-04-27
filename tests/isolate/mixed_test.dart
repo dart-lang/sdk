@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Dart test program for testing that isolates can spawn other isolates.
+// Dart test program for testing that heavy and light isolates can be mixed.
 
-#library('NestedSpawnTest');
+#library('MixedTest');
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class IsolateA extends Isolate {
   IsolateA() : super.heavy();
@@ -26,7 +26,7 @@ class IsolateA extends Isolate {
 }
 
 class IsolateB extends Isolate {
-  IsolateB() : super.heavy();
+  IsolateB() : super.light();
 
   void main() {
     this.port.receive((msg, replyTo) {
@@ -37,9 +37,8 @@ class IsolateB extends Isolate {
   }
 }
 
-
 main() {
-  test("spawned isolates can spawn nested isolates", () {
+  test("light isolate can spawn heavy isolate", () {
     new IsolateA().spawn().then(expectAsync1((SendPort port) {
       port.call("launch nested!").then(expectAsync1((msg) {
         Expect.equals(499, msg);

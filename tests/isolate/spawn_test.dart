@@ -4,7 +4,7 @@
 
 #library("SpawnTest");
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 main() {
   test("spawn a new isolate", () {

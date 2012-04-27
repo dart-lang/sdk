@@ -7,7 +7,7 @@
 
 #library('CrossIsolateMessageTest');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class CrossIsolate1 extends Isolate {
   CrossIsolate1() : super.heavy();

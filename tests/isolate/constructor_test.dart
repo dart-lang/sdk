@@ -4,7 +4,7 @@
 
 #library("ConstructorTest");
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class ConstructorTest extends Isolate {
   final int field;

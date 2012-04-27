@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Example of spawning an isolate from a function.
+// Negative test to make sure that we are reaching all assertions.
 #library('spawn_tests');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 child() {
   port.receive((msg, reply) => reply.send('re: $msg'));
@@ -14,10 +14,10 @@ child() {
 main() {
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
-    port.receive(expectAsync(msg, _) {
+    port.receive(expectAsync2((msg, _) {
       port.close();
-      expect(msg).equals('re: hi');
-    });
+      expect(msg).equals('re: hello'); // should be hi, not hello
+    }));
 
     SendPort s = spawnFunction(child);
     s.send('hi', port.toSendPort());

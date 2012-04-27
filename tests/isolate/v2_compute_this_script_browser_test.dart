@@ -10,8 +10,8 @@
 #import('dart:dom');
 #import('dart:isolate');
 
-#import('../../../lib/unittest/unittest.dart');
-#import('../../../lib/unittest/dom_config.dart');
+#import('../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/dom_config.dart');
 
 child() {
   port.receive((msg, reply) => reply.send('re: $msg'));

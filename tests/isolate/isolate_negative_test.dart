@@ -6,7 +6,7 @@
 
 #library('IsolateNegativeTest');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class IsolateNegativeTest extends Isolate {
   IsolateNegativeTest() : super();

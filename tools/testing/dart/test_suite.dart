@@ -354,6 +354,8 @@ class StandardTestSuite implements TestSuite {
     int testsStart = filename.lastIndexOf('tests/');
     int start = filename.lastIndexOf('src/');
     if (start > testsStart) {
+      // TODO(sigmund): delete this branch once all tests stop using the src/
+      // directory
       testName = filename.substring(start + 4, filename.length - 5);
     } else if (optionsFromFile['isMultitest']) {
       start = filename.lastIndexOf('/');
@@ -374,7 +376,8 @@ class StandardTestSuite implements TestSuite {
         testName = filename;
       }
 
-      if (configuration['compiler'] != 'dartc') {
+      if (configuration['compiler'] != 'dartc' ||
+          testName.endsWith('_test.dart')) {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
         }

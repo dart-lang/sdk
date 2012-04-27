@@ -40,7 +40,6 @@
 #import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
 #import("../tests/corelib/test_config.dart");
-#import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
@@ -57,6 +56,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'tests/benchmark_smoke',
   'tests/dom',
   'tests/html',
+  'tests/isolate',
   'tests/json',
   'utils/tests/css',
   'utils/tests/peg',
@@ -113,8 +113,6 @@ main() {
         queue.addTestSuite(new LanguageTestSuite(conf));
       } else if (key == 'lib') {
         queue.addTestSuite(new LibTestSuite(conf));
-      } else if (key == 'isolate') {
-        queue.addTestSuite(new IsolateTestSuite(conf));
       } else if (key == 'utils') {
         queue.addTestSuite(new UtilsTestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {

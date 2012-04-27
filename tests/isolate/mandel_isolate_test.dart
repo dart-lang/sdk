@@ -4,7 +4,7 @@
 
 #library('MandelIsolateTest');
 #import('dart:isolate');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 final TERMINATION_MESSAGE = -1;
 final N = 100;

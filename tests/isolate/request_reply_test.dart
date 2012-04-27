@@ -5,7 +5,7 @@
 #library("RequestReplyTest");
 
 #import("dart:isolate");
-#import('../../../lib/unittest/unittest.dart');
+#import('../../lib/unittest/unittest.dart');
 
 class TestIsolate extends Isolate {
 
