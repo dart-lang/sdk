@@ -84,6 +84,7 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
 
     future.handleException((error) {
       deleteSandboxIfCreated();
+      return false;
     });
   });
 }
@@ -116,7 +117,7 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   // Find the main pub entrypoint.
   final pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
 
-  final args = [pubPath];
+  final args = ['--enable-type-checks', '--enable-asserts', pubPath];
   args.addAll(pubArgs);
 
   return runProcess(dartBin, args, workingDir);
@@ -195,7 +196,7 @@ class Descriptor {
    * Creates the file or directory within [dir]. Returns a [Future] that is
    * completed after the creation is done.
    */
-  abstract Future create(String dir);
+  abstract Future create(dir);
 
   /**
    * Validates that this descriptor correctly matches the corresponding file
@@ -222,7 +223,7 @@ class FileDescriptor extends Descriptor {
    * Creates the file within [dir]. Returns a [Future] that is completed after
    * the creation is done.
    */
-  Future<File> create(String dir) {
+  Future<File> create(dir) {
     return writeTextFile(join(dir, name), contents);
   }
 
@@ -263,7 +264,7 @@ class DirectoryDescriptor extends Descriptor {
    * Creates the file within [dir]. Returns a [Future] that is completed after
    * the creation is done.
    */
-  Future<Directory> create(String parentDir) {
+  Future<Directory> create(parentDir) {
     final completer = new Completer<Directory>();
 
     // Create the directory.
@@ -272,7 +273,7 @@ class DirectoryDescriptor extends Descriptor {
         completer.complete(dir);
       } else {
         // Recursively create all of its children.
-        final childFutures = contents.map((child) => child.create(dir.path));
+        final childFutures = contents.map((child) => child.create(dir));
         Futures.wait(childFutures).then((_) {
           // Only complete once all of the children have been created too.
           completer.complete(dir);
