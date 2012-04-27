@@ -1,9 +1,9 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
+// Copyright 2012 Google Inc. All Rights Reserved.
 // Dart core library.
 
 class FutureImpl<T> implements Future<T> {
 
-  bool _isComplete;
+  bool _isComplete = false;
 
   /**
    * Value that was provided to this Future by the Completer
@@ -19,7 +19,7 @@ class FutureImpl<T> implements Future<T> {
   /**
    * true, if any onException handler handled the exception.
    */
-  bool _exceptionHandled;
+  bool _exceptionHandled = false;
 
   /**
    * Listeners waiting to receive the value of this future.
@@ -31,10 +31,9 @@ class FutureImpl<T> implements Future<T> {
    */
   final List<Function> _exceptionHandlers;
 
-  FutureImpl() : _listeners = new List(), _exceptionHandlers = new List() {
-    _isComplete = false;
-    _exceptionHandled = false;
-  }
+  FutureImpl()
+    : _listeners = [],
+      _exceptionHandlers = [];
 
   factory FutureImpl.immediate(T value) {
     final res = new FutureImpl();
@@ -92,12 +91,15 @@ class FutureImpl<T> implements Future<T> {
     _isComplete = true;
     if (_exception !== null) {
       for (Function handler in _exceptionHandlers) {
-        if (handler(_exception)) {
+        // Explicitly check for true here so that if the handler returns null,
+        // we don't get an exception in checked mode.
+        if (handler(_exception) == true) {
           _exceptionHandled = true;
           break;
         }
       }
     }
+
     if (hasValue) {
       for (Function listener in _listeners) {
         listener(value);
