@@ -61,7 +61,7 @@ class Test {
     int itemCount = 0;
     int firstKey = null;
     int lastKey = null;
-    cursorRequest.addEventListener("success", (e) {
+    cursorRequest.on.success.add((e) {
         var cursor = e.target.result;
         if (cursor != null) {
           if (firstKey == null) firstKey = cursor.key;

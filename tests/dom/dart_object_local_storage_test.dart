@@ -1,7 +1,7 @@
 #library('DartObjectLocalStorageTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 verify(var object) {
   final value = window.document;
@@ -11,9 +11,9 @@ verify(var object) {
 }
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('body', () {
-      BodyElement body = document.body;
+      HTMLBodyElement body = document.body;
       verify(body);
   });
   test('localStorage', () {
@@ -25,10 +25,10 @@ main() {
       verify(storage);
   });
   test('unknown', () {
-      var element = new Element.tag('canvas');
+      var element = document.createElement('canvas');
       element.id = 'test';
-      document.body.nodes.add(element);
-      element = document.query('#test');
+      document.body.appendChild(element);
+      element = document.getElementById('test');
       verify(element);
   });
 }

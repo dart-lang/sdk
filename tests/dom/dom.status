@@ -61,7 +61,7 @@ indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 instance_of_test: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
-inner_frame_test: Fail
+inner_frame_test: Skip
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.
