@@ -4,8 +4,8 @@
 
 #library('WindowManglingTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom', prefix: 'dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html', prefix: 'dom');
 
 // Defined in dom.Window.
 get navigator() => "Dummy";
@@ -14,7 +14,7 @@ $eq(x, y) => false;
 $eq$(x, y) => false;
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
   var win = dom.window;
 
   test('windowMethod', () {

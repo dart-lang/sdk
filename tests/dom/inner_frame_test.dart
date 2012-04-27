@@ -1,7 +1,7 @@
 #library('InnerFrameTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
   if (window != window.top) {
@@ -15,7 +15,7 @@ main() {
       var parentDocument = window.frameElement.ownerDocument;
       var div = parentDocument.createElement("div");
       div.id = "illegalFrameElement";
-      parentDocument.body.appendChild(div);
+      parentDocument.body.nodes.add(div);
       Expect.fail('Should not reach here.');
     } catch (NoSuchMethodException e) {
       // Expected.
@@ -27,7 +27,7 @@ main() {
       var parentDocument = top.document;
       var div = parentDocument.createElement("div");
       div.id = "illegalTop";
-      parentDocument.body.appendChild(div);
+      parentDocument.body.nodes.add(div);
       Expect.fail('Should not reach here.');
     } catch (var e) {
       // Expected.
@@ -37,25 +37,25 @@ main() {
   }
 
   // Parent / test frame
-  useDomConfiguration();
+  useHtmlConfiguration();
 
-  final iframe = document.createElement('iframe');
+  final iframe = new Element.tag('iframe');
   iframe.src = window.location.href;
 
   asyncTest('prepare', 1, () {
-      iframe.addEventListener('load', (e) => callbackDone(), false);
-      document.body.appendChild(iframe);
+      iframe.on.load.add((e) => callbackDone(), false);
+      document.body.nodes.add(iframe);
     });
 
   test('frameElement', () {
-      var div = document.getElementById('illegalFrameElement');
+      var div = document.query('#illegalFrameElement');
 
       // Ensure that this parent frame was not modified by its child.
       Expect.isNull(div);
     });
 
   test('top', () {
-      var div = document.getElementById('illegalTop');
+      var div = document.query('#illegalTop');
 
       // Ensure that this parent frame was not modified by its child.
       Expect.isNull(div);

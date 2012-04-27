@@ -1,22 +1,22 @@
 #library('CanvasTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-  HTMLCanvasElement canvas;
+  CanvasElement canvas;
   CanvasRenderingContext2D context;
   int width = 100;
   int height = 100;
 
-  canvas = document.createElement('canvas');
-  canvas.setAttribute('width', '$width');
-  canvas.setAttribute('height', '$height');
-  document.body.appendChild(canvas);
+  canvas = new Element.tag('canvas');
+  canvas.attributes['width'] = width;
+  canvas.attributes['height'] = height;
+  document.body.nodes.add(canvas);
 
   context = canvas.getContext('2d');
 
-  useDomConfiguration();
+  useHtmlConfiguration();
   test('FillStyle', () {
     context.fillStyle = "red";
     context.fillRect(10, 10, 20, 20);

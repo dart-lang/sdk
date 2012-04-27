@@ -1,10 +1,10 @@
 #library('AsyncWindowTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
   asyncTest('Window.setTimeout', 1, () {
     window.setTimeout(callbackDone, 10);
   });

@@ -1,7 +1,7 @@
 #library('SVG3Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 // Test that SVG elements have the operations advertised through all the IDL
 // interfaces.  This is a 'duck typing' test, and does not explicitly use 'is'
@@ -10,17 +10,17 @@
 main() {
 
   insertTestDiv() {
-    var element = document.createElement('div');
+    var element = new Element.tag('div');
     element.innerHTML = @'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''';
-    document.body.appendChild(element);
+    document.body.nodes.add(element);
     return element;
   }
 
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   /**
    * Verifies that [e] supports the operations on the SVGTests interface.
@@ -68,7 +68,7 @@ main() {
    * Verifies that [e] supports the operations on the SVGStylable interface.
    */
   checkSVGStylable(e) {
-    var className = e.className;
+    var className = e.$dom_$dom_svgClassName;
     Expect.isTrue(className is SVGAnimatedString);
 
     var s = e.style;
@@ -111,9 +111,9 @@ main() {
   testRect(name, checker) {
     test(name, () {
         var div = insertTestDiv();
-        var r = document.getElementById('rect1');
+        var r = document.query('#rect1');
         checker(r);
-        document.body.removeChild(div);
+        div.remove();
       });
   }
 

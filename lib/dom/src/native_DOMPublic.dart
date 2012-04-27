@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This API is exploratory.
-spawnDomIsolate(Window targetWindow, String entryPoint) {
+spawnDomIsolateImpl(Window targetWindow, String entryPoint) {
   if (targetWindow is! DOMWindowImplementation && targetWindow is! DOMWindowCrossFrameImplementation) {
     throw 'Bad window argument: $targetWindow';
   }

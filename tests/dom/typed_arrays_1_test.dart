@@ -1,11 +1,11 @@
 #library('TypedArrays1Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
 
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   test('createByLengthTest', () {
       var a = new Float32Array(10);

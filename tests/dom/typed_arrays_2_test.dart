@@ -4,12 +4,12 @@
 
 #library('TypedArrays2Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
 
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   test('fromBufferTest_dynamic', () {
       var a1 = new Uint8Array(1024);

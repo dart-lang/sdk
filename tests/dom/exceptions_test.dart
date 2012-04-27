@@ -1,10 +1,10 @@
 #library('ExceptionsTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
   test('DOMException', () {
     try {
       window.webkitNotifications.createNotification('', '', '');
@@ -15,10 +15,10 @@ main() {
     }
   });
   test('EventException', () {
-    final event = window.document.createEvent('Event');
+    final event = new Event('Event');
     // Intentionally do not initialize it!
     try {
-      window.document.dispatchEvent(event);
+      document.$dom_dispatchEvent(event);
     } catch (EventException e) {
       Expect.equals(EventException.UNSPECIFIED_EVENT_TYPE_ERR, e.code);
       Expect.equals('UNSPECIFIED_EVENT_TYPE_ERR', e.name);

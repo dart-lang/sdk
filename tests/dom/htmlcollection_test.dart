@@ -1,12 +1,12 @@
-#library('HTMLCollectionTest');
+#library('ElementListTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
-// Test that HTMLCollection implements List<T>
+// Test that ElementList implements List<T>
 main() {
-  HTMLElement insertTestDiv() {
-    HTMLElement element = document.createElement('div');
+  Element insertTestDiv() {
+    Element element = new Element.tag('div');
     element.innerHTML = @"""
 <div id='allChecked'>
 <input type="checkbox" name="c1" value="1" checked="yes">
@@ -28,32 +28,32 @@ main() {
 </div>
 <div id='emptyDiv'></div>
 """;
-    document.body.appendChild(element);
+    document.body.nodes.add(element);
     return element;
   }
 
-  useDomConfiguration();
+  useHtmlConfiguration();
   test('IsList', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
     Expect.isTrue(eachChecked is List);
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('Every', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
     Expect.equals(4, someChecked.length);
@@ -66,19 +66,19 @@ main() {
     Expect.isFalse(noneChecked.every((x) => x.checked));
     Expect.isTrue(noneChecked.every((x) => !x.checked));
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('Some', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
     Expect.equals(4, someChecked.length);
@@ -91,19 +91,19 @@ main() {
     Expect.isFalse(noneChecked.some((x) => x.checked));
     Expect.isTrue(noneChecked.some((x) => !x.checked));
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('Filter', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
     Expect.equals(4, someChecked.length);
@@ -116,16 +116,16 @@ main() {
     Expect.equals(0, noneChecked.filter((x) => x.checked).length);
     Expect.equals(4, noneChecked.filter((x) => !x.checked).length);
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('IsEmpty', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection emptyDiv =
-        document.getElementById('emptyDiv').dynamic.children;
+    ElementList emptyDiv =
+        document.query('#emptyDiv').elements;
 
     Expect.equals(4, someChecked.length);
     Expect.equals(0, emptyDiv.length);
@@ -133,7 +133,7 @@ main() {
     Expect.isFalse(someChecked.isEmpty());
     Expect.isTrue(emptyDiv.isEmpty());
 
-    document.body.removeChild(root);
+    root.remove();
   });
 
   int countWithForEach(collection, predicate) {
@@ -145,16 +145,16 @@ main() {
   }
 
   test('ForEach', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
     Expect.equals(4, someChecked.length);
@@ -167,7 +167,7 @@ main() {
     Expect.equals(0, countWithForEach(noneChecked, (x) => x.checked));
     Expect.equals(4, countWithForEach(noneChecked, (x) => !x.checked));
 
-    document.body.removeChild(root);
+    root.remove();
   });
 
   int countWithForLoop(collection, predicate) {
@@ -179,16 +179,16 @@ main() {
   }
 
   test('ForLoop', () {  // Uses iterator.
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection eachChecked =
-        document.getElementById('allChecked').dynamic.children;
+    ElementList eachChecked =
+        document.query('#allChecked').elements;
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, eachChecked.length);
     Expect.equals(4, someChecked.length);
@@ -201,28 +201,28 @@ main() {
     Expect.equals(0, countWithForLoop(noneChecked, (x) => x.checked));
     Expect.equals(4, countWithForLoop(noneChecked, (x) => !x.checked));
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('Last', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
     Expect.equals(4, someChecked.length);
 
     Expect.equals(someChecked[3], someChecked.last());
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('IndexOf', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, someChecked.length);
     Expect.equals(4, noneChecked.length);
@@ -243,16 +243,16 @@ main() {
     Expect.equals(-1, someChecked.indexOf(noneChecked[1], 0));
     Expect.equals(-1, noneChecked.indexOf(someChecked[1], 0));
 
-    document.body.removeChild(root);
+    root.remove();
   });
   test('LastIndexOf', () {
-    HTMLElement root = insertTestDiv();
+    Element root = insertTestDiv();
 
-    HTMLCollection someChecked =
-        document.getElementById('someChecked').dynamic.children;
+    ElementList someChecked =
+        document.query('#someChecked').elements;
 
-    HTMLCollection noneChecked =
-        document.getElementById('noneChecked').dynamic.children;
+    ElementList noneChecked =
+        document.query('#noneChecked').elements;
 
     Expect.equals(4, someChecked.length);
     Expect.equals(4, noneChecked.length);
@@ -272,6 +272,6 @@ main() {
     Expect.equals(-1, someChecked.lastIndexOf(noneChecked[1], 3));
     Expect.equals(-1, noneChecked.lastIndexOf(someChecked[1], 3));
 
-    document.body.removeChild(root);
+    root.remove();
   });
 }

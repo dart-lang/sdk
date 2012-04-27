@@ -1,13 +1,13 @@
 #library('KeyNameLocationTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 // Test for existence of some KeyName and KeyLocation constants.
 
 main() {
 
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   test('keyNames', () {
       Expect.equals("DownLeft", KeyName.DOWN_LEFT);

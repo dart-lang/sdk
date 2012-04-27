@@ -1,30 +1,30 @@
 #library('InstanceOfTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-  HTMLCanvasElement canvas;
+  CanvasElement canvas;
 
-  canvas = document.createElement('canvas');
-  canvas.setAttribute('width', '100');
-  canvas.setAttribute('height', '100');
-  document.body.appendChild(canvas);
+  canvas = new Element.tag('canvas');
+  canvas.attributes['width'] = 100;
+  canvas.attributes['height'] = 100;
+  document.body.nodes.add(canvas);
 
-  useDomConfiguration();
+  useHtmlConfiguration();
   test('Instanceof', () {
     Expect.isFalse(canvas is CanvasRenderingContext);
     Expect.isFalse(canvas is CanvasRenderingContext2D);
-    Expect.isTrue(canvas is HTMLElement);
-    Expect.isTrue(canvas is HTMLCanvasElement);
+    Expect.isTrue(canvas is Element);
+    Expect.isTrue(canvas is CanvasElement);
     Expect.isFalse(canvas is ImageData);
     // Expect.isFalse(canvas is CanvasPixelArray);
 
     CanvasRenderingContext2D context = canvas.getContext('2d');
     Expect.isTrue(context is CanvasRenderingContext);
     Expect.isTrue(context is CanvasRenderingContext2D);
-    Expect.isFalse(context is HTMLElement);
-    Expect.isFalse(context is HTMLCanvasElement);
+    Expect.isFalse(context is Element);
+    Expect.isFalse(context is CanvasElement);
     Expect.isFalse(context is ImageData);
     // Expect.isFalse(context is CanvasPixelArray);
 
@@ -32,8 +32,8 @@ main() {
     var image = context.createImageData(canvas.width.dynamic, canvas.height.dynamic);
     Expect.isFalse(image is CanvasRenderingContext);
     Expect.isFalse(image is CanvasRenderingContext2D);
-    Expect.isFalse(image is HTMLElement);
-    Expect.isFalse(image is HTMLCanvasElement);
+    Expect.isFalse(image is Element);
+    Expect.isFalse(image is CanvasElement);
     Expect.isTrue(image is ImageData);
     // Expect.isFalse(image is CanvasPixelArray);
 
@@ -42,14 +42,14 @@ main() {
     var bytes = image.data;
     Expect.isFalse(bytes is CanvasRenderingContext);
     Expect.isFalse(bytes is CanvasRenderingContext2D);
-    Expect.isFalse(bytes is HTMLElement);
-    Expect.isFalse(bytes is HTMLCanvasElement);
+    Expect.isFalse(bytes is Element);
+    Expect.isFalse(bytes is CanvasElement);
     Expect.isFalse(bytes is ImageData);
     Expect.isTrue(bytes is Uint8ClampedArray);
 
-    // FIXME: Ensure this is an HTMLSpanElement when we next update
+    // FIXME: Ensure this is an SpanElement when we next update
     // WebKit IDL.
-    var span = document.createElement('span');
-    Expect.isTrue(span is HTMLElement);
+    var span = new Element.tag('span');
+    Expect.isTrue(span is Element);
   });
 }

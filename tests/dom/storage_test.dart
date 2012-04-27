@@ -1,19 +1,19 @@
 #library('StorageTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
   test('GetItem', () {
-    final value = window.localStorage.getItem('does not exist');
+    final value = window.localStorage['does not exist'];
     Expect.isNull(value);
   });
   test('SetItem', () {
     final key = 'foo';
     final value = 'bar';
-    window.localStorage.setItem(key, value);
-    final stored = window.localStorage.getItem(key);
+    window.localStorage[key] = value;
+    final stored = window.localStorage[key];
     Expect.equals(value, stored);
   });
 }

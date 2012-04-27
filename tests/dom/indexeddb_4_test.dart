@@ -1,7 +1,7 @@
 #library('IndexedDB4Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 // Test for IDBKeyRange and IDBCursor.
 
@@ -15,8 +15,8 @@ class Test {
   start() {
     var request = window.webkitIndexedDB.open(DB_NAME);
     Expect.isNotNull(request);
-    request.addEventListener('success', initDb);
-    request.addEventListener('error', fail('open'));
+    request.on.success.add(initDb);
+    request.on.error.add(fail('open'));
   }
 
   initDb(e) {
@@ -25,7 +25,7 @@ class Test {
     // open call and listening to onversionchange.  Can we feature-detect the
     // difference and make it work?
     var request = db.setVersion(VERSION);
-    request.addEventListener('success', (e) {
+    request.on.success.add((e) {
         try {
           // Nuke object store if it already exists.
           db.deleteObjectStore(STORE_NAME);
@@ -33,8 +33,8 @@ class Test {
         db.createObjectStore(STORE_NAME);
         writeItems(0);
       });
-      request.addEventListener('blocked', fail('setVersion blocked'));
-      request.addEventListener('error', fail('setVersion error'));
+      request.on.blocked.add(fail('setVersion blocked'));
+      request.on.error.add(fail('setVersion error'));
   }
 
   writeItems(int index) {
@@ -42,8 +42,8 @@ class Test {
       var transaction = db.transaction([STORE_NAME], IDBTransaction.READ_WRITE);
       var request = transaction.objectStore(STORE_NAME)
           .put('Item $index', index);
-      request.addEventListener('success', (e) { writeItems(index + 1); });
-      request.addEventListener('error', fail('put'));
+      request.on.success.add((e) { writeItems(index + 1); });
+      request.on.error.add(fail('put'));
     } else {
       callbackDone();
     }
@@ -81,7 +81,7 @@ class Test {
           callbackDone();
         }
       });
-    cursorRequest.addEventListener('error', fail('openCursor'));
+    cursorRequest.on.error.add(fail('openCursor'));
   }
 
   only1() => testRange(new IDBKeyRange.only(55), 55, 55);
@@ -115,7 +115,7 @@ class Test {
 }
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   var test = new Test();
   asyncTest('prepare', 1, test.start);

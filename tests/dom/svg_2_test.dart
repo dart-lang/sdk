@@ -1,7 +1,7 @@
 #library('SVG2Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 
 // Test that SVG elements explicitly implement the IDL interfaces (is-checks
 // only, see SVGTest3 for behavioural tests).
@@ -9,21 +9,21 @@
 main() {
 
   insertTestDiv() {
-    var element = document.createElement('div');
+    var element = new Element.tag('div');
     element.innerHTML = @'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''';
-    document.body.appendChild(element);
+    document.body.nodes.add(element);
     return element;
   }
 
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   test('rect_isChecks', () {
       var div = insertTestDiv();
-      var r = document.getElementById('rect1');
+      var r = document.query('#rect1');
 
       // Direct inheritance chain
       Expect.isTrue(r is SVGElement);
@@ -43,6 +43,6 @@ main() {
       Expect.isFalse(r is SVGRect);
       Expect.isFalse(r is SVGSVGElement);
 
-      document.body.removeChild(div);
+      div.remove();
     });
 }

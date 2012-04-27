@@ -1,19 +1,19 @@
 #library('SerializedScriptValueTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
-#import('dart:dom');
+#import('../../lib/unittest/html_config.dart');
+#import('dart:html');
 #import('utils.dart');
 
 serializationTest(name, value) => test(name, () {
       // To check how value is serialized and deserialized, we create a MessageEvent.
-    final event = document.createEvent('MessageEvent');
+    final event = document.$dom_createEvent('MessageEvent');
     event.initMessageEvent('', false, false, value, '', '', window, []);
     verifyGraph(value, event.data);
 });
 
 
 main() {
-  useDomConfiguration();
+  useHtmlConfiguration();
 
   serializationTest('null', null);
   serializationTest('int', 1);
