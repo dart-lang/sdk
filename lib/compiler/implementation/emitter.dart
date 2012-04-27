@@ -552,20 +552,6 @@ function(child, parent) {
 ''');
   }
 
-  void emitStaticFinalFieldInitializations(StringBuffer buffer) {
-    ConstantHandler handler = compiler.constantHandler;
-    List<VariableElement> staticFinalFields =
-        handler.getStaticFinalFieldsForEmission();
-    for (VariableElement element in staticFinalFields) {
-      buffer.add(isolatePrototype);
-      buffer.add('.${namer.getName(element)} = ');
-      compiler.withCurrentElement(element, () {
-          handler.writeJsCodeForVariable(buffer, element);
-        });
-      buffer.add(';\n');
-    }
-  }
-
   void emitExtraAccessors(Element member,
                           String attachTo(String name),
                           StringBuffer buffer) {
@@ -740,7 +726,6 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       emitStaticFunctions(mainBuffer);
       emitStaticFunctionGetters(mainBuffer);
       emitCompileTimeConstants(mainBuffer);
-      emitStaticFinalFieldInitializations(mainBuffer);
 
       isolatePrototype = '${namer.ISOLATE}.prototype;\n';
       mainBuffer.add(

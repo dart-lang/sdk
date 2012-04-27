@@ -1686,10 +1686,16 @@ class SsaBuilder implements Visitor {
 
   void generateGetter(Send send, Element element) {
     if (Elements.isStaticOrTopLevelField(element)) {
-      Selector selector = elements.getSelector(send);
-      push(new HStatic(element));
-      if (element.kind == ElementKind.GETTER) {
-        push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+      if (element.kind == ElementKind.FIELD && !element.isAssignable()) {
+        // A static final. Get its constant value and inline it.
+        Constant value = compiler.constantHandler.compileVariable(element);
+        stack.add(graph.addConstant(value));
+      } else {
+        Selector selector = elements.getSelector(send);
+        push(new HStatic(element));
+        if (element.kind == ElementKind.GETTER) {
+          push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+        }
       }
     } else if (Elements.isInstanceSend(send, elements)) {
       HInstruction receiver = generateInstanceSendReceiver(send);
