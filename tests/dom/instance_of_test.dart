@@ -18,7 +18,7 @@ main() {
     Expect.isTrue(canvas is HTMLElement);
     Expect.isTrue(canvas is HTMLCanvasElement);
     Expect.isFalse(canvas is ImageData);
-    Expect.isFalse(canvas is CanvasPixelArray);
+    // Expect.isFalse(canvas is CanvasPixelArray);
 
     CanvasRenderingContext2D context = canvas.getContext('2d');
     Expect.isTrue(context is CanvasRenderingContext);
@@ -26,7 +26,7 @@ main() {
     Expect.isFalse(context is HTMLElement);
     Expect.isFalse(context is HTMLCanvasElement);
     Expect.isFalse(context is ImageData);
-    Expect.isFalse(context is CanvasPixelArray);
+    // Expect.isFalse(context is CanvasPixelArray);
 
     // FIXME(b/5286633): Interface injection type check workaround.
     var image = context.createImageData(canvas.width.dynamic, canvas.height.dynamic);
@@ -35,7 +35,7 @@ main() {
     Expect.isFalse(image is HTMLElement);
     Expect.isFalse(image is HTMLCanvasElement);
     Expect.isTrue(image is ImageData);
-    Expect.isFalse(image is CanvasPixelArray);
+    // Expect.isFalse(image is CanvasPixelArray);
 
     // Include CanvasPixelArray since constructor and prototype are not
     // available until one is created.
