@@ -299,18 +299,6 @@ class LocalsHandler {
       builder.add(parameter);
       directLocals[element] = parameter;
     });
-    if (closureData.thisElement !== null) {
-      // Once closures have been mapped to classes their instance members might
-      // not have any thisElement if the closure was created inside a static
-      // context.
-      assert(function.isInstanceMember() || function.isGenerativeConstructor());
-      // We have to introduce 'this' before we enter the scope, since it might
-      // need to be copied into a box (if it is captured). This is similar
-      // to all other parameters that are introduced.
-      HInstruction thisInstruction = new HThis();
-      builder.add(thisInstruction);
-      directLocals[closureData.thisElement] = thisInstruction;
-    }
 
     enterScope(node);
 
@@ -325,6 +313,14 @@ class LocalsHandler {
       HInstruction thisInstruction = new HThis();
       builder.add(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
+    } else if (function.isInstanceMember()
+               || function.isGenerativeConstructor()) {
+      // Once closures have been mapped to classes their instance members might
+      // not have any thisElement if the closure was created inside a static
+      // context.
+      HInstruction thisInstruction = new HThis();
+      builder.add(thisInstruction);
+      directLocals[closureData.thisElement] = thisInstruction;
     }
   }
 
