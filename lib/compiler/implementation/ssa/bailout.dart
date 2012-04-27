@@ -292,24 +292,35 @@ class SsaBailoutPropagator extends HBaseVisitor {
   final Compiler compiler;
   final List<HBasicBlock> blocks;
   final List<HLabeledBlockInformation> labeledBlockInformations;
+  SubGraph subGraph;  
 
   SsaBailoutPropagator(Compiler this.compiler)
       : blocks = <HBasicBlock>[],
         labeledBlockInformations = <HLabeledBlockInformation>[];
 
   void visitGraph(HGraph graph) {
+    subGraph = new SubGraph(graph.entry, graph.exit);    
     blocks.addLast(graph.entry);
     visitBasicBlock(graph.entry);
+    blocks.removeLast();
+    if (!blocks.isEmpty()) {
+      compiler.internalError('Bailout propagation',
+          node: compiler.currentElement.parseNode(compiler));
+    }
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    if (block.isLoopHeader()) blocks.addLast(block);
-    if (block.isLabeledBlock()) {
-      // If we're starting visiting a labeled block, we make sure that
-      // the block knows whether its successors have bailouts.
+    // Abort traversal if we are leaving the currently active sub-graph.
+    if (!subGraph.contains(block)) return;
+
+    if (block.isLoopHeader()) {
       blocks.addLast(block);
-      labeledBlockInformations.addLast(block.blockInformation);
+    } else if (block.isLabeledBlock() && blocks.last() !== block) {
+      HLabeledBlockInformation info = block.blockInformation;
+      visitSubGraph(info.body);
+      return;
     }
+
     HInstruction instruction = block.first;
     while (instruction != null) {
       instruction.accept(this);
@@ -317,28 +328,56 @@ class SsaBailoutPropagator extends HBaseVisitor {
     }
   }
 
-  void enterBlock(HBasicBlock block) {
-    if (block == null) return;
-    blocks.addLast(block);
-    visitBasicBlock(block);
+  void visitSubGraph(SubGraph graph) {
+    SubGraph oldSubGraph = subGraph;
+    subGraph = graph;
+    HBasicBlock start = graph.start;
+    blocks.addLast(start);
+    visitBasicBlock(start);
     blocks.removeLast();
+    subGraph = oldSubGraph;
+
+    if (start.isLabeledBlock()) {
+      HLabeledBlockInformation info = start.blockInformation;
+      if (info.joinBlock !== null) {
+        visitBasicBlock(info.joinBlock);
+      }
+    }
   }
 
   void visitIf(HIf instruction) {
-    enterBlock(instruction.thenBlock);
-    enterBlock(instruction.elseBlock);
-    enterBlock(instruction.joinBlock);
+    int preVisitedBlocks = 0;
+    HIfBlockInformation info = instruction.blockInformation;
+    visitSubGraph(info.thenGraph);
+    preVisitedBlocks++;
+    if (instruction.hasElse) {
+      visitSubGraph(info.elseGraph);
+      preVisitedBlocks++;
+    }
+
+    if (info.joinBlock !== null
+        && info.joinBlock.dominator !== instruction.block) {
+      // The join block is dominated by a block in one of the branches.
+      // The subgraph traversal never reached it, so we visit it here
+      // instead.
+      visitBasicBlock(info.joinBlock);
+    }
+
+    // Visit all the dominated blocks that are not part of the then or else
+    // branches, and is not the join block.
+    // Depending on how the then/else branches terminate
+    // (e.g., return/throw/break) there can be any number of these.
+    List<HBasicBlock> dominated = instruction.block.dominatedBlocks;
+    int dominatedCount = dominated.length;
+    for (int i = preVisitedBlocks; i < dominatedCount; i++) {
+      HBasicBlock dominatedBlock = dominated[i];
+      visitBasicBlock(dominatedBlock);
+    }
   }
 
   void visitGoto(HGoto goto) {
     HBasicBlock block = goto.block;
     HBasicBlock successor = block.successors[0];
-    if (!labeledBlockInformations.isEmpty()
-        && successor === labeledBlockInformations.last().joinBlock) {
-      labeledBlockInformations.removeLast();
-      blocks.removeLast();
-    }
-
     if (successor.dominator === block) {
       visitBasicBlock(block.successors[0]);
     }
@@ -346,12 +385,24 @@ class SsaBailoutPropagator extends HBaseVisitor {
 
   void visitLoopBranch(HLoopBranch branch) {
     HBasicBlock branchBlock = branch.block;
+    List<HBasicBlock> dominated = branchBlock.dominatedBlocks;
+    // For a do-while loop, the body has already been visited.
     if (!branch.isDoWhile()) {
-      // Not a do while loop. We visit the body of the loop.
-      visitBasicBlock(branchBlock.dominatedBlocks[0]);
+      visitBasicBlock(dominated[0]);
     }
     blocks.removeLast();
+
+    // If the branch does not dominate the code after the loop, the
+    // dominator will visit it.
+    if (branchBlock.successors[1].dominator !== branchBlock) return;
+
     visitBasicBlock(branchBlock.successors[1]);
+    // With labeled breaks we can have more dominated blocks.
+    if (dominated.length >= 3) {
+      for (int i = 2; i < dominated.length; i++) {
+        visitBasicBlock(dominated[i]);
+      }
+    }
   }
 
   visitTypeGuard(HTypeGuard guard) {

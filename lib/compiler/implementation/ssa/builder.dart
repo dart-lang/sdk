@@ -2557,7 +2557,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    work.allowSpeculativeOptimization = false;
     TargetElement target = elements[node];
     assert(target !== null);
     JumpHandler handler = jumpTargets[target];
@@ -2713,7 +2712,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    work.allowSpeculativeOptimization = false;
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBasicBlock startBlock = openNewBlock();
     visit(node.expression);
