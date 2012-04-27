@@ -25,7 +25,9 @@ Future<String> provider(Uri uri) {
                   class List {}
                   class Closure {}
                   class Dynamic {}
-                  class Null {}""";
+                  class Null {}
+                  eqNull(a) {}
+                  eqNullB(a) {}""";
     } else {
       source = "#library('lib');";
     }
