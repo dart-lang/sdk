@@ -27,6 +27,7 @@ class JSON {
 
 //// Implementation ///////////////////////////////////////////////////////////
 
+// TODO(ajohnsen): Introduce when we have a common exception interface for json.
 class JSONParseException {
   JSONParseException(int position, String message) :
       position = position,
@@ -349,7 +350,7 @@ class _JsonParser {
   }
 
   void _error(String message) {
-    throw new JSONParseException(position, message);
+    throw message;
   }
 
   final String json;
