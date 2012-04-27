@@ -1095,16 +1095,17 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  final HType concreteType;
+  /** The known type that this instruction yields. */
+  final HType knownType;
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs, [this.concreteType = HType.UNKNOWN])
+  HInvokeStatic(selector, inputs, [this.knownType = HType.UNKNOWN])
       : super(selector, inputs);
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
-  HType get guaranteedType() => concreteType;
+  HType get guaranteedType() => knownType;
 
   HType computeDesiredTypeForInput(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1130,8 +1131,10 @@ class HInvokeInterceptor extends HInvokeStatic {
   HInvokeInterceptor(Selector selector,
                      SourceString this.name,
                      bool this.getter,
-                     List<HInstruction> inputs)
-      : super(selector, inputs);
+                     List<HInstruction> inputs,
+                     [HType knownType = HType.UNKNOWN])
+      : super(selector, inputs, knownType);
+
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
@@ -1142,21 +1145,6 @@ class HInvokeInterceptor extends HInvokeStatic {
   bool isLengthGetterOnStringOrArray() {
     return isLengthGetter() && inputs[1].isIndexablePrimitive();
   }
-
-  String get builtinJsName() {
-    if (isLengthGetterOnStringOrArray()) {
-      return 'length';
-    } else if (name == const SourceString('add')
-               && inputs[1].isExtendableArray()) {
-      return 'push';
-    } else if (name == const SourceString('removeLast')
-               && inputs[1].isExtendableArray()) {
-      return 'pop';
-    }
-    return null;
-  }
-
-  HType get guaranteedType() => HType.UNKNOWN;
 
   HType get likelyType() {
     // In general a length getter or method returns an int.
@@ -1193,7 +1181,7 @@ class HInvokeInterceptor extends HInvokeStatic {
   int typeCode() => 4;
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
-    return builtinJsName == other.builtinJsName && name == other.name;
+    return getter == other.getter && name == other.name;
   }
 }
 

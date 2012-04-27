@@ -1524,20 +1524,73 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void visitInvokeInterceptor(HInvokeInterceptor node) {
-    if (node.builtinJsName != null) {
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
-      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(node.builtinJsName);
-      if (node.getter) return;
-      buffer.add('(');
-      for (int i = 2; i < node.inputs.length; i++) {
-        if (i != 2) buffer.add(', ');
-        use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+  String builtinJsName(HInvokeInterceptor interceptor) {
+    HInstruction receiver = interceptor.inputs[1];
+    bool getter = interceptor.getter;
+    SourceString name = interceptor.name;
+
+    if (receiver.isIndexablePrimitive()) {
+      if (interceptor.isLengthGetter()) {
+        return 'length';
+      } else if (!getter
+                 && name == const SourceString('indexOf')
+                 && interceptor.inputs.length == 3) {
+        // If there are three inputs, the start index is not given,
+        // and we share the same default value with the native
+        // implementation.
+        return 'indexOf';
+      } else if (!getter
+                 && name == const SourceString('lastIndexOf')
+                 && interceptor.inputs.length == 3) {
+        // If there are three inputs, the start index is not given,
+        // and we share the same default value with the native
+        // implementation.
+        return 'lastIndexOf';
       }
-      buffer.add(")");
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
+    }
+    
+    if (receiver.isExtendableArray() && !getter) {
+      if (name == const SourceString('add')) {
+        return 'push';
+      }
+      if (name == const SourceString('removeLast')) {
+        return 'pop';
+      }
+    }
+    
+    if (receiver.isString() && !getter) {
+      if (name == const SourceString('concat')
+          && interceptor.inputs[2].isString()) {
+        return '+';
+      }
+    }
+
+    return null;
+  }
+
+  void visitInvokeInterceptor(HInvokeInterceptor node) {
+    String builtin = builtinJsName(node);
+    if (builtin !== null) {
+      if (builtin == '+') {
+        beginExpression(JSPrecedence.ADDITIVE_PRECEDENCE);
+        use(node.inputs[1], JSPrecedence.ADDITIVE_PRECEDENCE);
+        buffer.add(' + ');
+        use(node.inputs[2], JSPrecedence.MULTIPLICATIVE_PRECEDENCE);
+        endExpression(JSPrecedence.ADDITIVE_PRECEDENCE);
+      } else {
+        beginExpression(JSPrecedence.CALL_PRECEDENCE);
+        use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
+        buffer.add('.');
+        buffer.add(builtin);
+        if (node.getter) return;
+        buffer.add('(');
+        for (int i = 2; i < node.inputs.length; i++) {
+          if (i != 2) buffer.add(', ');
+          use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        }
+        buffer.add(")");
+        endExpression(JSPrecedence.CALL_PRECEDENCE);
+      }
     } else {
       return visitInvokeStatic(node);
     }

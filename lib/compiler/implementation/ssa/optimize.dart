@@ -152,8 +152,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeInterceptor(HInvokeInterceptor node) {
+    HInstruction input = node.inputs[1];
     if (node.isLengthGetter()) {
-      HInstruction input = node.inputs[1];
       if (input.isConstantString()) {
         HConstant constantInput = input;
         StringConstant constant = constantInput.constant;
@@ -168,6 +168,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantInt(constant.length);
       }
     }
+
+    if (input.isString()
+        && node.name == const SourceString('toString')) {
+      return node.inputs[1];
+    }
+
+    if (input.isNonPrimitive() && !node.getter) {
+      return fromInterceptorToDynamicInvocation(node, node.name);
+    }
+
     return node;
   }
 

@@ -68,6 +68,15 @@ class Interceptors {
     return compiler.findHelper(new SourceString(boolifiedName));
   }
 
+  /**
+   * Return an interceptor where the return type is guaranteed.
+   */
+  Element getTypedInterceptor(HType type, SourceString name, int parameters) {
+    String mangledName =
+        "builtin\$${name.slowToString()}\$${parameters}\$$type";
+    return compiler.findHelper(new SourceString(mangledName));
+  }
+
   Element getPrefixOperatorInterceptor(Operator op) {
     String name = op.source.stringValue;
     if (name === '~') {
@@ -3096,7 +3105,7 @@ class StringBuilderVisitor extends AbstractVisitor {
         instruction: right);
     }
     Element interceptor =
-        builder.interceptors.getStaticInterceptor(dartMethodName, 1);
+        builder.interceptors.getTypedInterceptor(HType.STRING, dartMethodName, 1);
     if (interceptor === null) {
       builder.compiler.internalError(
           "concat not intercepted.", instruction: left);
@@ -3106,7 +3115,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.push(new HInvokeInterceptor(Selector.INVOCATION_1,
                                         dartMethodName,
                                         false,
-                                        <HInstruction>[target, left, right]));
+                                        <HInstruction>[target, left, right],
+                                        HType.STRING));
     return builder.pop();
   }
 
@@ -3116,8 +3126,8 @@ class StringBuilderVisitor extends AbstractVisitor {
       builder.compiler.internalError(
         "Using string interpolations in non-intercepted code.", node: node);
     }
-    Element interceptor =
-        builder.interceptors.getStaticInterceptor(dartMethodName, 0);
+    Element interceptor = builder.interceptors.getTypedInterceptor(
+        HType.STRING, dartMethodName, 0);
     if (interceptor === null) {
       builder.compiler.internalError(
         "toString not intercepted.", node: node);
@@ -3127,7 +3137,8 @@ class StringBuilderVisitor extends AbstractVisitor {
     builder.push(new HInvokeInterceptor(Selector.INVOCATION_0,
                                         dartMethodName,
                                         false,
-                                        <HInstruction>[target, input]));
+                                        <HInstruction>[target, input],
+                                        HType.STRING));
     return builder.pop();
   }
 

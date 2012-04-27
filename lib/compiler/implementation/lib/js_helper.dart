@@ -320,6 +320,17 @@ builtin$toString$0(var value) {
   return JS('string', @'String(#)', value);
 }
 
+builtin$toString$0$String(var value) {
+  var res = builtin$toString$0(value);
+  if (res is !String) throw new IllegalArgumentException(value);
+  return res;
+}
+
+builtin$concat$1$String(receiver, other) {
+  assert(receiver is String);
+  assert(other is String);
+  return JS('String', @'# + #', receiver, other);
+}
 
 builtin$iterator$0(receiver) {
   if (isJsArray(receiver)) {

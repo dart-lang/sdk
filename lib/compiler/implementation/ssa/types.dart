@@ -180,7 +180,7 @@ class HIndexablePrimitiveType extends HPrimitiveType {
 class HStringType extends HIndexablePrimitiveType {
   const HStringType();
   bool isString() => true;
-  String toString() => "string";
+  String toString() => "String";
 
   HType union(HType other) {
     if (other.isString() || other.isUnknown()) return HType.STRING;
