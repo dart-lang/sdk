@@ -499,7 +499,7 @@ class _WebSocketConnection implements WebSocketConnection {
     // Determine the header size.
     int headerSize = (mask) ? 6 : 2;
     if (dataLength > 65535) {
-      headerSize += 4;
+      headerSize += 8;
     } else if (dataLength > 126) {
       headerSize += 2;
     }
