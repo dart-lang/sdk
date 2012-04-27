@@ -82,3 +82,9 @@ $WRAPCASES
       throw 'Unrecognized object $domObject. Name=${domObject.typeName}';
   }
 }
+
+spawnDomIsolate(Window targetWindow, String entryPoint) =>
+  dom.spawnDomIsolateImpl(_unwrap(targetWindow), entryPoint);
+
+dom.LayoutTestController get layoutTestController() =>
+  dom.layoutTestController;
