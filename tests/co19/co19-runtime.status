@@ -116,11 +116,7 @@ LibTest/core/Math/tan_A01_t01: Fail
 
 [ $runtime == vm && $arch == x64 && $mode == debug ]
 LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
-LibTest/core/List/add_A01_t01: Skip # Timeout
-LibTest/core/List/sort_A01_t06: Skip # Timeout
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
-LibTest/core/Queue/addLast_A01_t01: Skip # Timeout
-LibTest/core/Queue/add_A01_t01: Skip # Timeout
 
 [ $runtime == vm && $checked ]
 Language/09_Generics/09_Generics_A04_t06: Fail # co19 issue 118
