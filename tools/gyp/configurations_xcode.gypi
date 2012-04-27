@@ -67,7 +67,7 @@
 
       'Dart_Debug': {
         'xcode_settings': {
-          'GCC_OPTIMIZATION_LEVEL': '0',
+          'GCC_OPTIMIZATION_LEVEL': '2',
         },
       },
 
