@@ -65,47 +65,24 @@ writeScript(Uri uri, List<String> scripts) {
 List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
   Uri dart2jsUri = dartUri.resolve('lib/compiler/implementation/dart2js.dart');
   String dart2jsPath = relativize(dartVmLocation, dart2jsUri);
-  String libraryRoot = relativize(dartVmLocation, dartUri);
-  libraryRoot = uriPathToNative('/../$libraryRoot');
+  String dart2jsPathWin = dart2jsPath.replaceAll("/", "\\");
 
   print('dartUri = $dartUri');
   print('dartVmLocation = $dartVmLocation');
   print('dart2jsUri = $dart2jsUri');
   print('dart2jsPath = $dart2jsPath');
-  print('libraryRoot = $libraryRoot');
+  print('dart2jsPathWin = $dart2jsPathWin');
 
   return [
-"""
-#!${dartVmLocation.path}$options
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+'''
+#!/bin/sh
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
 
-#import('dart:io');
-
-#import('$dart2jsPath');
-
-void main() {
-  try {
-    String libraryRoot = @'$libraryRoot';
-    String script = new Options().script;
-    List<String> argv = ['--library-root=\$script\$libraryRoot'];
-    argv.addAll(new Options().arguments);
-    compile(argv);
-  } catch (var exception, var trace) {
-    try {
-      print('Internal error: \$exception');
-    } catch (var ignored) {
-      print('Internal error: error while printing exception');
-    }
-    try {
-      print(trace);
-    } finally {
-      exit(253); // 253 is recognized as a crash by our test scripts.
-    }
-  }
-}
-""",
+BIN_DIR=`dirname \$0`
+exec \$BIN_DIR/dart$options \$BIN_DIR/$dart2jsPath "\$@"
+''',
 '''
 @echo off
 REM Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -119,6 +96,6 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
 
-"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%\dart2js" %arguments%
+"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$dart2jsPathWin" %arguments%
 '''.replaceAll('\n', '\r\n')];
 }

@@ -14,6 +14,8 @@
 #import('filenames.dart');
 #import('util/uri_extras.dart');
 
+final String LIBRARY_ROOT = '../../../..';
+
 void compile(List<String> argv) {
   Uri cwd = getCurrentDirectory();
   bool throwOnError = false;
@@ -133,4 +135,27 @@ String readAll(String filename) {
 void fail(String message) {
   print(message);
   exit(1);
+}
+
+void compilerMain(Options options) {
+  List<String> argv = ['--library-root=${options.script}/$LIBRARY_ROOT'];
+  argv.addAll(options.arguments);
+  compile(argv);
+}
+
+void main() {
+  try {
+    compilerMain(new Options());
+  } catch (var exception, var trace) {
+    try {
+      print('Internal error: \$exception');
+    } catch (var ignored) {
+      print('Internal error: error while printing exception');
+    }
+    try {
+      print(trace);
+    } finally {
+      exit(253); // 253 is recognized as a crash by our test scripts.
+    }
+  }
 }
