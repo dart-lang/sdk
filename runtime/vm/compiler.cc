@@ -85,7 +85,6 @@ static void ExtractTypeFeedback(const Code& code,
 
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
-  Error& error = Error::Handle();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -99,12 +98,17 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     const String& library_key = String::Handle(library.private_key());
     script.Tokenize(library_key);
     Parser::ParseCompilationUnit(library, script);
+    isolate->set_long_jump_base(base);
+    return Error::null();
   } else {
+    Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
   }
-  isolate->set_long_jump_base(base);
-  return error.raw();
+  UNREACHABLE();
+  return Error::null();
 }
 
 

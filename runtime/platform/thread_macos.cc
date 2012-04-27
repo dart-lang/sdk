@@ -71,7 +71,12 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  result = pthread_attr_setstacksize(&attr, 128 * KB);
+#ifdef DEBUG
+  const int kStackSize = (256 * KB);
+#else
+  const int kStackSize = (128 * KB);
+#endif
+  result = pthread_attr_setstacksize(&attr, kStackSize);
   RETURN_ON_PTHREAD_FAILURE(result);
 
   ThreadStartData* data = new ThreadStartData(function, parameter);
