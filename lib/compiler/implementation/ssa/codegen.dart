@@ -500,7 +500,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // The same block information is also put on the condition-block for
     // the traditional code generation.
     bool isInitializerBlock = (currentBlock !== info.header);
-    if (!isInitializerBlock) return false;
+    if (!isInitializerBlock && info.kind != HLoopInformation.DO_WHILE_LOOP) {
+      return false;
+    }
 
     SubExpression condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
@@ -516,12 +518,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
-    SubGraph initialization = info.initializer;
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
       case HLoopInformation.FOR_LOOP:
       case HLoopInformation.WHILE_LOOP:
       case HLoopInformation.FOR_IN_LOOP: {
+        SubGraph initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization !== null) {
           initializationType = expressionType(initialization);
@@ -595,9 +597,44 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         buffer.add("}\n");
         break;
       }
-      case HLoopInformation.DO_WHILE_LOOP:
-        // Currently unhandled.
-        return false;
+      case HLoopInformation.DO_WHILE_LOOP: {
+        // Generate do-while loop in all cases.
+        if (info.initializer !== null) {
+          visitSubGraph(info.initializer);
+        }
+        addIndentation();
+        for (LabelElement label in info.labels) {
+          if (label.isTarget) {
+            writeLabel(label);
+            buffer.add(":");
+          }
+        }
+        buffer.add("do {\n");
+        indent++;
+        if (!isConditionExpression || info.updates !== null) {
+          wrapLoopBodyForContinue(info);
+        } else {
+          visitBodyIgnoreLabels();
+        }
+        if (info.updates !== null) {
+          visitSubGraph(info.updates);
+        }
+        if (isConditionExpression) {
+          indent--;
+          addIndentation();
+          buffer.add("} while (");
+          visitExpressionGraph(condition);
+          buffer.add(");\n");
+        } else {
+          visitSubGraph(condition);
+          indent--;
+          addIndentation();
+          buffer.add("} while (");
+          use(condition.end.last.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+          buffer.add(");\n");
+        }
+        break;
+      }
       default:
         compiler.internalError(
           'Unexpected loop kind: ${info.kind}',
