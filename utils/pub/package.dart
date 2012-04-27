@@ -70,7 +70,7 @@ class Package implements Hashable {
 
       // Recurse into its dependencies.
       pendingAsyncCalls++;
-      package.loadDependencies().then((dependencies) {
+      package.loadDependencies(cache).then((dependencies) {
         dependencies.forEach(walkPackage);
         pendingAsyncCalls--;
         if (pendingAsyncCalls == 0) completer.complete(packages);

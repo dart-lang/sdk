@@ -75,8 +75,10 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
       return _validateExpectedPackages(createdAppDir, expectedPackageDir);
     });
 
-    future.then((valid) {
-      Expect.isTrue(valid); // TODO(bob): Report which expectation failed.
+    future.then((error) {
+      // Null means there were no errors.
+      if (error != null) Expect.fail(error);
+
       deleteSandboxIfCreated();
     });
 
@@ -87,7 +89,7 @@ void testPub(String description, [List<Descriptor> cache, Descriptor app,
 }
 
 Future<Directory> _setUpSandbox() {
-  return cleanDir('pub-test-sandbox');
+  return createTempDir('pub-test-sandbox-');
 }
 
 Future _setUpCache(Directory sandboxDir, List<Descriptor> cache) {
@@ -120,10 +122,14 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   return runProcess(dartBin, args, workingDir);
 }
 
-Future<bool> _validateExpectedPackages(Directory appDir,
+/**
+ * Validates the contents of the "packages" directory inside [appDir] against
+ * [expectedPackageDir].
+ */
+Future<String> _validateExpectedPackages(Directory appDir,
     List<Descriptor> expectedPackageDir) {
   // No expectation.
-  if (expectedPackageDir == null) return new Future.immediate(true);
+  if (expectedPackageDir == null) return new Future.immediate(null);
 
   return dir('packages', expectedPackageDir).validate(appDir.path);
 }
@@ -193,10 +199,10 @@ class Descriptor {
 
   /**
    * Validates that this descriptor correctly matches the corresponding file
-   * system entry within [dir]. Returns a [Future] that completes when the
-   * validation is done.
+   * system entry within [dir]. Returns a [Future] that completes to `null` if
+   * the entry is valid, or a message describing the error if it failed.
    */
-  abstract Future<bool> validate(String dir);
+  abstract Future<String> validate(String dir);
 }
 
 /**
@@ -223,12 +229,19 @@ class FileDescriptor extends Descriptor {
   /**
    * Validates that this file correctly matches the actual file at [path].
    */
-  Future<bool> validate(String path) {
+  Future<String> validate(String path) {
     path = join(path, name);
     return fileExists(path).chain((exists) {
-      if (!exists) return new Future.immediate(false);
+      if (!exists) {
+        return new Future.immediate('Expected file $path does not exist.');
+      }
 
-      return readTextFile(path).transform((text) => text == contents);
+      return readTextFile(path).transform((text) {
+        if (text == contents) return null;
+
+        return 'File $path should contain:\n\n$contents\n\n'
+               'but contained:\n\n$text';
+      });
     });
   }
 }
@@ -276,14 +289,19 @@ class DirectoryDescriptor extends Descriptor {
    * directory doesn't contain other unexpected stuff, just that it *does*
    * contain the stuff we do expect.
    */
-  Future<bool> validate(String path) {
+  Future<String> validate(String path) {
     // Validate each of the items in this directory.
     final entryFutures = contents.map(
         (entry) => entry.validate(join(path, name)));
 
     // If they are all valid, the directory is valid.
     return Futures.wait(entryFutures).transform((entries) {
-      return !entries.some((valid) => !valid);
+      for (final entry in entries) {
+        if (entry != null) return entry;
+      }
+
+      // If we got here, all of the sub-entries were valid.
+      return null;
     });
   }
 }
