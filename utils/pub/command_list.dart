@@ -13,6 +13,7 @@ class ListCommand extends PubCommand {
 
   void onRun() {
     cache.listAll().then((packages) {
+      packages.sort((a, b) => a.name.compareTo(b.name));
       for (final package in packages) {
         print(package.name);
       }
