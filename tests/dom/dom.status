@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 webgl_1_test: Skip  # Issue 1495
+audiocontext_test: Fail  # Issue 2770
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
@@ -10,7 +11,6 @@ indexeddb_4_test: Skip  # Hangs in dartium. IDBKeyRange constructors not impleme
 request_animation_frame_test: Skip    # drt hangs; requestAnimationFrame not implemented
 dart_object_local_storage_test: Skip
 wrapper_test: Skip
-audiocontext_test: Fail  # AudioContext has no constructor in dart:html
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538.
