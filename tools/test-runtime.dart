@@ -15,7 +15,6 @@
 #import("testing/dart/test_suite.dart");
 
 #import("../tests/co19/test_config.dart");
-#import("../tests/language/test_config.dart");
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
@@ -31,6 +30,7 @@
 final TEST_SUITE_DIRECTORIES = const [
   'tests/corelib',
   'tests/isolate',
+  'tests/language',
 ];
 
 main() {
@@ -75,9 +75,6 @@ main() {
     }
     if (selectors.containsKey('co19')) {
       queue.addTestSuite(new Co19TestSuite(conf));
-    }
-    if (selectors.containsKey('language')) {
-      queue.addTestSuite(new LanguageTestSuite(conf));
     }
     if (selectors.containsKey('lib')) {
       queue.addTestSuite(new LibTestSuite(conf));

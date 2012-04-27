@@ -10,387 +10,387 @@
 # failed on architectures other than the one you are working on.
 #
 # 1) Copy the old version of the test to
-#    tests/language/src/TestName[Dartc|VM|Frog]Test.dart.
+#    tests/language/src/test_name_[dartc|vm|frog]_test.dart.
 #    to maintain coverage.
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
 [ $compiler == none ]
-GCTest: Crash # Issue 1487
-FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
-FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
-FieldOverrideTest/02: Fail    # Issue 742: field shadowing now allowed
-SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
-PseudoKWIllegalTest/03: Fail  # Issue 356
-PseudoKWIllegalTest/08: Fail  # Issue 356
-PseudoKWIllegalTest/10: Fail  # Issue 356
-PseudoKWIllegalTest/14: Fail  # Issue 356
+gc_test: Crash # Issue 1487
+field_override_test/none: Fail  # Issue 742: field shadowing now allowed
+field_override_test/01: Fail    # Issue 742: field shadowing now allowed
+field_override_test/02: Fail    # Issue 742: field shadowing now allowed
+super_field_access_test: Fail    # Issue 742: field shadowing now allowed
+pseudo_kw_illegal_test/03: Fail  # Issue 356
+pseudo_kw_illegal_test/08: Fail  # Issue 356
+pseudo_kw_illegal_test/10: Fail  # Issue 356
+pseudo_kw_illegal_test/14: Fail  # Issue 356
 
 
 # These bugs refer currently ongoing language discussions.
-Constructor5Test: Fail          # (Discussion ongoing)
-Constructor6Test: Fail          # (Discussion ongoing)
-FunctionTypeAliasNegativeTest: Fail # Spec not clear about self referencing types.
+constructor5_test: Fail          # (Discussion ongoing)
+constructor6_test: Fail          # (Discussion ongoing)
+function_type_alias_negative_test: Fail # Spec not clear about self referencing types.
 
 # Bad tests needing to be fixed.
-TypeVariableScopeTest/00: Fail # Issue 2395
-TypeVariableScopeTest/01: Fail # Issue 2395
-TypeVariableScopeTest/02: Fail # Issue 2395
-TypeVariableScopeTest/03: Fail # Issue 2395
-TypeVariableScopeTest/04: Fail # Issue 2395
-TypeVariableScopeTest/05: Fail # Issue 2395
+type_variable_scope_test/00: Fail # Issue 2395
+type_variable_scope_test/01: Fail # Issue 2395
+type_variable_scope_test/02: Fail # Issue 2395
+type_variable_scope_test/03: Fail # Issue 2395
+type_variable_scope_test/04: Fail # Issue 2395
+type_variable_scope_test/05: Fail # Issue 2395
 
 # Regular bugs which should be fixed.
 
-ConstInit6NegativeTest: Fail       # Issue 811
-SuperFirstConstructorTest: Fail # Issue 1372.
+const_init6_negative_test: Fail       # Issue 811
+super_first_constructor_test: Fail # Issue 1372.
 
 # Issue 1034
-ConstructorDuplicateInitializersTest/01: Fail
-ConstructorDuplicateInitializersTest/02: Fail
+constructor_duplicate_initializers_test/01: Fail
+constructor_duplicate_initializers_test/02: Fail
 
 # Issue 1355
-CallOperatorTest: Fail
+call_operator_test: Fail
 
-ConstConstructorSyntaxTest/05: Fail
+const_constructor_syntax_test/05: Fail
 
-ConstructorRedirectTest/01: Fail # Issue 2103.
+constructor_redirect_test/01: Fail # Issue 2103.
 
 # DartC or Frog specific tests that should not be run by the VM
-*DartcTest: Skip
-*DartcNegativeTest: Skip
-*FrogTest: Skip
-*FrogNegativeTest: Skip
+*dartc_test: Skip
+*dartc_negative_test: Skip
+*frog_test: Skip
+*frog_negative_test: Skip
 
 [ $compiler == none && $mode == debug ]
-GCTest: Skip  # Takes too long.
+gc_test: Skip  # Takes too long.
 
 [ $compiler == dartc ]
-AbstractSyntaxTest/01: Fail
-ApplicationNegativeTest: Fail
-AssertKeywordNegativeTest: Fail
-AssertTest: Fail             # Uses AssertError class. Bug 4385894.
-AssignInstanceMethodNegativeTest: Fail
-BadNamedParametersTest: Fail      # Issue 1941
-BadNamedParameters2Test: Fail     # Issue 1941
-BodyLessConstructorWrongArgNegativeTest: Fail
-CallOperatorTest: Pass # Issue 1355
-CharEscapeTest: Pass # Issue 1654
-ClosureCallWrongArgumentCountNegativeTest: Fail
-CompileTimeConstant3Test: Fail # Issue 1780
-CompileTimeConstantOTest: Fail # Issue 2126
-CompileTimeConstantPTest/01: Fail # Issue 2580
-ConstConstructorSyntaxTest/05: Fail
-ConstCounterNegativeTest: Fail    # issue 1655
-Constructor3NegativeTest: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
-DefaultFactoryLibraryTest: Fail          # Issue 514
-DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
-DuplicateImplementsTest: Skip # Issue 976
-Field3aNegativeTest: Fail
-FieldMethod4NegativeTest: Fail
-FinalSyntaxTest/*: Skip  # can't handle base case
-FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-GenericParameterizedExtendsTest: Skip  # Bug 5392297
-GettersSettersType3Test: Fail # Issue 2351
-InstanceCallWrongArgumentCountNegativeTest: Fail
-Instanceof3Test: Fail # Issue 2571
-Label2NegativeTest: Fail    # issue 1658
-Library4NegativeTest: Fail   # Bug 5406175
-ListLiteral4Test: Fail       # Issue 1343
-LiteralUnaryPlusTest/01: Fail # Issue 1399
-MapLiteral4Test: Fail        # Issue 1343
-NamedParametersNegativeTest: Fail
-NoSuchMethodNegativeTest: Fail
-OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
-OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-OverrideFieldTest/04: Fail             # Bug 5215249
-OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-Prefix6NegativeTest: Fail	       # Issue 2383
-PrivateFactoryResolutionNegativeTest: Fail # Issue 2275
-PrivateMember3NegativeTest: Fail       # Issue 2383
-PseudoKWIllegalTest/01: Fail # Issue 356
-PseudoKWIllegalTest/02: Fail # Issue 356
-PseudoKWIllegalTest/03: Fail # Issue 356
-PseudoKWIllegalTest/04: Fail # Issue 356
-PseudoKWIllegalTest/05: Fail # Issue 356
-PseudoKWIllegalTest/06: Fail # Issue 356
-PseudoKWIllegalTest/07: Fail # Issue 356
-PseudoKWIllegalTest/08: Fail # Issue 356
-PseudoKWIllegalTest/09: Fail # Issue 356
-PseudoKWIllegalTest/10: Fail # Issue 356
-PseudoKWIllegalTest/11: Fail # Issue 356
-PseudoKWIllegalTest/12: Fail # Issue 356
-PseudoKWIllegalTest/13: Fail # Issue 356
-PseudoKWIllegalTest/14: Fail # Issue 356
-PseudoKWIllegalTest/15: Fail # Issue 356
-PseudoKWIllegalTest/16: Fail # Issue 356
-PseudoKWTest: Fail           # Issue 356
-ScopeNegativeTest: Fail      # Bug 4207538.
-StaticCallWrongArgumentCountNegativeTest: Fail
-StaticField1RunNegativeTest: Fail  # issue 1662
-StaticField1aRunNegativeTest: Fail # issue 1662
-StaticField2RunNegativeTest: Fail  # issue 1662
-StaticField2aRunNegativeTest: Fail # issue 1662
-StringEscape1NegativeTest: Fail # Issue 1351.
-StringEscape4NegativeTest: Fail # Issue 1351.
-StringInterpolation8Test: Fail # Issue 2126.
-Switch3NegativeTest: Fail # issue 1663
-Switch7NegativeTest: Fail    # Bug 4208467.
-SwitchLabelTest: Fail        # Bug 4208467.
-SyntaxTest: Skip             # Bug 2107  Static type warnings in none case
-ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
-Throw7NegativeTest: Fail     # Bug 4208459.
-TypeDartcTest: Fail          # Issue 2348
-TypeVariableScopeTest/00: Fail  # Issue 2395
-TypeVariableScopeTest/01: Fail  # Issue 2395
-TypeVariableScopeTest/02: Fail  # Issue 2395
-TypeVariableScopeTest/03: Fail  # Issue 2395
-TypeVariableScopeTest/04: Fail  # Issue 2395
-TypeVariableScopeTest/05: Fail  # Issue 2395
-ConstructorRedirectTest/01: Fail # Issue 2105.
+abstract_syntax_test/01: Fail
+application_negative_test: Fail
+assert_keyword_negative_test: Fail
+assert_test: Fail             # Uses AssertError class. Bug 4385894.
+assign_instance_method_negative_test: Fail
+bad_named_parameters_test: Fail      # Issue 1941
+bad_named_parameters2_test: Fail     # Issue 1941
+body_less_constructor_wrong_arg_negative_test: Fail
+call_operator_test: Pass # Issue 1355
+char_escape_test: Pass # Issue 1654
+closure_call_wrong_argument_count_negative_test: Fail
+compile_time_constant3_test: Fail # Issue 1780
+compile_time_constant_o_test: Fail # Issue 2126
+compile_time_constant_p_test/01: Fail # Issue 2580
+const_constructor_syntax_test/05: Fail
+const_counter_negative_test: Fail    # issue 1655
+constructor3_negative_test: Fail
+constructor_call_wrong_argument_count_negative_test: Fail
+default_factory_library_test: Fail          # Issue 514
+disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
+duplicate_implements_test: Skip # Issue 976
+field3a_negative_test: Fail
+field_method4_negative_test: Fail
+final_syntax_test/*: Skip  # can't handle base case
+function_type_alias_negative_test: Fail  # Bug 5231617.
+generic_parameterized_extends_test: Skip  # Bug 5392297
+getters_setters_type3_test: Fail # Issue 2351
+instance_call_wrong_argument_count_negative_test: Fail
+instanceof3_test: Fail # Issue 2571
+label2_negative_test: Fail    # issue 1658
+library4_negative_test: Fail   # Bug 5406175
+list_literal4_test: Fail       # Issue 1343
+literal_unary_plus_test/01: Fail # Issue 1399
+map_literal4_test: Fail        # Issue 1343
+named_parameters_negative_test: Fail
+no_such_method_negative_test: Fail
+override_field_method1_negative_test: Fail # Bug 5215249
+override_field_method2_negative_test: Fail # Bug 5215249
+override_field_method3_negative_test: Fail # Bug 5215249
+override_field_method4_negative_test: Fail # Bug 5215249
+override_field_method5_negative_test: Fail # Bug 5215249
+override_field_method6_negative_test: Fail # Bug 5215249
+override_field_test/04: Fail             # Bug 5215249
+override_method_with_field_test/01: Fail   # Bug 5215249
+prefix6_negative_test: Fail	       # Issue 2383
+private_factory_resolution_negative_test: Fail # Issue 2275
+private_member3_negative_test: Fail       # Issue 2383
+pseudo_kw_illegal_test/01: Fail # Issue 356
+pseudo_kw_illegal_test/02: Fail # Issue 356
+pseudo_kw_illegal_test/03: Fail # Issue 356
+pseudo_kw_illegal_test/04: Fail # Issue 356
+pseudo_kw_illegal_test/05: Fail # Issue 356
+pseudo_kw_illegal_test/06: Fail # Issue 356
+pseudo_kw_illegal_test/07: Fail # Issue 356
+pseudo_kw_illegal_test/08: Fail # Issue 356
+pseudo_kw_illegal_test/09: Fail # Issue 356
+pseudo_kw_illegal_test/10: Fail # Issue 356
+pseudo_kw_illegal_test/11: Fail # Issue 356
+pseudo_kw_illegal_test/12: Fail # Issue 356
+pseudo_kw_illegal_test/13: Fail # Issue 356
+pseudo_kw_illegal_test/14: Fail # Issue 356
+pseudo_kw_illegal_test/15: Fail # Issue 356
+pseudo_kw_illegal_test/16: Fail # Issue 356
+pseudo_kw_test: Fail           # Issue 356
+scope_negative_test: Fail      # Bug 4207538.
+static_call_wrong_argument_count_negative_test: Fail
+static_field1_run_negative_test: Fail  # issue 1662
+static_field1a_run_negative_test: Fail # issue 1662
+static_field2_run_negative_test: Fail  # issue 1662
+static_field2a_run_negative_test: Fail # issue 1662
+string_escape1_negative_test: Fail # Issue 1351.
+string_escape4_negative_test: Fail # Issue 1351.
+string_interpolation8_test: Fail # Issue 2126.
+switch3_negative_test: Fail # issue 1663
+switch7_negative_test: Fail    # Bug 4208467.
+switch_label_test: Fail        # Bug 4208467.
+syntax_test: Skip             # Bug 2107  Static type warnings in none case
+third_test: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
+throw7_negative_test: Fail     # Bug 4208459.
+type_dartc_test: Fail          # Issue 2348
+type_variable_scope_test/00: Fail  # Issue 2395
+type_variable_scope_test/01: Fail  # Issue 2395
+type_variable_scope_test/02: Fail  # Issue 2395
+type_variable_scope_test/03: Fail  # Issue 2395
+type_variable_scope_test/04: Fail  # Issue 2395
+type_variable_scope_test/05: Fail  # Issue 2395
+constructor_redirect_test/01: Fail # Issue 2105.
 
 #
 # Add new dartc annotations above in alphabetical order
 #
 
 # VM or Frog specific tests that should not be run by DartC.
-*VMTest: Skip
-*VMNegativeTest: Skip
-*FrogTest: Skip
-*FrogNegativeTest: Skip
+*vm_test: Skip
+*vm_negative_test: Skip
+*frog_test: Skip
+*frog_negative_test: Skip
 
 
 [ $compiler == none && $runtime == drt ]
 # TODO: These need to be retriaged.
-DisablePrivacyTest: Skip
-RichardsTest: Fail
-StringEscape1NegativeTest: Skip
-GCTest: Skip # Issue 1487
+disable_privacy_test: Skip
+richards_test: Fail
+string_escape1_negative_test: Skip
+gc_test: Skip # Issue 1487
 
 [ $compiler == frog && $unchecked ]
-BoolTest: Fail # Issue 2092
-CompileTimeConstantCTest/01: Fail # integers as keys in literal maps.
-Operator4Test: Fail
+bool_test: Fail # Issue 2092
+compile_time_constant_c_test/01: Fail # integers as keys in literal maps.
+operator4_test: Fail
 
 [ $compiler == frog ]
-StaticInitializerTypeErrorTest: Fail # Checked mode not implemented.
-ExceptionTest: Fail # Issue 1785
-Factory3Test: Fail # Issue 417
-Factory2NegativeTest: Fail
-CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
-CompileTimeConstantCTest/02: Fail # string-concatenated (+) keys in literal maps.
-CompileTimeConstantDTest: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
-CompileTimeConstantETest: Fail
-CompileTimeConstantGTest: Fail # compile time constants with super calls to optional arguments.
-CompileTimeConstantKTest: Fail # Constant maps are not canonicalized correctly if the same key appears multiple times.
-CompileTimeConstantLTest: Fail # final instance fields with default values are not initialized correctly.
-CompileTimeConstantOTest: Fail # String constants with string-interpolation.
-CompileTimeConstantPTest/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
-DisablePrivacyTest: Skip  # Issue 1882: Needs --disable_privacy support.
-DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
-# Once the -0.0 in DoubleToStringAsFixedTest is fixed it will probably need to
+static_initializer_type_error_test: Fail # Checked mode not implemented.
+exception_test: Fail # Issue 1785
+factory3_test: Fail # Issue 417
+factory2_negative_test: Fail
+call_through_null_getter_test: Fail # Throw ObjectNotClosure instead of NullPointerException.
+compile_time_constant_c_test/02: Fail # string-concatenated (+) keys in literal maps.
+compile_time_constant_d_test: Fail # doesn't recognize 400 + z (with z parameter of constructor) as compile-time constant.
+compile_time_constant_e_test: Fail
+compile_time_constant_g_test: Fail # compile time constants with super calls to optional arguments.
+compile_time_constant_k_test: Fail # Constant maps are not canonicalized correctly if the same key appears multiple times.
+compile_time_constant_l_test: Fail # final instance fields with default values are not initialized correctly.
+compile_time_constant_o_test: Fail # String constants with string-interpolation.
+compile_time_constant_p_test/01: Fail # Implicit super calls that don't match are not caught in compile-time constants.
+disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
+double_to_string_as_exponential_test: Fail # fails due to -0.0.
+# Once the -0.0 in double_to_string_as_fixed_test is fixed it will probably need to
 # be moved to a
 # [ $compiler == frog ]
 # section.
-DoubleToStringAsFixedTest: Fail # fails due to -0.0 and due to rounding in constant propagation.
-DoubleToStringAsPrecisionTest: Fail # fails due to -0.0.
-ExtendTypeParameterNegativeTest: Skip # Issue 886
-ExtendTypeParameter2NegativeTest: Skip # Issue 886
-FinalSyntaxTest/none: Fail
-GetSetSyntaxTest/00: Fail # Issue 1571
-GetSetSyntaxTest/01: Fail # Issue 1571
-GetSetSyntaxTest/02: Fail # Issue 1571
-GetSetSyntaxTest/03: Fail # Issue 1571
-GetSetSyntaxTest/04: Fail # Issue 1571
-GetSetSyntaxTest/05: Fail # Issue 1571
-GetSetSyntaxTest/06: Fail # Issue 1571
-GetSetSyntaxTest/07: Fail # Issue 1571
-GetSetSyntaxTest/08: Fail # Issue 1571
-GetSetSyntaxTest/09: Fail # Issue 1571
-GetSetSyntaxTest/10: Fail # Issue 1571
-GetSetSyntaxTest/11: Fail # Issue 1571
-GetSetSyntaxTest/12: Fail # Issue 1571
-GetSetSyntaxTest/13: Fail # Issue 1571
-GetSetSyntaxTest/14: Fail # Issue 1571
-GetSetSyntaxTest/15: Fail # Issue 1571
-ImplementTypeParameterNegativeTest: Skip # Issue 887
-FactoryImplementationTest: Fail # Issue 523
-PseudoKWTest: Fail  # Issue 356
-NamingTest: Fail    # Issue 356
-DuplicateImplementsTest: Skip   # Issue 976
-DoubleToString: Fail  # Prints "3" instead of "3.0".
-ThirdTest: Fail # Issue 1511
-TryCatchSyntaxTest/08: Fail
-TryCatchSyntaxTest/09: Fail
-CondExprTest: Fail
-StringInterpolation8Test: Fail # Issue 2127
-SuperFieldAccessTest: Fail # Issue 1695
-CompileTimeConstant6Test: Fail
-ConstructorRedirectTest/01: Fail # Issue 2104.
+double_to_string_as_fixed_test: Fail # fails due to -0.0 and due to rounding in constant propagation.
+double_to_string_as_precision_test: Fail # fails due to -0.0.
+extend_type_parameter_negative_test: Skip # Issue 886
+extend_type_parameter2_negative_test: Skip # Issue 886
+final_syntax_test/none: Fail
+get_set_syntax_test/00: Fail # Issue 1571
+get_set_syntax_test/01: Fail # Issue 1571
+get_set_syntax_test/02: Fail # Issue 1571
+get_set_syntax_test/03: Fail # Issue 1571
+get_set_syntax_test/04: Fail # Issue 1571
+get_set_syntax_test/05: Fail # Issue 1571
+get_set_syntax_test/06: Fail # Issue 1571
+get_set_syntax_test/07: Fail # Issue 1571
+get_set_syntax_test/08: Fail # Issue 1571
+get_set_syntax_test/09: Fail # Issue 1571
+get_set_syntax_test/10: Fail # Issue 1571
+get_set_syntax_test/11: Fail # Issue 1571
+get_set_syntax_test/12: Fail # Issue 1571
+get_set_syntax_test/13: Fail # Issue 1571
+get_set_syntax_test/14: Fail # Issue 1571
+get_set_syntax_test/15: Fail # Issue 1571
+implement_type_tarameter_negative_test: Skip # Issue 887
+factory_implementation_test: Fail # Issue 523
+pseudo_kw_test: Fail  # Issue 356
+naming_test: Fail    # Issue 356
+duplicate_implements_test: Skip   # Issue 976
+double_to_string: Fail  # Prints "3" instead of "3.0".
+third_test: Fail # Issue 1511
+try_catch_syntax_test/08: Fail
+try_catch_syntax_test/09: Fail
+cond_expr_test: Fail
+string_interpolation8_test: Fail # Issue 2127
+super_field_access_test: Fail # Issue 1695
+compile_time_constant6_test: Fail
+constructor_redirect_test/01: Fail # Issue 2104.
 
-SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
+savannah_test: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
 # VM or DartC specific tests not to be run by Frog. See language.status
-*VMTest: Skip
-*VMNegativeTest: Skip
-*DartcTest: Skip
-*DartcNegativeTest: Skip
+*vm_test: Skip
+*vm_negative_test: Skip
+*dartc_test: Skip
+*dartc_negative_test: Skip
 # Currently, these patterns skip three tests:
-# MathVMTest - correctly skipped as this relies on VM guarantees
+# math_vm_test - correctly skipped as this relies on VM guarantees
 #    - should add a version of this with the --enable_type_checks flag
-# TypeVMTest - correctly skipped as this relies on detailed of TypeError
-# TypeDartcTest - should pass, need refactoring to get frog safe version
+# type_vm_test - correctly skipped as this relies on detailed of TypeError
+# type_dartc_test - should pass, need refactoring to get frog safe version
 
-BitOperationsTest: Fail  # relies on big integers not available in JS
-CallOperatorTest: Fail # Issue 1355
-CallThroughGetterTest: Fail
-CharEscapeTest: Fail # relies on 4 byte unicode not available in JS
-ClassOverrideNegativeTest: Fail
-ClosureSharedStateTest: Fail
-ConstObjectsAreImmutableTest: Fail
-DefaultFactoryLibraryTest: Fail    # Issue 514
-DynamicTest: Fail
-ExampleConstructorTest: Fail
-Constructor2Test: Fail
-Constructor3Test: Fail
-Constructor5Test: Fail    # Order of initializers.
-Constructor6Test: Fail    # Parse failure in initializers.
-ExecuteFinally6Test: Fail
-ExpectTest: Fail
-FauxverrideTest/03: Fail
-FauxverrideTest/05: Fail
-Field3NegativeTest: Fail  # Issue 729
-FinalParamNegativeTest: Fail
-For2Test: Fail
-FunctionSyntaxTest: Fail
-FunctionTest: Fail
-FunctionTypeAliasNegativeTest: Fail
-FunctionTypeAliasTest: Fail
-FunctionTypeAlias2Test: Fail
-FunctionTypeAlias3Test: Fail
-FunctionTypeAlias4Test: Fail
-FunctionTypeParameter2Test: Fail
-FunctionTypeParameterTest: Fail
-GenericDeepTest: Fail
-GenericInstanceofTest: Fail
-GenericInstanceof2Test: Fail
-GenericSyntaxTest: Fail
-GenericTest: Fail
-GenericsTest: Fail
-GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is really passing in the static case
-ImplicitScopeTest: Fail
-ImpliedInterfaceTest: Fail
-Instanceof2Test: Fail
-Instanceof3Test: Fail # Issue 2571
-InterfaceFactory3NegativeTest: Fail
-IsNotClass4NegativeTest: Fail
-LabelTest: Fail
-ListLiteral3Test: Fail # vm and frog throw different exceptions
-ListLiteral4Test: Fail # missing type checks on index operations
-ListTest: Fail         # array bound checks not implemented
-LocalFunction3Test: Fail
-LocalFunctionTest: Fail
-ManyGenericInstanceofTest: Fail
-MapLiteral4Test: Fail # missing checks on map index operations
-MathTest: Fail
-MethodOverrideTest: Fail # checking on precise type rules for methods
-NamedParametersTypeTest: Fail
-NamedParametersWithConversionsTest: Fail
-NonConstSuperNegativeTest: Fail
-NullPointerExceptionTest: Fail
-NullTest: Fail
-NullToStringTest: Fail
-NumbersTest: Fail
-OverrideFieldTest/01: Fail
-OverrideFieldTest/04: Fail
-OverrideMethodWithFieldTest/01: Fail
-ParameterInitializer5NegativeTest: Fail  # Issue 581
-Prefix101Test: Fail # Allow multiple imports with same prefix.
-Prefix8NegativeTest: Fail
-Prefix9NegativeTest: Fail
-Prefix11NegativeTest: Fail
-Prefix16Test: Fail
-Prefix20NegativeTest: Fail
-PrivateMemberTest: Fail
-PrivateMember1NegativeTest: Fail
-PrivateMember2NegativeTest: Fail
-PrivateMember3NegativeTest: Fail
-PrivateTest: Fail
-RegExp3Test: Fail
-ScopeNegativeTest: Fail
-ScriptNegativeTest: Fail
-SuperImplicitClosureTest: Fail
-SuperTest: Fail  # this is testing precise ordering of super constructor call
-SwitchLabelTest: Fail
-TypeChecksInFactoryMethodTest: Fail # Issue 925
-TypeVariableBoundsTest/00: Fail # Issue 2134
-TypeVariableBoundsTest/10: Fail # Issue 2134
-TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
-TypeVariableShadowsClass: Fail # Issue 643
-WrongNumberTypeArgumentsTest/00: Fail # Issue 2134
-ImplicitThisTest/01: Fail # Issue 376
-ImplicitThisTest/02: Fail # Issue 376
-ImplicitThisTest/03: Fail # Issue 376
-ImplicitThisTest/04: Fail # Issue 376
-ImplicitThisTest/none: Fail # Issue 376
+bit_operations_test: Fail  # relies on big integers not available in JS
+call_operator_test: Fail # Issue 1355
+call_through_getter_test: Fail
+char_escape_test: Fail # relies on 4 byte unicode not available in JS
+class_override_negative_test: Fail
+closure_shared_state_test: Fail
+const_objects_are_immutable_test: Fail
+default_factory_library_test: Fail    # Issue 514
+dynamic_test: Fail
+example_constructor_test: Fail
+constructor2_test: Fail
+constructor3_test: Fail
+constructor5_test: Fail    # Order of initializers.
+constructor6_test: Fail    # Parse failure in initializers.
+execute_finally6_test: Fail
+expect_test: Fail
+fauxverride_test/03: Fail
+fauxverride_test/05: Fail
+field3_negative_test: Fail  # Issue 729
+final_param_negative_test: Fail
+for2_test: Fail
+function_syntax_test: Fail
+function_test: Fail
+function_type_alias_negative_test: Fail
+function_type_alias_test: Fail
+function_type_alias2_test: Fail
+function_type_alias3_test: Fail
+function_type_alias4_test: Fail
+function_type_parameter2_test: Fail
+function_type_parameter_test: Fail
+generic_deep_test: Fail
+generic_instanceof_test: Fail
+generic_instanceof2_test: Fail
+generic_syntax_test: Fail
+generic_test: Fail
+generics_test: Fail
+getter_closure_execution_order_test: Pass # TODO(jmesserly): I don't think this is really passing in the static case
+implicit_scope_test: Fail
+implied_interface_test: Fail
+instanceof2_test: Fail
+instanceof3_test: Fail # Issue 2571
+interface_factory3_negative_test: Fail
+is_not_class4_negative_test: Fail
+label_test: Fail
+list_literal3_test: Fail # vm and frog throw different exceptions
+list_literal4_test: Fail # missing type checks on index operations
+list_test: Fail         # array bound checks not implemented
+local_function3_test: Fail
+local_function_test: Fail
+many_generic_instanceof_test: Fail
+map_literal4_test: Fail # missing checks on map index operations
+math_test: Fail
+method_override_test: Fail # checking on precise type rules for methods
+named_parameters_type_test: Fail
+named_parameters_with_conversions_test: Fail
+non_const_super_negative_test: Fail
+null_pointer_exception_test: Fail
+null_test: Fail
+null_to_string_test: Fail
+numbers_test: Fail
+override_field_test/01: Fail
+override_field_test/04: Fail
+override_method_with_field_test/01: Fail
+parameter_initializer5_negative_test: Fail  # Issue 581
+prefix101_test: Fail # Allow multiple imports with same prefix.
+prefix8_negative_test: Fail
+prefix9_negative_test: Fail
+prefix11_negative_test: Fail
+prefix16_test: Fail
+prefix20_negative_test: Fail
+private_member_test: Fail
+private_member1_negative_test: Fail
+private_member2_negative_test: Fail
+private_member3_negative_test: Fail
+private_test: Fail
+reg_exp3_test: Fail
+scope_negative_test: Fail
+script_negative_test: Fail
+super_implicit_closure_test: Fail
+super_test: Fail  # this is testing precise ordering of super constructor call
+switch_label_test: Fail
+type_checks_in_factory_method_test: Fail # Issue 925
+type_variable_bounds_test/00: Fail # Issue 2134
+type_variable_bounds_test/10: Fail # Issue 2134
+type_variable_identifier_expression_negative_test: Fail # Issue 643
+type_variable_shadows_class: Fail # Issue 643
+wrong_number_type_arguments_test/00: Fail # Issue 2134
+implicit_this_test/01: Fail # Issue 376
+implicit_this_test/02: Fail # Issue 376
+implicit_this_test/03: Fail # Issue 376
+implicit_this_test/04: Fail # Issue 376
+implicit_this_test/none: Fail # Issue 376
 
 #Issue 1308
-NamedParameters2Test: Fail
-NamedParameters3Test: Fail
-NamedParameters4Test: Fail
+named_parameters2_test: Fail
+named_parameters3_test: Fail
+named_parameters4_test: Fail
 
-StringEscape4NegativeTest: Fail # Issue 1352
+string_escape4_negative_test: Fail # Issue 1352
 
-Issue4515170Test: Fail
+issue4515170_test: Fail
 
 [ $compiler == frog && $runtime == d8 ]
-StringEscape1NegativeTest: Fail # TODO(sra): investigate
+string_escape1_negative_test: Fail # TODO(sra): investigate
 
 [ $runtime == chrome ]
-StringEscape1NegativeTest: Skip
+string_escape1_negative_test: Skip
 
 [ $runtime == ff || $runtime == safari || $runtime == ie) ]
-Closure3Test: Fail
-MethodInvocationTest: Fail
-Private3Test: Fail
-StackTraceTest: Fail
-StringInterpolateNPETest: Fail
+closure3_test: Fail
+method_invocation_test: Fail
+private3_test: Fail
+stack_trace_test: Fail
+string_interpolate_npe_test: Fail
 
 # For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
 # other browsers don't, so they eventually timeout. See issue 1515.
 # In any case, we shouldn't be relying on SyntaxError.
-Label2NegativeTest: Skip
-Label3NegativeTest: Skip
-Label5NegativeTest: Skip
-Label6NegativeTest: Skip
-LabelTest: Skip
-StringEscape1NegativeTest: Skip
-Switch3NegativeTest: Skip
-Switch4NegativeTest: Skip
-ExecuteFinally6Test: Skip
+label2_negative_test: Skip
+label3_negative_test: Skip
+label5_negative_test: Skip
+label6_negative_test: Skip
+label_test: Skip
+string_escape1_negative_test: Skip
+switch3_negative_test: Skip
+switch4_negative_test: Skip
+execute_finally6_test: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
 *: Skip
 
 [ $runtime == ff ]
-NamingTest: Fail
-StackOverflowTest: Fail
-ExecuteFinally7Test: Skip
-StaticFinalField2NegativeTest: Skip
+naming_test: Fail
+stack_overflow_test: Fail
+execute_finally7_test: Skip
+static_final_field2_negative_test: Skip
 
 [ $runtime == ff && $system == windows ]
-CTConst2Test: Pass,Fail  # Issue 2101
+ct_const2_test: Pass,Fail  # Issue 2101
 
 [ $runtime == ie ]
-StackOverflowTest: Fail
-ObjectDynamicMethodTest: Fail
-NumberSyntaxTest: Fail
+stack_overflow_test: Fail
+object_dynamic_method_test: Fail
+number_syntax_test: Fail
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
@@ -399,48 +399,48 @@ NumberSyntaxTest: Fail
 *: Skip
 
 [ $compiler == frog && $unchecked ]
-PrivateMemberTest/01: Fail # test seems bad - see issue #353
-PrivateMemberTest/02: Fail # test seems bad - see issue #353
-PrivateMemberTest/03: Fail # test seems bad - see issue #353
-PrivateMemberTest/04: Fail # test seems bad - see issue #353
+private_member_test/01: Fail # test seems bad - see issue #353
+private_member_test/02: Fail # test seems bad - see issue #353
+private_member_test/03: Fail # test seems bad - see issue #353
+private_member_test/04: Fail # test seems bad - see issue #353
 
 [ $compiler == frog && $checked ]
-FBoundedQuantificationTest/01: Fail # Issue 439
-FBoundedQuantificationTest/02: Fail # Issue 439
-PrivateMemberTest/none: Fail # test seems bad - see issue #353
-AssignStaticTypeTest/01: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/02: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/03: Fail # Unrecognized option: --no-enable-type-checks.
-AssignStaticTypeTest/04: Fail # Unrecognized option: --no-enable-type-checks.
-TypeVariableBoundsTest/01: Fail # Issue 2135
-TypeVariableBoundsTest/02: Fail # Issue 2135
-TypeVariableBoundsTest/05: Fail # Issue 2135
-TypeVariableBounds2Test/00: Fail # Issue 2135
-TypeVariableBounds2Test/03: Fail # Issue 2135
-TypeVariableBounds2Test/05: Fail # Issue 2135
+f_bounded_quantification_test/01: Fail # Issue 439
+f_bounded_quantification_test/02: Fail # Issue 439
+private_member_test/none: Fail # test seems bad - see issue #353
+assign_static_type_test/01: Fail # Unrecognized option: --no-enable-type-checks.
+assign_static_type_test/02: Fail # Unrecognized option: --no-enable-type-checks.
+assign_static_type_test/03: Fail # Unrecognized option: --no-enable-type-checks.
+assign_static_type_test/04: Fail # Unrecognized option: --no-enable-type-checks.
+type_variable_bounds_test/01: Fail # Issue 2135
+type_variable_bounds_test/02: Fail # Issue 2135
+type_variable_bounds_test/05: Fail # Issue 2135
+type_variable_bounds2_test/00: Fail # Issue 2135
+type_variable_bounds2_test/03: Fail # Issue 2135
+type_variable_bounds2_test/05: Fail # Issue 2135
 
 [ $compiler == frog && $runtime == d8 ]
 # these tests are inconsistent in frogium, investigate
-StaticField1RunNegativeTest: Pass
-StaticField2RunNegativeTest: Pass
-SyntaxTest/28: Fail # Issue 1109
-SyntaxTest/29: Fail # Issue 1109
-SyntaxTest/31: Fail # Issue 1109
-SyntaxTest/32: Fail # Issue 1109
-SyntaxTest/33: Fail # Issue 1109
-LiteralUnaryPlusTest/01: Fail # Issue 1400
+static_field1_run_negative_test: Pass
+static_field2_run_negative_test: Pass
+syntax_test/28: Fail # Issue 1109
+syntax_test/29: Fail # Issue 1109
+syntax_test/31: Fail # Issue 1109
+syntax_test/32: Fail # Issue 1109
+syntax_test/33: Fail # Issue 1109
+literal_unary_plus_test/01: Fail # Issue 1400
 
 [ $compiler == frog ]
-StringEscape3NegativeTest: Fail # Issue 1352
+string_escape3_negative_test: Fail # Issue 1352
 
 [ $compiler == frog && $runtime == drt ]
 # these tests are inconsistent in frogium, investigate
-StaticField1RunNegativeTest: Pass # but error is not correct
-StaticField2RunNegativeTest: Pass # but error is not correct
+static_field1_run_negative_test: Pass # but error is not correct
+static_field2_run_negative_test: Pass # but error is not correct
 
 [ $compiler == frog && $mode == debug ]
-ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
-ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
+constructor_redirect1_negative_test: Skip # Undiagnosed infinite loop.
+constructor_redirect2_negative_test: Skip # Undiagnosed infinite loop.
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
@@ -451,3 +451,212 @@ ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
 [ $arch == arm ]
 *: Skip
 
+[ $compiler == dart2js && $checked ]
+*: Skip
+
+
+[ $compiler == dart2js]
+compile_time_constant8_test: Fail # We don't take the generic type into account yet.
+static_initializer_type_error_test: Fail # Checked mode not supported.
+
+
+# Compilation errors.
+ct_const_test: Fail # We don't take the generic type into account yet.
+call_operator_test: Fail # Unexpected token 'call'
+char_escape_test: Fail # Unhandled non-BMP character: U+10000
+constructor6_test: Fail # Closures inside initializers not implemented.
+default_factory_library_test: Fail # lib is not a type
+dynamic_test: Fail # cannot resolve type F1
+factory3_test: Fail # internal error: visitIs for type variables not implemented
+function_literals2_test: Fail # Closures inside initializers not implemented.
+function_syntax_test: Fail # Closures inside initializers not implemented.
+function_test: Fail # internal error: Closures inside initializers not implemented
+function_type_alias2_test: Fail # cannot resolve type f1
+function_type_alias3_test: Fail # cannot resolve type F
+function_type_alias4_test: Fail # cannot resolve type F
+function_type_alias_test: Fail # cannot resolve type Fun
+function_type_parameter2_test: Fail # Internal Error: expected optional parameters
+function_type_parameter_test: Fail # Internal Error: expected optional parameters
+generic_instanceof_test: Fail # cannot resolve type T
+generic_instanceof2_test: Fail # fails an instance of test at run time
+generic_instanceof3_test: Fail # cannot handle generics.
+generic_test: Fail # cannot resolve type T
+get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
+getters_setters_test: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+implicit_scope_test: Fail # duplicate definition of a="bar"
+label_test: Fail # switch cases are not implemented
+library_prefixes_test: Fail # other is not a type
+local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
+many_generic_instanceof_test: Fail # cannot resolve type T
+method_binding_test: Fail # internal error: super property read not implemented.
+method_name_test: Fail # Parsing of pseudo keywords.
+method_override_test: Fail # cannot resolve type GetKeysFunctionType
+named_parameters2_test: Fail # Unimplemented non-matching static call
+named_parameters3_test: Fail # Unimplemented non-matching static call
+named_parameters4_test: Fail # Unimplemented non-matching static call
+naming_test: Fail # Broken because operator negate is not accessible as if it was a method.
+parameter_initializer_test: Fail # internal error: super property read not implemented
+pseudo_kw_test: Fail # Unexpected token '('
+super_field_access_test: Fail # internal error: super property read not implemented
+super_field_test: Fail # internal error: super property read not implemented
+super_implicit_closure_test: Fail # internal error: super property read not implemented
+super_operator_test: Fail # internal error: super property store not implemented
+super_setter_test: Fail # internal error: super property read not implemented
+switch_label_test: Fail # error: target of continue is not a loop or switch case
+
+
+# Implementation errors (library or generated code).
+assertion_test: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+generic_deep_test: Fail # Expect.isTrue(false) fails.
+generic_inheritance_test: Fail # Expect.isTrue(false) fails.
+generic_parameterized_extends_test: Fail # Expect.isTrue(false) fails.
+instanceof2_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+instanceof3_test: Fail # cannot resolve type UndeclaredType.
+library_private_in_constructor_test: Fail # Issue 2620.
+list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
+map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
+named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
+type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
+
+
+#
+# The following tests are all semantic tests that we can rely on dartc
+# catching for now.
+#
+abstract_static_negative_test: Fail, OK # Negative language test.
+abstract_syntax_test/01: Fail, OK # Negative language test.
+abstract_syntax_test/02: Fail, OK # Negative language test.
+assign_top_method_negative_test: Fail, OK # Negative language test.
+class_cycle_negative_test: Fail, OK # Negative language test.
+class_extends_negative_test: Fail, OK # Negative language test.
+class_override_negative_test: Fail, OK # Negative language test.
+const_constructor_syntax_test/01: Fail, OK # Negative language test.
+const_constructor_syntax_test/02: Fail, OK # Negative language test.
+const_constructor_syntax_test/03: Fail, OK # Negative language test.
+const_constructor_syntax_test/04: Fail, OK # Negative language test.
+const_factory_negative_test: Fail, OK # Negative language test.
+const_field_negative_test: Fail, OK # Negative language test.
+const_init4_negative_test: Fail, OK # Negative language test.
+const_init_negative_test: Fail, OK # Negative language test.
+const_syntax_test/01: Fail, OK # Negative language test.
+const_syntax_test/02: Fail, OK # Negative language test.
+const_syntax_test/03: Fail, OK # Negative language test.
+constructor2_negative_test: Fail, OK # Negative language test.
+constructor_duplicate_initializers_test/02: Fail, OK # Negative language test.
+constructor_negative_test: Pass # For the wrong reason.
+constructor_return_negative_test: Fail, OK # Negative language test.
+constructor_return_with_arrow_negative_test: Fail, OK # Negative language test.
+constructor_return_with_init_and_arrow_negative_test: Fail, OK # Negative language test.
+constructor_return_with_init_negative_test: Fail, OK # Negative language test.
+duplicate_constructor_test/01: Fail, OK # Negative language test.
+duplicate_implements_test/01: Fail, OK # Negative language test.
+duplicate_implements_test/02: Fail, OK # Negative language test.
+duplicate_implements_test/03: Fail, OK # Negative language test.
+duplicate_implements_test/04: Fail, OK # Negative language test.
+empty_body_member_negative_test: Fail, OK # Negative language test.
+factory2_negative_test: Fail, OK # Negative language test.
+factory3_negative_test: Fail, OK # Negative language test.
+factory_negative_test: Fail, OK # Negative language test.
+fauxverride_test/03: Fail, OK # Negative language test.
+fauxverride_test/05: Fail, OK # Negative language test.
+field1_negative_test: Fail, OK # Negative language test.
+field2_negative_test: Fail, OK # Negative language test.
+field3_negative_test: Fail, OK # Negative language test.
+field4_negative_test: Fail, OK # Negative language test.
+field5_negative_test: Fail, OK # Negative language test.
+field6_negative_test: Fail, OK # Negative language test.
+field6a_negative_test: Fail, OK # Negative language test.
+field7_negative_test: Fail, OK # Negative language test.
+field7a_negative_test: Fail, OK # Negative language test.
+final_for_in_variable_test/01: Fail, OK # Negative language test
+final_param_negative_test: Fail, OK # Negative language test.
+final_var_negative_test: Fail, OK # Negative language test.
+function_type_alias_negative_test: Fail, OK # Negative language test.
+getter_declaration_negative_test: Fail, OK # Negative language test.
+instantiate_type_variable_negative_test: Pass  # For the wrong reason.
+interface_cycle_negative_test: Fail, OK # Negative language test.
+interface_factory3_negative_test: Fail, OK # Negative language test.
+interface_factory_constructor_negative_test: Fail, OK # Negative language test.
+interface_static_method_negative_test: Fail, OK # Negative language test.
+list_literal1_negative_test: Fail, OK # Negative language test.
+list_literal2_negative_test: Fail, OK # Negative language test.
+map_literal1_negative_test: Fail, OK # Negative language test.
+map_literal2_negative_test: Fail, OK # Negative language test.
+new_expression_type_args_frog_test/02: Fail, OK # Negative language test.
+non_const_super_negative_test: Fail, OK # Negative language test.
+number_identifier_negative_test: Fail, OK # Negative language test.
+operator1_negative_test: Fail, OK # Negative language test.
+override_field_method1_negative_test: Fail, OK # Negative language test.
+override_field_method2_negative_test: Fail, OK # Negative language test.
+override_field_method3_negative_test: Fail, OK # Negative language test.
+override_field_method4_negative_test: Fail, OK # Negative language test.
+override_field_method5_negative_test: Fail, OK # Negative language test.
+override_field_method6_negative_test: Fail, OK # Negative language test.
+override_field_test/01: Fail, OK # Negative language test.
+override_field_test/04: Fail, OK # Negative language test.
+override_method_with_field_test/01: Fail, OK # Negative language test.
+prefix16_test: Fail
+prefix18_negative_test: Fail, OK # Negative language test.
+prefix20_negative_test: Fail, OK # Negative language test.
+prefix23_negative_test: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/01: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/03: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/05: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/06: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/07: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/08: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/09: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/10: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/11: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/12: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/13: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/14: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/15: Fail, OK # Negative language test.
+pseudo_kw_illegal_test/16: Fail, OK # Negative language test.
+scope_negative_test: Fail, OK # Negative language test.
+setter_declaration2_negative_test: Fail, OK # Negative language test.
+setter_declaration_negative_test: Fail, OK # Negative language test.
+static_final_field2_negative_test: Fail, OK # Negative language test.
+static_final_field_negative_test: Fail, OK # Negative language test.
+static_top_level_test/00: Fail, OK # Negative language test.
+static_top_level_test/01: Fail, OK # Negative language test.
+static_top_level_test/02: Fail, OK # Negative language test.
+static_top_level_test/03: Fail, OK # Negative language test.
+static_top_level_test/04: Fail, OK # Negative language test.
+static_top_level_test/05: Fail, OK # Negative language test.
+string_interpolation7_negative_test: Fail, OK # Negative language test.
+syntax_test/47: Fail, OK # No error on body in const constructor.
+throw7_negative_test: Fail, OK # Negative language test.
+try_catch_syntax_test/08: Fail, OK # Negative language test.
+type_variable_bounds_test/00: Fail, OK # Negative language test.
+type_variable_scope_test/00: Fail, OK # Negative language test.
+type_variable_scope_test/01: Fail, OK # Negative language test.
+type_variable_scope_test/02: Fail, OK # Negative language test.
+type_variable_scope_test/03: Fail, OK # Negative language test.
+type_variable_scope_test/04: Fail, OK # Negative language test.
+type_variable_scope_test/05: Fail, OK # Negative language test.
+
+
+type_vm_test: Fail, OK # VM specific test.
+disable_privacy_test: Fail, OK # VM specific test.
+numbers_test: Fail, OK # (unintended?) VM specific test.
+
+
+div_by_zero_test: Fail, OK # Leg only has doubles.
+bit_operations_test: Fail, OK # Tests bit operations outside the 32 bit range.
+
+expect_test: Fail, OK # JavaScript canonicalizes all strings. This test assumes that string-concatenation returns a new string.
+
+reg_exp3_test: Fail, OK # Expects exception from const constructor.
+
+
+list_test: Fail, OK # Obsolete test uses List.copyFrom that was removed on 2011-10-31.
+
+final_syntax_test/none: Fail, OK # Uses deprecated "StrConstant + StrConstant".
+
+[ $compiler == dart2js && $mode == release ]
+assign_top_method_negative_test: Crash
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

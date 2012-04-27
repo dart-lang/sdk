@@ -35,7 +35,6 @@
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
-#import("../tests/language/test_config.dart");
 #import("../tests/lib/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/utils/test_config.dart");
@@ -58,6 +57,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'tests/html',
   'tests/isolate',
   'tests/json',
+  'tests/language',
   'utils/tests/css',
   'utils/tests/peg',
   'utils/tests/pub',
@@ -107,8 +107,6 @@ main() {
         queue.addTestSuite(new StandaloneTestSuite(conf));
       } else if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
-      } else if (key == 'language') {
-        queue.addTestSuite(new LanguageTestSuite(conf));
       } else if (key == 'lib') {
         queue.addTestSuite(new LibTestSuite(conf));
       } else if (key == 'utils') {
