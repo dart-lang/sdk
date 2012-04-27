@@ -74,7 +74,7 @@ void maybeEnableNative(Compiler compiler,
                        LibraryElement library,
                        Uri uri) {
   String libraryName = uri.toString();
-  if (library.script.name.contains('dart/frog/tests/native/src')
+  if (library.script.name.contains('dart/frog/tests/frog_native')
       || libraryName == 'dart:dom'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
@@ -84,7 +84,7 @@ void maybeEnableNative(Compiler compiler,
   }
 
   // Additionaly, if this is a test, we allow access to foreign functions.
-  if (library.script.name.contains('dart/frog/tests/native/src')) {
+  if (library.script.name.contains('dart/frog/tests/frog_native')) {
     library.define(compiler.findHelper(const SourceString('JS')), compiler);
   }
 }

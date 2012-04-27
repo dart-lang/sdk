@@ -32,10 +32,6 @@
 #import("../client/tests/dartc/test_config.dart");
 #import("../compiler/tests/dartc/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
-#import("../frog/tests/frog/test_config.dart");
-#import("../frog/tests/leg/test_config.dart");
-#import("../frog/tests/leg_only/test_config.dart");
-#import("../frog/tests/native/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
@@ -53,6 +49,10 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
+  'frog/tests/frog',
+  'frog/tests/frog_native',
+  'frog/tests/leg',
+  'frog/tests/leg_only',
   'tests/benchmark_smoke',
   'tests/dom',
   'tests/html',
@@ -118,14 +118,6 @@ main() {
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
         queue.addTestSuite(new VMTestSuite(conf));
         queue.addTestSuite(new VMDartTestSuite(conf));
-      } else if (key == 'frog') {
-        queue.addTestSuite(new FrogTestSuite(conf));
-      } else if (key == 'leg') {
-        queue.addTestSuite(new LegTestSuite(conf));
-      } else if (key == 'leg_only') {
-        queue.addTestSuite(new LegOnlyTestSuite(conf));
-      } else if (key == 'frog_native') {
-        queue.addTestSuite(new FrogNativeTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
         queue.addTestSuite(new ClientDartcTestSuite(conf));
       } else if (conf['compiler'] == 'dartc' && key == 'dartc') {
