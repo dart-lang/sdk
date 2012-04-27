@@ -20,6 +20,7 @@ audiocontext_test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
+cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html frog.
 
 [ $compiler == frog && $runtime == drt ]
 request_animation_frame_test: Skip   # drt hangs
