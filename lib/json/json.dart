@@ -282,6 +282,8 @@ class _JsonParser {
     } else if (_isDigit()) {
       position++;
       while (_isDigit()) position++;
+    } else {
+      _error("Expected digit when parsing number");
     }
 
     bool isInt = true;

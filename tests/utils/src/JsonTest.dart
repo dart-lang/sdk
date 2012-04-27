@@ -47,6 +47,8 @@ void testParseInvalid() {
     Expect.throws(() => JSON.parse(s));
   }
   testString("");
+  testString("-");
+  testString("-.");
   testString("3.a");
   testString("{ key: value }");
   testString("tru");
