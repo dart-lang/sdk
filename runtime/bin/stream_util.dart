@@ -57,6 +57,14 @@ class _BaseDataInputStream {
     _clientErrorHandler = callback;
   }
 
+  void _reportError(e) {
+    if (_clientErrorHandler != null) {
+      _clientErrorHandler(e);
+    } else {
+      throw e;
+    }
+  }
+
   abstract List<int> _read(int bytesToRead);
 
   void _dataReceived() {

@@ -7,11 +7,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _file = new File(name);
     _data = [];
     _position = 0;
-    _file.onError = (e) {
-      if (_clientErrorHandler != null) {
-        _clientErrorHandler(e);
-      }
-    };
+    _file.onError = _reportError;
     _file.open(FileMode.READ, (openedFile) {
       _readDataFromFile(openedFile);
     });
@@ -26,19 +22,14 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   void _readDataFromFile(RandomAccessFile openedFile) {
-    openedFile.onError = (e) {
-      if (_clientErrorHandler != null) {
-        _clientErrorHandler(e);
-      }
-    };
+    openedFile.onError = _reportError;
     openedFile.length((length) {
       var contents = new ByteArray(length);
       if (length != 0) {
         openedFile.readList(contents, 0, length, (read) {
           if (read != length) {
-            if (_clientErrorHandler != null) {
-              _clientErrorHandler();
-            }
+            _reportError(new FileIOException(
+                'Failed reading file contents in FileInputStream'));
           } else {
             _data = contents;
           }
@@ -100,7 +91,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
       _setupFileHandlers();
       _processPendingOperations();
     });
-    f.onError = (e) => _reportError(e);
+    f.onError = _reportError;
   }
 
   _FileOutputStream.fromStdio(int fd) {
@@ -111,7 +102,7 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
 
   void _setupFileHandlers() {
-    _file.onError = (e) => _reportError(e);
+    _file.onError = _reportError;
     _file.onNoPendingWrites = () {
       if (!_streamMarkedClosed && _onNoPendingWrites != null) {
         _onNoPendingWrites();
@@ -298,7 +289,7 @@ class _FileUtils {
     };
     var result = open(name, mode);
     if (result is OSError) {
-      throw new FileIOException("Cannot open file", result);
+      throw new FileIOException("Cannot open file $name", result);
     }
     return result;
   }
@@ -425,7 +416,7 @@ class _File extends _FileBase implements File {
     request[1] = _name;
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot open file");
+        _handleErrorResponse(response, "Cannot open file $_name");
       } else {
         callback(response);
       }
@@ -508,7 +499,7 @@ class _File extends _FileBase implements File {
     request[2] = mode._mode;  // Direct int value for serialization.
     _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        _handleErrorResponse(response, "Cannot open file");
+        _handleErrorResponse(response, "Cannot open file $_name");
       } else {
         callback(new _RandomAccessFile(response, _name));
       }
