@@ -8,7 +8,6 @@ module default {
   MediaList implements sequence<DOMString>;
   StyleSheetList implements sequence<StyleSheet>;
   TouchList implements sequence<Touch>;
-  CanvasPixelArray implements sequence<int>;
 
   Float32Array implements sequence<double>;
   Float64Array implements sequence<double>;
@@ -199,11 +198,6 @@ module canvas {
 
     [Suppressed] void set();
     [DartName=setElements, Custom] void set(in any array, in optional unsigned long offset);
-  };
-
-  [NumericIndexedGetter, CustomIndexedSetter]
-  interface CanvasPixelArray {
-    readonly attribute long length;
   };
 };
 
