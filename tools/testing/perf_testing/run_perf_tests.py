@@ -397,8 +397,10 @@ class RuntimePerformanceTest(Test):
 
 class BrowserTester(Tester):
   @staticmethod
-  def get_browsers():
-    browsers = ['dartium', 'ff', 'chrome']
+  def get_browsers(add_dartium=True):
+    browsers = ['ff', 'chrome']
+    if add_dartium:
+      browsers += ['dartium']
     has_shell = False
     if platform.system() == 'Darwin':
       browsers += ['safari']
@@ -425,7 +427,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
     """Args:
       test_runner: Reference to the object that notifies us when to run."""
     super(CommonBrowserTest, self).__init__(
-        self.name(), BrowserTester.get_browsers(),
+        self.name(), BrowserTester.get_browsers(False),
         'browser', ['js', 'frog'],
         self.get_standalone_benchmarks(), test_runner, 
         self.CommonBrowserTester(self),
@@ -450,7 +452,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
                                      'make_web_benchmarks.py')])
       os.chdir('..')
 
-      for browser in BrowserTester.get_browsers():
+      for browser in self.test.platform_list:
         for version in self.test.versions:
           if not self.test.is_valid_combination(browser, version):
             continue
