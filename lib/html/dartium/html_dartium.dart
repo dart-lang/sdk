@@ -591,12 +591,6 @@ _wrap(raw) {
   }
 }
 
-spawnDomIsolate(Window targetWindow, String entryPoint) =>
-  dom.spawnDomIsolateImpl(_unwrap(targetWindow), entryPoint);
-
-dom.LayoutTestController get layoutTestController() =>
-  dom.layoutTestController;
-
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
   _AbstractWorkerImpl._wrap(ptr) : super._wrap(ptr);
 
