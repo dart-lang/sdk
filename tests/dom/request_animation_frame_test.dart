@@ -11,19 +11,21 @@ main() {
   useDomConfiguration();
 
   asyncTest('oneShot', 1, () {
-      var frame = window.requestAnimationFrame(
-          (timestamp) { callbackDone(); });
+      window.webkitRequestAnimationFrame((timestamp) { callbackDone(); });
+      layoutTestController.display();
     });
 
   asyncTest('twoShot', 1, () {
-      var frame = window.requestAnimationFrame(
+      window.webkitRequestAnimationFrame(
           (timestamp1) {
-            window.requestAnimationFrame(
+            window.webkitRequestAnimationFrame(
                 (timestamp2) {
                   // Not monotonic on Safari and IE.
                   //Expect.isTrue(timestamp2 > timestamp1, 'timestamps ordered');
                   callbackDone();
                 });
+            layoutTestController.display();
           });
+      layoutTestController.display();
     });
 }
