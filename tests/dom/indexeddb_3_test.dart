@@ -68,7 +68,7 @@ class Test {
           lastKey = cursor.key;
           itemCount += 1;
           sumKeys += cursor.key;
-          Expect.equals('Item ${cursor.key}', cursor.value);
+          Expect.equals('Item ${cursor.key.toStringAsFixed(0)}', cursor.value);
           cursor.continueFunction();
         } else {
           // Done
