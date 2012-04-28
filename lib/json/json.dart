@@ -96,7 +96,9 @@ class _JsonParser {
     return new _JsonParser._internal(json)._parseToplevel();
   }
 
-  _JsonParser._internal(String json) : this.json = '${json} ' {
+  _JsonParser._internal(String json)
+      : json = json,
+        length = json.length {
     if (tokens !== null) return;
 
     // Use a list as jump-table, faster then switch and if.
@@ -221,7 +223,7 @@ class _JsonParser {
       }
       if (c == BACKSLASH) {
         position++;
-        if (position == json.length) {
+        if (position == length) {
           _error('\\ at the end of input');
         }
 
@@ -251,7 +253,7 @@ class _JsonParser {
             c = TAB;
             break;
           case CHAR_U:
-            if (position + 5 > json.length) {
+            if (position + 5 > length) {
               _error('Invalid unicode esacape sequence');
             }
             final codeString = json.substring(position + 1, position + 5);
@@ -274,40 +276,41 @@ class _JsonParser {
   }
 
   num _parseNumber() {
-    if (!_isToken(NUMBER_LITERAL)) _error("Expected number literal");
+    if (!_isToken(NUMBER_LITERAL)) _error('Expected number literal');
 
     final int startPos = position;
-    if (_isChar(MINUS)) position++;
-    if (_isChar(CHAR_0)) {
-      position++;
-    } else if (_isDigit()) {
-      position++;
-      while (_isDigit()) position++;
+    int char = _char();
+    if (char === MINUS) char = _nextChar();
+    if (char === CHAR_0) {
+      char = _nextChar();
+    } else if (_isDigit(char)) {
+      char = _nextChar();
+      while (_isDigit(char)) char = _nextChar();
     } else {
-      _error("Expected digit when parsing number");
+      _error('Expected digit when parsing number');
     }
 
     bool isInt = true;
-    if (_isChar(DOT)) {
-      position++;
-      if (_isDigit()) {
+    if (char === DOT) {
+      char = _nextChar();
+      if (_isDigit(char)) {
+        char = _nextChar();
         isInt = false;
-        while (_isDigit()) position++;
+        while (_isDigit(char)) char = _nextChar();
       } else {
-        position--;  // No digit, backtrack.
+        _error('Expected digit following comma');
       }
     }
 
-    if (_isChar(CHAR_E) || _isChar(CHAR_CAPITAL_E)) {
-      int backtrackTo = position;
-      position++;
-      if (_isChar(MINUS) || _isChar(PLUS)) position++;
-      if (_isDigit()) {
-        position++;
+    if (char === CHAR_E || char === CHAR_CAPITAL_E) {
+      char = _nextChar();
+      if (char === MINUS || char === PLUS) position++;
+      if (_isDigit(char)) {
+        char = _nextChar();
         isInt = false;
-        while (_isDigit()) position++;
+        while (_isDigit(char)) char = _nextChar();
       } else {
-        position = backtrackTo;  // No digit, backtrack.
+        _error('Expected digit following \'e\' or \'E\'');
       }
     }
 
@@ -319,32 +322,40 @@ class _JsonParser {
     }
   }
 
-  bool _isChar(int char) => _char() == char;
+  bool _isChar(int char) {
+    if (position >= length) return false;
+    return json.charCodeAt(position) == char;
+  }
 
-  bool _isDigit() {
-    int char = _char();
+  bool _isDigit(int char) {
     return char >= CHAR_0 && char <= CHAR_9;
   }
 
   bool _isToken(int tokenKind) => _token() == tokenKind;
 
   int _char() {
-    if (position >= json.length) {
-      _error("Unexpected end of JSON stream");
+    if (position >= length) {
+      _error('Unexpected end of JSON stream');
     }
+    return json.charCodeAt(position);
+  }
+
+  int _nextChar() {
+    position++;
+    if (position >= length) return 0;
     return json.charCodeAt(position);
   }
 
   int _token() {
     while (true) {
-      if (position >= json.length) return null;
+      if (position >= length) return null;
       int char = json.charCodeAt(position);
       int token = tokens[char];
       if (token === WHITESPACE) {
         position++;
         continue;
       }
-      if (token === null) _error("Invalid JSON token");
+      if (token === null) return 0;
       return token;
     }
   }
@@ -354,6 +365,7 @@ class _JsonParser {
   }
 
   final String json;
+  final int length;
   int position = 0;
   static List<int> tokens;
 }
