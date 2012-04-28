@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-audiocontext_test: Fail  # Issue 2770
 event_test: Skip  # Issue 1996
 webgl_1_test: Skip  # Issue 1495
 xmldocument_test: Skip  # XML in dart:html is incomplete
@@ -30,7 +29,6 @@ cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dar
 # TODO(vsm): Triage DOM tests.
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
-htmlelement_test: Fail
 window_open_test: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
@@ -70,6 +68,7 @@ canvas_test: Fail            # No setFillColor() method.  Use fillstyle attribut
 canvas_using_html_test: Fail # No setFillColor() method.  Use fillstyle attribute instead.
 dart_object_local_storage_test: Fail  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 documentfragment_test: Fail
+element_test: Fail
 exceptions_test: Fail      # Uses webkitotifications, no analogue in moz
 # _toDartException fails to translate TypeError for call to x.set$onfocus(null)
 hidden_dom_1_test: Fail
@@ -82,6 +81,7 @@ indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 instance_of_test: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
+localstorage_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
