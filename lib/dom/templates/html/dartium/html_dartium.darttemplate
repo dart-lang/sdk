@@ -84,7 +84,7 @@ $WRAPCASES
 }
 
 spawnDomIsolate(Window targetWindow, String entryPoint) =>
-  dom.spawnDomIsolateImpl(_unwrap(targetWindow), entryPoint);
+  dom.spawnDomIsolate(_unwrap(targetWindow), entryPoint);
 
 dom.LayoutTestController get layoutTestController() =>
   dom.layoutTestController;
