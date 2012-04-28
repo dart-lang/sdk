@@ -8,7 +8,7 @@ webgl_1_test: Skip  # Issue 1495
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 indexeddb_4_test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js || $compiler == frog ]
 request_animation_frame_test: Skip # Uses layoutTestController.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
@@ -19,9 +19,6 @@ audiocontext_test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
-
-[ $compiler == frog && $runtime == drt ]
-request_animation_frame_test: Skip   # drt hangs
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || ($runtime == drt && $compiler == frog)]
 # TODO(vsm): Triage DOM tests.
