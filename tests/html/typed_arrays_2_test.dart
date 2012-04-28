@@ -10,7 +10,7 @@
 main() {
   useHtmlConfiguration();
 
-  test('fromBufferTest_var', () {
+  test('fromBufferTest_dynamic', () {
       var a1 = new Uint8Array(1024);
       for (int i = 0; i < a1.length; i++) {
         a1[i] = i; // 0,1,2,...,254,255,0,1,2,...
