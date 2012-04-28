@@ -4,9 +4,9 @@
 
 #library('yaml_test');
 
-#import('../../../lib/unittest/unittest.dart');
-#import('../../../utils/yaml/yaml.dart');
-#import('../../../utils/yaml/deep_equals.dart');
+#import('../../lib/unittest/unittest.dart');
+#import('../../utils/yaml/yaml.dart');
+#import('../../utils/yaml/deep_equals.dart');
 #import('test_utils.dart');
 
 /** Constructs a new yaml.YamlMap, optionally from a normal Map. */

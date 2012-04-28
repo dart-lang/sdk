@@ -4,7 +4,7 @@
 
 // Smoke test of the dart2js compiler API.
 
-#import('../../../lib/compiler/compiler.dart');
+#import('../../lib/compiler/compiler.dart');
 #import('dart:uri');
 
 Future<String> provider(Uri uri) {

@@ -7,33 +7,33 @@
 
 [ $compiler == frog || $compiler == dart2js ]
 # Dartdoc only runs on the VM.
-DartdocTest: Skip
-MarkdownTest: Skip
+dartdoc_test: Skip
+markdown_test: Skip
 
 [ $compiler == frog ]
-DummyCompilerTest: Fail
+dummy_compiler_test: Fail
 
 [ $compiler == frog ]
-Utf8Test: Crash
+utf8_test: Crash
 
 [ $compiler == dart2js ]
-Utf8Test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
+utf8_test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
 
 [ $runtime == vm || $compiler == dartc || ($compiler == none && $runtime == drt) ]
 # TODO(rnystrom): Right now, the VM tests can't access frog/ and client/ which
 # dartdoc uses, so disable for now. Once the deps files are unified this should
 # be fixed.
-DartdocTest: Skip
-MarkdownTest: Skip
+dartdoc_test: Skip
+markdown_test: Skip
 
 [ $compiler == none && $runtime == drt ]
-DummyCompilerTest: Fail # Issue 2264.
+dummy_compiler_test: Fail # Issue 2264.
 
 [ $compiler == dartc ]
-DummyCompilerTest: Fail # Issue 2263.
+dummy_compiler_test: Fail # Issue 2263.
 
 [ $compiler == dart2js ]
-YamlTest: Skip # Issue 2717.
+yaml_test: Skip # Issue 2717.
 
 [ $compiler == dart2js && $runtime == drt ]
 *: Skip
