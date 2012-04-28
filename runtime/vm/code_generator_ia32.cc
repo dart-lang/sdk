@@ -1313,20 +1313,23 @@ void CodeGenerator::GenerateSubtypeTestCacheLookup(intptr_t node_id,
   __ j(EQUAL, is_instance_lbl);
 
   // ECX: instance class.
+  // Insert subtype test cache into the code stream.
   AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
-  __ LoadObject(EDX, Array::ZoneHandle(Array::New(2)));
+  __ LoadObject(EDX, Array::ZoneHandle(
+      Array::New(SubTypeTestCache::kNumEntries)));
+  // EDX: cache array.
   __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
   __ Bind(&loop);
-  __ movl(EBX, Address(EDX, 0));
+  __ movl(EBX, Address(EDX, kWordSize * SubTypeTestCache::kInstanceClass));
   __ cmpl(ECX, EBX);
   __ j(EQUAL, &found_in_cache, Assembler::kNearJump);
-  __ addl(EDX, Immediate(kWordSize * 2));
+  __ addl(EDX, Immediate(kWordSize * SubTypeTestCache::kNumEntries));
   __ cmpl(EBX, raw_null);
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   __ jmp(&runtime_call, Assembler::kNearJump);
 
   __ Bind(&found_in_cache);
-  __ movl(EDX, Address(EDX, kWordSize));
+  __ movl(EDX, Address(EDX, kWordSize * SubTypeTestCache::kTestResult));
   __ CompareObject(EDX, bool_true);
   __ j(EQUAL, is_instance_lbl);
   __ jmp(is_not_instance_lbl);
@@ -1336,7 +1339,7 @@ void CodeGenerator::GenerateSubtypeTestCacheLookup(intptr_t node_id,
 
 // Inline tests according to the 'type' being tested. Jump to labels
 // if we can compute the type-test, otherwise fallthrough.
-// EAX: instance to be tested.
+// EAX: instance to be tested, must be preserved.
 // Clobbers many registers.
 void CodeGenerator::GenerateInlineInstanceof(intptr_t node_id,
                                              intptr_t token_index,
@@ -1552,79 +1555,27 @@ void CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
                                    is_instance_lbl, is_not_instance_lbl);
     return;
   }
-  // Efficient type argument check can be done only on known classes.
-  const Type& list_type =
-      Type::Handle(Isolate::Current()->object_store()->list_interface());
   Label inlined_check, fall_through;
-  if (!list_type.IsSubtypeOf(type, &malformed_error)) {
-    // Since we support only known subtypes of List, no need to emit code
-    // otherwise.
-    return;
-  }
-  // TODO(srdjan): Recognize somehow classes that are 'regular' i.e., which
-  // type-parameters are simple structure.
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-  __ CompareObject(ECX, *CoreClass("ObjectArray"));
-  __ j(EQUAL, &inlined_check);
-  __ CompareObject(ECX, *CoreClass("GrowableObjectArray"));
-  __ j(NOT_EQUAL, &fall_through);
-  __ Bind(&inlined_check);
-
-  // First step is to check instance class.
-  Label check_type_argument;
-  GenerateSubtypeTestCacheLookup(node_id, token_index, type_class,
-                                 &check_type_argument, is_not_instance_lbl);
-  // Class test not conclusive (fall-through).
-  __ jmp(&fall_through);
-  __ Bind(&check_type_argument);
-  // Get type argument of instance.
-  const Class& tp_argument_class = Class::ZoneHandle(tp_argument.type_class());
-  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
-  __ movl(EDI, FieldAddress(ECX,
-      tp_argument_class.type_arguments_instance_field_offset_offset()));
-  // EDI: intptr_t offset of type arguments in instance.
-  __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
-  __ j(EQUAL, is_instance_lbl);
-  __ movl(EDI, FieldAddress(EAX, EDI, TIMES_1, 0));
-  // EDI: type arguments of the instance.
-  // Is type argument dynamic?
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ cmpl(EDI, raw_null);
-  __ j(EQUAL, is_instance_lbl);
-  // Type arguments may be canonicalized: are they equal?
-  __ CompareObject(EDI, type_arguments);
-  __ j(EQUAL, is_instance_lbl);
+  AddCurrentDescriptor(PcDescriptors::kTypeTest, node_id, token_index);
+  __ LoadObject(EDX, Array::ZoneHandle(
+      Array::New(SubTypeTestCache::kNumEntries)));
+  __ pushl(EDX);       // Cache array.
+  __ pushl(EAX);       // Instance.
+  __ pushl(raw_null);  // Instantiator type arguments, no instantiator -> null.
+  __ call(&StubCode::SubtypeTestCacheLabel());
+  __ popl(EDX);  // Discard.
+  __ popl(EAX);  // Restore receiver.
+  __ popl(EDX);  // Discard.
+  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
 
-  // We can handle only type of class TypeArguments.
-  __ movl(EDX, FieldAddress(EDI, Object::class_offset()));
-  __ CompareObject(EDX,
-      Object::ZoneHandle(Object::type_arguments_class()));
-  __ j(NOT_EQUAL, &fall_through);
-  // EDI: instance of class 'TypeArguments'.
-  __ movl(EDX, FieldAddress(EDI, TypeArguments::length_offset()));
-  // Handling only tests with one type argument.
-  Immediate smi_one_imm =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
-  __ cmpl(EDX, smi_one_imm);
-  __ j(NOT_EQUAL, &fall_through);
-  __ movl(ECX, FieldAddress(EDI, TypeArguments::type_at_offset(0)));
-  __ CompareObject(ECX, tp_argument);
+  __ cmpl(ECX, raw_null);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  __ CompareObject(ECX, bool_true);
   __ j(EQUAL, is_instance_lbl);
-  // If the type is not parameterized do the subclass check.
-  if (!tp_argument_class.HasTypeArguments()) {
-    __ LoadObject(EDX, tp_argument_class);
-    __ movl(ECX, FieldAddress(ECX, Type::type_class_offset()));
-    __ cmpl(ECX, EDX);
-    __ j(EQUAL, is_instance_lbl);
-    // A non-parameterized class is in EDX, compare with class in ECX
-    // EAX, EDX are preserved in stub.
-    __ call(&StubCode::IsRawSubTypeLabel());
-    // Result in EBX: 1 is raw subtype.
-    __ cmpl(EBX, Immediate(1));
-    __ j(EQUAL, is_instance_lbl);
-  }
-  // Fall through if type test is not conclusive.
+  __ jmp(is_not_instance_lbl);
   __ Bind(&fall_through);
 }
 

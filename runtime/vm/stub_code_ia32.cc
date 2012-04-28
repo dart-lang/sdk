@@ -1797,6 +1797,71 @@ void StubCode::GenerateIsRawSubTypeStub(Assembler* assembler) {
   __ jmp(&found, Assembler::kNearJump);
 }
 
+
+// Used to check class and type arguments. Arguments passed on stack:
+// TOS + 0: return address
+// TOS + 1: instantiator type arguments
+// TOS + 2: instance
+// TOS + 3: cache array.
+// Result in ECX: null -> not found, otherwise result.
+void StubCode::GenerateSubtypeTestCacheStub(Assembler* assembler) {
+  const intptr_t kInstantiatorTypeArgumentsInBytes = 1 * kWordSize;
+  const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
+  const intptr_t kCacheArrayOffsetInBytes = 3 * kWordSize;
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
+  __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
+  __ movl(ECX, FieldAddress(EAX, Object::class_offset()));
+  // EAX: instance, ECX: instance-class.
+  // Get instance type arguments
+  Label has_no_type_arguments;
+  __ movl(EBX, raw_null);
+  __ movl(EDI, FieldAddress(ECX,
+      Class::type_arguments_instance_field_offset_offset()));
+  __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
+  __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+  __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
+  __ Bind(&has_no_type_arguments);
+  // EBX: instance type arguments (null if none).
+  __ movl(EDX, Address(ESP, kCacheArrayOffsetInBytes));
+  // EDX: cache.
+  __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
+  Label loop, found, not_found, next_iteration;
+  // EDX: Entry start.
+  // ECX: instance class.
+  // EBX: instance type arguments
+  // TOS + 2: test-type-class.
+  // TOS + 1: test-type-arguments.
+  __ Bind(&loop);
+  __ movl(EDI, Address(EDX, kWordSize * SubTypeTestCache::kInstanceClass));
+  __ cmpl(EDI, ECX);
+  __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+  __ movl(EDI,
+          Address(EDX, kWordSize * SubTypeTestCache::kInstanceTypeArguments));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+  __ movl(EDI,
+          Address(EDX, kWordSize *
+                       SubTypeTestCache::kInstantiatorTypeArguments));
+  __ cmpl(EDI, Address(ESP, kInstantiatorTypeArgumentsInBytes));
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  __ Bind(&next_iteration);
+  __ addl(EDX, Immediate(kWordSize * SubTypeTestCache::kNumEntries));
+  // Is loop done?
+  __ cmpl(EDI, raw_null);
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  // Fall through to not found.
+  __ Bind(&not_found);
+  __ movl(ECX, raw_null);
+  __ ret();
+
+  __ Bind(&found);
+  __ movl(ECX, Address(EDX, kWordSize * SubTypeTestCache::kTestResult));
+  __ ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

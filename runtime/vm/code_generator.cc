@@ -369,13 +369,11 @@ static void OptimizeTypeArguments(const Instance& instance) {
 }
 
 
-// This updates the type test cache, an array containing tuples (instance class,
-// test result_. It can be applied to classes with type arguments in which
+// This updates the type test cache, an array containing 4-value elements
+// (instance class, instance type arguments, instantiator type arguments and
+// test_result). It can be applied to classes with type arguments in which
 // case it contains just the result of the class subtype test, not including
 // the evaluation of type arguments.
-// Note that the 'result' contains the whole type test (including type
-// arguments), but the type test cache contains only the result of the
-// class test. Therefore we may need to recompute the 'result'.
 // This operation is currently very slow (lookup of code is not efficient yet).
 static void UpdateTypeTestCache(intptr_t node_id,
                                 const Instance& instance,
@@ -386,8 +384,6 @@ static void UpdateTypeTestCache(intptr_t node_id,
   // The list of disallowed cases will decrease as they are implemented in
   // inlined assembly.
   if (!type.IsInstantiated()) return;
-  // TODO(srdjan): Implement assembly code for checking type arguments then
-  // remove this check.
   if (Class::Handle(type.type_class()).HasTypeArguments()) {
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(type.arguments());
@@ -406,17 +402,17 @@ static void UpdateTypeTestCache(intptr_t node_id,
         // E.g, it is TypeParameter.
         return;
       }
-      const Type& list_type =
-          Type::Handle(Isolate::Current()->object_store()->list_interface());
-      Error& malformed_error = Error::Handle();
-      if (!list_type.IsSubtypeOf(type, &malformed_error)) {
-        return;
-      }
-      // The type argument at index 0 must be instantiated and not malformed.
-      // A malformed type would have caused a type error earlier.
       ASSERT(tp_argument.HasResolvedTypeClass());
     }
   }
+  AbstractTypeArguments& instance_type_arguments =
+      AbstractTypeArguments::Handle();
+  const Class& instance_class = Class::Handle(instance.clazz());
+  if (instance_class.HasTypeArguments()) {
+    OptimizeTypeArguments(instance);
+    instance_type_arguments = instance.GetTypeArguments();
+  }
+
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -425,17 +421,23 @@ static void UpdateTypeTestCache(intptr_t node_id,
   uword loc = code.GetTypeTestAtNodeId(node_id);
   if (loc != 0) {
     // Found type test cache.
-    Array& value = Array::Handle(CodePatcher::GetTypeTestArray(loc));
+    Array& cache = Array::Handle(CodePatcher::GetTypeTestArray(loc));
     // TODO(srdjan): Prevent type test cache from growing too much, it has been
     // observed to grow to 100 elements.
-    const Class& instance_class = Class::Handle(instance.clazz());
     // Don't enter duplicate entries.
-    Class& last_checked = Class::Handle();
-    for (intptr_t i = 0; i < value.Length(); i += 2) {
-      last_checked ^= value.At(i);
-      if (last_checked.raw() == instance_class.raw()) {
+    // TODO(srdjan): Check instantiator type arguments as well.
+    Object& last_instance_class = Object::Handle();
+    Object& last_instance_type_arguments = Object::Handle();
+    for (intptr_t i = 0; i < cache.Length();
+         i += SubTypeTestCache::kNumEntries) {
+      last_instance_class = cache.At(i + SubTypeTestCache::kInstanceClass);
+      last_instance_type_arguments =
+          cache.At(i + SubTypeTestCache::kInstanceTypeArguments);
+      if ((last_instance_class.raw() == instance_class.raw()) &&
+          (last_instance_type_arguments.raw() ==
+              instance_type_arguments.raw())) {
         if (FLAG_trace_type_checks) {
-          PrintTypeCheck("WARING duplicate cache entry", instance, type,
+          PrintTypeCheck("WARNING duplicate cache entry", instance, type,
               type_instantiator, result);
         }
         return;
@@ -443,27 +445,31 @@ static void UpdateTypeTestCache(intptr_t node_id,
     }
 
     // Array must be null terminated.
-    ASSERT(last_checked.IsNull());
-
-    // Check if the result for cache needs to be recomputed.
-    const Class& cls =  Class::Handle(type.type_class());
-    Bool& class_test_result = Bool::Handle(result.raw());
-    if (!result.value() && cls.HasTypeArguments()) {
-      Error& malformed_error = Error::Handle();
-      if (instance_class.IsSubtypeOf(TypeArguments::Handle(),
-                                     cls,
-                                     TypeArguments::Handle(),
-                                     &malformed_error)) {
-        class_test_result = Bool::True();
-      }
+    ASSERT(last_instance_class.IsNull());
+    ASSERT(!cache.IsNull());
+    // Cache is null terminate, i.e., the last entry contains all null elements.
+    intptr_t old_len = cache.Length();
+    cache = cache.Grow(cache, old_len + SubTypeTestCache::kNumEntries);
+    intptr_t last_start = old_len - SubTypeTestCache::kNumEntries;
+    cache.SetAt(last_start + SubTypeTestCache::kInstanceClass, instance_class);
+    cache.SetAt(last_start + SubTypeTestCache::kInstanceTypeArguments,
+        instance_type_arguments);
+    // TODO(srdjan): Store instantiator arguments instead of null.
+    cache.SetAt(last_start + SubTypeTestCache::kInstantiatorTypeArguments,
+        AbstractTypeArguments::Handle());
+    cache.SetAt(last_start + SubTypeTestCache::kTestResult , result);
+    if (FLAG_trace_type_checks) {
+      OS::Print("  Updated test cache: [0x%x %s, 0x%x %s]\n"
+                "                      [0x%x %s] %s\n",
+           instance_class.raw(),
+           instance_class.ToCString(),
+           instance_type_arguments.raw(),
+           instance_type_arguments.ToCString(),
+           type.type_class(),
+           Class::Handle(type.type_class()).ToCString(),
+           result.ToCString());
     }
-    ASSERT(!value.IsNull());
-    intptr_t old_len = value.Length();
-    value = value.Grow(value, old_len + 2);
-    value.SetAt(old_len - 2, instance_class);
-    value.SetAt(old_len - 1, class_test_result);
-    CodePatcher::SetTypeTestArray(loc, value);
-    OptimizeTypeArguments(instance);
+    CodePatcher::SetTypeTestArray(loc, cache);
   }
 }
 
