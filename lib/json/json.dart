@@ -96,7 +96,7 @@ class _JsonParser {
     return new _JsonParser._internal(json)._parseToplevel();
   }
 
-  _JsonParser._internal(String this.json) {
+  _JsonParser._internal(String json) : this.json = '${json} ' {
     if (tokens !== null) return;
 
     // Use a list as jump-table, faster then switch and if.
