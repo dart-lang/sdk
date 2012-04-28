@@ -4,7 +4,7 @@
 
 #library('sha256Test');
 // TODO(ager): Replace with "dart:crypto" when ready.
-#import("../../../../lib/crypto/crypto.dart");
+#import("../../../lib/crypto/crypto.dart");
 
 #source('sha256_long_test_vectors.dart');
 #source('sha256_short_test_vectors.dart');

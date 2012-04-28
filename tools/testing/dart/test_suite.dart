@@ -212,13 +212,15 @@ class StandardTestSuite implements TestSuite {
   final String dartDir;
   Function globalTemporaryDirectory;
   Predicate<String> isTestFilePredicate;
+  bool _listRecursive;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
                     List<String> this.statusFilePaths,
-                    [Predicate<String> this.isTestFilePredicate])
-    : dartDir = TestUtils.dartDir();
+                    [Predicate<String> this.isTestFilePredicate,
+                    bool recursive = false])
+    : dartDir = TestUtils.dartDir(), _listRecursive = recursive;
 
   /**
    * Creates a test suite whose file organization matches an expected structure.
@@ -253,7 +255,8 @@ class StandardTestSuite implements TestSuite {
 
     return new StandardTestSuite(configuration,
         name, directory, ['$directory/$name.status'],
-        (filename) => filename.endsWith('_test.dart'));
+        (filename) => filename.endsWith('_test.dart'),
+        recursive: true);
   }
 
   /**
@@ -267,7 +270,7 @@ class StandardTestSuite implements TestSuite {
     return filename.endsWith("Test.dart");
   }
 
-  bool listRecursively() => false;
+  bool listRecursively() => _listRecursive;
 
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
