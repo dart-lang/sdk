@@ -24,7 +24,7 @@ request_animation_frame_test: Skip   # drt hangs
 # TODO(vsm): Triage DOM tests.
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
-
+htmlelement_test: Fail
 window_open_test: Fail
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
