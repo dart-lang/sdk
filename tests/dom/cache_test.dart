@@ -1,10 +1,10 @@
 #library('CacheTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('ApplicationCache', () {
     DOMApplicationCache appCache = window.applicationCache;
     Expect.equals("UNCACHED", cacheStatusToString(appCache.status));

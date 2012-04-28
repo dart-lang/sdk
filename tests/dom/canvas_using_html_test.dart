@@ -1,22 +1,22 @@
 #library('CanvasUsingHtmlTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
+#import('../../lib/unittest/dom_config.dart');
 #import('dart:html', prefix: 'html');
-#import('dart:html');
+#import('dart:dom');
 
 // Version of Canvas test that implicitly uses dart:html library via unittests.
 
 main() {
-  CanvasElement canvas;
+  HTMLCanvasElement canvas;
   CanvasRenderingContext2D context;
 
-  canvas = new Element.tag('canvas');
-  canvas.attributes['width'] = 100;
-  canvas.attributes['height'] = 100;
-  document.body.nodes.add(canvas);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '100');
+  canvas.setAttribute('height', '100');
+  document.body.appendChild(canvas);
   context = canvas.getContext('2d');
 
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('FillStyle', () {
     context.fillStyle = "red";
     context.fillRect(10, 10, 20, 20);

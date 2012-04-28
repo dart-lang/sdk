@@ -8,8 +8,6 @@ webgl_1_test: Skip  # Issue 1495
 indexeddb_3_test: Fail  # UnsupportedOperationException 'IDBCursorImplementation.get:key'
 indexeddb_4_test: Skip  # Hangs in dartium. IDBKeyRange constructors not implemented.
 request_animation_frame_test: Skip    # drt hangs; requestAnimationFrame not implemented
-dart_object_local_storage_test: Skip
-wrapper_test: Skip
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538.
@@ -19,7 +17,6 @@ audiocontext_test: Skip
 
 [ $compiler == frog && ($runtime == drt || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera) ]
 window_nosuchmethod_test: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
-cross_frame_test: Fail # Issue 2774, iframe.contentDocument is accessible in dart:html frog.
 
 [ $compiler == frog && $runtime == drt ]
 request_animation_frame_test: Skip   # drt hangs
@@ -60,7 +57,7 @@ indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 instance_of_test: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event] 
-inner_frame_test: Skip
+inner_frame_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 # document.getElementsByTagName('body') returns an HTMLCollection, not a NodeList.

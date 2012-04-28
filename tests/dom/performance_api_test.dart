@@ -1,10 +1,10 @@
 #library('PerformanceApiTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('PerformanceApi', () {
     // Check that code below will not throw exceptions.
     var requestStart = window.performance.timing.requestStart;

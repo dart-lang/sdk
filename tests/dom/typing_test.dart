@@ -1,21 +1,21 @@
 #library('TypingTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('NodeList', () {
-    List<Node> asList = window.document.queryAll('body');
+    List<Node> asList = window.document.getElementsByTagName('body');
     // Check it's Iterable
     int counter = 0;
-    for (Node node in window.document.queryAll('body')) {
+    for (Node node in window.document.getElementsByTagName('body')) {
       counter++;
     }
     Expect.equals(1, counter);
     counter = 0;
-    window.document.queryAll('body').forEach((e) { counter++; });
+    window.document.getElementsByTagName('body').forEach((e) { counter++; });
     Expect.equals(1, counter);
   });
 

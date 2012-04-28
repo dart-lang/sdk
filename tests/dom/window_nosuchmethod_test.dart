@@ -4,8 +4,8 @@
 
 #library('WindowNSMETest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html', prefix: 'dom');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom', prefix: 'dom');
 
 // Not defined in dom.Window.
 foo(x) => x;
@@ -17,7 +17,7 @@ class Unused {
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   var things = [new Unused(), dom.window];
 
   test('windowNonMethod', () {

@@ -1,7 +1,7 @@
 #library('IndexedDB1Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 #import('dart:coreimpl');
 #import('utils.dart');
 
@@ -30,19 +30,19 @@ testReadWrite(key, value, check,
   step2() {
     var transaction = db.transaction(storeName, IDBTransaction.READ_ONLY);
     var request = transaction.objectStore(storeName).getObject(key);
-    request.on.success.add((e) {
+    request.addEventListener('success', (e) {
         var object = e.target.result;
         check(value, object);
         callbackDone();
       });
-    request.on.error.add(fail);
+    request.addEventListener('error', fail);
   }
 
   step1() {
     var transaction = db.transaction([storeName], IDBTransaction.READ_WRITE);
     var request = transaction.objectStore(storeName).put(value, key);
-    request.on.success.add((e) { step2(); });
-    request.on.error.add(fail);
+    request.addEventListener('success', (e) { step2(); });
+    request.addEventListener('error', fail);
   }
 
   initDb(e) {
@@ -52,8 +52,9 @@ testReadWrite(key, value, check,
       // open call and listening to onversionchange.  Can we feature-detect the
       // difference and make it work?
       var request = db.setVersion(version);
-      request.on.success.add((e) { createObjectStore(); step1(); });
-      request.on.error.add(fail);
+      request.addEventListener('success',
+                               (e) { createObjectStore(); step1(); });
+      request.addEventListener('error', fail);
     } else {
       step1();
     }
@@ -61,8 +62,8 @@ testReadWrite(key, value, check,
 
   var request = window.webkitIndexedDB.open(dbName);
   Expect.isNotNull(request);
-  request.on.success.add(initDb);
-  request.on.error.add(fail);
+  request.addEventListener('success', initDb);
+  request.addEventListener('error', fail);
 };
 
 
@@ -85,7 +86,7 @@ tests_dynamic() {
 }
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   tests_dynamic();
 }

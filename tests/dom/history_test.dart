@@ -1,10 +1,10 @@
 #library('HistoryTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('History', () {
     window.history.pushState(null, document.title, '?foo=bar');
     expect(window.history.length).equals(2);

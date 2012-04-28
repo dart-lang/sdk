@@ -1,17 +1,17 @@
 #library('WindowOpenTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
   evaluateJavaScript(code) {
-    final scriptTag = new Element.tag('script');
+    final scriptTag = document.createElement('script');
     scriptTag.innerHTML = code;
-    document.body.nodes.add(scriptTag);
+    document.body.appendChild(scriptTag);
   }
   evaluateJavaScript('layoutTestController.setCanOpenWindows()');
 
-  useHtmlConfiguration();
+  useDomConfiguration();
   asyncTest('TwoArgumentVersion', 1, () {
     Window win = window.open('../resources/pong.html', 'testWindow');
     closeWindow(win);

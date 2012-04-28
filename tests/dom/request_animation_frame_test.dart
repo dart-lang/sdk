@@ -4,11 +4,11 @@
 
 #library('RequestAnimationFrameTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   asyncTest('oneShot', 1, () {
       var frame = window.requestAnimationFrame(

@@ -1,7 +1,7 @@
 #library('DOMIsolatesTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 #import('dart:isolate');
 
 isolateMain(port) {
@@ -27,10 +27,10 @@ isolateMainTrampoline(port) {
 }
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
-  final iframe = new Element.tag('iframe');
-  document.body.nodes.add(iframe);
+  final iframe = document.createElement('iframe');
+  document.body.appendChild(iframe);
 
   asyncTest('Simple DOM isolate test', 1, () {
     spawnDomIsolate(iframe.contentWindow, 'isolateMain').then((sendPort) {

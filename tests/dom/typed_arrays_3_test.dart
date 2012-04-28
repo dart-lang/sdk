@@ -4,12 +4,12 @@
 
 #library('TypedArrays2Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
 
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('setElementsTest_dynamic', () {
       var a1 = new Int8Array(1024);

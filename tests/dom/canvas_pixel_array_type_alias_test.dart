@@ -1,7 +1,7 @@
 #library('CanvasTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 // We have aliased the legacy type CanvasPixelArray with the new type
 // Uint8ClampedArray by mapping the CanvasPixelArray type tag to
@@ -11,19 +11,19 @@
 Object confuseType(x) => [1, x, [x], 's'] [1];  // returns 'x'
 
 main() {
-  CanvasElement canvas;
+  HTMLCanvasElement canvas;
   CanvasRenderingContext2D context;
   int width = 100;
   int height = 100;
 
-  canvas = new Element.tag('canvas');
-  canvas.attributes['width'] = width;
-  canvas.attributes['height'] = height;
-  document.body.nodes.add(canvas);
+  canvas = document.createElement('canvas');
+  canvas.setAttribute('width', '$width');
+  canvas.setAttribute('height', '$height');
+  document.body.appendChild(canvas);
 
   context = canvas.getContext('2d');
 
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('CreateImageData', () {
     ImageData image = context.createImageData(canvas.width,

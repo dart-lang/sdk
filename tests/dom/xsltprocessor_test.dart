@@ -1,11 +1,11 @@
 #library('XSLTProcessorTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
 
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('constructorTest', () {
       var processor = new XSLTProcessor();

@@ -1,12 +1,12 @@
 #library('WebGL1Test');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
-// Test that WebGL is present in dart:html API
+// Test that WebGL is present in dart:dom API
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('simple', () {
       var canvas = document.createElement("canvas");

@@ -1,22 +1,22 @@
-#library('AudioElementTest');
+#library('HTMLAudioElementTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
 
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('constructorTest1', () {
-      var audio = new AudioElement();   // would be new Audio() in JS
+      var audio = new HTMLAudioElement();   // would be new Audio() in JS
       Expect.isTrue(audio != null);
-      Expect.isTrue(audio is AudioElement);
+      Expect.isTrue(audio is HTMLAudioElement);
     });
 
   test('constructorTest2', () {
-      var audio = new AudioElement('hahaURL');
+      var audio = new HTMLAudioElement('hahaURL');
       Expect.isTrue(audio != null);
-      Expect.isTrue(audio is AudioElement);
+      Expect.isTrue(audio is HTMLAudioElement);
       Expect.isTrue(audio.src.indexOf('hahaURL') >= 0);
     });
 }

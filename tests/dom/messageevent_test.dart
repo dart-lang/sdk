@@ -1,13 +1,13 @@
 #library('SerializedScriptValueTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
 
   test('MessageEvent.initMessageEvent', () {
-      final event = document.$dom_createEvent('MessageEvent');
+      final event = document.createEvent('MessageEvent');
       event.initMessageEvent('type', false, true, 'data', 'origin', 'lastEventId', window, []);
       expect(event.type).equals('type');
       expect(event.bubbles).equals(false);

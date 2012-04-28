@@ -1,49 +1,49 @@
-#library('ElementTest');
+#library('HTMLElementTest');
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
-#import('dart:html');
+#import('../../lib/unittest/dom_config.dart');
+#import('dart:dom');
 
 main() {
-  useHtmlConfiguration();
+  useDomConfiguration();
   test('InnerHTML', () {
-    Element element = new Element.tag('div');
+    HTMLElement element = document.createElement('div');
     element.id = 'test';
     element.innerHTML = 'Hello World';
-    document.body.nodes.add(element);
+    document.body.appendChild(element);
 
-    element = document.query('#test');
+    element = document.getElementById('test');
     Expect.stringEquals('Hello World', element.innerHTML);
-    element.remove();
+    document.body.removeChild(element);
   });
   test('HTMLTable', () {
-    Element table = new Element.tag('table');
+    HTMLElement table = document.createElement('table');
 
-    TableRowElement row = new Element.tag('tr');
-    table.nodes.add(row);
+    HTMLTableRowElement row = document.createElement('tr');
+    table.appendChild(row);
 
-    row.nodes.add(new Element.tag('td'));
-    row.nodes.add(new Element.tag('td'));
+    row.appendChild(document.createElement('td'));
+    row.appendChild(document.createElement('td'));
 
     Expect.equals(2, row.cells.length);
 
-    TableRowElement headerRow = table.rows.item(0);
+    HTMLTableRowElement headerRow = table.rows.item(0);
     Expect.equals(2, headerRow.cells.length);
   });
-  test('dataAttributes', () {
-    Element div = new Element.tag('div');
+  test('Dataset', () {
+    HTMLElement div = document.createElement('div');
 
-    Expect.isTrue(div.dataAttributes.isEmpty());
-    Expect.equals(null, div.dataAttributes['foo']);
-    Expect.isTrue(div.dataAttributes.isEmpty());
+    Expect.isTrue(div.dataset.isEmpty());
+    Expect.equals('', div.dataset['foo']);
+    Expect.isTrue(div.dataset.isEmpty());
 
-    div.dataAttributes['foo'] = 'foo-value';
-    Expect.equals('foo-value', div.dataAttributes['foo']);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    div.dataset['foo'] = 'foo-value';
+    Expect.equals('foo-value', div.dataset['foo']);
+    Expect.isFalse(div.dataset.isEmpty());
 
-    Expect.isTrue(div.dataAttributes.containsValue('foo-value'));
-    Expect.isFalse(div.dataAttributes.containsValue('bar-value'));
-    Expect.isTrue(div.dataAttributes.containsKey('foo'));
-    Expect.isFalse(div.dataAttributes.containsKey('bar'));
+    Expect.isTrue(div.dataset.containsValue('foo-value'));
+    Expect.isFalse(div.dataset.containsValue('bar-value'));
+    Expect.isTrue(div.dataset.containsKey('foo'));
+    Expect.isFalse(div.dataset.containsKey('bar'));
 
     bool hasBeenInvoked;
     String f() {
@@ -52,16 +52,16 @@ main() {
     }
 
     hasBeenInvoked = false;
-    Expect.equals('bar-value', div.dataAttributes.putIfAbsent('bar', f));
+    Expect.equals('bar-value', div.dataset.putIfAbsent('bar', f));
     Expect.isTrue(hasBeenInvoked);
 
     hasBeenInvoked = false;
-    Expect.equals('bar-value', div.dataAttributes.putIfAbsent('bar', f));
+    Expect.equals('bar-value', div.dataset.putIfAbsent('bar', f));
     Expect.isFalse(hasBeenInvoked);
 
     final keys = <String> [];
     final values = <String> [];
-    div.dataAttributes.forEach(void f(String key, String value) {
+    div.dataset.forEach(void f(String key, String value) {
         keys.add(key);
         values.add(value);
     });
@@ -69,23 +69,23 @@ main() {
     Expect.setEquals(const <String> ['foo-value', 'bar-value'], values);
 
     Expect.setEquals(const <String> ['foo', 'bar'],
-                     new List<String>.from(div.dataAttributes.getKeys()));
+                     new List<String>.from(div.dataset.getKeys()));
     Expect.setEquals(const <String> ['foo-value', 'bar-value'],
-                     new List<String>.from(div.dataAttributes.getValues()));
+                     new List<String>.from(div.dataset.getValues()));
 
-    Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.equals(2, div.dataset.length);
+    Expect.isFalse(div.dataset.isEmpty());
 
-    Expect.isNull(div.dataAttributes.remove('qux'));
-    Expect.equals(2, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.isNull(div.dataset.remove('qux'));
+    Expect.equals(2, div.dataset.length);
+    Expect.isFalse(div.dataset.isEmpty());
 
-    Expect.equals('foo-value', div.dataAttributes.remove('foo'));
-    Expect.equals(1, div.dataAttributes.length);
-    Expect.isFalse(div.dataAttributes.isEmpty());
+    Expect.equals('foo-value', div.dataset.remove('foo'));
+    Expect.equals(1, div.dataset.length);
+    Expect.isFalse(div.dataset.isEmpty());
 
-    div.dataAttributes.clear();
-    Expect.equals(0, div.dataAttributes.length);
-    Expect.isTrue(div.dataAttributes.isEmpty());
+    div.dataset.clear();
+    Expect.equals(0, div.dataset.length);
+    Expect.isTrue(div.dataset.isEmpty());
   });
 }
