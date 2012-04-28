@@ -113,7 +113,6 @@ indexeddb_3_test: Fail
 
 # DOM errors.
 window_open_test: Fail # TypeError: Object [object Window] has no method 'close$0'
-htmlelement_test: Fail # TypeError: Object #<HTMLDivElement> has no method 'get$dataset'
 indexeddb_2_test: Fail # Uncaught error
 
 [ $compiler == dart2js && $runtime == none ]
