@@ -29,6 +29,7 @@ class LayoutTestController {
 
   LayoutTestController._(this._npObject);
 
+  display() => _npObject.invoke('display');
   dumpAsText() => _npObject.invoke('dumpAsText');
   notifyDone() => _npObject.invoke('notifyDone');
   setCanOpenWindows() => _npObject.invoke('setCanOpenWindows');
