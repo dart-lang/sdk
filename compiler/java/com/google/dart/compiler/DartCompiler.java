@@ -1185,6 +1185,9 @@ public class DartCompiler {
     Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context);
 
     LibraryUnit topLibUnit = compiler.updateAndResolve();
+    if (topLibUnit == null) {
+      return null;
+    }
 
     Map<URI, LibraryUnit> librariesToResolve;
     librariesToResolve = new HashMap<URI, LibraryUnit>();
