@@ -15,8 +15,8 @@ class _HMAC implements HMAC {
 
     // Hash the key if it is longer than the block size of the hash.
     if (_key.length > blockSize) {
-      _key = _hash.update(_key).digest();
       _hash = _hash.newInstance();
+      _key = _hash.update(_key).digest();
     }
 
     // Zero-pad the key until its size is equal to the block size of the hash.
@@ -36,8 +36,8 @@ class _HMAC implements HMAC {
     }
 
     // Inner hash computation.
-    var innerHash = _hash.update(padding).update(_message).digest();
     _hash = _hash.newInstance();
+    var innerHash = _hash.update(padding).update(_message).digest();
 
     // Compute outer padding.
     for (var i = 0; i < blockSize; i++) {
@@ -45,6 +45,7 @@ class _HMAC implements HMAC {
     }
 
     // Outer hash computation which is the result.
+    _hash = _hash.newInstance();
     return _hash.update(padding).update(innerHash).digest();
   }
 
