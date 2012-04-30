@@ -33,7 +33,6 @@
 #import("../compiler/tests/dartc/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
-#import("../samples/tests/samples/test_config.dart");
 #import("../tests/co19/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 
@@ -49,6 +48,7 @@ final TEST_SUITE_DIRECTORIES = const [
   'frog/tests/frog_native',
   'frog/tests/leg',
   'frog/tests/leg_only',
+  'samples/tests/samples',
   'tests/benchmark_smoke',
   'tests/corelib',
   'tests/dom',
@@ -101,9 +101,7 @@ main() {
 
     var conf = configurationIterator.next();
     for (String key in selectors.getKeys()) {
-      if (key == 'samples') {
-        queue.addTestSuite(new SamplesTestSuite(conf));
-      } else if (key == 'standalone') {
+      if (key == 'standalone') {
         queue.addTestSuite(new StandaloneTestSuite(conf));
       } else if (key == 'co19') {
         queue.addTestSuite(new Co19TestSuite(conf));
